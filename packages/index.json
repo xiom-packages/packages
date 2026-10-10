@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-10T22:10:06Z",
+    "updated":  "2026-10-11T00:02:49Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -3154,7 +3154,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.5",
+                         "version":  "0.1.6",
                          "name":  "xiom.http",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "XIOM HTTP Library -- types, parsing, client, and server",
@@ -3164,7 +3164,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-http/v0.1.5/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-http/v0.1.6/package.tar.gz",
                          "source_files":  [
                                               "client.xi",
                                               "cookie.xi",
@@ -8607,17 +8607,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.vulkan",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Vulkan capability probe for XIOM (runtime vulkan-1.dll, no SDK required, SKIP when absent)",
+                         "description":  "Vulkan bindings for XIOM via dynamic loader (vulkan-1.dll at runtime, no SDK required, SKIP when absent); capability probe + engine RHI bring-up (instance/device/queue/real submit)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vulkan/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vulkan/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "package.xi",
                                               "vulkan.xi"
