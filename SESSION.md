@@ -274,7 +274,7 @@ Then do, in order:
    batch**); `xiom.http` `src/client.xi`/`src/demo.xi` pre-existing T001 drift (dead
    modules; fix at the next http touch); **`xiom.http` consumer client link recipe
    (PULSE-verified 2026-10-10: bridge `--c-source` + `--link curl --link-path` needed;
-   document it and/or ship a non-test shim at the next http touch -- DONE 0.1.5, shim + recipe shipped)**; `xiom.metrics` has 3 real `Vec<` sites (`metrics.xi` 468/513/528, byte-verified) -- fix at its next touch; PULSE carry-forwards
+   document it and/or ship a non-test shim at the next http touch -- DONE 0.1.5, shim + recipe shipped)**; `xiom.metrics` 3 `Vec<` sites FIXED 2026-10-10 (`e7f62e9f`; 0 remaining, suite 40/40 x2); PULSE carry-forwards
    **DONE 2026-10-09** (static README path note + kv C-PULSE-10 regressions 30/30 -- both
    in-tree, no version bump yet, ride the next source touches).
 6. Carry-forwards: byte-level bracket scan on every touched package; SPEC headers synced
