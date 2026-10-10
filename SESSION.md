@@ -24,9 +24,14 @@ running). Check `git log -1 --format=%h %s` before starting.
   `flat_search` oracle + adapted recall harness; dep-root `xiom.toml` -> installed `xiom.vectors`
   0.1.0. On completion: port x2, recall probe x2, record, wrap, then the ops scope ask for
   `xiom.ann` (last extraction under the greenlight).
-- **IN FLIGHT: assimp 0.6.0 quiet-window re-verification** (background process
-  `bgp_1272b0c90001bWLUualzYyYMVw`, 1800 s C timeout in effect). On green: record 8/8, wrap,
-  and publish in the next eco batch; on failure keep it gated and relay.
+- **assimp chain (batches 30/31):** 0.6.0 passed 8/8 in the quiet window but **0.7.0 (OFF+SMD,
+  125 TUs) supersedes it** -- the batch-31 tip is merged (`21c4bf93`) and its native verification
+  is running in the background (`bgp_12730db85001eWKNqVfwmog92y`, watchdog 2400 s). On green:
+  record (lane reports 10/10 x2), wrap, publish 0.7.0; 0.2.0-0.6.0 stay unpublished history; the
+  batch-30 item gets fixed as superseded.
+- **Engine-lane asks routed to bindings** (`REL-20261010-1900-packages*`): image codec package
+  (stb_image/stb_image_write, P2) and the xiom.assimp consumer API contract (P2+); their items
+  acked in place.
 - **v0.64.3 repin done** (`849b24d3`; 522 records); release-check verdicts on the bus.
   **Verdict `-4` CORRECTED to still-open** -- C-ORBIT-06's with-twin T001 reproduces from the
   ORBITDB repo root; my earlier false PASS came from running `--check` inside the repro dir
