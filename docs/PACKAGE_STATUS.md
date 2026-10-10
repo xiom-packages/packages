@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.2` -- generated 2026-10-10T15:04:00Z.
+Toolchain pin: `v0.64.2` -- generated 2026-10-10T15:10:14Z.
 
 ## Summary
 
@@ -116,7 +116,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.hl7 | xiom-hl7 | stable | tests/test_conformance.xi | pass 23/23 | a583a8c5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.hostfile | xiom-hostfile | stable | tests/test_conformance.xi | pass 24/24 | cdfcf160 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.html | xiom-html | stable | tests/test_conformance.xi | pass 22/22 | c1278f47 | False | legacy bracket repair patch bump |
-| xiom.http | xiom-http | stable | tests/test_conformance.xi | pass 42/42 | c3b7aee0 | False | publish pending: native consumer-recipe pass 0.1.5 (eco-v0.1.125) |
+| xiom.http | xiom-http | stable | tests/test_conformance.xi | pass 42/42 | c3b7aee0 | False | published in eco-v0.1.125 (2026-10-10) |
 | xiom.humanize | xiom-humanize | stable | tests/test_conformance.xi | pass 24/24 | fbbb78d2 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.iban | xiom-iban | stable | tests/test_conformance.xi | pass 21/21 | fd6b4c1a | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ical | xiom-ical | stable | tests/test_conformance.xi | pass 22/22 | eefc7015 | False | legacy bracket repair patch bump |
@@ -355,7 +355,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.consul | xiom-consul | incubating | tests/test_conformance.xi | pass 24/24 | 3d5baddd | False | publish pending: next scope delta |
 | xiom.context | xiom-context | incubating | tests/test_conformance.xi | pass 23/23 | d509e4c4 | False | publish pending: next scope delta |
 | xiom.countdown | xiom-countdown | incubating | tests/test_conformance.xi | pass 22/22 | 9ed381f7 | False | publish pending: next scope delta |
-| xiom.cuda | xiom-cuda | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.cuda | xiom-cuda | incubating | tests/test_conformance.xi | pass 5/5 | 4bb65d14 | False | publish pending: bindings batch 25 (eco-v0.1.126) |
 | xiom.curl | xiom-curl | incubating | tests/test_conformance.xi | pass 26/26 | 8f231b87 | False | publish pending: next scope delta |
 | xiom.dac | xiom-dac | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.data | xiom-data | incubating | tests/test_conformance.xi | pass 24/24 | 546b9bac | False | publish pending: next scope delta |
