@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.3` -- generated 2026-10-10T18:47:58Z.
+Toolchain pin: `v0.64.3` -- generated 2026-10-10T19:08:09Z.
 
 ## Summary
 
-- packages tracked: 523
-- incubating: 242
+- packages tracked: 524
+- incubating: 243
 - ported: 1
 - stable: 280
 - publish enabled: 0
@@ -314,10 +314,11 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.actor | xiom-actor | incubating | tests/test_conformance.xi | pass 28/28 | 761842c9 | False | publish pending: next scope delta |
 | xiom.algo | xiom-algo | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.analyzer | xiom-analyzer | incubating | tests/test_conformance.xi | pass 23/23 | a0d17c7b | False | publish pending: next scope delta |
+| xiom.ann | xiom-ann | incubating | tests/test_conformance.xi | pass 24/24 | 493e44d0 | False | new name: pending ops scope + native-lane allowlist append |
 | xiom.ansible | xiom-ansible | incubating | tests/test_conformance.xi | pass 26/26 | 973754e8 | False | publish pending: next scope delta |
 | xiom.apple | xiom-apple | incubating | tests/test_conformance.xi | pass 21/21 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.arrow | xiom-arrow | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | unknown |  | False | batch 30 (0.6.0 BLEND): 8/8 verified once; re-verification pending a quiet window (clang exit -1 under concurrent multi-lane compiles; C timeout raised to 1800s) |
+| xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | pass 10/10 | dcbe6991 | False | publish pending: bindings batch 31 (xiom.assimp 0.7.0) |
 | xiom.ast | xiom-ast | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.audio-meta | xiom-audio-meta | incubating | tests/test_conformance.xi | pass 25/25 | bf525d98 | False | publish pending: next scope delta |
 | xiom.auth | xiom-auth | incubating | tests/test_conformance.xi | pass 24/24 | 4dec18c5 | False | category harmonization patch bump (registry metadata) |
@@ -533,7 +534,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.translate | xiom-translate | incubating | tests/test_conformance.xi | pass 28/28 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.ui | xiom-ui | incubating | tests/test_conformance.xi | pass 98/98 | ed680f75 | False |  |
 | xiom.vault | xiom-vault | incubating | tests/test_conformance.xi | pass 28/28 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
-| xiom.vectors | xiom-vectors | incubating | tests/test_conformance.xi | pass 37/37 | b8911083 | False | new name: pending ops scope + native-lane allowlist append |
+| xiom.vectors | xiom-vectors | incubating | tests/test_conformance.xi | pass 37/37 | b8911083 | False | published in eco-v0.1.131 (2026-10-10) |
 | xiom.video | xiom-video | incubating | tests/test_conformance.xi | pass 24/24 | e23f8e3a | False | publish pending: next scope delta |
 | xiom.vma | xiom-vma | incubating | tests/test_conformance.xi | pass 5/5 | 3b642f7c | False | published in eco-v0.1.124 (2026-10-09) |
 | xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 10/10 | 95757afa | False | publish pending: bindings batch 8 (eco-v0.1.100) |

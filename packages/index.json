@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-10T21:47:54Z",
+    "updated":  "2026-10-10T22:08:04Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -179,6 +179,28 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ann",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ANN index surface: AnnIndexKind/AnnParams with stable on-disk codes, the exact flat-scan oracle, and a multi-layer HNSW graph over flat parallel arrays",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              },
+                                              {
+                                                  "version":  "0.1.0",
+                                                  "name":  "xiom.vectors"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ann/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ann.xi",
+                                              "hnsw.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.ansible",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Configuration-management model: inventory, playbooks, module registry, typed facts, handlers and a deterministic executor",
@@ -280,17 +302,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.6.0",
+                         "version":  "0.7.0",
                          "name":  "xiom.assimp",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Open Asset Import Library (assimp v6.0.5) bindings for XIOM (vendored core + OBJ/STL/PLY/glTF2/COLLADA/FBX/BLEND importers; in-memory import probes)",
+                         "description":  "Open Asset Import Library (assimp v6.0.5) bindings for XIOM (vendored core + OBJ/STL/PLY/glTF2/COLLADA/FBX/BLEND/OFF/SMD importers; in-memory import probes)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-assimp/v0.6.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-assimp/v0.7.0/package.tar.gz",
                          "source_files":  [
                                               "assimp.xi",
                                               "package.xi"
