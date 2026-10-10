@@ -1,5 +1,12 @@
 # Bindings-lane compiler findings (xiom-packages bindings lane)
 
+> **Relay bus (2026-10-10):** open findings are now tracked on
+> `xiom-lang/xiom-relays`: B-02 `REL-20261010-1548-bindings-6`, B-05 `-5`,
+> B-07 `-4`, B-10 `-3`, B-11 `-2`, and the C++ standard passthrough ask
+> `-7`. This file keeps the full evidence + closed history; move status on
+> the bus, not here.
+
+
 Findings collected while building the FFI/binding packages (`xiom.sqlite`
 pilot) on the pinned toolchain, with runnable reductions in
 `docs/repro/bindings-pilot/`.

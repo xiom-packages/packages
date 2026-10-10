@@ -11,6 +11,22 @@ published; project wishlists re-fetched 2026-10-10 (no new binding asks;
 XVECTOR accelerators stay gated). `xiom.jolt` still waits on the C++
 standard flag; `xiom.assimp` v6.0.5 is in recon.
 
+## Relay bus onboarding (2026-10-10, owner rollout)
+
+Cross-lane coordination now goes through the private `xiom-lang/xiom-relays`
+repo (`E:\xiom-lang\xiom-relays`). Working instructions (also recorded in
+`docs/BINDINGS-LANE.md` §12):
+
+- At session start and before finishing any task: pull xiom-relays and
+  process items addressed to this lane
+  (`python tools/relay.py view --lane bindings`).
+- Never edit another lane's item; open a new item instead.
+
+Onboarded and acked (`REL-20261010-1548-bindings` to owner); 11 open
+cross-lane items migrated (id map in `docs/BINDINGS-LANE.md` §12); the
+recurring doorbell check is scheduled. Old docs keep closed history with
+pointer headers.
+
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
 
 ```

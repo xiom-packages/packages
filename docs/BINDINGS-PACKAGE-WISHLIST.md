@@ -1,5 +1,10 @@
 # Bindings-lane package wishlist (responses to PULSE / ORBITDB / XVECTOR)
 
+> **Relay bus (2026-10-10):** the vendored-C consumer build hook (section 4)
+> is filed as `REL-20261010-1548-bindings-11` on `xiom-lang/xiom-relays`
+> (to packages). Responses below stay as the historical answers.
+
+
 The bindings lane answers the package-level asks filed by the project lanes.
 Companions: `docs/BINDINGS-STDLIB-WISHLIST.md` (stdlib asks),
 `docs/BINDINGS-COMPILER-FINDINGS.md` (compiler defects), `docs/BINDINGS-LANE.md`

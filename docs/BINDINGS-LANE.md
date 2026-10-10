@@ -258,3 +258,23 @@ published 2026-10-09T15:18:12Z. The openssl **system-lib decision is ACKED**
   those constraints; heavy runtimes (`onnx`/`opencv`) and accelerators stay
   gated (the latter on XVECTOR freezing `xiom.vectors`).
 
+## 12. Relay bus (xiom-relays, owner rollout 2026-10-10)
+
+Cross-lane coordination goes through the private `xiom-lang/xiom-relays`
+repo (cloned at `E:\xiom-lang\xiom-relays`); one item per issue, no
+copy-pasted relays. Working instructions for this lane:
+
+- At session start and before finishing any task: pull xiom-relays and
+  process items addressed to your lane
+  (`python tools/relay.py view --lane bindings`).
+- Never edit another lane's item; open a new item instead.
+
+Migrated open items (2026-10-10): compiler -- `REL-20261010-1548-bindings-2`
+(B-11 slot recycle), `-3` (B-10 alloc-name), `-4` (B-07 alias shadow), `-5`
+(B-05 guard spin), `-6` (B-02 const resolver), `-7` (C++ standard
+passthrough); stdlib -- `-8` (guard-aware free / confinement rule), `-9`
+(Vec sized buffer), `-10` (dl out-param recipe); packages -- `-11`
+(vendored-C consumer build hook); owner ack --
+`REL-20261010-1548-bindings`. Closed history stays in this worktree's docs
+with pointer headers.
+
