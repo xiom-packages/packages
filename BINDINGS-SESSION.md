@@ -3,13 +3,15 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: SWEEP DONE (2026-10-10 17:52Z)** -- batches 21-29 published
-(`eco-v0.1.122`..`eco-v0.1.130`; batch 29 `xiom.assimp` 0.5.0 = `eco-v0.1.130`
-sha256 `c06a5131...`). Compiler **v0.64.3 released**; release-check sweep ran:
-B-02 + the C++ standard ask **verified** (16/16 reconstruction; cxx17
-`--c-source` green -> `xiom.jolt` unblocked); B-05/B-07/B-10/B-11 reproduced
-on v0.64.3 and returned to acked (queued for the v0.64.4 batch). Doorbell
-armed (`0 */3 * * *`).
+**STATUS: SWEEP DONE + -7 CORRECTION (2026-10-10 18:25Z)** -- batches 21-29
+published (`eco-v0.1.122`..`eco-v0.1.130`; batch 29 `xiom.assimp` 0.5.0 =
+`eco-v0.1.130` sha256 `c06a5131...`). Compiler **v0.64.3 released**;
+release-check sweep ran: **B-02 verified** (16/16 reconstruction);
+**the C++ standard ask is NOT fixed** -- the sweep's "verified" verdict was a
+false positive (`if constexpr` is a clang C++14 extension; correction item
+`REL-20261010-1815-bindings`, release-check row corrected) -> `xiom.jolt`
+stays staged/blocked. B-05/B-07/B-10/B-11 reproduced on v0.64.3 and
+re-queued for the v0.64.4 batch. Doorbell armed (`0 */3 * * *`).
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -34,12 +36,14 @@ clone: stage ONLY your own item files). The two working rules are in
   merged (packages tip `d96f4112`), **published** `eco-v0.1.130` (live sha256
   `c06a5131...`); bus item `REL-20261010-1655-bindings` fixed.
 - **Open items from this lane** (release-check `compiler-v0.64.3` verdicts:
-  `-6` B-02 and `-7` C++ passthrough **verified**; `-2/-3/-4/-5` reproduced
-  and re-queued for v0.64.4): `-2` B-11 slot recycle, `-3` B-10 alloc-name
-  (m246 covers the plain local-fn shape only), `-4` B-07 alias shadow, `-5`
-  B-05 guard spin, `-6` B-02 const resolver (verified), `-7` C++ standard
-  passthrough (verified -- jolt unblocked), `-8` guard-aware free, `-9` Vec
-  sized buffer, `-10` dl out-param recipe, `-11` vendored-C consumer hook.
+  `-6` B-02 **verified**; `-7` C++ passthrough **corrected to NOT fixed**
+  (false-positive verdict; `REL-20261010-1815-bindings`); `-2/-3/-4/-5`
+  reproduced and re-queued for v0.64.4): `-2` B-11 slot recycle, `-3` B-10
+  alloc-name (m246 covers the plain local-fn shape only), `-4` B-07 alias
+  shadow, `-5` B-05 guard spin, `-6` B-02 const resolver (verified), `-7`
+  C++ standard passthrough (**not fixed -- jolt stays blocked**), `-8`
+  guard-aware free, `-9` Vec sized buffer, `-10` dl out-param recipe, `-11`
+  vendored-C consumer hook.
 - **Incoming items**: `REL-20261010-1550-xvector-11` (accelerator gate, acked),
   `REL-20261010-1600-packages` (bus routing, acked).
 - Detailed evidence: relay blocks + notes below; bus digests via
@@ -58,9 +62,14 @@ clone: stage ONLY your own item files). The two working rules are in
    `packages/xiom-assimp/tools/combine.py` (`ENABLED`,
    `ASSET_DIRS_BY_IMPORTER`, `CONTRIB_MIRROR`, `CONTRIB_EXTRA`); check each
    importer's own guard names (glTF2 adds `ASSIMP_BUILD_NO_GLTF2_IMPORTER`).
-4. **`xiom.jolt` is unblocked** (C++17 verified on v0.64.3): resume the
-   staged generator at `packages/xiom-jolt/tools/combine.py` (tags + SPEC
-   already exist). B-05/B-07/B-10/B-11 sit with the compiler for v0.64.4.
+4. **`xiom.jolt` is STAGED, BLOCKED**: the v0.64.3 "verified" verdict was a
+   false positive (`if constexpr` is a C++14 clang extension; correction
+   `REL-20261010-1815-bindings`, release-check row fixed). The vendored
+   generator + bridge + module + suite are committed and validated under
+   `-std=c++17`; `vendor/` regenerates with `tools/combine.py` (recipe in
+   `packages/xiom-jolt/AUDIT.md`). Unblock = `--cxx-standard` (or a gnu++17
+   default) from the compiler lane. B-05/B-07/B-10/B-11 sit with the
+   compiler for v0.64.4.
 5. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
    go-ahead; accelerators stay gated on the `xiom.vectors` extraction
    (`REL-...-1550-xvector-11`).
