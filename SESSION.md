@@ -20,8 +20,10 @@ running). Check `git log -1 --format=%h %s` before starting.
   sha256 `c06a5131...` (17:06:27Z) -> bus fixed. Versions 0.2.0-0.5.0 all live; **0.5.0 is the
   go-forward**.
 - The 17:00Z doorbell cron fired and caught batch 29 within minutes -- cadence proven.
-- Next in-lane: `xiom.http` dead-module repair (`src/client.xi`/`src/demo.xi`; ride the next http
-  source bump). Parked bus items unchanged; owner greenlight for `xiom.vectors` pending.
+- `xiom.http` dead-module repair **DONE** (`c2328531`): `src/client.xi`/`src/demo.xi` compile
+  clean (combined `--check` 0 T001s via the new `tests/probe_all_modules.xi`; suite 42/42 x2;
+  rides the next source bump). Parked bus items unchanged; owner greenlight for `xiom.vectors`
+  pending.
 - Session tally: **46 eco releases** (`eco-v0.1.86` -> `eco-v0.1.130`).
 
 **STATE AT 2026-10-10 16:50Z (history -- superseded by the 17:10Z block above):**
@@ -339,7 +341,7 @@ Then do, in order:
    batch**); `xiom.http` `src/client.xi`/`src/demo.xi` pre-existing T001 drift (dead
    modules; fix at the next http touch); **`xiom.http` consumer client link recipe
    (PULSE-verified 2026-10-10: bridge `--c-source` + `--link curl --link-path` needed;
-   document it and/or ship a non-test shim at the next http touch -- DONE 0.1.5, shim + recipe shipped)**; `xiom.metrics` 3 `Vec<` sites FIXED 2026-10-10 (`e7f62e9f`; 0 remaining, suite 40/40 x2); PULSE carry-forwards
+   document it and/or ship a non-test shim at the next http touch -- DONE 0.1.5, shim + recipe shipped)**; `xiom.http` dead-module drift FIXED 2026-10-10 (`c2328531`, all-modules guard probe added); `xiom.metrics` 3 `Vec<` sites FIXED 2026-10-10 (`e7f62e9f`; 0 remaining, suite 40/40 x2); PULSE carry-forwards
    **DONE 2026-10-09** (static README path note + kv C-PULSE-10 regressions 30/30 -- both
    in-tree, no version bump yet, ride the next source touches).
 6. Carry-forwards: byte-level bracket scan on every touched package; SPEC headers synced
