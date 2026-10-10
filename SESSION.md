@@ -14,7 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-10 17:10Z (LIVE HANDOFF -- bindings batch 29 PUBLISHED (assimp 0.5.0 FBX); bus batches 26-29 all delivered):**
+**STATE AT 2026-10-10 18:55Z (LIVE HANDOFF -- `xiom.vectors` 0.1.0 PUBLISHED via `eco-v0.1.131`; C-ORBIT-06 verdict corrected; assimp 0.6.0 gated):**
+- **`xiom.vectors` 0.1.0 LIVE:** owner greenlight -> extraction (feat `b8911083`) -> **37/37 x2** +
+  codec probe x2 on v0.64.3 -> ops scope LIVE -> allowlist 508 -> 509 -> **published
+  `eco-v0.1.131`** (run `38077260607`; sha256 `3f2a0d1d...` @18:51:33Z); guard **509/491/18/0**;
+  bus items fixed (`REL-20261010-1830-ops`, `REL-20261010-1550-xvector-9`). **`xiom.ann` is next**
+  under the same greenlight (vectors is registry-live and installable for its dep); write its
+  brief and dispatch in the next cycle.
+- **v0.64.3 repin done** (`849b24d3`; 522 records); release-check verdicts on the bus.
+  **Verdict `-4` CORRECTED to still-open** -- C-ORBIT-06's with-twin T001 reproduces from the
+  ORBITDB repo root; my earlier false PASS came from running `--check` inside the repro dir
+  (thanks to ORBITDB's `REL-20261010-1802-orbitdb`).
+- **assimp 0.6.0 (batch 30) GATED:** the 111-TU build is flaky under concurrent multi-lane
+  compiles (clang exit -1 at varying points; 71 GB free -> not memory). C timeout raised
+  900 -> 1800 (`d5f9a966`); record set `tests=unknown` so `eco-v0.1.131` skipped it; bindings
+  informed (`REL-20261010-1852-packages`). Re-verify in a quiet window, then record + publish.
+- Session tally: **47 eco releases** (`eco-v0.1.86` -> `eco-v0.1.131`).
+
+**STATE AT 2026-10-10 17:10Z (history -- superseded by the 18:55Z block above):**
 - Batch 29 `REL-20261010-1655-bindings`: tip `772b355c` -> merge `d96f4112` -> native **7/7 x2**
   (FBX ASCII minimal-document import, 111 TUs) -> `eco-v0.1.130` (run `38070332477`) -> live
   sha256 `c06a5131...` (17:06:27Z) -> bus fixed. Versions 0.2.0-0.5.0 all live; **0.5.0 is the
