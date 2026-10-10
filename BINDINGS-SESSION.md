@@ -3,12 +3,13 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 25 RELAYED (merge-ready)** -- `xiom.cuda` 0.2.0 (driver-API
-probe via runtime `nvcuda.dll`; nothing vendored; live RTX 3070 Ti 5/5 x2:
-driver 13.4, cc 8.6, device-memory round trip). Project wishlists re-fetched
-(no new binding asks; XVECTOR accelerators stay gated). Batch 24 is
-PUBLISHED (`eco-v0.1.124`); `xiom.jolt` still waits on the C++ standard
-flag.
+**STATUS: ALL RELAYED BATCHES PUBLISHED** -- `xiom.cuda` 0.2.0 is live
+(`eco-v0.1.126`, sha256 325aa2cb..., native-verified 5/5 x2 live on the
+RTX 3070 Ti); `xiom.http` 0.1.5 is live (`eco-v0.1.125`: shim + consumer
+recipe shipped -- PULSE link finding RESOLVED). Batches 21-25 are
+published; project wishlists re-fetched 2026-10-10 (no new binding asks;
+XVECTOR accelerators stay gated). `xiom.jolt` still waits on the C++
+standard flag; `xiom.assimp` v6.0.5 is in recon.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
 
@@ -1108,11 +1109,12 @@ in this file, and any new compiler finding appended to
 
 ## Next (state at 2026-10-09, batch 23 pushed)
 
-- Batch 25 (`xiom.cuda` 0.2.0) is relayed and pushed: waiting on the native
-  merge/verify/publish. Batch 24 is PUBLISHED (`eco-v0.1.124`);
+- Batches 21-25 are PUBLISHED (`eco-v0.1.122`..`eco-v0.1.126`):
+  everything relayed is live and native-verified; `xiom.http` 0.1.5
+  (`eco-v0.1.125`) resolved the PULSE client-link finding (shim + recipe).
   `xiom.jolt` v5.6.0 stays blocked on the link-line C++ standard
   passthrough; finding B-11 (slot recycle on Vulkan-heavy calls) is with
-  the runtime lane.
+  the runtime lane; `xiom.assimp` v6.0.5 recon is in progress.
 - Pin matrix re-run done: 19/19 green on the official v0.64.2 pin. The
   B-01 workaround is retired; B-05/B-10 workarounds stay in force; B-08
   probing may trust exit codes from v0.64.2 on (port.ps1 keeps marker
