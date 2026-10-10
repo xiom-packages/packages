@@ -9,6 +9,7 @@ HTTP/1.1 types, request/response parsers, client helpers, and a (stub) server sh
 > ships `bridge/xiom_http_shims.c` and the consumer client build recipe below,
 > verified end-to-end against real libcurl 8.22.0 (GET `example.com` -> 200,
 > echo POST -> 200). Suite **42/42 x2** + root probe x2 on the pin (v0.64.2).
+> Published in `eco-v0.1.125` (sha256 `2d5592af...`).
 
 ## Consumer quickstart (3 lines)
 

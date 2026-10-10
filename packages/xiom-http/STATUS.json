@@ -13,5 +13,5 @@
                   "checked":  "2026-10-10T15:03:47Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: native consumer-recipe pass 0.1.5 (eco-v0.1.125)"
+    "excluded_reason":  "published in eco-v0.1.125 (2026-10-10)"
 }
