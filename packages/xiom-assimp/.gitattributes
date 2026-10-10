@@ -1,0 +1,4 @@
+# Vendored upstream sources must stay byte-identical to the upstream tree
+# (the generated include rewrite is produced by tools/combine.py; see
+# SPEC.md section 2). Disable end-of-line conversion for the whole vendor tree.
+vendor/** -text
