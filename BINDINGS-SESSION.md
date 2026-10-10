@@ -13,7 +13,11 @@ compiler finding **B-12** (fp returns through cast calls; repro bundle)
 filed; `xiom.glfw` value checks carry labelled SKIPs for it. Engine lane:
 items acked; build order #1 delivered -- #2 (surface/swapchain/present)
 next. `E:\repos` official upstreams noted for full-coverage generation.
-ffmpeg growth waits on a shared+dev build request. Doorbell armed
+ffmpeg growth waits on a shared+dev build request. **Batch 34 (`xiom.stb`
+0.2.0: vendored stb_image + stb_image_write; in-memory PNG encode+decode
+round trip (85 B, checksum 8400) + 1x1 red BMP decode; 5/5 x2;
+ALLOWLIST-APPEND ask filed -- the name was excluded as declaration-only)
+also committed and relayed.** Doorbell armed
 (`0 */3 * * *`).
 
 ## RESUME HERE (handoff, 2026-10-10)
@@ -65,6 +69,12 @@ clone: stage ONLY your own item files). The two working rules are in
   1.4.x loader rejects a device passed to `vkGetInstanceProcAddr` (VUID;
   fast-fail). feat `93943978` + record commit; relayed to packages. Next:
   build order #2 (Win32 surface + swapchain + present) via the glfw HWND.
+- **Batch 34** (`xiom.stb` 0.2.0: vendored stb_image + stb_image_write at
+  commit `2c980bb5...`; one TU + probe bridge; PNG 85-byte encode +
+  pixel-exact decode (checksum 8400) + 1x1 red BMP decode; **5/5 x2**):
+  feat `a369fa52` + record commit; relayed with an ALLOWLIST-APPEND ask;
+  closes the engine lane's image-codec wishlist
+  (`REL-20261010-1900-packages`).
 - **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
   feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
   merged (packages tip `d96f4112`), **published** `eco-v0.1.130` (live sha256
