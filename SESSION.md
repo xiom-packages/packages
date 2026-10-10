@@ -249,9 +249,11 @@ Then do, in order:
 5. Queued package defects at next touches: `xiom.grpc` alias-qualified/triplicate-sibling
    interplay re-check after the compiler fix (**still open on v0.64.2 -- next compiler
    batch**); `xiom.http` `src/client.xi`/`src/demo.xi` pre-existing T001 drift (dead
-   modules; fix at the next http touch); PULSE carry-forwards **DONE 2026-10-09** (static
-   README path note + kv C-PULSE-10 regressions 30/30 -- both in-tree, no version bump yet,
-   ride the next source touches).
+   modules; fix at the next http touch); **`xiom.http` consumer client link recipe
+   (PULSE-verified 2026-10-10: bridge `--c-source` + `--link curl --link-path` needed;
+   document it and/or ship a non-test shim at the next http touch)**; PULSE carry-forwards
+   **DONE 2026-10-09** (static README path note + kv C-PULSE-10 regressions 30/30 -- both
+   in-tree, no version bump yet, ride the next source touches).
 6. Carry-forwards: byte-level bracket scan on every touched package; SPEC headers synced
    when touched; bump ONLY when source changes; `Result ==` for Vec/container payloads and
    `is Ok(<literal>)` are CLEARED on v0.64.2 (Map/Set `==` stays banned); never rename raw

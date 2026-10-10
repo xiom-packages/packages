@@ -283,3 +283,48 @@ suite 120/120 x2 Win+WSL"):
   `xiom.wal` is the single WAL home (their local copies stay until then).
 - `xiom-blas`/`xiom-eigen`/`xiom-openblas` remain pre-rostered incubating stubs (bindings
   lane, unscheduled); no pure-XIOM SIMD package is planned.
+
+## 10. Lane wishlist fetch 2026-10-10 (14:55Z) -- PULSE / ORBITDB / XVECTOR
+
+All three lane repos fetched and their `docs/PACKAGE-WISHLIST-*.md` read (overnight state):
+
+**PULSE** (`xiom-pulse`, synced; HEAD `8ad77d3` "wrap 14 digest -- 0.2 PULSE-side slate
+complete, interop green"):
+- 0.2 PULSE-side slate complete; the first **ORBITDB + XVECTOR consumer conformance probes**
+  landed green (`6171304`).
+- **NEW consumer finding (2026-10-10, verified): the `xiom.http` client link flow** -- calling
+  `http_get`/`http_post` fails at link (`undefined symbol: curl_easy_*` + `xiom_read_byte`)
+  unless the build uses the bridge C file (`--c-source`) plus `--link curl --link-path ..`;
+  PULSE keeps the libcurl transport isolated and will adopt once the hook is
+  ergonomic/documented. Recorded as a `docs/COMPILER-FINDINGS.md` row (consumer build-hook
+  family; the package's bridge currently lives under `tests\`).
+- sqlite addendum: the README recipe makes adoption documented, not blocked; the ergonomic
+  build-hook fix stays filed on the compiler/bindings side. No new package asks; kv/fsync
+  gates unchanged.
+
+**ORBITDB** (`xiom-orbitdb`, ahead 4; HEAD `d9ef464` hybrid-integration wrap, `54b3209`):
+- Hybrid integration with XVECTOR wrapped: probe/harness green x2, **XV-ORBITDB-01**,
+  **C-ORBIT-06** filed.
+- **NEW compiler finding C-ORBIT-06** (phantom import silently accepted; a foreign twin turns
+  it hard; repro bundle `docs/repro/phantom-core-import/`) -- cross-filed into
+  `docs/COMPILER-FINDINGS.md`; their workaround is applied lane-side.
+- `xiom.btree` **order-3 delete defect is still unfixed** in `engine.xi` (no merge guard, no
+  `order >= 4` restatement, no doc response yet): the packaged carve keeps the documented
+  limitation and the re-sync stays queued. Their wishlist body still predates our sections
+  8/9 (pin `6bb40bb0`); they will catch up on the wal/btree publications and the durable
+  reconciliation at their next fetch.
+
+**XVECTOR** (`xiom-xvector`, ahead 26; HEAD `530b041` M-R wrap; **v1.0.0-rc.1 released**
+`5226226` with owner handoff):
+- rc.1 state: readiness 80%; their wishlist documents `xiom.wal` live and verified via the
+  registry metadata API. `xiom.vectors` extraction remains **owner-greenlight pending**
+  (porter brief staged on our side); accelerators (bindings) unlock after that extraction.
+- No new package asks; `xiom.metrics` fine at Phase 10; `xiom.kv` gated on C-PULSE-10 +
+  fsync unchanged.
+
+**Our side since their last fetch (for relay/awareness):** `xiom.wal` + `xiom.btree` are
+published (`eco-v0.1.121`, ops-verified byte-for-byte); `xiom.durable` **port + WAL
+reconciliation DONE** (152/152 x2; `src/wal/*` removed; consumes `xiom.wal` 0.1.0 via
+`xiom.toml` dep-root) -- the single-WAL-home is now real in practice; `xiom.http` 0.1.4,
+`xiom.ffmpeg` 0.2.0, `xiom.sqlite` 0.3.0, `xiom.box2d` 0.2.0, `xiom.imgui` 0.2.0 and
+`xiom.vma` 0.2.0 are all live (40 eco releases).
