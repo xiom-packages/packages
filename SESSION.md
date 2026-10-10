@@ -14,7 +14,21 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-10 19:15Z (LIVE HANDOFF -- `xiom.ann` extracted (ops ask filed); `xiom.assimp` 0.7.0 + `xiom.glfw` 0.3.0 PUBLISHED via `eco-v0.1.132`):**
+**STATE AT 2026-10-10 21:15Z (doorbell cycle -- bindings batch 33 + `xiom.http` 0.1.6 PUBLISHED via `eco-v0.1.133`; `xiom-pkg` WSL bug routed to compiler):**
+- **`xiom.vulkan` 0.3.0 PUBLISHED** (batch 33; merge `3acce9a5`): engine RHI bring-up --
+  instance + `VK_KHR_win32_surface`, device/queue, command pool, **real submit/wait round trip**;
+  native **15/15 x2** on the RTX 3070 Ti; `eco-v0.1.133` sha256 `668b143b...` @21:07:37Z.
+- **`xiom.http` 0.1.6 PUBLISHED** (xvector wishlist `REL-20261010-2002-xvector`): `http_status_text`
+  gains **507 Insufficient Storage** + the documented `Unknown` fallback contract; `xiom.router`
+  SPEC status refreshed; suite **42/42 x2**; `eco-v0.1.133` sha256 `bb8a5029...` @21:05:11Z.
+  Guard **509/492/17/0**; validate 524/0; bus items 33 + 507 fixed.
+- **`xiom-pkg` WSL XIOM_HOME path-mangling bug** (xvector `REL-20261010-1937-xvector`): acked and
+  **routed to the compiler lane** (new item; relates to `REL-20261010-1549-packages-7`).
+- Still pending: the **`xiom.ann` ops scope confirmation** (`REL-20261010-1908-packages`;
+  build-green, awaiting live) -- on confirmation: allowlist 509 -> 510 + publish.
+- Session tally: **49 eco releases** (`eco-v0.1.86` -> `eco-v0.1.133`).
+
+**STATE AT 2026-10-10 19:15Z (history -- superseded by the 21:15Z block above):**
 - **`xiom.ann` 0.1.0 extracted + verified** (owner-greenlit follow-on): `AnnIndexKind`/`AnnParams`
   (on-disk codes 1/2/3) + `flat_search` oracle + multi-layer HNSW over flat arrays; port **24/24
   x2** + recall harness x2 (recall@10 **1.000** at ef=64, **0.9867** at ef=8); feat `493e44d0`,
