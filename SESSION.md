@@ -18,9 +18,15 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **`xiom.vectors` 0.1.0 LIVE:** owner greenlight -> extraction (feat `b8911083`) -> **37/37 x2** +
   codec probe x2 on v0.64.3 -> ops scope LIVE -> allowlist 508 -> 509 -> **published
   `eco-v0.1.131`** (run `38077260607`; sha256 `3f2a0d1d...` @18:51:33Z); guard **509/491/18/0**;
-  bus items fixed (`REL-20261010-1830-ops`, `REL-20261010-1550-xvector-9`). **`xiom.ann` is next**
-  under the same greenlight (vectors is registry-live and installable for its dep); write its
-  brief and dispatch in the next cycle.
+  bus items fixed (`REL-20261010-1830-ops`, `REL-20261010-1550-xvector-9`).
+- **IN FLIGHT (this cycle): `xiom.ann` extraction porter** (`ses_ed8d44a16ffeKiXk0MuKK665Mf`; brief
+  `%TEMP%\kilo\ann-extraction-porter-brief.md`) -- HNSW carve + ann_index types/codes + local
+  `flat_search` oracle + adapted recall harness; dep-root `xiom.toml` -> installed `xiom.vectors`
+  0.1.0. On completion: port x2, recall probe x2, record, wrap, then the ops scope ask for
+  `xiom.ann` (last extraction under the greenlight).
+- **IN FLIGHT: assimp 0.6.0 quiet-window re-verification** (background process
+  `bgp_1272b0c90001bWLUualzYyYMVw`, 1800 s C timeout in effect). On green: record 8/8, wrap,
+  and publish in the next eco batch; on failure keep it gated and relay.
 - **v0.64.3 repin done** (`849b24d3`; 522 records); release-check verdicts on the bus.
   **Verdict `-4` CORRECTED to still-open** -- C-ORBIT-06's with-twin T001 reproduces from the
   ORBITDB repo root; my earlier false PASS came from running `--check` inside the repro dir
