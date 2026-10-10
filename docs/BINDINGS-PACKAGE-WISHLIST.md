@@ -92,6 +92,25 @@ v0.64.2. Accelerators remain the one unscheduled sector, behind the
   `fsync` row (filed in their own stdlib wishlists); not a bindings ask,
   noted for routing.
 
+## Refetch 2026-10-10 (post-batch-24)
+
+Re-fetched all three project wishlists (new revisions: PULSE 10-10 01:47,
+ORBITDB 10-09 21:15, XVECTOR 10-10 00:37). **No new binding asks.**
+
+- PULSE: the durable-DB ask remains SERVED (sqlite/libpq/odbc live and
+  signed). New consumer note: the `xiom.http` 0.1.4 libcurl client links
+  only with the bridge C file + `--link curl --link-path ..` -- the same
+  C-consumption-hook family as sqlite, already filed on the
+  packages/compiler side; nothing for this lane.
+- ORBITDB: no FFI asks (confirmed again); `xiom.wal`/`xiom.btree` are
+  native/registry extractions; `xiom.db` is their product.
+- XVECTOR: the accelerator row stays GATED (owner greenlight pending for
+  the `xiom.vectors` extraction; the bindings lane picks up accelerators
+  once it lands). `xiom.wal` 0.1.0 is registry-live and XVECTOR aligns its
+  codec.
+- Registry deltas noted: `xiom.wal` 0.1.0 live, `xiom.btree` 0.1.0
+  in-tree, batches 21-24 published through `eco-v0.1.124`.
+
 ## Routing
 
 - PULSE/ORBITDB/XVECTOR file asks in their own wishlists; the packages lane

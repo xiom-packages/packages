@@ -3,14 +3,32 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 24 RELAYED (merge-ready)** -- `xiom.vma` 0.2.0 (vendored VMA
-v3.4.0 + pinned Vulkan-Headers core; live RTX 3070 Ti probe 5/5 x2) with
-finding **B-11** recorded (Vulkan-heavy calls recycle out-param slot memory;
-packed-return workaround shipped; repro bundle committed). Batches 21-23 are
-published (`eco-v0.1.122`/`123`); `xiom.jolt` still waits on the C++
-standard flag.
+**STATUS: BATCH 25 RELAYED (merge-ready)** -- `xiom.cuda` 0.2.0 (driver-API
+probe via runtime `nvcuda.dll`; nothing vendored; live RTX 3070 Ti 5/5 x2:
+driver 13.4, cc 8.6, device-memory round trip). Project wishlists re-fetched
+(no new binding asks; XVECTOR accelerators stay gated). Batch 24 is
+PUBLISHED (`eco-v0.1.124`); `xiom.jolt` still waits on the C++ standard
+flag.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 25: head=8027e46e + this handoff commit; packages=xiom.cuda 0.2.0
+(CUDA driver-API probe replacing the pre-pilot Toolkit static-extern surface; NOTHING
+vendored -- nvcuda.dll is a system component loaded at runtime, entry points via
+GetProcAddress); tests=5/5 x2 (bogus-module SKIP classification; live probe: driver API
+13040 (13.4), 1 device, 'NVIDIA GeForce RTX 3070 Ti', compute capability 806 (8.6), fresh
+context + 64 KiB cuMemAlloc + HtoD/DtoH pattern round trip verified); licenses=package
+MIT OR Apache-2.0 (the CUDA driver itself is proprietary, not vendored); pins=soname
+nvcuda.dll + 11-entry-point set (_v2 stable ABI) + constants (CUDA_SUCCESS=0,
+NO_DEVICE=100, attributes 75/76) + local sample (System32 nvcuda.dll 4,790,504 B,
+version 32.0.16.1692, sha256 F2B550E8...); gate=G0..G5 OK; needs=NONE
+(grandfathered/allowlisted); port.args.json present (one --c-source bridge TU;
+packed/scalar returns per B-11).
+WISHLISTS: PULSE/ORBITDB/XVECTOR re-fetched (10-10 revisions) -- no new binding asks
+(PULSE served; ORBITDB pure-XIOM; XVECTOR accelerators still gated on the xiom.vectors
+extraction); status recorded in docs/BINDINGS-PACKAGE-WISHLIST.md.
+```
 
 ```
 BINDINGS BATCH 24: head=db7cb594 + this handoff commit; packages=xiom.vma 0.2.0
@@ -704,6 +722,22 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Batch 25 notes (xiom.cuda + wishlist refetch, 2026-10-10)
+
+- `xiom.cuda` 0.2.0: driver-API-only probe (no Toolkit needed -- the
+  system `nvcuda.dll` ships with the driver); one packed-return bridge call
+  caches version/count/name/cc/memtest (B-11-safe ABI); 5/5 x2 with real
+  device-memory traffic on the RTX 3070 Ti.
+- Wishlist refetch (2026-10-10 revisions): no new binding asks; PULSE's
+  durable-DB ask stays served (its new note is the `xiom.http` libcurl
+  link-hook, already filed on the packages/compiler side); ORBITDB files
+  no FFI; XVECTOR keeps the accelerator row gated on the `xiom.vectors`
+  extraction (owner greenlight pending on their side). Recorded in
+  `docs/BINDINGS-PACKAGE-WISHLIST.md`.
+- Roster after this batch: `assimp` remains the last big graphics item;
+  `jolt` blocked on the C++ standard flag; heavy runtimes need the native
+  go-ahead; accelerators gated.
+
 ## Batch 24 notes (xiom.vma + finding B-11, 2026-10-09)
 
 - `xiom.vma` 0.2.0: vendored header-only path; the bridge is the only TU;
@@ -1074,20 +1108,19 @@ in this file, and any new compiler finding appended to
 
 ## Next (state at 2026-10-09, batch 23 pushed)
 
-- Batch 24 (`xiom.vma` 0.2.0) is relayed and pushed: waiting on the native
-  merge/verify/publish. Batches 21-23 are PUBLISHED
-  (`eco-v0.1.122`/`eco-v0.1.123`); `xiom.jolt` v5.6.0 stays blocked on the
-  link-line C++ standard passthrough; finding B-11 (slot recycle on
-  Vulkan-heavy calls) is relayed with a repro bundle + workaround.
+- Batch 25 (`xiom.cuda` 0.2.0) is relayed and pushed: waiting on the native
+  merge/verify/publish. Batch 24 is PUBLISHED (`eco-v0.1.124`);
+  `xiom.jolt` v5.6.0 stays blocked on the link-line C++ standard
+  passthrough; finding B-11 (slot recycle on Vulkan-heavy calls) is with
+  the runtime lane.
 - Pin matrix re-run done: 19/19 green on the official v0.64.2 pin. The
   B-01 workaround is retired; B-05/B-10 workarounds stay in force; B-08
   probing may trust exit codes from v0.64.2 on (port.ps1 keeps marker
   counting for older pins).
-- Roster: `box2d` + `imgui` (batch 23) and `vma` (batch 24) done; `jolt`
-  blocked on the standard flag; `assimp` + `cuda` and the heavy runtimes
-  (`xiom.onnx`/`xiom.opencv`) remain -- heavy runtimes need the native
-  lane's go-ahead (last per the sector order, separate decision),
-  accelerators stay GATED on XVECTOR freezing `xiom.vectors`.
+- Roster: `box2d`/`imgui` (batch 23), `vma` (batch 24), `cuda` (batch 25)
+  done; `jolt` blocked on the standard flag; `assimp` remains (plus the
+  heavy runtimes `xiom.onnx`/`xiom.opencv`, needing the native lane's
+  go-ahead); accelerators stay GATED on XVECTOR freezing `xiom.vectors`.
 - Lane copy of the compiler relay: `docs/BINDINGS-COMPILER-RELAY-2026-10-09-v0.64.2.md`.
 - PULSE/ORBITDB/XVECTOR package wishlists fetched and answered
   (`docs/BINDINGS-PACKAGE-WISHLIST.md`); no new in-lane work items
