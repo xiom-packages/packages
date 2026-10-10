@@ -465,7 +465,7 @@ fn _metric_exposition_labels(sb: &mut Vec[UInt8], l: &MetricLabels) {
 
 // Append `{` plus every metric label pair plus a trailing comma, leaving
 // the bucket line ready for `le="..."}`. Complexity: O(labels).
-fn _metric_exposition_bucket_open(sb: &mut Vec<UInt8>, l: &MetricLabels) {
+fn _metric_exposition_bucket_open(sb: &mut Vec[UInt8], l: &MetricLabels) {
   builder.sb_push_str(sb, "{");
   var i = 0;
   while i < l.names.len() {
@@ -510,7 +510,7 @@ fn _metric_exposition_counter(sb: &mut Vec[UInt8], e: &MetricEntry) {
 
 // Append `# TYPE <name> gauge` and the gauge sample line.
 // Complexity: O(name + labels).
-fn _metric_exposition_gauge(sb: &mut Vec<UInt8>, e: &MetricEntry) {
+fn _metric_exposition_gauge(sb: &mut Vec[UInt8], e: &MetricEntry) {
   builder.sb_push_str(sb, "# TYPE ");
   builder.sb_push_str(sb, e.name);
   builder.sb_push_str(sb, " gauge\n");
@@ -525,7 +525,7 @@ fn _metric_exposition_gauge(sb: &mut Vec<UInt8>, e: &MetricEntry) {
 // stored bound, plus the +Inf bucket holding the total count), and the
 // `_sum` / `_count` lines. Metric labels come first, then `le`.
 // Complexity: O(name + labels * bounds).
-fn _metric_exposition_histogram(sb: &mut Vec<UInt8>, e: &MetricEntry) {
+fn _metric_exposition_histogram(sb: &mut Vec[UInt8], e: &MetricEntry) {
   builder.sb_push_str(sb, "# TYPE ");
   builder.sb_push_str(sb, e.name);
   builder.sb_push_str(sb, " histogram\n");
