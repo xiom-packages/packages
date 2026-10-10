@@ -6,6 +6,10 @@
 // the multi-key kv_get_bytes length check called out in the PULSE wishlist
 // (a 9-byte value read back as 6 after a second key write).
 //
+// Status 2026-10-10: C-PULSE-10 is FIXED on v0.64.2 (compiler-side; registry
+// acceptance commit f61ab1c) -- consumers drop the kv_get_bytes/from_utf8
+// fallbacks; this probe keeps the regression shapes as guards.
+//
 // Run from the repo root (pinned toolchain):
 //   & .\scripts\xiom.ps1 -Stdlib "E:\xiom-lang\stdlib" --run packages\xiom-kv\tests\probe_kv_get_str.xi
 //
