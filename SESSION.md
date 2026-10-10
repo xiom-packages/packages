@@ -14,7 +14,98 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-10 16:15Z (LIVE HANDOFF -- bindings batch 26 PUBLISHED via `eco-v0.1.127`; the relay bus is the active coordination path):**
+**STATE AT 2026-10-10 19:15Z (LIVE HANDOFF -- `xiom.ann` extracted (ops ask filed); `xiom.assimp` 0.7.0 + `xiom.glfw` 0.3.0 PUBLISHED via `eco-v0.1.132`):**
+- **`xiom.ann` 0.1.0 extracted + verified** (owner-greenlit follow-on): `AnnIndexKind`/`AnnParams`
+  (on-disk codes 1/2/3) + `flat_search` oracle + multi-layer HNSW over flat arrays; port **24/24
+  x2** + recall harness x2 (recall@10 **1.000** at ef=64, **0.9867** at ef=8); feat `493e44d0`,
+  record `2c62e022`; dep-root `xiom.toml` -> `xiom.vectors` 0.1.0; validate 524/0. **Ops scope ask
+  filed** (`REL-20261010-1908-packages`, 509 -> 510); on the live confirmation: allowlist +
+  publish. (XVECTOR's `hnsw.xi` L39/L41 bracket artifacts were normalized on our side; theirs to
+  fix in-repo.)
+- **Bindings batches 31+32 PUBLISHED via `eco-v0.1.132`** (run `38078757165`): **`xiom.assimp`
+  0.7.0** (OFF+SMD; native **10/10** on v0.64.3 -- quiet-window build with the 1800 s timeout;
+  sha256 `b5eb00f1...` @19:11:16Z) and **`xiom.glfw` 0.3.0** (present **28/28 x2** + absent
+  **SKIP 3/3**; sha256 `8c025086...` @19:12:11Z); guard **509/492/17/0**; bus items 30
+  (superseded) / 31 / 32 fixed. New compiler finding **B-12** (fp-return checks labelled SKIP)
+  noted from the batch-32 relay.
+- Engine-lane asks routed to bindings (image codec P2; assimp consumer contract P2+).
+- Session tally: **48 eco releases** (`eco-v0.1.86` -> `eco-v0.1.132`).
+
+**STATE AT 2026-10-10 18:55Z (history -- superseded by the 19:15Z block above):**
+- **`xiom.vectors` 0.1.0 LIVE:** owner greenlight -> extraction (feat `b8911083`) -> **37/37 x2** +
+  codec probe x2 on v0.64.3 -> ops scope LIVE -> allowlist 508 -> 509 -> **published
+  `eco-v0.1.131`** (run `38077260607`; sha256 `3f2a0d1d...` @18:51:33Z); guard **509/491/18/0**;
+  bus items fixed (`REL-20261010-1830-ops`, `REL-20261010-1550-xvector-9`).
+- **IN FLIGHT (this cycle): `xiom.ann` extraction porter** (`ses_ed8d44a16ffeKiXk0MuKK665Mf`; brief
+  `%TEMP%\kilo\ann-extraction-porter-brief.md`) -- HNSW carve + ann_index types/codes + local
+  `flat_search` oracle + adapted recall harness; dep-root `xiom.toml` -> installed `xiom.vectors`
+  0.1.0. On completion: port x2, recall probe x2, record, wrap, then the ops scope ask for
+  `xiom.ann` (last extraction under the greenlight).
+- **assimp chain (batches 30/31):** 0.6.0 passed 8/8 in the quiet window but **0.7.0 (OFF+SMD,
+  125 TUs) supersedes it** -- the batch-31 tip is merged (`21c4bf93`) and its native verification
+  is running in the background (`bgp_12730db85001eWKNqVfwmog92y`, watchdog 2400 s). On green:
+  record (lane reports 10/10 x2), wrap, publish 0.7.0; 0.2.0-0.6.0 stay unpublished history; the
+  batch-30 item gets fixed as superseded.
+- **Engine-lane asks routed to bindings** (`REL-20261010-1900-packages*`): image codec package
+  (stb_image/stb_image_write, P2) and the xiom.assimp consumer API contract (P2+); their items
+  acked in place.
+- **v0.64.3 repin done** (`849b24d3`; 522 records); release-check verdicts on the bus.
+  **Verdict `-4` CORRECTED to still-open** -- C-ORBIT-06's with-twin T001 reproduces from the
+  ORBITDB repo root; my earlier false PASS came from running `--check` inside the repro dir
+  (thanks to ORBITDB's `REL-20261010-1802-orbitdb`).
+- **assimp 0.6.0 (batch 30) GATED:** the 111-TU build is flaky under concurrent multi-lane
+  compiles (clang exit -1 at varying points; 71 GB free -> not memory). C timeout raised
+  900 -> 1800 (`d5f9a966`); record set `tests=unknown` so `eco-v0.1.131` skipped it; bindings
+  informed (`REL-20261010-1852-packages`). Re-verify in a quiet window, then record + publish.
+- Session tally: **47 eco releases** (`eco-v0.1.86` -> `eco-v0.1.131`).
+
+**STATE AT 2026-10-10 17:10Z (history -- superseded by the 18:55Z block above):**
+- Batch 29 `REL-20261010-1655-bindings`: tip `772b355c` -> merge `d96f4112` -> native **7/7 x2**
+  (FBX ASCII minimal-document import, 111 TUs) -> `eco-v0.1.130` (run `38070332477`) -> live
+  sha256 `c06a5131...` (17:06:27Z) -> bus fixed. Versions 0.2.0-0.5.0 all live; **0.5.0 is the
+  go-forward**.
+- The 17:00Z doorbell cron fired and caught batch 29 within minutes -- cadence proven.
+- **v0.64.3 released (17:27Z, tag `f7b3a4fe`; archive SHA256 `5140b863...` verified): REPINNED
+  (18:15Z)** -- canonical install swapped to the byte-identical exe once the lane compile wave
+  freed the lock; `COMPILER_VERSION` bumped; **522 records aligned** (commit `849b24d3`);
+  validate 523/0; guard 508/491/17/0. Release-check verdicts for the 11 packages rows filed on
+  the bus (`-3` satisfied via T007 diagnostic; `-10` fixed; `-4` partial; `-9` clean; `-11` open
+  + over-broad notes wording noted). No v0.64.2-matrix regression.
+- **`xiom.vectors` EXTRACTED + VERIFIED (owner greenlight 18:11Z):** feat `b8911083` (Vector +
+  metrics with on-disk codes 1/2/3 + normalize + bounded top-K + WAL value codec/replay; 243-line
+  module, 37 checks); port **37/37 x2** + codec probe GREEN x2 on the official v0.64.3; validate
+  523/0; guard unchanged **508/491/17/0**. **Ops scope ask filed on the bus**
+  (`REL-20261010-1819-packages`; 508 to 509). On the live confirmation: allowlist append + guard +
+  wrap + tag + publish; `xiom.ann` follows under the same greenlight.
+- `xiom.http` dead-module repair **DONE** (`c2328531`): `src/client.xi`/`src/demo.xi` compile
+  clean (combined `--check` 0 T001s via the new `tests/probe_all_modules.xi`; suite 42/42 x2;
+  rides the next source bump). Parked bus items unchanged; owner greenlight for `xiom.vectors`
+  pending.
+- Session tally: **46 eco releases** (`eco-v0.1.86` -> `eco-v0.1.130`).
+
+**STATE AT 2026-10-10 16:50Z (history -- superseded by the 17:10Z block above):**
+- Batch 28 `REL-20261010-1623-bindings`: tip `c5cbcbb7` -> merge `154d1344` -> native **6/6 x2**
+  (COLLADA + pugixml, 96 TUs) -> `eco-v0.1.129` (run `38069123156`) -> live sha256 `aeb44d02...`
+  (16:49:01Z) -> bus fixed. 0.2.0/0.3.0/0.4.0 are all live; **0.4.0 is the go-forward**.
+- Note: bindings is iterating assimp rapidly via the bus (batches 26/27/28 within an hour);
+  each new tip supersedes the prior -- always merge ONLY the newest tip and skip intermediates.
+- Next in-lane: `xiom.http` dead-module repair (`src/client.xi`/`src/demo.xi` imports + current
+  response types; ride the next http source bump), then the parked bus items.
+- Session tally: **45 eco releases** (`eco-v0.1.86` -> `eco-v0.1.129`).
+
+**STATE AT 2026-10-10 16:30Z (history -- superseded by the 16:50Z block above):**
+- **Bus items processed to completion:** batch 26 `REL-20261010-1603-bindings` (assimp 0.2.0,
+  `eco-v0.1.127`) and batch 27 `REL-20261010-1611-bindings` (assimp 0.3.0 glTF2, `eco-v0.1.128`,
+  run `38067436940`) -- merge -> native port x2 (4/4 then **5/5**; OBJ/PLY/glTF2 embedded-buffer
+  import; 92 TUs) -> record -> wrap -> publish -> live-verify -> bus fixed. 0.2.0 was published
+  before the superseding item arrived; both immutable, **0.3.0 is the go-forward** (live sha256
+  `5b30c6a8...`, 16:23:47Z); guard **508/491/17/0**; records + READMEs synced.
+- Bus queue otherwise: owner greenlight `xiom.vectors` (`REL-20261010-1550-xvector-9`); parked
+  items unchanged (bindings consumer-hook, orbitdb btree re-extract, xvector ann); compiler/stdlib
+  item acks pending upstream.
+- Session tally: **44 eco releases** (`eco-v0.1.86` -> `eco-v0.1.128`).
+
+**STATE AT 2026-10-10 16:15Z (history -- superseded by the 16:30Z block above):**
 - **Bus operational:** onboarding done; doorbell cron every 2h; migration items filed
   (compiler `REL-20261010-1549-packages-2..12`, stdlib `REL-20261010-1550-packages*`, orbitdb
   order-3 `-8`, owner vectors greenlight `-9`); seven inbound items processed -- **fixed:**
@@ -307,7 +398,7 @@ Then do, in order:
    batch**); `xiom.http` `src/client.xi`/`src/demo.xi` pre-existing T001 drift (dead
    modules; fix at the next http touch); **`xiom.http` consumer client link recipe
    (PULSE-verified 2026-10-10: bridge `--c-source` + `--link curl --link-path` needed;
-   document it and/or ship a non-test shim at the next http touch -- DONE 0.1.5, shim + recipe shipped)**; `xiom.metrics` 3 `Vec<` sites FIXED 2026-10-10 (`e7f62e9f`; 0 remaining, suite 40/40 x2); PULSE carry-forwards
+   document it and/or ship a non-test shim at the next http touch -- DONE 0.1.5, shim + recipe shipped)**; `xiom.http` dead-module drift FIXED 2026-10-10 (`c2328531`, all-modules guard probe added); `xiom.metrics` 3 `Vec<` sites FIXED 2026-10-10 (`e7f62e9f`; 0 remaining, suite 40/40 x2); PULSE carry-forwards
    **DONE 2026-10-09** (static README path note + kv C-PULSE-10 regressions 30/30 -- both
    in-tree, no version bump yet, ride the next source touches).
 6. Carry-forwards: byte-level bracket scan on every touched package; SPEC headers synced

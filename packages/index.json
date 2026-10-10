@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-10T19:22:31Z",
+    "updated":  "2026-10-10T22:10:06Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -179,6 +179,28 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ann",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ANN index surface: AnnIndexKind/AnnParams with stable on-disk codes, the exact flat-scan oracle, and a multi-layer HNSW graph over flat parallel arrays",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              },
+                                              {
+                                                  "version":  "0.1.0",
+                                                  "name":  "xiom.vectors"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ann/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ann.xi",
+                                              "hnsw.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.ansible",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Configuration-management model: inventory, playbooks, module registry, typed facts, handlers and a deterministic executor",
@@ -280,17 +302,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.3.0",
+                         "version":  "0.7.0",
                          "name":  "xiom.assimp",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Open Asset Import Library (assimp v6.0.5) bindings for XIOM (vendored core + OBJ/STL/PLY/glTF2 importers; in-memory import probes)",
+                         "description":  "Open Asset Import Library (assimp v6.0.5) bindings for XIOM (vendored core + OBJ/STL/PLY/glTF2/COLLADA/FBX/BLEND/OFF/SMD importers; in-memory import probes)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-assimp/v0.3.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-assimp/v0.7.0/package.tar.gz",
                          "source_files":  [
                                               "assimp.xi",
                                               "package.xi"
@@ -2858,17 +2880,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.glfw",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "GLFW bindings for XIOM via dynamic loader (glfw3.dll at runtime, SKIP when absent)",
+                         "description":  "GLFW bindings for XIOM via dynamic loader (glfw3.dll at runtime, SKIP when absent); engine surface: window/events/input/monitors/clipboard/time/Win32/Vulkan helpers",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glfw/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glfw/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "glfw.xi",
                                               "package.xi"
@@ -3498,21 +3520,19 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.jolt",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Jolt Physics rigid body dynamics bindings for XIOM -- requires joltc C bridge",
+                         "description":  "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; scalar-return physics probes)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jolt/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jolt/v0.2.0/package.tar.gz",
                          "source_files":  [
-                                              "demo_jolt.xi",
                                               "jolt.xi",
-                                              "jolt_safe.xi",
                                               "package.xi"
                                           ]
                      },
@@ -8510,6 +8530,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vdf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "vdf.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.vectors",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Dense vectors, cosine/dot/L2 distance, normalization, bounded top-K, and the WAL value codec",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vectors/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "vectors.xi",
                                               "package.xi"
                                           ]
                      },

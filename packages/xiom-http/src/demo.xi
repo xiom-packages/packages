@@ -2,9 +2,10 @@ module xiom.http.demo
 
 use xiom.io;
 use xiom.convert;
+use xiom.http;
 
 pub fn demo_get() -> Result[Unit, Str] {
-  var result: Result[HttpResponse, Str] = xiom.http.http_get("https://httpbin.org/get");
+  var result: Result[HttpClientResponse, Str] = xiom.http.http_get("https://httpbin.org/get");
   match result {
     Err(e) => {
       return Err("GET demo failed: " + e);
@@ -24,7 +25,7 @@ pub fn demo_get() -> Result[Unit, Str] {
 
 pub fn demo_post() -> Result[Unit, Str] {
   var json_body: Str = "{\"name\":\"xiom.http\",\"version\":\"0.1.0\"}";
-  var result: Result[HttpResponse, Str] = xiom.http.http_post(
+  var result: Result[HttpClientResponse, Str] = xiom.http.http_post(
     "https://httpbin.org/post",
     json_body,
     "application/json",
@@ -49,7 +50,7 @@ pub fn demo_post() -> Result[Unit, Str] {
 pub fn demo_rest_api() -> Result[Unit, Str] {
   var base_url: Str = "https://httpbin.org";
 
-  var get_result: Result[HttpResponse, Str] = xiom.http.http_get(base_url + "/get?demo=true");
+  var get_result: Result[HttpClientResponse, Str] = xiom.http.http_get(base_url + "/get?demo=true");
   match get_result {
     Err(e) => {
       return Err("REST GET failed: " + e);
@@ -62,7 +63,7 @@ pub fn demo_rest_api() -> Result[Unit, Str] {
   };
 
   var post_body: Str = "{\"action\":\"create\",\"data\":{\"id\":1,\"label\":\"xiom-demo\"}}";
-  var post_result: Result[HttpResponse, Str] = xiom.http.http_post(
+  var post_result: Result[HttpClientResponse, Str] = xiom.http.http_post(
     base_url + "/post",
     post_body,
     "application/json",
@@ -79,7 +80,7 @@ pub fn demo_rest_api() -> Result[Unit, Str] {
   };
 
   var put_body: Str = "{\"action\":\"update\",\"data\":{\"id\":1,\"label\":\"xiom-updated\"}}";
-  var put_result: Result[HttpResponse, Str] = xiom.http.http_put(
+  var put_result: Result[HttpClientResponse, Str] = xiom.http.http_put(
     base_url + "/put",
     put_body,
   );
@@ -94,7 +95,7 @@ pub fn demo_rest_api() -> Result[Unit, Str] {
     };
   };
 
-  var delete_result: Result[HttpResponse, Str] = xiom.http.http_delete(
+  var delete_result: Result[HttpClientResponse, Str] = xiom.http.http_delete(
     base_url + "/delete?id=1",
   );
   match delete_result {

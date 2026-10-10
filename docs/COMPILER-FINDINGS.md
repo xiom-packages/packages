@@ -44,6 +44,36 @@ gap), the `is Ok(<literal>)` ban (payload literals are compared again), the B-01
 the B-08 runner workarounds (`port.ps1` printed-exit counting is kept -- harmless and still needed for older pins).
 Still open compiler-side: triplicate sibling exports vs alias-qualified calls; Map/Set `==` (per the relay).
 
+## v0.64.3 release check (2026-10-10, native lane -- preliminary)
+
+Release `v0.64.3` (tag `f7b3a4fe`, 17:27Z); official archive SHA256
+`5140b86376a29d1c504aa9650ef103b8c6af4b0da953657ea39b4f9c40794c9c` verified. Tested on a shadow
+install (`%LOCALAPPDATA%\xiom.new.0643`) because the canonical exe was locked by other lanes'
+compiles; the canonical repin (`COMPILER_VERSION` + 522 records) follows once the lock clears.
+
+No v0.64.2-matrix regression on the shadow: `res_eq3` EQ, `vec_eq3` EQ, struct-clone/tuple-vec-set
+green, kv probe clean, **grpc 36/36**.
+
+Packages-lane verdicts (full table on the bus, `release-checks/compiler-compiler-v0.64.3.md`):
+
+- `REL-...-packages-3` (whole-body unsafe cast): **satisfied by diagnostic** -- `T001 ... whole-body
+  unsafe block but declares no requires (T007)`; the silent-null path is closed; the
+  statement-assignment pattern stands.
+- `REL-...-packages-10` (triplicate sibling exports): **fixed** -- grpc all-module build + suite
+  36/36 (wave-97 shape no longer reproduces).
+- `REL-...-packages-4` (C-ORBIT-06): **still open on v0.64.3 (unchanged)** -- the with-twin hard T001
+  reproduces from the ORBITDB repo root (`match pattern 'Corruption' belongs to 'DbError', not
+  'CoreError'`); the phantom `use` + undeclared signature type is still silently accepted
+  (2x W004). (Correction: an earlier "twin gone" note was a false PASS from running `--check`
+  inside the repro dir; the documented command runs from the repo root.)
+- `REL-...-packages-9` (bare `&mut Int` reads): repro clean on v0.64.3 (`mut-int-write-through`
+  bad=0, exit 0).
+- `REL-...-packages-11` (Map/Set `==`): still open; NOTE the notes' known-issue wording ("two equal
+  vectors compare unequal") is **over-broad** -- `Vec[Int]`/`Result[Vec]` content equality works.
+- `-2` (io943), `-5` (consumer port.args), `-6` (no `--cxx-standard`; Jolt stays blocked),
+  `-7` (xiom-pkg fallback), `-8` (evaluator recursion), `-12` (tuple-ref destructure): not
+  addressed in v0.64.3.
+
 ## Open findings
 
 | Date | Finding | Evidence | Workaround in packages | Impact |

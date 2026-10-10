@@ -8,8 +8,9 @@ backend is absent).
 > lifecycle + attributes, events (poll/wait), input polling, monitors +
 > video modes, clipboard, time, GL-context basics, Win32 native accessors
 > and the Vulkan helpers (`glfwVulkanSupported`, required instance
-> extensions, `glfwCreateWindowSurface`). Positive-path suite: 28/28 x2
-> with the official 3.4 win64 DLL.
+> extensions, `glfwCreateWindowSurface`). Native verified on v0.64.3:
+> **present 28/28 x2** (official GLFW 3.4 win64 DLL) + **absent SKIP 3/3**;
+> published in `eco-v0.1.132` (sha256 `8c025086...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start

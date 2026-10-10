@@ -1,30 +1,35 @@
 module xiom.http.client
 
+use xiom.string;
+use xiom.convert;
 use xiom.convert.tostring;
+use xiom.http;
+use xiom.http.types;
+use xiom.http.url;
 
-pub fn http_get(url: Str) -> Result[HttpResponse, Str]
+pub fn http_get(url: Str) -> Result[HttpClientResponse, Str]
   requires: url.len() > 0 {
   return xiom.http.http_get(url);
 }
 
-pub fn http_post(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpResponse, Str]
+pub fn http_post(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpClientResponse, Str]
   requires: url.len() > 0 {
   var body_str: Str = str_from_vec_byte(body);
   return xiom.http.http_post(url, body_str, content_type);
 }
 
-pub fn http_put(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpResponse, Str]
+pub fn http_put(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpClientResponse, Str]
   requires: url.len() > 0 {
   var body_str: Str = str_from_vec_byte(body);
   return xiom.http.http_put(url, body_str);
 }
 
-pub fn http_delete(url: Str) -> Result[HttpResponse, Str]
+pub fn http_delete(url: Str) -> Result[HttpClientResponse, Str]
   requires: url.len() > 0 {
   return xiom.http.http_delete(url);
 }
 
-pub fn http_send(request: &HttpRequest, url: &Url) -> Result[HttpResponse, Str]
+pub fn http_send(request: &HttpRequest, url: &Url) -> Result[HttpClientResponse, Str]
   requires: url.scheme.len() > 0
   requires: url.host.len() > 0 {
   var url_str: Str = url_to_str(url);

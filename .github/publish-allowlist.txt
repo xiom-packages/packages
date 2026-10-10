@@ -556,3 +556,5 @@ xiom.odbc
 # Extraction relays (standalone WAL + B-tree); ops scope confirmed LIVE 2026-10-09.
 xiom.wal
 xiom.btree
+# XVECTOR extraction (dense-vector primitives); ops scope confirmed LIVE 2026-10-10.
+xiom.vectors
