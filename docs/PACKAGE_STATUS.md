@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.2` -- generated 2026-10-10T16:47:43Z.
+Toolchain pin: `v0.64.2` -- generated 2026-10-10T17:05:20Z.
 
 ## Summary
 
@@ -317,7 +317,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.ansible | xiom-ansible | incubating | tests/test_conformance.xi | pass 26/26 | 973754e8 | False | publish pending: next scope delta |
 | xiom.apple | xiom-apple | incubating | tests/test_conformance.xi | pass 21/21 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.arrow | xiom-arrow | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | pass 6/6 | 154d1344 | False | publish pending: bindings batch 28 (eco-v0.1.129) |
+| xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | pass 7/7 | d96f4112 | False | publish pending: bindings batch 29 (eco-v0.1.130) |
 | xiom.ast | xiom-ast | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.audio-meta | xiom-audio-meta | incubating | tests/test_conformance.xi | pass 25/25 | bf525d98 | False | publish pending: next scope delta |
 | xiom.auth | xiom-auth | incubating | tests/test_conformance.xi | pass 24/24 | 4dec18c5 | False | category harmonization patch bump (registry metadata) |
