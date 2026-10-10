@@ -2,6 +2,10 @@
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Packages-lane wishlist (intake + triage)
 
+<!-- Relay migration 2026-10-10: open cross-lane asks are now bus items (orbitdb
+order-3 REL-20261010-1550-packages-8; vectors/ann REL-20261010-1550-xvector-9/-10;
+ledger sections remain as history). -->
+
 Source: PULSE consumer lane relay 2026-10-05
 (`E:\xiom-projects\xiom-pulse\docs\PACKAGE-WISHLIST-PULSE.md`, pin v0.63.1,
 stdlib `15cb889`). Internal findings are appended here as they are triaged.

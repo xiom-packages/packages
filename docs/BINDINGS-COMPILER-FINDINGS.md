@@ -1,5 +1,8 @@
 # Bindings-lane compiler findings (xiom-packages bindings lane)
 
+<!-- Relay migration 2026-10-10: open B-* rows move to the bus via the bindings lane;
+this file stays the long-form record. -->
+
 Findings collected while building the FFI/binding packages (`xiom.sqlite`
 pilot) on the pinned toolchain, with runnable reductions in
 `docs/repro/bindings-pilot/`.

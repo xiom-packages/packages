@@ -15,6 +15,14 @@ running). Check `git log -1 --format=%h %s` before starting.
 ## 0. Current state + next-session prompt (read this first)
 
 **STATE AT 2026-10-10 15:15Z (LIVE HANDOFF -- `xiom.http` 0.1.5 + `xiom.cuda` 0.2.0 PUBLISHED; no open packages-side gate):**
+- **RELAY BUS (owner rollout 2026-10-10):** cross-lane coordination now goes through the private
+  repo `E:\xiom-lang\xiom-relays` (git is the mailbox; `python tools/relay.py view --lane packages`).
+  **At session start and before finishing any task: pull xiom-relays and process items addressed
+  to this lane. Never edit another lane's item -- open a new item instead.** Migrated 2026-10-10:
+  compiler items `REL-20261010-1549-packages-2..12` (11), stdlib items `REL-20261010-1550-packages*`
+  (7), orbitdb order-3 bug `...-8`, owner greenlight `...-9`; seven items addressed to packages were
+  acked (registry kv-header fixed `17b64fae`). Doorbell cron fires every 2h. Old files carry pointer
+  headers; pre-2026-10-05 stdlib rows remain as in-repo backlog.
 - **`xiom.http` 0.1.5** (`eco-v0.1.125`, run `38062137735` SUCCESS): consumer client recipe pass --
   ships `bridge/xiom_http_shims.c` (curl-free helpers) + the verified recipe
   (`--c-source <shim> --link curl --link-path <scratch>`, `curl.lib` copy, PATH +
@@ -233,6 +241,10 @@ CREDENTIAL NOTE: the active gh account sometimes flips to `Lefteris-Ngonart`
 Start: git fetch; git status -sb; git log -1; then
   $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+Relay bus (do at start AND before finishing any task): git -C
+E:\xiom-lang\xiom-relays pull --ff-only; python tools/relay.py view --lane
+packages; process items addressed to this lane and move statuses only for
+items with to: packages. Never edit another lane's item -- open a new item.
 
 Then do, in order:
 1. A NEWER tag than v0.64.2 FIRST if one exists (`gh release list -R xiom-lang/xiom`);

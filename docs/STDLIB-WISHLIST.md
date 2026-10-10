@@ -1,5 +1,9 @@
 # Stdlib wishlist -- what the package ecosystem wants from `xiom.std`
 
+<!-- Relay migration 2026-10-10: currently-open stdlib asks are filed as xiom-relays
+items (REL-20261010-1550-packages*); rows dated before 2026-10-05 remain here as
+historical backlog -- re-file on the bus when live. -->
+
 Shared coordination file between the **packages session** (this repo) and the
 **stdlib session** (`E:\xiom-lang\stdlib`). Packages and agents report gaps
 while building; the packages coordinator appends them here; the stdlib
