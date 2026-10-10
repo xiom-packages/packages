@@ -6,6 +6,10 @@ edge and dimension value object, a bounded top-K collector, and the WAL value
 codec (`[dim, ieee754-bits...]`, bit-exact) with a torn-tolerant decode-replay
 loop. Extracted from XVECTOR; pure XIOM, standard library only (`xiom.std`).
 
+> **Status:** `incubating` -- conformance suite green on the pin (v0.64.3):
+> **37/37 x2** plus the codec round-trip probe GREEN x2 (bit-exact incl.
+> `-0.0`/subnormal). Published in `eco-v0.1.131` (sha256 `3f2a0d1d...`).
+
 ## Consumer snippet
 
 ```xiom
