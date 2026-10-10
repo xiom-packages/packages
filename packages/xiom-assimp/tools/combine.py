@@ -286,11 +286,13 @@ def write_port_args(path, pkg_dir, sources):
         rel = os.path.relpath(src, pkg_dir).replace("\\", "/")
         items.append('  "--c-source",')
         items.append('  "${PACKAGE_DIR}/%s",' % rel)
-    # Heavy suite: the 123-TU compile runs close to the compiler's default
-    # 300 s watchdog under machine load; raise it (port.ps1's -TimeoutSec is
-    # still the outer bound).  See SPEC.md.
+    # Heavy suite: the 125-TU compile runs close to the compiler's default
+    # 300 s watchdog under machine load, and can exceed 900 s under
+    # concurrent multi-lane compiles (relay item REL-20261010-1852); raise
+    # it -- port.ps1's -TimeoutSec (>=600, or 1200+ on a loaded host) is
+    # still the outer bound.  See SPEC.md.
     items.append('  "--timeout",')
-    items.append('  "900",')
+    items.append('  "1800",')
     if items:
         items[-1] = items[-1].rstrip(",")
     body = "[\n" + "\n".join(items) + "\n]\n"

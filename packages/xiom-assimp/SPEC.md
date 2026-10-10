@@ -71,8 +71,9 @@ the tagged tree by `tools/combine.py`:
    `README.md`/`AUDIT.md`.
 4. Re-run `scripts/port.ps1 -Package xiom.assimp` x2 and record
    `STATUS.json`. Watchdog >=600 s (125 TUs compile in ~250-340 s under
-   load; `port.args.json` raises the compiler's own watchdog to 900 s via
-   `--timeout 900`, since the default 300 s sits too close).
+   load, and can exceed 900 s under concurrent multi-lane compiles;
+   `port.args.json` raises the compiler's own watchdog to 1800 s via
+   `--timeout 1800`, per relay item `REL-20261010-1852`).
 
 ## 3. Design and safe boundary (G5)
 

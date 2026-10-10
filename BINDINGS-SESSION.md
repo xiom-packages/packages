@@ -4,7 +4,8 @@ Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
 **STATUS: VULKAN 0.3.0 (RHI bring-up) SHIPPED** -- batches 31 (assimp
-0.7.0) and 32 (glfw 0.3.0 engine surface, 28/28 x2) relayed; batch 33
+0.7.0) and 32 (glfw 0.3.0 engine surface, 28/28 x2) published in
+`eco-v0.1.132`; batch 33
 (`xiom.vulkan` 0.3.0: instance w/ Win32 surface ext -> device pick ->
 graphics queue family -> logical device -> command pool/buffer + REAL
 submit/wait; **15/15 x2** on the RTX 3070 Ti) committed and relayed. New
@@ -161,6 +162,15 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS PUBLISH CONFIRM (batches 31+32): xiom.assimp 0.7.0 (sha256
+b5eb00f1...) and xiom.glfw 0.3.0 (present 28/28 x2 + absent shape) are live
+in eco-v0.1.132 (run 38078757165). Batch 30 (0.6.0 BLEND) stays gated as
+superseded -- its build is flaky under concurrent multi-lane compiles and
+eco-v0.1.131 skipped it; 0.7.0 is the go-forward. Watchdog raised to 1800 s
+in the assimp port.args (item REL-20261010-1852 acked).
+```
 
 ```
 BINDINGS BATCH 33: head=93943978 + this record commit; packages=xiom.vulkan 0.3.0
