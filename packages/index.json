@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-11T00:02:49Z",
+    "updated":  "2026-10-11T02:01:00Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -7494,17 +7494,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.stb",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "stb_image loading bindings for XIOM",
+                         "description":  "stb image codecs for XIOM (vendored stb_image + stb_image_write single headers; in-memory PNG encode/decode + BMP decode probe)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stb/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stb/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "package.xi",
                                               "stb.xi"

@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.3` -- generated 2026-10-10T21:02:52Z.
+Toolchain pin: `v0.64.3` -- generated 2026-10-10T23:01:02Z.
 
 ## Summary
 
@@ -116,7 +116,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.hl7 | xiom-hl7 | stable | tests/test_conformance.xi | pass 23/23 | a583a8c5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.hostfile | xiom-hostfile | stable | tests/test_conformance.xi | pass 24/24 | cdfcf160 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.html | xiom-html | stable | tests/test_conformance.xi | pass 22/22 | c1278f47 | False | legacy bracket repair patch bump |
-| xiom.http | xiom-http | stable | tests/test_conformance.xi | pass 42/42 | d45a106d | False | publish pending: consumer-wishlist pass 0.1.6 (eco-v0.1.133) |
+| xiom.http | xiom-http | stable | tests/test_conformance.xi | pass 42/42 | d45a106d | False | published in eco-v0.1.133 (2026-10-10; 0.1.5 in eco-v0.1.125) |
 | xiom.humanize | xiom-humanize | stable | tests/test_conformance.xi | pass 24/24 | fbbb78d2 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.iban | xiom-iban | stable | tests/test_conformance.xi | pass 21/21 | fd6b4c1a | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ical | xiom-ical | stable | tests/test_conformance.xi | pass 22/22 | eefc7015 | False | legacy bracket repair patch bump |
@@ -517,7 +517,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.static | xiom-static | incubating | tests/test_conformance.xi | pass 25/25 | 50742952 | False |  |
 | xiom.stats-ml | xiom-stats-ml | incubating | tests/test_conformance.xi | pass 22/22 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.stats-tests | xiom-stats-tests | incubating | tests/test_conformance.xi | pass 25/25 | 6b308204 | False | publish pending: next scope delta |
-| xiom.stb | xiom-stb | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
+| xiom.stb | xiom-stb | incubating | tests/test_conformance.xi | pass 5/5 | 07f5b9da | False | new name: pending ops scope + native-lane allowlist append |
 | xiom.stm | xiom-stm | incubating | tests/test_conformance.xi | pass 20/20 | add37727 | False | publish pending: next scope delta |
 | xiom.streaming | xiom-streaming | incubating | tests/test_conformance.xi | pass 21/21 | fb04b916 | False | publish pending: next scope delta |
 | xiom.stub | xiom-stub | incubating | tests/test_conformance.xi | pass 22/22 | 84801644 | False | publish pending: next scope delta |
@@ -537,7 +537,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.vectors | xiom-vectors | incubating | tests/test_conformance.xi | pass 37/37 | b8911083 | False | published in eco-v0.1.131 (2026-10-10) |
 | xiom.video | xiom-video | incubating | tests/test_conformance.xi | pass 24/24 | e23f8e3a | False | publish pending: next scope delta |
 | xiom.vma | xiom-vma | incubating | tests/test_conformance.xi | pass 5/5 | 3b642f7c | False | published in eco-v0.1.124 (2026-10-09) |
-| xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 15/15 | 3acce9a5 | False | publish pending: bindings batch 33 (eco-v0.1.133) |
+| xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 15/15 | 3acce9a5 | False | published in eco-v0.1.133 (2026-10-10) |
 | xiom.wal | xiom-wal | incubating | tests/test_conformance.xi | pass 21/21 | 137a8200 | False | published in eco-v0.1.121 (2026-10-09) |
 | xiom.wallet | xiom-wallet | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.wasmtime | xiom-wasmtime | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
