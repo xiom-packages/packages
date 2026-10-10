@@ -14,7 +14,17 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-10 16:30Z (LIVE HANDOFF -- bindings batches 26+27 PUBLISHED via the bus (assimp 0.2.0 -> 0.3.0 superseding); bus flow proven end-to-end):**
+**STATE AT 2026-10-10 16:50Z (LIVE HANDOFF -- bindings batch 28 PUBLISHED (assimp 0.4.0 COLLADA); bus batches 26-28 all delivered end-to-end):**
+- Batch 28 `REL-20261010-1623-bindings`: tip `c5cbcbb7` -> merge `154d1344` -> native **6/6 x2**
+  (COLLADA + pugixml, 96 TUs) -> `eco-v0.1.129` (run `38069123156`) -> live sha256 `aeb44d02...`
+  (16:49:01Z) -> bus fixed. 0.2.0/0.3.0/0.4.0 are all live; **0.4.0 is the go-forward**.
+- Note: bindings is iterating assimp rapidly via the bus (batches 26/27/28 within an hour);
+  each new tip supersedes the prior -- always merge ONLY the newest tip and skip intermediates.
+- Next in-lane: `xiom.http` dead-module repair (`src/client.xi`/`src/demo.xi` imports + current
+  response types; ride the next http source bump), then the parked bus items.
+- Session tally: **45 eco releases** (`eco-v0.1.86` -> `eco-v0.1.129`).
+
+**STATE AT 2026-10-10 16:30Z (history -- superseded by the 16:50Z block above):**
 - **Bus items processed to completion:** batch 26 `REL-20261010-1603-bindings` (assimp 0.2.0,
   `eco-v0.1.127`) and batch 27 `REL-20261010-1611-bindings` (assimp 0.3.0 glTF2, `eco-v0.1.128`,
   run `38067436940`) -- merge -> native port x2 (4/4 then **5/5**; OBJ/PLY/glTF2 embedded-buffer
