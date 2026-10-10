@@ -1,10 +1,11 @@
-// xiom.assimp -- C bridge over the vendored assimp core (OBJ/STL/PLY subset).
+// xiom.assimp -- C bridge over the vendored assimp core (import probes:
+// OBJ/PLY/glTF2/COLLADA/FBX).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Scalar returns plus cached getters (no out-param slots; finding B-11).
-// The probe imports two in-memory assets -- a small OBJ and an ASCII PLY --
-// through Assimp::Importer and caches the scene counts.
+// The probe imports in-memory assets -- OBJ, ASCII PLY, glTF2, COLLADA and
+// ASCII FBX -- through Assimp::Importer and caches the scene counts.
 
 #include "../vendor/include/assimp/Importer.hpp"
 #include "../vendor/include/assimp/scene.h"
@@ -19,6 +20,7 @@ static int g_ply_vertices;
 static int g_ply_ok;
 static int g_gltf_vertices;
 static int g_collada_vertices;
+static int g_fbx_vertices;
 static char g_error[512];
 
 static void set_error(const char* msg) {
@@ -188,6 +190,50 @@ int assimprobe_collada(void) {
 
 int assimprobe_collada_vertices(void) {
   return g_collada_vertices;
+}
+
+// In-memory ASCII FBX import: a minimal FBX 7400 document with one triangle
+// Geometry, a Model, and the two object-object connections (geometry ->
+// model, model -> root).  Caches the vertex count.  0 on success, negative
+// on failure.
+int assimprobe_fbx(void) {
+  g_fbx_vertices = 0;
+  g_error[0] = 0;
+
+  static const char* fbx =
+      "; xiom.assimp probe: minimal ASCII FBX (7400), one triangle\n"
+      "FBXHeaderExtension:  {\n"
+      "    FBXVersion: 7400\n"
+      "}\n"
+      "Objects:  {\n"
+      "    Geometry: 100000, \"Geometry::tri\", \"Mesh\" {\n"
+      "        Vertices: *9 {\n"
+      "            a: 0,0,0,1,0,0,0,1,0\n"
+      "        }\n"
+      "        PolygonVertexIndex: *3 {\n"
+      "            a: 0,1,-3\n"
+      "        }\n"
+      "    }\n"
+      "    Model: 200000, \"Model::tri\", \"Mesh\" {\n"
+      "    }\n"
+      "}\n"
+      "Connections:  {\n"
+      "    C: \"OO\",100000,200000\n"
+      "    C: \"OO\",200000,0\n"
+      "}\n";
+
+  Assimp::Importer importer;
+  const aiScene* scene = importer.ReadFileFromMemory(fbx, strlen(fbx), 0, "fbx");
+  if (scene == 0 || scene->mNumMeshes == 0 || scene->mMeshes[0] == 0) {
+    set_error(importer.GetErrorString());
+    return -9;
+  }
+  g_fbx_vertices = (int)scene->mMeshes[0]->mNumVertices;
+  return g_fbx_vertices == 3 ? 0 : -10;
+}
+
+int assimprobe_fbx_vertices(void) {
+  return g_fbx_vertices;
 }
 
 const char* assimprobe_error(void) {

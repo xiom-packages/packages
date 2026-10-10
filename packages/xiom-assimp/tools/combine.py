@@ -32,7 +32,7 @@ import re
 import shutil
 import sys
 
-ENABLED = ("OBJ", "STL", "PLY", "GLTF", "COLLADA")
+ENABLED = ("OBJ", "STL", "PLY", "GLTF", "COLLADA", "FBX")
 
 # Every ASSIMP_BUILD_*_IMPORTER option name (from code/CMakeLists.txt).
 ALL_IMPORTERS = (
@@ -79,6 +79,7 @@ ASSET_DIRS_BY_IMPORTER = {
     "PLY": ("AssetLib/PLY",),
     "GLTF": ("AssetLib/glTF", "AssetLib/glTF2", "AssetLib/glTFCommon"),
     "COLLADA": ("AssetLib/Collada",),
+    "FBX": ("AssetLib/FBX",),
 }
 CONTRIB_MIRROR = ("zlib", "earcut-hpp", "utf8cpp", "rapidjson", "pugixml")
 CONTRIB_EXTRA = (

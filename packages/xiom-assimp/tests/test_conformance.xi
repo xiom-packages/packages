@@ -1,4 +1,5 @@
-// xiom.assimp conformance suite -- vendored assimp v6.0.5 (OBJ/STL/PLY subset).
+// xiom.assimp conformance suite -- vendored assimp v6.0.5
+// (multiformat subset: OBJ/PLY/glTF2/COLLADA/FBX probes).
 //
 // Build+run (the --c-source list rides in port.args.json):
 //   scripts/port.ps1 -Package xiom.assimp
@@ -57,7 +58,7 @@ fn main() -> Int {
   let major = v / 10000;
   failed = failed + report(major == 6, "version: " + assimp_version_str(v));
 
-  // 2. In-memory OBJ + PLY + glTF2 imports.
+  // 2. In-memory OBJ + PLY + glTF2 + COLLADA + FBX imports.
   let p = assimp_probe();
   if p.is_ok {
     failed = failed + report(p.value.obj_meshes == 1 && p.value.obj_vertices == 3
@@ -70,6 +71,8 @@ fn main() -> Int {
       "gltf2: vertices=" + i2s(p.value.gltf_vertices));
     failed = failed + report(p.value.collada_vertices == 3,
       "collada: vertices=" + i2s(p.value.collada_vertices));
+    failed = failed + report(p.value.fbx_vertices == 3,
+      "fbx: vertices=" + i2s(p.value.fbx_vertices));
   } else {
     failed = failed + report(false, "imports: " + p.error);
   }
@@ -80,7 +83,8 @@ fn main() -> Int {
     && p2.value.obj_vertices == p.value.obj_vertices
     && p2.value.ply_vertices == p.value.ply_vertices
     && p2.value.gltf_vertices == p.value.gltf_vertices
-    && p2.value.collada_vertices == p.value.collada_vertices;
+    && p2.value.collada_vertices == p.value.collada_vertices
+    && p2.value.fbx_vertices == p.value.fbx_vertices;
   failed = failed + report(same, "determinism: repeated imports identical");
 
   if failed == 0 {
