@@ -2,7 +2,7 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-10T01:01:57+03:00
+# generated: 2026-10-10T18:04:01+03:00
 # packages: 522  modules: 591
 
 ## package names
