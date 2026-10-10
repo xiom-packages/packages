@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-10T22:08:04Z",
+    "updated":  "2026-10-10T22:10:06Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -2880,17 +2880,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.glfw",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "GLFW bindings for XIOM via dynamic loader (glfw3.dll at runtime, SKIP when absent)",
+                         "description":  "GLFW bindings for XIOM via dynamic loader (glfw3.dll at runtime, SKIP when absent); engine surface: window/events/input/monitors/clipboard/time/Win32/Vulkan helpers",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glfw/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glfw/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "glfw.xi",
                                               "package.xi"
