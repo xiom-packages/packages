@@ -39,6 +39,21 @@ extern "C" {
   fn xvk_device_type() -> Int32;
   fn xvk_device_api_version() -> UInt32;
   fn xvk_unload();
+  // Engine RHI bring-up bridge (src/vk_rhi.c).
+  fn xr_load(soname: *UInt8) -> Int32;
+  fn xr_instance() -> Int32;
+  fn xr_pick_device() -> Int32;
+  fn xr_device_count() -> Int32;
+  fn xr_device_name() -> *UInt8;
+  fn xr_device_type() -> Int32;
+  fn xr_device_api() -> UInt32;
+  fn xr_surface_extensions() -> Int32;
+  fn xr_queue_family() -> Int32;
+  fn xr_create_device() -> Int32;
+  fn xr_submit_probe() -> Int32;
+  fn xr_error() -> *UInt8;
+  fn xr_destroy();
+  fn xr_unload();
 }
 
 // =========================================================================
@@ -187,4 +202,84 @@ pub fn vulkan_has_extension(name: Str) -> Result[Bool, VulkanLoadError]
   requires: name.len() > 0
 {
   return vulkan_has_extension_named(VULKAN_SONAME, name);
+}
+
+// =========================================================================
+// Engine RHI bring-up (build order #1; headless-safe)
+// =========================================================================
+
+pub type VulkanRhi = {
+  device_count: Int;
+  device_name: Str;
+  device_type: Int;
+  device_api: Int;
+  surface_extensions: Bool;
+  queue_family: Int;
+}
+
+/// RHI bring-up: instance (VK_KHR_surface + VK_KHR_win32_surface enabled
+/// when the loader has them) -> physical-device pick (discrete preferred) ->
+/// graphics queue family -> logical device + queue -> command pool +
+/// command buffer begin/end + queue submit + wait.  Everything crosses the
+/// XIOM boundary as scalars (no out-param slots; findings B-11/B-12), and
+/// the whole sequence is headless-safe (no window/surface needed).
+/// Cleanup always runs before returning.  Complexity: O(load+device+submit).
+pub fn vulkan_rhi_probe_named(soname: Str) -> Result[VulkanRhi, VulkanLoadError]
+  requires: soname.len() > 0
+{
+  let rc = unsafe { xr_load(soname.c_str()) as Int };
+  if rc != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    if rc == 1 {
+      return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABSENT; message: msg });
+    }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let ir = unsafe { xr_instance() as Int };
+  if ir != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_NO_DEVICE; message: msg });
+  }
+  let pr = unsafe { xr_pick_device() as Int };
+  if pr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_NO_DEVICE; message: msg });
+  }
+  let dr = unsafe { xr_create_device() as Int };
+  if dr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let sr = unsafe { xr_submit_probe() as Int };
+  if sr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let dc = unsafe { xr_device_count() as Int };
+  let dn = unsafe { Str::from_c_str(xr_device_name()) };
+  let dt = unsafe { xr_device_type() as Int };
+  let da = unsafe { xr_device_api() as Int };
+  let sx = unsafe { xr_surface_extensions() as Int } != 0;
+  let qf = unsafe { xr_queue_family() as Int };
+  unsafe { xr_destroy(); xr_unload(); }
+  return Ok(VulkanRhi{
+    device_count: dc;
+    device_name: dn;
+    device_type: dt;
+    device_api: da;
+    surface_extensions: sx;
+    queue_family: qf;
+  });
+}
+
+/// RHI bring-up on the default loader.
+/// Complexity: O(load+device+submit).
+pub fn vulkan_rhi_probe() -> Result[VulkanRhi, VulkanLoadError]
+  requires: true
+{
+  return vulkan_rhi_probe_named(VULKAN_SONAME);
 }

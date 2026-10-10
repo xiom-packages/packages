@@ -1,11 +1,11 @@
-# SPEC: xiom.vulkan -- Vulkan capability probe via dynamic loader
+# SPEC: xiom.vulkan -- Vulkan capability probe + engine RHI bring-up via dynamic loader
 
 ## 1. Identity
 
 | Field | Value |
 |-------|-------|
 | Package | `xiom.vulkan` |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Vulkan (Khronos); Windows loader `vulkan-1.dll` |
 | Upstream license | Apache-2.0 (headers); no headers or code vendored -- the bridge is our code and declares the minimal ABI locally |
@@ -41,6 +41,19 @@ dependency, nothing vendored.
 `VkPhysicalDeviceProperties` prefix = `apiVersion(0) driverVersion(4) vendorID(8)
 deviceID(12) deviceType(16) deviceName(20, 256)` -- received into an oversized
 opaque buffer so the full struct write stays in bounds.
+
+**0.3.0 RHI bridge ABI additions** (`src/vk_rhi.c`): local declarations for
+APPLICATION_INFO(0), INSTANCE_CREATE_INFO(1), DEVICE_QUEUE_CREATE_INFO(2),
+DEVICE_CREATE_INFO(3), SUBMIT_INFO(4), COMMAND_POOL_CREATE_INFO(39),
+COMMAND_BUFFER_ALLOCATE_INFO(40), COMMAND_BUFFER_BEGIN_INFO(42); graphics
+family via `VK_QUEUE_GRAPHICS_BIT`; `VkQueueFamilyProperties` stride 24
+(flags/queueCount/timestampValidBits). The instance enables
+`VK_KHR_surface` + `VK_KHR_win32_surface` when the loader has them
+(reported as `surface_extensions`). The sequence instance -> device pick
+(discrete preferred) -> graphics family -> logical device + queue ->
+command pool/buffer begin/end -> `vkQueueSubmit` + `vkQueueWaitIdle` runs
+headless and crosses the XIOM boundary as scalars/strings only
+(B-11/B-12 discipline).
 
 **Local runtime sample used for positive-path proof (NOT the pin):**
 

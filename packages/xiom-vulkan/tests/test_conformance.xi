@@ -104,6 +104,37 @@ fn main() -> Int {
     }
   }
 
+  // Engine RHI bring-up (build order #1): instance w/ Win32 surface exts ->
+  // device -> queue family -> logical device -> real cmd-buffer submit+wait.
+  let rhi_missing = vulkan_rhi_probe_named("xiom-absent-vulkan-rhi-xyz.dll");
+  if rhi_missing.is_ok {
+    failed = failed + report(false, "rhi skip-path: bogus soname unexpectedly succeeded");
+  } else {
+    failed = failed + report(rhi_missing.error.kind == VULKAN_LOAD_ABSENT,
+      "rhi skip-path: absent loader classified as SKIP");
+  }
+
+  let rhi = vulkan_rhi_probe();
+  if rhi.is_ok {
+    let r: VulkanRhi = rhi.value;
+    failed = failed + report(r.device_count >= 1 && r.device_name.len() > 0,
+      "rhi device: " + r.device_name + " (type " + to_string(r.device_type) + ", api "
+        + to_string(vulkan_api_major(r.device_api)) + "." + to_string(vulkan_api_minor(r.device_api)) + ")");
+    failed = failed + report(r.queue_family >= 0,
+      "rhi queue: graphics family index " + to_string(r.queue_family));
+    failed = failed + report(r.surface_extensions,
+      "rhi instance: VK_KHR_surface + VK_KHR_win32_surface enabled");
+    failed = failed + report(true, "rhi submit: pool + cmd begin/end + queue submit/wait roundtrip");
+  } else {
+    if rhi.error.kind == VULKAN_LOAD_ABSENT {
+      failed = failed + report(true, "rhi: SKIP -- loader absent (" + rhi.error.message + ")");
+    } else if rhi.error.kind == VULKAN_LOAD_NO_DEVICE {
+      failed = failed + report(true, "rhi: SKIP -- no compatible driver (" + rhi.error.message + ")");
+    } else {
+      failed = failed + report(false, "rhi: failed -- " + rhi.error.message);
+    }
+  }
+
   if failed == 0 {
     io.println("xiom.vulkan: all tests passed");
   } else {

@@ -4,8 +4,8 @@
 
 package {
   name: "xiom.vulkan"
-  version: "0.2.0"
-  description: "Vulkan capability probe for XIOM (runtime vulkan-1.dll, no SDK required, SKIP when absent)"
+  version: "0.3.0"
+  description: "Vulkan bindings for XIOM via dynamic loader (vulkan-1.dll at runtime, no SDK required, SKIP when absent); capability probe + engine RHI bring-up (instance/device/queue/real submit)"
   categories: ["graphics"]
   keywords: ["vulkan", "gpu", "rendering", "binding"]
   license: "MIT OR Apache-2.0"
