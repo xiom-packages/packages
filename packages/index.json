@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-10T18:10:11Z",
+    "updated":  "2026-10-10T19:09:14Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -280,17 +280,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.assimp",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Assimp bindings for 3D model import (OBJ, FBX, glTF, COLLADA) with safe design-by-contract wrappers",
+                         "description":  "Open Asset Import Library (assimp v6.0.5) bindings for XIOM (vendored core + OBJ/STL/PLY importers; in-memory import probe)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-assimp/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-assimp/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "assimp.xi",
                                               "package.xi"
