@@ -6,12 +6,12 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  9,
+                  "passed":  28,
                   "failed":  0,
                   "run_by":  "task:bindings-glfw",
-                  "commit":  "34ccd6ba",
-                  "checked":  "2026-10-08T11:49:45Z"
+                  "commit":  "d2e0d02c",
+                  "checked":  "2026-10-10T19:04:18Z"
               },
     "publish":  false,
-    "excluded_reason":  null
+    "excluded_reason":  "publish pending: bindings batch 32 (xiom.glfw 0.3.0)"
 }
