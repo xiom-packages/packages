@@ -14,7 +14,19 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-10 16:15Z (LIVE HANDOFF -- bindings batch 26 PUBLISHED via `eco-v0.1.127`; the relay bus is the active coordination path):**
+**STATE AT 2026-10-10 16:30Z (LIVE HANDOFF -- bindings batches 26+27 PUBLISHED via the bus (assimp 0.2.0 -> 0.3.0 superseding); bus flow proven end-to-end):**
+- **Bus items processed to completion:** batch 26 `REL-20261010-1603-bindings` (assimp 0.2.0,
+  `eco-v0.1.127`) and batch 27 `REL-20261010-1611-bindings` (assimp 0.3.0 glTF2, `eco-v0.1.128`,
+  run `38067436940`) -- merge -> native port x2 (4/4 then **5/5**; OBJ/PLY/glTF2 embedded-buffer
+  import; 92 TUs) -> record -> wrap -> publish -> live-verify -> bus fixed. 0.2.0 was published
+  before the superseding item arrived; both immutable, **0.3.0 is the go-forward** (live sha256
+  `5b30c6a8...`, 16:23:47Z); guard **508/491/17/0**; records + READMEs synced.
+- Bus queue otherwise: owner greenlight `xiom.vectors` (`REL-20261010-1550-xvector-9`); parked
+  items unchanged (bindings consumer-hook, orbitdb btree re-extract, xvector ann); compiler/stdlib
+  item acks pending upstream.
+- Session tally: **44 eco releases** (`eco-v0.1.86` -> `eco-v0.1.128`).
+
+**STATE AT 2026-10-10 16:15Z (history -- superseded by the 16:30Z block above):**
 - **Bus operational:** onboarding done; doorbell cron every 2h; migration items filed
   (compiler `REL-20261010-1549-packages-2..12`, stdlib `REL-20261010-1550-packages*`, orbitdb
   order-3 `-8`, owner vectors greenlight `-9`); seven inbound items processed -- **fixed:**
