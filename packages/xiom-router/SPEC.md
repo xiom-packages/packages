@@ -1,7 +1,7 @@
 # xiom.router -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.63.1 on
-2026-10-05; not published).
+Status: `incubating` (published 0.1.0; registry-served and consumer-installed on v0.64.3;
+original harness-green on v0.63.1 2026-10-05).
 Manifest: `package.xi` (`xiom.router`, version `0.1.0`).
 Module: `src/router.xi` (`module xiom.router`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.compare`). No FFI.
