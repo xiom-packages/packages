@@ -3,11 +3,11 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 26 RELAYED (merge-ready)** -- `xiom.assimp` 0.2.0 (vendored
-v6.0.5 generated subset: core + OBJ/STL/PLY + zlib/minizip/earcut/utf8; 89
-TUs; real in-memory OBJ+PLY imports 4/4 x2). All earlier batches published
-through `eco-v0.1.126`; relay bus onboarded (`xiom-relays`, 11 items);
-`xiom.jolt` still waits on the C++ standard flag.
+**STATUS: BATCH 27 RELAYED (merge-ready; supersedes batch 26's 0.2.0)** --
+`xiom.assimp` 0.3.0 adds the glTF2 importer (+rapidjson; 92 TUs) with an
+embedded-buffer glTF2 probe: 5/5 x2. All earlier batches published through
+`eco-v0.1.126`; relay bus active (11 migrated items + doorbell); `xiom.jolt`
+still waits on the C++ standard flag.
 
 ## Relay bus onboarding (2026-10-10, owner rollout)
 
@@ -26,6 +26,19 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 27: head=10567ce2 + this handoff commit; packages=xiom.assimp 0.3.0
+(SUPERSEDES the 0.2.0 in the batch-26 bus item; merging the branch tip gets both):
+adds the GLTF importer option (legacy glTF + glTF2 + glTFCommon dirs; rapidjson
+contrib), now 92 TUs; tests=5/5 x2 (version major 6; in-memory OBJ 1 mesh/3 verts/1
+face; PLY 3 verts; glTF2 3 verts from an embedded base64 data-URI buffer; determinism);
+licenses unchanged (BSD-3-Clause vendored + package MIT OR Apache-2.0); pins=tag v6.0.5
+commit 392a658f... + generator (hardened: standard headers never remapped by basename --
+rapidjson ships msinttypes/stdint.h; contrib include roots keyed per lib) + tree sha256
+from the generator; gate=G0..G5 OK; needs=NONE; port.args.json regenerated; watchdog
+>=300 s.
+```
 
 ```
 BINDINGS BATCH 26: head=56272e78 + this handoff commit; packages=xiom.assimp 0.2.0
@@ -751,6 +764,19 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Batch 27 notes (xiom.assimp glTF2 expansion, 2026-10-10)
+
+- 0.3.0 adds the GLTF importer option (legacy glTF + glTF2 + glTFCommon
+  dirs) and the rapidjson contrib; 92 TUs. New in-memory glTF2 probe
+  (embedded base64 data-URI buffer) -> 5/5 x2.
+- Generator hardening found while expanding: system headers must never be
+  remapped by basename (rapidjson ships msinttypes/stdint.h, which stole
+  <stdint.h>); contrib include roots are now keyed relative to the lib and
+  its include/ dir. Batch 26's tree was unaffected (rapidjson was not
+  mirrored then); the regenerated tree is byte-stable for the old files.
+- Supersedes the 0.2.0 in the batch-26 bus item: the merged branch tip
+  carries all of batch 26 + 27.
+
 ## Batch 26 notes (xiom.assimp, 2026-10-10)
 
 - Generated-subset method proven at scale: the generator mirrors the tagged
@@ -1156,11 +1182,11 @@ in this file, and any new compiler finding appended to
 
 ## Next (state at 2026-10-09, batch 23 pushed)
 
-- Batch 26 (`xiom.assimp` 0.2.0) is relayed and pushed: waiting on the
-  native merge/verify/publish (batch-ready item filed on the relay bus).
-  Everything through batch 25 is published (`eco-v0.1.126`);
-  `xiom.jolt` v5.6.0 stays blocked on the link-line C++ standard
-  passthrough.
+- Batch 27 (`xiom.assimp` 0.3.0) is relayed and pushed: waiting on the
+  native merge/verify/publish (filed on the relay bus; supersedes batch 26's
+  assimp 0.2.0). Everything through batch 25 is published
+  (`eco-v0.1.126`); `xiom.jolt` v5.6.0 stays blocked on the link-line C++
+  standard passthrough.
 - Pin matrix re-run done: 19/19 green on the official v0.64.2 pin. The
   B-01 workaround is retired; B-05/B-10 workarounds stay in force; B-08
   probing may trust exit codes from v0.64.2 on (port.ps1 keeps marker
