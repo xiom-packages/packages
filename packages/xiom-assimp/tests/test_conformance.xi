@@ -68,6 +68,8 @@ fn main() -> Int {
       "ply: vertices=" + i2s(p.value.ply_vertices));
     failed = failed + report(p.value.gltf_vertices == 3,
       "gltf2: vertices=" + i2s(p.value.gltf_vertices));
+    failed = failed + report(p.value.collada_vertices == 3,
+      "collada: vertices=" + i2s(p.value.collada_vertices));
   } else {
     failed = failed + report(false, "imports: " + p.error);
   }
@@ -77,7 +79,8 @@ fn main() -> Int {
   let same = p.is_ok && p2.is_ok
     && p2.value.obj_vertices == p.value.obj_vertices
     && p2.value.ply_vertices == p.value.ply_vertices
-    && p2.value.gltf_vertices == p.value.gltf_vertices;
+    && p2.value.gltf_vertices == p.value.gltf_vertices
+    && p2.value.collada_vertices == p.value.collada_vertices;
   failed = failed + report(same, "determinism: repeated imports identical");
 
   if failed == 0 {

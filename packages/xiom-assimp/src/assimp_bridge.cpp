@@ -18,6 +18,7 @@ static int g_faces;
 static int g_ply_vertices;
 static int g_ply_ok;
 static int g_gltf_vertices;
+static int g_collada_vertices;
 static char g_error[512];
 
 static void set_error(const char* msg) {
@@ -146,6 +147,47 @@ int assimprobe_gltf(void) {
 
 int assimprobe_gltf_vertices(void) {
   return g_gltf_vertices;
+}
+
+// In-memory COLLADA (.dae) import: a minimal 1.4.1 document with one
+// triangle.  Caches the vertex count.  0 on success, negative on failure.
+int assimprobe_collada(void) {
+  g_collada_vertices = 0;
+  g_error[0] = 0;
+
+  static const char* dae =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+      "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">"
+      "<asset><up_axis>Y_UP</up_axis></asset>"
+      "<library_geometries><geometry id=\"tri\" name=\"tri\"><mesh>"
+      "<source id=\"pos\">"
+      "<float_array id=\"pos-array\" count=\"9\">0 0 0 1 0 0 0 1 0</float_array>"
+      "<technique_common><accessor source=\"#pos-array\" count=\"3\" stride=\"3\">"
+      "<param name=\"X\" type=\"float\"/><param name=\"Y\" type=\"float\"/>"
+      "<param name=\"Z\" type=\"float\"/></accessor></technique_common></source>"
+      "<vertices id=\"verts\"><input semantic=\"POSITION\" source=\"#pos\"/></vertices>"
+      "<triangles material=\"none\" count=\"1\">"
+      "<input semantic=\"VERTEX\" source=\"#verts\" offset=\"0\"/>"
+      "<p>0 1 2</p></triangles>"
+      "</mesh></geometry></library_geometries>"
+      "<library_visual_scenes><visual_scene id=\"scene\">"
+      "<node id=\"n\" name=\"tri\"><instance_geometry url=\"#tri\"/></node>"
+      "</visual_scene></library_visual_scenes>"
+      "<scene><instance_visual_scene url=\"#scene\"/></scene>"
+      "</COLLADA>";
+
+  Assimp::Importer importer;
+  const aiScene* scene = importer.ReadFileFromMemory(dae, strlen(dae), 0, "dae");
+  if (scene == 0 || scene->mNumMeshes == 0 || scene->mMeshes[0] == 0) {
+    set_error(importer.GetErrorString());
+    return -7;
+  }
+  g_collada_vertices = (int)scene->mMeshes[0]->mNumVertices;
+  return g_collada_vertices == 3 ? 0 : -8;
+}
+
+int assimprobe_collada_vertices(void) {
+  return g_collada_vertices;
 }
 
 const char* assimprobe_error(void) {

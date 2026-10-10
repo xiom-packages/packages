@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.assimp` |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Open Asset Import Library -- https://github.com/assimp/assimp |
 | Upstream version | **v6.0.5** (tag; commit `392a658f9c271be965271f45e7521a1b80ea4392`) |
@@ -16,9 +16,10 @@
 
 ## 2. Vendored subset (G2 pin)
 
-The pilot compiles **core + material + post-processing + the OBJ/STL/PLY +
-glTF2 importers + zlib/minizip/earcut-hpp/utf8cpp/rapidjson**, mirrored from
-the tagged tree by `tools/combine.py`:
+The pilot compiles **core + material + post-processing + the
+OBJ/STL/PLY/glTF2/COLLADA importers +
+zlib/minizip/earcut-hpp/utf8cpp/rapidjson/pugixml**, mirrored from the
+tagged tree by `tools/combine.py`:
 
 - Mirror: `include/assimp/**`, `code/**`, and the needed `contrib/`
   trees into `vendor/` (verbatim bytes), then **rewrite every include that
@@ -31,17 +32,17 @@ the tagged tree by `tools/combine.py`:
 - `vendor/include/assimp/config.h` is generated: CMake-substituted from the
   upstream `config.h.in` (keeping every `AI_CONFIG_*` default), with
   `ASSIMP_BUILD_NO_EXPORT` plus `ASSIMP_BUILD_NO_<X>_IMPORTER`/
-  `_EXPORTER` for every importer outside OBJ/STL/PLY/GLTF (47 names) and
-  `ASSIMP_BUILD_NO_C4D_IMPORTER`.
+  `_EXPORTER` for every importer outside OBJ/STL/PLY/GLTF/COLLADA (47
+  names) and `ASSIMP_BUILD_NO_C4D_IMPORTER`.
 - `vendor/include/assimp/revision.h` is generated from `revision.h.in`
   (VER 6/0/5; GitVersion 0 for the tarball build).
 - `vendor/contrib/zlib/zconf.h` is `zconf.h.included` (zlib's own
   configured file, as upstream's CMake produces).
-- Compiled TUs (92, listed in `port.args.json`): 87 C++ files (core dirs
+- Compiled TUs (96, listed in `port.args.json`): 90 C++ files (core dirs
   Common/CApi/Geometry/Material/PostProcessing + AssetLib/{OBJ,PLY,STL,
-  glTF,glTF2,glTFCommon}) plus zlib core + minizip (unzip/ioapi) + our
-  bridge. Export files are excluded (`Export` in name) and exporter
-  registration is disabled.
+  glTF,glTF2,glTFCommon,Collada} + pugixml) plus zlib core + minizip
+  (unzip/ioapi) + our bridge. Export files are excluded (`Export` in name)
+  and exporter registration is disabled.
 
 ### Pinned source
 
@@ -60,7 +61,7 @@ the tagged tree by `tools/combine.py`:
 3. Record the printed tree sha256; update version rows here and in
    `README.md`/`AUDIT.md`.
 4. Re-run `scripts/port.ps1 -Package xiom.assimp` x2 and record
-   `STATUS.json`. Watchdog >=300 s (92 TUs compile in ~90-150 s).
+   `STATUS.json`. Watchdog >=300 s (96 TUs compile in ~90-160 s).
 
 ## 3. Design and safe boundary (G5)
 
@@ -73,10 +74,11 @@ compile in, so the suite runs real imports on every platform.
 
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- 5 checks: version pin (major 6),
+Suite: `tests/test_conformance.xi` -- 6 checks: version pin (major 6),
 in-memory OBJ import (1 mesh / 3 vertices / 1 face), in-memory PLY import
 (3 vertices), in-memory glTF2 import (embedded base64 buffer, 3 vertices),
-and repeated-import determinism.
+in-memory COLLADA import (minimal 1.4.1 document, 3 vertices), and
+repeated-import determinism.
 
 Command (cwd = this package directory; the runner hook adds the C sources):
 
@@ -86,8 +88,8 @@ scripts/port.ps1 -Package xiom.assimp
 
 ## 5. Scope
 
-Pilot: version + three real in-memory imports proving the parser pipeline
-(OBJ, PLY, glTF2). The remaining importer set (FBX/COLLADA/BLEND/...),
+Pilot: version + four real in-memory imports proving the parser pipeline
+(OBJ, PLY, glTF2, COLLADA). The remaining importer set (FBX/BLEND/...),
 post-processing option wrappers, IO abstraction, and the export API are
 Phase 2 (`ROADMAP.md`). The pre-pilot 0.1.0 static-extern surface is
 preserved in git history.

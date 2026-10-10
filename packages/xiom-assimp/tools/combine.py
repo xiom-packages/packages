@@ -32,7 +32,7 @@ import re
 import shutil
 import sys
 
-ENABLED = ("OBJ", "STL", "PLY", "GLTF")
+ENABLED = ("OBJ", "STL", "PLY", "GLTF", "COLLADA")
 
 # Every ASSIMP_BUILD_*_IMPORTER option name (from code/CMakeLists.txt).
 ALL_IMPORTERS = (
@@ -78,9 +78,14 @@ ASSET_DIRS_BY_IMPORTER = {
     "STL": ("AssetLib/STL",),
     "PLY": ("AssetLib/PLY",),
     "GLTF": ("AssetLib/glTF", "AssetLib/glTF2", "AssetLib/glTFCommon"),
+    "COLLADA": ("AssetLib/Collada",),
 }
-CONTRIB_MIRROR = ("zlib", "earcut-hpp", "utf8cpp", "rapidjson")
-CONTRIB_EXTRA_C = (("zlib", "contrib/minizip/unzip.c"), ("zlib", "contrib/minizip/ioapi.c"))
+CONTRIB_MIRROR = ("zlib", "earcut-hpp", "utf8cpp", "rapidjson", "pugixml")
+CONTRIB_EXTRA = (
+    ("zlib", "contrib/minizip/unzip.c"),
+    ("zlib", "contrib/minizip/ioapi.c"),
+    ("pugixml", "src/pugixml.cpp"),
+)
 
 
 def read_text(path):
@@ -254,8 +259,8 @@ def collect_sources(vendor):
             full = os.path.join(base, name)
             if os.path.isfile(full) and name.endswith(".c"):
                 sources.append(full)
-    # Extra C sources from contrib subdirectories (minizip for the zip reader).
-    for contrib, sub in CONTRIB_EXTRA_C:
+    # Extra sources from contrib subdirectories (minizip, pugixml).
+    for contrib, sub in CONTRIB_EXTRA:
         full = os.path.join(vendor, "contrib", contrib, *sub.split("/"))
         if os.path.isfile(full):
             sources.append(full)

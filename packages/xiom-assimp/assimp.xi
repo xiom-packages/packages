@@ -37,6 +37,8 @@ extern "C" {
   fn assimprobe_ply_vertices() -> Int32;
   fn assimprobe_gltf() -> Int32;
   fn assimprobe_gltf_vertices() -> Int32;
+  fn assimprobe_collada() -> Int32;
+  fn assimprobe_collada_vertices() -> Int32;
   fn assimprobe_error() -> *UInt8;
 }
 
@@ -47,6 +49,7 @@ pub type AssimpInfo = {
   obj_faces: Int;
   ply_vertices: Int;
   gltf_vertices: Int;
+  collada_vertices: Int;
 }
 
 /// Packed upstream version: major * 10000 + minor * 100 + revision, where
@@ -87,6 +90,10 @@ pub fn assimp_probe() -> Result[AssimpInfo, Str]
   if gltf_rc != 0 {
     return Err(assimp_error("gltf", gltf_rc));
   }
+  let collada_rc = unsafe { assimprobe_collada() as Int };
+  if collada_rc != 0 {
+    return Err(assimp_error("collada", collada_rc));
+  }
   return Ok(AssimpInfo{
     version: unsafe { assimprobe_version() as Int };
     obj_meshes: unsafe { assimprobe_meshes() as Int };
@@ -94,6 +101,7 @@ pub fn assimp_probe() -> Result[AssimpInfo, Str]
     obj_faces: unsafe { assimprobe_faces() as Int };
     ply_vertices: unsafe { assimprobe_ply_vertices() as Int };
     gltf_vertices: unsafe { assimprobe_gltf_vertices() as Int };
+    collada_vertices: unsafe { assimprobe_collada_vertices() as Int };
   });
 }
 
