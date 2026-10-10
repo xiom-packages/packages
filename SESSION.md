@@ -20,6 +20,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   sha256 `c06a5131...` (17:06:27Z) -> bus fixed. Versions 0.2.0-0.5.0 all live; **0.5.0 is the
   go-forward**.
 - The 17:00Z doorbell cron fired and caught batch 29 within minutes -- cadence proven.
+- **v0.64.3 released (17:27Z, tag `f7b3a4fe`; archive SHA256 `5140b863...` verified):** tested on a
+  shadow install (`%LOCALAPPDATA%\xiom.new.0643`; canonical exe locked by other lanes' compiles).
+  Release-check verdicts for the 11 packages rows filed on the bus: `-3` satisfied by the T007
+  diagnostic (silent-null closed), `-10` fixed (grpc 36/36), `-4` partial (twin gone; phantom use
+  still silent), `-9` repro clean, `-11` still open (and the notes' equality wording is
+  over-broad -- `vec_eq3`/`res_eq3` = EQ); others not addressed. No v0.64.2 matrix regression on
+  the shadow. **Canonical repin pending the exe lock** (retry scheduled).
 - `xiom.http` dead-module repair **DONE** (`c2328531`): `src/client.xi`/`src/demo.xi` compile
   clean (combined `--check` 0 T001s via the new `tests/probe_all_modules.xi`; suite 42/42 x2;
   rides the next source bump). Parked bus items unchanged; owner greenlight for `xiom.vectors`
