@@ -68,6 +68,13 @@ clone: stage ONLY your own item files). The two working rules are in
 ### Gotchas (learned this session)
 - **Driver-heavy FFI**: return packed/scalar values; out-param slots can be
   recycled (B-11). Keep that ABI for new CUDA/Vulkan-style probes.
+- **Direct `xiom --run` needs an ABSOLUTE suite path**: with a relative
+  path, package-module discovery silently fails (`use xiom.<pkg>` resolves
+  to nothing and every call is "undefined variable"). port.ps1 always uses
+  absolute paths -- mimic that in ad-hoc runs.
+- **Verification probes**: never use `if constexpr` to test "does this
+  toolchain support C++17" -- clang accepts it as a C++14 extension
+  (warning only). Use `std::string_view` / `std::align_val_t`.
 - **Confined blocks**: no malloc/free (B-05); name locals `f_` (B-10);
   no enum payload reads if the compiler pin regresses (B-01).
 - **Relays**: everything cross-lane goes through the bus now; file a
