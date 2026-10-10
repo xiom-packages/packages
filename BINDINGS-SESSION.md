@@ -3,15 +3,16 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: SWEEP DONE + -7 CORRECTION (2026-10-10 18:25Z)** -- batches 21-29
-published (`eco-v0.1.122`..`eco-v0.1.130`; batch 29 `xiom.assimp` 0.5.0 =
-`eco-v0.1.130` sha256 `c06a5131...`). Compiler **v0.64.3 released**;
-release-check sweep ran: **B-02 verified** (16/16 reconstruction);
-**the C++ standard ask is NOT fixed** -- the sweep's "verified" verdict was a
-false positive (`if constexpr` is a clang C++14 extension; correction item
-`REL-20261010-1815-bindings`, release-check row corrected) -> `xiom.jolt`
-stays staged/blocked. B-05/B-07/B-10/B-11 reproduced on v0.64.3 and
-re-queued for the v0.64.4 batch. Doorbell armed (`0 */3 * * *`).
+**STATUS: BATCH 30 RELAYED (assimp 0.6.0, BLEND) + -7 CORRECTION** -- batches
+21-29 published (`eco-v0.1.122`..`eco-v0.1.130`); batch 30 (`xiom.assimp`
+0.6.0: BLEND importer + poly2tri + embedded Blender 2.48 fixture; 8/8 x2)
+committed and relayed. Compiler v0.64.3 released; release-check sweep:
+**B-02 verified**; **the C++ standard ask is NOT fixed** -- the sweep's
+"verified" verdict was a false positive (`if constexpr` is a clang C++14
+extension; correction item `REL-20261010-1815-bindings`, release-check row
+corrected) -> `xiom.jolt` stays staged/blocked. B-05/B-07/B-10/B-11
+reproduced on v0.64.3, re-queued for v0.64.4. Doorbell armed
+(`0 */3 * * *`).
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -31,6 +32,11 @@ clone: stage ONLY your own item files). The two working rules are in
 - **Batch 28** (`xiom.assimp` 0.4.0, COLLADA; 96 TUs): merged (packages tip
   `154d1344`), port 6/6 x2, **published** `eco-v0.1.129` (live sha256
   `aeb44d02...`); bus item `REL-20261010-1623-bindings` fixed.
+- **Batch 30** (`xiom.assimp` 0.6.0, BLEND; poly2tri contrib; 111 TUs; 8/8
+  x2 with the committed `BlenderDefault_248.blend` fixture: 1 mesh / 24
+  vertices / 6 faces): feat `c9513a2b` + record commit; bus item
+  `REL-20261010-1824-bindings` filed. (Completed from the successor
+  session's in-flight working-tree edits.)
 - **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
   feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
   merged (packages tip `d96f4112`), **published** `eco-v0.1.130` (live sha256
