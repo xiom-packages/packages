@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "IFCUtil.h"
 #include "../../Common/PolyTools.h"
 #include "../../PostProcessing/ProcessHelper.h"
-#include "contrib/poly2tri/poly2tri/poly2tri.h"
+#include "../../../contrib/poly2tri/poly2tri/poly2tri.h"
 #include "contrib/clipper/clipper.hpp"
 
 #include <deque>

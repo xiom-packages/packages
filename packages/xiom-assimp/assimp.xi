@@ -1,30 +1,31 @@
 // XIOM -- xiom.assimp: assimp v6.0.5 bindings (vendored core + OBJ/STL/PLY/
-// glTF2/COLLADA/FBX importers).
+// glTF2/COLLADA/FBX/BLEND importers).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // DESIGN: vendored C++ subset (the ozz/sqlite pattern, generated).  The
 // upstream `include/assimp/**` + `code/**` trees plus the needed contribs
-// (zlib, earcut-hpp, utf8cpp, rapidjson, pugixml) are mirrored into `vendor/`
+// (zlib, earcut-hpp, utf8cpp, rapidjson, pugixml, poly2tri) are mirrored into
+// `vendor/`
 // and every include that resolves to a vendored header is rewritten to an
 // exact relative path by `tools/combine.py` (the xiom link line has no -I
 // passthrough).  `vendor/include/assimp/config.h` is generated from the
 // upstream `config.h.in` templates with the subset's importer switches.  The
 // selected TUs (core + Material + PostProcessing + the enabled importer
-// dirs + contribs; 111 TUs) compile into the test binary with --c-source
+// dirs + contribs; 123 TUs) compile into the test binary with --c-source
 // (port.args.json); no system library, no SDK.
 //
 // The module calls a scalar-return C++ bridge (src/assimp_bridge.cpp) that
-// imports in-memory assets (OBJ, PLY, glTF2, COLLADA, FBX).  All
+// imports in-memory assets (OBJ, PLY, glTF2, COLLADA, FBX, BLEND).  All
 // `unsafe`/`extern "C"` live in this single module (G5).
 //
 // G2 pin (SPEC.md): upstream tag v6.0.5 (commit 392a658f) + generator +
 // generated-tree sha256; nothing on the network at build time.
 //
-// API subset (pilot): version + five in-memory imports proving the importer
-// pipeline (OBJ, PLY, glTF2, COLLADA, FBX).  STL is included in the compiled
-// set; full format breadth, post-processing wrappers, and the export API are
-// Phase 2 (ROADMAP.md).
+// API subset (pilot): version + six in-memory imports proving the importer
+// pipeline (OBJ, PLY, glTF2, COLLADA, FBX, BLEND).  STL is included in the
+// compiled set; full format breadth, post-processing wrappers, and the
+// export API are Phase 3 (ROADMAP.md).
 
 module xiom.assimp
 
@@ -42,6 +43,10 @@ extern "C" {
   fn assimprobe_collada_vertices() -> Int32;
   fn assimprobe_fbx() -> Int32;
   fn assimprobe_fbx_vertices() -> Int32;
+  fn assimprobe_blend() -> Int32;
+  fn assimprobe_blend_meshes() -> Int32;
+  fn assimprobe_blend_vertices() -> Int32;
+  fn assimprobe_blend_faces() -> Int32;
   fn assimprobe_error() -> *UInt8;
 }
 
@@ -54,6 +59,9 @@ pub type AssimpInfo = {
   gltf_vertices: Int;
   collada_vertices: Int;
   fbx_vertices: Int;
+  blend_meshes: Int;
+  blend_vertices: Int;
+  blend_faces: Int;
 }
 
 /// Packed upstream version: major * 10000 + minor * 100 + revision, where
@@ -77,8 +85,8 @@ pub fn assimp_version_str(v: Int) -> Str
   return assimp_i2s(major) + "." + assimp_i2s(minor) + "." + assimp_i2s(revision);
 }
 
-/// Import the built-in in-memory OBJ, PLY, glTF2, COLLADA, and FBX probes
-/// and report the scene counts.  Complexity: O(import).
+/// Import the built-in in-memory OBJ, PLY, glTF2, COLLADA, FBX, and BLEND
+/// probes and report the scene counts.  Complexity: O(import).
 pub fn assimp_probe() -> Result[AssimpInfo, Str]
   requires: true
 {
@@ -102,6 +110,10 @@ pub fn assimp_probe() -> Result[AssimpInfo, Str]
   if fbx_rc != 0 {
     return Err(assimp_error("fbx", fbx_rc));
   }
+  let blend_rc = unsafe { assimprobe_blend() as Int };
+  if blend_rc != 0 {
+    return Err(assimp_error("blend", blend_rc));
+  }
   return Ok(AssimpInfo{
     version: unsafe { assimprobe_version() as Int };
     obj_meshes: unsafe { assimprobe_meshes() as Int };
@@ -111,6 +123,9 @@ pub fn assimp_probe() -> Result[AssimpInfo, Str]
     gltf_vertices: unsafe { assimprobe_gltf_vertices() as Int };
     collada_vertices: unsafe { assimprobe_collada_vertices() as Int };
     fbx_vertices: unsafe { assimprobe_fbx_vertices() as Int };
+    blend_meshes: unsafe { assimprobe_blend_meshes() as Int };
+    blend_vertices: unsafe { assimprobe_blend_vertices() as Int };
+    blend_faces: unsafe { assimprobe_blend_faces() as Int };
   });
 }
 

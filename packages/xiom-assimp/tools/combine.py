@@ -32,7 +32,7 @@ import re
 import shutil
 import sys
 
-ENABLED = ("OBJ", "STL", "PLY", "GLTF", "COLLADA", "FBX")
+ENABLED = ("OBJ", "STL", "PLY", "GLTF", "COLLADA", "FBX", "BLEND")
 
 # Every ASSIMP_BUILD_*_IMPORTER option name (from code/CMakeLists.txt).
 ALL_IMPORTERS = (
@@ -80,12 +80,18 @@ ASSET_DIRS_BY_IMPORTER = {
     "GLTF": ("AssetLib/glTF", "AssetLib/glTF2", "AssetLib/glTFCommon"),
     "COLLADA": ("AssetLib/Collada",),
     "FBX": ("AssetLib/FBX",),
+    "BLEND": ("AssetLib/Blender",),
 }
-CONTRIB_MIRROR = ("zlib", "earcut-hpp", "utf8cpp", "rapidjson", "pugixml")
+CONTRIB_MIRROR = ("zlib", "earcut-hpp", "utf8cpp", "rapidjson", "pugixml", "poly2tri")
 CONTRIB_EXTRA = (
     ("zlib", "contrib/minizip/unzip.c"),
     ("zlib", "contrib/minizip/ioapi.c"),
     ("pugixml", "src/pugixml.cpp"),
+    ("poly2tri", "poly2tri/common/shapes.cc"),
+    ("poly2tri", "poly2tri/sweep/advancing_front.cc"),
+    ("poly2tri", "poly2tri/sweep/cdt.cc"),
+    ("poly2tri", "poly2tri/sweep/sweep.cc"),
+    ("poly2tri", "poly2tri/sweep/sweep_context.cc"),
 )
 
 
@@ -278,6 +284,11 @@ def write_port_args(path, pkg_dir, sources):
         rel = os.path.relpath(src, pkg_dir).replace("\\", "/")
         items.append('  "--c-source",')
         items.append('  "${PACKAGE_DIR}/%s",' % rel)
+    # Heavy suite: the 123-TU compile runs close to the compiler's default
+    # 300 s watchdog under machine load; raise it (port.ps1's -TimeoutSec is
+    # still the outer bound).  See SPEC.md.
+    items.append('  "--timeout",')
+    items.append('  "900",')
     if items:
         items[-1] = items[-1].rstrip(",")
     body = "[\n" + "\n".join(items) + "\n]\n"

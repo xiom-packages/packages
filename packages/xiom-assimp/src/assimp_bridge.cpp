@@ -1,5 +1,5 @@
 // xiom.assimp -- C bridge over the vendored assimp core (import probes:
-// OBJ/PLY/glTF2/COLLADA/FBX).
+// OBJ/PLY/glTF2/COLLADA/FBX/BLEND).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -13,6 +13,8 @@
 
 #include <string.h>
 
+#include "blend_default_248.inc"
+
 static int g_meshes;
 static int g_vertices;
 static int g_faces;
@@ -21,6 +23,9 @@ static int g_ply_ok;
 static int g_gltf_vertices;
 static int g_collada_vertices;
 static int g_fbx_vertices;
+static int g_blend_meshes;
+static int g_blend_vertices;
+static int g_blend_faces;
 static char g_error[512];
 
 static void set_error(const char* msg) {
@@ -234,6 +239,43 @@ int assimprobe_fbx(void) {
 
 int assimprobe_fbx_vertices(void) {
   return g_fbx_vertices;
+}
+
+// In-memory BLEND import: the committed Blender 2.48 default-scene fixture
+// (one cube; the format is DNA-driven binary and not synthesizable
+// in-memory -- see tools/embed_blend_fixture.py).  Caches mesh/vertex/face
+// counts.  0 on success, negative on failure.
+int assimprobe_blend(void) {
+  g_blend_meshes = 0;
+  g_blend_vertices = 0;
+  g_blend_faces = 0;
+  g_error[0] = 0;
+
+  Assimp::Importer importer;
+  const aiScene* scene = importer.ReadFileFromMemory(
+      kBlendDefault248, kBlendDefault248Len, 0, "blend");
+  if (scene == 0) {
+    set_error(importer.GetErrorString());
+    return -11;
+  }
+  g_blend_meshes = (int)scene->mNumMeshes;
+  if (g_blend_meshes > 0 && scene->mMeshes[0] != 0) {
+    g_blend_vertices = (int)scene->mMeshes[0]->mNumVertices;
+    g_blend_faces = (int)scene->mMeshes[0]->mNumFaces;
+  }
+  return 0;
+}
+
+int assimprobe_blend_meshes(void) {
+  return g_blend_meshes;
+}
+
+int assimprobe_blend_vertices(void) {
+  return g_blend_vertices;
+}
+
+int assimprobe_blend_faces(void) {
+  return g_blend_faces;
 }
 
 const char* assimprobe_error(void) {
