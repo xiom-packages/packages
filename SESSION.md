@@ -23,6 +23,10 @@ running). Check `git log -1 --format=%h %s` before starting.
   (7), orbitdb order-3 bug `...-8`, owner greenlight `...-9`; seven items addressed to packages were
   acked (registry kv-header fixed `17b64fae`). Doorbell cron fires every 2h. Old files carry pointer
   headers; pre-2026-10-05 stdlib rows remain as in-repo backlog.
+  **Doc roles:** bus items = coordination; repo ledgers = long-form records;
+  `BINDINGS-SESSION.md` = bindings-lane work log (batch merge requests are now
+  requested as bus items -- see `REL-20261010-1600-packages`); dated
+  `*COMPILER-RELAY*` snapshots stay as release records. Do not hand-relay.
 - **`xiom.http` 0.1.5** (`eco-v0.1.125`, run `38062137735` SUCCESS): consumer client recipe pass --
   ships `bridge/xiom_http_shims.c` (curl-free helpers) + the verified recipe
   (`--c-source <shim> --link curl --link-path <scratch>`, `curl.lib` copy, PATH +
