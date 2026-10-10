@@ -3,10 +3,10 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 27 RELAYED (merge-ready; supersedes batch 26's 0.2.0)** --
-`xiom.assimp` 0.3.0 adds the glTF2 importer (+rapidjson; 92 TUs) with an
-embedded-buffer glTF2 probe: 5/5 x2. All earlier batches published through
-`eco-v0.1.126`; relay bus active (11 migrated items + doorbell); `xiom.jolt`
+**STATUS: BATCH 28 RELAYED (merge-ready; supersedes batches 26+27 assimp
+versions)** -- `xiom.assimp` 0.4.0 adds the COLLADA importer (+pugixml; 96
+TUs) with a minimal-document probe: 6/6 x2 (OBJ, PLY, glTF2, COLLADA). All
+earlier batches published through `eco-v0.1.126`; relay bus active; `xiom.jolt`
 still waits on the C++ standard flag.
 
 ## Relay bus onboarding (2026-10-10, owner rollout)
@@ -26,6 +26,16 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 28: head=494e0eb3 + this handoff commit; packages=xiom.assimp 0.4.0
+(SUPERSEDES the assimp versions in the batch-26/27 bus items; merging the branch tip
+gets everything): adds the COLLADA importer option (+ pugixml contrib), now 96 TUs;
+tests=6/6 x2 (version major 6; in-memory OBJ 1 mesh/3 verts/1 face; PLY 3 verts; glTF2
+3 verts; COLLADA 3 verts from a minimal 1.4.1 document; determinism); licenses unchanged;
+pins=tag v6.0.5 commit 392a658f... + generator + tree sha256; gate=G0..G5 OK;
+needs=NONE; port.args.json regenerated; watchdog >=300 s.
+```
 
 ```
 BINDINGS BATCH 27: head=10567ce2 + this handoff commit; packages=xiom.assimp 0.3.0
@@ -764,6 +774,15 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Batch 28 notes (xiom.assimp COLLADA, 2026-10-10)
+
+- 0.4.0 adds the COLLADA importer (+ pugixml contrib incl. its one C++ TU),
+  96 TUs; new in-memory probe with a minimal 1.4.1 document -> 6/6 x2.
+- The generator's contrib mechanism now carries C++ extras
+  (`CONTRIB_EXTRA`: minizip .c + pugixml.cpp).
+- Bus item filed for the tip merge; batches 26/27/28 collapse into one pass
+  (the tip already carries all).
+
 ## Batch 27 notes (xiom.assimp glTF2 expansion, 2026-10-10)
 
 - 0.3.0 adds the GLTF importer option (legacy glTF + glTF2 + glTFCommon
@@ -1182,9 +1201,9 @@ in this file, and any new compiler finding appended to
 
 ## Next (state at 2026-10-09, batch 23 pushed)
 
-- Batch 27 (`xiom.assimp` 0.3.0) is relayed and pushed: waiting on the
-  native merge/verify/publish (filed on the relay bus; supersedes batch 26's
-  assimp 0.2.0). Everything through batch 25 is published
+- Batch 28 (`xiom.assimp` 0.4.0) is relayed and pushed: waiting on the
+  native merge/verify/publish (filed on the relay bus; the tip supersedes
+  batches 26/27). Everything through batch 25 is published
   (`eco-v0.1.126`); `xiom.jolt` v5.6.0 stays blocked on the link-line C++
   standard passthrough.
 - Pin matrix re-run done: 19/19 green on the official v0.64.2 pin. The
