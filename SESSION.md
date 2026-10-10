@@ -14,7 +14,19 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-10 21:15Z (doorbell cycle -- bindings batch 33 + `xiom.http` 0.1.6 PUBLISHED via `eco-v0.1.133`; `xiom-pkg` WSL bug routed to compiler):**
+**STATE AT 2026-10-10 23:05Z (doorbell cycle -- bindings batch 34 (`xiom.stb` 0.2.0) merged + verified; two ops appends pending):**
+- **`xiom.stb` 0.2.0** (batch 34, merge `07f5b9da`): vendored stb_image + stb_image_write
+  (pinned `2c980bb5`, per-header SHA256 in SPEC); native **5/5 x2** (in-memory PNG encode+decode
+  round trip pixel-exact, 1x1 BMP decode, determinism); record `5fff08f9`; wrap `8517c43e`;
+  validate 524/0. **Ops scope ask filed** (`REL-20261010-2301-packages`) -- the declaration-only
+  exclusion criterion is met (odbc pattern).
+- **Two appends pending ops live confirmation:** `xiom.ann` (`REL-20261010-1908-packages`) +
+  `xiom.stb` (`REL-20261010-2301-packages`). On confirmation: append both (509 -> 511), guard,
+  wrap, one eco batch publish.
+- `xiom-pkg` WSL path bug: routed item open with the compiler lane (their ack pending).
+- Session tally: **49 eco releases** (`eco-v0.1.86` -> `eco-v0.1.133`).
+
+**STATE AT 2026-10-10 21:15Z (history -- superseded by the 23:05Z block above):**
 - **`xiom.vulkan` 0.3.0 PUBLISHED** (batch 33; merge `3acce9a5`): engine RHI bring-up --
   instance + `VK_KHR_win32_surface`, device/queue, command pool, **real submit/wait round trip**;
   native **15/15 x2** on the RTX 3070 Ti; `eco-v0.1.133` sha256 `668b143b...` @21:07:37Z.
