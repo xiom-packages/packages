@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.assimp` |
-| Version | 0.5.0 |
+| Version | 0.6.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Open Asset Import Library -- https://github.com/assimp/assimp |
 | Upstream version | **v6.0.5** (tag; commit `392a658f9c271be965271f45e7521a1b80ea4392`) |
@@ -17,9 +17,9 @@
 ## 2. Vendored subset (G2 pin)
 
 The pilot compiles **core + material + post-processing + the
-OBJ/STL/PLY/glTF2/COLLADA/FBX importers +
-zlib/minizip/earcut-hpp/utf8cpp/rapidjson/pugixml**, mirrored from the
-tagged tree by `tools/combine.py`:
+OBJ/STL/PLY/glTF2/COLLADA/FBX/BLEND importers +
+zlib/minizip/earcut-hpp/utf8cpp/rapidjson/pugixml/poly2tri**, mirrored from
+the tagged tree by `tools/combine.py`:
 
 - Mirror: `include/assimp/**`, `code/**`, and the needed `contrib/`
   trees into `vendor/` (verbatim bytes), then **rewrite every include that
@@ -28,21 +28,29 @@ tagged tree by `tools/combine.py`:
 - Rewriter guarantees: standard headers (`stdint.h`, `<vector>`, ...) are
   never remapped even when a vendored file shares the basename (rapidjson
   ships `msinttypes/stdint.h`); contrib includes are keyed relative to the
-  lib root and its `include/` dir, so `<rapidjson/document.h>` etc. resolve.
+  lib root and its `include/` dir (plus a `contrib/...` vendor-root key), so
+  `<rapidjson/document.h>` and `contrib/poly2tri/...` resolve.
 - `vendor/include/assimp/config.h` is generated: CMake-substituted from the
   upstream `config.h.in` (keeping every `AI_CONFIG_*` default), with
   `ASSIMP_BUILD_NO_EXPORT` plus `ASSIMP_BUILD_NO_<X>_IMPORTER`/
-  `_EXPORTER` for every importer outside OBJ/STL/PLY/GLTF/COLLADA/FBX and
-  `ASSIMP_BUILD_NO_C4D_IMPORTER`.
+  `_EXPORTER` for every importer outside OBJ/STL/PLY/GLTF/COLLADA/FBX/BLEND
+  and `ASSIMP_BUILD_NO_C4D_IMPORTER`.
 - `vendor/include/assimp/revision.h` is generated from `revision.h.in`
   (VER 6/0/5; GitVersion 0 for the tarball build).
 - `vendor/contrib/zlib/zconf.h` is `zconf.h.included` (zlib's own
   configured file, as upstream's CMake produces).
-- Compiled TUs (111, listed in `port.args.json`): 105 C++ files (core dirs
-  Common/CApi/Geometry/Material/PostProcessing + AssetLib/{OBJ,PLY,STL,
-  glTF,glTF2,glTFCommon,Collada,FBX} + pugixml) plus zlib core + minizip
-  (unzip/ioapi) + our bridge. Export files are excluded (`Export` in name)
-  and exporter registration is disabled.
+- Compiled TUs (123, listed in `port.args.json`): 117 C++ files (core dirs
+  Common/CApi/Geometry/Material/PostProcessing +
+  AssetLib/{OBJ,PLY,STL,glTF,glTF2,glTFCommon,Collada,FBX,Blender} +
+  pugixml + poly2tri) plus zlib core + minizip (unzip/ioapi) + our bridge.
+  Export files are excluded (`Export` in name) and exporter registration is
+  disabled.
+- **BLEND fixture**: `.blend` is DNA-driven binary and cannot be synthesized
+  in-memory like the text/base64 probes. The BLEND probe imports
+  `tests/fixtures/BlenderDefault_248.blend` (upstream assimp v6.0.5
+  `test/models/BLEND/`, BSD-3-Clause set), embedded as
+  `src/blend_default_248.inc` by `tools/embed_blend_fixture.py` (regenerate
+  after fixture changes; the .inc is committed).
 
 ### Pinned source
 
@@ -61,26 +69,29 @@ tagged tree by `tools/combine.py`:
 3. Record the printed tree sha256; update version rows here and in
    `README.md`/`AUDIT.md`.
 4. Re-run `scripts/port.ps1 -Package xiom.assimp` x2 and record
-   `STATUS.json`. Watchdog >=300 s (111 TUs compile in ~110-190 s).
+   `STATUS.json`. Watchdog >=600 s (123 TUs compile in ~250-340 s under
+   load; `port.args.json` raises the compiler's own watchdog to 900 s via
+   `--timeout 900`, since the default 300 s sits too close).
 
 ## 3. Design and safe boundary (G5)
 
 `assimp.xi` is the only module with `unsafe`/`extern "C"`; it calls a
-scalar-return C++ bridge (`src/assimp_bridge.cpp`) that runs in-memory
-imports (`Assimp::Importer::ReadFileFromMemory`, hints "obj", "ply",
-"gltf2", "dae", "fbx") and caches the counts. No out-param slots (finding
+scalar-return C++ bridge (`src/assimp_bridge.cpp`) that runs imports
+(`Assimp::Importer::ReadFileFromMemory`, hints "obj", "ply", "gltf2",
+"dae", "fbx", "blend") and caches the counts. No out-param slots (finding
 B-11 family avoidance); no malloc/free from XIOM. There is no SKIP path --
 the vendored sources always compile in, so the suite runs real imports on
 every platform.
 
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- 7 checks: version pin (major 6),
+Suite: `tests/test_conformance.xi` -- 8 checks: version pin (major 6),
 in-memory OBJ import (1 mesh / 3 vertices / 1 face), in-memory PLY import
 (3 vertices), in-memory glTF2 import (embedded base64 buffer, 3 vertices),
 in-memory COLLADA import (minimal 1.4.1 document, 3 vertices), in-memory
-ASCII FBX import (minimal FBX 7400 document, 3 vertices), and
-repeated-import determinism.
+ASCII FBX import (minimal FBX 7400 document, 3 vertices), BLEND import from
+the committed fixture (default-scene cube: 1 mesh / 6 quad faces / 24
+unshared loop-vertices), and repeated-import determinism.
 
 Command (cwd = this package directory; the runner hook adds the C sources):
 
@@ -90,8 +101,8 @@ scripts/port.ps1 -Package xiom.assimp
 
 ## 5. Scope
 
-Pilot: version + five real in-memory imports proving the parser pipeline
-(OBJ, PLY, glTF2, COLLADA, ASCII FBX). The remaining importer set
-(BLEND/...), post-processing option wrappers, IO abstraction, and the
-export API are Phase 3 (`ROADMAP.md`). The pre-pilot 0.1.0 static-extern
-surface is preserved in git history.
+Pilot: version + six real imports proving the parser pipeline (OBJ, PLY,
+glTF2, COLLADA, ASCII FBX in-memory; BLEND from the committed 2.48
+fixture). The remaining importer set (OFF/SMD/...), post-processing option
+wrappers, IO abstraction, and the export API are Phase 3 (`ROADMAP.md`).
+The pre-pilot 0.1.0 static-extern surface is preserved in git history.

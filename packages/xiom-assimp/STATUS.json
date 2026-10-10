@@ -1,17 +1,17 @@
 {
     "package":  "xiom.assimp",
     "stage":  "incubating",
-    "compiler":  "v0.64.3",
+    "compiler":  "v0.64.2",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  7,
+                  "passed":  8,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "d96f4112",
-                  "checked":  "2026-10-10T17:05:16Z"
+                  "run_by":  "task:bindings-assimp",
+                  "commit":  "c9513a2b",
+                  "checked":  "2026-10-10T18:24:04Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.130 (2026-10-10)"
+    "excluded_reason":  "publish pending: bindings batch 30 (xiom.assimp 0.6.0)"
 }
