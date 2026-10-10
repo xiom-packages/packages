@@ -1,0 +1,4 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/stb_all.c"
+]
