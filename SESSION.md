@@ -14,7 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-10 18:55Z (LIVE HANDOFF -- `xiom.vectors` 0.1.0 PUBLISHED via `eco-v0.1.131`; C-ORBIT-06 verdict corrected; assimp 0.6.0 gated):**
+**STATE AT 2026-10-10 19:15Z (LIVE HANDOFF -- `xiom.ann` extracted (ops ask filed); `xiom.assimp` 0.7.0 + `xiom.glfw` 0.3.0 PUBLISHED via `eco-v0.1.132`):**
+- **`xiom.ann` 0.1.0 extracted + verified** (owner-greenlit follow-on): `AnnIndexKind`/`AnnParams`
+  (on-disk codes 1/2/3) + `flat_search` oracle + multi-layer HNSW over flat arrays; port **24/24
+  x2** + recall harness x2 (recall@10 **1.000** at ef=64, **0.9867** at ef=8); feat `493e44d0`,
+  record `2c62e022`; dep-root `xiom.toml` -> `xiom.vectors` 0.1.0; validate 524/0. **Ops scope ask
+  filed** (`REL-20261010-1908-packages`, 509 -> 510); on the live confirmation: allowlist +
+  publish. (XVECTOR's `hnsw.xi` L39/L41 bracket artifacts were normalized on our side; theirs to
+  fix in-repo.)
+- **Bindings batches 31+32 PUBLISHED via `eco-v0.1.132`** (run `38078757165`): **`xiom.assimp`
+  0.7.0** (OFF+SMD; native **10/10** on v0.64.3 -- quiet-window build with the 1800 s timeout;
+  sha256 `b5eb00f1...` @19:11:16Z) and **`xiom.glfw` 0.3.0** (present **28/28 x2** + absent
+  **SKIP 3/3**; sha256 `8c025086...` @19:12:11Z); guard **509/492/17/0**; bus items 30
+  (superseded) / 31 / 32 fixed. New compiler finding **B-12** (fp-return checks labelled SKIP)
+  noted from the batch-32 relay.
+- Engine-lane asks routed to bindings (image codec P2; assimp consumer contract P2+).
+- Session tally: **48 eco releases** (`eco-v0.1.86` -> `eco-v0.1.132`).
+
+**STATE AT 2026-10-10 18:55Z (history -- superseded by the 19:15Z block above):**
 - **`xiom.vectors` 0.1.0 LIVE:** owner greenlight -> extraction (feat `b8911083`) -> **37/37 x2** +
   codec probe x2 on v0.64.3 -> ops scope LIVE -> allowlist 508 -> 509 -> **published
   `eco-v0.1.131`** (run `38077260607`; sha256 `3f2a0d1d...` @18:51:33Z); guard **509/491/18/0**;
