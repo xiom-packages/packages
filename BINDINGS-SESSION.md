@@ -3,16 +3,17 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: GLFW 0.3.0 SHIPPED (engine surface) + B-12** -- batch 31 (assimp
-0.7.0) relayed; batch 32 (`xiom.glfw` 0.3.0 engine surface: 85 core + 5
-Vulkan-helper exports; 28/28 x2 with the official 3.4 win64 DLL) committed
-and relayed. Engine lane online: its three items acked (Vulkan growth plan,
-SDL3 confirmation, SDK info). **New compiler finding B-12**: floating-point
-RETURNS through fn-pointer cast calls are miscompiled (0/garbage) on
-v0.64.2/v0.64.3 -- repro bundle + item filed; glfw time/opacity value
-checks carry labelled SKIPs. `E:\repos` (official upstreams incl.
-miniaudio/meshopt/ozz/Jolt/box2d/imgui) noted for full-coverage generation.
-Doorbell armed (`0 */3 * * *`).
+**STATUS: VULKAN 0.3.0 (RHI bring-up) SHIPPED** -- batches 31 (assimp
+0.7.0) and 32 (glfw 0.3.0 engine surface, 28/28 x2) relayed; batch 33
+(`xiom.vulkan` 0.3.0: instance w/ Win32 surface ext -> device pick ->
+graphics queue family -> logical device -> command pool/buffer + REAL
+submit/wait; **15/15 x2** on the RTX 3070 Ti) committed and relayed. New
+compiler finding **B-12** (fp returns through cast calls; repro bundle)
+filed; `xiom.glfw` value checks carry labelled SKIPs for it. Engine lane:
+items acked; build order #1 delivered -- #2 (surface/swapchain/present)
+next. `E:\repos` official upstreams noted for full-coverage generation.
+ffmpeg growth waits on a shared+dev build request. Doorbell armed
+(`0 */3 * * *`).
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -52,6 +53,17 @@ clone: stage ONLY your own item files). The two working rules are in
   AUDIT/SPEC. Engine items `-1834-engine-2/-3`, `-1841-engine` acked;
   **Vulkan mini-RHI is the next batch**; ffmpeg growth waits on a
   shared+dev build request (`C:\ffmpeg` on the box is static-only).
+- **Batch 33** (`xiom.vulkan` 0.3.0 engine RHI bring-up; build order #1):
+  `src/vk_rhi.c` C bridge (self-contained ABI decls; scalars only --
+  B-11/B-12 discipline): instance with `VK_KHR_surface` +
+  `VK_KHR_win32_surface` enabled, discrete-preferred device pick, graphics
+  queue family, logical device + queue, command pool/buffer begin/end +
+  **real `vkQueueSubmit`/`vkQueueWaitIdle`**. **15/15 x2** on the RTX 3070
+  Ti (loader 1.4.350, ~9.4 s/run); absent/no-driver shapes stay green. Gotcha
+  learned: resolve DEVICE-level pointers via `vkGetDeviceProcAddr` -- the
+  1.4.x loader rejects a device passed to `vkGetInstanceProcAddr` (VUID;
+  fast-fail). feat `93943978` + record commit; relayed to packages. Next:
+  build order #2 (Win32 surface + swapchain + present) via the glfw HWND.
 - **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
   feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
   merged (packages tip `d96f4112`), **published** `eco-v0.1.130` (live sha256
@@ -149,6 +161,17 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 33: head=93943978 + this record commit; packages=xiom.vulkan 0.3.0
+(engine RHI bring-up, build order #1): instance (VK_KHR_surface + VK_KHR_win32_surface
+enabled), discrete-preferred physical-device pick, graphics queue family, logical
+device+queue, command pool/buffer begin/end + real vkQueueSubmit/vkQueueWaitIdle.
+tests=15/15 x2 on the RTX 3070 Ti (loader 1.4.350); absent/no-driver shapes stay green.
+ABI note: device-level pointers resolved via vkGetDeviceProcAddr (1.4.x loader rejects a
+device through vkGetInstanceProcAddr). next=build order #2 surface+swapchain+present.
+needs=NONE.
+```
 
 ```
 BINDINGS BATCH 32: head=d2e0d02c + this record commit; packages=xiom.glfw 0.3.0
