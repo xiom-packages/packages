@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.assimp` |
-| Version | 0.4.0 |
+| Version | 0.5.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Open Asset Import Library -- https://github.com/assimp/assimp |
 | Upstream version | **v6.0.5** (tag; commit `392a658f9c271be965271f45e7521a1b80ea4392`) |
@@ -17,7 +17,7 @@
 ## 2. Vendored subset (G2 pin)
 
 The pilot compiles **core + material + post-processing + the
-OBJ/STL/PLY/glTF2/COLLADA importers +
+OBJ/STL/PLY/glTF2/COLLADA/FBX importers +
 zlib/minizip/earcut-hpp/utf8cpp/rapidjson/pugixml**, mirrored from the
 tagged tree by `tools/combine.py`:
 
@@ -32,15 +32,15 @@ tagged tree by `tools/combine.py`:
 - `vendor/include/assimp/config.h` is generated: CMake-substituted from the
   upstream `config.h.in` (keeping every `AI_CONFIG_*` default), with
   `ASSIMP_BUILD_NO_EXPORT` plus `ASSIMP_BUILD_NO_<X>_IMPORTER`/
-  `_EXPORTER` for every importer outside OBJ/STL/PLY/GLTF/COLLADA (47
-  names) and `ASSIMP_BUILD_NO_C4D_IMPORTER`.
+  `_EXPORTER` for every importer outside OBJ/STL/PLY/GLTF/COLLADA/FBX and
+  `ASSIMP_BUILD_NO_C4D_IMPORTER`.
 - `vendor/include/assimp/revision.h` is generated from `revision.h.in`
   (VER 6/0/5; GitVersion 0 for the tarball build).
 - `vendor/contrib/zlib/zconf.h` is `zconf.h.included` (zlib's own
   configured file, as upstream's CMake produces).
-- Compiled TUs (96, listed in `port.args.json`): 90 C++ files (core dirs
+- Compiled TUs (111, listed in `port.args.json`): 105 C++ files (core dirs
   Common/CApi/Geometry/Material/PostProcessing + AssetLib/{OBJ,PLY,STL,
-  glTF,glTF2,glTFCommon,Collada} + pugixml) plus zlib core + minizip
+  glTF,glTF2,glTFCommon,Collada,FBX} + pugixml) plus zlib core + minizip
   (unzip/ioapi) + our bridge. Export files are excluded (`Export` in name)
   and exporter registration is disabled.
 
@@ -61,23 +61,25 @@ tagged tree by `tools/combine.py`:
 3. Record the printed tree sha256; update version rows here and in
    `README.md`/`AUDIT.md`.
 4. Re-run `scripts/port.ps1 -Package xiom.assimp` x2 and record
-   `STATUS.json`. Watchdog >=300 s (96 TUs compile in ~90-160 s).
+   `STATUS.json`. Watchdog >=300 s (111 TUs compile in ~110-190 s).
 
 ## 3. Design and safe boundary (G5)
 
 `assimp.xi` is the only module with `unsafe`/`extern "C"`; it calls a
-scalar-return C++ bridge (`src/assimp_bridge.cpp`) that runs two in-memory
-imports (`Assimp::Importer::ReadFileFromMemory`, hints "obj" and "ply") and
-caches the counts. No out-param slots (finding B-11 family avoidance); no
-malloc/free from XIOM. There is no SKIP path -- the vendored sources always
-compile in, so the suite runs real imports on every platform.
+scalar-return C++ bridge (`src/assimp_bridge.cpp`) that runs in-memory
+imports (`Assimp::Importer::ReadFileFromMemory`, hints "obj", "ply",
+"gltf2", "dae", "fbx") and caches the counts. No out-param slots (finding
+B-11 family avoidance); no malloc/free from XIOM. There is no SKIP path --
+the vendored sources always compile in, so the suite runs real imports on
+every platform.
 
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- 6 checks: version pin (major 6),
+Suite: `tests/test_conformance.xi` -- 7 checks: version pin (major 6),
 in-memory OBJ import (1 mesh / 3 vertices / 1 face), in-memory PLY import
 (3 vertices), in-memory glTF2 import (embedded base64 buffer, 3 vertices),
-in-memory COLLADA import (minimal 1.4.1 document, 3 vertices), and
+in-memory COLLADA import (minimal 1.4.1 document, 3 vertices), in-memory
+ASCII FBX import (minimal FBX 7400 document, 3 vertices), and
 repeated-import determinism.
 
 Command (cwd = this package directory; the runner hook adds the C sources):
@@ -88,8 +90,8 @@ scripts/port.ps1 -Package xiom.assimp
 
 ## 5. Scope
 
-Pilot: version + four real in-memory imports proving the parser pipeline
-(OBJ, PLY, glTF2, COLLADA). The remaining importer set (FBX/BLEND/...),
-post-processing option wrappers, IO abstraction, and the export API are
-Phase 2 (`ROADMAP.md`). The pre-pilot 0.1.0 static-extern surface is
-preserved in git history.
+Pilot: version + five real in-memory imports proving the parser pipeline
+(OBJ, PLY, glTF2, COLLADA, ASCII FBX). The remaining importer set
+(BLEND/...), post-processing option wrappers, IO abstraction, and the
+export API are Phase 3 (`ROADMAP.md`). The pre-pilot 0.1.0 static-extern
+surface is preserved in git history.
