@@ -240,6 +240,7 @@ fn test_http_status_text() -> Result[Unit, Str] {
   try(assert_str_eq(http_status_text(200), "OK", "status_text(200)"));
   try(assert_str_eq(http_status_text(404), "Not Found", "status_text(404)"));
   try(assert_str_eq(http_status_text(500), "Internal Server Error", "status_text(500)"));
+  try(assert_str_eq(http_status_text(507), "Insufficient Storage", "status_text(507)"));
   try(assert_str_eq(http_status_text(999), "Unknown", "status_text(999) unknown"));
   try(assert_str_eq(http_status_text(100), "Continue", "status_text(100)"));
   try(assert_str_eq(http_status_text(301), "Moved Permanently", "status_text(301)"));

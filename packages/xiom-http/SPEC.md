@@ -505,6 +505,18 @@ header.
   `&mut Vec<UInt8>` parameter types at lines 468/513/528); untouched -- out of
   this porter's scope, flagged for the owning lane.
 
+### 0.1.6 -- consumer-wishlist pass (2026-10-10; `REL-20261010-2002-xvector`)
+
+- `http_status_text` gains **507 -> "Insufficient Storage"** (RFC 6585; the
+  xvector server emits it) and the module documents the fallback contract:
+  unmapped codes fall back to `"Unknown"` and consumers that need different
+  text adapt above the helper, never inside it.
+- Suite stays 42 checks (the 507 assert lives in `status text`); the
+  `xiom.router` SPEC status line was refreshed to "published 0.1.0" in the
+  same pass (registry-served since `eco-v0.1.98`-era adoption).
+- Evidence: `port.ps1 -Package xiom-http -TimeoutSec 240` **42/42 x2** on
+  v0.64.3; published in `eco-v0.1.133` (sha256 filled from the publish).
+
 ### Packaging
 
 `package.xi` -> 0.1.5; `STATUS.json` test fields reset to unknown (nulls) for

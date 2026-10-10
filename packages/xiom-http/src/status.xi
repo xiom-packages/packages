@@ -1,5 +1,9 @@
 module xiom.http.status
 
+// Reason phrases for the codes the ecosystem uses. Codes without an entry
+// (or outside the known table) fall back to "Unknown" -- this fallback is
+// part of the wire contract: consumers that need different text must adapt
+// above this helper, never inside it.
 pub fn http_status_text(code: Int) -> Str {
   if code == 100 { return "Continue"; }
   elif code == 101 { return "Switching Protocols"; }
@@ -33,6 +37,7 @@ pub fn http_status_text(code: Int) -> Str {
   elif code == 502 { return "Bad Gateway"; }
   elif code == 503 { return "Service Unavailable"; }
   elif code == 504 { return "Gateway Timeout"; }
+  elif code == 507 { return "Insufficient Storage"; }
   return "Unknown";
 }
 
