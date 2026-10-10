@@ -3,12 +3,12 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: HANDOFF READY (2026-10-10 16:27Z)** -- clean session break. Batches
-21-26 published (`eco-v0.1.122`..`eco-v0.1.127`); batch 27 (`xiom.assimp`
-0.3.0) native-verified + wrapped, publish pending (`eco-v0.1.128`); batch 28
-(`xiom.assimp` 0.4.0, COLLADA) relayed on the bus. Relay bus active; `xiom.jolt`
-blocked on the compiler C++ standard flag. **Next session: start at RESUME
-HERE (below).**
+**STATUS: RESUMED (2026-10-10 16:29Z)** -- handoff picked up (tree clean,
+`origin/bindings` = `9a5a11bf`, bus processed/current). Batches 21-27 published
+(`eco-v0.1.122`..`eco-v0.1.128`; batch 27 `xiom.assimp` 0.3.0 live sha256
+`5b30c6a8...`, 16:23:47Z); batch 28 (`xiom.assimp` 0.4.0, COLLADA) relayed on
+the bus, awaiting packages ack; doorbell cron re-armed (`0 */3 * * *`).
+`xiom.jolt` blocked on the compiler C++ standard flag.
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -18,10 +18,13 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **Published**: batches 21-26 -> `eco-v0.1.122`..`eco-v0.1.127` (openssl 0.2.0,
-  sqlite 0.3.0, box2d 0.2.0, imgui 0.2.0, vma 0.2.0, cuda 0.2.0, assimp 0.2.0).
+- **Published**: batches 21-27 -> `eco-v0.1.122`..`eco-v0.1.128` (openssl 0.2.0,
+  sqlite 0.3.0, box2d 0.2.0, imgui 0.2.0, vma 0.2.0, cuda 0.2.0, assimp 0.2.0
+  in `eco-v0.1.127` and 0.3.0 in `eco-v0.1.128`).
 - **Batch 27** (`xiom.assimp` 0.3.0, glTF2): merged, verified 5/5 x2, wrapped
-  (`fffdc3f9`, guard 508/491/17/0); publish pending per `eco-v0.1.128`.
+  (`fffdc3f9`, guard 508/491/17/0); **published** `eco-v0.1.128` (run
+  `38067436940`; live sha256 `5b30c6a8...`, 16:23:47Z; confirmed in packages
+  SESSION 16:30Z).
 - **Batch 28** (`xiom.assimp` 0.4.0, COLLADA; 96 TUs; 6/6 x2) relayed/pushed;
   bus item `REL-20261010-1623-bindings` supersedes the 0.2.0/0.3.0 items.
 - **Open items from this lane**: `REL-...-2` B-11 slot recycle, `-3` B-10
@@ -39,8 +42,8 @@ clone: stage ONLY your own item files). The two working rules are in
    `cron_create` with schedule `0 */3 * * *` and the standard prompt
    (pull xiom-relays; process `view --lane bindings`; ack/fix/verify;
    commit+push only this lane's item files), then pull + process once now.
-2. Watch for batch 27/28 publishes in the native SESSION notes; note the eco
-   versions in this file's relay area.
+2. Watch for the batch-28 publish in the native SESSION notes (batch 27 done:
+   `eco-v0.1.128`); note new eco versions in this file's relay area.
 3. Continue assimp expansion if wanted: **FBX** next (no new contribs
    expected), then BLEND. Generator knobs live in
    `packages/xiom-assimp/tools/combine.py` (`ENABLED`,
@@ -98,6 +101,13 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS PUBLISH CONFIRM (batch 27): xiom.assimp 0.3.0 (glTF2) is live in
+eco-v0.1.128 (sha256 5b30c6a8...; 16:23:47Z; run 38067436940; guard
+508/491/17/0); batch 26 0.2.0 stays in eco-v0.1.127. Batch 28 (0.4.0 COLLADA)
+merge request open on the bus (REL-20261010-1623-bindings), awaiting ack.
+```
 
 ```
 BINDINGS BATCH 28: head=494e0eb3 + this handoff commit; packages=xiom.assimp 0.4.0
