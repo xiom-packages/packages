@@ -3,12 +3,12 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: RESUMED (2026-10-10 16:29Z)** -- handoff picked up (tree clean,
-`origin/bindings` = `9a5a11bf`, bus processed/current). Batches 21-27 published
-(`eco-v0.1.122`..`eco-v0.1.128`; batch 27 `xiom.assimp` 0.3.0 live sha256
-`5b30c6a8...`, 16:23:47Z); batch 28 (`xiom.assimp` 0.4.0, COLLADA) relayed on
-the bus, awaiting packages ack; doorbell cron re-armed (`0 */3 * * *`).
-`xiom.jolt` blocked on the compiler C++ standard flag.
+**STATUS: BATCH 29 READY (2026-10-10 16:55Z)** -- batches 21-28 published
+(`eco-v0.1.122`..`eco-v0.1.129`; batch 28 `xiom.assimp` 0.4.0 = `eco-v0.1.129`
+sha256 `aeb44d02...`); batch 29 (`xiom.assimp` 0.5.0, FBX; 111 TUs) verified
+7/7 x2, relayed per bus item `REL-20261010-1655-bindings` -- publish pending.
+Doorbell armed (`0 */3 * * *`); `xiom.jolt` blocked on the compiler C++
+standard flag.
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -18,15 +18,20 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **Published**: batches 21-27 -> `eco-v0.1.122`..`eco-v0.1.128` (openssl 0.2.0,
-  sqlite 0.3.0, box2d 0.2.0, imgui 0.2.0, vma 0.2.0, cuda 0.2.0, assimp 0.2.0
-  in `eco-v0.1.127` and 0.3.0 in `eco-v0.1.128`).
+- **Published**: batches 21-28 -> `eco-v0.1.122`..`eco-v0.1.129` (openssl
+  0.2.0, sqlite 0.3.0, box2d 0.2.0, imgui 0.2.0, vma 0.2.0, cuda 0.2.0,
+  assimp 0.2.0/0.3.0/0.4.0 in `eco-v0.1.127`/`128`/`129`).
 - **Batch 27** (`xiom.assimp` 0.3.0, glTF2): merged, verified 5/5 x2, wrapped
   (`fffdc3f9`, guard 508/491/17/0); **published** `eco-v0.1.128` (run
   `38067436940`; live sha256 `5b30c6a8...`, 16:23:47Z; confirmed in packages
   SESSION 16:30Z).
-- **Batch 28** (`xiom.assimp` 0.4.0, COLLADA; 96 TUs; 6/6 x2) relayed/pushed;
-  bus item `REL-20261010-1623-bindings` supersedes the 0.2.0/0.3.0 items.
+- **Batch 28** (`xiom.assimp` 0.4.0, COLLADA; 96 TUs): merged (packages tip
+  `154d1344`), port 6/6 x2, **published** `eco-v0.1.129` (live sha256
+  `aeb44d02...`); bus item `REL-20261010-1623-bindings` fixed.
+- **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
+  feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
+  relayed per bus item `REL-20261010-1655-bindings` (supersedes the
+  0.2.0/0.3.0/0.4.0 items); publish pending.
 - **Open items from this lane**: `REL-...-2` B-11 slot recycle, `-3` B-10
   alloc-name, `-4` B-07 alias shadow, `-5` B-05 guard spin, `-6` B-02 const
   resolver, `-7` C++ standard passthrough (blocks jolt), `-8` guard-aware
@@ -42,10 +47,11 @@ clone: stage ONLY your own item files). The two working rules are in
    `cron_create` with schedule `0 */3 * * *` and the standard prompt
    (pull xiom-relays; process `view --lane bindings`; ack/fix/verify;
    commit+push only this lane's item files), then pull + process once now.
-2. Watch for the batch-28 publish in the native SESSION notes (batch 27 done:
-   `eco-v0.1.128`); note new eco versions in this file's relay area.
-3. Continue assimp expansion if wanted: **FBX** next (no new contribs
-   expected), then BLEND. Generator knobs live in
+2. Watch for the batch-29 publish in the native SESSION notes (batches 27/28
+   done: `eco-v0.1.128`/`eco-v0.1.129`); note new eco versions in this file's
+   relay area.
+3. Continue assimp expansion if wanted: **BLEND** next (FBX done in 0.5.0).
+   Generator knobs live in
    `packages/xiom-assimp/tools/combine.py` (`ENABLED`,
    `ASSET_DIRS_BY_IMPORTER`, `CONTRIB_MIRROR`, `CONTRIB_EXTRA`); check each
    importer's own guard names (glTF2 adds `ASSIMP_BUILD_NO_GLTF2_IMPORTER`).
@@ -103,10 +109,29 @@ pointer headers.
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
 
 ```
+BINDINGS PUBLISH CONFIRM (batch 28): xiom.assimp 0.4.0 (COLLADA) is live in
+eco-v0.1.129 (sha256 aeb44d02...; merged as 154d1344; port 6/6 x2); batch 27
+0.3.0 stays in eco-v0.1.128.
+```
+
+```
+BINDINGS BATCH 29: head=a57cbd0b + this record commit; packages=xiom.assimp 0.5.0
+(SUPERSEDES the assimp versions in the batch-26/27/28 bus items; merging the branch tip
+gets everything; 0.4.0 is already published in eco-v0.1.129 -- 0.5.0 is the go-forward):
+adds the FBX importer option (ASCII + binary tokenizers compiled; 15 new TUs, now 111 TUs);
+tests=7/7 x2 (version major 6; in-memory OBJ 1 mesh/3 verts/1 face; PLY 3 verts; glTF2
+3 verts; COLLADA 3 verts; ASCII FBX 3 verts from a minimal FBX 7400 document; determinism);
+licenses unchanged (BSD-3-Clause vendored + package MIT OR Apache-2.0); pins=tag v6.0.5
+commit 392a658f... + generator (FBX added to ENABLED/ASSET_DIRS_BY_IMPORTER) + tree sha256
+dd05e67f... from the generator; gate=G0..G5 OK; needs=NONE; port.args.json regenerated;
+watchdog >=300 s (~143-145 s observed, 111 TUs).
+```
+
+```
 BINDINGS PUBLISH CONFIRM (batch 27): xiom.assimp 0.3.0 (glTF2) is live in
 eco-v0.1.128 (sha256 5b30c6a8...; 16:23:47Z; run 38067436940; guard
 508/491/17/0); batch 26 0.2.0 stays in eco-v0.1.127. Batch 28 (0.4.0 COLLADA)
-merge request open on the bus (REL-20261010-1623-bindings), awaiting ack.
+followed in eco-v0.1.129.
 ```
 
 ```
