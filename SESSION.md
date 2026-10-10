@@ -14,7 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-10 15:15Z (LIVE HANDOFF -- `xiom.http` 0.1.5 + `xiom.cuda` 0.2.0 PUBLISHED; no open packages-side gate):**
+**STATE AT 2026-10-10 16:15Z (LIVE HANDOFF -- bindings batch 26 PUBLISHED via `eco-v0.1.127`; the relay bus is the active coordination path):**
+- **Bus operational:** onboarding done; doorbell cron every 2h; migration items filed
+  (compiler `REL-20261010-1549-packages-2..12`, stdlib `REL-20261010-1550-packages*`, orbitdb
+  order-3 `-8`, owner vectors greenlight `-9`); seven inbound items processed -- **fixed:**
+  registry kv-header (`17b64fae`), orbitdb variant-qualification, website README (already
+  present since `776e369c`); **parked:** bindings consumer-hook (waits on compiler item),
+  orbitdb btree re-extract (waits on their fix), xvector vectors/ann (owner greenlight).
+- **`xiom.assimp` 0.2.0** -- bindings batch 26, the first batch delivered end-to-end through
+  the bus (`REL-20261010-1603-bindings` open -> acked -> fixed): merge `c833943d` (two
+  BINDINGS-ledger conflicts resolved in favor of the bindings relay-bus notes); native
+  **4/4 x2** (generated v6.0.5 subset, 89 TUs, real in-memory OBJ+PLY imports); published
+  `eco-v0.1.127` (run `38066526917`); live sha256 `828c0164...` (16:10:28Z); guard
+  **508/491/17/0**; validate 522/0; records + READMEs synced.
+- Queue: owner greenlight for `xiom.vectors` (bus `REL-20261010-1550-xvector-9` + owner item
+  `REL-20261010-1550-packages-9`); compiler/stdlib item acks pending upstream.
+- Session tally: **43 eco releases** (`eco-v0.1.86` -> `eco-v0.1.127`).
+
+**STATE AT 2026-10-10 15:15Z (history -- superseded by the 16:15Z block above):**
 - **RELAY BUS (owner rollout 2026-10-10):** cross-lane coordination now goes through the private
   repo `E:\xiom-lang\xiom-relays` (git is the mailbox; `python tools/relay.py view --lane packages`).
   **At session start and before finishing any task: pull xiom-relays and process items addressed
