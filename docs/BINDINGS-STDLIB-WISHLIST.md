@@ -1,7 +1,8 @@
 # Bindings-lane stdlib wishlist (xiom-packages bindings lane)
 
-<!-- Relay migration 2026-10-10: open asks move to the bus via the owning lane;
-this file stays the long-form record. -->
+> **Relay bus (2026-10-10):** open rows migrated to `xiom-lang/xiom-relays`:
+> W-3 `REL-20261010-1548-bindings-8`, W-5 `-9`, W-2 `-10` (W-1/W-4
+> delivered). Closed history stays below; move status on the bus.
 
 Stdlib asks collected while building the FFI/binding packages. Companion:
 `docs/BINDINGS-COMPILER-FINDINGS.md` (defects, not asks).
