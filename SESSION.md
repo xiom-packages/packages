@@ -14,7 +14,17 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-10 16:50Z (LIVE HANDOFF -- bindings batch 28 PUBLISHED (assimp 0.4.0 COLLADA); bus batches 26-28 all delivered end-to-end):**
+**STATE AT 2026-10-10 17:10Z (LIVE HANDOFF -- bindings batch 29 PUBLISHED (assimp 0.5.0 FBX); bus batches 26-29 all delivered):**
+- Batch 29 `REL-20261010-1655-bindings`: tip `772b355c` -> merge `d96f4112` -> native **7/7 x2**
+  (FBX ASCII minimal-document import, 111 TUs) -> `eco-v0.1.130` (run `38070332477`) -> live
+  sha256 `c06a5131...` (17:06:27Z) -> bus fixed. Versions 0.2.0-0.5.0 all live; **0.5.0 is the
+  go-forward**.
+- The 17:00Z doorbell cron fired and caught batch 29 within minutes -- cadence proven.
+- Next in-lane: `xiom.http` dead-module repair (`src/client.xi`/`src/demo.xi`; ride the next http
+  source bump). Parked bus items unchanged; owner greenlight for `xiom.vectors` pending.
+- Session tally: **46 eco releases** (`eco-v0.1.86` -> `eco-v0.1.130`).
+
+**STATE AT 2026-10-10 16:50Z (history -- superseded by the 17:10Z block above):**
 - Batch 28 `REL-20261010-1623-bindings`: tip `c5cbcbb7` -> merge `154d1344` -> native **6/6 x2**
   (COLLADA + pugixml, 96 TUs) -> `eco-v0.1.129` (run `38069123156`) -> live sha256 `aeb44d02...`
   (16:49:01Z) -> bus fixed. 0.2.0/0.3.0/0.4.0 are all live; **0.4.0 is the go-forward**.
