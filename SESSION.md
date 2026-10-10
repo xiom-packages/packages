@@ -14,7 +14,25 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-09 22:00Z (LIVE HANDOFF -- bindings batch 24 PUBLISHED via `eco-v0.1.124`; finding B-11 filed; `xiom.durable` port still in flight):**
+**STATE AT 2026-10-10 15:15Z (LIVE HANDOFF -- `xiom.http` 0.1.5 + `xiom.cuda` 0.2.0 PUBLISHED; no open packages-side gate):**
+- **`xiom.http` 0.1.5** (`eco-v0.1.125`, run `38062137735` SUCCESS): consumer client recipe pass --
+  ships `bridge/xiom_http_shims.c` (curl-free helpers) + the verified recipe
+  (`--c-source <shim> --link curl --link-path <scratch>`, `curl.lib` copy, PATH +
+  `CURL_CA_BUNDLE`); pilot GET `example.com` 200/577 chars + echo POST 200 "ok"; native
+  **42/42 x2** + probe x2; live sha256 `2d5592af...` (15:06:32Z). The PULSE client-link finding
+  row is marked RESOLVED; PULSE can adopt.
+- **`xiom.cuda` 0.2.0** (bindings batch 25, merge `4bb65d14`; `eco-v0.1.126`, run `38062553340`
+  SUCCESS): runtime `nvcuda.dll` driver-API probe, nothing vendored; native **5/5 x2** live
+  (driver 13040/13.4, RTX 3070 Ti, cc 806, fresh-context 64 KiB round trip); live sha256
+  `325aa2cb...` (15:11:55Z); guard **508/490/18/0**; validate 522/0.
+- **NEW hygiene item:** `xiom-metrics/src/metrics.xi` lines 468/513/528 contain real
+  `Vec<UInt8>` at the byte level (display layers render it as `Vec[`) -- fix at its next touch.
+- Lane fetch (wishlist section 10): PULSE 0.2 slate complete + interop green; ORBITDB hybrid
+  wrap + C-ORBIT-06 (cross-filed); XVECTOR rc.1 (owner handoff) -- `xiom.vectors` still
+  **OWNER GREENLIGHT**; ORBITDB order-3 still unfixed; jolt waits on the compiler flag.
+- Session tally: **42 eco releases** (`eco-v0.1.86` -> `eco-v0.1.126`).
+
+**STATE AT 2026-10-09 22:00Z (history -- superseded by the 2026-10-10 15:15Z block above):**
 - **Bindings merge `3b642f7c` (origin/bindings `57175523`) integrated and published** (`eco-v0.1.124`,
   run `37996341269` SUCCESS):
   - **`xiom.vma` 0.2.0** (vendored VMA v3.4.0 header + pinned Vulkan-Headers vulkan-sdk-1.4.350.0;
@@ -256,7 +274,7 @@ Then do, in order:
    batch**); `xiom.http` `src/client.xi`/`src/demo.xi` pre-existing T001 drift (dead
    modules; fix at the next http touch); **`xiom.http` consumer client link recipe
    (PULSE-verified 2026-10-10: bridge `--c-source` + `--link curl --link-path` needed;
-   document it and/or ship a non-test shim at the next http touch)**; PULSE carry-forwards
+   document it and/or ship a non-test shim at the next http touch -- DONE 0.1.5, shim + recipe shipped)**; `xiom.metrics` has 3 real `Vec<` sites (`metrics.xi` 468/513/528, byte-verified) -- fix at its next touch; PULSE carry-forwards
    **DONE 2026-10-09** (static README path note + kv C-PULSE-10 regressions 30/30 -- both
    in-tree, no version bump yet, ride the next source touches).
 6. Carry-forwards: byte-level bracket scan on every touched package; SPEC headers synced
