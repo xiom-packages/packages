@@ -32,7 +32,7 @@ import re
 import shutil
 import sys
 
-ENABLED = ("OBJ", "STL", "PLY")
+ENABLED = ("OBJ", "STL", "PLY", "GLTF")
 
 # Every ASSIMP_BUILD_*_IMPORTER option name (from code/CMakeLists.txt).
 ALL_IMPORTERS = (
@@ -47,9 +47,39 @@ ALL_IMPORTERS = (
 INC_RE = re.compile(r'^(\s*#\s*include\s*)([<"])([^">]+)([>"])', re.MULTILINE)
 TEXT_EXT = (".h", ".hpp", ".inl", ".cpp", ".c")
 
+# Never rewrite these, even if a vendored file shares the basename (e.g.
+# rapidjson ships msinttypes/stdint.h and inttypes.h).
+SYSTEM_HEADERS = frozenset((
+    "stdint.h", "stddef.h", "stdlib.h", "stdio.h", "string.h", "strings.h",
+    "limits.h", "float.h", "math.h", "assert.h", "errno.h", "time.h",
+    "ctype.h", "wchar.h", "wctype.h", "inttypes.h", "stdbool.h", "stdarg.h",
+    "signal.h", "setjmp.h", "locale.h", "fenv.h", "iso646.h", "complex.h",
+    "tgmath.h", "threads.h", "stdalign.h", "stdatomic.h", "stdnoreturn.h",
+    "unistd.h", "sys/types.h", "sys/stat.h", "fcntl.h", "io.h", "direct.h",
+    "process.h", "windows.h", "winsock2.h", "malloc.h", "share.h",
+    "cassert", "cctype", "cerrno", "cfenv", "cfloat", "cinttypes",
+    "climits", "clocale", "cmath", "csetjmp", "csignal", "cstdarg",
+    "cstddef", "cstdint", "cstdio", "cstdlib", "cstring", "ctime", "cwchar",
+    "cwctype", "algorithm", "any", "array", "atomic", "bitset", "chrono",
+    "codecvt", "complex", "deque", "exception", "filesystem", "forward_list",
+    "fstream", "functional", "future", "initializer_list", "iomanip",
+    "ios", "iosfwd", "iostream", "istream", "iterator", "limits", "list",
+    "map", "memory", "mutex", "new", "numeric", "optional", "ostream",
+    "queue", "random", "ratio", "regex", "scoped_allocator", "set", "shared_mutex",
+    "sstream", "stack", "stdexcept", "streambuf", "string", "string_view",
+    "strstream", "system_error", "thread", "tuple", "type_traits", "typeindex",
+    "typeinfo", "unordered_map", "unordered_set", "utility", "valarray",
+    "variant", "vector",
+))
+
 CORE_DIRS = ("Common", "Material", "PostProcessing", "CApi", "Geometry")
-ASSET_DIR_BY_IMPORTER = ("AssetLib",)
-CONTRIB_MIRROR = ("zlib", "earcut-hpp", "utf8cpp")
+ASSET_DIRS_BY_IMPORTER = {
+    "OBJ": ("AssetLib/OBJ",),
+    "STL": ("AssetLib/STL",),
+    "PLY": ("AssetLib/PLY",),
+    "GLTF": ("AssetLib/glTF", "AssetLib/glTF2", "AssetLib/glTFCommon"),
+}
+CONTRIB_MIRROR = ("zlib", "earcut-hpp", "utf8cpp", "rapidjson")
 CONTRIB_EXTRA_C = (("zlib", "contrib/minizip/unzip.c"), ("zlib", "contrib/minizip/ioapi.c"))
 
 
@@ -91,7 +121,7 @@ def build_header_map(vendor):
     """
     by_key = {}
     by_base = {}
-    for sub, prefix in (("include", ""), ("code", ""), ("contrib", "contrib/")):
+    for sub in ("include", "code"):
         root = os.path.join(vendor, sub)
         for dirpath, dirnames, filenames in os.walk(root):
             dirnames.sort()
@@ -102,9 +132,30 @@ def build_header_map(vendor):
                 rel = os.path.relpath(full, root).replace("\\", "/")
                 if sub == "include" and not rel.startswith("assimp/"):
                     rel = "assimp/" + rel
-                if sub == "contrib":
-                    rel = "contrib/" + rel
                 by_key[rel] = full
+                by_base.setdefault(name, []).append(full)
+    # Contrib trees: keys relative to the lib root, to its include/ dir (if
+    # present), to the vendor root, plus the basename.
+    contrib_root = os.path.join(vendor, "contrib")
+    for lib in CONTRIB_MIRROR:
+        lib_root = os.path.join(contrib_root, lib)
+        if not os.path.isdir(lib_root):
+            continue
+        roots = [lib_root]
+        include_dir = os.path.join(lib_root, "include")
+        if os.path.isdir(include_dir):
+            roots.append(include_dir)
+        for dirpath, dirnames, filenames in os.walk(lib_root):
+            dirnames.sort()
+            for name in sorted(filenames):
+                if not name.endswith((".h", ".hpp", ".inl")):
+                    continue
+                full = os.path.join(dirpath, name)
+                for r in roots:
+                    if os.path.commonpath([full, r]) == r or full.startswith(r + os.sep):
+                        key = os.path.relpath(full, r).replace("\\", "/")
+                        by_key.setdefault(key, full)
+                by_key.setdefault("contrib/" + os.path.relpath(full, contrib_root).replace("\\", "/"), full)
                 by_base.setdefault(name, []).append(full)
     unique_base = {k: v[0] for k, v in by_base.items() if len(v) == 1}
     return by_key, unique_base
@@ -122,6 +173,8 @@ def rewrite_includes(path, header_by_key, header_by_base, vendor):
     def repl(match):
         head, quote, target, close = match.groups()
         target_slash = target.replace("\\", "/")
+        if os.path.basename(target_slash) in SYSTEM_HEADERS:
+            return match.group(0)  # never remap standard headers
         # 1. already resolvable next to the file (quoted only)
         if quote == '"' and os.path.exists(os.path.join(own_dir, target_slash)):
             return match.group(0)
@@ -183,12 +236,13 @@ def collect_sources(vendor):
                 if name.endswith(".cpp") and "Export" not in name:
                     sources.append(os.path.join(dirpath, name))
     for imp in ENABLED:
-        base = os.path.join(vendor, "code", ASSET_DIR_BY_IMPORTER[0], imp)
-        for dirpath, dirnames, filenames in os.walk(base):
-            dirnames.sort()
-            for name in sorted(filenames):
-                if name.endswith(".cpp") and "Export" not in name:
-                    sources.append(os.path.join(dirpath, name))
+        for asset_dir in ASSET_DIRS_BY_IMPORTER[imp]:
+            base = os.path.join(vendor, "code", *asset_dir.split("/"))
+            for dirpath, dirnames, filenames in os.walk(base):
+                dirnames.sort()
+                for name in sorted(filenames):
+                    if name.endswith(".cpp") and "Export" not in name:
+                        sources.append(os.path.join(dirpath, name))
     # C sources from the mirrored contribs (zlib core only -- the win32/ and
     # contrib/ subdirectories hold test/aux programs that upstream's CMake
     # does not build).

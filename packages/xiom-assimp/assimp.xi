@@ -35,6 +35,8 @@ extern "C" {
   fn assimprobe_faces() -> Int32;
   fn assimprobe_ply() -> Int32;
   fn assimprobe_ply_vertices() -> Int32;
+  fn assimprobe_gltf() -> Int32;
+  fn assimprobe_gltf_vertices() -> Int32;
   fn assimprobe_error() -> *UInt8;
 }
 
@@ -44,6 +46,7 @@ pub type AssimpInfo = {
   obj_vertices: Int;
   obj_faces: Int;
   ply_vertices: Int;
+  gltf_vertices: Int;
 }
 
 /// Packed upstream version: major * 10000 + minor * 100 + revision, where
@@ -67,8 +70,8 @@ pub fn assimp_version_str(v: Int) -> Str
   return assimp_i2s(major) + "." + assimp_i2s(minor) + "." + assimp_i2s(revision);
 }
 
-/// Import the built-in in-memory OBJ and PLY probes and report the scene
-/// counts.  Complexity: O(import).
+/// Import the built-in in-memory OBJ, PLY, and glTF2 probes and report the
+/// scene counts.  Complexity: O(import).
 pub fn assimp_probe() -> Result[AssimpInfo, Str]
   requires: true
 {
@@ -80,12 +83,17 @@ pub fn assimp_probe() -> Result[AssimpInfo, Str]
   if ply_rc != 0 {
     return Err(assimp_error("ply", ply_rc));
   }
+  let gltf_rc = unsafe { assimprobe_gltf() as Int };
+  if gltf_rc != 0 {
+    return Err(assimp_error("gltf", gltf_rc));
+  }
   return Ok(AssimpInfo{
     version: unsafe { assimprobe_version() as Int };
     obj_meshes: unsafe { assimprobe_meshes() as Int };
     obj_vertices: unsafe { assimprobe_vertices() as Int };
     obj_faces: unsafe { assimprobe_faces() as Int };
     ply_vertices: unsafe { assimprobe_ply_vertices() as Int };
+    gltf_vertices: unsafe { assimprobe_gltf_vertices() as Int };
   });
 }
 

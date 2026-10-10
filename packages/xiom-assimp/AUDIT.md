@@ -11,12 +11,12 @@ import pipeline.
 |------|-------|
 | Compiler | xiom v0.64.2 |
 | Upstream | assimp v6.0.5 (commit 392a658f); BSD-3-Clause |
-| Subset | core (Common/CApi/Geometry/Material/PostProcessing) + OBJ/STL/PLY + zlib/minizip/earcut-hpp/utf8cpp; 89 TUs |
+| Subset | core (Common/CApi/Geometry/Material/PostProcessing) + OBJ/STL/PLY/glTF2 + zlib/minizip/earcut-hpp/utf8cpp/rapidjson; 92 TUs |
 | Generator | `tools/combine.py` (mirror + include rewrite + config synthesis + port.args emission) |
 | Link model | `--c-source` list from `port.args.json`; no system library |
 | FFI confinement | all `unsafe`/`extern` in the root module `assimp.xi` (G5) |
-| Suite | `tests/test_conformance.xi`, 4 checks (two real in-memory imports) |
-| Runs | 4/4 x2 on the pin (OBJ 1 mesh/3 verts/1 face; PLY 3 verts) |
+| Suite | `tests/test_conformance.xi`, 5 checks (three real in-memory imports) |
+| Runs | 5/5 x2 on the pin (OBJ 1 mesh/3 verts/1 face; PLY 3 verts; glTF2 3 verts) |
 
 ## Design notes
 
@@ -24,7 +24,9 @@ import pipeline.
   `<assimp/...>` and code-root-relative quoted includes with `-I` roots the
   xiom link line cannot pass; the generator resolves every include against
   a vendored-header map and rewrites it to an exact relative path, so each
-  mirrored file compiles directly.
+  mirrored file compiles directly. Standard headers are never remapped
+  (rapidjson ships `msinttypes/stdint.h`); contrib includes are keyed
+  relative to the lib root and its `include/` dir.
 - **config synthesis from config.h.in** keeps all `AI_CONFIG_*` defaults;
   the subset switches are appended (47 importer names + C4D + NO_EXPORT).
 - **zlib**: compiled from `contrib/zlib` (top-level core + minizip
@@ -35,8 +37,9 @@ import pipeline.
 
 ## Known limitations
 
-- Importer subset only (OBJ/STL/PLY); FBX/glTF/COLLADA/BLEND and the rest
-  are Phase 2 additions (generator constant + config update).
+- Importer subset only (OBJ/STL/PLY/glTF2; draco-compressed glTF is behind
+  `ASSIMP_ENABLE_DRACO`, not defined); FBX/COLLADA/BLEND and the rest are
+  Phase 2 additions (generator constant + config update).
 - Export API disabled (`ASSIMP_BUILD_NO_EXPORT`).
 - Version revision field reports GitVersion (0 for the tarball build); the
   patch pin (5) lives in the generated `revision.h`.

@@ -17,6 +17,7 @@ static int g_vertices;
 static int g_faces;
 static int g_ply_vertices;
 static int g_ply_ok;
+static int g_gltf_vertices;
 static char g_error[512];
 
 static void set_error(const char* msg) {
@@ -113,6 +114,38 @@ int assimprobe_ply_vertices(void) {
 
 int assimprobe_ply_ok(void) {
   return g_ply_ok;
+}
+
+// In-memory glTF 2.0 import: a triangle whose buffer is embedded as a
+// base64 data URI (36 bytes: three float32 VEC3 positions).  Caches the
+// vertex count.  0 on success, negative on failure.
+int assimprobe_gltf(void) {
+  g_gltf_vertices = 0;
+  g_error[0] = 0;
+
+  static const char* gltf =
+      "{\"asset\":{\"version\":\"2.0\"},"
+      "\"scenes\":[{\"nodes\":[0]}],"
+      "\"nodes\":[{\"mesh\":0}],"
+      "\"meshes\":[{\"primitives\":[{\"attributes\":{\"POSITION\":0}}]}],"
+      "\"buffers\":[{\"uri\":\"data:application/octet-stream;base64,"
+      "AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAA\",\"byteLength\":36}],"
+      "\"bufferViews\":[{\"buffer\":0,\"byteOffset\":0,\"byteLength\":36,\"target\":34962}],"
+      "\"accessors\":[{\"bufferView\":0,\"componentType\":5126,\"count\":3,"
+      "\"type\":\"VEC3\",\"max\":[1,1,0],\"min\":[0,0,0]}]}";
+
+  Assimp::Importer importer;
+  const aiScene* scene = importer.ReadFileFromMemory(gltf, strlen(gltf), 0, "gltf2");
+  if (scene == 0 || scene->mNumMeshes == 0 || scene->mMeshes[0] == 0) {
+    set_error(importer.GetErrorString());
+    return -5;
+  }
+  g_gltf_vertices = (int)scene->mMeshes[0]->mNumVertices;
+  return g_gltf_vertices == 3 ? 0 : -6;
+}
+
+int assimprobe_gltf_vertices(void) {
+  return g_gltf_vertices;
 }
 
 const char* assimprobe_error(void) {
