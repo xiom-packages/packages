@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  6,
                   "failed":  0,
-                  "run_by":  "task:bindings-assimp",
-                  "commit":  "494e0eb3",
-                  "checked":  "2026-10-10T16:23:11Z"
+                  "run_by":  "native-session",
+                  "commit":  "154d1344",
+                  "checked":  "2026-10-10T16:47:39Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: bindings batch 27 (eco-v0.1.128)"
+    "excluded_reason":  "publish pending: bindings batch 28 (eco-v0.1.129)"
 }
