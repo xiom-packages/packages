@@ -2,22 +2,22 @@
 
 ## Status (2026-10-10)
 
-Vendored-subset implementation at 0.6.0. The pre-pilot module (static
+Vendored-subset implementation at 0.7.0. The pre-pilot module (static
 externs over the C API with handle stubs) is preserved in git history
 only; the 0.2.0 pilot compiles a real generated subset and proves the
-import pipeline (importer set grown 0.2.0 -> 0.6.0: glTF2, COLLADA, FBX,
-BLEND).
+import pipeline (importer set grown 0.2.0 -> 0.7.0: glTF2, COLLADA, FBX,
+BLEND, OFF, SMD).
 
 | Item | State |
 |------|-------|
 | Compiler | xiom v0.64.2 |
 | Upstream | assimp v6.0.5 (commit 392a658f); BSD-3-Clause |
-| Subset | core (Common/CApi/Geometry/Material/PostProcessing) + OBJ/STL/PLY/glTF2/COLLADA/FBX/BLEND + zlib/minizip/earcut-hpp/utf8cpp/rapidjson/pugixml/poly2tri; 123 TUs |
+| Subset | core (Common/CApi/Geometry/Material/PostProcessing) + OBJ/STL/PLY/glTF2/COLLADA/FBX/BLEND/OFF/SMD + zlib/minizip/earcut-hpp/utf8cpp/rapidjson/pugixml/poly2tri; 125 TUs |
 | Generator | `tools/combine.py` (mirror + include rewrite + config synthesis + port.args emission) |
-| Link model | `--c-source` list from `port.args.json` (which also raises the compiler watchdog: `--timeout 900` for the 123-TU build); no system library |
+| Link model | `--c-source` list from `port.args.json` (which also raises the compiler watchdog: `--timeout 900` for the 125-TU build); no system library |
 | FFI confinement | all `unsafe`/`extern` in the root module `assimp.xi` (G5) |
-| Suite | `tests/test_conformance.xi`, 8 checks (six real imports) |
-| Runs | 8/8 x2 on the pin (OBJ 1 mesh/3 verts/1 face; PLY 3 verts; glTF2 3 verts; COLLADA 3 verts; FBX 3 verts; BLEND 1 mesh/24 verts/6 faces) |
+| Suite | `tests/test_conformance.xi`, 10 checks (eight real imports) |
+| Runs | 10/10 x2 on the pin (OBJ 1 mesh/3 verts/1 face; PLY 3 verts; glTF2 3 verts; COLLADA 3 verts; FBX 3 verts; BLEND 1 mesh/24 verts/6 faces; OFF 1 mesh/3 verts/1 face; SMD 1 mesh/3 verts/1 face) |
 
 ## Design notes
 
@@ -46,14 +46,17 @@ BLEND).
   embedded as `src/blend_default_248.inc` by
   `tools/embed_blend_fixture.py`; ngon tessellation is backed by the
   poly2tri contrib.
+- **OFF/SMD** (0.7.0): both are ASCII formats exercised with minimal
+  in-memory documents (OFF: 3 verts + 1 face; SMD: one node, one skeleton
+  key, one bone-linked triangle).
 - Scalar-return bridge (cached counts) -- no out-param slots for this
   heavy engine call (B-11 family avoidance).
 
 ## Known limitations
 
-- Importer subset only (OBJ/STL/PLY/glTF2/COLLADA/FBX/BLEND;
-  draco-compressed glTF is behind `ASSIMP_ENABLE_DRACO`, not defined); OFF,
-  SMD and the rest are Phase 3 additions (generator constant + config
+- Importer subset only (OBJ/STL/PLY/glTF2/COLLADA/FBX/BLEND/OFF/SMD;
+  draco-compressed glTF is behind `ASSIMP_ENABLE_DRACO`, not defined);
+  X3D, MD5 and the rest are Phase 3 additions (generator constant + config
   update).
 - Export API disabled (`ASSIMP_BUILD_NO_EXPORT`).
 - Version revision field reports GitVersion (0 for the tarball build); the

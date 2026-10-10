@@ -1,5 +1,5 @@
 // XIOM -- xiom.assimp: assimp v6.0.5 bindings (vendored core + OBJ/STL/PLY/
-// glTF2/COLLADA/FBX/BLEND importers).
+// glTF2/COLLADA/FBX/BLEND/OFF/SMD importers).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -12,20 +12,21 @@
 // passthrough).  `vendor/include/assimp/config.h` is generated from the
 // upstream `config.h.in` templates with the subset's importer switches.  The
 // selected TUs (core + Material + PostProcessing + the enabled importer
-// dirs + contribs; 123 TUs) compile into the test binary with --c-source
+// dirs + contribs; 125 TUs) compile into the test binary with --c-source
 // (port.args.json); no system library, no SDK.
 //
 // The module calls a scalar-return C++ bridge (src/assimp_bridge.cpp) that
-// imports in-memory assets (OBJ, PLY, glTF2, COLLADA, FBX, BLEND).  All
+// imports in-memory assets (OBJ, PLY, glTF2, COLLADA, FBX, BLEND, OFF,
+// SMD).  All
 // `unsafe`/`extern "C"` live in this single module (G5).
 //
 // G2 pin (SPEC.md): upstream tag v6.0.5 (commit 392a658f) + generator +
 // generated-tree sha256; nothing on the network at build time.
 //
-// API subset (pilot): version + six in-memory imports proving the importer
-// pipeline (OBJ, PLY, glTF2, COLLADA, FBX, BLEND).  STL is included in the
-// compiled set; full format breadth, post-processing wrappers, and the
-// export API are Phase 3 (ROADMAP.md).
+// API subset (pilot): version + eight in-memory imports proving the importer
+// pipeline (OBJ, PLY, glTF2, COLLADA, FBX, BLEND, OFF, SMD).  STL is
+// included in the compiled set; full format breadth, post-processing
+// wrappers, and the export API are Phase 3 (ROADMAP.md).
 
 module xiom.assimp
 
@@ -47,6 +48,14 @@ extern "C" {
   fn assimprobe_blend_meshes() -> Int32;
   fn assimprobe_blend_vertices() -> Int32;
   fn assimprobe_blend_faces() -> Int32;
+  fn assimprobe_off() -> Int32;
+  fn assimprobe_off_meshes() -> Int32;
+  fn assimprobe_off_vertices() -> Int32;
+  fn assimprobe_off_faces() -> Int32;
+  fn assimprobe_smd() -> Int32;
+  fn assimprobe_smd_meshes() -> Int32;
+  fn assimprobe_smd_vertices() -> Int32;
+  fn assimprobe_smd_faces() -> Int32;
   fn assimprobe_error() -> *UInt8;
 }
 
@@ -62,6 +71,12 @@ pub type AssimpInfo = {
   blend_meshes: Int;
   blend_vertices: Int;
   blend_faces: Int;
+  off_meshes: Int;
+  off_vertices: Int;
+  off_faces: Int;
+  smd_meshes: Int;
+  smd_vertices: Int;
+  smd_faces: Int;
 }
 
 /// Packed upstream version: major * 10000 + minor * 100 + revision, where
@@ -85,8 +100,8 @@ pub fn assimp_version_str(v: Int) -> Str
   return assimp_i2s(major) + "." + assimp_i2s(minor) + "." + assimp_i2s(revision);
 }
 
-/// Import the built-in in-memory OBJ, PLY, glTF2, COLLADA, FBX, and BLEND
-/// probes and report the scene counts.  Complexity: O(import).
+/// Import the built-in in-memory OBJ, PLY, glTF2, COLLADA, FBX, BLEND, OFF,
+/// and SMD probes and report the scene counts.  Complexity: O(import).
 pub fn assimp_probe() -> Result[AssimpInfo, Str]
   requires: true
 {
@@ -114,6 +129,14 @@ pub fn assimp_probe() -> Result[AssimpInfo, Str]
   if blend_rc != 0 {
     return Err(assimp_error("blend", blend_rc));
   }
+  let off_rc = unsafe { assimprobe_off() as Int };
+  if off_rc != 0 {
+    return Err(assimp_error("off", off_rc));
+  }
+  let smd_rc = unsafe { assimprobe_smd() as Int };
+  if smd_rc != 0 {
+    return Err(assimp_error("smd", smd_rc));
+  }
   return Ok(AssimpInfo{
     version: unsafe { assimprobe_version() as Int };
     obj_meshes: unsafe { assimprobe_meshes() as Int };
@@ -126,6 +149,12 @@ pub fn assimp_probe() -> Result[AssimpInfo, Str]
     blend_meshes: unsafe { assimprobe_blend_meshes() as Int };
     blend_vertices: unsafe { assimprobe_blend_vertices() as Int };
     blend_faces: unsafe { assimprobe_blend_faces() as Int };
+    off_meshes: unsafe { assimprobe_off_meshes() as Int };
+    off_vertices: unsafe { assimprobe_off_vertices() as Int };
+    off_faces: unsafe { assimprobe_off_faces() as Int };
+    smd_meshes: unsafe { assimprobe_smd_meshes() as Int };
+    smd_vertices: unsafe { assimprobe_smd_vertices() as Int };
+    smd_faces: unsafe { assimprobe_smd_faces() as Int };
   });
 }
 

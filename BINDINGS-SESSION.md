@@ -3,16 +3,17 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 30 RELAYED (assimp 0.6.0, BLEND) + -7 CORRECTION** -- batches
-21-29 published (`eco-v0.1.122`..`eco-v0.1.130`); batch 30 (`xiom.assimp`
-0.6.0: BLEND importer + poly2tri + embedded Blender 2.48 fixture; 8/8 x2)
-committed and relayed. Compiler v0.64.3 released; release-check sweep:
-**B-02 verified**; **the C++ standard ask is NOT fixed** -- the sweep's
-"verified" verdict was a false positive (`if constexpr` is a clang C++14
-extension; correction item `REL-20261010-1815-bindings`, release-check row
-corrected) -> `xiom.jolt` stays staged/blocked. B-05/B-07/B-10/B-11
-reproduced on v0.64.3, re-queued for v0.64.4. Doorbell armed
-(`0 */3 * * *`).
+**STATUS: BATCH 31 RELAYED (assimp 0.7.0, OFF + SMD)** -- batches 21-29
+published (`eco-v0.1.122`..`eco-v0.1.130`); batch 30 (0.6.0 BLEND) acked by
+packages, publish pending; batch 31 (`xiom.assimp` 0.7.0: OFF + SMD
+importers; 125 TUs; 10/10 x2) committed and relayed (item
+`REL-20261010-1837-bindings`, supersedes 26-30). Compiler v0.64.3 released;
+release-check sweep: **B-02 verified**; **the C++ standard ask is NOT fixed**
+-- the sweep's "verified" verdict was a false positive (`if constexpr` is a
+clang C++14 extension; correction item `REL-20261010-1815-bindings` [open],
+release-check row corrected) -> `xiom.jolt` stays staged/blocked.
+B-05/B-07/B-10/B-11 reproduced on v0.64.3, re-queued for v0.64.4. Doorbell
+armed (`0 */3 * * *`).
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -32,11 +33,15 @@ clone: stage ONLY your own item files). The two working rules are in
 - **Batch 28** (`xiom.assimp` 0.4.0, COLLADA; 96 TUs): merged (packages tip
   `154d1344`), port 6/6 x2, **published** `eco-v0.1.129` (live sha256
   `aeb44d02...`); bus item `REL-20261010-1623-bindings` fixed.
-- **Batch 30** (`xiom.assimp` 0.6.0, BLEND; poly2tri contrib; 111 TUs; 8/8
+- **Batch 30** (`xiom.assimp` 0.6.0, BLEND; poly2tri contrib; 123 TUs; 8/8
   x2 with the committed `BlenderDefault_248.blend` fixture: 1 mesh / 24
-  vertices / 6 faces): feat `c9513a2b` + record commit; bus item
-  `REL-20261010-1824-bindings` filed. (Completed from the successor
-  session's in-flight working-tree edits.)
+  vertices / 6 faces): feat `c9513a2b` + record `14fc56e7` (+ provenance note
+  `1524ad68`); bus item `REL-20261010-1824-bindings` **acked by packages**
+  (`61d4016`), publish pending.
+- **Batch 31** (`xiom.assimp` 0.7.0, OFF + SMD; 2 new TUs, 125 total; 10/10
+  x2 -- minimal in-memory docs, 1 mesh / 3 verts / 1 face each): feat
+  `dcbe6991` + record commit; relayed per bus item
+  `REL-20261010-1837-bindings` (supersedes the 0.2.0-0.6.0 items).
 - **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
   feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
   merged (packages tip `d96f4112`), **published** `eco-v0.1.130` (live sha256
@@ -63,8 +68,8 @@ clone: stage ONLY your own item files). The two working rules are in
 2. Release-check v0.64.3 is done (relay area below); keep noting new eco
    versions in this file's relay area (next expected: whatever follows
    `eco-v0.1.130`).
-3. Continue assimp expansion if wanted: **BLEND** next (FBX done in 0.5.0).
-   Generator knobs live in
+3. Continue assimp expansion if wanted: **X3D** next (BLEND/OFF/SMD done in
+   0.6.0/0.7.0). Generator knobs live in
    `packages/xiom-assimp/tools/combine.py` (`ENABLED`,
    `ASSET_DIRS_BY_IMPORTER`, `CONTRIB_MIRROR`, `CONTRIB_EXTRA`); check each
    importer's own guard names (glTF2 adds `ASSIMP_BUILD_NO_GLTF2_IMPORTER`).
@@ -106,7 +111,8 @@ clone: stage ONLY your own item files). The two working rules are in
 
 ### Commands
 - Suite: `& scripts\port.ps1 -Package xiom.<name> [-Quiet] [-TimeoutSec N]`
-  (repo root; assimp needs >=300 s, ~96 TUs).
+  (repo root; assimp needs >=600 s, 125 TUs -- the package raises the
+  compiler watchdog to 900 s via `port.args.json`).
 - Bus (from `E:\xiom-lang\xiom-relays`): `git pull --ff-only` ->
   `python tools/relay.py view --lane bindings` -> `ack/fix/verify` ->
   commit+push only your files.
@@ -133,6 +139,18 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 31: head=dcbe6991 + this record commit; packages=xiom.assimp 0.7.0
+(SUPERSEDES the assimp versions in the batch-26..30 bus items; merging the branch tip
+gets everything): adds the OFF and SMD importers (2 TUs, now 125 TUs); tests=10/10 x2
+(version major 6; in-memory OBJ/PLY/glTF2/COLLADA/ASCII-FBX/OFF/SMD docs; BLEND from the
+committed 2.48 fixture; determinism); licenses unchanged (BSD-3-Clause vendored + package
+MIT OR Apache-2.0); pins=tag v6.0.5 commit 392a658f... + generator + tree sha256
+22d969e3... from the generator; port.args.json raises the compiler watchdog to 900 s
+(--timeout 900) since the 125-TU link sits near the 300 s default under load; gate=G0..G5
+OK; needs=NONE; watchdog >=600 s (~248 s observed both runs).
+```
 
 ```
 BINDINGS PUBLISH CONFIRM (batch 29): xiom.assimp 0.5.0 (FBX) is live in

@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.assimp` |
-| Version | 0.6.0 |
+| Version | 0.7.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Open Asset Import Library -- https://github.com/assimp/assimp |
 | Upstream version | **v6.0.5** (tag; commit `392a658f9c271be965271f45e7521a1b80ea4392`) |
@@ -17,7 +17,7 @@
 ## 2. Vendored subset (G2 pin)
 
 The pilot compiles **core + material + post-processing + the
-OBJ/STL/PLY/glTF2/COLLADA/FBX/BLEND importers +
+OBJ/STL/PLY/glTF2/COLLADA/FBX/BLEND/OFF/SMD importers +
 zlib/minizip/earcut-hpp/utf8cpp/rapidjson/pugixml/poly2tri**, mirrored from
 the tagged tree by `tools/combine.py`:
 
@@ -33,15 +33,16 @@ the tagged tree by `tools/combine.py`:
 - `vendor/include/assimp/config.h` is generated: CMake-substituted from the
   upstream `config.h.in` (keeping every `AI_CONFIG_*` default), with
   `ASSIMP_BUILD_NO_EXPORT` plus `ASSIMP_BUILD_NO_<X>_IMPORTER`/
-  `_EXPORTER` for every importer outside OBJ/STL/PLY/GLTF/COLLADA/FBX/BLEND
-  and `ASSIMP_BUILD_NO_C4D_IMPORTER`.
+  `_EXPORTER` for every importer outside
+  OBJ/STL/PLY/GLTF/COLLADA/FBX/BLEND/OFF/SMD and
+  `ASSIMP_BUILD_NO_C4D_IMPORTER`.
 - `vendor/include/assimp/revision.h` is generated from `revision.h.in`
   (VER 6/0/5; GitVersion 0 for the tarball build).
 - `vendor/contrib/zlib/zconf.h` is `zconf.h.included` (zlib's own
   configured file, as upstream's CMake produces).
-- Compiled TUs (123, listed in `port.args.json`): 117 C++ files (core dirs
+- Compiled TUs (125, listed in `port.args.json`): 119 C++ files (core dirs
   Common/CApi/Geometry/Material/PostProcessing +
-  AssetLib/{OBJ,PLY,STL,glTF,glTF2,glTFCommon,Collada,FBX,Blender} +
+  AssetLib/{OBJ,PLY,STL,glTF,glTF2,glTFCommon,Collada,FBX,Blender,OFF,SMD} +
   pugixml + poly2tri) plus zlib core + minizip (unzip/ioapi) + our bridge.
   Export files are excluded (`Export` in name) and exporter registration is
   disabled.
@@ -69,7 +70,7 @@ the tagged tree by `tools/combine.py`:
 3. Record the printed tree sha256; update version rows here and in
    `README.md`/`AUDIT.md`.
 4. Re-run `scripts/port.ps1 -Package xiom.assimp` x2 and record
-   `STATUS.json`. Watchdog >=600 s (123 TUs compile in ~250-340 s under
+   `STATUS.json`. Watchdog >=600 s (125 TUs compile in ~250-340 s under
    load; `port.args.json` raises the compiler's own watchdog to 900 s via
    `--timeout 900`, since the default 300 s sits too close).
 
@@ -78,20 +79,23 @@ the tagged tree by `tools/combine.py`:
 `assimp.xi` is the only module with `unsafe`/`extern "C"`; it calls a
 scalar-return C++ bridge (`src/assimp_bridge.cpp`) that runs imports
 (`Assimp::Importer::ReadFileFromMemory`, hints "obj", "ply", "gltf2",
-"dae", "fbx", "blend") and caches the counts. No out-param slots (finding
-B-11 family avoidance); no malloc/free from XIOM. There is no SKIP path --
-the vendored sources always compile in, so the suite runs real imports on
-every platform.
+"dae", "fbx", "blend", "off", "smd") and caches the counts. No out-param
+slots (finding B-11 family avoidance); no malloc/free from XIOM. There is
+no SKIP path -- the vendored sources always compile in, so the suite runs
+real imports on every platform.
 
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- 8 checks: version pin (major 6),
+Suite: `tests/test_conformance.xi` -- 10 checks: version pin (major 6),
 in-memory OBJ import (1 mesh / 3 vertices / 1 face), in-memory PLY import
 (3 vertices), in-memory glTF2 import (embedded base64 buffer, 3 vertices),
 in-memory COLLADA import (minimal 1.4.1 document, 3 vertices), in-memory
 ASCII FBX import (minimal FBX 7400 document, 3 vertices), BLEND import from
 the committed fixture (default-scene cube: 1 mesh / 6 quad faces / 24
-unshared loop-vertices), and repeated-import determinism.
+unshared loop-vertices), in-memory OFF import (minimal ASCII OFF, 1 mesh /
+3 vertices / 1 face), in-memory SMD import (minimal ASCII SMD with one
+node, skeleton key and bone-linked triangle, 1 mesh / 3 vertices / 1 face),
+and repeated-import determinism.
 
 Command (cwd = this package directory; the runner hook adds the C sources):
 
@@ -101,8 +105,9 @@ scripts/port.ps1 -Package xiom.assimp
 
 ## 5. Scope
 
-Pilot: version + six real imports proving the parser pipeline (OBJ, PLY,
-glTF2, COLLADA, ASCII FBX in-memory; BLEND from the committed 2.48
-fixture). The remaining importer set (OFF/SMD/...), post-processing option
-wrappers, IO abstraction, and the export API are Phase 3 (`ROADMAP.md`).
-The pre-pilot 0.1.0 static-extern surface is preserved in git history.
+Pilot: version + eight real imports proving the parser pipeline (OBJ, PLY,
+glTF2, COLLADA, ASCII FBX, OFF, SMD in-memory; BLEND from the committed
+2.48 fixture). The remaining importer set (X3D, MD5, ...), post-processing
+option wrappers, IO abstraction, and the export API are Phase 3
+(`ROADMAP.md`). The pre-pilot 0.1.0 static-extern surface is preserved in
+git history.
