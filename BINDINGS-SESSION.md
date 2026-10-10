@@ -3,12 +3,13 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 29 READY (2026-10-10 16:55Z)** -- batches 21-28 published
-(`eco-v0.1.122`..`eco-v0.1.129`; batch 28 `xiom.assimp` 0.4.0 = `eco-v0.1.129`
-sha256 `aeb44d02...`); batch 29 (`xiom.assimp` 0.5.0, FBX; 111 TUs) verified
-7/7 x2, relayed per bus item `REL-20261010-1655-bindings` -- publish pending.
-Doorbell armed (`0 */3 * * *`); `xiom.jolt` blocked on the compiler C++
-standard flag.
+**STATUS: SWEEP DONE (2026-10-10 17:52Z)** -- batches 21-29 published
+(`eco-v0.1.122`..`eco-v0.1.130`; batch 29 `xiom.assimp` 0.5.0 = `eco-v0.1.130`
+sha256 `c06a5131...`). Compiler **v0.64.3 released**; release-check sweep ran:
+B-02 + the C++ standard ask **verified** (16/16 reconstruction; cxx17
+`--c-source` green -> `xiom.jolt` unblocked); B-05/B-07/B-10/B-11 reproduced
+on v0.64.3 and returned to acked (queued for the v0.64.4 batch). Doorbell
+armed (`0 */3 * * *`).
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -18,9 +19,9 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **Published**: batches 21-28 -> `eco-v0.1.122`..`eco-v0.1.129` (openssl
+- **Published**: batches 21-29 -> `eco-v0.1.122`..`eco-v0.1.130` (openssl
   0.2.0, sqlite 0.3.0, box2d 0.2.0, imgui 0.2.0, vma 0.2.0, cuda 0.2.0,
-  assimp 0.2.0/0.3.0/0.4.0 in `eco-v0.1.127`/`128`/`129`).
+  assimp 0.2.0/0.3.0/0.4.0/0.5.0 in `eco-v0.1.127`/`128`/`129`/`130`).
 - **Batch 27** (`xiom.assimp` 0.3.0, glTF2): merged, verified 5/5 x2, wrapped
   (`fffdc3f9`, guard 508/491/17/0); **published** `eco-v0.1.128` (run
   `38067436940`; live sha256 `5b30c6a8...`, 16:23:47Z; confirmed in packages
@@ -30,13 +31,15 @@ clone: stage ONLY your own item files). The two working rules are in
   `aeb44d02...`); bus item `REL-20261010-1623-bindings` fixed.
 - **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
   feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
-  relayed per bus item `REL-20261010-1655-bindings` (supersedes the
-  0.2.0/0.3.0/0.4.0 items); publish pending.
-- **Open items from this lane**: `REL-...-2` B-11 slot recycle, `-3` B-10
-  alloc-name, `-4` B-07 alias shadow, `-5` B-05 guard spin, `-6` B-02 const
-  resolver, `-7` C++ standard passthrough (blocks jolt), `-8` guard-aware
-  free, `-9` Vec sized buffer, `-10` dl out-param recipe, `-11` vendored-C
-  consumer hook (all created 2026-10-10 1548).
+  merged (packages tip `d96f4112`), **published** `eco-v0.1.130` (live sha256
+  `c06a5131...`); bus item `REL-20261010-1655-bindings` fixed.
+- **Open items from this lane** (release-check `compiler-v0.64.3` verdicts:
+  `-6` B-02 and `-7` C++ passthrough **verified**; `-2/-3/-4/-5` reproduced
+  and re-queued for v0.64.4): `-2` B-11 slot recycle, `-3` B-10 alloc-name
+  (m246 covers the plain local-fn shape only), `-4` B-07 alias shadow, `-5`
+  B-05 guard spin, `-6` B-02 const resolver (verified), `-7` C++ standard
+  passthrough (verified -- jolt unblocked), `-8` guard-aware free, `-9` Vec
+  sized buffer, `-10` dl out-param recipe, `-11` vendored-C consumer hook.
 - **Incoming items**: `REL-20261010-1550-xvector-11` (accelerator gate, acked),
   `REL-20261010-1600-packages` (bus routing, acked).
 - Detailed evidence: relay blocks + notes below; bus digests via
@@ -47,16 +50,17 @@ clone: stage ONLY your own item files). The two working rules are in
    `cron_create` with schedule `0 */3 * * *` and the standard prompt
    (pull xiom-relays; process `view --lane bindings`; ack/fix/verify;
    commit+push only this lane's item files), then pull + process once now.
-2. Watch for the batch-29 publish in the native SESSION notes (batches 27/28
-   done: `eco-v0.1.128`/`eco-v0.1.129`); note new eco versions in this file's
-   relay area.
+2. Release-check v0.64.3 is done (relay area below); keep noting new eco
+   versions in this file's relay area (next expected: whatever follows
+   `eco-v0.1.130`).
 3. Continue assimp expansion if wanted: **BLEND** next (FBX done in 0.5.0).
    Generator knobs live in
    `packages/xiom-assimp/tools/combine.py` (`ENABLED`,
    `ASSET_DIRS_BY_IMPORTER`, `CONTRIB_MIRROR`, `CONTRIB_EXTRA`); check each
    importer's own guard names (glTF2 adds `ASSIMP_BUILD_NO_GLTF2_IMPORTER`).
-4. `xiom.jolt` stays blocked on bus item `-7` (C++ standard passthrough);
-   staged generator at `packages/xiom-jolt/tools/combine.py`.
+4. **`xiom.jolt` is unblocked** (C++17 verified on v0.64.3): resume the
+   staged generator at `packages/xiom-jolt/tools/combine.py` (tags + SPEC
+   already exist). B-05/B-07/B-10/B-11 sit with the compiler for v0.64.4.
 5. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
    go-ahead; accelerators stay gated on the `xiom.vectors` extraction
    (`REL-...-1550-xvector-11`).
@@ -107,6 +111,20 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS PUBLISH CONFIRM (batch 29): xiom.assimp 0.5.0 (FBX) is live in
+eco-v0.1.130 (sha256 c06a5131...; merged as d96f4112; port 7/7 x2). Batch 28
+0.4.0 stays in eco-v0.1.129.
+```
+
+```
+BINDINGS v0.64.3 RELEASE-CHECK (sweep result, 2026-10-10): B-02 and the C++
+standard ask VERIFIED (scratch reconstruction 16/16; cxx17 --c-source green);
+B-05/B-07/B-10/B-11 reproduced on v0.64.3 and returned to acked with evidence
+(queued for v0.64.4). Full detail: item histories + release-checks/
+compiler-compiler-v0.64.3.md.
+```
 
 ```
 BINDINGS PUBLISH CONFIRM (batch 28): xiom.assimp 0.4.0 (COLLADA) is live in
