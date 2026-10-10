@@ -6,7 +6,8 @@ vendored**.
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
 > v0.64.2; 5/5 x2, live RTX 3070 Ti: driver 13.4, cc 8.6, device-memory
-> round trip). **Lane:** bindings (`keywords: ["binding"]`).
+> round trip). Published in `eco-v0.1.126` (sha256 `325aa2cb...`).
+> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 

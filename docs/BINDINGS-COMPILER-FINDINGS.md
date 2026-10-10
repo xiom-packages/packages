@@ -6,7 +6,6 @@
 > `-7`. This file keeps the full evidence + closed history; move status on
 > the bus, not here.
 
-
 Findings collected while building the FFI/binding packages (`xiom.sqlite`
 pilot) on the pinned toolchain, with runnable reductions in
 `docs/repro/bindings-pilot/`.

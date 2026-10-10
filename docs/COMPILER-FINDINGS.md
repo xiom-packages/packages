@@ -1,5 +1,9 @@
 # Compiler findings from the packages lane
 
+<!-- Relay migration 2026-10-10: open cross-lane entries are now xiom-relays items
+(packages->compiler: REL-20261010-1549-packages-2..12; see relay.py view --lane
+compiler). File new findings on the bus; this doc keeps the long-form record. -->
+
 Findings collected while building conformance-tested packages with the
 pinned toolchain (v0.61.3 for findings through 2026-09-28; pins v0.62.0
 (09-28) and v0.62.1 (09-29) since, and rows carrying a v0.62.x note were

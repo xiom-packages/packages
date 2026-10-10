@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.2` -- generated 2026-10-10T15:10:14Z.
+Toolchain pin: `v0.64.2` -- generated 2026-10-10T16:22:34Z.
 
 ## Summary
 
@@ -148,7 +148,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.mbox | xiom-mbox | stable | tests/test_conformance.xi | pass 18/18 | e7922d61 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.mbr | xiom-mbr | stable | tests/test_conformance.xi | pass 18/18 | bff5d561 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.meteorology | xiom-meteorology | stable | tests/test_conformance.xi | pass 22/22 | 45848973 | False | publish pending: wave-34 batch (eco-v0.1.4) |
-| xiom.metrics | xiom-metrics | stable | tests/test_conformance.xi | pass 40/40 | 1680104b | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.metrics | xiom-metrics | stable | tests/test_conformance.xi | pass 40/40 | e7f62e9f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.midi | xiom-midi | stable | tests/test_conformance.xi | pass 24/24 | 10334223 | False | legacy bracket repair patch bump |
 | xiom.mime | xiom-mime | stable | tests/test_conformance.xi | pass 22/22 | 216775a1 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.miniseed | xiom-miniseed | stable | tests/test_conformance.xi | pass 20/20 | 6d571062 | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -317,7 +317,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.ansible | xiom-ansible | incubating | tests/test_conformance.xi | pass 26/26 | 973754e8 | False | publish pending: next scope delta |
 | xiom.apple | xiom-apple | incubating | tests/test_conformance.xi | pass 21/21 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.arrow | xiom-arrow | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | pass 5/5 | c58e9bcd | False | publish pending: bindings batch 27 (eco-v0.1.128) |
 | xiom.ast | xiom-ast | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.audio-meta | xiom-audio-meta | incubating | tests/test_conformance.xi | pass 25/25 | bf525d98 | False | publish pending: next scope delta |
 | xiom.auth | xiom-auth | incubating | tests/test_conformance.xi | pass 24/24 | 4dec18c5 | False | category harmonization patch bump (registry metadata) |
@@ -355,7 +355,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.consul | xiom-consul | incubating | tests/test_conformance.xi | pass 24/24 | 3d5baddd | False | publish pending: next scope delta |
 | xiom.context | xiom-context | incubating | tests/test_conformance.xi | pass 23/23 | d509e4c4 | False | publish pending: next scope delta |
 | xiom.countdown | xiom-countdown | incubating | tests/test_conformance.xi | pass 22/22 | 9ed381f7 | False | publish pending: next scope delta |
-| xiom.cuda | xiom-cuda | incubating | tests/test_conformance.xi | pass 5/5 | 4bb65d14 | False | publish pending: bindings batch 25 (eco-v0.1.126) |
+| xiom.cuda | xiom-cuda | incubating | tests/test_conformance.xi | pass 5/5 | 4bb65d14 | False | published in eco-v0.1.126 (2026-10-10) |
 | xiom.curl | xiom-curl | incubating | tests/test_conformance.xi | pass 26/26 | 8f231b87 | False | publish pending: next scope delta |
 | xiom.dac | xiom-dac | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.data | xiom-data | incubating | tests/test_conformance.xi | pass 24/24 | 546b9bac | False | publish pending: next scope delta |
