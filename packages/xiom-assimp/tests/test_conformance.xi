@@ -1,5 +1,5 @@
 // xiom.assimp conformance suite -- vendored assimp v6.0.5
-// (multiformat subset: OBJ/PLY/glTF2/COLLADA/FBX/BLEND probes).
+// (multiformat subset: OBJ/PLY/glTF2/COLLADA/FBX/BLEND/OFF/SMD probes).
 //
 // Build+run (the --c-source list rides in port.args.json):
 //   scripts/port.ps1 -Package xiom.assimp
@@ -77,6 +77,14 @@ fn main() -> Int {
       && p.value.blend_faces == 6,
       "blend: meshes=" + i2s(p.value.blend_meshes) + " vertices=" + i2s(p.value.blend_vertices)
         + " faces=" + i2s(p.value.blend_faces));
+    failed = failed + report(p.value.off_meshes == 1 && p.value.off_vertices == 3
+      && p.value.off_faces == 1,
+      "off: meshes=" + i2s(p.value.off_meshes) + " vertices=" + i2s(p.value.off_vertices)
+        + " faces=" + i2s(p.value.off_faces));
+    failed = failed + report(p.value.smd_meshes == 1 && p.value.smd_vertices == 3
+      && p.value.smd_faces == 1,
+      "smd: meshes=" + i2s(p.value.smd_meshes) + " vertices=" + i2s(p.value.smd_vertices)
+        + " faces=" + i2s(p.value.smd_faces));
   } else {
     failed = failed + report(false, "imports: " + p.error);
   }
@@ -89,7 +97,9 @@ fn main() -> Int {
     && p2.value.gltf_vertices == p.value.gltf_vertices
     && p2.value.collada_vertices == p.value.collada_vertices
     && p2.value.fbx_vertices == p.value.fbx_vertices
-    && p2.value.blend_vertices == p.value.blend_vertices;
+    && p2.value.blend_vertices == p.value.blend_vertices
+    && p2.value.off_vertices == p.value.off_vertices
+    && p2.value.smd_vertices == p.value.smd_vertices;
   failed = failed + report(same, "determinism: repeated imports identical");
 
   if failed == 0 {

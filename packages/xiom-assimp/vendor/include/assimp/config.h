@@ -1187,7 +1187,7 @@ enum aiComponent
 #endif // !! AI_CONFIG_H_INC
 
 /* ------------------------------------------------------------------
- * Generated subset configuration (xiom.assimp pilot: core + OBJ, STL, PLY, GLTF, COLLADA, FBX, BLEND)
+ * Generated subset configuration (xiom.assimp pilot: core + OBJ, STL, PLY, GLTF, COLLADA, FBX, BLEND, OFF, SMD)
  * -- appended by tools/combine.py. */
 #define ASSIMP_BUILD_NO_EXPORT 1
 #define ASSIMP_BUILD_NO_AMF_IMPORTER 1
@@ -1237,7 +1237,6 @@ enum aiComponent
 #define ASSIMP_BUILD_NO_NFF_EXPORTER 1
 #define ASSIMP_BUILD_NO_NDO_IMPORTER 1
 #define ASSIMP_BUILD_NO_NDO_EXPORTER 1
-#define ASSIMP_BUILD_NO_OFF_IMPORTER 1
 #define ASSIMP_BUILD_NO_OFF_EXPORTER 1
 #define ASSIMP_BUILD_NO_OBJ_EXPORTER 1
 #define ASSIMP_BUILD_NO_OGRE_IMPORTER 1
@@ -1263,7 +1262,6 @@ enum aiComponent
 #define ASSIMP_BUILD_NO_RAW_EXPORTER 1
 #define ASSIMP_BUILD_NO_SIB_IMPORTER 1
 #define ASSIMP_BUILD_NO_SIB_EXPORTER 1
-#define ASSIMP_BUILD_NO_SMD_IMPORTER 1
 #define ASSIMP_BUILD_NO_SMD_EXPORTER 1
 #define ASSIMP_BUILD_NO_STL_EXPORTER 1
 #define ASSIMP_BUILD_NO_TERRAGEN_IMPORTER 1

@@ -1,5 +1,5 @@
 // xiom.assimp -- C bridge over the vendored assimp core (import probes:
-// OBJ/PLY/glTF2/COLLADA/FBX/BLEND).
+// OBJ/PLY/glTF2/COLLADA/FBX/BLEND/OFF/SMD).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -26,6 +26,12 @@ static int g_fbx_vertices;
 static int g_blend_meshes;
 static int g_blend_vertices;
 static int g_blend_faces;
+static int g_off_meshes;
+static int g_off_vertices;
+static int g_off_faces;
+static int g_smd_meshes;
+static int g_smd_vertices;
+static int g_smd_faces;
 static char g_error[512];
 
 static void set_error(const char* msg) {
@@ -276,6 +282,99 @@ int assimprobe_blend_vertices(void) {
 
 int assimprobe_blend_faces(void) {
   return g_blend_faces;
+}
+
+// In-memory OFF import: a minimal ASCII OFF document (3 vertices, 1 face).
+// Caches mesh/vertex/face counts.  0 on success, negative on failure.
+int assimprobe_off(void) {
+  g_off_meshes = 0;
+  g_off_vertices = 0;
+  g_off_faces = 0;
+  g_error[0] = 0;
+
+  static const char* off =
+      "OFF\n"
+      "3 1 0\n"
+      "0 0 0\n"
+      "1 0 0\n"
+      "0 1 0\n"
+      "3 0 1 2\n";
+
+  Assimp::Importer importer;
+  const aiScene* scene = importer.ReadFileFromMemory(off, strlen(off), 0, "off");
+  if (scene == 0) {
+    set_error(importer.GetErrorString());
+    return -12;
+  }
+  g_off_meshes = (int)scene->mNumMeshes;
+  if (g_off_meshes > 0 && scene->mMeshes[0] != 0) {
+    g_off_vertices = (int)scene->mMeshes[0]->mNumVertices;
+    g_off_faces = (int)scene->mMeshes[0]->mNumFaces;
+  }
+  return 0;
+}
+
+int assimprobe_off_meshes(void) {
+  return g_off_meshes;
+}
+
+int assimprobe_off_vertices(void) {
+  return g_off_vertices;
+}
+
+int assimprobe_off_faces(void) {
+  return g_off_faces;
+}
+
+// In-memory SMD import: a minimal ASCII SMD document (one node, one skeleton
+// key, one triangle with three bone-linked vertices).  Caches mesh/vertex/
+// face counts.  0 on success, negative on failure.
+int assimprobe_smd(void) {
+  g_smd_meshes = 0;
+  g_smd_vertices = 0;
+  g_smd_faces = 0;
+  g_error[0] = 0;
+
+  static const char* smd =
+      "version 1\n"
+      "nodes\n"
+      "0 \"root\" -1\n"
+      "end\n"
+      "skeleton\n"
+      "time 0\n"
+      "0 0 0 0 0 0 0\n"
+      "end\n"
+      "triangles\n"
+      "mat_xiom\n"
+      "0 0 0 0 0 0 1 0 0 1 0 1\n"
+      "0 1 0 0 0 0 1 1 0 1 0 1\n"
+      "0 0 1 0 0 0 1 0 1 1 0 1\n"
+      "end\n";
+
+  Assimp::Importer importer;
+  const aiScene* scene = importer.ReadFileFromMemory(smd, strlen(smd), 0, "smd");
+  if (scene == 0) {
+    set_error(importer.GetErrorString());
+    return -13;
+  }
+  g_smd_meshes = (int)scene->mNumMeshes;
+  if (g_smd_meshes > 0 && scene->mMeshes[0] != 0) {
+    g_smd_vertices = (int)scene->mMeshes[0]->mNumVertices;
+    g_smd_faces = (int)scene->mMeshes[0]->mNumFaces;
+  }
+  return 0;
+}
+
+int assimprobe_smd_meshes(void) {
+  return g_smd_meshes;
+}
+
+int assimprobe_smd_vertices(void) {
+  return g_smd_vertices;
+}
+
+int assimprobe_smd_faces(void) {
+  return g_smd_faces;
 }
 
 const char* assimprobe_error(void) {
