@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-10T20:05:17Z",
+    "updated":  "2026-10-10T21:19:21Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -8510,6 +8510,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vdf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "vdf.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.vectors",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Dense vectors, cosine/dot/L2 distance, normalization, bounded top-K, and the WAL value codec",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vectors/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "vectors.xi",
                                               "package.xi"
                                           ]
                      },
