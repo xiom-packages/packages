@@ -515,7 +515,7 @@ header.
   `xiom.router` SPEC status line was refreshed to "published 0.1.0" in the
   same pass (registry-served since `eco-v0.1.98`-era adoption).
 - Evidence: `port.ps1 -Package xiom-http -TimeoutSec 240` **42/42 x2** on
-  v0.64.3; published in `eco-v0.1.133` (sha256 filled from the publish).
+  v0.64.3; published in `eco-v0.1.133` (sha256 `bb8a5029...`).
 
 ### Packaging
 

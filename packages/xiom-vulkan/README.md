@@ -5,9 +5,13 @@ resolves `vulkan-1.dll` at runtime (no SDK, no headers, no link-time
 dependency) and reports the loader version, instance extensions/layers, and
 the first physical device.
 
-> **Status:** `incubating` -- suite green x2 on the pin (v0.64.1): 10/10 with
-> the 1.4.350 loader (RTX 3070 Ti), SKIP classification exercised every run.
-> **Lane:** bindings (`keywords: ["binding"]`).
+> **Status:** `incubating` -- engine RHI bring-up (0.3.0): instance with
+> `VK_KHR_surface` + `VK_KHR_win32_surface`, discrete-preferred device pick,
+> graphics queue, command pool/buffer, and a **real `vkQueueSubmit` +
+> `vkQueueWaitIdle` round trip**. Native verified on v0.64.3: **15/15 x2** on
+> the RTX 3070 Ti (loader 1.4.350); absent/no-driver shapes stay green.
+> Published in `eco-v0.1.133` (sha256 `668b143b...`). **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
