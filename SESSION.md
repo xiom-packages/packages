@@ -35,8 +35,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   finding filed (`docs/COMPILER-FINDINGS.md`): `xiom-pkg` local-fallback silently installs
   nothing (quote-trim bug) and legacy `package.xi` `deps:` do not resolve catalog roots --
   `xiom.toml` `[dependencies]` is the working mechanism.
+- **IN FLIGHT: `xiom.http` 0.1.5 consumer-recipe pass** (background porter; ships
+  `bridge/xiom_http_shims.c`, documents the PULSE-verified client link recipe
+  `--c-source <shim> --link curl --link-path <dir>`, end-to-end pilot proof with real
+  libcurl). On completion: integrate, port x2, record, wrap, publish (`eco-v0.1.125`).
 - Otherwise no open packages-side gate: `xiom.vectors` **OWNER GREENLIGHT** (brief staged);
-  ORBITDB order-3 re-sync; jolt waits on the compiler `--cxx-standard` flag.
+  ORBITDB order-3 re-sync (still unfixed as of the 2026-10-10 fetch); jolt waits on the
+  compiler `--cxx-standard` flag.
 - Session tally: **40 eco releases** (`eco-v0.1.86` -> `eco-v0.1.124`).
 
 **STATE AT 2026-10-09 19:15Z (history -- superseded by the 22:00Z block above):**
