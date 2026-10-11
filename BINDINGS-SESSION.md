@@ -59,17 +59,18 @@ clone: stage ONLY your own item files). The two working rules are in
   carrying all of it; post-merge lane verification: glfw 37/37 x2 + absent
   3/3, sdl3 24/24 x2; reply item `REL-20261011-1113-bindings`.**
   **Still in the queue (publish pending)**: batch 35 jolt 0.2.0 (parked on
-  the m258 archive); batches 43-46 sdl3 0.6.0-0.9.0
-  (`REL-20261011-1152/1157/1204/1310-bindings`; 0.5.0 since published in
-  eco-v0.1.140); batches 39/40/41 wrapped on main (`470e13f3`).
-- **Latest batch 46 (2026-10-11)**: `xiom.sdl3` **0.9.0 -- mouse + window
-  contract** (engine input layer; complements batch 45): `sdl3_mouse_state`
-  (f32 out-params + mask), `sdl3_set_window_size`/`sdl3_set_window_resizable`,
-  the full `SDL_EVENT_WINDOW_*` family (0x202-0x210); typed
-  `WINDOW_RESIZED` (300x180) proven end-to-end through the event watch +
-  size readback. Ports: **46/46 x2** + absent **4/4 x2**. Reply to the
-  xvector owner-directive note `REL-20261011-1310-bindings-2` (publication
-  half stays with packages). feat `e712c4ca` + record `8f6746cd`.
+  the m258 archive); batches 43-47 sdl3 0.6.0-0.10.0
+  (`REL-20261011-1152/1157/1204/1310/1345-bindings`; 0.5.0 since published
+  in eco-v0.1.140); batches 39/40/41 wrapped on main (`470e13f3`).
+- **Latest batch 47 (2026-10-11)**: `xiom.sdl3` **0.10.0 -- audio +
+  joystick enumeration + `SDL_PIXELFORMAT_ABGR8888`** (engine device
+  selection + ask `REL-20261011-1321-engine`): 6 core-loader symbols
+  (playback/recording arrays, device name, current driver, joysticks,
+  name-for-id) + the 8888 naming note (ABGR8888 = LE byte-order R,G,B,A).
+  Ports: **48/48 x2** (driver wasapi, playback=9, recording=4, first
+  device "Speakers (Realtek(R) Audio)"; joystick count=0) + absent
+  **4/4 x2**. Engine reply `REL-20261011-1345-bindings-2`. feat
+  `b876d853` + record `a4eacbe0`.
 - **Latest batch 44 (2026-10-11)**: `xiom.sdl3` **0.7.0 -- filesystem
   basics**: base/pref/current-dir paths (BasePath SDL-owned; others
   SDL_free'd after copy), create/remove directory, `SDL_GetPathInfo`
@@ -229,13 +230,13 @@ clone: stage ONLY your own item files). The two working rules are in
 2. ~~glfw 0.5.0~~ **DONE** (batch 39); ~~vulkan 0.5.0 render pipeline~~
    **DONE** (batch 40; engine build orders #1-#3 delivered).
 3. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`;
-   runtime/pin `release-3.4.8`): **0.4.0 decoding + 0.5.0 filter/watch +
-   0.6.0 displays/keyboard + 0.7.0 filesystem + 0.8.0 display blit +
-   0.9.0 mouse/window contract shipped** (batches 41-46; engine P3
-   present + typed input asks satisfied pending publish). Continue: audio
-   device enumeration, joystick, pointer capture/relative mouse (ROADMAP
-   Phase 2). Keep SKIP-when-absent; the absent shape needs the VulkanSDK
-   dir filtered from PATH on this host. Apply the 1-arg handler discipline
+   runtime/pin `release-3.4.8`): **0.4.0-0.10.0 shipped** (batches 41-47:
+   decoding, filter/watch, displays/keyboard, filesystem, blit, mouse/
+   window contract, audio/joystick; engine P3 present + typed input asks
+   satisfied pending publish). Continue: audio OPEN/streaming, joystick
+   open/axis reads, pointer capture/relative mouse (ROADMAP Phase 2).
+   Keep SKIP-when-absent; the absent shape needs the VulkanSDK dir
+   filtered from PATH on this host. Apply the 1-arg handler discipline
    (B-15) to any new callback binding; announce any destructive window per
    the ops hygiene item.
 4. **Publish watch**: batch 34 stb publish once the ops appends land; then
