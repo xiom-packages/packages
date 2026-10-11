@@ -1,6 +1,6 @@
 # xiom.sdl3 -- Roadmap
 
-**Version**: v0.5.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
+**Version**: v0.7.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
 
 ## Current state
 
@@ -17,6 +17,8 @@
 | Event decoding (owned 128-byte buffer + typed accessors) | Done -- 0.4.0 |
 | Synthetic event injection (user + KEY_DOWN) | Done -- 0.3.1/0.4.0 |
 | Event filter + watch (callbacks, keep/drop) | Done -- 0.5.0 |
+| Displays + video modes + keyboard state | Done -- 0.6.0 |
+| Filesystem basics (base/pref/cwd, create/remove/path-info) | Done -- 0.7.0 |
 | Full constant tables | Phase 2 |
 | POSIX soname fallback | Phase 2 |
 
@@ -31,6 +33,7 @@
 4. POSIX loader fallback (`libSDL3.so.0`) when a Linux CI target exists.
 5. OpenGL-context interop with `xiom.opengl` (attribute setup only; no
    cross-package imports -- both packages stay independent).
-6. Broader API growth from `E:\repos\SDL3`: displays/video modes, keyboard
-   state, audio device enumeration, joystick, filesystem (the full-coverage
-   drive).
+6. Broader API growth from `E:\repos\SDL3`: audio device enumeration,
+   joystick, texture updates/vsync (displays + video modes + keyboard state
+   shipped in 0.6.0, filesystem in 0.7.0; the full-coverage drive
+   continues).

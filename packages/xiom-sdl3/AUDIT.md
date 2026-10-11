@@ -2,12 +2,12 @@
 
 ## Status (2026-10-11)
 
-Dynamic-loader implementation at **0.5.0** (event filter/watch callbacks
-added). The pre-pilot static-extern module (`src/sdl3_safe.xi`) and the
-extern-backed tail of the root module were removed: they could not satisfy
-the SKIP-when-absent gate (link-time symbol requirements). The full
-pre-pilot constant tables and resource wrappers remain in git history and
-return over this loader.
+Dynamic-loader implementation at **0.7.0** (filesystem basics added). The
+pre-pilot static-extern module (`src/sdl3_safe.xi`) and the extern-backed
+tail of the root module were removed: they could not satisfy the
+SKIP-when-absent gate (link-time symbol requirements). The full pre-pilot
+constant tables and resource wrappers remain in git history and return over
+this loader.
 
 | Item | State |
 |------|-------|
@@ -15,11 +15,13 @@ return over this loader.
 | Upstream pin | SDL 3.4.8 (tag `release-3.4.8`), soname `SDL3.dll` |
 | Link model | none at build time; runtime `LoadLibraryA`/`GetProcAddress` via `xiom.ffi.dl` |
 | FFI confinement | all `unsafe` + fn-pointer casts in the root module `xiom.sdl3` only |
-| Suite | `tests/test_conformance.xi`, 27 checks (4 run without the DLL) |
-| Runs | absent (PATH-filtered): PASS 4/4 x2; present (SDL 3.4.8): PASS 27/27 x2 -- both via `scripts/port.ps1` (v0.64.3, 2026-10-11) |
+| Suite | `tests/test_conformance.xi`, 43 checks (4 run without the DLL) |
+| Runs | absent (PATH-filtered): PASS 4/4 x2; present (SDL 3.4.8): PASS 43/43 x2 -- both via `scripts/port.ps1` (v0.64.3, 2026-10-11) |
 | Resources (0.3.0) | window (hidden 320x200, size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration + SKIP when none attached |
 | Event decode (0.4.0) | `SDL_Event` over an owned 128-byte buffer: shared header + key/mouse-motion/mouse-button/window accessors + f32 bit decode; offsets pinned to the 3.4.8 headers (== the 3.2.10 clone) |
 | Event filter/watch (0.5.0) | fixed dispatchers + 1-arg handler registries; keep/drop proven (reject makes SDL refuse the push); watch non-consuming + removable; B-14/B-15 workarounds documented (`docs/repro/bindings-pilot/cb-abi/probe7_element_units.xi`) |
+| Displays/keyboard (0.6.0) | 11 symbols; SDL_Rect via owned slots, display list + SDL_DisplayMode via ptr-reads (read direction); VIDEO-init SKIP path; lock-key-aware mod-state assert |
+| Filesystem (0.7.0) | 6 symbols; ownership-correct string handling (BasePath SDL-owned vs PrefPath/CurrentDirectory freed after copy); SDL_PathInfo via a 40-byte owned slot; create/remove round trip fully cleaned up under the per-user pref path (no shared-toolchain paths) |
 
 ## G2 pin
 

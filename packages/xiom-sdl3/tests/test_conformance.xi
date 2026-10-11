@@ -457,6 +457,102 @@ fn main() -> Int {
     failed = failed + report(rc.is_ok, "resources: handle released");
   }
 
+  // -------------------------------------------------------------------
+  // 0.6.0: displays + keyboard state (SDL_Init(VIDEO|EVENTS); SKIP when
+  // the platform cannot init video, e.g. headless CI).
+  // -------------------------------------------------------------------
+  let vflags = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+  let vinited = sdl3_init(&lib, vflags);
+  if !vinited {
+    failed = failed + report(true, "video: SKIP -- SDL_Init(VIDEO|EVENTS) failed ("
+      + sdl3_get_error(&lib) + ")");
+  } else {
+    let dc = sdl3_display_count(&lib);
+    failed = failed + report(dc >= 1, "displays: count = " + to_string(dc));
+
+    let did = sdl3_display_at(&lib, 0);
+    let pid = sdl3_primary_display(&lib);
+    var in_list = did == pid;
+    var k = 0;
+    while k < dc && !in_list {
+      if sdl3_display_at(&lib, k) == pid { in_list = true; }
+      k = k + 1;
+    }
+    failed = failed + report(did != 0 && pid != 0 && in_list,
+      "displays: first=" + to_string(did) + " primary=" + to_string(pid)
+        + " primary-in-list=" + b2s(in_list));
+
+    let nm = sdl3_display_name(&lib, pid);
+    failed = failed + report(nm.len() > 0, "display: name = \"" + nm + "\"");
+
+    let bnd = sdl3_display_bounds(&lib, pid);
+    failed = failed + report(bnd.w > 0 && bnd.h > 0,
+      "display: bounds " + to_string(bnd.w) + "x" + to_string(bnd.h)
+        + " @ " + to_string(bnd.x) + "," + to_string(bnd.y));
+
+    let ub = sdl3_display_usable_bounds(&lib, pid);
+    failed = failed + report(ub.w > 0 && ub.h > 0,
+      "display: usable " + to_string(ub.w) + "x" + to_string(ub.h));
+
+    let md = sdl3_display_mode(&lib, pid);
+    failed = failed + report(md.w > 0 && md.h > 0 && md.refresh_rate >= 0.0,
+      "display: current mode " + to_string(md.w) + "x" + to_string(md.h)
+        + " @" + to_string(md.refresh_rate as Int) + "Hz fmt=" + to_string(md.pixel_format));
+
+    let dm = sdl3_desktop_display_mode(&lib, pid);
+    failed = failed + report(dm.w > 0 && dm.h > 0,
+      "display: desktop mode " + to_string(dm.w) + "x" + to_string(dm.h)
+        + " @" + to_string(dm.refresh_rate as Int) + "Hz");
+
+    let nk = sdl3_keyboard_state_count(&lib);
+    let a_down = sdl3_keyboard_key_down(&lib, SDL_SCANCODE_A);
+    let esc_down = sdl3_keyboard_key_down(&lib, SDL_SCANCODE_ESCAPE);
+    failed = failed + report(nk >= 64 && !a_down && !esc_down,
+      "keyboard: state array numkeys=" + to_string(nk) + " idle (A=" + b2s(a_down)
+        + " ESC=" + b2s(esc_down) + ")");
+
+    let ms = sdl3_mod_state(&lib);
+    let kf = sdl3_keyboard_focus(&lib);
+    // Lock keys (Num/Caps/Scroll) legitimately make bits 0x1000+ set;
+    // assert the non-lock modifier bits (shift/ctrl/alt/gui = 0x0FFF) idle.
+    failed = failed + report((ms & 0x0FFF) == 0,
+      "keyboard: mod state " + to_string(ms) + " (non-lock bits idle"
+        + ", focus=" + to_string(kf) + ")");
+
+    sdl3_quit(&lib);
+  }
+
+  // -------------------------------------------------------------------
+  // 0.7.0: filesystem basics (no subsystem init required).  The create/
+  // remove round trip lives under the per-user pref path and is cleaned up.
+  // -------------------------------------------------------------------
+  let fbase = sdl3_get_base_path(&lib);
+  failed = failed + report(fbase.len() > 0, "filesystem: base path = \"" + fbase + "\"");
+  let fcwd = sdl3_get_current_directory(&lib);
+  failed = failed + report(fcwd.len() > 0, "filesystem: current dir = \"" + fcwd + "\"");
+  let fpref = sdl3_get_pref_path(&lib, "xiom-lane", "sdl3-conformance");
+  failed = failed + report(fpref.len() > 0, "filesystem: pref path = \"" + fpref + "\"");
+  if fpref.len() > 0 {
+    let pi0 = sdl3_get_path_info(&lib, fpref);
+    failed = failed + report(pi0.exists && pi0.kind == SDL_PATHTYPE_DIRECTORY,
+      "filesystem: pref path info kind=" + to_string(pi0.kind) + " exists=" + b2s(pi0.exists));
+    let fsub = fpref + "sub";
+    let fmade = sdl3_create_directory(&lib, fsub);
+    let pi1 = sdl3_get_path_info(&lib, fsub);
+    failed = failed + report(fmade && pi1.exists && pi1.kind == SDL_PATHTYPE_DIRECTORY
+        && pi1.modify_time > 0,
+      "filesystem: create subdir (made=" + b2s(fmade) + " kind=" + to_string(pi1.kind)
+        + " size=" + to_string(pi1.size) + " mtime-ns=" + to_string(pi1.modify_time) + ")");
+    let frm1 = sdl3_remove_path(&lib, fsub);
+    let pi2 = sdl3_get_path_info(&lib, fsub);
+    let fbad = sdl3_get_path_info(&lib, "Q:\\xiom-lane-no-such-path\\x");
+    failed = failed + report(frm1 && !pi2.exists && !fbad.exists,
+      "filesystem: remove subdir + missing-path probe (removed=" + b2s(frm1)
+        + " gone=" + b2s(!pi2.exists) + " missing=" + b2s(!fbad.exists) + ")");
+    let frm2 = sdl3_remove_path(&lib, fpref);
+    failed = failed + report(true, "filesystem: cleanup pref dir (removed=" + b2s(frm2) + ")");
+  }
+
   let cl = sdl3_close(&lib);
   failed = failed + report(cl.is_ok, "loader: SDL3 handle released");
 

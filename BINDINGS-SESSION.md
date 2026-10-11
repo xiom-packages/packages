@@ -25,9 +25,18 @@ committed (`df8cdf30` + record `9c1326ea`) and relayed
 filter + watch callbacks** -- fixed dispatchers + 1-arg handler registries;
 keep/drop + non-consuming watch proven; **27/27 x2** + absent 4/4 x2;
 along the way **B-14/B-15** filed) committed (`b58f8071` + record
-`42059924`) and relayed (`REL-20261011-1121-bindings`; B-14/B-15 item
-`-2`).** Upstream sources cloned into `E:\repos` (Vulkan-Headers, SDL3,
-FFmpeg + pool) for source-truth binding work.
+`42059924`) and relayed (`REL-20261011-1121-bindings`; B-14/B-15 item `-2`). Ops hygiene ack sent
+(`REL-20261011-1149-bindings`: no shared-home writes; Remove-Item only on
+lane-local artifacts). Batch 43 (`xiom.sdl3` 0.6.0: **displays + video
+modes + keyboard state** -- 11 new symbols, VIDEO-init SKIP path;
+**36/36 x2** + absent 4/4 x2) committed (`55db02e5` + record `5a5485b7`)
+and relayed (`REL-20261011-1152-bindings`). Batch 44 (`xiom.sdl3` 0.7.0:
+**filesystem basics** -- base/pref/cwd ownership-correct strings,
+create/remove/path-info round trip under the per-user pref path, fully
+cleaned up; **43/43 x2** + absent 4/4 x2) committed (`7317c433` + record
+`3e209d89`) and relayed (`REL-20261011-1157-bindings`).** Upstream sources
+cloned into `E:\repos` (Vulkan-Headers, SDL3, FFmpeg + pool) for
+source-truth binding work.
 
 ## RESUME HERE (handoff, 2026-10-11)
 
@@ -51,9 +60,25 @@ clone: stage ONLY your own item files). The two working rules are in
   3/3, sdl3 24/24 x2; reply item `REL-20261011-1113-bindings`.**
   **Still in the queue (publish pending)**: batch 34 stb 0.2.0 (ops
   allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
-  batch 35 jolt 0.2.0 (parked on the m258 archive); batch 42 sdl3 0.5.0
-  (`REL-20261011-1121-bindings`); batches 39/40/41 wrapped on main
-  (`470e13f3`).
+  batch 35 jolt 0.2.0 (parked on the m258 archive); batches 42/43/44
+  sdl3 0.5.0/0.6.0/0.7.0 (`REL-20261011-1121/1152/1157-bindings`);
+  batches 39/40/41 wrapped on main (`470e13f3`).
+- **Latest batch 44 (2026-10-11)**: `xiom.sdl3` **0.7.0 -- filesystem
+  basics**: base/pref/current-dir paths (BasePath SDL-owned; others
+  SDL_free'd after copy), create/remove directory, `SDL_GetPathInfo`
+  (`Sdl3PathInfo`, `SDL_PATHTYPE_*`). Round trip under
+  `%APPDATA%\xiom-lane\sdl3-conformance\` (created + removed by the
+  suite; ops-hygiene compliant). Ports: **43/43 x2** + **4/4 x2** absent.
+  feat `7317c433` + record `3e209d89`.
+- **Latest batch 43 (2026-10-11)**: `xiom.sdl3` **0.6.0 -- displays +
+  video modes + keyboard state**: SDL_GetDisplays/primary/name/bounds/
+  usable-bounds/current+desktop mode, SDL_GetKeyboardState (+SDL_free of
+  the array), SDL_GetModState, SDL_GetKeyboardFocus. Rect out-params via
+  owned slots; display list + mode struct via ptr-reads (read direction);
+  VIDEO-init SKIP for headless CI. Ports: **36/36 x2** (count=2, primary
+  in list, name "C24F390", 1920x1080 @0Hz, usable 1920x1032, numkeys=512
+  idle, lock-key-aware mod state) + **4/4 x2** absent. feat `55db02e5` +
+  record `5a5485b7`.
 - **Latest batch 42 (2026-10-11)**: `xiom.sdl3` **0.5.0 -- event filter +
   watch callbacks**: SDL_SetEventFilter / SDL_AddEventWatch /
   SDL_RemoveEventWatch over fixed top-level dispatchers + 1-arg handler
@@ -197,13 +222,13 @@ clone: stage ONLY your own item files). The two working rules are in
 2. ~~glfw 0.5.0~~ **DONE** (batch 39); ~~vulkan 0.5.0 render pipeline~~
    **DONE** (batch 40; engine build orders #1-#3 delivered).
 3. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`;
-   runtime/pin `release-3.4.8`): **0.4.0 event decoding + 0.5.0 filter/watch
-   shipped** (batches 41/42). Continue subsystem by subsystem: displays/
-   video modes, keyboard state (`SDL_GetKeyboardState`), audio device
-   enumeration, joystick, filesystem, texture updates/vsync (ROADMAP Phase
-   2 list). Keep SKIP-when-absent; the absent shape needs the VulkanSDK
-   dir filtered from PATH on this host. Apply the 1-arg handler discipline
-   (B-15) to any new callback binding.
+   runtime/pin `release-3.4.8`): **0.4.0 decoding + 0.5.0 filter/watch +
+   0.6.0 displays/keyboard + 0.7.0 filesystem shipped** (batches
+   41-44). Continue: audio device enumeration, joystick, texture
+   updates/vsync (ROADMAP Phase 2). Keep SKIP-when-absent; the absent
+   shape needs the VulkanSDK dir filtered from PATH on this host. Apply
+   the 1-arg handler discipline (B-15) to any new callback binding;
+   announce any destructive window per the ops hygiene item.
 4. **Publish watch**: batch 34 stb publish once the ops appends land; then
    batches 39/40 (and 35 jolt when the m258 archive arrives). Note eco
    versions in the relay area.
@@ -274,6 +299,12 @@ clone: stage ONLY your own item files). The two working rules are in
   `Vec<UInt8>` signatures in `sdl3.xi` (compiled + suite green), but the
   canonical form is `Vec[UInt8]` -- packages normalized them (`799fceaa`).
   Keep the square-bracket form in new code.
+- **Ops hygiene (REL-20261011-1134-ops, to: all)**: never delete/downgrade
+  the shared toolchain homes; destructive tests go against an isolated
+  XIOM_HOME + lane-local extraction and are announced with a to: all item.
+  Lane audited compliant (`REL-20261011-1149-bindings`): Remove-Item only
+  touches lane-local build/report artifacts; xiom.ps1 resolves the
+  installed toolchain read-only.
 - **B-14/B-15 (v0.64.3, filed + repro'd)**: a `Vec[fn]` ELEMENT call with
   >= 2 args types its result as `()` at use sites (statement-position calls
   silently discard -- glfw dispatchers were unaffected; handler shapes that
@@ -281,6 +312,9 @@ clone: stage ONLY your own item files). The two working rules are in
   `return;` in explicitly `-> Unit` fns is a type error (use structured
   ifs). Repro: `docs/repro/bindings-pilot/cb-abi/probe7_element_units.xi`;
   item `REL-20261011-1121-bindings-2`.
+- **Lock keys**: `SDL_GetModState` reports lock bits (NumLock 0x1000 etc.)
+  from the physical keyboard -- assert only the non-lock mask (0x0FFF)
+  when checking "idle".
 - **Vec-of-struct element extraction AVs** (`mons[0]`); use `Vec[Int]`
   handles + raw byte buffers (glfw monitors/video-modes pattern).
   `Result[Vec[...]]` and `Result[Float32/64]` payload extraction also
@@ -337,6 +371,19 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS PUBLISH CONFIRM (batches 38-40 window): xiom.glfw 0.4.0 live in
+eco-v0.1.136 (sha256 c393b079...); xiom.glfw 0.5.0 (124/124 exports --
+callback ABI solved with a dispatcher+registry pattern) live in
+eco-v0.1.137; the native fixes (f64_from_bits negative bit patterns +
+layout-invariant key-name check) published as the eco-v0.1.138 fix
+(0cd7bc00..., 11:16:09Z). xiom.ann + xiom.stb appends complete and live in
+eco-v0.1.139 (ann 73f66ab5..., stb 41a205f7..., 11:39:26Z; allowlist
+509 -> 511). SDL3 growth continues: 0.6.0 displays+keyboard and 0.7.0
+filesystem relayed (batches 43/44); SDL3 present/blit wishlist
+(REL-20261011-1153-engine) acked.
+```
 
 ```
 BINDINGS BATCH 38: head=ad1cacc3 + this record commit; packages=xiom.glfw 0.4.0:
