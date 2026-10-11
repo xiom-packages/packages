@@ -22,7 +22,10 @@ stb_image_write; in-memory PNG encode+decode (85 B, checksum 8400) + 1x1
 red BMP decode; 5/5 x2; allowlist-append ask filed) relayed. B-11
 ADDENDUM: the foreign-write buffer-readback corruption reproduces with NO
 driver context (SDL3, headless) -- minimal reproducer filed
-(`REL-20261011-0304-bindings`).**
+(`REL-20261011-0304-bindings`).** **Batch 38 (`xiom.glfw` 0.4.0:
+gamma ramps, cursors, window icon, joystick/gamepad polling, Vulkan-loader
+hook; **32/32 x2**; 105/124 exports -- 0.5.0 completes the 19 event
+callbacks pending the C-callback ABI) relayed.**
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -194,6 +197,17 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 38: head=ad1cacc3 + this record commit; packages=xiom.glfw 0.4.0:
+gamma ramps (raw 1536 B), cursors (standard + RGBA create/set/destroy), 1x1 RGBA window
+icon, joystick/gamepad polling (axes/buttons/hats/names/GUIDs/state raw + button/axis
+decoders + mapping update), glfwInitVulkanLoader hook -- 105/124 exports (the remaining
+19 are the event-callback setters + initAllocator, queued 0.5.0 pending the C-callback
+ABI). tests=32/32 x2 with the official 3.4 win64 DLL (v0.64.3 pin; ~7.5 s/run); gamma
+ramp/cursor/icon exercised live; no joysticks on this box (enumeration path exercised).
+needs=NONE.
+```
 
 ```
 BINDINGS BATCH 37: head=432eae2f + this record commit; packages=xiom.vulkan 0.4.0

@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.glfw` |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | GLFW -- https://github.com/glfw/glfw |
 | Upstream version pinned | **3.4** (tag `3.4`) |
