@@ -13,8 +13,8 @@ links them, so the suite now exercises the library.
 | Upstream | meshoptimizer v1.2 (commit `f843aae0`, `v1.2-17-gf843aae0`), vendored unmodified (MIT) |
 | Link model | `--c-source` (20 vendored TUs + `src/meshopt_bridge.cpp`) via `port.args.json`, `--timeout 900`; no system library |
 | FFI confinement | all `extern "C"` in the root module `meshopt.xi` (G5) |
-| Suite | `tests/test_conformance.xi`, 30 checks (16 constants + 14 real-library probes) |
-| Runs | **PASS 30/30 x2** on the pin (`scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900`) |
+| Suite | `tests/test_conformance.xi`, 33 checks (16 constants + 14 real-library probes + 3 owned-buffer wrappers) |
+| Runs | **PASS 33/33 x2** on the pin (`scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900`) |
 
 ## Design notes
 
@@ -29,6 +29,15 @@ links them, so the suite now exercises the library.
   `xmo_optimize_inplace` / `xmo_checksum`) has C copy into and back out of
   an XIOM-owned byte slot, read byte-indexed on the XIOM side (the
   B-16/B-17-safe path).
+- **Owned-buffer wrappers (0.3.0)**: `meshopt_remap_mesh`,
+  `meshopt_optimize_mesh` and `meshopt_simplify_mesh` take caller-owned
+  `Vec[UInt8]` byte meshes (f32 positions stride 12, u32 indices); C reads
+  the inputs and writes results into XIOM-owned outputs, and the suite
+  reads results back byte-indexed. `meshopt_fill_grid` is the deterministic
+  fixture filler (f32 grid positions, reversed triangle order so cache
+  optimization must reorder). Wrapper remap merges byte-identical vertices
+  and copies the remapped vertex buffer out; optimize verifies the triangle
+  multiset before write-back; simplify reports count + relative error.
 - **Deterministic probes**: an 8x8 grid (64 vertices / 98 triangles,
   triangle order reversed to be cache-hostile) and an 11x11 bumpy grid (121
   vertices / 200 triangles) for simplification. The index codec check is
@@ -49,9 +58,10 @@ links them, so the suite now exercises the library.
 
 - Runtime coverage is a pilot slice of the vendored library: remap, cache and
   fetch analysis, simplify, index/vertex codecs, stripify, meshlets, sphere
-  bounds, oct filter, plus the owned-buffer optimize path. The remaining
-  families (index sequence, meshlet codec, quat/exp/color filters, partition,
-  spatial sort, opacity maps, tangents) are Phase 3 (`ROADMAP.md`).
+  bounds, oct filter, plus the owned-buffer optimize path and the 0.3.0
+  owned-buffer wrappers (remap/optimize/simplify). The remaining families
+  (index sequence, meshlet codec, quat/exp/color filters, partition, spatial
+  sort, opacity maps, tangents) are Phase 3 (`ROADMAP.md`).
 - The raw 85-function extern surface remains declaration-first: fp returns
   and struct-by-value returns must go through the bridge until the compiler
   fixes land (B-12/B-20); callbacks (custom remap, setAllocator) need a C

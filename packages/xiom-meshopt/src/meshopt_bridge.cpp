@@ -13,6 +13,12 @@
  *   xmo_optimize_inplace   C optimizes in place and verifies the triangle set
  *   xmo_checksum           FNV-1a over the XIOM buffer (order-change evidence)
  *
+ * 0.3.0 owned-buffer wrappers (ROADMAP Phase 3 item 1), same safe direction:
+ *   xmo_fill_grid          deterministic fixture mesh bytes into owned slots
+ *   xmo_remap_bytes        duplicate-merge remap (indices in place + vertices out)
+ *   xmo_optimize_bytes     in-place cache optimize with triangle-set check
+ *   xmo_simplify_bytes     simplify into an owned out slot (count + error out)
+ *
  * Probe surface (all return 0; out-params may be NULL):
  *   xmo_version            -> MESHOPTIMIZER_VERSION (v1.2 = 1020)
  *   xmo_remap_probe        -> unique vertex count + mapped-index validity
@@ -31,6 +37,7 @@
 #include "../vendor/src/meshoptimizer.h"
 
 #include <string.h>
+#include <vector>
 
 namespace
 {
@@ -87,7 +94,7 @@ int grid_indices(unsigned int* out, int w, int h)
  * cache-hostile layout that optimizeVertexCache has to reorder. */
 int grid_indices_reversed(unsigned int* out, int w, int h)
 {
-	static unsigned int forward[kGridTris * 3];
+	static unsigned int forward[kSimIndices];
 	int count = grid_indices(forward, w, h);
 	int tris = count / 3;
 	for (int i = 0; i < tris; ++i)
@@ -120,25 +127,27 @@ int tri_key_less(const unsigned int* a, const unsigned int* b)
 	return 0;
 }
 
-void sort_keys(unsigned int (*k)[3], int n)
+/* Insertion sort of triangle keys (flat 3-wide records); probe-grade O(n^2)
+ * with n bounded by the wrapper inputs. */
+void sort_tri_keys(unsigned int* k, int n)
 {
 	for (int i = 1; i < n; ++i)
 	{
 		unsigned int cur[3];
-		cur[0] = k[i][0];
-		cur[1] = k[i][1];
-		cur[2] = k[i][2];
+		cur[0] = k[i * 3 + 0];
+		cur[1] = k[i * 3 + 1];
+		cur[2] = k[i * 3 + 2];
 		int j = i - 1;
-		while (j >= 0 && tri_key_less(cur, k[j]))
+		while (j >= 0 && tri_key_less(cur, &k[j * 3]))
 		{
-			k[j + 1][0] = k[j][0];
-			k[j + 1][1] = k[j][1];
-			k[j + 1][2] = k[j][2];
+			k[(j + 1) * 3 + 0] = k[j * 3 + 0];
+			k[(j + 1) * 3 + 1] = k[j * 3 + 1];
+			k[(j + 1) * 3 + 2] = k[j * 3 + 2];
 			j = j - 1;
 		}
-		k[j + 1][0] = cur[0];
-		k[j + 1][1] = cur[1];
-		k[j + 1][2] = cur[2];
+		k[(j + 1) * 3 + 0] = cur[0];
+		k[(j + 1) * 3 + 1] = cur[1];
+		k[(j + 1) * 3 + 2] = cur[2];
 	}
 }
 
@@ -148,21 +157,21 @@ int triangle_sets_equal(const unsigned int* a, int a_count, const unsigned int* 
 {
 	if (a_count != b_count) return 0;
 	int n = a_count / 3;
-	static unsigned int ka[512][3];
-	static unsigned int kb[512][3];
-	if (n <= 0 || n > 512) return 0;
+	if (n <= 0) return 0;
 
+	std::vector<unsigned int> ka((size_t)n * 3);
+	std::vector<unsigned int> kb((size_t)n * 3);
 	for (int i = 0; i < n; ++i)
 	{
-		tri_key(&a[i * 3], ka[i]);
-		tri_key(&b[i * 3], kb[i]);
+		tri_key(&a[i * 3], &ka[(size_t)i * 3]);
+		tri_key(&b[i * 3], &kb[(size_t)i * 3]);
 	}
-	sort_keys(ka, n);
-	sort_keys(kb, n);
+	sort_tri_keys(ka.data(), n);
+	sort_tri_keys(kb.data(), n);
 
 	for (int i = 0; i < n; ++i)
 	{
-		if (ka[i][0] != kb[i][0] || ka[i][1] != kb[i][1] || ka[i][2] != kb[i][2]) return 0;
+		if (ka[i * 3 + 0] != kb[i * 3 + 0] || ka[i * 3 + 1] != kb[i * 3 + 1] || ka[i * 3 + 2] != kb[i * 3 + 2]) return 0;
 	}
 	return 1;
 }
@@ -466,6 +475,120 @@ unsigned int xmo_checksum(const unsigned char* buf, int byte_count)
 {
 	if (buf == 0 || byte_count <= 0) return 0;
 	return fnv1a(buf, byte_count);
+}
+
+// ---- 0.3.0: owned-buffer wrappers (ROADMAP Phase 3 item 1) -----------------
+// Caller-owned byte buffers in and out: the bridge reads the XIOM-owned
+// inputs and writes results back into XIOM-owned outputs (the B-20-safe
+// direction; the XIOM side reads them back byte-indexed).  These are the
+// consumer-facing shapes over the probe trio: remap, cache-optimize, and
+// simplify for byte meshes (f32 positions, u32 indices).
+
+// Deterministic fixture bytes: f32 positions (stride 12) plus u32 indices in
+// reversed triangle order (cache-hostile, so optimizeVertexCache must
+// reorder).  Returns the index count, or 0 on bad args/capacity.
+int xmo_fill_grid(unsigned char* positions, int positions_capacity,
+                  unsigned char* indices, int indices_capacity,
+                  int w, int h, int zscale_milli)
+{
+	static float pos[kSimVerts * 3];
+	static unsigned int idx[kSimIndices];
+	int count;
+	size_t pbytes;
+
+	if (positions == 0 || indices == 0 || w < 2 || h < 2) return 0;
+	if ((size_t)w * (size_t)h > (size_t)kSimVerts) return 0;
+	if ((size_t)(w - 1) * (size_t)(h - 1) * 6 > (size_t)kSimIndices) return 0;
+
+	grid_positions(pos, w, h, (float)zscale_milli / 1000000.0f);
+	count = grid_indices_reversed(idx, w, h);
+	pbytes = (size_t)w * (size_t)h * 12;
+
+	if ((size_t)positions_capacity < pbytes) return 0;
+	if ((size_t)indices_capacity < (size_t)count * 4) return 0;
+
+	memcpy(positions, pos, pbytes);
+	memcpy(indices, idx, (size_t)count * 4);
+	return count;
+}
+
+// Merge byte-identical vertices (within vertex_size): indices are rewritten
+// in place and, when the out slot is large enough, the remapped vertex
+// buffer is copied out.  Returns 0; out_unique receives the unique count.
+int xmo_remap_bytes(const unsigned char* vertices, int vertex_count, int vertex_size,
+                    unsigned char* indices, int index_count,
+                    unsigned char* out_vertices, int out_capacity,
+                    int* out_unique)
+{
+	std::vector<unsigned int> in((size_t)index_count);
+	std::vector<unsigned int> remap((size_t)vertex_count);
+	std::vector<unsigned int> out((size_t)index_count);
+	size_t unique;
+
+	if (vertices == 0 || indices == 0 || out_unique == 0) return 1;
+	if (vertex_count <= 0 || vertex_size <= 0 || index_count <= 0) return 1;
+
+	memcpy(in.data(), indices, (size_t)index_count * 4);
+	unique = meshopt_generateVertexRemap(remap.data(), in.data(), (size_t)index_count, vertices, (size_t)vertex_count, (size_t)vertex_size);
+	meshopt_remapIndexBuffer(out.data(), in.data(), (size_t)index_count, remap.data());
+	if (out_vertices != 0 && (size_t)out_capacity >= unique * (size_t)vertex_size)
+	{
+		meshopt_remapVertexBuffer(out_vertices, vertices, (size_t)vertex_count, (size_t)vertex_size, remap.data());
+	}
+	memcpy(indices, out.data(), (size_t)index_count * 4);
+	*out_unique = (int)unique;
+	return 0;
+}
+
+// Cache-optimize a u32 index buffer in place; the triangle multiset is
+// verified before the result is copied back.  Returns 1 when preserved.
+int xmo_optimize_bytes(unsigned char* indices, int index_count, int vertex_count)
+{
+	std::vector<unsigned int> before((size_t)index_count);
+	std::vector<unsigned int> after((size_t)index_count);
+	int ok;
+
+	if (indices == 0 || index_count <= 0 || vertex_count <= 0 || index_count % 3 != 0) return 0;
+
+	memcpy(before.data(), indices, (size_t)index_count * 4);
+	meshopt_optimizeVertexCache(after.data(), before.data(), (size_t)index_count, (size_t)vertex_count);
+	ok = triangle_sets_equal(before.data(), index_count, after.data(), index_count);
+	memcpy(indices, after.data(), (size_t)index_count * 4);
+	return ok;
+}
+
+// Simplify an indexed byte mesh toward target_index_count; the result index
+// list is copied into the out slot when it fits and the new count + relative
+// error are reported.  Returns 0 on success.
+int xmo_simplify_bytes(const unsigned char* vertices, int vertex_count, int vertex_stride,
+                       const unsigned char* indices, int index_count,
+                       int target_index_count, int target_error_milli,
+                       unsigned char* out_indices, int out_capacity,
+                       int* out_count, int* out_err_milli)
+{
+	std::vector<unsigned int> in((size_t)index_count);
+	std::vector<unsigned int> out((size_t)index_count);
+	std::vector<unsigned char> vbuf;
+	float err = 0.0f;
+	size_t count;
+
+	if (vertices == 0 || indices == 0 || out_count == 0 || out_err_milli == 0) return 1;
+	if (vertex_count <= 0 || vertex_stride <= 0 || index_count <= 0 || target_index_count <= 0) return 1;
+
+	vbuf.resize((size_t)vertex_count * (size_t)vertex_stride);
+	memcpy(in.data(), indices, (size_t)index_count * 4);
+	memcpy(vbuf.data(), vertices, vbuf.size());
+
+	// operator-new alignment makes the float view of the byte copy safe.
+	count = meshopt_simplify(out.data(), in.data(), (size_t)index_count, (const float*)vbuf.data(), (size_t)vertex_count, (size_t)vertex_stride, (size_t)target_index_count, (float)target_error_milli / 1000.0f, 0, &err);
+
+	if (out_indices != 0 && (size_t)out_capacity >= count * 4)
+	{
+		memcpy(out_indices, out.data(), count * 4);
+	}
+	*out_count = (int)count;
+	*out_err_milli = (int)(err * 1000.0f + 0.5f);
+	return 0;
 }
 
 } // extern "C"

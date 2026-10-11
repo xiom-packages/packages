@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.meshopt` |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Kind | binding (`categories: ["graphics"]`) |
 | Upstream project | meshoptimizer -- https://github.com/zeux/meshoptimizer |
 | Upstream version pinned | commit `f843aae0` (post-tag `v1.2`, `v1.2-17-gf843aae0`; `MESHOPTIMIZER_VERSION` 1020) |
@@ -82,6 +82,19 @@ Owned-buffer direction (3, the B-20-safe path): `meshopt_probe_build_indices`
 triangle multiset before copying back), `meshopt_probe_checksum` (FNV-1a
 order-change evidence, read byte-indexed).
 
+0.3.0 owned-buffer wrappers (ROADMAP Phase 3 item 1), the consumer-facing
+shapes over the same safe direction: `meshopt_remap_mesh` (merge
+byte-identical vertices; indices rewritten in place, remapped vertices
+copied into an owned out slot), `meshopt_optimize_mesh` (in-place cache
+optimize with the triangle multiset verified before write-back), and
+`meshopt_simplify_mesh` (simplify toward a target count at a relative error
+budget, result list into an owned out slot, count + error out). Plus
+`meshopt_fill_grid`, a deterministic fixture filler (f32 positions stride
+12, u32 indices in reversed triangle order) used by the suite. Inputs are
+caller-owned `Vec[UInt8]` buffers (f32 positions, u32 indices); C reads the
+inputs and writes results into XIOM-owned outputs; XIOM reads results back
+byte-indexed (B-16/B-17/B-20 discipline).
+
 ABI discipline: probes return scalars or write 4-byte ints into XIOM-owned
 slots read little-endian (B-11/B-16/B-17); C++ structs (vertex-cache/fetch
 statistics, `meshopt_Bounds`, meshlets) never cross the boundary by value;
@@ -100,17 +113,19 @@ The vertex codec round trip is byte-exact.
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Vendored tree (always compiled in) | `scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900` | **PASS 30/30 x2** -- 16 constants + 12 runtime probes + 2 owned-buffer probes; version 1020, remap 6->4, ACMR drops after cache optimization, simplify ~100 indices at <= 5% error, both codecs round-trip, stripify set-preserving, fp16 patterns 0x3C00/0xC000, sphere r=1414 on the 2x2 square, 98 meshlet triangles conserved, oct error <= 0.02, in-place optimize preserves the triangle set |
+| Vendored tree (always compiled in) | `scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900` | **PASS 33/33 x2** -- 16 constants + 12 runtime probes + 2 owned-buffer probes + 3 owned-buffer wrappers; version 1020, remap 6->4, ACMR drops after cache optimization, simplify ~100 indices at <= 5% error, both codecs round-trip, stripify set-preserving, fp16 patterns 0x3C00/0xC000, sphere r=1414 on the 2x2 square, 98 meshlet triangles conserved, oct error <= 0.02, in-place optimize preserves the triangle set, wrapper remap 6->4 with vertices copied out, wrapper optimize reorders while preserving the set, wrapper simplify 600->~100 indices in range |
 
 Build cost: 20 vendored TUs + the bridge, `--timeout 900` carried by
-`port.args.json` (watchdog headroom; ~9 s/run on this host). There is no
+`port.args.json` (watchdog headroom; ~25 s/run on this host). There is no
 library-absence SKIP path -- the sources are vendored and always compiled in.
 
 ## 5. Scope
 
-0.2.0 (pool drive) delivers the vendored runtime path and the probe set
-above. Broader safe wrappers (owned-buffer remap/optimize/simplify APIs),
-the remaining codec families (index sequence, meshlet codec, quat/exp/color
-filters) and the cluster pipeline are Phase 3 (`ROADMAP.md`). The legacy
-pre-vendor 72-check declaration-only suite is preserved in git history; its
-72/72 re-verify on v0.64.3 was recorded before the modernization.
+0.3.0 delivers the owned-buffer wrappers (remap/optimize/simplify) on top
+of the 0.2.0 vendored runtime path and probe set. The remaining codec
+families (index sequence, meshlet codec, quat/exp/color filters), the
+cluster pipeline (buildMeshlets -> optimizeMeshlet -> computeMeshletBounds)
+and direct-surface safe wrappers beyond the wrapper trio are Phase 3
+(`ROADMAP.md`). The legacy pre-vendor 72-check declaration-only suite is
+preserved in git history; its 72/72 re-verify on v0.64.3 was recorded
+before the modernization.

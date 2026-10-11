@@ -349,6 +349,10 @@ extern "C" {
   fn xmo_build_indices(dst: *UInt8, capacity: Int32) -> Int32;
   fn xmo_optimize_inplace(buf: *UInt8, index_count: Int32, vertex_count: Int32) -> Int32;
   fn xmo_checksum(buf: *UInt8, byte_count: Int32) -> Int32;
+  fn xmo_fill_grid(positions: *UInt8, positions_capacity: Int32, indices: *UInt8, indices_capacity: Int32, w: Int32, h: Int32, zscale_milli: Int32) -> Int32;
+  fn xmo_remap_bytes(vertices: *UInt8, vertex_count: Int32, vertex_size: Int32, indices: *UInt8, index_count: Int32, out_vertices: *UInt8, out_capacity: Int32, out_unique: *UInt8) -> Int32;
+  fn xmo_optimize_bytes(indices: *UInt8, index_count: Int32, vertex_count: Int32) -> Int32;
+  fn xmo_simplify_bytes(vertices: *UInt8, vertex_count: Int32, vertex_stride: Int32, indices: *UInt8, index_count: Int32, target_index_count: Int32, target_error_milli: Int32, out_indices: *UInt8, out_capacity: Int32, out_count: *UInt8, out_err_milli: *UInt8) -> Int32;
 }
 
 fn xmo_slot4() -> Vec[UInt8]
@@ -371,6 +375,29 @@ fn xmo_read_u32(buf: &Vec[UInt8]) -> Int
   let b2 = buf[2] as Int;
   let b3 = buf[3] as Int;
   return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+fn xmo_i2s(n: Int) -> Str
+  requires: n >= 0
+{
+  if n == 0 { return "0"; }
+  var val = n;
+  var buf = "";
+  while val > 0 {
+    let digit = val % 10;
+    val = val / 10;
+    if digit == 0 { buf = "0" + buf; }
+    elif digit == 1 { buf = "1" + buf; }
+    elif digit == 2 { buf = "2" + buf; }
+    elif digit == 3 { buf = "3" + buf; }
+    elif digit == 4 { buf = "4" + buf; }
+    elif digit == 5 { buf = "5" + buf; }
+    elif digit == 6 { buf = "6" + buf; }
+    elif digit == 7 { buf = "7" + buf; }
+    elif digit == 8 { buf = "8" + buf; }
+    elif digit == 9 { buf = "9" + buf; }
+  }
+  return buf;
 }
 
 pub type MeshoptRemapProbe = {
@@ -652,4 +679,88 @@ pub fn meshopt_probe_checksum(buf: &mut Vec[UInt8]) -> Int
   requires: buf.len() > 0
 {
   return unsafe { xmo_checksum(buf.as_mut_ptr(), buf.len() as Int32) as Int };
+}
+
+// =========================================================================
+// 0.3.0: owned-buffer wrappers (ROADMAP Phase 3 item 1)
+// =========================================================================
+//
+// Consumer-facing shapes over the probe trio: the caller owns byte buffers
+// (f32 positions stride 12, u32 indices), C reads the inputs and writes
+// results back into XIOM-owned outputs (the B-20-safe direction); the XIOM
+// side reads results back byte-indexed.
+
+pub type MeshoptSimplifyResult = {
+  index_count: Int;
+  error_milli: Int;
+}
+
+/// Fill an owned byte mesh fixture: f32 positions (stride 12, z bump scaled
+/// by zscale_milli) plus u32 indices in reversed triangle order (cache-
+/// hostile).  Returns the index count (0 on bad args/capacity).
+/// Complexity: O(w*h).
+pub fn meshopt_fill_grid(w: Int, h: Int, zscale_milli: Int, positions: &mut Vec[UInt8], indices: &mut Vec[UInt8]) -> Int
+  requires: w >= 2
+  requires: h >= 2
+  requires: positions.len() >= w * h * 12
+  requires: indices.len() >= (w - 1) * (h - 1) * 24
+{
+  return unsafe {
+    xmo_fill_grid(positions.as_mut_ptr(), positions.len() as Int32, indices.as_mut_ptr(), indices.len() as Int32, w as Int32, h as Int32, zscale_milli as Int32) as Int
+  };
+}
+
+/// Merge byte-identical vertices (within vertex_size bytes): indices are
+/// rewritten in place (u32) and the remapped vertices are copied into
+/// `out_vertices` when it is large enough.  Ok(unique_vertex_count).
+/// Complexity: O(vertices + indices).
+pub fn meshopt_remap_mesh(vertices: &mut Vec[UInt8], vertex_count: Int, vertex_size: Int, indices: &mut Vec[UInt8], index_count: Int, out_vertices: &mut Vec[UInt8]) -> Result[Int, Str]
+  requires: vertex_count > 0
+  requires: vertex_size > 0
+  requires: index_count > 0
+  requires: vertices.len() >= vertex_count * vertex_size
+  requires: indices.len() >= index_count * 4
+{
+  unsafe {
+    var fu = xmo_slot4();
+    let rc = xmo_remap_bytes(vertices.as_mut_ptr(), vertex_count as Int32, vertex_size as Int32, indices.as_mut_ptr(), index_count as Int32, out_vertices.as_mut_ptr(), out_vertices.len() as Int32, fu.as_mut_ptr()) as Int;
+    if rc != 0 { return Err("meshopt: remap rc=" + xmo_i2s(rc)); }
+    return Ok(xmo_read_u32(&fu));
+  }
+}
+
+/// Cache-optimize a u32 index buffer in place; the bridge verifies the
+/// triangle multiset is preserved before writing the result back.
+/// Complexity: O(triangles).
+pub fn meshopt_optimize_mesh(indices: &mut Vec[UInt8], index_count: Int, vertex_count: Int) -> Bool
+  requires: index_count > 0
+  requires: vertex_count > 0
+  requires: indices.len() >= index_count * 4
+{
+  return unsafe { (xmo_optimize_bytes(indices.as_mut_ptr(), index_count as Int32, vertex_count as Int32) as Int) != 0 };
+}
+
+/// Simplify an indexed byte mesh (f32 positions, u32 indices) toward
+/// target_index_count at a relative target error (milli); the result index
+/// list is written into `out_indices` when it fits.  Ok carries the new
+/// index count and the relative error (milli).
+/// Complexity: O(n log n).
+pub fn meshopt_simplify_mesh(vertices: &mut Vec[UInt8], vertex_count: Int, vertex_stride: Int, indices: &mut Vec[UInt8], index_count: Int, target_index_count: Int, target_error_milli: Int, out_indices: &mut Vec[UInt8]) -> Result[MeshoptSimplifyResult, Str]
+  requires: vertex_count > 0
+  requires: vertex_stride > 0
+  requires: index_count > 0
+  requires: target_index_count > 0
+  requires: vertices.len() >= vertex_count * vertex_stride
+  requires: indices.len() >= index_count * 4
+{
+  unsafe {
+    var fc = xmo_slot4();
+    var fe = xmo_slot4();
+    let rc = xmo_simplify_bytes(vertices.as_mut_ptr(), vertex_count as Int32, vertex_stride as Int32, indices.as_mut_ptr(), index_count as Int32, target_index_count as Int32, target_error_milli as Int32, out_indices.as_mut_ptr(), out_indices.len() as Int32, fc.as_mut_ptr(), fe.as_mut_ptr()) as Int;
+    if rc != 0 { return Err("meshopt: simplify rc=" + xmo_i2s(rc)); }
+    return Ok(MeshoptSimplifyResult{
+      index_count: xmo_read_u32(&fc),
+      error_milli: xmo_read_u32(&fe)
+    });
+  }
 }
