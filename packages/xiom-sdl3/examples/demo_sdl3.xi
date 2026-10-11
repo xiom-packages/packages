@@ -48,8 +48,70 @@ fn main() -> Int {
     io.println("events: pump+poll ok (queue empty)");
   }
 
+  // 0.8.0: display blit -- upload an RGBA frame into a streaming texture,
+  // blit it over the render target and present (hidden window; safe on a
+  // desktop session).
+  let rs = sdl3_load_resources();
+  if !rs.is_ok {
+    io.println("resources unavailable: " + rs.error.message);
+  } else {
+    let r: Sdl3Resources = rs.value;
+    let winr = sdl3_create_window(&r, "xiom.sdl3 demo blit", 320, 200, SDL_WINDOW_HIDDEN);
+    if !winr.is_ok {
+      io.println("window SKIP: " + winr.error);
+    } else {
+      let win: Int = winr.value;
+      let renr = sdl3_create_renderer(&r, win);
+      if !renr.is_ok {
+        io.println("renderer SKIP: " + renr.error);
+      } else {
+        let ren: Int = renr.value;
+        let texr = sdl3_create_texture(&r, ren, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 64, 64);
+        if texr.is_ok {
+          let tex: Int = texr.value;
+          var pattern: Vec[UInt8] = Vec[UInt8].new();
+          var py = 0;
+          while py < 64 {
+            var px = 0;
+            while px < 64 {
+              if ((px / 8) % 2) == ((py / 8) % 2) {
+                pattern.push(220 as UInt8);
+                pattern.push(20 as UInt8);
+                pattern.push(20 as UInt8);
+                pattern.push(255 as UInt8);
+              } else {
+                pattern.push(20 as UInt8);
+                pattern.push(20 as UInt8);
+                pattern.push(220 as UInt8);
+                pattern.push(255 as UInt8);
+              }
+              px = px + 1;
+            }
+            py = py + 1;
+          }
+          let up = sdl3_update_texture(&r, tex, &mut pattern, 64, 64);
+          let vs = sdl3_set_render_vsync(&r, ren, 1);
+          let blit = sdl3_render_texture(&r, ren, tex);
+          let pres = sdl3_render_present(&r, ren);
+          io.println("blit: 64x64 RGBA checker uploaded + presented (update="
+            + b2s(up) + " vsync=" + b2s(vs) + " blit=" + b2s(blit) + " present=" + b2s(pres) + ")");
+          sdl3_destroy_texture(&r, tex);
+        }
+        sdl3_destroy_renderer(&r, ren);
+      }
+      sdl3_destroy_window(&r, win);
+    }
+    let rcl = sdl3_resources_close(&r);
+    if !rcl.is_ok { io.println("resource handle close failed: " + rcl.error); }
+  }
+
   sdl3_quit(&lib);
   let cl = sdl3_close(&lib);
   if cl.is_ok { io.println("closed cleanly"); }
   return 0;
+}
+
+fn b2s(b: Bool) -> Str {
+  if b { return "true"; }
+  return "false";
 }

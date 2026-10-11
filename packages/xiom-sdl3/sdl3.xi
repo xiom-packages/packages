@@ -425,6 +425,7 @@ pub fn sdl3_get_error(lib: &Sdl3Library) -> Str
 // SDL pixel formats / texture access for the smoke.
 pub const SDL_PIXELFORMAT_RGBA8888: Int = 0x16462004;
 pub const SDL_TEXTUREACCESS_STATIC: Int = 0;
+pub const SDL_TEXTUREACCESS_STREAMING: Int = 1;
 
 pub type Sdl3WindowSize = {
   width: Int;
@@ -455,6 +456,9 @@ pub type Sdl3Resources = {
   p_has_gamepad: Int;
   p_free: Int;
   p_get_error: Int;
+  p_update_texture: Int;
+  p_render_texture: Int;
+  p_set_render_vsync: Int;
 }
 
 fn sdl3_res_error(r: &Sdl3Resources) -> Str
@@ -515,6 +519,12 @@ pub fn sdl3_load_resources() -> Result[Sdl3Resources, Sdl3LoadError] {
   if !a18.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_free: " + a18.error }); }
   let a19 = dl.dl_sym(handle, "SDL_GetError");
   if !a19.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetError: " + a19.error }); }
+  let a20 = dl.dl_sym(handle, "SDL_UpdateTexture");
+  if !a20.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_UpdateTexture: " + a20.error }); }
+  let a21 = dl.dl_sym(handle, "SDL_RenderTexture");
+  if !a21.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_RenderTexture: " + a21.error }); }
+  let a22 = dl.dl_sym(handle, "SDL_SetRenderVSync");
+  if !a22.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetRenderVSync: " + a22.error }); }
 
   return Ok(Sdl3Resources{
     handle: handle,
@@ -537,6 +547,9 @@ pub fn sdl3_load_resources() -> Result[Sdl3Resources, Sdl3LoadError] {
     p_has_gamepad: a17.value,
     p_free: a18.value,
     p_get_error: a19.value,
+    p_update_texture: a20.value,
+    p_render_texture: a21.value,
+    p_set_render_vsync: a22.value,
   });
 }
 
@@ -786,6 +799,59 @@ pub fn sdl3_close_gamepad(r: &Sdl3Resources, gp: Int)
   unsafe {
     let f = r.p_close_gamepad as fn(Int);
     f(gp);
+  }
+}
+
+// =========================================================================
+// 0.8.0: display blit -- texture upload + render copy + vsync (engine ask
+// REL-20261011-1153-engine).  The pixel buffer is an XIOM-owned Vec that SDL
+// READS (SDL_UpdateTexture with a NULL rect uploads the whole texture); no
+// foreign-write readback is involved (B-11 path avoided).  SDL3's blit is
+// `SDL_RenderTexture` (the SDL2-era `RenderCopy` was renamed).
+// =========================================================================
+
+/// SDL_UpdateTexture(tex, NULL, pixels, w*4): upload a tightly packed
+/// RGBA8 frame (w*h*4 bytes) into the whole texture.
+/// Complexity: O(w*h).
+pub fn sdl3_update_texture(r: &Sdl3Resources, tex: Int, pixels: &mut Vec[UInt8], w: Int, h: Int) -> Bool
+  requires: r.handle != 0
+  requires: tex != 0
+  requires: w > 0
+  requires: h > 0
+  requires: pixels.len() >= w * h * 4
+{
+  unsafe {
+    let f = r.p_update_texture as fn(Int, Int, *UInt8, Int) -> UInt8;
+    let pitch = w * 4;
+    return (f(tex, 0, pixels.as_mut_ptr(), pitch) as Int) != 0;
+  }
+}
+
+/// SDL_RenderTexture(ren, tex, NULL, NULL): stretch the whole texture over
+/// the render target (clear before, present after).
+/// Complexity: O(1).
+pub fn sdl3_render_texture(r: &Sdl3Resources, ren: Int, tex: Int) -> Bool
+  requires: r.handle != 0
+  requires: ren != 0
+  requires: tex != 0
+{
+  unsafe {
+    let f = r.p_render_texture as fn(Int, Int, Int, Int) -> UInt8;
+    return (f(ren, tex, 0, 0) as Int) != 0;
+  }
+}
+
+/// SDL_SetRenderVSync(ren, vsync): 1 = on (FIFO), 0 = off, -1 = adaptive.
+/// Complexity: O(1).
+pub fn sdl3_set_render_vsync(r: &Sdl3Resources, ren: Int, vsync: Int) -> Bool
+  requires: r.handle != 0
+  requires: ren != 0
+  requires: vsync >= -1
+  requires: vsync <= 1
+{
+  unsafe {
+    let f = r.p_set_render_vsync as fn(Int, Int) -> UInt8;
+    return (f(ren, vsync) as Int) != 0;
   }
 }
 

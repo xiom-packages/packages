@@ -432,6 +432,47 @@ fn main() -> Int {
           sdl3_destroy_texture(&r, tex);
           failed = failed + report(true, "texture: RGBA8888 16x16 created + destroyed");
         }
+
+        // 0.8.0: streaming texture upload + blit + vsync (engine ask
+        // REL-20261011-1153-engine): 64x64 RGBA checker into an XIOM-owned
+        // buffer -> SDL_UpdateTexture -> RenderTexture -> present.
+        let texr2 = sdl3_create_texture(&r, ren, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 64, 64);
+        if !texr2.is_ok {
+          failed = failed + report(false, "blit: streaming texture create failed -- " + texr2.error);
+        } else {
+          let tex2: Int = texr2.value;
+          var pattern: Vec[UInt8] = Vec[UInt8].new();
+          var py = 0;
+          while py < 64 {
+            var px = 0;
+            while px < 64 {
+              if ((px / 8) % 2) == ((py / 8) % 2) {
+                pattern.push(220 as UInt8);
+                pattern.push(20 as UInt8);
+                pattern.push(20 as UInt8);
+                pattern.push(255 as UInt8);
+              } else {
+                pattern.push(20 as UInt8);
+                pattern.push(20 as UInt8);
+                pattern.push(220 as UInt8);
+                pattern.push(255 as UInt8);
+              }
+              px = px + 1;
+            }
+            py = py + 1;
+          }
+          let colored2 = sdl3_set_render_draw_color(&r, ren, 0, 0, 0, 255);
+          let cleared2 = sdl3_render_clear(&r, ren);
+          let up = sdl3_update_texture(&r, tex2, &mut pattern, 64, 64);
+          let vs = sdl3_set_render_vsync(&r, ren, 1);
+          let blit = sdl3_render_texture(&r, ren, tex2);
+          let pres = sdl3_render_present(&r, ren);
+          failed = failed + report(colored2 && cleared2 && up && vs && blit && pres,
+            "blit: 64x64 RGBA checker uploaded + rendered + presented (bytes="
+              + to_string(pattern.len()) + " update=" + b2s(up) + " vsync=" + b2s(vs)
+              + " blit=" + b2s(blit) + " present=" + b2s(pres) + ")");
+          sdl3_destroy_texture(&r, tex2);
+        }
         sdl3_destroy_renderer(&r, ren);
       }
       sdl3_destroy_window(&r, win);
