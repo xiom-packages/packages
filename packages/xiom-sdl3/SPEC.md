@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.8.0 |
+| Version | 0.9.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -172,12 +172,24 @@ avoided).  `SDL_TEXTUREACCESS_STREAMING` exported.  Engine done-bar met:
 checker -> update/vsync/blit/present all true -> clean shutdown), and the
 suite carries the same 64x64 blit check.
 
+**0.9.0 addition (mouse + window contract, 2026-10-11; engine input layer):
+** `SDL_GetMouseState` joined the core loader (two f32 OUT-params + u32
+mask; slot readback + `sdl3_f32_from_bits`, B-12 discipline);
+`SDL_SetWindowSize` + `SDL_SetWindowResizable` joined the RESOURCES loader.
+The full `SDL_EVENT_WINDOW_*` family is exported (SHOWN 0x202 .. 
+CLOSE_REQUESTED 0x210, sequential per the pinned header).  The suite proves
+the engine's typed route end-to-end: an event watch observes
+`SDL_SetWindowSize(300,180)` -> `SDL_EVENT_WINDOW_RESIZED` with
+data1/data2 = 300/180 decoded from the copied buffer, plus the size
+readback; mouse state idle (buttons=0, coords decode).  README carries the
+engine event-loop snippet (watch + decode + drain).
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 44/44 x2** -- previous 43 checks + the 64x64 RGBA checker blit (update/vsync/render/present all true) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 46/46 x2** -- previous 44 checks + resizable false/true + 300x180 resize with typed WINDOW_RESIZED through the watch + idle mouse state |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no

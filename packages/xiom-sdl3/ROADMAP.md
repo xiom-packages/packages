@@ -1,6 +1,6 @@
 # xiom.sdl3 -- Roadmap
 
-**Version**: v0.8.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
+**Version**: v0.9.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
 
 ## Current state
 
@@ -20,6 +20,7 @@
 | Displays + video modes + keyboard state | Done -- 0.6.0 |
 | Filesystem basics (base/pref/cwd, create/remove/path-info) | Done -- 0.7.0 |
 | Display blit (texture upload + RenderTexture + vsync) | Done -- 0.8.0 (engine ask 1153) |
+| Mouse state + window contract + typed window events | Done -- 0.9.0 (engine input layer) |
 | Full constant tables | Phase 2 |
 | POSIX soname fallback | Phase 2 |
 
@@ -35,6 +36,6 @@
 5. OpenGL-context interop with `xiom.opengl` (attribute setup only; no
    cross-package imports -- both packages stay independent).
 6. Broader API growth from `E:\repos\SDL3`: audio device enumeration,
-   joystick, typed mouse/window events for the engine input layer (displays
-   + video modes + keyboard state in 0.6.0, filesystem in 0.7.0, blit in
-   0.8.0; the full-coverage drive continues).
+   joystick, pointer capture/relative mouse (displays + video modes +
+   keyboard state in 0.6.0, filesystem in 0.7.0, blit in 0.8.0, mouse +
+   window contract in 0.9.0; the full-coverage drive continues).

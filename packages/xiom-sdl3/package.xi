@@ -4,8 +4,8 @@
 
 package {
   name: "xiom.sdl3"
-  version: "0.8.0"
-  description: "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit (texture upload/RenderTexture/vsync)"
+  version: "0.9.0"
+  description: "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit + mouse state + window contract (resize/resizable + typed window events)"
   categories: ["graphics", "media"]
   keywords: ["sdl3", "windowing", "input", "audio", "binding"]
   license: "MIT OR Apache-2.0"

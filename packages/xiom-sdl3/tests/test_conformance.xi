@@ -202,11 +202,23 @@ fn on_filter(ev: Vec[UInt8]) -> Bool {
 var wtc_calls: Int = 0;
 var wtc_last_type: Int = 0;
 var wtc_userdata: Int = 0;
+var wtc_saw_resized: Bool = false;
+var wtc_saw_pixel: Bool = false;
 
 fn on_watch(ev: Vec[UInt8]) -> Unit {
   wtc_calls = wtc_calls + 1;
   wtc_last_type = sdl3_event_type(&ev);
   wtc_userdata = sdl3_watch_userdata();
+  if sdl3_event_type(&ev) == SDL_EVENT_WINDOW_RESIZED {
+    if sdl3_event_window_data1(&ev) == 300 && sdl3_event_window_data2(&ev) == 180 {
+      wtc_saw_resized = true;
+    }
+  }
+  if sdl3_event_type(&ev) == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED {
+    if sdl3_event_window_data1(&ev) == 300 && sdl3_event_window_data2(&ev) == 180 {
+      wtc_saw_pixel = true;
+    }
+  }
 }
 
 fn main() -> Int {
@@ -409,6 +421,23 @@ fn main() -> Int {
       let sz = sdl3_window_size(&r, win);
       failed = failed + report(sz.width > 0, "window: size = " + to_string(sz.width) + "x" + to_string(sz.height));
       failed = failed + report(sdl3_set_window_title(&r, win, "xiom-sdl3-phase2-renamed"), "window: title update");
+
+      // 0.9.0: window contract -- resizable toggle + a typed resize event
+      // through the event watch (the engine's typed input route).
+      let rsz_off = sdl3_set_window_resizable(&r, win, false);
+      let rsz_on = sdl3_set_window_resizable(&r, win, true);
+      wtc_saw_resized = false;
+      wtc_saw_pixel = false;
+      let wset = sdl3_add_event_watch(&lib, on_watch, 0x99);
+      let szset = sdl3_set_window_size(&r, win, 300, 180);
+      sdl3_pump_events(&lib);
+      let sz2 = sdl3_window_size(&r, win);
+      let wrm = sdl3_remove_event_watch(&lib, 0x99);
+      failed = failed + report(rsz_off && rsz_on && wset && szset && wrm
+          && sz2.width == 300 && sz2.height == 180 && wtc_saw_resized,
+        "window: resizable false/true + resize to 300x180 (readback="
+          + to_string(sz2.width) + "x" + to_string(sz2.height) + ") -> typed WINDOW_RESIZED seen="
+          + b2s(wtc_saw_resized) + " pixel-size-changed=" + b2s(wtc_saw_pixel));
       let shown = sdl3_show_window(&r, win);
       let hidden = sdl3_hide_window(&r, win);
       failed = failed + report(true, "window: show/hide callable (show=" + b2s(shown) + " hide=" + b2s(hidden) + ")");
@@ -559,6 +588,13 @@ fn main() -> Int {
     failed = failed + report((ms & 0x0FFF) == 0,
       "keyboard: mod state " + to_string(ms) + " (non-lock bits idle"
         + ", focus=" + to_string(kf) + ")");
+
+    // 0.9.0: mouse state (idle buttons; window-relative coords decoded).
+    let mst = sdl3_mouse_state(&lib);
+    failed = failed + report(mst.buttons == 0 && mst.x > -100000.0 && mst.x < 100000.0
+        && mst.y > -100000.0 && mst.y < 100000.0,
+      "mouse: state idle (buttons=" + to_string(mst.buttons) + " at "
+        + to_string(mst.x as Int) + "," + to_string(mst.y as Int) + ")");
 
     sdl3_quit(&lib);
   }
