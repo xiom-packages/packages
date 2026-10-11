@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  38,
                   "failed":  0,
-                  "run_by":  "task:bindings-pool",
-                  "commit":  "e50b3f99",
-                  "checked":  "2026-10-11T18:28:46Z"
+                  "run_by":  "native-session",
+                  "commit":  "bd059406",
+                  "checked":  "2026-10-11T18:32:45Z"
               },
     "publish":  false,
-    "excluded_reason":  null
+    "excluded_reason":  "publish pending: bindings batch 61 (eco-v0.1.159)"
 }
