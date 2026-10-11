@@ -34,13 +34,26 @@ clone: stage ONLY your own item files). The two working rules are in
 ### State
 - **CURRENT (2026-10-11 11:15Z)**: batches 31-41 relayed. **Published**:
   `eco-v0.1.132` (assimp 0.7.0 + glfw 0.3.0), `eco-v0.1.133` (vulkan 0.3.0),
-  `eco-v0.1.134` (sdl3 0.3.1, sha256 `a779ae4b...` @10:33:55Z).
-  **In the packages queue (relayed/acked, publish pending)**: batch 34 stb
-  0.2.0 (ops allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
-  batch 35 jolt 0.2.0 (parked on the m258 archive), batch 39 glfw 0.5.0
-  (**supersedes 38**; `REL-20261011-1055-bindings`), batch 40 vulkan 0.5.0
-  (**supersedes 37**; `REL-20261011-1100-bindings`), batch 41 sdl3 0.4.0
-  (`REL-20261011-1106-bindings`).
+  `eco-v0.1.134` (sdl3 0.3.1, sha256 `a779ae4b...` @10:33:55Z),
+  `eco-v0.1.135` (vulkan 0.4.0 @11:00Z window), **`eco-v0.1.136`
+  (glfw 0.4.0, sha256 `c393b079`)** and **`eco-v0.1.137` (glfw 0.5.0,
+  sha256 `04ad5ed2`) -- the latter published after packages' native fixes
+  `5a213f30` (f64_from_bits `requires: true` + layout-invariant key-name
+  check + `tests/probe_neg_f64.xi`) and the wrap `c19a852d`/`add5020e`; the
+  packages lane also normalized 7 `Vec<UInt8>` -> `Vec[UInt8]` in `sdl3.xi`
+  (`799fceaa`). The lane branch was fast-forwarded `7869df27 -> 470e13f3`
+  carrying all of it; post-merge lane verification: glfw 37/37 x2 + absent
+  3/3, sdl3 24/24 x2; reply item `REL-20261011-1113-bindings`.**
+  **Still in the queue (publish pending)**: batch 34 stb 0.2.0 (ops
+  allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
+  batch 35 jolt 0.2.0 (parked on the m258 archive); batches 39/40/41
+  wrapped on main (`470e13f3`).
+- **Wrap/fix cycle (2026-10-11 11:10Z)**: packages wrapped batches 38/39/
+  40/41 on main: `eco-v0.1.136` (glfw 0.4.0), `eco-v0.1.137` (glfw 0.5.0,
+  post-fixes), `470e13f3` (vulkan 0.5.0 + sdl3 0.4.0). Fixes `5a213f30`
+  (glfw) + `799fceaa` (sdl3) carried into the lane by fast-forward
+  `7869df27 -> 470e13f3`; lane re-verification post-merge: glfw **37/37 x2
+  + absent 3/3**, sdl3 **24/24 x2** (reply `REL-20261011-1113-bindings`).
 - **Latest batch 41 (2026-10-11)**: `xiom.sdl3` **0.4.0 -- SDL_Event
   decoding layer**: owned 128-byte buffer + typed accessors (header,
   keyboard, mouse motion/button, window data1/data2, f32 `_bits` +
@@ -231,6 +244,16 @@ clone: stage ONLY your own item files). The two working rules are in
   bindings use: one fixed top-level dispatcher per event whose address goes
   to C + a `Vec[fn]` registry of user handlers (m130 element ABI). Repro:
   `docs/repro/bindings-pilot/cb-abi/`; item `REL-20261011-1055-bindings-2`.
+- **Raw IEEE-754 bit patterns are signed Ints**: a `bits: Int` contract of
+  `>= 0` traps on every negative float (sign bit set). Use `requires: true`
+  for bit-pattern params (`f64_from_bits` fix `5a213f30`,
+  `tests/probe_neg_f64.xi`); the same class applies to any readback that
+  can go negative (cursor positions left of/above the window, joystick
+  axes).
+- **Bracket-scan hygiene**: the v0.64.3 surface parser accepted 7
+  `Vec<UInt8>` signatures in `sdl3.xi` (compiled + suite green), but the
+  canonical form is `Vec[UInt8]` -- packages normalized them (`799fceaa`).
+  Keep the square-bracket form in new code.
 - **Vec-of-struct element extraction AVs** (`mons[0]`); use `Vec[Int]`
   handles + raw byte buffers (glfw monitors/video-modes pattern).
   `Result[Vec[...]]` and `Result[Float32/64]` payload extraction also
