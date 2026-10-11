@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.3` -- generated 2026-10-11T17:11:04Z.
+Toolchain pin: `v0.64.3` -- generated 2026-10-11T17:18:36Z.
 
 ## Summary
 
@@ -318,7 +318,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.ansible | xiom-ansible | incubating | tests/test_conformance.xi | pass 26/26 | 973754e8 | False | publish pending: next scope delta |
 | xiom.apple | xiom-apple | incubating | tests/test_conformance.xi | pass 21/21 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.arrow | xiom-arrow | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | pass 16/16 | a76bdef4 | False | publish pending: bindings batch 54 (eco-v0.1.153) |
+| xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | pass 16/16 | a76bdef4 | False | published in eco-v0.1.153 (2026-10-11; 0.7.0 in eco-v0.1.132) |
 | xiom.ast | xiom-ast | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.audio-meta | xiom-audio-meta | incubating | tests/test_conformance.xi | pass 25/25 | bf525d98 | False | publish pending: next scope delta |
 | xiom.auth | xiom-auth | incubating | tests/test_conformance.xi | pass 24/24 | 4dec18c5 | False | category harmonization patch bump (registry metadata) |
@@ -451,7 +451,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.metadata | xiom-metadata | incubating | tests/test_conformance.xi | pass 28/28 | b7c0bfbf | False | publish pending: next scope delta |
 | xiom.micro | xiom-micro | incubating | tests/test_conformance.xi | pass 10/10 | 57cdac5b | False | publish pending: eco-v0.1.42 |
 | xiom.microscopy | xiom-microscopy | incubating | tests/test_conformance.xi | pass 24/24 | d475ef4b | False | publish pending: next scope delta |
-| xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | pass 4/4 | 2f702bef | False | publish pending: bindings batch 17 (eco-v0.1.114) |
+| xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | pass 6/6 | ab8dc89e | False | publish pending: bindings batch 55 (eco-v0.1.154) |
 | xiom.ml | xiom-ml | incubating | tests/test_conformance.xi | pass 18/18 | 6a19ce99 | False | publish pending: next scope delta |
 | xiom.mock | xiom-mock | incubating | tests/test_conformance.xi | pass 20/20 | 4c9f5b3e | False | publish pending: next scope delta |
 | xiom.mongo | xiom-mongo | incubating | tests/test_conformance.xi | pass 23/23 | 6f9ebf38 | False | category harmonization patch bump (registry metadata) |
