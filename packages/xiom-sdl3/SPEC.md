@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.7.0 |
+| Version | 0.8.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -160,12 +160,25 @@ suite removes the subdir and the app dir after asserting
 `SDL_PATHTYPE_DIRECTORY` + a positive mtime) -- no shared-toolchain paths
 are touched (ops hygiene item REL-20261011-1134-ops).
 
+**0.8.0 addition (display blit, 2026-10-11; engine ask
+`REL-20261011-1153-engine`):** 3 symbols joined the RESOURCES loader:
+`SDL_UpdateTexture`, `SDL_RenderTexture` (SDL3's RenderTexture -- the
+SDL2-era RenderCopy was renamed), `SDL_SetRenderVSync`.  The pixel buffer
+is an XIOM-owned Vec that SDL READS (`sdl3_update_texture` computes
+`pitch = w*4`, passes a NULL rect = whole texture, requires
+`pixels.len() >= w*h*4`); no foreign-write readback is involved (B-11 path
+avoided).  `SDL_TEXTUREACCESS_STREAMING` exported.  Engine done-bar met:
+`examples/demo_sdl3.xi` runs on this box (hidden window -> 64x64 RGBA
+checker -> update/vsync/blit/present all true -> clean shutdown), and the
+suite carries the same 64x64 blit check.
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 43/43 x2** -- previous 36 checks + filesystem (base + cwd = package dir, pref path created under AppData, kind=DIRECTORY, subdir create/remove, missing-path probe, cleanup) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 44/44 x2** -- previous 43 checks + the 64x64 RGBA checker blit (update/vsync/render/present all true) |
+| Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no
 extra compiler flags (this is the design win of the loader path over a C
@@ -188,7 +201,8 @@ bridge). `scripts/port.ps1` runs it unchanged.
 
 ## 6. Scope
 
-0.4.0 covers the pilot smoke, the resource stage (window/renderer/texture/
-gamepad) and the event-decoding layer over the loader. Remaining Phase 2
-items: the full constant tables (git history), texture updates/vsync,
-POSIX soname fallback, and opengl-context interop -- see `ROADMAP.md`.
+0.8.0 covers the pilot smoke, the resource stage (window/renderer/texture/
+gamepad), the event layer (decode + filter/watch), displays/keyboard,
+filesystem basics and the display blit. Remaining Phase 2 items: the full
+constant tables (git history), audio/joystick coverage, POSIX soname
+fallback, and opengl-context interop -- see `ROADMAP.md`.
