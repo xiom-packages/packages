@@ -74,7 +74,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   legacy control**, ef=8); `eco-v0.1.144` sha256 `0a243ce4...` @12:19:40Z; SPEC pins
   refreshed (hnsw `092a15c9...`, probe `c2adcc00...`); item fixed -- xvector's atomic
   consumer swap is unblocked. Also this round: my relay item 1108 lost its non-ASCII char
-  (playground `REL-20261011-1201-playground` fixed; `relay.py validate` clean, 230 items).
+  (playground `REL-20261011-1201-playground` fixed; `relay.py validate` clean, 230+ items).
+  Backlog closes this sweep: `REL-20261010-2103-bindings` (stb allowlist ask -- shipped in
+  eco-v0.1.139), PLUS earlier: `REL-20261010-1550-xvector-10`, `REL-20261010-1834-engine-4`.
 - Compliance noted from the ops hygiene broadcast (`REL-20261011-1134-ops`, to all): shared
   toolchain homes stay read-only for this lane; suites run from package-local scratch; PATH
   filtering for absent shapes is non-destructive.
