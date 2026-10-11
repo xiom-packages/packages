@@ -1,4 +1,4 @@
-// XIOM -- xiom.btree conformance tests (22 checks)
+// XIOM -- xiom.btree conformance tests (23 checks)
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
@@ -14,13 +14,12 @@
 // ascending per node, child-count law, min/max key bounds, uniform leaf
 // depth) on orders 3/4/5; negative keys.
 //
-// Order 3 is covered for insert/search/range/structure only: randomized or
-// multi-step order-3 DELETES are excluded because the verbatim upstream code
-// has a known corruption path at min_keys = 0 (degenerate 0-key/1-child
-// internal nodes feed an out-of-bounds read in merge_children). Reproduced
-// with the acceptance probe at order 3, keyspace 16, seed 777, first
-// divergence op=67; see SPEC.md "known order-3 delete defect". Delete-path
-// coverage lives on orders 4/5 (and the churn matrix uses 4/5/6).
+// Order 3 deletes are covered since the 0.1.1 re-carve (ORBITDB c017165):
+// the min_keys = 0 pass-through corruption path (0-key/1-child internal
+// nodes feeding an out-of-bounds read) is fixed upstream; the former
+// exclusion is now a regression case (churn order 3, keyspace 16, seed 777,
+// 2000 ops -- pre-fix first divergence op=67; see SPEC.md section 2.3).
+// The acceptance churn matrix uses orders 3/4/5/6.
 //
 // The structural validator follows the package invariant min_keys =
 // (order - 2) / 2 and additionally bounds-checks child indices.
@@ -117,7 +116,7 @@ fn model_vec(present: &Vec[Int], lo: Int, hi: Int) -> Vec[Int] {
 //  - all leaves at the same depth
 // min_keys follows the split scheme: (order - 2) / 2.
 fn validate_node(tree: &BTree, idx: Int, depth: Int, leaf_depth: &mut Int, is_root: Bool) -> Int {
-  var node = tree.nodes[idx];
+  var node = tree.store.nodes[idx];
   var max_keys = tree.order - 1;
   var min_keys = (tree.order - 2) / 2;
 
@@ -146,7 +145,7 @@ fn validate_node(tree: &BTree, idx: Int, depth: Int, leaf_depth: &mut Int, is_ro
 
   i = 0;
   while i < node.children.len() {
-    if node.children[i] < 0 || node.children[i] >= tree.nodes.len() { return 16; }
+    if node.children[i] < 0 || node.children[i] >= tree.store.nodes.len() { return 16; }
     let rc = validate_node(tree, node.children[i], depth + 1, leaf_depth, false);
     if rc != 0 { return rc; }
     i = i + 1;
@@ -355,8 +354,8 @@ fn t07_delete_internal_prev_order4() -> TestResult {
     if !btree_insert(&mut tree, k, value_of(k)) { ok = false; }
     k = k + 1;
   }
-  if tree.nodes[tree.root].is_leaf { ok = false; }
-  let root_key = tree.nodes[tree.root].keys[0];
+  if tree.store.nodes[tree.root].is_leaf { ok = false; }
+  let root_key = tree.store.nodes[tree.root].keys[0];
   if !btree_delete(&mut tree, root_key) { ok = false; }
   if !search_none(&tree, root_key) { ok = false; }
   if btree_size(&tree) != 14 { ok = false; }
@@ -368,7 +367,7 @@ fn t07_delete_internal_prev_order4() -> TestResult {
 }
 
 fn t08_structure_order3_readops() -> TestResult {
-  let name = "order-3: inserts, search, range and structure (deletes scoped to orders 4/5)";
+  let name = "order-3: inserts, search, range and structure";
   var tree = btree_new(3);
   var ok = true;
   var k = 1;
@@ -642,6 +641,12 @@ fn t22_negative_keys() -> TestResult {
   return assert(ok, name);
 }
 
+fn t23_churn_model_order3() -> TestResult {
+  let name = "order-3 model churn (2000 ops, keyspace 16, seed 777 -- the order-3 regression)";
+  let ok = churn_model(3, 16, 2000, 777);
+  return assert(ok, name);
+}
+
 fn main() -> Int {
   io.println("=== xiom.btree conformance tests ===");
   var failed: Int = 0;
@@ -690,6 +695,8 @@ fn main() -> Int {
   if r21.passed { io.println("  [PASS] " + r21.name); } else { io.println("  [FAIL] " + r21.name); failed = failed + 1; }
   let r22 = t22_negative_keys();
   if r22.passed { io.println("  [PASS] " + r22.name); } else { io.println("  [FAIL] " + r22.name); failed = failed + 1; }
+  let r23 = t23_churn_model_order3();
+  if r23.passed { io.println("  [PASS] " + r23.name); } else { io.println("  [FAIL] " + r23.name); failed = failed + 1; }
 
   if failed == 0 {
     io.println("xiom.btree: all tests passed");
