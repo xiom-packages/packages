@@ -41,8 +41,10 @@ fn main() {
 | Probe | `assimp_probe` -> `AssimpInfo` (obj_meshes/obj_vertices/obj_faces/ply_vertices/gltf_vertices/collada_vertices/fbx_vertices/blend_meshes/blend_vertices/blend_faces/off_meshes/off_vertices/off_faces/smd_meshes/smd_vertices/smd_faces) |
 | File import (0.8.0) | `assimp_import_file(path)` -> `Result[handle, Str]` (Triangulate + FlipUVs; 4 live imports), `assimp_release(handle)`, `assimp_mesh_count`, `assimp_mesh_vertex_count`, `assimp_mesh_triangle_count`, `assimp_mesh_has_uvs`, `assimp_mesh_positions` -> `Vec[Float64]` (xyz), `assimp_mesh_uvs` -> `Vec[Float64]` (uv; empty when absent), `assimp_mesh_indices` -> `Vec[UInt32]` (3 per triangle) |
 
-Details + the subset/pin policy: `SPEC.md`. More importers, post-processing
-wrappers, and the export API are Phase 3 (`ROADMAP.md`).
+Details + the subset/pin policy: `SPEC.md`. The engine asset-pipeline
+consumer contract (stability promise, error surface, threading):
+`CONTRACT.md`. More importers, post-processing wrappers, and the export API
+are Phase 3 (`ROADMAP.md`).
 
 ## Tests
 

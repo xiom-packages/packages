@@ -11,7 +11,7 @@
 | C++ bridge + runtime probes on deterministic meshes (12) | Done -- 0.2.0 |
 | XIOM-owned buffer direction (build/optimize/checksum) | Done -- 0.2.0 |
 | Pool-drive re-verify on v0.64.3 (legacy suite, 72/72) | Done -- record `157094bc` |
-| Owned-buffer safe wrappers (remap/optimize/simplify for callers) | Phase 3 |
+| Owned-buffer safe wrappers (remap/optimize/simplify for callers) | Done -- 0.3.0 |
 | Remaining codec families (index sequence, meshlet codec, quat/exp/color filters) | Phase 3 |
 | Cluster pipeline (build -> optimize -> bounds) | Phase 3 |
 | Opacity maps + tangents (experimental upstream) | Phase 3 / on demand |
@@ -19,11 +19,11 @@
 
 ## Phase 3 (next touches)
 
-1. Safe wrappers over the direct surface: `Vec[UInt8]`-in/out APIs for
-   `generateVertexRemap` + `remapIndexBuffer` + `optimizeVertexCache` and
-   `simplify`; the probe trio (`meshopt_probe_build_indices` /
-   `_optimize_inplace` / `_checksum`) is the template (C copies into the
-   XIOM-owned slot; byte-indexed reads).
+1. ~~Safe wrappers over the direct surface~~ Done 0.3.0: `Vec[UInt8]`-in/out
+   APIs for remap (`meshopt_remap_mesh`), cache optimize
+   (`meshopt_optimize_mesh`) and simplify (`meshopt_simplify_mesh`), built
+   on the probe-trio template (C copies into the XIOM-owned slot;
+   byte-indexed reads); `meshopt_fill_grid` is the fixture filler.
 2. Encoder/decoder coverage: index sequence codec, meshlet codec, and the
    quat/exp/color vertex-filter family (oct is done), each as a round-trip
    probe with rotation/format-appropriate equality.

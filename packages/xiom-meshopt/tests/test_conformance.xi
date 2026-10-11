@@ -3,12 +3,16 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// 0.2.0 (pool drive): the suite now exercises the VENDORED meshoptimizer
-// (v1.2 @ f843aae0, compiled via port.args.json) with real runtime probes,
+// 0.2.0 (pool drive): the suite exercises the VENDORED meshoptimizer
+// (v1.2 @ f843aae0, compiled via port.args.json) with real runtime probes
 // plus the 16 compile-time constant checks.  Probe out-params come back
 // through XIOM-owned 4-byte slots read little-endian; the index-buffer
 // direction (C writes into an XIOM-owned byte slot, read byte-indexed)
 // stays on the B-16/B-17/B-20-safe path.
+//
+// 0.3.0 (Phase 3 item 1): adds the owned-buffer wrapper checks -- remap,
+// in-place cache optimize, and simplify over caller-owned byte meshes
+// (f32 positions stride 12, u32 indices), all in the same safe direction.
 //
 // Run: scripts/port.ps1 -Package xiom.meshopt (the port.args.json --c-source
 // list compiles the bridge + the 20 vendored TUs).
@@ -76,6 +80,17 @@ fn probe_rd_u32(buf: &Vec[UInt8], off: Int) -> Int
   let b2 = buf[off + 2] as Int;
   let b3 = buf[off + 3] as Int;
   return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+/// Little-endian u32 write into an XIOM-owned byte slot (byte-indexed).
+fn probe_wr_u32(buf: &mut Vec[UInt8], off: Int, v: Int)
+  requires: off >= 0
+  requires: buf.len() >= off + 4
+{
+  buf[off + 0] = (v & 255) as UInt8;
+  buf[off + 1] = ((v >> 8) & 255) as UInt8;
+  buf[off + 2] = ((v >> 16) & 255) as UInt8;
+  buf[off + 3] = ((v >> 24) & 255) as UInt8;
 }
 
 // =========================================================================
@@ -370,11 +385,83 @@ fn test_owned_buffer_readback() -> TestResult {
 }
 
 // =========================================================================
+// SECTION 4 -- owned-buffer wrappers (3 tests)
+// =========================================================================
+
+fn test_wrapper_remap() -> TestResult {
+  // 6 vertices x 12 bytes: four distinct corners with two duplicates
+  // (tags 0,1,2,3,0,1); u32 indices 0..5.
+  var verts = probe_slot(6 * 12);
+  verts[0] = 0 as UInt8;
+  verts[12] = 1 as UInt8;
+  verts[24] = 2 as UInt8;
+  verts[36] = 3 as UInt8;
+  verts[48] = 0 as UInt8;
+  verts[60] = 1 as UInt8;
+  var idx = probe_slot(6 * 4);
+  var i = 0;
+  while i < 6 {
+    probe_wr_u32(&mut idx, i * 4, i);
+    i = i + 1;
+  }
+  var outv = probe_slot(4 * 12);
+  let r = meshopt_remap_mesh(&mut verts, 6, 12, &mut idx, 6, &mut outv);
+  var ok = false;
+  if r.is_ok && r.value == 4 {
+    var all_in = true;
+    var j = 0;
+    while j < 6 {
+      if probe_rd_u32(&idx, j * 4) >= 4 { all_in = false; }
+      j = j + 1;
+    }
+    ok = all_in && outv[0] == 0 as UInt8 && outv[12] == 1 as UInt8
+      && outv[24] == 2 as UInt8 && outv[36] == 3 as UInt8;
+  }
+  return assert(ok, "wrappers: remap quad -> 4 unique, indices rewritten, vertices copied out");
+}
+
+fn test_wrapper_optimize() -> TestResult {
+  var gpos = probe_slot(64 * 12);
+  var gidx = probe_slot(294 * 4);
+  let filled = meshopt_fill_grid(8, 8, 25000, &mut gpos, &mut gidx);
+  let cs0 = meshopt_probe_checksum(&mut gidx);
+  let ok_opt = meshopt_optimize_mesh(&mut gidx, 294, 64);
+  let cs1 = meshopt_probe_checksum(&mut gidx);
+  var all_in = true;
+  var i = 0;
+  while i < 294 {
+    if probe_rd_u32(&gidx, i * 4) >= 64 { all_in = false; }
+    i = i + 1;
+  }
+  return assert(filled == 294 && ok_opt && cs1 != cs0 && all_in,
+    "wrappers: in-place optimize on the filled grid (triangle set preserved, order changed)");
+}
+
+fn test_wrapper_simplify() -> TestResult {
+  var spos = probe_slot(121 * 12);
+  var sidx = probe_slot(600 * 4);
+  var sout = probe_slot(600 * 4);
+  let filled = meshopt_fill_grid(11, 11, 20000, &mut spos, &mut sidx);
+  let r = meshopt_simplify_mesh(&mut spos, 121, 12, &mut sidx, 600, 100, 50, &mut sout);
+  var ok = false;
+  if filled == 600 && r.is_ok {
+    ok = r.value.index_count % 3 == 0 && r.value.index_count <= 102
+      && r.value.index_count >= 84 && r.value.error_milli <= 50;
+    var i = 0;
+    while i < r.value.index_count {
+      if probe_rd_u32(&sout, i * 4) >= 121 { ok = false; }
+      i = i + 1;
+    }
+  }
+  return assert(ok, "wrappers: simplify the 11x11 grid (count ~100, error <= 5%, indices in range)");
+}
+
+// =========================================================================
 // Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {
-  io.println("XIOM meshopt Conformance Suite (0.2.0 vendored)");
+  io.println("XIOM meshopt Conformance Suite (0.3.0 vendored)");
   io.println("==============================================");
   var total: Int = 0;
   var failed: Int = 0;
@@ -420,6 +507,13 @@ pub fn main() -> Int {
 
   let b0 = test_owned_buffer_roundtrip(); total = total + 1; failed = failed + report(b0.passed, b0.name);
   let b1 = test_owned_buffer_readback();  total = total + 1; failed = failed + report(b1.passed, b1.name);
+
+  io.println("");
+  io.println("-- SECTION 4: owned-buffer wrappers (3) --");
+
+  let w0 = test_wrapper_remap();     total = total + 1; failed = failed + report(w0.passed, w0.name);
+  let w1 = test_wrapper_optimize();  total = total + 1; failed = failed + report(w1.passed, w1.name);
+  let w2 = test_wrapper_simplify();  total = total + 1; failed = failed + report(w2.passed, w2.name);
 
   io.println("");
   io.println("==============================================");
