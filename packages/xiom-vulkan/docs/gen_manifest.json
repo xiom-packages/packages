@@ -1,0 +1,32 @@
+{
+  "oracle": "C:\\VulkanSDK\\1.4.350.0\\share\\vulkan\\registry\\vk.xml",
+  "commands_total": 845,
+  "commands_real": 740,
+  "commands_alias": 105,
+  "handles": 62,
+  "enum_types": 404,
+  "bitmask_types": 263,
+  "constants_emitted": 5284,
+  "constants_floats": 4,
+  "constants_strings": 695,
+  "constants_raw_skipped": [],
+  "constants_alias_unresolved": [],
+  "constants_conflict_count": 0,
+  "constants_conflicts": [],
+  "const_files": 12,
+  "platform_excluded": 75,
+  "ungrouped_commands": [
+    "vkGetFaultData",
+    "vkGetCommandPoolMemoryConsumption"
+  ],
+  "command_files": {
+    "cmds_01": 94,
+    "cmds_02": 106,
+    "cmds_03": 110,
+    "cmds_04": 109,
+    "cmds_05": 110,
+    "cmds_06": 107,
+    "cmds_07": 105,
+    "cmds_08": 104
+  }
+}

@@ -74,6 +74,13 @@ extern "C" {
   fn xw_center_pixel() -> UInt32;
   fn xw_corner_pixel() -> UInt32;
   fn xw_tri_drawn() -> Int32;
+  // SDK100 full-surface seam (src/vk_rhi.c): raw handles for the generated loader.
+  fn xr_instance_handle() -> *UInt8;
+  fn xr_device_handle() -> *UInt8;
+  fn xr_instance_all_ext() -> Int32;
+  fn xr_create_device_all_ext() -> Int32;
+  fn xr_ext_present(name: *UInt8) -> Int32;
+  fn xr_dev_ext_present(name: *UInt8) -> Int32;
 }
 
 // =========================================================================
