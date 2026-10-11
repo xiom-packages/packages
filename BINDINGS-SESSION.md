@@ -4,14 +4,16 @@ Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
 **STATUS: SDL3 0.12.0 SHIPPED -- batches 31-49 relayed** (CLEAN HANDOFF
-2026-10-11 14:45Z; doorbell tick 14:47Z). Published through the window:
-`eco-v0.1.132`..`eco-v0.1.147` -- assimp 0.7.0, glfw 0.3.0-0.5.0 (incl.
-the pre-publish native fixes), vulkan 0.5.0 `0cd7bc00` + sdl3 0.4.0
+2026-10-11 14:45Z; doorbell ticks 14:47Z/15:00Z). Published through the
+window: `eco-v0.1.132`..`eco-v0.1.148` -- assimp 0.7.0, glfw 0.3.0-0.5.0
+(incl. the pre-publish native fixes), vulkan 0.5.0 `0cd7bc00` + sdl3 0.4.0
 `a9006d4c` (`138`), ann 0.1.0 + stb 0.2.0 (`139`, ops append gate
 cleared), sdl3 0.5.0 `a350dd46` (`140`), btree 0.1.1 (`141`, other lane),
-sdl3 **0.7.0-0.11.0** (`142`-`147`; `144` also carries ann 0.2.0).
-**Publish queue (packages): sdl3 0.12.0 only** (batch 49; packages acked
-`bb3d27b`) + jolt 0.2.0 (parked on the m258 archive). Lane tree tip at
+sdl3 **0.7.0-0.12.0** (`142`-`148`; `144` also carries ann 0.2.0).
+**Publish queue (packages): EMPTY -- sdl3 0.12.0 landed in `eco-v0.1.148`**
+(batch 49; sha256 `e7c005e6...` @14:48:43Z; packages merged tip `f965a23a` and
+normalized 4 wheel-accessor `Vec<UInt8>` -> `Vec[UInt8]` pre-publish) + jolt
+0.2.0 (parked on the m258 archive). Lane tree tip at
 handoff: `c3f83489` (clean; all pushed). Compiler findings filed this
 window: **B-13** (fn-param C-callback marshal=0), **B-14** (`return;` in
 explicit `-> Unit`), **B-15** (Vec[fn] element call >=2 args -> ()),
@@ -28,18 +30,28 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 14:47Z, doorbell tick)**: batches 31-49 relayed;
-  tree clean at `f965a23a` (`origin/bindings` == local). Published through
-  `eco-v0.1.147` (see the STATUS block above; sdl3 0.7.0-0.11.0 landed).
-  **Publish queue (packages): sdl3 0.12.0 only** (batch 49, relay item
-  `REL-20261011-1437-bindings`; packages acked `bb3d27b`) + jolt 0.2.0
-  (m258 archive parked).** Engine asks delivered: blit (0.8.0, PUBLISHED
-  `143`), displays/keyboard (0.6.0 superseded by 0.7.0, PUBLISHED `142`),
-  mouse/window contract (0.9.0, PUBLISHED `145`), audio+joystick enum
-  (0.10.0, PUBLISHED `146`), tables (0.11.0, PUBLISHED `147`), audio
-  stream + wheel (0.12.0, awaiting publish). Relay inbox at the tick:
-  clean (1321/1411-2 replies already on the bus; 1159/1203/1342
-  informational/open on the reporting lanes).
+- **CURRENT (2026-10-11 15:00Z, doorbell tick)**: batches 31-49 relayed;
+  sdl3 **0.12.0 PUBLISHED** in `eco-v0.1.148`. **Publish queue (packages):
+  EMPTY (jolt 0.2.0 parked on m258 only).** Engine asks: blit (0.8.0, `143`),
+  displays/keyboard (0.7.0, `142`), mouse/window contract (0.9.0, `145`),
+  audio+joystick enum (0.10.0, `146`), tables (0.11.0, `147`), audio stream +
+  wheel (0.12.0, `148`) -- ALL PUBLISHED. Relay inbox at the tick: clean
+  (1153/1203 acked by their lanes; 1321/1411-2 open-but-replied; compiler
+  acked B-16 at its 15:00Z doorbell).
+- **IN FLIGHT -- batch 50 (`xiom.sdl3` 0.13.0 capture streams + query)**:
+  code + docs committed (`d07355ca` feat, `06e9db74` record 52/52; pushed).
+  **BLOCKER: nondeterministic present-shape crash** -- same a.exe binary
+  exits `-1073740940` (c0000374 heap corruption, ntdll) on ~30-50% of runs
+  (zero stdout as C-stdio buffers are lost on crash; direct-exec proof:
+  8 runs = 5 ok/3 crash). Bisect so far: capture arm excluded (nocap still
+  3/10 crash); the whole 0.13.0 block removed = **11/11 stable**; V1
+  (query block minus ClearAudioStream) still flaky 5/10 -> remaining
+  suspects: `SDL_GetAudioStreamFormat` / `GetAudioStreamAvailable` /
+  `GetAudioStreamData` **read from a device-paused playback stream**
+  (device thread race?). Fix before the relay item; capture-path evidence
+  (read=8192B avail=11520) stands, only the query arm is suspect.
+  World-readable repro data: event log Id 1000 `a_keep.exe`/ntdll
+  c0000374 @ 17:56Z.
 - **Batches 45-48 (2026-10-11, compact)**: 45 sdl3 **0.8.0** display blit
   (`sdl3_update_texture`/`sdl3_render_texture`/`sdl3_set_render_vsync`;
   demo probe green; 44/44 x2; feat `3d7f6f3e`); 46 sdl3 **0.9.0** mouse +
