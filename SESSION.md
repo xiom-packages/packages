@@ -24,6 +24,11 @@ running). Check `git log -1 --format=%h %s` before starting.
   `xiom.stb` (`REL-20261010-2301-packages`). On confirmation: append both (509 -> 511), guard,
   wrap, one eco batch publish.
 - `xiom-pkg` WSL path bug: routed item open with the compiler lane (their ack pending).
+- **Bindings batch 35 (`xiom.jolt` 0.2.0) PARKED** pending an official archive carrying compiler
+  **m258**: confirmed on canonical v0.64.3 that `--cxx-standard` is not wired (the flag value is
+  treated as an input file, "cannot read '17'"). On the m258 archive: repin + merge tip
+  `0aea531c` + port x2 (watchdog >= 600 s) + publish; the C++ ask items (-6/-7) re-verdict rides
+  that archive too.
 - Session tally: **49 eco releases** (`eco-v0.1.86` -> `eco-v0.1.133`).
 
 **STATE AT 2026-10-10 21:15Z (history -- superseded by the 23:05Z block above):**
