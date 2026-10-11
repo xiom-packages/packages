@@ -3,26 +3,27 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BOX2D 0.3.0 SHIPPED -- batches 31-59 relayed; POOL SWEEP COMPLETE**
-(session resumed 2026-10-11 17:19Z from the 17:15Z context-limit handoff;
-this continuation shipped batches 56-59: meshopt 0.2.0 vendored + 30/30,
-ozz 0.3.0 clip pipeline + 5/5, imgui 0.3.0 context handles + 7/7, box2d
-0.3.0 joint motors + 7/7).
-Published through the window: `eco-v0.1.132`..`eco-v0.1.156` -- assimp 0.7.0,
+**STATUS: POOL SWEEP FULLY PUBLISHED -- batches 31-59 relayed; assimp
+mini-contract proposed** (session resumed 2026-10-11 17:19Z from the 17:15Z
+context-limit handoff; shipped batches 56-59 plus the consumer contract).
+Published through the window: `eco-v0.1.132`..`eco-v0.1.157` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
-(`154`), meshopt **0.2.0** (`155`), ozz **0.3.0** + imgui **0.3.0** (`156`,
-sha256 `f84988e7...`/`1a7feb3d...`, live 17:54-17:55Z).
-**Publish queue (packages)**: box2d **0.3.0** acked 17:58Z -- publishing as
-`eco-v0.1.157` (`REL-20261011-1754-bindings`); jolt 0.2.0 m258-parked only.
-**Batch 59: xiom.box2d 0.3.0** -- revolute + prismatic joint motors (rotor
-w = motor speed with wrapped-angle semantics; gravity-held slider; 7/7 x2).
-**Pool drive complete**: miniaudio/meshopt/ozz/imgui/box2d all re-verified
-on v0.64.3, each clearing a ROADMAP next item.
-Lane tree tip: `0e4604f7` (clean; all pushed).
+(`154`), meshopt **0.2.0** (`155`), ozz **0.3.0** + imgui **0.3.0** (`156`),
+box2d **0.3.0** (`157`, sha256 `3c2ebda1...`, live 18:00:59Z).
+**Publish queue (packages): EMPTY** (jolt 0.2.0 m258-parked only).
+**Pool drive complete + published**: miniaudio/meshopt/ozz/imgui/box2d all
+re-verified on v0.64.3, each clearing a ROADMAP next item.
+**Assimp consumer mini-contract proposed** (`packages/xiom-assimp/CONTRACT.md`;
+`REL-20261011-1811-bindings` replies to `-1900-2`; packages to route to engine).
+**Compiler (staged build)**: owner-session re-verify
+(`REL-20261011-1801-bindings`): B-13/B-14/B-15 fixed on staged `3b31599f`;
+B-16 not in scope (stays assumed open); fn-type mangling warning flagged;
+the 1-arg handler restriction is droppable at release+pin.
+Lane tree tip: `1b303bdf` (clean; all pushed).
 Compiler v0.64.4: all six batches staged (m261-m271,
-`REL-20261011-1731`): re-run our open probe rows when the archive lands;
-workarounds stay.
+`REL-20261011-1731`): pin + full probe-row re-run when the archive lands;
+workarounds stay until then.
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
 **B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
 >=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
@@ -63,13 +64,12 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 18:01Z, doorbell tick)**: batches 31-59 relayed;
-  sdl3 **0.12.0-0.16.0** + assimp **0.8.0** + miniaudio **0.3.0** + meshopt
-  **0.2.0** + ozz **0.3.0** + imgui **0.3.0** PUBLISHED
-  (`eco-v0.1.148`-`156`); **publish queue: box2d 0.3.0 acked, publishing as
-  `eco-v0.1.157`** (jolt m258-parked only). **Pool drive complete (5/5
-  re-verified + next items)**. Engine P3+P4 asks ALL delivered/published.
-  Relay: `-1553`..`-1754` batch items sent.
+- **CURRENT (2026-10-11 18:14Z, contract tick)**: batches 31-59 relayed and
+  ALL PUBLISHED (`eco-v0.1.148`-`157`); **publish queue EMPTY** (jolt
+  m258-parked only). Pool sweep complete + published. Assimp consumer
+  mini-contract proposed (`CONTRACT.md`, relay `-1811`). Compiler
+  staged-build re-verify green for B-13/14/15 (owner item `-1801`); B-16
+  open. Next: meshopt Phase-3 owned-buffer wrappers (batch 60).
 - **Latest batch 59 (2026-10-11)**: `xiom.box2d` **0.3.0 -- joint motors
   (pool drive)**: bridge gains `b2probe_revolute_motor` (2.0x0.2 bar
   hinged at the origin, gravity off, motor-only torque -> w settles at the
@@ -403,14 +403,12 @@ clone: stage ONLY your own item files). The two working rules are in
    `-1655-bindings-2`), xvector `1203` + engine `1153` acked by their
    lanes, compiler `1533` re-verified (B-18/B-19 filed), compiler `1731`
    (v0.64.4 staged, info -> re-verify on archive), ops `1134` closed.
-2. **Publish watch**: assimp 0.8.0 = `eco-v0.1.153`, miniaudio 0.3.0 =
-   `eco-v0.1.154`, meshopt 0.2.0 = `eco-v0.1.155` (`1158faef...`), **ozz
-   0.3.0 + imgui 0.3.0 = `eco-v0.1.156`** (`f84988e7...`/`1a7feb3d...`, live
-   17:54-17:55Z); **box2d 0.3.0 acked 17:58Z -- publishing as
-   `eco-v0.1.157`**; jolt 0.2.0 m258-parked only. sdl3 0.7.0-0.16.0 landed
-   in `eco-v0.1.142`-`152`. Record new eco versions in the relay area of
-   this file. The engine consumes only published packages -- if asked,
-   nudge packages.
+2. **Publish watch**: queue **EMPTY** -- assimp 0.8.0 = `153`, miniaudio
+   0.3.0 = `154`, meshopt 0.2.0 = `155`, ozz/imgui 0.3.0 = `156`, box2d
+   0.3.0 = `157` (`3c2ebda1...`, 18:00:59Z); jolt 0.2.0 m258-parked only.
+   sdl3 0.7.0-0.16.0 landed in `eco-v0.1.142`-`152`. Record new eco versions
+   in the relay area of this file. The engine consumes only published
+   packages -- if asked, nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): 0.4.0-0.16.0 shipped (batches 41-53;
    capture in 0.13.0, pointer/relative mouse in 0.14.0, live joystick
@@ -488,13 +486,17 @@ refresh; pool sweep complete).
    source clone at `E:\repos\FFmpeg` for headers/pins. On assets: dynamic
    loader, decode path (avformat/avcodec/swresample), same slot discipline.
 6. **Open asks**: engine `-1834-engine-2` (vulkan growth; orders #1/#2/#3
-   delivered), assimp consumer contract `REL-20261010-1900-2` (mini-contract
-   proposal due), stb scope `-1900` (delivered; live in eco-v0.1.139),
-   `-1852` (assimp watchdog 1800 s, done). Compiler `REL-20261011-1533`
-   re-verified (B-13/1904/B-14/B-15 fixed; B-18/B-19 regressions filed);
-   `REL-20261011-1731` (v0.64.4 stack staged) -> re-run our open rows when
-   the archive lands. Engine `-1321`/`-1411-2`/`-1539` delivered (batches
-   47/49/54) and replied; the engine lane moves its own items.
+   delivered; orders #4-7 gated on the slot-recycle fix), assimp consumer
+   contract `REL-20261010-1900-2` -- **mini-contract proposed** (`CONTRACT.md`;
+   relay `REL-20261011-1811-bindings`; packages to route to engine), stb
+   scope `-1900` (delivered; live in eco-v0.1.139), `-1852` (assimp watchdog
+   1800 s, done). Compiler `REL-20261011-1533` re-verified
+   (B-13/1904/B-14/B-15 fixed; B-18/B-19 regressions filed); staged-build
+   re-verify green (owner item `-1801-bindings`: B-13/14/15 on `3b31599f`,
+   B-16 stays open); `REL-20261011-1731` (v0.64.4 stack staged) -> pin +
+   full re-run when the archive lands. Engine `-1321`/`-1411-2`/`-1539`
+   delivered (batches 47/49/54) and replied; the engine lane moves its own
+   items.
 7. **jolt**: parked on the m258 archive; on arrival: repin + merge tip
    `0aea531c` + port x2 + re-verdict `-1815` (then close).
 8. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
