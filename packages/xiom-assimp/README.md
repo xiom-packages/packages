@@ -11,8 +11,9 @@ the compiled TUs ride in `port.args.json`. No system library, no SDK.
 > glTF2 + COLLADA + FBX + OFF + SMD + BLEND fixture -- plus the 0.8.0
 > file-import group (import_file -> handle, mesh counts, positions/uvs/
 > indices copies, release, missing-file Err) on `tests/fixtures/quad_uv.obj`.
-> 0.8.0 targets the engine P4 asset pipeline. **Lane:** bindings
-> (`keywords: ["binding"]`).
+> 0.8.0 targets the engine P4 asset pipeline. 0.7.0 shipped in
+> `eco-v0.1.132` (sha256 `b5eb00f1...`); 0.8.0 published in `eco-v0.1.153`
+> (sha256 `b5b32f16...`). **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
