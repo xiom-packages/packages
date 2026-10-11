@@ -10,7 +10,11 @@ backend is absent).
 > gamma ramps, cursors, window icons, joystick/gamepad polling, the **20
 > event-callback setters**, `glfwInitAllocator`, Win32 native accessors and
 > the Vulkan helpers. Native verified on v0.64.3: **present 37/37 x2**
-> (official GLFW 3.4 win64 DLL) + **absent SKIP 3/3**.
+> (official GLFW 3.4 win64 DLL) + **absent SKIP 3/3**; two native fixes rode
+> the verification (negative-float `f64_from_bits` clause; layout-invariant
+> key-name check -- see SPEC section 4). 0.4.0 shipped in `eco-v0.1.136`
+> (sha256 `c393b079...`); 0.5.0 published in `eco-v0.1.137` (sha256
+> `04ad5ed2...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
