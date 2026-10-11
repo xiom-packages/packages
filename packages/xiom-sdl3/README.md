@@ -9,9 +9,10 @@ is not installed.
 > **Status:** `incubating` -- **0.9.0 mouse + window contract + runtime**
 > (`sdl3_mouse_state`; `sdl3_set_window_size`/`sdl3_set_window_resizable`;
 > the full `SDL_EVENT_WINDOW_*` constant family; typed resize events proven
-> end-to-end through the event watch). Suite **46/46 x2** with the official
-> SDL 3.4.8 DLL + absent 4/4 x2. **Lane:** bindings
-> (`keywords: ["binding"]`).
+> end-to-end through the event watch). Native **46/46 x2** with the official
+> SDL 3.4.8 DLL + absent **4/4 x2** (v0.64.3). 0.8.0 shipped in
+> `eco-v0.1.143`; 0.9.0 published in `eco-v0.1.145` (sha256 `87edfa59...`).
+> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
