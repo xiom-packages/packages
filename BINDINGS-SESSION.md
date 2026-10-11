@@ -3,40 +3,21 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: VULKAN 0.5.0 RENDER PIPELINE SHIPPED -- batches 31-40 relayed** --
-batches 31/32 published (`eco-v0.1.132`); batch 33 (vulkan 0.3.0) published in
-`eco-v0.1.133`; batch 36 (sdl3 0.3.1) published in `eco-v0.1.134`;
-batches 34 (stb 0.2.0, publish pending the ops appends), 35 (jolt 0.2.0,
-parked on the m258 archive), 38 (`xiom.glfw` 0.4.0, superseded by 39) and 37
-(`xiom.vulkan` 0.4.0 WSI, superseded by 40) relayed. **Batch 39 (`xiom.glfw`
-0.5.0: the 20 event-callback setters + `glfwInitAllocator`; dispatcher +
-fn-registry callback ABI; **37/37 x2** + absent SKIP 3/3) committed
-(`1b77cf17` + record `81e0927f`) and relayed (`REL-20261011-1055-bindings`);
-new compiler finding **B-13** (fn-typed PARAM values marshal to 0 at the C
-boundary) filed. Batch 40 (`xiom.vulkan` 0.5.0: render pass + graphics
-pipeline from embedded SPIR-V + 3-vertex draw + copy-to-buffer readback +
-present; **pixel-proven**: center rgb(0,255,0) triangle over the clear;
-**22/22 x2**) committed (`2b08eb96` + record `7a941c1f`) and relayed
-  (`REL-20261011-1100-bindings`). Batch 41 (`xiom.sdl3` 0.4.0: SDL_Event
-decoding layer -- owned 128-byte buffer + typed accessors pinned to the
-3.4.8 headers; synthetic KEY_DOWN injection; **24/24 x2** + absent 4/4 x2)
-committed (`df8cdf30` + record `9c1326ea`) and relayed
-(`REL-20261011-1106-bindings`). Batch 42 (`xiom.sdl3` 0.5.0: **event
-filter + watch callbacks** -- fixed dispatchers + 1-arg handler registries;
-keep/drop + non-consuming watch proven; **27/27 x2** + absent 4/4 x2;
-along the way **B-14/B-15** filed) committed (`b58f8071` + record
-`42059924`) and relayed (`REL-20261011-1121-bindings`; B-14/B-15 item `-2`). Ops hygiene ack sent
-(`REL-20261011-1149-bindings`: no shared-home writes; Remove-Item only on
-lane-local artifacts). Batch 43 (`xiom.sdl3` 0.6.0: **displays + video
-modes + keyboard state** -- 11 new symbols, VIDEO-init SKIP path;
-**36/36 x2** + absent 4/4 x2) committed (`55db02e5` + record `5a5485b7`)
-and relayed (`REL-20261011-1152-bindings`). Batch 44 (`xiom.sdl3` 0.7.0:
-**filesystem basics** -- base/pref/cwd ownership-correct strings,
-create/remove/path-info round trip under the per-user pref path, fully
-cleaned up; **43/43 x2** + absent 4/4 x2) committed (`7317c433` + record
-`3e209d89`) and relayed (`REL-20261011-1157-bindings`).** Upstream sources
-cloned into `E:\repos` (Vulkan-Headers, SDL3, FFmpeg + pool) for
-source-truth binding work.
+**STATUS: SDL3 0.12.0 SHIPPED -- batches 31-49 relayed** (CLEAN HANDOFF
+2026-10-11 14:45Z). Published through the window: `eco-v0.1.132`..`eco-v0.1.137`
+(assimp 0.7.0, glfw 0.3.0-0.5.0 incl. the pre-publish native fixes),
+`eco-v0.1.138` (vulkan 0.5.0 `0cd7bc00` + sdl3 0.4.0 `a9006d4c`),
+`eco-v0.1.139` (ann 0.1.0 + stb 0.2.0 -- the ops append gate cleared),
+`eco-v0.1.140` (sdl3 0.5.0 `a350dd46`); `eco-v0.1.141` is another lane's
+(btree). Publish queue (packages): sdl3 **0.6.0-0.12.0** (batches 43-49
+relayed) + jolt 0.2.0 (parked on the m258 archive). Lane tree tip at
+handoff: `c3f83489` (clean; all pushed). Compiler findings filed this
+window: **B-13** (fn-param C-callback marshal=0), **B-14** (`return;` in
+explicit `-> Unit`), **B-15** (Vec[fn] element call >=2 args -> ()),
+**B-16** (`ffi.ptr_write_*` at base+N silently loses writes). Engine P3
+blockers cleared lane-side: blit (0.8.0), typed input (0.6.0/0.9.0),
+wheel (0.12.0), audio stream (0.12.0) -- all awaiting publish. Upstream
+sources live in `E:\repos` (Vulkan-Headers, SDL3, FFmpeg + pool).
 
 ## RESUME HERE (handoff, 2026-10-11)
 
@@ -46,22 +27,23 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 11:15Z)**: batches 31-41 relayed. **Published**:
-  `eco-v0.1.132` (assimp 0.7.0 + glfw 0.3.0), `eco-v0.1.133` (vulkan 0.3.0),
-  `eco-v0.1.134` (sdl3 0.3.1, sha256 `a779ae4b...` @10:33:55Z),
-  `eco-v0.1.135` (vulkan 0.4.0 @11:00Z window), **`eco-v0.1.136`
-  (glfw 0.4.0, sha256 `c393b079`)** and **`eco-v0.1.137` (glfw 0.5.0,
-  sha256 `04ad5ed2`) -- the latter published after packages' native fixes
-  `5a213f30` (f64_from_bits `requires: true` + layout-invariant key-name
-  check + `tests/probe_neg_f64.xi`) and the wrap `c19a852d`/`add5020e`; the
-  packages lane also normalized 7 `Vec<UInt8>` -> `Vec[UInt8]` in `sdl3.xi`
-  (`799fceaa`). The lane branch was fast-forwarded `7869df27 -> 470e13f3`
-  carrying all of it; post-merge lane verification: glfw 37/37 x2 + absent
-  3/3, sdl3 24/24 x2; reply item `REL-20261011-1113-bindings`.**
-  **Still in the queue (publish pending)**: batch 35 jolt 0.2.0 (parked on
-  the m258 archive); batches 43-49 sdl3 0.6.0-0.12.0
-  (`REL-20261011-1152/1157/1204/1310/1345/1408/1437-bindings`; 0.5.0 since
-  published in eco-v0.1.140); batches 39/40/41 wrapped on main (`470e13f3`).
+- **CURRENT (2026-10-11 14:45Z, handoff)**: batches 31-49 relayed; tree
+  clean at `c3f83489` (`origin/bindings` == local). Published through
+  `eco-v0.1.140` (see the STATUS block above). **Publish queue (packages):
+  sdl3 0.6.0-0.12.0 (batches 43-49; relay items
+  `REL-20261011-1152/1157/1204/1310/1345/1408/1437-bindings`) + jolt 0.2.0
+  (m258 archive parked).** Engine asks delivered and pending publish:
+  blit (0.8.0), displays/keyboard (0.6.0), mouse/window contract (0.9.0),
+  audio+joystick enum (0.10.0), tables (0.11.0), audio stream + wheel
+  (0.12.0).
+- **Batches 45-48 (2026-10-11, compact)**: 45 sdl3 **0.8.0** display blit
+  (`sdl3_update_texture`/`sdl3_render_texture`/`sdl3_set_render_vsync`;
+  demo probe green; 44/44 x2; feat `3d7f6f3e`); 46 sdl3 **0.9.0** mouse +
+  window contract (typed WINDOW_RESIZED via watch; 46/46 x2; feat
+  `e712c4ca`); 47 sdl3 **0.10.0** audio/joystick enumeration + ABGR8888 +
+  8888 note (wasapi/9/4; 48/48 x2; feat `b876d853`); 48 sdl3 **0.11.0**
+  full source-generated constant tables (~190: full event enum, window
+  flags, keymods, pixel formats; 48/48 x2; feat `f3feb77d`).
 - **Latest batch 49 (2026-10-11)**: `xiom.sdl3` **0.12.0 -- push audio
   streaming + mouse wheel**: open default playback device (NULL callback),
   put PCM from an XIOM buffer, resume/pause/queued/destroy; wheel
@@ -227,23 +209,76 @@ clone: stage ONLY your own item files). The two working rules are in
   `python tools/relay.py digest --to <lane>`.
 
 ### Next actions (ordered)
-1. **Doorbell armed** (`0 */3 * * *`, next fire 12:00Z); relay inbox clean
-   (8 acked + batches 39/40 + B-13 filed). No actionables.
-2. ~~glfw 0.5.0~~ **DONE** (batch 39); ~~vulkan 0.5.0 render pipeline~~
-   **DONE** (batch 40; engine build orders #1-#3 delivered).
-3. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`;
-   runtime/pin `release-3.4.8`): **0.4.0-0.11.0 shipped** (batches 41-48;
-   engine P3 present + typed input asks satisfied pending publish; full
-   constant tables in). Continue: audio open/streaming, joystick
-   open/axis reads, pointer capture/relative mouse (ROADMAP Phase 2).
-   Keep SKIP-when-absent; the absent shape needs the VulkanSDK dir
-   filtered from PATH on this host. Apply the 1-arg handler discipline
-   (B-15) to any new callback binding; announce any destructive window per
-   the ops hygiene item. Constant regeneration recipe: comment-strip +
-   enum-parse + macro-eval vs the headers (see ROADMAP item 1).
-4. **Publish watch**: batch 34 stb publish once the ops appends land; then
-   batches 39/40 (and 35 jolt when the m258 archive arrives). Note eco
-   versions in the relay area.
+1. **Doorbell**: the session cron is per-session -- re-arm with
+   `cron_create` `0 */3 * * *` and the standard prompt (relay pull +
+   process lane items + packages SESSION eco notes). Relay repo
+   `E:\xiom-lang\xiom-relays`: sync with `git fetch origin` + compare --
+   do NOT `git pull` ("Cannot fast-forward to multiple branches"); stage
+   ONLY this lane's item files; only the REPORTING lane moves its own
+   items (reply with new items). Inbox at handoff: engine `1321`/`1411-2`
+   open (delivered; replies sent), xvector `1203` open (replied),
+   compiler `1342` open (info), `1159` open (engine status note).
+2. **Publish watch**: packages queue = sdl3 **0.6.0-0.12.0** (batches
+   43-49) + jolt 0.2.0 (m258 archive parked). Record new eco versions in
+   the relay area of this file. The engine consumes only published
+   packages (registry sdl3 0.3.1 at handoff) -- if asked, nudge packages.
+3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
+   runtime/pin `release-3.4.8`): 0.4.0-0.12.0 shipped (batches 41-49).
+   Next candidates (ROADMAP Phase 2): recording/capture streams
+   (`SDL_OpenAudioDeviceStream` recording + `SDL_GetAudioStreamData`),
+   joystick open/axis/button reads (no pad on this box -- SKIP-safe
+   shapes), pointer capture/relative mouse, drag-drop payload decoding
+   (paths/text via ptr reads), POSIX soname. Apply the 1-arg handler
+   discipline (B-15) and byte-indexed slot writes (B-16). Ship each batch
+   as: feat -> x2 (present + absent PATH-filtered) -> record -> relay ->
+   ledger. Constant regeneration recipe: comment-strip + enum-parse +
+   macro-eval vs the headers (ROADMAP item 1).
+4. ~~stb publish~~ **DONE** (`eco-v0.1.139`); batches 39/40/41 wrapped on
+   main (`470e13f3`); vulkan 0.5.0 live (`eco-v0.1.138`).
+
+### NEXT-SESSION PASTE PROMPT (copy the fenced block)
+
+```
+Bindings lane continuation -- clean handoff pickup (2026-10-11 14:45Z).
+
+1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
+   BINDINGS-SESSION.md (STATUS + RESUME HERE: CURRENT state, ordered next
+   actions, gotchas, the paste prompt). Then check relay FIRST: in
+   E:\xiom-lang\xiom-relays use `git fetch origin` + compare (do NOT
+   `git pull`: "Cannot fast-forward to multiple branches"); run
+   `python tools/relay.py view --lane bindings`; process items addressed
+   to bindings (only the REPORTING lane moves its own items -- reply with
+   new bindings items; commit+push ONLY this lane's item files).
+
+2. Re-arm the session doorbell: `cron_create` schedule `0 */3 * * *`,
+   prompt = "Bindings-lane doorbell. 1) In E:\xiom-lang\xiom-relays run
+   git fetch origin (not pull) + python tools/relay.py view --lane
+   bindings; process new items (reply via new items; stage only this
+   lane's files). 2) Check E:\xiom-packages\packages\SESSION.md for new
+   eco publish notes and record confirmed eco versions in
+   BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
+   action." Then check relay once now; also check the packages publish
+   queue (sdl3 0.6.0-0.12.0 at handoff).
+
+3. Continue the ordered tasks. Priority: (a) SDL3 continuance from
+   E:\repos\SDL3 (next candidates: recording/capture streams, joystick
+   open/axis reads -- SKIP-safe without a pad, pointer capture/relative
+   mouse, drag-drop payload decoding, POSIX soname); (b) the E:\repos
+   full-coverage pool (miniaudio, meshoptimizer, ozz-animation, imgui,
+   box2d) -- bind from the real sources, never from memory; (c) publish
+   watch for sdl3 0.6.0-0.12.0 + jolt (m258); (d) Vulkan phase 4 only if
+   the engine asks (compute/descriptors/textures/frames-in-flight).
+
+   Respect: B-11/B-12/B-13/B-14/B-15/B-16 discipline (byte-indexed slot
+   writes, packed returns, dispatcher+registry callbacks, 1-arg handler
+   shapes, structured ifs); the 100%-coverage owner directive; the "stage
+   only your own relay items" rule; re-arm 1-arg form; the absent shape
+   needs the VulkanSDK dir filtered from PATH on this host; git fetch +
+   git log before every commit (parallel owner session). Deliver batches
+   as: feat -> x2 green (present + absent) via scripts/port.ps1 -> record
+   via scripts/status.ps1 -> relay item to packages -> ledger update, all
+   pushed; leave the worktree clean.
+```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
    source clone at `E:\repos\FFmpeg` for headers/pins. On assets: dynamic
    loader, decode path (avformat/avcodec/swresample), same slot discipline.
