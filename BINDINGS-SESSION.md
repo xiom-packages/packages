@@ -17,12 +17,17 @@ boundary) filed. Batch 40 (`xiom.vulkan` 0.5.0: render pass + graphics
 pipeline from embedded SPIR-V + 3-vertex draw + copy-to-buffer readback +
 present; **pixel-proven**: center rgb(0,255,0) triangle over the clear;
 **22/22 x2**) committed (`2b08eb96` + record `7a941c1f`) and relayed
-(`REL-20261011-1100-bindings`). Batch 41 (`xiom.sdl3` 0.4.0: SDL_Event
+  (`REL-20261011-1100-bindings`). Batch 41 (`xiom.sdl3` 0.4.0: SDL_Event
 decoding layer -- owned 128-byte buffer + typed accessors pinned to the
 3.4.8 headers; synthetic KEY_DOWN injection; **24/24 x2** + absent 4/4 x2)
 committed (`df8cdf30` + record `9c1326ea`) and relayed
-(`REL-20261011-1106-bindings`).** Upstream sources cloned into `E:\repos`
-(Vulkan-Headers, SDL3, FFmpeg + pool) for source-truth binding work.
+(`REL-20261011-1106-bindings`). Batch 42 (`xiom.sdl3` 0.5.0: **event
+filter + watch callbacks** -- fixed dispatchers + 1-arg handler registries;
+keep/drop + non-consuming watch proven; **27/27 x2** + absent 4/4 x2;
+along the way **B-14/B-15** filed) committed (`b58f8071` + record
+`42059924`) and relayed (`REL-20261011-1121-bindings`; B-14/B-15 item
+`-2`).** Upstream sources cloned into `E:\repos` (Vulkan-Headers, SDL3,
+FFmpeg + pool) for source-truth binding work.
 
 ## RESUME HERE (handoff, 2026-10-11)
 
@@ -46,8 +51,22 @@ clone: stage ONLY your own item files). The two working rules are in
   3/3, sdl3 24/24 x2; reply item `REL-20261011-1113-bindings`.**
   **Still in the queue (publish pending)**: batch 34 stb 0.2.0 (ops
   allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
-  batch 35 jolt 0.2.0 (parked on the m258 archive); batches 39/40/41
-  wrapped on main (`470e13f3`).
+  batch 35 jolt 0.2.0 (parked on the m258 archive); batch 42 sdl3 0.5.0
+  (`REL-20261011-1121-bindings`); batches 39/40/41 wrapped on main
+  (`470e13f3`).
+- **Latest batch 42 (2026-10-11)**: `xiom.sdl3` **0.5.0 -- event filter +
+  watch callbacks**: SDL_SetEventFilter / SDL_AddEventWatch /
+  SDL_RemoveEventWatch over fixed top-level dispatchers + 1-arg handler
+  registries (B-13 pattern; event copied into an owned 128-byte buffer via
+  our memcpy -- B-11 path avoided). Two new findings: **B-15** (`Vec[fn]`
+  element calls with >=2 args type the result as (), so handler shapes are
+  1-arg + userdata getters) and **B-14** (`return;` rejected in explicitly
+  `-> Unit` fns -- structured ifs instead); repro
+  `docs/repro/bindings-pilot/cb-abi/probe7_element_units.xi`, items
+  `REL-20261011-1121-bindings-2`. Ports: **27/27 x2** present (filter keep:
+  calls=4 last=768 userdata=119; reject: push refused; watch
+  non-consuming + removal) + **4/4 x2** absent. feat `b58f8071` + record
+  `42059924`.
 - **Wrap/fix cycle (2026-10-11 11:10Z)**: packages wrapped batches 38/39/
   40/41 on main: `eco-v0.1.136` (glfw 0.4.0), `eco-v0.1.137` (glfw 0.5.0,
   post-fixes), `470e13f3` (vulkan 0.5.0 + sdl3 0.4.0). Fixes `5a213f30`
@@ -178,12 +197,13 @@ clone: stage ONLY your own item files). The two working rules are in
 2. ~~glfw 0.5.0~~ **DONE** (batch 39); ~~vulkan 0.5.0 render pipeline~~
    **DONE** (batch 40; engine build orders #1-#3 delivered).
 3. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`;
-   runtime/pin `release-3.4.8`): **0.4.0 event decoding shipped** (batch
-   41). Continue subsystem by subsystem: displays/video modes, keyboard
-   state (`SDL_GetKeyboardState`), audio device enumeration, joystick,
-   filesystem, texture updates/vsync (ROADMAP Phase 2 list). Keep
-   SKIP-when-absent; the absent shape needs the VulkanSDK dir filtered
-   from PATH on this host.
+   runtime/pin `release-3.4.8`): **0.4.0 event decoding + 0.5.0 filter/watch
+   shipped** (batches 41/42). Continue subsystem by subsystem: displays/
+   video modes, keyboard state (`SDL_GetKeyboardState`), audio device
+   enumeration, joystick, filesystem, texture updates/vsync (ROADMAP Phase
+   2 list). Keep SKIP-when-absent; the absent shape needs the VulkanSDK
+   dir filtered from PATH on this host. Apply the 1-arg handler discipline
+   (B-15) to any new callback binding.
 4. **Publish watch**: batch 34 stb publish once the ops appends land; then
    batches 39/40 (and 35 jolt when the m258 archive arrives). Note eco
    versions in the relay area.
@@ -254,6 +274,13 @@ clone: stage ONLY your own item files). The two working rules are in
   `Vec<UInt8>` signatures in `sdl3.xi` (compiled + suite green), but the
   canonical form is `Vec[UInt8]` -- packages normalized them (`799fceaa`).
   Keep the square-bracket form in new code.
+- **B-14/B-15 (v0.64.3, filed + repro'd)**: a `Vec[fn]` ELEMENT call with
+  >= 2 args types its result as `()` at use sites (statement-position calls
+  silently discard -- glfw dispatchers were unaffected; handler shapes that
+  NEED a result must be 1-arg, e.g. `fn(Vec[UInt8]) -> Bool`); and bare
+  `return;` in explicitly `-> Unit` fns is a type error (use structured
+  ifs). Repro: `docs/repro/bindings-pilot/cb-abi/probe7_element_units.xi`;
+  item `REL-20261011-1121-bindings-2`.
 - **Vec-of-struct element extraction AVs** (`mons[0]`); use `Vec[Int]`
   handles + raw byte buffers (glfw monitors/video-modes pattern).
   `Result[Vec[...]]` and `Result[Float32/64]` payload extraction also
