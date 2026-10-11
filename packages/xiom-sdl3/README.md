@@ -9,9 +9,10 @@ is not installed.
 > **Status:** `incubating` -- **0.5.0 event filter/watch + runtime** (input
 > interception: SDL_SetEventFilter / SDL_AddEventWatch over fixed
 > dispatchers + handler registries; keep/drop semantics and non-consuming
-> observation proven by synthetic events). Suite **27/27 x2** with the
-> official SDL 3.4.8 DLL + absent 4/4 x2. **Lane:** bindings
-> (`keywords: ["binding"]`).
+> observation proven by synthetic events). Native **27/27 x2** with the
+> official SDL 3.4.8 DLL + absent **4/4 x2** (v0.64.3). 0.4.0 shipped in
+> `eco-v0.1.138`; 0.5.0 published in `eco-v0.1.140` (sha256 `a350dd46...`).
+> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
