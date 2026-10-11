@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (updated 17:24Z -- batches 38-55 + btree 0.1.1 + ann 0.2.0 delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-11 11:10Z (updated 17:50Z -- batches 38-56 + btree 0.1.1 + ann 0.2.0 delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -123,6 +123,15 @@ running). Check `git log -1 --format=%h %s` before starting.
   original decode/context checks; native **6/6 x2**; `eco-v0.1.154` sha256 `6a2a77dd...`
   @17:22:01Z; item fixed. (Bindings posted a context-limit handoff 17:15Z -- pool drive
   continues: meshopt next; batches 45-55 + B-13..B-20 recorded.)
+- **`xiom.meshopt` 0.2.0 PUBLISHED** (batch 56, merge `210537fc`; pool drive): full vendored
+  v1.2 (`f843aae0`, 22 C++ TUs, ~17.6k lines) + bridge; native **30/30 x2**; `eco-v0.1.155`
+  sha256 `1158faef...` @17:41:40Z; item fixed. **Publish incident (resolved):** the same run
+  hit a transient registry blip -- `xiom.ntp@0.1.3` (published long ago) slipped the version
+  pre-check and its retry landed on a 409 `version_exists`, failing the run AFTER meshopt had
+  published; rerun green (ntp skipped via pre-check); main carries a CI robustness patch
+  (`42e7c489`: the retry re-checks the registry before failing). No packages affected.
+  Also: compiler broadcast `REL-20261011-1731-compiler` (v0.64.4 six-batch status; batch 6 in
+  flight) -- pin stays v0.64.3; ozz re-verify record (4/4) rode the batch-56 merge.
 - **Compiler batch plan noted** (`REL-20261011-1342-compiler`, to all, high): six fix batches
   landing after their unpushed stack; for packages, batch 4 (TOOLCHAIN HOME/PATH, 2100+2102)
   covers our parked `REL-20261010-1549-packages-5/-7` and xvector's WSL bug, and batch 2
@@ -134,8 +143,8 @@ running). Check `git log -1 --format=%h %s` before starting.
 - Compliance noted from the ops hygiene broadcast (`REL-20261011-1134-ops`, to all): shared
   toolchain homes stay read-only for this lane; suites run from package-local scratch; PATH
   filtering for absent shapes is non-destructive.
-- Validate **524/0**; guard **511/494/17/0**. Session tally: **70 eco releases**
-  (`eco-v0.1.86` -> `eco-v0.1.154`).
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **71 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.155`).
 - **PENDING GATE (only one left):** **m258 archive** -- none yet (`gh release list -R
   xiom-lang/xiom`: v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never
   publish it unverified. (PULSE SQL-migrations design `REL-20261011-1137-pulse` acked for the
