@@ -333,9 +333,14 @@ fn main() -> Int {
       failed = failed + report(key == GLFW_RELEASE && mouse == GLFW_RELEASE,
         "input: quiet key/button state (escape=" + to_string(key) + ")");
 
+      // glfwGetKeyName is keyboard-layout dependent ("a" on a US layout,
+      // "α" on a Greek layout -- both live on this box): assert the
+      // layout-independent parts -- a non-empty localized name, the A key's
+      // platform scancode (30), and agreement with an explicit-scancode lookup.
       let kn = glfw_get_key_name(&lib, GLFW_KEY_A, 0);
       let ks = glfw_get_key_scancode(&lib, GLFW_KEY_A);
-      failed = failed + report((kn == "A" || kn == "a") && ks > 0,
+      let kn2 = glfw_get_key_name(&lib, GLFW_KEY_A, ks);
+      failed = failed + report(kn.len() >= 1 && ks == 30 && kn2 == kn,
         "input: key name/scancode for A (" + kn + "/" + to_string(ks) + ")");
 
       let mode = glfw_get_input_mode(&lib, &w, GLFW_CURSOR);

@@ -103,6 +103,16 @@ return explicit errors).
 | GLFW 3.4 present | same, with `C:\glfw-3.4.bin.WIN64\lib-vc2022` on PATH | **PASS 37/37 x2** (2026-10-11, compiler v0.64.3; ~15 s/run: full surface + 20 setters + error/key/close callback round trips + allocator cycle) |
 | Headless present (init fails) | init-dependent checks SKIP with the GLFW error text | path implemented, not force-tested |
 
+Native-lane notes (2026-10-11, batch-39 verification): two fixes were applied
+before publish. (1) `f64_from_bits` dropped its unsound `requires: bits >= 0`
+-- a raw IEEE-754 pattern read as a signed Int is negative for any negative
+float (cursor left/above the window, negative joystick axes); deterministic
+repro `tests/probe_neg_f64.xi` (crash at requires 598:13 -> green post-fix).
+(2) The key-name check is now layout-invariant (non-empty localized name +
+scancode 30 + explicit-scancode agreement) -- the previous `kn == "A"/"a"`
+assertion failed on a Greek keyboard layout. Verified on the fixed tree:
+present **37/37 x2** + absent **SKIP 3/3**.
+
 ## 5. Scope
 
 0.5.0 -- **full GLFW 3.4 public surface (124/124 core exports)** plus the

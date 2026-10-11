@@ -594,8 +594,12 @@ fn f32_from_bits(bits: Int) -> Float64
 }
 
 /// IEEE-754 binary64 bits -> Float64 (pure arithmetic).
+/// `bits` is a raw 64-bit pattern read as a signed Int: the sign bit makes
+/// it a negative Int for any negative float (e.g. a cursor position left of
+/// the window, negative joystick axes), so no non-negativity clause is
+/// admissible here (repro: tests/probe_neg_f64.xi, 2026-10-11).
 fn f64_from_bits(bits: Int) -> Float64
-  requires: bits >= 0
+  requires: true
 {
   let sign = if ((bits >> 63) & 1) == 1 { -1.0 } else { 1.0 };
   let exp = (bits >> 52) & 0x7FF;
