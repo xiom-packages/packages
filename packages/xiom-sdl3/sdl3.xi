@@ -2344,7 +2344,7 @@ pub fn sdl3_event_wheel_y(ev: &Vec[UInt8]) -> Float64
 
 /// Mouse-wheel event: raw horizontal bits (u32 @24).
 /// Complexity: O(1).
-pub fn sdl3_event_wheel_x_bits(ev: &Vec<UInt8>) -> Int
+pub fn sdl3_event_wheel_x_bits(ev: &Vec[UInt8]) -> Int
   requires: ev.len() >= 28
 {
   return sdl3_read_u32_at(ev, 24);
@@ -2352,7 +2352,7 @@ pub fn sdl3_event_wheel_x_bits(ev: &Vec<UInt8>) -> Int
 
 /// Mouse-wheel event: raw vertical bits (u32 @28).
 /// Complexity: O(1).
-pub fn sdl3_event_wheel_y_bits(ev: &Vec<UInt8>) -> Int
+pub fn sdl3_event_wheel_y_bits(ev: &Vec[UInt8]) -> Int
   requires: ev.len() >= 32
 {
   return sdl3_read_u32_at(ev, 28);
@@ -2360,7 +2360,7 @@ pub fn sdl3_event_wheel_y_bits(ev: &Vec<UInt8>) -> Int
 
 /// Mouse-wheel event: direction (u32 @32; SDL_MOUSEWHEEL_NORMAL/FLIPPED).
 /// Complexity: O(1).
-pub fn sdl3_event_wheel_direction(ev: &Vec<UInt8>) -> Int
+pub fn sdl3_event_wheel_direction(ev: &Vec[UInt8]) -> Int
   requires: ev.len() >= 36
 {
   return sdl3_read_u32_at(ev, 32);
@@ -2368,7 +2368,7 @@ pub fn sdl3_event_wheel_direction(ev: &Vec<UInt8>) -> Int
 
 /// Mouse-wheel event: cursor x when the wheel fired (f32 @36).
 /// Complexity: O(1).
-pub fn sdl3_event_wheel_mouse_x(ev: &Vec<UInt8>) -> Float64
+pub fn sdl3_event_wheel_mouse_x(ev: &Vec[UInt8]) -> Float64
   requires: ev.len() >= 40
 {
   return sdl3_f32_from_bits(sdl3_read_u32_at(ev, 36));
@@ -2376,7 +2376,7 @@ pub fn sdl3_event_wheel_mouse_x(ev: &Vec<UInt8>) -> Float64
 
 /// Mouse-wheel event: cursor y when the wheel fired (f32 @40).
 /// Complexity: O(1).
-pub fn sdl3_event_wheel_mouse_y(ev: &Vec<UInt8>) -> Float64
+pub fn sdl3_event_wheel_mouse_y(ev: &Vec[UInt8]) -> Float64
   requires: ev.len() >= 44
 {
   return sdl3_f32_from_bits(sdl3_read_u32_at(ev, 40));
