@@ -124,6 +124,23 @@ clone: stage ONLY your own item files). The two working rules are in
   LIVE on both eco entries -- "repin + port x2 + publish when the archive
   lands"; no staging needed). None addressed to bindings; next check
   `wku_12c83f8e1001LZ9U7eXCfvp5xt` (~21:20Z), doorbell 21:00Z.
+- **B-19 fixed package-side (20:48Z, pre-archive)**: the compiler's m274
+  wave diagnosed B-19 as a package-side declaration (`SDL_WasInit` cast
+  `fn(Int) -> UInt8`, but `SDL_InitFlags` is Uint32; m263+ honors declared
+  return widths -> 16384 masked to low byte 0). Fix `c2d3330f` + record
+  `7722369a` (sdl3 **0.16.1**): cast -> `UInt32`, doc + README updated,
+  repro probe corrected + resolution note; evidence on the pin = probe x2
+  `elapsed=100 init=1 w_all=16384`, suite **59/59 x2**. Relayed to packages
+  (`REL-20261011-2048-bindings`) and closure evidence to compiler
+  (`-2048-bindings-2`). **Engine Vulkan mini-RHI ask answered**
+  (`REL-20261011-2015-engine` -> `-2048-bindings-3`): priority order
+  adopted (sync/recording -> buffers -> pipelines -> textures -> depth ->
+  visible-window swapchain via SDL3 `SDL_Vulkan_CreateSurface` ->
+  acquire/present), queued after the archive wave; B-11 workaround shapes
+  stand (B-16/B-17 not in the wave). Compiler stack PUSHED (origin
+  `87c6ca3c`, m254-m274; m274 fixes B-18; B-19 resolved package-side);
+  archive expectations per packages SESSION: B-13/14/15/B-18 green,
+  B-16/B-17 stay red, packages rows `-4`/`-5`/`-6`/`-7`/`-2100` re-run.
 - **Latest batch 61 (2026-10-11)**: `xiom.meshopt` **0.4.0 -- codec family
   (Phase 3 item 2)**: index SEQUENCE codec (byte-exact order; contrast
   pinned with the triangle-list codec, which rotates corners), quat filter
