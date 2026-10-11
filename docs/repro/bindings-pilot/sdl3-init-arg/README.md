@@ -41,3 +41,14 @@ WasInit reflects-the-flags contract breaks.
 Found 2026-10-11 by the bindings lane while re-verifying
 `REL-20261011-1533-compiler` (B-13/1904/B-14/B-15 verdicts; see the cb-abi
 README re-verify section).  Filed as B-19.
+
+## Resolution (2026-10-11, package-side)
+
+Not a compiler regression: `SDL_WasInit` returns `SDL_InitFlags`
+(`Uint32`), but this probe and `xiom.sdl3` (`sdl3.xi:664`) cast it as
+`fn(Int) -> UInt8`. Toolchains from m263 on honor declared return widths,
+so the mask 16384 (0x4000) read as its low byte 0 -- SDL had initialized
+fine. Fixed in `xiom.sdl3` 0.16.1 (cast -> `UInt32`) and in this probe;
+`w_all=16384` on the pinned v0.64.3 slot, re-verified at the v0.64.4
+archive. The suite-level check (`init: SDL_WasInit(TIMER|EVENTS) reflects
+the flags`) is green again with the fixed declaration.

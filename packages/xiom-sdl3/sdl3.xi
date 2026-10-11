@@ -655,13 +655,17 @@ pub fn sdl3_quit(lib: &Sdl3Library)
   }
 }
 
-/// SDL_WasInit(flags) -> bool.
+/// SDL_WasInit(flags) -> SDL_InitFlags mask (Uint32; 0 = none initialized);
+/// true when any requested bit is set.
 /// Complexity: O(1).
 pub fn sdl3_was_init(lib: &Sdl3Library, flags: Int) -> Bool
   requires: lib.handle != 0
 {
   unsafe {
-    let f = lib.p_was_init as fn(Int) -> UInt8;
+    // B-19: SDL_InitFlags is Uint32 -- declaring UInt8 here truncates the
+    // mask to its low byte (16384 -> 0) on toolchains that honor declared
+    // return widths (m263+).
+    let f = lib.p_was_init as fn(Int) -> UInt32;
     return (f(flags) as Int) != 0;
   }
 }

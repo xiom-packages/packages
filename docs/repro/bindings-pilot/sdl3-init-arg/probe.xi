@@ -19,6 +19,13 @@
 // Observed on fde5548e:
 //   elapsed=100 init=1 w_all=0
 //
+// RESOLVED 2026-10-11 (package-side, not a compiler regression): this
+// probe and xiom.sdl3 cast SDL_WasInit as `fn(Int) -> UInt8`, but the C
+// API returns SDL_InitFlags (Uint32). Toolchains from m263 on honor the
+// declared return width, so 16384 (0x4000) read as its low byte 0. Fixed
+// in xiom.sdl3 0.16.1 + here (cast -> UInt32); w_all=16384 on the pin and
+// re-verified at the v0.64.4 archive.
+//
 // Suite-level effect: xiom.sdl3 0.13.0 conformance = 51/52 on fde5548e
 // (`init: SDL_WasInit(TIMER|EVENTS) reflects the flags` FAILS) vs 52/52 on
 // v0.64.3.  The rest of the suite still passes because SDL3 lazily
@@ -41,7 +48,7 @@ fn main() -> Int {
     let f_delay = lib.p_delay as fn(Int);
     let f_ticks = lib.p_get_ticks as fn() -> UInt32;
     let f_init = lib.p_init as fn(Int) -> UInt8;
-    let f_was = lib.p_was_init as fn(Int) -> UInt8;
+    let f_was = lib.p_was_init as fn(Int) -> UInt32;
     let t0 = f_ticks() as Int;
     f_delay(100);
     let t1 = f_ticks() as Int;
