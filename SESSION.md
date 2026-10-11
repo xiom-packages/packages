@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (updated 11:20Z -- batches 38-41 delivered; three native fixes; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-11 11:10Z (updated 11:50Z -- batches 38-42 delivered; gate (1) CLEARED; three native fixes; supersedes the 11:00Z block below):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -40,12 +40,23 @@ running). Check `git log -1 --format=%h %s` before starting.
   **4/4 x2** (PATH-filtered); **7 byte-level `Vec<UInt8>` normalized to `Vec[UInt8]`
   pre-publish** (`799fceaa`, re-verified x2 both shapes); `eco-v0.1.138` sha256 `a9006d4c...`
   @11:15:34Z; bus item fixed.
-- Validate **524/0**; guard **509/492/17/0** (unchanged). Session tally: **55 eco releases**
-  (`eco-v0.1.86` -> `eco-v0.1.138`).
-- **PENDING GATES unchanged:** (1) ops live for `xiom.ann` + `xiom.stb` -- both asks still
-  **open** on the bus (no confirmation); on live: append both (509 -> 511), guard, wrap, one eco
-  batch, live-verify; (2) **m258 archive** -- none yet (`gh release list -R xiom-lang/xiom`:
-  v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never publish it unverified.
+- **GATE (1) CLEARED -- `xiom.ann` 0.1.0 + `xiom.stb` 0.2.0 PUBLISHED** (ops live 11:35Z,
+  `REL-20261011-1135-ops`): allowlist appended (**509 -> 511**; guard **511/494/17/0**),
+  wrapped, **`eco-v0.1.139`** -- ann sha256 `73f66ab5...` @11:39:26Z, stb sha256 `41a205f7...`
+  @11:41:46Z (run `38136302176`); READMEs/records synced; ops will catalog-verify both.
+- **`xiom.sdl3` 0.5.0 PUBLISHED** (batch 42, merge `6354d003`): event filter/watch
+  (`SDL_SetEventFilter`/`SDL_AddEventWatch` over fixed dispatchers + handler registries);
+  native **27/27 x2** + absent **4/4 x2**; `eco-v0.1.140` sha256 `a350dd46...` @11:46:56Z;
+  bus item fixed. (B-14/B-15 findings filed by bindings.)
+- Compliance noted from the ops hygiene broadcast (`REL-20261011-1134-ops`, to all): shared
+  toolchain homes stay read-only for this lane; suites run from package-local scratch; PATH
+  filtering for absent shapes is non-destructive.
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **56 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.140`).
+- **PENDING GATE (only one left):** **m258 archive** -- none yet (`gh release list -R
+  xiom-lang/xiom`: v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never
+  publish it unverified. (PULSE SQL-migrations design `REL-20261011-1137-pulse` acked for the
+  future driver candidate; the vendored-sqlite hook is `REL-20261010-1548-bindings-11`.)
 - Parallel-actor caution re-checked before every commit/push (owner session can commit in this
   worktree); no divergence this session. Probe note: `glfw_set_cursor_pos` is a silent no-op on a
   hidden unfocused window -- cursor readbacks reflect the LIVE pointer and may be negative.
@@ -93,13 +104,12 @@ fires every 2 h (re-sync, process, check gh release list for m258).
 
 STATE: compiler pin v0.64.3 (official archive, SHA256-verified; a shadow install
 exists at %LOCALAPPDATA%\xiom.new.0643 if the canonical is ever locked). Validate
-524/0; guard 509 allowlisted / 492 ready / 17 grandfathered / 0 failures.
-PENDING GATES: (1) ops live for xiom.ann + xiom.stb -> append both (509 -> 511),
-guard, wrap, one eco batch publish, live-verify; (2) an official archive carrying
-compiler m258 (`--cxx-standard`; check `gh release list -R xiom-lang/xiom`) ->
-repin + merge origin/bindings (jolt batch 35, tip-era 0aea531c) + port x2
-(watchdog >= 600 s) + publish; jolt's record stays gated tests=unknown for the
-official pin -- do NOT publish it unverified.
+524/0; guard 511 allowlisted / 494 ready / 17 grandfathered / 0 failures
+(xiom.ann + xiom.stb appended 2026-10-11 and published in eco-v0.1.139).
+PENDING GATE: an official archive carrying compiler m258 (`--cxx-standard`; check
+`gh release list -R xiom-lang/xiom`) -> repin + merge origin/bindings (jolt batch
+35, tip-era 0aea531c) + port x2 (watchdog >= 600 s) + publish; jolt's record stays
+gated tests=unknown for the official pin -- do NOT publish it unverified.
 
 CREDENTIAL NOTE: gh sometimes flips to `Lefteris-Ngonart` (403 on push); switch
 with `gh auth switch --user Lefteris-Notas`; verify with
