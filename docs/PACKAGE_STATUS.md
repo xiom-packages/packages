@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.3` -- generated 2026-10-11T11:03:26Z.
+Toolchain pin: `v0.64.3` -- generated 2026-10-11T11:11:58Z.
 
 ## Summary
 
@@ -396,7 +396,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.geology | xiom-geology | incubating | tests/test_conformance.xi | pass 26/26 | fb04b916 | False | publish pending: next scope delta |
 | xiom.geom3d | xiom-geom3d | incubating | tests/test_conformance.xi | pass 27/27 | a3fb80eb | False | publish pending: next scope delta |
 | xiom.git2 | xiom-git2 | incubating | tests/test_conformance.xi | pass 24/24 | fd38977f | False | publish pending: next scope delta |
-| xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | 5a213f30 | False | publish pending: bindings batch 39 (eco-v0.1.137) |
+| xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | 5a213f30 | False | published in eco-v0.1.137 (2026-10-11; 0.4.0 in eco-v0.1.136) |
 | xiom.golden | xiom-golden | incubating | tests/test_conformance.xi | pass 35/35 | fd38977f | False | publish pending: next scope delta |
 | xiom.gpio | xiom-gpio | incubating | tests/test_conformance.xi | pass 21/21 | 9dde8219 | False | category harmonization patch bump (registry metadata) |
 | xiom.graphql | xiom-graphql | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -505,7 +505,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.salt | xiom-salt | incubating | tests/test_conformance.xi | pass 28/28 | 425f4f71 | False | publish pending: next scope delta |
 | xiom.saml | xiom-saml | incubating | tests/test_conformance.xi | pass 28/28 | fcadeee8 | False | publish pending: next scope delta |
 | xiom.scipy | xiom-scipy | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 22/22 | f624c097 | False | published in eco-v0.1.134 (2026-10-11) |
+| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 24/24 | 799fceaa | False | publish pending: bindings batch 41 (eco-v0.1.138) |
 | xiom.sectest | xiom-sectest | incubating | tests/test_conformance.xi | pass 22/22 | fc1702a9 | False | publish pending: next scope delta |
 | xiom.semaphore | xiom-semaphore | incubating | tests/test_conformance.xi | pass 23/23 | df934ed2 | False | publish pending: next scope delta |
 | xiom.serverless | xiom-serverless | incubating | tests/test_conformance.xi | pass 23/23 | 628a9502 | False | publish pending: next scope delta |
@@ -537,7 +537,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.vectors | xiom-vectors | incubating | tests/test_conformance.xi | pass 37/37 | b8911083 | False | published in eco-v0.1.131 (2026-10-10) |
 | xiom.video | xiom-video | incubating | tests/test_conformance.xi | pass 24/24 | e23f8e3a | False | publish pending: next scope delta |
 | xiom.vma | xiom-vma | incubating | tests/test_conformance.xi | pass 5/5 | 3b642f7c | False | published in eco-v0.1.124 (2026-10-09) |
-| xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 18/18 | 27cc1b6b | False | published in eco-v0.1.135 (2026-10-11; 0.3.0 in eco-v0.1.133) |
+| xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 22/22 | 7a941c1f | False | publish pending: bindings batch 40 (eco-v0.1.138) |
 | xiom.wal | xiom-wal | incubating | tests/test_conformance.xi | pass 21/21 | 137a8200 | False | published in eco-v0.1.121 (2026-10-09) |
 | xiom.wallet | xiom-wallet | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.wasmtime | xiom-wasmtime | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
