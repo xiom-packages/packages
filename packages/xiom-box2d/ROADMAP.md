@@ -8,9 +8,10 @@
 - [x] Integer-only bridge: version, gravity, resting drop, impulse -> velocity
 - [x] Conformance suite (5 checks incl. real stepping simulation)
 
-## Phase 3 (Planned)
-- [ ] Body/joint wrappers beyond the drop scenario (revolute/prismatic/weld/mouse)
+## Phase 3 (In progress) -- 0.3.0 joints with motors
+- [x] Revolute + prismatic joints with motors (motor-driven rotor + gravity-held slider; wrapped-angle semantics pinned)
 - [ ] Broad-phase queries + contact events (callbacks via the bridge)
+- [ ] Remaining joint types (weld/mouse/wheel/motor/distance) probes
 - [ ] World snapshot / recording replay
 - [ ] Sensor + mover helpers
 - [ ] Sample scene example (`examples/`) driven by the suite

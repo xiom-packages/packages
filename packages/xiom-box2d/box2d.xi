@@ -16,10 +16,10 @@
 // G2 pin (SPEC.md): upstream tag v3.1.1 archive SHA256 + per-file SHA256
 // table + MIT license.
 //
-// API subset (pilot): version, default-world gravity, a resting-drop
-// simulation (static ground + dynamic box), and an impulse->velocity check.
-// Broad-phase queries, joint variety, callbacks, and real content are
-// Phase 2 (ROADMAP.md).
+// API subset (pilot + 0.3.0): version, default-world gravity, a resting-drop
+// simulation (static ground + dynamic box), an impulse->velocity check, and
+// (0.3.0) revolute + prismatic joints with motors.  Broad-phase queries,
+// contact events, and callbacks are Phase 3 (ROADMAP.md).
 
 module xiom.box2d
 
@@ -30,6 +30,8 @@ extern "C" {
   fn b2probe_gravity(out_gx_milli: *UInt8, out_gy_milli: *UInt8) -> Int32;
   fn b2probe_drop(start_y_milli: Int32, steps: Int32, out_final_y_milli: *UInt8, out_awake: *UInt8) -> Int32;
   fn b2probe_impulse(impulse_milli: Int32, out_vx_milli: *UInt8) -> Int32;
+  fn b2probe_revolute_motor(motor_speed_milli: Int32, steps: Int32, out_w_milli: *UInt8, out_angle_milli: *UInt8) -> Int32;
+  fn b2probe_prismatic_motor(motor_speed_milli: Int32, steps: Int32, out_translation_milli: *UInt8, out_x_milli: *UInt8, out_y_milli: *UInt8) -> Int32;
 }
 
 /// Default number of 60 Hz steps used by the drop probes.
@@ -43,6 +45,17 @@ pub type B2Gravity = {
 pub type B2DropResult = {
   final_y_milli: Int;
   awake: Bool;
+}
+
+pub type B2RevoluteMotor = {
+  w_milli: Int;
+  angle_milli: Int;
+}
+
+pub type B2PrismaticMotor = {
+  translation_milli: Int;
+  x_milli: Int;
+  y_milli: Int;
 }
 
 /// Packed upstream version: major << 16 | minor << 8 | revision.
@@ -107,6 +120,40 @@ pub fn b2_impulse(impulse_milli: Int) -> Result[Int, Str]
     return Err("box2d: impulse probe rc=" + b2_i2s(rc));
   }
   return Ok(b2_slot_read(&f_vx));
+}
+
+/// Revolute joint + motor: a 2.0 x 0.2 dynamic bar hinged at the origin
+/// (gravity off) driven at `motor_speed_milli` rad/s; after `steps` 60 Hz
+/// steps returns the bar angular velocity and the joint angle (milli).
+/// Complexity: O(steps).
+pub fn b2_revolute_motor(motor_speed_milli: Int, steps: Int) -> Result[B2RevoluteMotor, Str]
+  requires: steps > 0
+{
+  var f_w = b2_slot();
+  var f_a = b2_slot();
+  let rc = unsafe { b2probe_revolute_motor(motor_speed_milli as Int32, steps as Int32, f_w.as_mut_ptr(), f_a.as_mut_ptr()) as Int };
+  if rc != 0 {
+    return Err("box2d: revolute motor probe rc=" + b2_i2s(rc));
+  }
+  return Ok(B2RevoluteMotor{ w_milli: b2_slot_read(&f_w); angle_milli: b2_slot_read(&f_a); });
+}
+
+/// Prismatic joint + motor: a dynamic slider on the +x axis at y = 2 under
+/// default gravity, driven at `motor_speed_milli` m/s; after `steps` 60 Hz
+/// steps returns the joint translation and the slider position (milli).
+/// The constraint must hold y while the motor translates x.
+/// Complexity: O(steps).
+pub fn b2_prismatic_motor(motor_speed_milli: Int, steps: Int) -> Result[B2PrismaticMotor, Str]
+  requires: steps > 0
+{
+  var f_t = b2_slot();
+  var f_x = b2_slot();
+  var f_y = b2_slot();
+  let rc = unsafe { b2probe_prismatic_motor(motor_speed_milli as Int32, steps as Int32, f_t.as_mut_ptr(), f_x.as_mut_ptr(), f_y.as_mut_ptr()) as Int };
+  if rc != 0 {
+    return Err("box2d: prismatic motor probe rc=" + b2_i2s(rc));
+  }
+  return Ok(B2PrismaticMotor{ translation_milli: b2_slot_read(&f_t); x_milli: b2_slot_read(&f_x); y_milli: b2_slot_read(&f_y); });
 }
 
 // ---- internals -----------------------------------------------------------

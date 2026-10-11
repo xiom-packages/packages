@@ -96,6 +96,32 @@ fn main() -> Int {
   let same = d.is_ok && d2.is_ok && d2.value.final_y_milli == d.value.final_y_milli;
   failed = failed + report(same, "determinism: repeated drop identical");
 
+  // 6. Revolute joint + motor: gravity-off rotor driven at 2 rad/s; after
+  //    120 steps (2 s) the angular velocity is at the motor speed and the
+  //    joint angle integrates to 4 rad -- Box2D wraps revolute angles to
+  //    [-pi, pi], so 4 - 2*pi ~ -2283 milli.
+  let rj = b2_revolute_motor(2000, 120);
+  if rj.is_ok {
+    let w_ok = rj.value.w_milli >= 1950 && rj.value.w_milli <= 2050;
+    let a_ok = rj.value.angle_milli >= -2403 && rj.value.angle_milli <= -2163;
+    failed = failed + report(w_ok && a_ok,
+      "revolute motor: w=" + i2s(rj.value.w_milli) + " angle=" + i2s(rj.value.angle_milli) + " milli");
+  } else {
+    failed = failed + report(false, "revolute motor: " + rj.error);
+  }
+
+  // 7. Prismatic joint + motor: gravity pulls down but the joint holds y=2
+  //    while the motor drives +x at 1 m/s -> translation ~2 m.
+  let pj = b2_prismatic_motor(1000, 120);
+  if pj.is_ok {
+    let t_ok = pj.value.translation_milli >= 1900 && pj.value.translation_milli <= 2100;
+    let y_ok = pj.value.y_milli >= 1990 && pj.value.y_milli <= 2010;
+    failed = failed + report(t_ok && y_ok,
+      "prismatic motor: translation=" + i2s(pj.value.translation_milli) + " y=" + i2s(pj.value.y_milli) + " milli");
+  } else {
+    failed = failed + report(false, "prismatic motor: " + pj.error);
+  }
+
   if failed == 0 {
     io.println("xiom.box2d: all tests passed");
   } else {

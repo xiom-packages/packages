@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.box2d` |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Box2D -- https://github.com/erincatto/box2d |
 | Upstream version | **v3.1.1** (tag; the v3 C API) |
 | Upstream license | MIT (`vendor/LICENSE`) |
 | Package license | MIT OR Apache-2.0 (everything outside `vendor/`) |
 | Platform | Windows x64 (primary); the vendored C path is portable |
-| Compiler pin | v0.64.2 |
+| Compiler pin | v0.64.3 |
 
 ## 2. Vendored path (G2 pin)
 
@@ -121,17 +121,29 @@ struct-by-value ABI of the Box2D v3 C API internally. Values cross the
 boundary as thousandths (milli); out-params are written into XIOM-owned
 8-byte `Vec[UInt8]` slots (no malloc/free -- finding B-05) and read with a
 signed 32-bit helper. Public surface: `b2_version`, `b2_version_str`,
-`b2_gravity`, `b2_drop`, `b2_impulse` (+ `B2Gravity`, `B2DropResult`,
-`B2_DEFAULT_STEPS`). There is no SKIP path: the vendored sources are always
-compiled in, so the suite runs the real simulation on every platform.
+`b2_gravity`, `b2_drop`, `b2_impulse`, `b2_revolute_motor`,
+`b2_prismatic_motor` (+ `B2Gravity`, `B2DropResult`, `B2RevoluteMotor`,
+`B2PrismaticMotor`, `B2_DEFAULT_STEPS`). There is no SKIP path: the vendored
+sources are always compiled in, so the suite runs the real simulation on
+every platform.
+
+The 0.3.0 joint probes keep the joint definitions
+(`b2RevoluteJointDef`/`b2PrismaticJointDef`) and motor fields entirely
+inside C: the XIOM side supplies motor speed and step count (milli) and
+reads back milli scalars. Note that Box2D wraps revolute `GetAngle` to
+[-pi, pi] (relative angle), so a 4 rad integration reads back as
+4 - 2*pi ~ -2283 milli; the suite asserts the wrapped value.
 
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- 5 checks: version pin (3.1.x), default
+Suite: `tests/test_conformance.xi` -- 7 checks: version pin (3.1.x), default
 gravity (0, -10000 milli), resting-drop settle (1x1 box from y=10 lands at
 ~0.5 within [0.4, 0.6]), impulse->velocity (5000 milli impulse on the 1 kg
-box yields vx in [4500, 5500]), and drop determinism (repeated run
-identical).
+box yields vx in [4500, 5500]), drop determinism (repeated run identical),
+revolute motor (gravity-off rotor at 2 rad/s: w=2000 within +/-50 milli and
+the wrapped angle ~ -2283 within +/-120), and prismatic motor (slider on +x
+under gravity at 1 m/s: translation ~1999 within [1900, 2100] while y stays
+at 2000 within +/-10).
 
 Command (cwd = this package directory; the runner hook adds the C sources):
 
@@ -144,8 +156,9 @@ Watchdog: allow >=180 s -- clang compiles 35 small C files plus the bridge
 
 ## 5. Scope
 
-Pilot: version/world/body basics with a real stepping simulation and an
-impulse check. Joint APIs beyond the drop scenario, broad-phase queries,
-callbacks, world snapshots, and sample scenes are Phase 2 (`ROADMAP.md`).
-The pre-pilot v4-era static-extern module (`box2d.xi`, `box2d_safe.xi`,
-`demo_box2d.xi`, `box2d.xiom-bind`) is preserved in git history.
+0.3.0: version/world/body basics with a real stepping simulation, an
+impulse check, and revolute + prismatic joints with motors. Broad-phase
+queries, contact events, remaining joint types, world snapshots, and sample
+scenes are Phase 3 (`ROADMAP.md`). The pre-pilot v4-era static-extern module
+(`box2d.xi`, `box2d_safe.xi`, `demo_box2d.xi`, `box2d.xiom-bind`) is
+preserved in git history.
