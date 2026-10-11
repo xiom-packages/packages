@@ -19,8 +19,9 @@
 // an owned 128-byte buffer with typed accessors (offsets pinned to the
 // release-3.4.8 header; verified byte-identical in the release-3.2.10 clone);
 // 0.13.0 adds capture streams (default recording device + GetAudioStreamData
-// /available/clear/format). The full pre-pilot constant tables stay in git
-// history (ROADMAP.md).
+// /available/clear/format); 0.14.0 adds pointer capture + per-window relative
+// mouse + global/relative mouse state. The full pre-pilot constant tables
+// stay in git history (ROADMAP.md).
 
 module xiom.sdl3
 
@@ -388,6 +389,11 @@ pub type Sdl3Library = {
   p_get_audio_stream_available: Int;
   p_clear_audio_stream: Int;
   p_get_audio_stream_format: Int;
+  p_get_global_mouse_state: Int;
+  p_get_relative_mouse_state: Int;
+  p_set_window_relative_mouse_mode: Int;
+  p_get_window_relative_mouse_mode: Int;
+  p_capture_mouse: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -501,6 +507,16 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a49.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_ClearAudioStream: " + a49.error }); }
   let a50 = dl.dl_sym(handle, "SDL_GetAudioStreamFormat");
   if !a50.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetAudioStreamFormat: " + a50.error }); }
+  let a51 = dl.dl_sym(handle, "SDL_GetGlobalMouseState");
+  if !a51.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetGlobalMouseState: " + a51.error }); }
+  let a52 = dl.dl_sym(handle, "SDL_GetRelativeMouseState");
+  if !a52.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetRelativeMouseState: " + a52.error }); }
+  let a53 = dl.dl_sym(handle, "SDL_SetWindowRelativeMouseMode");
+  if !a53.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetWindowRelativeMouseMode: " + a53.error }); }
+  let a54 = dl.dl_sym(handle, "SDL_GetWindowRelativeMouseMode");
+  if !a54.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetWindowRelativeMouseMode: " + a54.error }); }
+  let a55 = dl.dl_sym(handle, "SDL_CaptureMouse");
+  if !a55.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CaptureMouse: " + a55.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -554,6 +570,11 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_get_audio_stream_available: a48.value,
     p_clear_audio_stream: a49.value,
     p_get_audio_stream_format: a50.value,
+    p_get_global_mouse_state: a51.value,
+    p_get_relative_mouse_state: a52.value,
+    p_set_window_relative_mouse_mode: a53.value,
+    p_get_window_relative_mouse_mode: a54.value,
+    p_capture_mouse: a55.value,
   });
 }
 
@@ -2525,5 +2546,93 @@ pub fn sdl3_get_audio_stream_format(lib: &Sdl3Library, stream: Int) -> Sdl3Audio
       dst_channels: sdl3_read_u32_at(&dstslot, 4),
       dst_freq: sdl3_read_u32_at(&dstslot, 8),
     };
+  }
+}
+
+// =========================================================================
+// 0.14.0: pointer capture + relative mouse + global/relative state
+//
+// SDL_GetGlobalMouseState / SDL_GetRelativeMouseState write two f32
+// OUT-params (one owned slot each; B-17 discipline -- no pointer
+// arithmetic) and return the button mask.  SDL3 exposes relative mode
+// PER WINDOW (SDL_Set/GetWindowRelativeMouseMode); SDL_CaptureMouse drives
+// drag capture (foreground window only -- a false return without a focused
+// window is informational, not an error).
+// =========================================================================
+
+/// SDL_GetGlobalMouseState -> Sdl3MouseState (desktop-global x/y, f32
+/// decoded; buttons = mask).  Requires VIDEO.
+/// Complexity: O(1).
+pub fn sdl3_global_mouse_state(lib: &Sdl3Library) -> Sdl3MouseState
+  requires: lib.handle != 0
+{
+  unsafe {
+    var xslot = sdl3_slot(4);
+    var yslot = sdl3_slot(4);
+    let f = lib.p_get_global_mouse_state as fn(*UInt8, *UInt8) -> Int32;
+    let buttons = f(xslot.as_mut_ptr(), yslot.as_mut_ptr());
+    return Sdl3MouseState{
+      x: sdl3_f32_from_bits(sdl3_read_u32_at(&xslot, 0)),
+      y: sdl3_f32_from_bits(sdl3_read_u32_at(&yslot, 0)),
+      buttons: buttons as Int,
+    };
+  }
+}
+
+/// SDL_GetRelativeMouseState -> Sdl3MouseState (x/y = motion since the
+/// previous call, f32 decoded; buttons = mask).  Requires VIDEO.
+/// Complexity: O(1).
+pub fn sdl3_relative_mouse_state(lib: &Sdl3Library) -> Sdl3MouseState
+  requires: lib.handle != 0
+{
+  unsafe {
+    var xslot = sdl3_slot(4);
+    var yslot = sdl3_slot(4);
+    let f = lib.p_get_relative_mouse_state as fn(*UInt8, *UInt8) -> Int32;
+    let buttons = f(xslot.as_mut_ptr(), yslot.as_mut_ptr());
+    return Sdl3MouseState{
+      x: sdl3_f32_from_bits(sdl3_read_u32_at(&xslot, 0)),
+      y: sdl3_f32_from_bits(sdl3_read_u32_at(&yslot, 0)),
+      buttons: buttons as Int,
+    };
+  }
+}
+
+/// SDL_SetWindowRelativeMouseMode(win, enabled) -> bool (per-window
+/// relative mode; engine pointer-look).  Requires VIDEO.
+/// Complexity: O(1).
+pub fn sdl3_set_window_relative_mouse_mode(lib: &Sdl3Library, win: Int, enabled: Bool) -> Bool
+  requires: lib.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = lib.p_set_window_relative_mouse_mode as fn(Int, UInt8) -> UInt8;
+    let v: UInt8 = if enabled { 1 as UInt8 } else { 0 as UInt8 };
+    return (f(win, v) as Int) != 0;
+  }
+}
+
+/// SDL_GetWindowRelativeMouseMode(win) -> bool.
+/// Complexity: O(1).
+pub fn sdl3_window_relative_mouse_mode(lib: &Sdl3Library, win: Int) -> Bool
+  requires: lib.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = lib.p_get_window_relative_mouse_mode as fn(Int) -> UInt8;
+    return (f(win) as Int) != 0;
+  }
+}
+
+/// SDL_CaptureMouse(enabled) -> bool (drag capture; only allowed for the
+/// foreground window, so a false return without focus is informational).
+/// Complexity: O(1).
+pub fn sdl3_capture_mouse(lib: &Sdl3Library, enabled: Bool) -> Bool
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_capture_mouse as fn(UInt8) -> UInt8;
+    let v: UInt8 = if enabled { 1 as UInt8 } else { 0 as UInt8 };
+    return (f(v) as Int) != 0;
   }
 }
