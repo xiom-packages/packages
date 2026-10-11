@@ -9,8 +9,8 @@ pure XIOM on `xiom.std` + `xiom.vectors`.
 
 > **Status:** `incubating` -- conformance suite green on the pin (v0.64.3):
 > **24/24 x2** plus the recall probe GREEN x2 (recall@10 ef=64 **1.000**,
-> ef=8 **0.9867**, 35/35 checks). Not published yet (ops scope + native-lane
-> allowlist append pending).
+> ef=8 **0.9867**, 35/35 checks). Published in `eco-v0.1.139` (sha256
+> `73f66ab5...`; ops scope LIVE 2026-10-11).
 
 ## Consumer snippet
 
