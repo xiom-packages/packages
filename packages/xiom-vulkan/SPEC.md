@@ -55,6 +55,17 @@ command pool/buffer begin/end -> `vkQueueSubmit` + `vkQueueWaitIdle` runs
 headless and crosses the XIOM boundary as scalars/strings only
 (B-11/B-12 discipline).
 
+**0.4.0 WSI additions** (`src/vk_rhi.c`, build order #2): hidden Win32
+window (user32 linked via `port.args.json` `--link user32`),
+`XwWin32SurfaceCreateInfo` (1000009000), swapchain creation (1000001000;
+FIFO; B8G8R8A8 preferred; extent from surface caps; min+1 images),
+`XwImageMemoryBarrier` (45; UNDEFINED -> TRANSFER_DST -> PRESENT_SRC),
+`vkCmdClearColorImage`, acquire/submit/present with binary semaphores,
+`XwPresentInfo` (1000001002). The logical device enables `VK_KHR_swapchain`
+when the GPU offers it -- device-level lookups otherwise return null. The
+suite runs 3 real clear+present cycles on a never-shown popup window
+(`xw_window_create` -> `xw_surface` -> `xw_swapchain` -> `xw_frames`).
+
 **Local runtime sample used for positive-path proof (NOT the pin):**
 
 | Artifact | Value |

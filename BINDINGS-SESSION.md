@@ -3,32 +3,26 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: VULKAN 0.3.0 (RHI bring-up) SHIPPED** -- batches 31 (assimp
-0.7.0) and 32 (glfw 0.3.0 engine surface, 28/28 x2) published in
-`eco-v0.1.132`; batch 33
-(`xiom.vulkan` 0.3.0: instance w/ Win32 surface ext -> device pick ->
-graphics queue family -> logical device -> command pool/buffer + REAL
-submit/wait; **15/15 x2** on the RTX 3070 Ti) published in `eco-v0.1.133`
-(sha `668b143b...`); new
-compiler finding **B-12** (fp returns through cast calls; repro bundle)
-filed; `xiom.glfw` value checks carry labelled SKIPs for it. Engine lane:
-items acked; build order #1 delivered -- #2 (surface/swapchain/present)
-next. `E:\repos` official upstreams noted for full-coverage generation.
-ffmpeg growth waits on a shared+dev build request. **Batch 34 (`xiom.stb`
-0.2.0: vendored stb_image + stb_image_write; in-memory PNG encode+decode
-round trip (85 B, checksum 8400) + 1x1 red BMP decode; 5/5 x2;
-ALLOWLIST-APPEND ask filed -- the name was excluded as declaration-only)
-also committed and relayed.** **Batch 35 (`xiom.jolt` 0.2.0: Jolt v5.6.0
-vendored, verified **4/4 x2** with `--cxx-standard 17` on the m258 local
-build; queue: `-1815` verified, `-7` closed superseded, stdlib `-9`/`-10`
-verified+closed; archive re-verdict tracked) committed and relayed.**
-Doorbell armed
-(`0 */3 * * *`). **Batch 36 (`xiom.sdl3` 0.3.1: `SDL_PushEvent` added +
-headless synthetic-event pump proof (inject 0x8000 -> pump -> `poll(NULL)`
-consumes; 22/22 x2 with SDL 3.4.8); engine ask `-1834-engine-3` FIXED with
-the coverage list) committed and relayed.  B-11 ADDENDUM: the foreign-write
-buffer-readback corruption reproduces in this probe with NO driver context
-(SDL3, headless) -- minimal reproducer filed (`REL-20261011-0304-bindings`).**
+**STATUS: VULKAN 0.4.0 WSI SHIPPED (build order #2)** -- batches 31/32
+published (`eco-v0.1.132`); batch 33 (vulkan 0.3.0) published in
+`eco-v0.1.133`; batches 34 (stb 0.2.0, publish pending the ops appends),
+35 (jolt 0.2.0, parked on the m258 archive) and 36 (sdl3 0.3.1,
+engine-3 fixed) relayed; batch 37 (`xiom.vulkan` 0.4.0: hidden Win32
+window + `VkSurfaceKHR` + swapchain + **3 real clear+present round trips**;
+**18/18 x2** on the RTX 3070 Ti) committed and relayed. Upstream sources
+cloned into `E:\repos` (Vulkan-Headers, SDL3, FFmpeg + pool) for
+source-truth binding work. **Batch 35 (`xiom.jolt` 0.2.0: Jolt v5.6.0
+vendored, 4/4 x2 with `--cxx-standard 17` on the m258 local build; queue:
+`-1815` verified, `-7` closed superseded, stdlib `-9`/`-10` verified+closed;
+parked on the m258 archive) relayed. Batch 36 (`xiom.sdl3` 0.3.1:
+`SDL_PushEvent` + headless synthetic-event pump (inject 0x8000 -> pump ->
+`poll(NULL)` consumes; 22/22 x2); engine ask `-1834-engine-3` FIXED with the
+coverage list) relayed. Batch 34 (`xiom.stb` 0.2.0: vendored stb_image +
+stb_image_write; in-memory PNG encode+decode (85 B, checksum 8400) + 1x1
+red BMP decode; 5/5 x2; allowlist-append ask filed) relayed. B-11
+ADDENDUM: the foreign-write buffer-readback corruption reproduces with NO
+driver context (SDL3, headless) -- minimal reproducer filed
+(`REL-20261011-0304-bindings`).**
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -200,6 +194,16 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 37: head=432eae2f + this record commit; packages=xiom.vulkan 0.4.0
+(engine WSI, build order #2): hidden popup Win32 window (user32 via port.args --link),
+VkSurfaceKHR, swapchain (FIFO; B8G8R8A8 preferred; caps extent; min+1 images), image
+barriers + vkCmdClearColorImage, acquire/submit/present with binary semaphores; device
+enables VK_KHR_swapchain when available (device lookups are null otherwise). tests=18/18
+x2 on the RTX 3070 Ti: 320x240 format=44 images=3 + 3 real clear+present cycles.
+Struct layouts pinned to the cloned Vulkan-Headers vulkan-sdk-1.4.350.0. needs=NONE.
+```
 
 ```
 BINDINGS PUBLISH CONFIRM (batches 31+32): xiom.assimp 0.7.0 (sha256
