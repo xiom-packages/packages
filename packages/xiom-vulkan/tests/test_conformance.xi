@@ -164,6 +164,45 @@ fn main() -> Int {
     }
   }
 
+  // Render pipeline round trip (build order #3): embedded SPIR-V -> render
+  // pass (clear) -> graphics pipeline -> draw 3 verts -> readback -> present.
+  let tri_missing = vulkan_triangle_probe_named("xiom-absent-vulkan-tri-xyz.dll", 1, 0.1, 0.2, 0.3);
+  if tri_missing.is_ok {
+    failed = failed + report(false, "triangle skip-path: bogus soname unexpectedly succeeded");
+  } else {
+    failed = failed + report(tri_missing.error.kind == VULKAN_LOAD_ABSENT,
+      "triangle skip-path: absent loader classified as SKIP");
+  }
+
+  let tri = vulkan_triangle_probe(2);
+  if tri.is_ok {
+    let t: VulkanTriangle = tri.value;
+    failed = failed + report(t.extent_w > 0 && t.extent_h > 0 && t.frames == 2,
+      "triangle frame: " + to_string(t.extent_w) + "x" + to_string(t.extent_h)
+        + " format=" + to_string(t.format) + " frames=" + to_string(t.frames)
+        + " (" + t.device_name + ")");
+    let cr = (t.center_pixel >> 16) & 0xFF;
+    let cg = (t.center_pixel >> 8) & 0xFF;
+    let cb = t.center_pixel & 0xFF;
+    failed = failed + report(cg >= 200 && cr <= 60 && cb <= 60,
+      "triangle draw: center pixel rgb(" + to_string(cr) + "," + to_string(cg)
+        + "," + to_string(cb) + ") is the green triangle");
+    let or_ = (t.corner_pixel >> 16) & 0xFF;
+    let og = (t.corner_pixel >> 8) & 0xFF;
+    let ob = (t.corner_pixel) & 0xFF;
+    failed = failed + report((or_ >= 20 && or_ <= 32) && (og >= 45 && og <= 57) && (ob >= 71 && ob <= 83),
+      "triangle clear: corner pixel rgb(" + to_string(or_) + "," + to_string(og)
+        + "," + to_string(ob) + ") is the 0.1/0.2/0.3 clear color");
+  } else {
+    if tri.error.kind == VULKAN_LOAD_ABSENT {
+      failed = failed + report(true, "triangle: SKIP -- loader absent (" + tri.error.message + ")");
+    } else if tri.error.kind == VULKAN_LOAD_NO_DEVICE {
+      failed = failed + report(true, "triangle: SKIP -- no display/driver path (" + tri.error.message + ")");
+    } else {
+      failed = failed + report(false, "triangle: failed -- " + tri.error.message);
+    }
+  }
+
   if failed == 0 {
     io.println("xiom.vulkan: all tests passed");
   } else {
