@@ -79,6 +79,18 @@ clone: stage ONLY your own item files). The two working rules are in
   compiler staged-build re-verify green for B-13/14/15 (`-1801`), B-16
   open; v0.64.4 archive not yet released. Relay: `-1553`..`-1829` batch
   items sent.
+- **Pickup (2026-10-11 18:47Z, new session)**: origin==local `f236925d`,
+  worktree clean; relay re-checked -- no items newer than `-1731`; packages
+  tip `555b501e` (75 eco releases; no notes past `eco-v0.1.159`); `status
+  validate` 524 packages, 0 errors; compiler v0.64.4 archive NOT yet on
+  GitHub (v0.64.3 latest; six-batch stack + release commit staged locally
+  in the compiler worktree, origin/main still batch 1). Doorbell re-armed
+  `wku_12c49bd1b001pDrS40ht1pQSup` (`0 */3 * * *`, next 21:00Z) + one-shot
+  archive watch `wku_12c4c9f76001rgGvHSYUGPWn2b` (~19:49Z). Pre-archive
+  baselines re-run on the v0.64.3 slot: `ptr-slot-write` B-16 still red
+  (`ptr_write_sum=11`, `byte_index_sum=66`), `ptr-arith` B-17 still red
+  (`d0=-16448`, `d1=-26864`; Int-typed `d12=12` exact) -- witnesses fresh
+  for the archive post-pair.
 - **Latest batch 61 (2026-10-11)**: `xiom.meshopt` **0.4.0 -- codec family
   (Phase 3 item 2)**: index SEQUENCE codec (byte-exact order; contrast
   pinned with the triangle-list codec, which rotates corners), quat filter
@@ -424,9 +436,9 @@ clone: stage ONLY your own item files). The two working rules are in
   `python tools/relay.py digest --to <lane>`.
 
 ### Next actions (ordered)
-1. **Doorbell**: **RE-ARMED 17:20Z** (`wku_12bfae69e001ycW3vSGtLBzalY`,
-   `0 */3 * * *`; fired 18:00Z, next 21:00Z for this session; the cron is
-   per-session -- re-arm on each new session). Prompt = relay pull +
+1. **Doorbell**: **RE-ARMED 18:47Z** (`wku_12c49bd1b001pDrS40ht1pQSup`,
+   `0 */3 * * *`; next 21:00Z; the cron is per-session -- re-arm on each
+   new session). Prompt = relay pull +
    process lane items + packages SESSION eco notes. Relay repo
    `E:\xiom-lang\xiom-relays`: sync with `git fetch origin` + compare --
    do NOT `git pull` ("Cannot fast-forward to multiple branches"); stage
@@ -436,7 +448,8 @@ clone: stage ONLY your own item files). The two working rules are in
    engine `1153` acked by their lanes, compiler `1533` re-verified
    (B-18/B-19 filed), compiler `1731` (v0.64.4 staged, info -> re-verify
    on archive), compiler `1801` re-verify sent (B-13/14/15 green on the
-   staged build), ops `1134` closed.
+   staged build), ops `1134` closed. Re-checked 18:47Z: still **clean**
+   (nothing newer than `-1731`; `-1828` routed to engine, awaiting reply).
 2. **Publish watch**: queue **EMPTY** -- everything through meshopt 0.4.0
    is live (`eco-v0.1.153`-`159`; meshopt 0.4.0 = `159`, `0e98c707...`,
    live 18:36:32Z); jolt 0.2.0 m258-parked only. sdl3 0.7.0-0.16.0 landed
@@ -539,7 +552,18 @@ context-limit handoff; prompt refreshed after batch 61).
    (B-13/1904/B-14/B-15 fixed; B-18/B-19 regressions filed); staged-build
    re-verify green (owner item `-1801-bindings`: B-13/14/15 on `3b31599f`,
    B-16 stays open); `REL-20261011-1731` (v0.64.4 stack staged) -> pin +
-   full re-run when the archive lands. Engine `-1321`/`-1411-2`/`-1539`
+   full re-run when the archive lands. **Archive re-run checklist**
+   (prepared 18:50Z; rows/fix refs in
+   `release-checks/compiler-compiler-v0.64.3.md`, relay repo): pin
+   (`COMPILER_VERSION` + installed slot), then (a) v0.64.3 release-check
+   bindings rows B-11/B-10/B-07/B-05/B-02 + jolt re-verdict via `-1815`;
+   (b) probes: `docs/repro/bindings-pilot/cb-abi/` (B-13/14/15/1904;
+   `probe8_name_fnparam.xi` B-18), `ptr-slot-write/` (B-16 fresh),
+   `ptr-arith/` (B-17), `foreign-ptr-read/` (B-20), `sdl3-init-arg/`
+   (B-19); sdl3 suite (51/52 vs 52/52) + glfw 37/37 (`--link user32`);
+   jolt port x2 with `--cxx-standard 17`. Reply to compiler with evidence,
+   then lift the workarounds the fixes cover. Engine
+   `-1321`/`-1411-2`/`-1539`
    delivered (batches 47/49/54) and replied; the engine lane moves its own
    items.
 7. **jolt**: parked on the m258 archive; on arrival: repin + merge tip
