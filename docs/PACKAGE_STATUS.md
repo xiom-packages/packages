@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.3` -- generated 2026-10-11T10:50:35Z.
+Toolchain pin: `v0.64.3` -- generated 2026-10-11T11:03:26Z.
 
 ## Summary
 
@@ -396,7 +396,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.geology | xiom-geology | incubating | tests/test_conformance.xi | pass 26/26 | fb04b916 | False | publish pending: next scope delta |
 | xiom.geom3d | xiom-geom3d | incubating | tests/test_conformance.xi | pass 27/27 | a3fb80eb | False | publish pending: next scope delta |
 | xiom.git2 | xiom-git2 | incubating | tests/test_conformance.xi | pass 24/24 | fd38977f | False | publish pending: next scope delta |
-| xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 32/32 | 949238bd | False | publish pending: bindings batch 38 (eco-v0.1.136) |
+| xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | 5a213f30 | False | publish pending: bindings batch 39 (eco-v0.1.137) |
 | xiom.golden | xiom-golden | incubating | tests/test_conformance.xi | pass 35/35 | fd38977f | False | publish pending: next scope delta |
 | xiom.gpio | xiom-gpio | incubating | tests/test_conformance.xi | pass 21/21 | 9dde8219 | False | category harmonization patch bump (registry metadata) |
 | xiom.graphql | xiom-graphql | incubating | tests/test_conformance.xi | unknown |  | False |  |
