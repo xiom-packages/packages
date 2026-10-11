@@ -21,14 +21,14 @@ declared-but-unexported names explicitly listed as SDK shipping facts).
 | 2 | SPIRV-Tools | `xiom.spirv-tools` | 67 C fns | 67 | 55/55 exported (12 shipping gaps source-verified) | suite 39/39; absent 3/3 SKIP; `docs/COVERAGE.md` | **DONE** (relayed) |
 | 3 | SPIRV-Cross | `xiom.spirv-cross` | 169 | 169 | 169/169 | suite 20/20; `docs/COVERAGE.md` | **DONE** (relayed) |
 | 4 | SPIRV-Reflect | `xiom.spirv-reflect` | 45 | 45 (vendored + bridge) | 45/45 | suite 40/40; `docs/COVERAGE.md` | **DONE** (relayed) |
-| 5 | shaderc | `xiom.shaderc` | (building) | -- | -- | wave-1 agent running | IN FLIGHT |
+| 5 | shaderc | `xiom.shaderc` | 45 | 45 | 45/45 (= DLL exports) | suite 17/17 + SKIP 4/4; 191 consts; shaderc v2026.4 @ b64fd42c | **DONE** (relayed) |
 | 6 | glslang | `xiom.glslang` | 61 (57 + 4 resource-limits) | 61 | 61/61 | suite 29/29 incl. GLSL->SPIR-V; C++ surface documented | **DONE** (relayed) |
 | 7 | slang | `xiom.slang` | 277 exported + 9 header-only | 277 | 277/277 | suite 20/20 incl. HLSL->SPIR-V | **DONE** (relayed) |
 | 8 | DXC | `xiom.dxc` | 128 methods / 27 interfaces | 128 (bridge) | 128/128 + DXIL probe | suite 20/20 | **DONE** (relayed) |
-| 9 | SDL2 | `xiom.sdl2` | (building) | -- | -- | wave-2 agent running | IN FLIGHT |
-| 10 | SDL3 100% | `xiom.sdl3` | (building; existing 59/59 suite kept green) | -- | -- | wave-2 agent running | IN FLIGHT |
-| 11 | VMA 100% | `xiom.vma` | (building; extends 0.2.0) | -- | -- | wave-2 agent running | IN FLIGHT |
-| 12 | SPIRV-Headers constants | `xiom.spirv-headers` | (building) | -- | -- | wave-2 agent running | IN FLIGHT |
+| 9 | SDL2 | `xiom.sdl2` | 844 exported | 844 | 844/844 | suite 16/16 + absent 4/4; SDL2 release-2.32.10 @ 5d249570 | **DONE** (relayed) |
+| 10 | SDL3 100% | `xiom.sdl3` | 1,270 exported | 1,270 (additive modules) | 1270/1270 | full-surface suite PASS; existing 59/59 kept green; B-19 fix preserved | **DONE** (relayed) |
+| 11 | VMA 100% | `xiom.vma` | 72 top-level vma* | 72 (generated C++ bridge) | 72/72 + RHI probe | suite bound=72/72; existing 5/5 green; vk_mem_alloc v3.3.0 | **DONE** (relayed) |
+| 12 | SPIRV-Headers constants | `xiom.spirv-headers` | 2,385 values (74 enum types) | 2,385 | n/a (constants) | suite pass; oracle byte-identical to clone (ad9184e7) | **DONE** (relayed) |
 
 ## Relayed batches
 
@@ -36,6 +36,8 @@ declared-but-unexported names explicitly listed as SDK shipping facts).
   5,983 consts + 8,243 meta consts) for batch assembly.
 - `REL-20261011-2231-bindings` -- wave-1 batch: spirv-tools, spirv-cross,
   spirv-reflect, glslang, slang, dxc (all six wrap+publish).
+- `REL-20261011-2305-bindings` -- wave-2 batch: sdl2, sdl3 full surface,
+  vma 100%, spirv-headers, shaderc (wrap+publish) -- **program matrix complete**.
 - `REL-20261011-2230-bindings` -- wave-1 compiler finding candidates
   (outbound Int->ptr cast lost across a fn return; `Vec[Str]` temporary element
   + `+` prints the raw pointer).
