@@ -103,9 +103,14 @@ clone: stage ONLY your own item files). The two working rules are in
   pre (`elapsed=100 init=1 w_all=16384`, SDL3 resolved from the Vulkan SDK
   dir); 1904 `glfw-fp-return` red pre (`advance_ms=0`, `after_set99_ms=0`,
   `opacity_x1000=262416000`, `gettime_ms=0`; probes run from
-  `packages/xiom-glfw/tests/` with `--link user32`). Fresh same-slot
-  witnesses for the archive verdicts; heavy rows (B-11, B-05/B-10,
-  sdl3/glfw suites, jolt) run at the archive.
+  `packages/xiom-glfw/tests/` with `--link user32`). Suite/heavy addendum
+  19:58Z: sdl3 suite **59/59** (incl. `init: SDL_WasInit(TIMER|EVENTS)
+  reflects the flags` PASS -- the suite grew past the README's 52; B-19's
+  post witness is that line), glfw **37/37** (time check SKIP
+  pre-1904-fix; `--link user32` auto), B-11 `vulkan-slot-recycle` red pre
+  (`inside: a=3 b=0 c=1 rc=0`; vma bridge from the package, no extra
+  args). Remaining pre-run gap: B-05/B-10 alloc-guard-spin (spin risk) +
+  jolt (needs m258+) -- run at the archive.
 - **Archive watch fire (19:50Z)**: v0.64.4 still not on GitHub (v0.64.3
   latest; compiler origin/main still batch 1); relay gained `-1856`
   (stdlib->xvector), `-1904-pulse` (pulse A/B on m271: batch-5 witness
@@ -582,9 +587,11 @@ context-limit handoff; prompt refreshed after batch 61).
    (b) probes: `docs/repro/bindings-pilot/cb-abi/` (B-13/14/15/1904;
    `probe8_name_fnparam.xi` B-18), `ptr-slot-write/` (B-16 fresh),
    `ptr-arith/` (B-17), `foreign-ptr-read/` (B-20), `sdl3-init-arg/`
-   (B-19); sdl3 suite (51/52 vs 52/52) + glfw 37/37 (`--link user32`);
-   jolt port x2 with `--cxx-standard 17`. Reply to compiler with evidence,
-   then lift the workarounds the fixes cover. Engine
+   (B-19); sdl3 suite (59 checks now -- B-19 post witness is the
+   `SDL_WasInit(TIMER|EVENTS) reflects the flags` line; pre 59/59) + glfw
+   37/37 (`--link user32`); jolt port x2 with `--cxx-standard 17`. Reply
+   to compiler with evidence, then lift the workarounds the fixes cover.
+   Engine
    `-1321`/`-1411-2`/`-1539`
    delivered (batches 47/49/54) and replied; the engine lane moves its own
    items.
