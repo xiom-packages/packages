@@ -6,7 +6,9 @@ vertex processing). The upstream C++ sources are vendored into `vendor/`
 library, no DLL, no SDK.
 
 > **Status:** `incubating` -- vendored runtime path green on the pin
-> (xiom v0.64.3; 30/30 x2). Registry carry-over: `v0.1.0`.
+> (xiom v0.64.3; 30/30 x2 native). Registry carry-over: `v0.1.0`
+> (2026-09-30, pre-eco-train); 0.2.0 published in `eco-v0.1.155` (sha256
+> `1158faef...`).
 > **Lane:** bindings.
 
 ## Quick start
