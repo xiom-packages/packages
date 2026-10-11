@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.3.0 |
+| Version | 0.3.1 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -90,6 +90,15 @@ and recomputing (see `scripts`-free procedure below).
   `Sdl3Resources` / `Sdl3WindowSize`. A missing resource symbol fails only
   this stage (`SDL3_LOAD_ABI`); the smoke stage is unaffected. Window-
   dependent checks SKIP on hosts that cannot create a window.
+
+**0.3.1 addition (engine ask `REL-20261010-1834-engine-3`, 2026-10-11):**
+`SDL_PushEvent` joined the resolved symbol set and the loader struct
+(`sdl3_push_event`); the suite gained a headless event-pump proof -- inject
+a synthetic user event (0x8000) into a 128-byte XIOM slot, pump, consume
+with `poll(NULL)` (22/22 x2 with SDL 3.4.8).  Buffer readback is deferred:
+on this host reading the foreign-written event buffer reproduces the
+B-11-family slot corruption (recycled bytes after the call; addendum item
+filed to the compiler lane).
 
 ## 4. Test matrix (recorded 2026-10-08, compiler v0.64.1)
 

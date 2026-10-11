@@ -115,6 +115,7 @@ pub type Sdl3Library = {
   p_delay: Int;
   p_pump_events: Int;
   p_poll_event: Int;
+  p_push_event: Int;
   p_get_error: Int;
 }
 
@@ -151,6 +152,8 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a10.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_PollEvent: " + a10.error }); }
   let a11 = dl.dl_sym(handle, "SDL_GetError");
   if !a11.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetError: " + a11.error }); }
+  let a12 = dl.dl_sym(handle, "SDL_PushEvent");
+  if !a12.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_PushEvent: " + a12.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -164,6 +167,7 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_delay: a8.value,
     p_pump_events: a9.value,
     p_poll_event: a10.value,
+    p_push_event: a12.value,
     p_get_error: a11.value,
   });
 }
@@ -291,6 +295,19 @@ pub fn sdl3_poll_event(lib: &Sdl3Library, event_ptr: Int) -> Bool
 {
   unsafe {
     let f = lib.p_poll_event as fn(Int) -> UInt8;
+    return (f(event_ptr) as Int) != 0;
+  }
+}
+
+/// SDL_PushEvent(event) -> bool.  Lets a headless caller inject a synthetic
+/// event (the headless-friendly event-pump proof for the engine ask
+/// REL-20261010-1834-engine-3); returns false when the queue rejects it.
+/// Complexity: O(1).
+pub fn sdl3_push_event(lib: &Sdl3Library, event_ptr: Int) -> Bool
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_push_event as fn(Int) -> UInt8;
     return (f(event_ptr) as Int) != 0;
   }
 }

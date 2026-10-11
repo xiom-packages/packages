@@ -19,6 +19,7 @@ module sdl3_conformance
 use xiom.io;
 use xiom.convert;
 use xiom.test;
+use xiom.ffi;
 use xiom.sdl3;
 
 fn b2s(b: Bool) -> Str {
@@ -35,6 +36,17 @@ fn report(ok: Bool, name: Str) -> Int {
   io.println("  [FAIL] " + name);
   io.flush_stdout();
   return 1;
+}
+
+// Zeroed out-param slot (the lane's proven idiom; no malloc/free).
+fn slot_new(n: Int) -> Vec[UInt8] {
+  var s: Vec[UInt8] = Vec[UInt8].new();
+  var i: Int = 0;
+  while i < n {
+    s.push(0 as UInt8);
+    i = i + 1;
+  }
+  return s;
 }
 
 // Constant tables and version arithmetic (independent of the DLL).
@@ -115,6 +127,30 @@ fn main() -> Int {
     sdl3_pump_events(&lib);
     let got = sdl3_poll_event(&lib, 0);
     failed = failed + report(true, "events: SDL_PumpEvents + SDL_PollEvent(NULL) safe (polled=" + b2s(got) + ")");
+
+    // Headless event-pump proof (engine ask REL-20261010-1834-engine-3):
+    // inject a synthetic user event (SDL_EVENT_USER = 0x8000) into a
+    // 128-byte XIOM slot, pump, and verify the queue semantics WITHOUT
+    // reading the foreign-written buffer: poll(NULL) must consume it
+    // (true) and the following poll(NULL) must find the queue empty
+    // (false).  Buffer readback is deferred -- on this host it reproduces
+    // the B-11 slot-read corruption (recycled bytes; see the addendum item
+    // filed to the compiler lane).
+    var ev_in = slot_new(128);
+    ffi.ptr_write_u8(ev_in.as_mut_ptr(), 0 as UInt8);
+    ffi.ptr_write_u8(ev_in.as_mut_ptr() + 1, 128 as UInt8);
+    // Drain any early queue entries (bounded) so the consume check is ours.
+    var drained: Int = 0;
+    while drained < 500 {
+      if !sdl3_poll_event(&lib, 0) { break; }
+      drained = drained + 1;
+    }
+    let pushed = sdl3_push_event(&lib, ev_in.as_mut_ptr() as Int);
+    sdl3_pump_events(&lib);
+    let consumed = sdl3_poll_event(&lib, 0);
+    failed = failed + report(pushed && consumed,
+      "events: synthetic user event (0x8000) injected + consumed (pushed=" + b2s(pushed)
+        + ", consumed=" + b2s(consumed) + ", drained-before=" + to_string(drained) + ")");
 
     // Quit and verify the flags are cleared.
     sdl3_quit(&lib);
