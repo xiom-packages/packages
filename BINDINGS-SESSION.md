@@ -373,6 +373,19 @@ pointer headers.
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
 
 ```
+BINDINGS PUBLISH CONFIRM (batches 38-40 window): xiom.glfw 0.4.0 live in
+eco-v0.1.136 (sha256 c393b079...); xiom.glfw 0.5.0 (124/124 exports --
+callback ABI solved with a dispatcher+registry pattern) live in
+eco-v0.1.137; the native fixes (f64_from_bits negative bit patterns +
+layout-invariant key-name check) published as the eco-v0.1.138 fix
+(0cd7bc00..., 11:16:09Z). xiom.ann + xiom.stb appends complete and live in
+eco-v0.1.139 (ann 73f66ab5..., stb 41a205f7..., 11:39:26Z; allowlist
+509 -> 511). SDL3 growth continues: 0.6.0 displays+keyboard and 0.7.0
+filesystem relayed (batches 43/44); SDL3 present/blit wishlist
+(REL-20261011-1153-engine) acked.
+```
+
+```
 BINDINGS BATCH 38: head=ad1cacc3 + this record commit; packages=xiom.glfw 0.4.0:
 gamma ramps (raw 1536 B), cursors (standard + RGBA create/set/destroy), 1x1 RGBA window
 icon, joystick/gamepad polling (axes/buttons/hats/names/GUIDs/state raw + button/axis
