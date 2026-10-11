@@ -15,7 +15,7 @@ pins and evidence.
 > fixed upstream (`c017165`); suite **23/23 x2** + churn matrix **orders
 > 3/4/5/6 x 20k ops @ keyspace 4096** (incl. the former reproducer, now
 > GREEN) on v0.64.3. 0.1.0 shipped in `eco-v0.1.121` (sha256 `1ce8446e...`);
-> 0.1.1 publish pending.
+> 0.1.1 published in `eco-v0.1.141` (sha256 `ba4b1782...`).
 
 ## Consumer snippet
 
