@@ -9,8 +9,12 @@ is not installed.
 > **Status:** `incubating` -- **0.12.0 audio streaming + mouse wheel + runtime**
 > (push audio streams: open default playback device, queue PCM from an XIOM
 > buffer, resume/pause/destroy; mouse-wheel event accessors -- engine ask
-> `REL-20261011-1411-engine-2`). Suite **49/49 x2** with the official
-> SDL 3.4.8 DLL + absent 4/4 x2. **Lane:** bindings (`keywords: ["binding"]`).
+> `REL-20261011-1411-engine-2`). Native **49/49 x2** with the official
+> SDL 3.4.8 DLL + absent **4/4 x2** (v0.64.3; 5 byte-level `Vec<UInt8>` in
+> the new wheel accessors normalized to `Vec[UInt8]` pre-publish,
+> `ec8e557a`). 0.11.0 shipped in `eco-v0.1.147`; 0.12.0 published in
+> `eco-v0.1.148` (sha256 `e7c005e6...`). **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
