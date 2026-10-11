@@ -6,11 +6,12 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.12.0 audio streaming + mouse wheel + runtime**
-> (push audio streams: open default playback device, queue PCM from an XIOM
-> buffer, resume/pause/destroy; mouse-wheel event accessors -- engine ask
-> `REL-20261011-1411-engine-2`). Suite **49/49 x2** with the official
-> SDL 3.4.8 DLL + absent 4/4 x2. **Lane:** bindings (`keywords: ["binding"]`).
+> **Status:** `incubating` -- **0.13.0 capture streams + stream query + runtime**
+> (audio capture from the default recording device: open, resume, drain PCM
+> via `SDL_GetAudioStreamData`, plus available/clear/format queries; push
+> audio streams and mouse-wheel accessors landed in 0.12.0). Suite **52/52 x2**
+> with the official SDL 3.4.8 DLL + absent 4/4 x2. **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -51,6 +52,7 @@ fn main() {
 | Input/window contract (0.9.0) | `sdl3_mouse_state` (`Sdl3MouseState`: window-relative x/y + button mask), `sdl3_set_window_size`, `sdl3_set_window_resizable`, the full `SDL_EVENT_WINDOW_*` family (RESIZED/MOVED/PIXEL_SIZE_CHANGED/FOCUS_*/MINIMIZED/MAXIMIZED/RESTORED/SHOWN/HIDDEN/EXPOSED/CLOSE_REQUESTED) |
 | Audio/joystick (0.10.0) | `sdl3_audio_playback_count/at`, `sdl3_audio_recording_count/at`, `sdl3_audio_device_name`, `sdl3_current_audio_driver` (requires `SDL_INIT_AUDIO`); `sdl3_joystick_count/at`, `sdl3_joystick_name_for_id` (requires `SDL_INIT_JOYSTICK`); constant `SDL_PIXELFORMAT_ABGR8888` |
 | Audio stream (0.12.0) | `sdl3_open_audio_playback_stream(format, channels, freq)` (default device, NULL callback = push mode), `sdl3_put_audio_stream_data(stream, buf, len)`, `sdl3_resume/pause_audio_stream_device`, `sdl3_audio_stream_device_paused`, `sdl3_get_audio_stream_queued`, `sdl3_destroy_audio_stream`; `SDL_AUDIO_F32`, `SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK` |
+| Audio capture (0.13.0) | `sdl3_open_audio_recording_stream(format, channels, freq)` (default recording device, NULL callback = pull mode; returns 0 -> SKIP), `sdl3_get_audio_stream_data(stream, buf, len)` (bytes read into an XIOM buffer), `sdl3_get_audio_stream_available`, `sdl3_clear_audio_stream`, `sdl3_get_audio_stream_format` (`Sdl3AudioStreamFormat`); `SDL_AUDIO_DEVICE_DEFAULT_RECORDING` |
 | Mouse wheel (0.12.0) | `sdl3_event_wheel_x/_y` (+`_bits`), `sdl3_event_wheel_direction`, `sdl3_event_wheel_mouse_x/_y`; `SDL_MOUSEWHEEL_NORMAL/FLIPPED` |
 | Event decode (0.4.0) | `sdl3_event_type`, `sdl3_event_timestamp`, `sdl3_event_window_id`, `sdl3_event_key_scancode/key_code/mods/down/repeat`, `sdl3_event_mouse_state/x_bits/y_bits/x/y/button/button_down/clicks`, `sdl3_event_window_data1/data2`, `sdl3_f32_from_bits`, `SDL_EVENT_SIZE` |
 | Error | `sdl3_get_error` |
