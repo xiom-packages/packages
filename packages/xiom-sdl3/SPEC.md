@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.6.0 |
+| Version | 0.7.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -146,12 +146,26 @@ refresh_rate @20 f32 -- floats decode via `sdl3_f32_from_bits` (B-12
 discipline).  `SDL_GetDisplays` returns one id per `sdl3_display_at` call
 (array fetched + freed per call; O(displays)).
 
+**0.7.0 addition (filesystem, 2026-10-11):** 6 symbols joined the core
+loader: `SDL_GetBasePath`, `SDL_GetPrefPath`, `SDL_GetCurrentDirectory`,
+`SDL_CreateDirectory`, `SDL_RemovePath`, `SDL_GetPathInfo`.  Ownership per
+the pin: BasePath is SDL-owned (copied, never freed); PrefPath and
+CurrentDirectory are caller-owned and freed via `SDL_free` after the copy
+into an XIOM Str.  `SDL_PathInfo` layout pinned (type i32 @0, size u64 @8,
+create @16, modify @24, access @32; SDL_Time = Sint64 ns); read from an
+owned 40-byte slot (proven readback direction).  `SDL_PATHTYPE_*` constants
+exported.  The suite's create/remove round trip runs under
+`%APPDATA%\xiom-lane\sdl3-conformance\` (SDL_GetPrefPath creates it; the
+suite removes the subdir and the app dir after asserting
+`SDL_PATHTYPE_DIRECTORY` + a positive mtime) -- no shared-toolchain paths
+are touched (ops hygiene item REL-20261011-1134-ops).
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 36/36 x2** -- previous 27 checks + displays (count=2, primary=1 in list, name "C24F390", bounds 1920x1080, usable 1920x1032, current+desktop modes 1920x1080) + keyboard (numkeys=512 idle, mod state non-lock bits idle) on this desktop box |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 43/43 x2** -- previous 36 checks + filesystem (base + cwd = package dir, pref path created under AppData, kind=DIRECTORY, subdir create/remove, missing-path probe, cleanup) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no
 extra compiler flags (this is the design win of the loader path over a C

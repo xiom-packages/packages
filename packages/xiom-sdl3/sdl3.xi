@@ -144,6 +144,12 @@ pub type Sdl3Library = {
   p_get_mod_state: Int;
   p_get_keyboard_focus: Int;
   p_free: Int;
+  p_get_base_path: Int;
+  p_get_pref_path: Int;
+  p_get_current_directory: Int;
+  p_create_directory: Int;
+  p_remove_path: Int;
+  p_get_path_info: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -209,6 +215,18 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a25.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetKeyboardFocus: " + a25.error }); }
   let a26 = dl.dl_sym(handle, "SDL_free");
   if !a26.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_free: " + a26.error }); }
+  let a27 = dl.dl_sym(handle, "SDL_GetBasePath");
+  if !a27.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetBasePath: " + a27.error }); }
+  let a28 = dl.dl_sym(handle, "SDL_GetPrefPath");
+  if !a28.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetPrefPath: " + a28.error }); }
+  let a29 = dl.dl_sym(handle, "SDL_GetCurrentDirectory");
+  if !a29.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetCurrentDirectory: " + a29.error }); }
+  let a30 = dl.dl_sym(handle, "SDL_CreateDirectory");
+  if !a30.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CreateDirectory: " + a30.error }); }
+  let a31 = dl.dl_sym(handle, "SDL_RemovePath");
+  if !a31.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_RemovePath: " + a31.error }); }
+  let a32 = dl.dl_sym(handle, "SDL_GetPathInfo");
+  if !a32.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetPathInfo: " + a32.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -238,6 +256,12 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_get_mod_state: a24.value,
     p_get_keyboard_focus: a25.value,
     p_free: a26.value,
+    p_get_base_path: a27.value,
+    p_get_pref_path: a28.value,
+    p_get_current_directory: a29.value,
+    p_create_directory: a30.value,
+    p_remove_path: a31.value,
+    p_get_path_info: a32.value,
   });
 }
 
@@ -1456,5 +1480,132 @@ pub fn sdl3_keyboard_focus(lib: &Sdl3Library) -> Int
   unsafe {
     let f = lib.p_get_keyboard_focus as fn() -> Int;
     return f();
+  }
+}
+
+// =========================================================================
+// 0.7.0: filesystem basics (no subsystem init required)
+//
+// SDL_GetBasePath returns an SDL-owned const string (do NOT free);
+// SDL_GetPrefPath / SDL_GetCurrentDirectory return caller-owned strings that
+// are freed with SDL_free after copying into an XIOM Str.  SDL_PathInfo
+// layout pinned from the release-3.2.10 header (SDL_Time = Sint64 ns):
+// type i32 @0, size u64 @8, create_time @16, modify_time @24, access @32.
+// =========================================================================
+
+pub const SDL_PATHTYPE_NONE: Int = 0;
+pub const SDL_PATHTYPE_FILE: Int = 1;
+pub const SDL_PATHTYPE_DIRECTORY: Int = 2;
+pub const SDL_PATHTYPE_OTHER: Int = 3;
+
+pub type Sdl3PathInfo = {
+  kind: Int;
+  size: Int;
+  create_time: Int;
+  modify_time: Int;
+  exists: Bool;
+}
+
+fn sdl3_read_u64_at(buf: &Vec[UInt8], off: Int) -> Int
+  requires: off >= 0
+  requires: buf.len() >= off + 8
+{
+  let lo = sdl3_read_u32_at(buf, off);
+  let hi = sdl3_read_u32_at(buf, off + 4);
+  return lo | (hi << 32);
+}
+
+/// SDL_GetBasePath (SDL-owned string, copied; "" on error).  Read-only.
+/// Complexity: O(len).
+pub fn sdl3_get_base_path(lib: &Sdl3Library) -> Str
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_base_path as fn() -> Int;
+    let p = f();
+    if p == 0 { return ""; }
+    return Str::from_c_str(p as *UInt8);
+  }
+}
+
+/// SDL_GetPrefPath(org, app): creates and returns the per-user directory
+/// (caller-owned; copied then SDL_free'd here).  "" on error.
+/// Complexity: O(len).
+pub fn sdl3_get_pref_path(lib: &Sdl3Library, org: Str, app: Str) -> Str
+  requires: lib.handle != 0
+  requires: org.len() > 0
+  requires: app.len() > 0
+{
+  unsafe {
+    let f = lib.p_get_pref_path as fn(*UInt8, *UInt8) -> Int;
+    let p = f(org.c_str(), app.c_str());
+    if p == 0 { return ""; }
+    let s = Str::from_c_str(p as *UInt8);
+    let fr = lib.p_free as fn(Int);
+    fr(p);
+    return s;
+  }
+}
+
+/// SDL_GetCurrentDirectory (caller-owned; copied then SDL_free'd here).
+/// Complexity: O(len).
+pub fn sdl3_get_current_directory(lib: &Sdl3Library) -> Str
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_current_directory as fn() -> Int;
+    let p = f();
+    if p == 0 { return ""; }
+    let s = Str::from_c_str(p as *UInt8);
+    let fr = lib.p_free as fn(Int);
+    fr(p);
+    return s;
+  }
+}
+
+/// SDL_CreateDirectory -> bool.
+/// Complexity: O(1).
+pub fn sdl3_create_directory(lib: &Sdl3Library, path: Str) -> Bool
+  requires: lib.handle != 0
+  requires: path.len() > 0
+{
+  unsafe {
+    let f = lib.p_create_directory as fn(*UInt8) -> UInt8;
+    return (f(path.c_str()) as Int) != 0;
+  }
+}
+
+/// SDL_RemovePath (file or EMPTY directory) -> bool.
+/// Complexity: O(1).
+pub fn sdl3_remove_path(lib: &Sdl3Library, path: Str) -> Bool
+  requires: lib.handle != 0
+  requires: path.len() > 0
+{
+  unsafe {
+    let f = lib.p_remove_path as fn(*UInt8) -> UInt8;
+    return (f(path.c_str()) as Int) != 0;
+  }
+}
+
+/// SDL_GetPathInfo -> Sdl3PathInfo (`exists=false` + zeroed fields on error).
+/// Complexity: O(1).
+pub fn sdl3_get_path_info(lib: &Sdl3Library, path: Str) -> Sdl3PathInfo
+  requires: lib.handle != 0
+  requires: path.len() > 0
+{
+  unsafe {
+    var slot = sdl3_slot(40);
+    let f = lib.p_get_path_info as fn(*UInt8, *UInt8) -> UInt8;
+    let ok = (f(path.c_str(), slot.as_mut_ptr()) as Int) != 0;
+    if !ok {
+      return Sdl3PathInfo{ kind: SDL_PATHTYPE_NONE; size: 0; create_time: 0; modify_time: 0; exists: false };
+    }
+    return Sdl3PathInfo{
+      kind: sdl3_read_u32_at(&slot, 0),
+      size: sdl3_read_u64_at(&slot, 8),
+      create_time: sdl3_read_u64_at(&slot, 16),
+      modify_time: sdl3_read_u64_at(&slot, 24),
+      exists: true,
+    };
   }
 }

@@ -522,6 +522,37 @@ fn main() -> Int {
     sdl3_quit(&lib);
   }
 
+  // -------------------------------------------------------------------
+  // 0.7.0: filesystem basics (no subsystem init required).  The create/
+  // remove round trip lives under the per-user pref path and is cleaned up.
+  // -------------------------------------------------------------------
+  let fbase = sdl3_get_base_path(&lib);
+  failed = failed + report(fbase.len() > 0, "filesystem: base path = \"" + fbase + "\"");
+  let fcwd = sdl3_get_current_directory(&lib);
+  failed = failed + report(fcwd.len() > 0, "filesystem: current dir = \"" + fcwd + "\"");
+  let fpref = sdl3_get_pref_path(&lib, "xiom-lane", "sdl3-conformance");
+  failed = failed + report(fpref.len() > 0, "filesystem: pref path = \"" + fpref + "\"");
+  if fpref.len() > 0 {
+    let pi0 = sdl3_get_path_info(&lib, fpref);
+    failed = failed + report(pi0.exists && pi0.kind == SDL_PATHTYPE_DIRECTORY,
+      "filesystem: pref path info kind=" + to_string(pi0.kind) + " exists=" + b2s(pi0.exists));
+    let fsub = fpref + "sub";
+    let fmade = sdl3_create_directory(&lib, fsub);
+    let pi1 = sdl3_get_path_info(&lib, fsub);
+    failed = failed + report(fmade && pi1.exists && pi1.kind == SDL_PATHTYPE_DIRECTORY
+        && pi1.modify_time > 0,
+      "filesystem: create subdir (made=" + b2s(fmade) + " kind=" + to_string(pi1.kind)
+        + " size=" + to_string(pi1.size) + " mtime-ns=" + to_string(pi1.modify_time) + ")");
+    let frm1 = sdl3_remove_path(&lib, fsub);
+    let pi2 = sdl3_get_path_info(&lib, fsub);
+    let fbad = sdl3_get_path_info(&lib, "Q:\\xiom-lane-no-such-path\\x");
+    failed = failed + report(frm1 && !pi2.exists && !fbad.exists,
+      "filesystem: remove subdir + missing-path probe (removed=" + b2s(frm1)
+        + " gone=" + b2s(!pi2.exists) + " missing=" + b2s(!fbad.exists) + ")");
+    let frm2 = sdl3_remove_path(&lib, fpref);
+    failed = failed + report(true, "filesystem: cleanup pref dir (removed=" + b2s(frm2) + ")");
+  }
+
   let cl = sdl3_close(&lib);
   failed = failed + report(cl.is_ok, "loader: SDL3 handle released");
 
