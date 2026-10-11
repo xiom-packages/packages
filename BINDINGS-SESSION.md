@@ -3,7 +3,7 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: SDL3 0.16.0 SHIPPED -- batches 31-53 relayed** (CLEAN HANDOFF
+**STATUS: ASSIMP 0.8.0 SHIPPED -- batches 31-54 relayed** (CLEAN HANDOFF
 2026-10-11 14:45Z; ticks 14:47Z/15:00Z/15:12Z/15:53Z/16:02Z/16:22Z).
 Published through the window: `eco-v0.1.132`..`eco-v0.1.151` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0 (incl. the pre-publish native fixes), vulkan 0.5.0
@@ -12,9 +12,10 @@ ops append gate cleared), sdl3 0.5.0 `a350dd46` (`140`), btree 0.1.1 (`141`,
 other lane), sdl3 **0.7.0-0.15.0** (`142`-`151`; `144` also carries ann
 0.2.0; `149` = capture streams + query, `150` = pointer/relative mouse,
 `151` = live joystick path).
-**Publish queue (packages): sdl3 0.16.0** (batch 53 relayed 16:22Z via
-`REL-20261011-1622-bindings`) + jolt 0.2.0 (parked on the m258 archive).
-Lane tree tip: `c3f83489` at handoff; now `16e94e8b` (clean; all pushed).
+**Publish queue (packages): xiom.assimp 0.8.0** (batch 54 relayed 16:55Z via
+`REL-20261011-1655-bindings`; sdl3 0.16.0 landed in `eco-v0.1.152`) + jolt
+0.2.0 (parked on the m258 archive).
+Lane tree tip: `c3f83489` at handoff; now `a76bdef4` (clean; all pushed).
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
 **B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
 >=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
@@ -22,15 +23,18 @@ writes), **B-17** (raw-pointer arithmetic `as_mut_ptr() + N` yields WILD
 addresses; root cause of B-16 -- repro `docs/repro/bindings-pilot/ptr-arith/`),
 **B-18** (regression in compiler fde5548e: bare-name -> fn-typed extern
 param makes the enclosing fn return 0 early, silently -- repro
-`docs/repro/bindings-pilot/cb-abi/probe8_name_fnparam.xi`), **B-19**
-(regression in fde5548e: `SDL_Init` through the loader cast-call returns
+`docs/repro/bindings-pilot/cb-abi/probe8_name_fnparam.xi`), **B-19** (regression in fde5548e: `SDL_Init` through the loader cast-call returns
 success but initializes nothing -- sdl3 suite 51/52 vs 52/52 -- repro
-`docs/repro/bindings-pilot/sdl3-init-arg/`).
+`docs/repro/bindings-pilot/sdl3-init-arg/`), **B-20** (v0.64.3 int-to-ptr
+sanitization: foreign pointers cast to Int read zeros through the loader
+idiom; C-copy-into-owned-slot is the shipped shape -- repro
+`docs/repro/bindings-pilot/foreign-ptr-read/`).
 Engine P3 asks: blit (0.8.0), typed input (0.6.0/0.9.0), wheel + audio
-stream (0.12.0), capture streams + query (0.13.0) -- ALL PUBLISHED;
-pointer/relative mouse (0.14.0) + live joystick (0.15.0) in the publish
-queue. Engine P4 ask scoped (assimp 0.8.0 helpers, reply sent
-`REL-20261011-1602-bindings-2`). Upstream sources live in `E:\repos`
+stream (0.12.0), capture streams + query (0.13.0), pointer/relative mouse
+(0.14.0), live joystick (0.15.0), drag-drop payloads (0.16.0) -- ALL
+PUBLISHED. Engine P4 ask DELIVERED: assimp 0.8.0 file-import + mesh-data
+getters, relayed to packages (batch 54) and noted to engine
+(`REL-20261011-1655-bindings(-2)`). Upstream sources live in `E:\repos`
 (Vulkan-Headers, SDL3, FFmpeg + pool).
 
 ## RESUME HERE (handoff, 2026-10-11)
@@ -41,18 +45,26 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 16:22Z, batch-53 ship tick)**: batches 31-53
-  relayed; sdl3 **0.12.0-0.15.0 PUBLISHED** (`eco-v0.1.148`-`151`).
-  **Publish queue (packages): sdl3 0.16.0** (batch 53)
-  + jolt 0.2.0 (m258 parked only). Engine P3 asks: blit (0.8.0, `143`),
-  displays/keyboard (0.7.0, `142`), mouse/window contract (0.9.0, `145`),
-  audio+joystick enum (0.10.0, `146`), tables (0.11.0, `147`), audio stream
-  + wheel (0.12.0, `148`), capture + query (0.13.0, `149`), pointer +
-  relative mouse (0.14.0, `150`), live joystick (0.15.0, `151`) -- ALL
-  PUBLISHED; drag-drop decode (0.16.0) queued. Relay:
-  `REL-20261011-1533-compiler` processed (verdicts + B-18/B-19 filed);
-  batch items `-1553`/`-1602`/`-1622` sent; engine P4 assimp scope
-  accepted + replied (`REL-20261011-1602-bindings-2`).
+- **CURRENT (2026-10-11 16:55Z, batch-54 ship tick)**: batches 31-54
+  relayed; sdl3 **0.12.0-0.16.0 PUBLISHED** (`eco-v0.1.148`-`152`; `152` =
+  drag-drop decode, 59/59 + absent 5/5).
+  **Publish queue (packages): xiom.assimp 0.8.0** (batch 54)
+  + jolt 0.2.0 (m258 parked only). Engine P3 asks: ... through live joystick
+  (0.15.0, `151`) ALL PUBLISHED; engine P4 assimp ask DELIVERED (0.8.0
+  relayed `-1655`). Relay: `REL-20261011-1533-compiler` processed
+  (verdicts + B-18/B-19/B-20 rows); batch items
+  `-1553`/`-1602`/`-1622`/`-1655` sent.
+- **Latest batch 54 (2026-10-11)**: `xiom.assimp` **0.8.0 -- file import +
+  mesh-data getters** (engine P4 asset pipeline): `assimp_import_file(path)`
+  (Triangulate + FlipUVs; 1-based registry, 4 live imports),
+  `assimp_release`, mesh counts/has_uvs, `assimp_mesh_positions`
+  Vec[Float64] xyz, `assimp_mesh_uvs` Vec[Float64] uv, `assimp_mesh_indices`
+  Vec[UInt32].  Structural: the bridge COPIES into XIOM-owned slots read
+  byte-indexed -- foreign-pointer round-trips read zeros on v0.64.3
+  (**B-20** documented with a minimal host repro; T006 requires the owned
+  conversion anyway).  New fixture `tests/fixtures/quad_uv.obj` (package
+  `.gitignore` gained `!tests/fixtures/*.obj`).  Ports: **16/16 x2** native
+  (125 TUs, ~4-5 min/build).  feat `fa372e07` + record `a76bdef4`.
 - **Latest batch 53 (2026-10-11)**: `xiom.sdl3` **0.16.0 -- drag-drop
   payload decode**: NO new DLL symbols -- pure-buffer `SDL_DropEvent`
   accessors (windowID @16, x @20, y @24, source ptr @32, data ptr @40)
@@ -313,26 +325,26 @@ clone: stage ONLY your own item files). The two working rules are in
    but replied (`REL-20261011-1345-bindings-2`,
    `REL-20261011-1437-bindings-2`), xvector `1203` + engine `1153`
    acked by their lanes, compiler `1342` open (info).
-2. **Publish watch**: packages queue = sdl3 **0.16.0** (batch 53, relayed
-   16:22Z) + jolt 0.2.0 (m258 archive parked). 0.7.0-0.15.0 landed in
-   `eco-v0.1.142`-`151` (150 = pointer/relative mouse, 151 = live joystick,
-   packages re-ran both shapes). Record new eco versions in the relay area
-   of this file. The engine consumes only published packages -- if asked,
-   nudge packages.
+2. **Publish watch**: packages queue = **xiom.assimp 0.8.0** (batch 54,
+   relayed 16:55Z) + jolt 0.2.0 (m258 archive parked). sdl3 0.7.0-0.16.0
+   landed in `eco-v0.1.142`-`152` (152 = drag-drop decode). Record new eco
+   versions in the relay area of this file. The engine consumes only
+   published packages -- if asked, nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): 0.4.0-0.16.0 shipped (batches 41-53;
    capture in 0.13.0, pointer/relative mouse in 0.14.0, live joystick
    reads in 0.15.0, drag-drop decode in 0.16.0). Remaining SDL3 candidate:
    POSIX soname (deferred -- no Linux CI target yet). Apply the 1-arg
-   handler discipline (B-15), byte-indexed slot writes (B-16), and **no
+   handler discipline (B-15), byte-indexed slot writes (B-16), **no
    pointer arithmetic (B-17: one owned slot per out-param; Int address
-   math stays correct)**. Ship each batch as: feat -> x2 (present + absent
-   PATH-filtered) -> record -> relay -> ledger. Constant regeneration
-   recipe: comment-strip + enum-parse + macro-eval vs the headers
-   (ROADMAP item 1). **Next lane task**: engine P4 ask -- assimp 0.8.0
-   file-import + mesh-data helpers (scope accepted
-   `REL-20261011-1602-bindings-2`; source clone in `E:\repos\assimp`?  check
-   the pool dirs; fixture suzanne.glb 70636 B engine-side).
+   math stays correct)**, and the **B-20 rule: never read through foreign
+   pointers -- have C copy into an owned slot**. Ship each batch as: feat
+   -> x2 (present + absent PATH-filtered) -> record -> relay -> ledger.
+   Constant regeneration recipe: comment-strip + enum-parse + macro-eval
+   vs the headers (ROADMAP item 1). **Assimp 0.8.0 SHIPPED** (batch 54;
+   engine P4 ask delivered). **Next lane task: the `E:\repos`
+   full-coverage pool** (miniaudio, meshoptimizer, ozz-animation, imgui,
+   box2d) -- bind from the real sources, never from memory.
 4. ~~stb publish~~ **DONE** (`eco-v0.1.139`); batches 39/40/41 wrapped on
    main (`470e13f3`); vulkan 0.5.0 live (`eco-v0.1.138`).
 
@@ -358,20 +370,22 @@ Bindings lane continuation -- clean handoff pickup (2026-10-11 15:12Z).
    eco publish notes and record confirmed eco versions in
    BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
    action." Then check relay once now; also check the packages publish
-   queue (sdl3 0.16.0 at handoff).
+   queue (assimp 0.8.0 at handoff).
 
 3. Continue the ordered tasks. Priority: (a) SDL3 continuance from
    E:\repos\SDL3 (remaining candidate: POSIX soname; drag-drop decode
    shipped in 0.16.0); (b) the E:\repos
    full-coverage pool (miniaudio, meshoptimizer, ozz-animation, imgui,
-   box2d) -- bind from the real sources, never from memory; (c) publish
-   watch for sdl3 0.16.0 + jolt (m258); (d) Vulkan phase 4 only if
+   box2d) -- bind from the real sources, never from memory;
+   assimp 0.8.0 (engine P4) shipped in batch 54; (c) publish
+   watch for assimp 0.8.0 + jolt (m258); (d) Vulkan phase 4 only if
    the engine asks (compute/descriptors/textures/frames-in-flight).
 
-   Respect: B-11/B-12/B-13/B-14/B-15/B-16/B-17 discipline (byte-indexed
+   Respect: B-11/B-12/B-13/B-14/B-15/B-16/B-17/B-20 discipline (byte-indexed
    slot writes, packed returns, dispatcher+registry callbacks, 1-arg
    handler shapes, structured ifs, **no pointer arithmetic -- one owned
-   slot per out-param**); the 100%-coverage owner directive; the "stage
+   slot per out-param; never read through foreign pointers, have C copy
+   into an owned slot (B-20)**); the 100%-coverage owner directive; the "stage
    only your own relay items" rule; re-arm 1-arg form; the absent shape
    needs the VulkanSDK dir filtered from PATH on this host; git fetch +
    git log before every commit (parallel owner session). Deliver batches

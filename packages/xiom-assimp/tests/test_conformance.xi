@@ -21,6 +21,11 @@ fn report(ok: Bool, name: Str) -> Int {
   return 1;
 }
 
+fn b2s(b: Bool) -> Str {
+  if b { return "true"; }
+  return "false";
+}
+
 fn i2s(n: Int) -> Str {
   if n == 0 { return "0"; }
   var neg = false;
@@ -101,6 +106,79 @@ fn main() -> Int {
     && p2.value.off_vertices == p.value.off_vertices
     && p2.value.smd_vertices == p.value.smd_vertices;
   failed = failed + report(same, "determinism: repeated imports identical");
+
+  // 4. 0.8.0: file-based import + mesh-data getters (engine P4 shape).
+  let imp = assimp_import_file("tests/fixtures/quad_uv.obj");
+  if imp.is_ok {
+    let h = imp.value;
+    let mc = assimp_mesh_count(h);
+    let vc = assimp_mesh_vertex_count(h, 0);
+    let tc = assimp_mesh_triangle_count(h, 0);
+    let hu = assimp_mesh_has_uvs(h, 0);
+    failed = failed + report(mc == 1 && vc == 4 && tc == 2 && hu,
+      "file-import: quad_uv.obj handle=" + i2s(h) + " meshes=" + i2s(mc)
+        + " verts=" + i2s(vc) + " tris=" + i2s(tc) + " uvs=" + b2s(hu));
+
+    let pos = assimp_mesh_positions(h, 0);
+    let pos_ok = pos.len() == 12
+      && pos[0] == 0.0 && pos[1] == 0.0 && pos[2] == 0.0
+      && pos[6] == 1.0 && pos[7] == 1.0 && pos[8] == 0.0;
+    failed = failed + report(pos_ok,
+      "file-import: positions " + i2s(pos.len()) + " [p0=" + i2s(pos[0] as Int)
+        + " p1=" + i2s(pos[1] as Int) + " p2=" + i2s(pos[2] as Int)
+        + " p3=" + i2s(pos[3] as Int) + " p6=" + i2s(pos[6] as Int)
+        + " p7=" + i2s(pos[7] as Int) + " p8=" + i2s(pos[8] as Int)
+        + " p9=" + i2s(pos[9] as Int) + "]");
+
+    let uvs = assimp_mesh_uvs(h, 0);
+    // aiProcess_FlipUVs flips V: vt(0,0)->(0,1), (1,0)->(1,1), (1,1)->(1,0),
+    // (0,1)->(0,0).
+    let uvs_ok = uvs.len() == 8 && uvs[0] == 0.0 && uvs[1] == 1.0
+      && uvs[2] == 1.0 && uvs[3] == 1.0 && uvs[6] == 0.0 && uvs[7] == 0.0;
+    failed = failed + report(uvs_ok,
+      "file-import: uvs " + i2s(uvs.len()) + " [u0=" + i2s(uvs[0] as Int)
+        + " v0=" + i2s(uvs[1] as Int) + " u1=" + i2s(uvs[2] as Int)
+        + " v1=" + i2s(uvs[3] as Int) + " u3=" + i2s(uvs[6] as Int)
+        + " v3=" + i2s(uvs[7] as Int) + "]");
+
+    let idx = assimp_mesh_indices(h, 0);
+    var idx_ok = idx.len() == 6;
+    var has0 = false;
+    var has1 = false;
+    var has2 = false;
+    var has3 = false;
+    var k = 0;
+    while k < idx.len() {
+      let e = idx[k] as Int;
+      if e < 0 || e > 3 { idx_ok = false; }
+      if e == 0 { has0 = true; }
+      if e == 1 { has1 = true; }
+      if e == 2 { has2 = true; }
+      if e == 3 { has3 = true; }
+      k = k + 1;
+    }
+    idx_ok = idx_ok && has0 && has1 && has2 && has3;
+    if idx_ok {
+      if idx[0] == idx[1] || idx[1] == idx[2] || idx[0] == idx[2] { idx_ok = false; }
+      if idx[3] == idx[4] || idx[4] == idx[5] || idx[3] == idx[5] { idx_ok = false; }
+    }
+    failed = failed + report(idx_ok,
+      "file-import: indices " + i2s(idx.len()) + " entries covering 4 verts, non-degenerate");
+
+    assimp_release(h);
+    let after = assimp_mesh_count(h);
+    failed = failed + report(after == 0,
+      "file-import: release invalidates handle (mesh_count=" + i2s(after) + ")");
+  } else {
+    failed = failed + report(false, "file-import: " + imp.error);
+  }
+
+  // 5. Failure shape: a missing file must yield Err with a message.
+  let missing = assimp_import_file("tests/fixtures/definitely_missing.obj");
+  var merr = "unexpected ok";
+  if !missing.is_ok { merr = missing.error; }
+  failed = failed + report(!missing.is_ok && merr.len() > 0,
+    "file-import: missing file -> Err (" + merr + ")");
 
   if failed == 0 {
     io.println("xiom.assimp: all tests passed");
