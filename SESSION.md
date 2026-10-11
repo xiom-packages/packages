@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (updated 12:15Z -- batches 38-45 + the btree 0.1.1 re-extract delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-11 11:10Z (updated 12:25Z -- batches 38-45 + btree 0.1.1 + ann 0.2.0 delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -66,11 +66,20 @@ running). Check `git log -1 --format=%h %s` before starting.
   display blit (`SDL_UpdateTexture`/`SDL_RenderTexture`/`SDL_SetRenderVSync`; XIOM-owned pixel
   Vec that SDL reads -- no B-11 path); native **44/44 x2** + absent **4/4 x2** and the engine
   demo green locally; `eco-v0.1.143` sha256 `5849f0cf...` @12:12:35Z; item fixed.
+- **`xiom.ann` 0.2.0 PUBLISHED** (xvector refresh ask `REL-20261011-1206-xvector`):
+  re-extracted from XVECTOR `d42171c` (feat `934d9fd3`) -- P-a generous level 0
+  (`m0 = 2*m` + FAISS prune headroom 0.2 + `hnsw_new_full` control constructor) + codec v3
+  (v2 decode + per-layer degree validation); suite 24/24 x2 (new v2 back-compat check) +
+  probe 40 checks GREEN x2 reproducing the P-a gate exactly (**285/300 generous vs 275/300
+  legacy control**, ef=8); `eco-v0.1.144` sha256 `0a243ce4...` @12:19:40Z; SPEC pins
+  refreshed (hnsw `092a15c9...`, probe `c2adcc00...`); item fixed -- xvector's atomic
+  consumer swap is unblocked. Also this round: my relay item 1108 lost its non-ASCII char
+  (playground `REL-20261011-1201-playground` fixed; `relay.py validate` clean, 230 items).
 - Compliance noted from the ops hygiene broadcast (`REL-20261011-1134-ops`, to all): shared
   toolchain homes stay read-only for this lane; suites run from package-local scratch; PATH
   filtering for absent shapes is non-destructive.
-- Validate **524/0**; guard **511/494/17/0**. Session tally: **59 eco releases**
-  (`eco-v0.1.86` -> `eco-v0.1.143`).
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **60 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.144`).
 - **PENDING GATE (only one left):** **m258 archive** -- none yet (`gh release list -R
   xiom-lang/xiom`: v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never
   publish it unverified. (PULSE SQL-migrations design `REL-20261011-1137-pulse` acked for the
