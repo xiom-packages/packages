@@ -4,9 +4,10 @@ stb image codecs for XIOM: the single-header **stb_image** +
 **stb_image_write** are vendored (public domain / MIT) and compiled into
 the test binary with `--c-source` -- no system library, no SDK.
 
-> **Status:** `incubating` -- conformance suite green on the pin (xiom
-> v0.64.2; 5/5 x2: real in-memory PNG encode + decode round trip and a BMP
-> decode). **Lane:** bindings (`keywords: ["binding"]`).
+> **Status:** `incubating` -- conformance suite green on the pin (v0.64.3;
+> 5/5 x2: real in-memory PNG encode + decode round trip and a BMP decode).
+> Published in `eco-v0.1.139` (sha256 `41a205f7...`). **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
