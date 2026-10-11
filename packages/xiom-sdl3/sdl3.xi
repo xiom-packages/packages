@@ -21,7 +21,8 @@
 // 0.13.0 adds capture streams (default recording device + GetAudioStreamData
 // /available/clear/format); 0.14.0 adds pointer capture + per-window relative
 // mouse + global/relative mouse state; 0.15.0 adds the joystick open/read
-// surface (virtual-joystick instrumented). The full pre-pilot constant tables
+// surface (virtual-joystick instrumented); 0.16.0 adds drag-drop payload
+// decode (SDL_DropEvent, DLL-independent). The full pre-pilot constant tables
 // stay in git history (ROADMAP.md).
 
 module xiom.sdl3
@@ -2866,5 +2867,87 @@ pub fn sdl3_detach_virtual_joystick(lib: &Sdl3Library, id: Int) -> Bool
   unsafe {
     let f = lib.p_detach_virtual_joystick as fn(Int) -> UInt8;
     return (f(id) as Int) != 0;
+  }
+}
+
+// =========================================================================
+// 0.16.0: drag-drop payload decoding (SDL_DropEvent, pure buffer reads)
+//
+// SDL_DropEvent layout (pinned to the 3.4.8 header): type u32 @0,
+// reserved u32 @4, timestamp u64 @8, windowID u32 @16, x f32 @20, y f32
+// @24, source ptr @32, data ptr @40 (48 bytes).  source/data are SDL-owned
+// C strings valid for the duration of the event; NULL decodes to "".
+// The SDL_EVENT_DROP_* type constants are already exported (0.11.0 tables).
+// =========================================================================
+
+/// Little-endian u64 read from an owned byte buffer (two u32 halves).
+fn sdl3_read_u64_at(buf: &Vec[UInt8], off: Int) -> Int
+  requires: off >= 0
+  requires: buf.len() >= off + 8
+{
+  let lo = sdl3_read_u32_at(buf, off);
+  let hi = sdl3_read_u32_at(buf, off + 4);
+  return lo | (hi << 32);
+}
+
+/// Raw pointer to a Str's NUL-terminated bytes (for building synthetic
+/// C-side structures in tests/tools; valid while `s` lives).
+/// Complexity: O(1).
+pub fn sdl3_str_c_ptr(s: Str) -> Int
+  requires: s.len() > 0
+{
+  unsafe {
+    return s.c_str() as Int;
+  }
+}
+
+/// SDL_DropEvent windowID (u32 @16).
+/// Complexity: O(1).
+pub fn sdl3_event_drop_window_id(ev: &Vec[UInt8]) -> Int
+  requires: ev.len() >= 48
+{
+  return sdl3_read_u32_at(ev, 16);
+}
+
+/// SDL_DropEvent x (f32 @20, window-relative).
+/// Complexity: O(1).
+pub fn sdl3_event_drop_x(ev: &Vec[UInt8]) -> Float64
+  requires: ev.len() >= 48
+{
+  return sdl3_f32_from_bits(sdl3_read_u32_at(ev, 20));
+}
+
+/// SDL_DropEvent y (f32 @24, window-relative).
+/// Complexity: O(1).
+pub fn sdl3_event_drop_y(ev: &Vec[UInt8]) -> Float64
+  requires: ev.len() >= 48
+{
+  return sdl3_f32_from_bits(sdl3_read_u32_at(ev, 24));
+}
+
+/// SDL_DropEvent source (ptr @32 -> SDL-owned C string, copied; "" when
+/// NULL).
+/// Complexity: O(len).
+pub fn sdl3_event_drop_source(ev: &Vec[UInt8]) -> Str
+  requires: ev.len() >= 48
+{
+  unsafe {
+    let p = sdl3_read_u64_at(ev, 32);
+    if p == 0 { return ""; }
+    return Str::from_c_str(p as *UInt8);
+  }
+}
+
+/// SDL_DropEvent data (ptr @40 -> SDL-owned C string, copied; "" when
+/// NULL): the file name for SDL_EVENT_DROP_FILE, the text for
+/// SDL_EVENT_DROP_TEXT.
+/// Complexity: O(len).
+pub fn sdl3_event_drop_data(ev: &Vec[UInt8]) -> Str
+  requires: ev.len() >= 48
+{
+  unsafe {
+    let p = sdl3_read_u64_at(ev, 40);
+    if p == 0 { return ""; }
+    return Str::from_c_str(p as *UInt8);
   }
 }

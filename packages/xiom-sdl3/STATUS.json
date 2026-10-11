@@ -6,12 +6,12 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  58,
+                  "passed":  59,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "9f771f88",
-                  "checked":  "2026-10-11T16:06:31Z"
+                  "run_by":  "task:bindings-sdl3",
+                  "commit":  "ba7e5ebc",
+                  "checked":  "2026-10-11T16:22:37Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.151 (2026-10-11; 0.14.0 in eco-v0.1.150)"
+    "excluded_reason":  "publish pending: bindings batch 41 (eco-v0.1.138)"
 }

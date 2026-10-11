@@ -1,6 +1,6 @@
 # xiom.sdl3 -- Roadmap
 
-**Version**: v0.15.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
+**Version**: v0.16.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
 
 ## Current state
 
@@ -27,6 +27,7 @@
 | Capture streams + stream query (recording device, GetAudioStreamData, available/clear/format; separate out-param slots per B-17) | Done -- 0.13.0 |
 | Pointer capture + relative mouse (per-window) + global/relative state | Done -- 0.14.0 |
 | Joystick open/axis/button reads (virtual-joystick instrumented, no hardware) | Done -- 0.15.0 |
+| Drag-drop payload decode (SDL_DropEvent, DLL-independent) | Done -- 0.16.0 |
 | POSIX soname fallback | Phase 2 |
 
 ## Phase 2 (remaining)
@@ -49,4 +50,5 @@
    blit in 0.8.0, mouse + window contract in 0.9.0, audio/joystick
    enumeration in 0.10.0, tables in 0.11.0, push audio + wheel in 0.12.0,
    capture streams + query in 0.13.0, pointer/relative mouse in 0.14.0,
-   live joystick reads in 0.15.0; the full-coverage drive continues).
+   live joystick reads in 0.15.0, drag-drop payload decode in 0.16.0; the
+   full-coverage drive continues).
