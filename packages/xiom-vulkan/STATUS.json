@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  18,
                   "failed":  0,
-                  "run_by":  "task:bindings-vulkan",
-                  "commit":  "432eae2f",
-                  "checked":  "2026-10-11T10:28:41Z"
+                  "run_by":  "native-session",
+                  "commit":  "27cc1b6b",
+                  "checked":  "2026-10-11T10:38:50Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: bindings batch 37 (xiom.vulkan 0.4.0)"
+    "excluded_reason":  "publish pending: bindings batch 37 (eco-v0.1.135)"
 }
