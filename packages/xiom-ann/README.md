@@ -12,7 +12,8 @@ pure XIOM on `xiom.std` + `xiom.vectors`.
 > streams still decode with `m0 = m`). Suite **24/24 x2** + recall probe
 > **GREEN x2 (40 checks)** on v0.64.3; P-a hard-corpus gate **285/300
 > generous vs 275/300 legacy control** (ef=8). 0.1.0 shipped in
-> `eco-v0.1.139` (sha256 `73f66ab5...`); 0.2.0 publish pending.
+> `eco-v0.1.139` (sha256 `73f66ab5...`); 0.2.0 published in `eco-v0.1.144`
+> (sha256 `0a243ce4...`).
 
 ## Consumer snippet
 
