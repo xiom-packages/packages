@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-11T21:21:39Z",
+    "updated":  "2026-10-11T21:32:46Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -4427,7 +4427,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.3.0",
+                         "version":  "0.4.0",
                          "name":  "xiom.meshopt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "meshoptimizer bindings for XIOM (mesh simplification, compression, optimization)",
@@ -4437,7 +4437,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-meshopt/v0.3.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-meshopt/v0.4.0/package.tar.gz",
                          "source_files":  [
                                               "meshopt_safe.xi",
                                               "meshopt.xi",
