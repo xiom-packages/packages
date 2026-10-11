@@ -6,7 +6,7 @@ binary with `--c-source` -- no precompiled objects, no SDK, no graphics
 backend needed.
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
-> v0.64.2; 4/4). Published in `eco-v0.1.123` (sha256 `4d016de5...`).
+> v0.64.3; 7/7). Published in `eco-v0.1.123` (sha256 `4d016de5...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -31,9 +31,10 @@ fn main() {
 |------|-----------|
 | Version | `imgui_version` (packed, 19291), `imgui_version_str` ("1.92.9b") |
 | Frames | `imgui_frame` -> `ImguiFrameStats` (vertices/indices/cmd_lists), `imgui_empty_frame` -> cmd_lists |
+| Contexts | `imgui_context_create(width, height)` -> handle (<=4 live), `imgui_context_frame(handle)` -> stats, `imgui_context_destroy(handle)`, `imgui_context_count`, `imgui_context_frames` |
 
 Full details: `SPEC.md`; vendored provenance + per-file pin: `SPEC.md` §2.
-Widgets/windows/tables wrappers and GLFW/Vulkan backends are Phase 2
+Widgets/windows/tables wrappers and GLFW/Vulkan backends are Phase 3
 (`ROADMAP.md`).
 
 ## Tests
@@ -42,5 +43,6 @@ Widgets/windows/tables wrappers and GLFW/Vulkan backends are Phase 2
 scripts/port.ps1 -Package xiom.imgui
 ```
 
-Expected: 4 `[PASS]`, exit 0. The suite drives real headless frames and
-checks the tessellation output, not only symbol resolution.
+Expected: 7 `[PASS]`, exit 0. The suite drives real headless frames and
+checks the tessellation output plus the long-lived context-handle lifecycle,
+not only symbol resolution.

@@ -16,9 +16,11 @@
 // G2 pin (SPEC.md): upstream tag v1.92.9b archive SHA256 + per-file SHA256
 // table + MIT license.
 //
-// API subset (pilot): version, a headless frame (window + text -> draw-data
-// vertex/index counts), an empty frame, and determinism.  Widgets, tables,
-// draw-list APIs, and GLFW/Vulkan backends are Phase 2 (ROADMAP.md).
+// API subset (pilot + 0.3.0): version, a headless frame (window + text ->
+// draw-data vertex/index counts), an empty frame, determinism, and (0.3.0)
+// long-lived context handles: imgui_context_create/destroy plus per-handle
+// frames that keep window state across separate XIOM calls.  Widgets,
+// tables, draw-list APIs, and GLFW/Vulkan backends are Phase 2 (ROADMAP.md).
 
 module xiom.imgui
 
@@ -29,6 +31,11 @@ extern "C" {
   fn imguiprobe_version_str() -> *UInt8;
   fn imguiprobe_frame(out_vertices: *UInt8, out_indices: *UInt8, out_cmd_lists: *UInt8) -> Int32;
   fn imguiprobe_empty_frame(out_cmd_lists: *UInt8) -> Int32;
+  fn imguiprobe_context_create(width: Int32, height: Int32) -> Int32;
+  fn imguiprobe_context_frame(handle: Int32, out_vertices: *UInt8, out_indices: *UInt8, out_cmd_lists: *UInt8) -> Int32;
+  fn imguiprobe_context_destroy(handle: Int32) -> Int32;
+  fn imguiprobe_context_count() -> Int32;
+  fn imguiprobe_context_frames(handle: Int32) -> Int32;
 }
 
 pub type ImguiFrameStats = {
@@ -91,6 +98,65 @@ pub fn imgui_empty_frame() -> Result[Int, Str]
     return Err("imgui: empty frame probe rc=" + imgui_i2s(rc));
   }
   return Ok(imgui_slot_read(&f_c));
+}
+
+/// Create a long-lived headless context sized width x height (up to 4 live);
+/// returns a 1-based handle.  Window/context state persists across calls.
+/// Complexity: O(context).
+pub fn imgui_context_create(width: Int, height: Int) -> Result[Int, Str]
+  requires: width > 0
+  requires: height > 0
+{
+  let h = unsafe { imguiprobe_context_create(width as Int32, height as Int32) as Int };
+  if h == 0 {
+    return Err("imgui: context_create failed (no free slot or bad size)");
+  }
+  return Ok(h);
+}
+
+/// Drive one frame on a live context handle ("xiom-context" window + text);
+/// returns the draw-data stats.  ImGui hides a window on the frame that
+/// creates it, so the first frame reports zero command lists.
+/// Complexity: O(frame).
+pub fn imgui_context_frame(handle: Int) -> Result[ImguiFrameStats, Str]
+  requires: handle > 0
+{
+  var f_v = imgui_slot();
+  var f_i = imgui_slot();
+  var f_c = imgui_slot();
+  let rc = unsafe { imguiprobe_context_frame(handle as Int32, f_v.as_mut_ptr(), f_i.as_mut_ptr(), f_c.as_mut_ptr()) as Int };
+  if rc != 0 {
+    return Err("imgui: context_frame rc=" + imgui_i2s(rc));
+  }
+  return Ok(ImguiFrameStats{
+    vertices: imgui_slot_read(&f_v);
+    indices: imgui_slot_read(&f_i);
+    cmd_lists: imgui_slot_read(&f_c);
+  });
+}
+
+/// Destroy a live context handle; false when the handle is invalid or was
+/// already destroyed.  Complexity: O(context).
+pub fn imgui_context_destroy(handle: Int) -> Bool
+  requires: true
+{
+  return unsafe { (imguiprobe_context_destroy(handle as Int32) as Int) != 0 };
+}
+
+/// Number of live context handles (registry bookkeeping).
+/// Complexity: O(1).
+pub fn imgui_context_count() -> Int
+  requires: true
+{
+  return unsafe { imguiprobe_context_count() as Int };
+}
+
+/// Frames driven on a handle so far; -1 for invalid handles.
+/// Complexity: O(1).
+pub fn imgui_context_frames(handle: Int) -> Int
+  requires: true
+{
+  return unsafe { imguiprobe_context_frames(handle as Int32) as Int };
 }
 
 // ---- internals -----------------------------------------------------------

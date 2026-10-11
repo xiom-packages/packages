@@ -83,6 +83,50 @@ fn main() -> Int {
     && f2.value.indices == f.value.indices;
   failed = failed + report(same, "determinism: repeated frame identical");
 
+  // 5. Long-lived context handles: create two, registry bookkeeping.
+  let c1 = imgui_context_create(320, 240);
+  let c2 = imgui_context_create(640, 480);
+  var h1: Int = 0;
+  var h2: Int = 0;
+  if c1.is_ok { h1 = c1.value; }
+  if c2.is_ok { h2 = c2.value; }
+  failed = failed + report(c1.is_ok && c2.is_ok && h1 != 0 && h2 != 0 && h1 != h2
+      && imgui_context_count() == 2,
+    "context: create h1=" + i2s(h1) + " h2=" + i2s(h2) + " count=" + i2s(imgui_context_count()));
+
+  // 6. Persistence across calls: first frame hides the new window; report
+  //    the settling frames (auto-size) before the steady-state assertion.
+  let g1 = imgui_context_frame(h1);
+  let g2 = imgui_context_frame(h1);
+  let g3 = imgui_context_frame(h1);
+  let g4 = imgui_context_frame(h1);
+  let g5 = imgui_context_frame(h1);
+  var f1c = -1;
+  var f2c = -1;
+  var f3c = -1;
+  var f4c = -1;
+  var f5c = -1;
+  var f4v = -1;
+  var f5v = -1;
+  if g1.is_ok { f1c = g1.value.cmd_lists; }
+  if g2.is_ok { f2c = g2.value.cmd_lists; }
+  if g3.is_ok { f3c = g3.value.cmd_lists; }
+  if g4.is_ok { f4c = g4.value.cmd_lists; f4v = g4.value.vertices; }
+  if g5.is_ok { f5c = g5.value.cmd_lists; f5v = g5.value.vertices; }
+  failed = failed + report(f1c == 0 && f2c >= 1 && f4c == f5c && f4v == f5v
+      && imgui_context_frames(h1) == 5,
+    "context: long-lived frames (first hidden, steady state stable, frames=5)");
+
+  // 7. Destroy semantics: h1 gone, h2 still frames, double-destroy false.
+  let d1 = imgui_context_destroy(h1);
+  let count1 = imgui_context_count();
+  let h2f = imgui_context_frame(h2);
+  let d2 = imgui_context_destroy(h2);
+  let d3 = imgui_context_destroy(h2);
+  failed = failed + report(d1 && count1 == 1 && h2f.is_ok && h2f.value.cmd_lists == 0
+      && d2 && !d3 && imgui_context_count() == 0,
+    "context: destroy h1 -> count 1; h2 frames; destroy h2 -> count 0; double-destroy false");
+
   if failed == 0 {
     io.println("xiom.imgui: all tests passed");
   } else {

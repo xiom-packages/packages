@@ -8,8 +8,9 @@
 - [x] Integer-only bridge: version, headless frame, empty frame
 - [x] Conformance suite (4 checks incl. tessellation determinism)
 
-## Phase 3 (Planned)
-- [ ] Context handle API (`imgui_context_create/destroy`) for long-lived frames
+## Phase 3 (In progress) -- 0.3.0 long-lived context handles
+- [x] Context handle API (`imgui_context_create/frame/destroy`, <=4 live, registry) for long-lived frames
+- [x] Side-effect-free runs (`io.IniFilename = 0`; the tracked imgui.ini artifact is gone)
 - [ ] Widget wrappers (Button/InputText/Slider/Tree/TabBar/Menu)
 - [ ] Tables + draw-list APIs
 - [ ] GLFW backend integration (vendored `imgui_impl_glfw` over `xiom.glfw`)
