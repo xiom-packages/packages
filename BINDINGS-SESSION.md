@@ -59,16 +59,20 @@ clone: stage ONLY your own item files). The two working rules are in
   carrying all of it; post-merge lane verification: glfw 37/37 x2 + absent
   3/3, sdl3 24/24 x2; reply item `REL-20261011-1113-bindings`.**
   **Still in the queue (publish pending)**: batch 35 jolt 0.2.0 (parked on
-  the m258 archive); batches 43-48 sdl3 0.6.0-0.11.0
-  (`REL-20261011-1152/1157/1204/1310/1345/1408-bindings`; 0.5.0 since
+  the m258 archive); batches 43-49 sdl3 0.6.0-0.12.0
+  (`REL-20261011-1152/1157/1204/1310/1345/1408/1437-bindings`; 0.5.0 since
   published in eco-v0.1.140); batches 39/40/41 wrapped on main (`470e13f3`).
-- **Latest batch 48 (2026-10-11)**: `xiom.sdl3` **0.11.0 -- full
-  source-generated constant tables**: ~190 constants (complete
-  SDL_EVENT_* enum, 23 remaining window flags, 14 keymods, 62
-  explicit-value pixel formats), extracted by comment-strip + enum-parse
-  from the release-3.2.10 headers; deduped; suite samples ~20 values.
-  Ports: **48/48 x2** + absent **4/4 x2**. feat `f3feb77d` + record
-  `1feb1ccd`.
+- **Latest batch 49 (2026-10-11)**: `xiom.sdl3` **0.12.0 -- push audio
+  streaming + mouse wheel**: open default playback device (NULL callback),
+  put PCM from an XIOM buffer, resume/pause/queued/destroy; wheel
+  accessors (x @24/y @28/direction @32/mouse @36/@40) + MOUSEWHEEL
+  constants (engine ask 1411-2). Along the way **B-16 found + filed**
+  (ffi.ptr_write at base+N silently loses writes: repro
+  `docs/repro/bindings-pilot/ptr-slot-write/`, ptr_write_sum=11 vs
+  byte_index_sum=66; byte-indexed slot writes required). Ports: **49/49
+  x2** (7680 B silence pushed, queued=7680, resumed, device-paused=false)
+  + absent **4/4 x2**. feat `5d73b10a` + record `dc1f03c7`; B-16 relayed
+  `REL-20261011-1437-bindings-3`.
 - **Latest batch 44 (2026-10-11)**: `xiom.sdl3` **0.7.0 -- filesystem
   basics**: base/pref/current-dir paths (BasePath SDL-owned; others
   SDL_free'd after copy), create/remove directory, `SDL_GetPathInfo`
@@ -320,6 +324,12 @@ clone: stage ONLY your own item files). The two working rules are in
   `return;` in explicitly `-> Unit` fns is a type error (use structured
   ifs). Repro: `docs/repro/bindings-pilot/cb-abi/probe7_element_units.xi`;
   item `REL-20261011-1121-bindings-2`.
+- **B-16 (v0.64.3, filed + repro'd)**: `ffi.ptr_write_*` at a NON-ZERO
+  offset into an XIOM slot silently loses the write (base write survives);
+  byte-indexed slot writes are the reliable path (the lane's B-11
+  discipline covers this). Repro:
+  `docs/repro/bindings-pilot/ptr-slot-write/`; item
+  `REL-20261011-1437-bindings-3`.
 - **Lock keys**: `SDL_GetModState` reports lock bits (NumLock 0x1000 etc.)
   from the physical keyboard -- assert only the non-lock mask (0x0FFF)
   when checking "idle".
