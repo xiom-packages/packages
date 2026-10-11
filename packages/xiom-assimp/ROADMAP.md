@@ -15,9 +15,14 @@
 - [x] Conformance suite (10 checks incl. determinism)
 
 ## Phase 3 (Planned)
+- [x] **0.8.0 (done): file-based import (Triangulate + FlipUVs) + mesh-data
+  getters** (`import_file` -> handle; positions Vec[Float64] xyz, uvs
+  Vec[Float64] uv, indices Vec[UInt32]; release; missing-file Err; engine
+  P4 asset pipeline; C-copy-into-owned-slot path per the B-20 note) -- 125
+  TUs, 16/16
 - [ ] Expand the importer set (X3D, MD5, ...)
 - [ ] Post-processing option wrappers (`aiProcess_*` flags, `ApplyPostProcessing`)
 - [ ] IO abstraction (custom `IOSystem` bridge)
-- [ ] File-based import helpers + examples
+- [ ] File-based import examples (a loader demo on the engine's glTF path)
 - [ ] Export API (re-enable `NO_EXPORT`, exporter TUs)
 - [ ] Re-pin to the latest tag when the drift guard flags it

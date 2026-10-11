@@ -24,9 +24,10 @@
 // generated-tree sha256; nothing on the network at build time.
 //
 // API subset (pilot): version + eight in-memory imports proving the importer
-// pipeline (OBJ, PLY, glTF2, COLLADA, FBX, BLEND, OFF, SMD).  STL is
+// pipeline (OBJ, PLY, glTF2, COLLADA, FBX, BLEND, OFF, SMD).  0.8.0 adds
+// file-based import + mesh-data getters (engine P4 asset pipeline).  STL is
 // included in the compiled set; full format breadth, post-processing
-// wrappers, and the export API are Phase 3 (ROADMAP.md).
+// wrappers, and the export API are later Phase 3 items (ROADMAP.md).
 
 module xiom.assimp
 
@@ -57,6 +58,16 @@ extern "C" {
   fn assimprobe_smd_vertices() -> Int32;
   fn assimprobe_smd_faces() -> Int32;
   fn assimprobe_error() -> *UInt8;
+  fn assimbridge_import_file(path: *UInt8) -> Int32;
+  fn assimbridge_release(handle: Int);
+  fn assimbridge_mesh_count(handle: Int) -> Int32;
+  fn assimbridge_mesh_vertex_count(handle: Int, mesh: Int) -> Int32;
+  fn assimbridge_mesh_triangle_count(handle: Int, mesh: Int) -> Int32;
+  fn assimbridge_mesh_has_uvs(handle: Int, mesh: Int) -> Int32;
+  fn assimbridge_copy_positions(handle: Int, mesh: Int, out: *UInt8, max_bytes: Int) -> Int32;
+  fn assimbridge_copy_uvs(handle: Int, mesh: Int, out: *UInt8, max_bytes: Int) -> Int32;
+  fn assimbridge_copy_indices(handle: Int, mesh: Int, out: *UInt8, max_bytes: Int) -> Int32;
+  fn assimbridge_error() -> *UInt8;
 }
 
 pub type AssimpInfo = {
@@ -158,6 +169,147 @@ pub fn assimp_probe() -> Result[AssimpInfo, Str]
   });
 }
 
+// =========================================================================
+// 0.8.0: file-based import + mesh-data getters (engine P4 asset pipeline)
+//
+// Path-based import so assimp does its own I/O (keeps the read_file_bytes
+// miscompile class out of the loop); imports run with Triangulate + FlipUVs.
+// Getters hand back XIOM-owned Vecs: positions Vec[Float64] (xyz triples),
+// uvs Vec[Float64] (uv pairs; empty when the mesh has no UV channel),
+// indices Vec[UInt32] (3 per triangle, post-triangulate).  Bridge memory is
+// read with Int-typed address math (B-17: no pointer arithmetic) and f32
+// bits are decoded arithmetically (B-12: no fp cast-call returns).
+// =========================================================================
+
+/// Import a file from disk with Triangulate + FlipUVs -> handle (> 0).
+/// Release with `assimp_release`; the registry holds 4 live imports.
+/// Complexity: O(import).
+pub fn assimp_import_file(path: Str) -> Result[Int, Str]
+  requires: path.len() > 0
+{
+  unsafe {
+    let h = assimbridge_import_file(path.c_str()) as Int;
+    if h <= 0 {
+      return Err(assimp_bridge_error("import"));
+    }
+    return Ok(h);
+  }
+}
+
+/// Release an import handle (frees the scene; idempotent for stale handles).
+/// Complexity: O(free).
+pub fn assimp_release(handle: Int)
+  requires: handle > 0
+{
+  unsafe {
+    assimbridge_release(handle);
+  }
+}
+
+/// Mesh count of an import (0 for an invalid/released handle).
+/// Complexity: O(1).
+pub fn assimp_mesh_count(handle: Int) -> Int
+  requires: handle > 0
+{
+  unsafe { return assimbridge_mesh_count(handle) as Int; }
+}
+
+/// Vertex count of a mesh (0 for invalid handle/mesh).
+/// Complexity: O(1).
+pub fn assimp_mesh_vertex_count(handle: Int, mesh: Int) -> Int
+  requires: handle > 0
+  requires: mesh >= 0
+{
+  unsafe { return assimbridge_mesh_vertex_count(handle, mesh) as Int; }
+}
+
+/// Triangle count of a mesh (post-triangulate; 0 for invalid handle/mesh).
+/// Complexity: O(triangles).
+pub fn assimp_mesh_triangle_count(handle: Int, mesh: Int) -> Int
+  requires: handle > 0
+  requires: mesh >= 0
+{
+  unsafe { return assimbridge_mesh_triangle_count(handle, mesh) as Int; }
+}
+
+/// True when the mesh carries UV channel 0.
+/// Complexity: O(1).
+pub fn assimp_mesh_has_uvs(handle: Int, mesh: Int) -> Bool
+  requires: handle > 0
+  requires: mesh >= 0
+{
+  unsafe { return (assimbridge_mesh_has_uvs(handle, mesh) as Int) != 0; }
+}
+
+/// Object-space positions: 3 floats per vertex (x,y,z triples), empty for
+/// an invalid handle/mesh.  The bridge copies into an owned slot and the
+/// bytes are read byte-indexed (the B-16/B-17-safe path).
+/// Complexity: O(vertices).
+pub fn assimp_mesh_positions(handle: Int, mesh: Int) -> Vec[Float64]
+  requires: handle > 0
+  requires: mesh >= 0
+{
+  var out: Vec[Float64] = Vec[Float64].new();
+  let n = assimp_mesh_vertex_count(handle, mesh);
+  if n == 0 { return out; }
+  var raw = assimp_slot(n * 12);
+  unsafe {
+    let copied = assimbridge_copy_positions(handle, mesh, raw.as_mut_ptr(), n * 12) as Int;
+    if copied != n * 12 { return out; }
+  }
+  var i = 0;
+  while i < n * 3 {
+    out.push(assimp_f32_from_bits(assimp_read_u32_vec(&raw, i * 4)));
+    i = i + 1;
+  }
+  return out;
+}
+
+/// Per-vertex UV pairs (2 floats per vertex), empty when the mesh has no
+/// UV channel 0 or the handle/mesh is invalid.  Complexity: O(vertices).
+pub fn assimp_mesh_uvs(handle: Int, mesh: Int) -> Vec[Float64]
+  requires: handle > 0
+  requires: mesh >= 0
+{
+  var out: Vec[Float64] = Vec[Float64].new();
+  let n = assimp_mesh_vertex_count(handle, mesh);
+  if n == 0 { return out; }
+  var raw = assimp_slot(n * 12);
+  unsafe {
+    let copied = assimbridge_copy_uvs(handle, mesh, raw.as_mut_ptr(), n * 12) as Int;
+    if copied != n * 12 { return out; }
+  }
+  var i = 0;
+  while i < n {
+    out.push(assimp_f32_from_bits(assimp_read_u32_vec(&raw, i * 12)));
+    out.push(assimp_f32_from_bits(assimp_read_u32_vec(&raw, i * 12 + 4)));
+    i = i + 1;
+  }
+  return out;
+}
+
+/// Post-triangulate indices (3 per triangle), empty for an invalid
+/// handle/mesh.  Complexity: O(triangles).
+pub fn assimp_mesh_indices(handle: Int, mesh: Int) -> Vec[UInt32]
+  requires: handle > 0
+  requires: mesh >= 0
+{
+  var out: Vec[UInt32] = Vec[UInt32].new();
+  let tris = assimp_mesh_triangle_count(handle, mesh);
+  if tris == 0 { return out; }
+  var raw = assimp_slot(tris * 12);
+  unsafe {
+    let copied = assimbridge_copy_indices(handle, mesh, raw.as_mut_ptr(), tris * 12) as Int;
+    if copied != tris * 12 { return out; }
+  }
+  var i = 0;
+  while i < tris * 3 {
+    out.push(assimp_read_u32_vec(&raw, i * 4) as UInt32);
+    i = i + 1;
+  }
+  return out;
+}
+
 // ---- internals -----------------------------------------------------------
 
 fn assimp_error(step: Str, rc: Int) -> Str
@@ -196,4 +348,78 @@ fn assimp_i2s(n: Int) -> Str
     elif digit == 9 { buf = "9" + buf; }
   }
   return buf;
+}
+
+fn assimp_bridge_error(step: Str) -> Str
+  requires: true
+{
+  unsafe {
+    let p = assimbridge_error();
+    if (p as Int) != 0 {
+      let msg = Str::from_c_str(p);
+      if msg.len() > 0 {
+        return "assimp: " + step + " failed: " + msg;
+      }
+    }
+    return "assimp: " + step + " failed";
+  }
+}
+
+/// Zero-filled owned byte slot of `n` bytes (for foreign out-params).
+fn assimp_slot(n: Int) -> Vec[UInt8]
+  requires: n > 0
+{
+  var s: Vec[UInt8] = Vec[UInt8].new();
+  var i = 0;
+  while i < n {
+    s.push(0 as UInt8);
+    i = i + 1;
+  }
+  return s;
+}
+
+/// Little-endian u32 read from an owned byte slot (byte-indexed; the
+/// B-16/B-17-safe read path for foreign-written data).
+fn assimp_read_u32_vec(buf: &Vec[UInt8], off: Int) -> Int
+  requires: off >= 0
+  requires: buf.len() >= off + 4
+{
+  let b0 = buf[off + 0] as Int;
+  let b1 = buf[off + 1] as Int;
+  let b2 = buf[off + 2] as Int;
+  let b3 = buf[off + 3] as Int;
+  return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+/// IEEE-754 binary32 bits -> Float64 (pure arithmetic).  Complexity: O(1).
+fn assimp_f32_from_bits(bits: Int) -> Float64
+  requires: bits >= 0
+  requires: bits <= 0xFFFFFFFF
+{
+  let sign = if ((bits >> 31) & 1) == 1 { -1.0 } else { 1.0 };
+  let exp = (bits >> 23) & 0xFF;
+  let frac = bits & 0x7FFFFF;
+  if exp == 0 {
+    if frac == 0 { return sign * 0.0; }
+    return sign * (frac as Float64) * assimp_pow2i(-149);
+  }
+  if exp == 255 { return 0.0; }
+  return sign * (1.0 + (frac as Float64) / 8388608.0) * assimp_pow2i(exp - 127);
+}
+
+fn assimp_pow2i(e: Int) -> Float64
+  requires: e >= -1074
+  requires: e <= 1024
+{
+  var r = 1.0;
+  var i = e;
+  while i > 0 {
+    r = r * 2.0;
+    i = i - 1;
+  }
+  while i < 0 {
+    r = r / 2.0;
+    i = i + 1;
+  }
+  return r;
 }

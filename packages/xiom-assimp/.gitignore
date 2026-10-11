@@ -10,6 +10,10 @@
 *.exp
 *.lib
 
+# 0.8.0: the file-import fixture must keep the .obj extension (assimp picks
+# the importer from it); negate the build-artifact ignore for fixtures.
+!tests/fixtures/*.obj
+
 # IDE
 .vscode/
 .idea/

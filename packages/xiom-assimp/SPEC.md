@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.assimp` |
-| Version | 0.7.0 |
+| Version | 0.8.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Open Asset Import Library -- https://github.com/assimp/assimp |
 | Upstream version | **v6.0.5** (tag; commit `392a658f9c271be965271f45e7521a1b80ea4392`) |
 | Upstream license | BSD-3-Clause (`vendor/LICENSE`; mirrored contribs keep their own licenses) |
 | Package license | MIT OR Apache-2.0 (everything outside `vendor/`) |
 | Platform | Windows x64 (primary); the vendored path is portable |
-| Compiler pin | v0.64.2 |
+| Compiler pin | v0.64.3 |
 
 ## 2. Vendored subset (G2 pin)
 
@@ -87,7 +87,7 @@ real imports on every platform.
 
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- 10 checks: version pin (major 6),
+Suite: `tests/test_conformance.xi` -- 16 checks: version pin (major 6),
 in-memory OBJ import (1 mesh / 3 vertices / 1 face), in-memory PLY import
 (3 vertices), in-memory glTF2 import (embedded base64 buffer, 3 vertices),
 in-memory COLLADA import (minimal 1.4.1 document, 3 vertices), in-memory
@@ -96,7 +96,14 @@ the committed fixture (default-scene cube: 1 mesh / 6 quad faces / 24
 unshared loop-vertices), in-memory OFF import (minimal ASCII OFF, 1 mesh /
 3 vertices / 1 face), in-memory SMD import (minimal ASCII SMD with one
 node, skeleton key and bone-linked triangle, 1 mesh / 3 vertices / 1 face),
-and repeated-import determinism.
+repeated-import determinism, plus the 0.8.0 file-import group on the
+committed `tests/fixtures/quad_uv.obj` (handle + mesh/vertex/triangle/uv
+counts after Triangulate; positions; UVs after FlipUVs; indices covering 4
+verts and non-degenerate; release invalidates the handle; missing file ->
+Err).  File-import mesh data is copied by the bridge into an XIOM-owned
+slot and read byte-indexed -- int-to-pointer casts are sanitized on the
+v0.64.3 pin (foreign-pointer round-trips read zeros; B-20), so the C-copy
+path is the portable shape.
 
 Command (cwd = this package directory; the runner hook adds the C sources):
 

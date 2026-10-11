@@ -10,6 +10,7 @@
 #include "../vendor/include/assimp/Importer.hpp"
 #include "../vendor/include/assimp/scene.h"
 #include "../vendor/include/assimp/version.h"
+#include "../vendor/include/assimp/postprocess.h"
 
 #include <string.h>
 
@@ -378,6 +379,140 @@ int assimprobe_smd_faces(void) {
 }
 
 const char* assimprobe_error(void) {
+  return g_error;
+}
+
+// ---- 0.8.0: file import registry + mesh-data copies ------------------------
+// Engine P4 asset pipeline: import a file from disk with Triangulate +
+// FlipUVs, then copy object-space positions, UVs, and post-triangulate
+// indices into caller-owned buffers.  The XIOM side passes an owned slot
+// pointer (the proven out-param pattern) and then reads the bytes with
+// byte-indexed Vec access -- raw foreign-pointer value round-trips are not
+// usable on the pinned compiler (B-17 family).  Handles are 1-based
+// registry slots (0 invalid).
+
+enum { ASSIMB_MAX_IMPORTS = 4 };
+
+static Assimp::Importer g_importers[ASSIMB_MAX_IMPORTS];
+static const aiScene* g_import_scenes[ASSIMB_MAX_IMPORTS];
+static int g_import_used[ASSIMB_MAX_IMPORTS];
+
+static const aiScene* import_scene(int handle) {
+  int i = handle - 1;
+  if (i < 0 || i >= ASSIMB_MAX_IMPORTS || !g_import_used[i]) return 0;
+  return g_import_scenes[i];
+}
+
+static const aiMesh* import_mesh(int handle, int mesh) {
+  const aiScene* s = import_scene(handle);
+  if (s == 0 || mesh < 0 || (unsigned)mesh >= s->mNumMeshes) return 0;
+  return s->mMeshes[mesh];
+}
+
+// Import a file from disk (Triangulate + FlipUVs): handle > 0 on success,
+// negative on failure (see assimbridge_error).
+int assimbridge_import_file(const char* path) {
+  g_error[0] = 0;
+  if (path == 0 || path[0] == 0) {
+    set_error("empty path");
+    return -20;
+  }
+  for (int i = 0; i < ASSIMB_MAX_IMPORTS; i++) {
+    if (!g_import_used[i]) {
+      const aiScene* scene = g_importers[i].ReadFile(
+          path, aiProcess_Triangulate | aiProcess_FlipUVs);
+      if (scene == 0) {
+        set_error(g_importers[i].GetErrorString());
+        return -21;
+      }
+      g_import_scenes[i] = scene;
+      g_import_used[i] = 1;
+      return i + 1;
+    }
+  }
+  set_error("import registry full -- release a handle first");
+  return -22;
+}
+
+void assimbridge_release(int handle) {
+  int i = handle - 1;
+  if (i < 0 || i >= ASSIMB_MAX_IMPORTS) return;
+  if (!g_import_used[i]) return;
+  g_importers[i].FreeScene();
+  g_import_scenes[i] = 0;
+  g_import_used[i] = 0;
+}
+
+int assimbridge_mesh_count(int handle) {
+  const aiScene* s = import_scene(handle);
+  return s == 0 ? 0 : (int)s->mNumMeshes;
+}
+
+int assimbridge_mesh_vertex_count(int handle, int mesh) {
+  const aiMesh* m = import_mesh(handle, mesh);
+  return m == 0 ? 0 : (int)m->mNumVertices;
+}
+
+int assimbridge_mesh_triangle_count(int handle, int mesh) {
+  const aiMesh* m = import_mesh(handle, mesh);
+  if (m == 0) return 0;
+  int tris = 0;
+  for (unsigned i = 0; i < m->mNumFaces; i++) {
+    if (m->mFaces[i].mNumIndices == 3) tris++;
+  }
+  return tris;
+}
+
+int assimbridge_mesh_has_uvs(int handle, int mesh) {
+  const aiMesh* m = import_mesh(handle, mesh);
+  return (m != 0 && m->HasTextureCoords(0)) ? 1 : 0;
+}
+
+// Copy positions (3 f32 per vertex, 12-byte stride) into `out`
+// (max_bytes >= n*12).  Returns bytes copied, -1 invalid mesh/null, -2
+// buffer too small.
+int assimbridge_copy_positions(int handle, int mesh, unsigned char* out, int max_bytes) {
+  const aiMesh* m = import_mesh(handle, mesh);
+  if (m == 0 || m->mNumVertices == 0 || out == 0) return -1;
+  int bytes = (int)m->mNumVertices * 12;
+  if (bytes > max_bytes) return -2;
+  memcpy(out, (const void*)&m->mVertices[0].x, (size_t)bytes);
+  return bytes;
+}
+
+// Copy UVs (3 f32 per vertex, 12-byte stride; read u/v) into `out`.
+// Returns bytes copied, 0 when the mesh has no UV channel (out untouched).
+int assimbridge_copy_uvs(int handle, int mesh, unsigned char* out, int max_bytes) {
+  const aiMesh* m = import_mesh(handle, mesh);
+  if (m == 0 || m->mNumVertices == 0) return -1;
+  if (!m->HasTextureCoords(0) || out == 0) return 0;
+  int bytes = (int)m->mNumVertices * 12;
+  if (bytes > max_bytes) return -2;
+  memcpy(out, (const void*)&m->mTextureCoords[0][0].x, (size_t)bytes);
+  return bytes;
+}
+
+// Copy post-triangulate indices (3 u32 per triangle) into `out`.
+// Returns bytes copied, -1 invalid mesh/null, -2 buffer too small.
+int assimbridge_copy_indices(int handle, int mesh, unsigned char* out, int max_bytes) {
+  const aiMesh* m = import_mesh(handle, mesh);
+  if (m == 0 || out == 0) return -1;
+  int tris = assimbridge_mesh_triangle_count(handle, mesh);
+  int bytes = tris * 12;
+  if (bytes > max_bytes) return -2;
+  unsigned* dst = (unsigned*)out;
+  int w = 0;
+  for (unsigned f = 0; f < m->mNumFaces; f++) {
+    if (m->mFaces[f].mNumIndices == 3) {
+      dst[w++] = m->mFaces[f].mIndices[0];
+      dst[w++] = m->mFaces[f].mIndices[1];
+      dst[w++] = m->mFaces[f].mIndices[2];
+    }
+  }
+  return bytes;
+}
+
+const char* assimbridge_error(void) {
   return g_error;
 }
 
