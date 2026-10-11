@@ -1,4 +1,6 @@
 [
   "--c-source",
-  "${PACKAGE_DIR}/src/dxc_probe.c"
+  "${PACKAGE_DIR}/src/dxc_probe.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/dxc_bridge.cpp"
 ]

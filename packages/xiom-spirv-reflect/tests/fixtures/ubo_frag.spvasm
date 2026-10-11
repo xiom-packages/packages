@@ -1,0 +1,36 @@
+; XIOM -- xiom.spirv-reflect conformance fixture (uniform-buffer block).
+; Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+; SPDX-License-Identifier: MIT OR Apache-2.0
+;
+; Regenerate the embedded bytes with:
+;   "C:\VulkanSDK\1.4.350.0\Bin\spirv-as.exe" --target-env spv1.0 ^
+;       tests/fixtures/ubo_frag.spvasm -o ubo_frag.spv
+;
+; Expected reflection (asserted by tests/test_conformance.xi):
+;   descriptor bindings     1  (set 0, binding 0, UNIFORM_BUFFER)
+;   binding block type name "UBOBlock" (spvReflectBlockVariableTypeName)
+;   push constant blocks    0
+
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main"
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 450
+               OpName %main "main"
+               OpName %UBOBlock "UBOBlock"
+               OpMemberName %UBOBlock 0 "scale"
+               OpName %ubo "ubo"
+               OpDecorate %UBOBlock Block
+               OpMemberDecorate %UBOBlock 0 Offset 0
+               OpDecorate %ubo DescriptorSet 0
+               OpDecorate %ubo Binding 0
+       %void = OpTypeVoid
+         %fn = OpTypeFunction %void
+      %float = OpTypeFloat 32
+   %UBOBlock = OpTypeStruct %float
+    %ptr_ubo = OpTypePointer Uniform %UBOBlock
+        %ubo = OpVariable %ptr_ubo Uniform
+       %main = OpFunction %void None %fn
+      %entry = OpLabel
+               OpReturn
+               OpFunctionEnd

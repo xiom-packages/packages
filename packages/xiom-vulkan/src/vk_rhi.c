@@ -1717,3 +1717,165 @@ void __cdecl xr_unload(void) {
   if (m_lib) FreeLibrary(m_lib);
   m_lib = 0; p_gipa = 0; p_enum_ext = 0;
 }
+
+/* --- SDK100 full-surface seam: raw handle getters for the generated loader - */
+void* __cdecl xr_instance_handle(void) { return s_instance; }
+void* __cdecl xr_device_handle(void) { return s_device; }
+
+/* --- SDK100 full-surface: create with EVERY loader-supported extension ---- */
+#define XR_SDK100_MAX_EXT 600
+
+static const char** sdk100_pack_names(XrExtensionProperties* props, uint32_t got, char** store_out) {
+  const char** names = (const char**)malloc(sizeof(char*) * (got ? got : 1));
+  char* store = (char*)malloc((size_t)(got ? got : 1) * 256);
+  if (!names || !store) { free(names); free(store); *store_out = 0; return 0; }
+  char* w = store;
+  for (uint32_t i = 0; i < got; i++) {
+    strncpy(w, props[i].extensionName, 255);
+    w[255] = 0;
+    names[i] = w;
+    w += strlen(w) + 1;
+  }
+  *store_out = store;
+  return names;
+}
+
+int __cdecl xr_instance_all_ext(void) {
+  if (s_instance) return 0;
+  typedef int (WINAPI* PFN_CreateInstance)(const XrInstanceCreateInfo*, const void*, void**);
+  PFN_CreateInstance create = (PFN_CreateInstance)gipa(0, "vkCreateInstance");
+  if (!p_enum_ext) p_enum_ext = (PFN_EnumerateInstanceExtensionProperties)gipa(0, "vkEnumerateInstanceExtensionProperties");
+  if (!create || !p_enum_ext) { set_err("missing instance entry points"); return 1; }
+
+  uint32_t count = 0;
+  int rc = p_enum_ext(0, &count, 0);
+  if (rc != XR_OK || count == 0) { set_err("no instance extensions"); return 1; }
+  if (count > XR_SDK100_MAX_EXT) count = XR_SDK100_MAX_EXT;
+  XrExtensionProperties* props = (XrExtensionProperties*)malloc(sizeof(XrExtensionProperties) * count);
+  if (!props) { set_err("oom"); return 1; }
+  memset(props, 0, sizeof(XrExtensionProperties) * count);
+  uint32_t got = count;
+  rc = p_enum_ext(0, &got, props);
+  if (rc != XR_OK) { free(props); set_err("enum instance extensions failed"); return 1; }
+
+  char* store = 0;
+  const char** names = sdk100_pack_names(props, got, &store);
+  free(props);
+  if (!names) { set_err("oom"); return 1; }
+
+  XrApplicationInfo app;
+  memset(&app, 0, sizeof(app));
+  app.sType = XR_ST_APPLICATION_INFO;
+  app.pApplicationName = "xiom-vulkan-full";
+  app.applicationVersion = 1;
+  app.pEngineName = "xiom";
+  app.engineVersion = 1;
+  app.apiVersion = XR_MAKE_API_VERSION(0, 1, 0, 0);
+
+  XrInstanceCreateInfo ci;
+  memset(&ci, 0, sizeof(ci));
+  ci.sType = XR_ST_INSTANCE_CREATE_INFO;
+  ci.pApplicationInfo = &app;
+  ci.enabledExtensionCount = got;
+  ci.ppEnabledExtensionNames = names;
+
+  void* instance = 0;
+  rc = create(&ci, 0, &instance);
+  free(names);
+  free(store);
+  if (rc != XR_OK || !instance) { set_err("vkCreateInstance(all ext) failed"); return 1; }
+  s_instance = instance;
+  return 0;
+}
+
+int __cdecl xr_create_device_all_ext(void) {
+  if (!s_phys || s_family < 0) { set_err("device not picked"); return 1; }
+  typedef int (WINAPI* PFN_CreateDevice)(void*, const XrDeviceCreateInfo*, const void*, void**);
+  typedef int (WINAPI* PFN_EnumDevExt)(void*, const char*, uint32_t*, XrExtensionProperties*);
+  PFN_CreateDevice create = (PFN_CreateDevice)gipa(s_instance, "vkCreateDevice");
+  PFN_EnumDevExt enum_dev_ext = (PFN_EnumDevExt)gipa(s_instance, "vkEnumerateDeviceExtensionProperties");
+  if (!create || !enum_dev_ext) { set_err("missing device entry points"); return 1; }
+
+  uint32_t count = 0;
+  int rc = enum_dev_ext(s_phys, 0, &count, 0);
+  if (rc != XR_OK || count == 0) { set_err("no device extensions"); return 1; }
+  if (count > XR_SDK100_MAX_EXT) count = XR_SDK100_MAX_EXT;
+  XrExtensionProperties* props = (XrExtensionProperties*)malloc(sizeof(XrExtensionProperties) * count);
+  if (!props) { set_err("oom"); return 1; }
+  memset(props, 0, sizeof(XrExtensionProperties) * count);
+  uint32_t got = count;
+  rc = enum_dev_ext(s_phys, 0, &got, props);
+  if (rc != XR_OK) { free(props); set_err("enum device extensions failed"); return 1; }
+
+  char* store = 0;
+  const char** names = sdk100_pack_names(props, got, &store);
+  free(props);
+  if (!names) { set_err("oom"); return 1; }
+
+  /* VK_NV_external_compute_queue: the device-side create info must be chained
+   * for that extension's commands to resolve on the NVIDIA ICD. */
+  int has_nv_cq = 0;
+  for (uint32_t i = 0; i < got; i++) {
+    if (strcmp(names[i], "VK_NV_external_compute_queue") == 0) { has_nv_cq = 1; break; }
+  }
+  struct XrNvCqCreateInfo {
+    uint32_t sType;
+    const void* pNext;
+    uint32_t reservedExternalQueues;
+  } nv_cq_ci;
+  memset(&nv_cq_ci, 0, sizeof(nv_cq_ci));
+  if (has_nv_cq) {
+    nv_cq_ci.sType = 1000556000; /* VK_STRUCTURE_TYPE_EXTERNAL_COMPUTE_QUEUE_DEVICE_CREATE_INFO_NV */
+    nv_cq_ci.pNext = 0;
+    nv_cq_ci.reservedExternalQueues = 0;
+  }
+
+  float priority = 1.0f;
+  XrDeviceQueueCreateInfo qci;
+  memset(&qci, 0, sizeof(qci));
+  qci.sType = XR_ST_DEVICE_QUEUE_CREATE_INFO;
+  qci.queueFamilyIndex = (uint32_t)s_family;
+  qci.queueCount = 1;
+  qci.pQueuePriorities = &priority;
+
+  XrDeviceCreateInfo dci;
+  memset(&dci, 0, sizeof(dci));
+  dci.sType = XR_ST_DEVICE_CREATE_INFO;
+  dci.queueCreateInfoCount = 1;
+  dci.pQueueCreateInfos = &qci;
+  dci.enabledExtensionCount = got;
+  dci.ppEnabledExtensionNames = names;
+  if (has_nv_cq) { dci.pNext = &nv_cq_ci; }
+
+  void* device = 0;
+  rc = create(s_phys, &dci, 0, &device);
+  free(names);
+  free(store);
+  if (rc != XR_OK || !device) { set_err("vkCreateDevice(all ext) failed"); return 1; }
+  s_device = device;
+  p_gdpa = (PFN_vkGetDeviceProcAddr)gipa(s_instance, "vkGetDeviceProcAddr");
+  return 0;
+}
+
+/* --- SDK100: extension advertisement checks (resolution classification) ---- */
+int __cdecl xr_ext_present(const char* name) { return ext_present(name); }
+
+int __cdecl xr_dev_ext_present(const char* name) {
+  if (!s_phys || !s_instance) return 0;
+  typedef int (WINAPI* PFN_EnumDevExt)(void*, const char*, uint32_t*, XrExtensionProperties*);
+  PFN_EnumDevExt enum_dev_ext = (PFN_EnumDevExt)gipa(s_instance, "vkEnumerateDeviceExtensionProperties");
+  if (!enum_dev_ext) return 0;
+  uint32_t count = 0;
+  if (enum_dev_ext(s_phys, 0, &count, 0) != XR_OK || count == 0 || count > 4096) return 0;
+  XrExtensionProperties* props = (XrExtensionProperties*)malloc(sizeof(XrExtensionProperties) * count);
+  if (!props) return 0;
+  uint32_t got = count;
+  int found = 0;
+  if (enum_dev_ext(s_phys, 0, &got, props) == XR_OK) {
+    for (uint32_t i = 0; i < got; i++) {
+      if (strcmp(props[i].extensionName, name) == 0) { found = 1; break; }
+    }
+  }
+  free(props);
+  return found;
+}

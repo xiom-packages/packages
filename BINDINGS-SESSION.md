@@ -29,6 +29,19 @@ fn-type mangling warning flagged; 1-arg handler restriction droppable at
 release+pin. v0.64.4 archive NOT yet released (v0.64.3 latest as of 18:44Z);
 all six batches m261-m271 staged (`-1731`).
 Lane tree tip: handoff commit on top of `8b541db5` (clean; all pushed).
+**Doorbell 21:00Z**: engine NEW ask **`REL-20261011-2015`** (Vulkan mini-RHI)
+-- **ACKED** on the item (7-step order + acceptance shape); our
+`-1113-bindings` info item **CLOSED**; compiler `-1731` updated (v0.64.4
+wave staged; **pin pending the stdlib tag**); packages lane handed off
+("batch lane drained", `-1828` awaiting engine adoption). **Owner session
+(parallel, same worktree)**: fixed **B-19 package-side** (sdl3 0.16.1, suite
+59/59 x2; items `-2048-bindings` -> packages, `-2048-bindings-2` -> compiler;
+packages acked batch 62), acked the mini-RHI with planned batches
+0.6.0-0.12.0 (`-2048-bindings-3`, `-2100-bindings`; engine acked 21:03Z and
+will start `engine/rhi/vulkan.xi` on delivery), and **launched the Vulkan SDK
+100 program** (`docs/checklists/vulkan-sdk-100.md` + the `730e926b` plan;
+`sdk100-*` agent worktrees for dxc/glslang/shaderc/slang/spirv-tools/
+spirv-cross/spirv-reflect).
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
 **B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
 >=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
@@ -71,14 +84,18 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 18:45Z, context-limit handoff)**: batches 31-61
-  relayed; **ALL PUBLISHED through `eco-v0.1.159`** (meshopt 0.4.0 live
-  18:36:32Z, `0e98c707...`); **publish queue EMPTY** (jolt m258-parked
-  only). Pool sweep complete + published; meshopt Phase-3 items 1+2
-  shipped (0.3.0/0.4.0); assimp contract routed to engine (`-1828`);
-  compiler staged-build re-verify green for B-13/14/15 (`-1801`), B-16
-  open; v0.64.4 archive not yet released. Relay: `-1553`..`-1829` batch
-  items sent.
+- **CURRENT (2026-10-11 21:05Z, doorbell tick)**: batches 31-61 + the owner
+  session's 62 (sdl3 0.16.1 B-19 fix) relayed; **ALL PUBLISHED through
+  `eco-v0.1.159`** (meshopt 0.4.0 live 18:36:32Z); **publish queue EMPTY**
+  (jolt m258-parked only). Pool sweep complete + published; meshopt
+  Phase-3 1+2 shipped (0.3.0/0.4.0); assimp contract routed to engine
+  (`-1828`). Compiler v0.64.4 wave staged -- **pin pending the stdlib tag**;
+  staged-build re-verify green for B-13/14/15 (`-1801`), B-16 open.
+  **Engine Vulkan mini-RHI `-2015` ACKED** (item status at 21:01Z + owner
+  items `-2048-3`/`-2100`; engine acked 21:03Z, will build
+  `engine/rhi/vulkan.xi` on delivery); **owner session drives the Vulkan SDK
+  100 program** (checklist + `sdk100-*` agent worktrees). `-1113-bindings`
+  closed. Relay: `-1553`..`-2100` items sent.
 - **Pickup (2026-10-11 18:47Z, new session)**: origin==local `f236925d`,
   worktree clean; relay re-checked -- no items newer than `-1731`; packages
   tip `555b501e` (75 eco releases; no notes past `eco-v0.1.159`); `status
@@ -141,6 +158,24 @@ clone: stage ONLY your own item files). The two working rules are in
   `87c6ca3c`, m254-m274; m274 fixes B-18; B-19 resolved package-side);
   archive expectations per packages SESSION: B-13/14/15/B-18 green,
   B-16/B-17 stay red, packages rows `-4`/`-5`/`-6`/`-7`/`-2100` re-run.
+- **SDK100 program progress (21:53Z)**: Vulkan slice COMPLETE on the branch --
+  `xiom.vulkan` full surface: 845 commands (852 registry; 7 vulkansc twins
+  excluded) in generated `src/cmds_01..08`; 5,983 constants (`consts_1..12` +
+  float + str); 1,343 struct sizes + 6,905 member offsets
+  (`struct_meta_1..19`) from a clang offsetof dump; loadability suite PASS x2
+  (`unresolved_relevant=0`; 766/766 advertised-surface; 75 platform/SC
+  exclusions; 4 unadvertised ext verified) + existing RHI suite 22/22;
+  `PROVENANCE.md` + `docs/COVERAGE.md`; commits
+  `8cf95606`/`c18912b1`/`513f57b3`/`fbb773fd`. Wave-1 agent packages
+  integrated (`7c5fc26f`, re-validated in-lane): spirv-tools 39/39 (67/67
+  bound; 55/55 exported resolved), spirv-cross 20/20 (169/169), spirv-reflect
+  40/40 (45/45 vendored), glslang 29/29 (61/61), slang 20/20 (277/277), dxc
+  20/20 (128/128). Relayed: `-2231` (batch to packages) + `-2230` (findings
+  to compiler); CLEANUP rows appended centrally. Wave-2 in flight: sdl2,
+  sdl3-100, vma-100, spirv-headers; shaderc still building. Owner
+  upstream-first policy folded (`fbb773fd`). B-21 filed (`-2140`: `&mut` of
+  a struct-return/Result-payload temp crashes codegen; repro
+  `docs/repro/bindings-pilot/mut-of-struct-return/`).
 - **Latest batch 61 (2026-10-11)**: `xiom.meshopt` **0.4.0 -- codec family
   (Phase 3 item 2)**: index SEQUENCE codec (byte-exact order; contrast
   pinned with the triangle-list codec, which rotates corners), quat filter
@@ -485,6 +520,26 @@ clone: stage ONLY your own item files). The two working rules are in
 - Detailed evidence: relay blocks + notes below; bus digests via
   `python tools/relay.py digest --to <lane>`.
 
+### POLICY -- upstream-first + 100% coverage (owner, 2026-10-11)
+
+POLICY (owner, 2026-10-11): upstream-first for ALL bindings work -- no code from
+memory. For every library: clone the upstream SOURCE at a pinned commit into
+E:\repos\<name> (shared, disposable) alongside the SDK/headers, study it, and
+record packages/<pkg>/PROVENANCE.md (upstream, pin, license, derived vs
+independent, vectors). License whitelist for anything copied: MIT/Apache-2.0/BSD/
+ISC/zlib/PD/X11/Unicode/RFC-first; MPL/LGPL reference-only (no code/structure
+copying); never GPL/AGPL/SSPL/Elastic (FFmpeg reference-only / system-lib
+SKIP-only). COVERAGE TARGET = 100% of the target public API surface -- complete
+export coverage, not partial (glfw 124/124 is the standard); SKIP-when-absent
+stays a classified platform state, not a coverage gap. Register clones in
+E:\repos\CLEANUP.md with a review-after date; delete only at quiet moments,
+after ship+verify, with no open references and the owning lane's confirmation.
+Canonical doc: docs/UPSTREAM-FIRST.md.
+
+Relayed by packages as `REL-20261011-2131-packages` (ack) + the fold request
+`REL-20261011-2141-packages`; lane gates G6/G7 updated in docs/BINDINGS-LANE.md.
+Applied from the next touch onward (nothing shipped needs retraction).
+
 ### Next actions (ordered)
 1. **Doorbell**: **RE-ARMED 18:47Z** (`wku_12c49bd1b001pDrS40ht1pQSup`,
    `0 */3 * * *`; next 21:00Z; the cron is per-session -- re-arm on each
@@ -555,20 +610,29 @@ context-limit handoff; prompt refreshed after batch 61).
    eco-v0.1.153-159; jolt parked).
 
 3. Continue the ordered tasks. Priority: (a) compiler v0.64.4 -- check
-   `gh release list -R xiom-lang/xiom`; when the archive lands, pin it,
-   re-run the bindings probe rows from REL-20261011-1731 (six batches
-   m261-m271 staged; B-13/14/15 already green on the staged build per
-   -1801; B-16 needs a fresh probe), reply to compiler with evidence,
-   then lift the workarounds the fixes cover (glfw/sdl3 dispatcher +
-   registry callbacks, 1-arg handler shapes); (b) optional package-local
-   Phase 3 items, pick only on consumer ask or drift-guard re-pin:
-   meshopt cluster pipeline (buildMeshlets -> optimizeMeshlet ->
-   computeMeshletBounds), box2d broad-phase queries + contact events
-   (callbacks need a C trampoline), imgui widget wrappers; (c) SDL3
-   continuance: only the POSIX soname remains (deferred -- no Linux CI
-   target); (d) Vulkan phase 4 only if the engine asks (orders #4-7
-   gated on the slot-recycle fix); watch for engine replies to the
-   assimp contract (REL-20261011-1828).
+   `gh release list -R xiom-lang/xiom`; the wave is staged with the pin
+   pending the stdlib tag; when it lands, pin it, re-run the bindings
+   probe rows from REL-20261011-1731 (six batches m254-m273; B-13/14/15
+   already green on the staged build per -1801; B-16 needs a fresh
+   probe), reply to compiler with evidence, then lift the workarounds
+   the fixes cover (glfw/sdl3 dispatcher + registry callbacks, 1-arg
+   handler shapes);    (b) VULKAN -- the mini-RHI ask is ACKED (REL-20261011-2015; owner items
+   -2048-3 / -2100; engine acked 21:03Z) and the parallel OWNER SESSION
+   drives the Vulkan SDK 100 program in this worktree: READ
+   `docs/checklists/vulkan-sdk-100.md` + the `730e926b` plan BEFORE any
+   Vulkan work; `sdk100-*` agent worktrees exist (dxc/glslang/shaderc/
+   slang/spirv-tools/spirv-cross/spirv-reflect) -- coordinate, do not
+   duplicate owner-session work; the mini-RHI batches are planned
+   0.6.0-0.12.0 (sync/recording; buffers + upload; SPIR-V pipelines stride
+   48/96; texture + sampler; depth; SDL3 surface swapchain; acquire/present
+   FIFO+IMMEDIATE) with SKIP-when-absent and the slot-recycle constraint
+   (packed/scalar + owned slots until the pin proves the fixes); acceptance
+   = engine P3/P4 demo via RhiCmdList at 640x480 uncapped;
+   (c) optional package-local Phase 3 items, pick only on consumer ask:
+   meshopt cluster pipeline, box2d broad-phase queries + contact events,
+   imgui widget wrappers; (d) SDL3 continuance: only the POSIX soname
+   remains (deferred -- no Linux CI target); (e) watch for engine replies
+   to the assimp contract (REL-20261011-1828).
 
    Respect: B-11..B-17/B-20 discipline (byte-indexed slot writes, packed
    returns, dispatcher+registry callbacks, 1-arg handler shapes,
@@ -580,7 +644,10 @@ context-limit handoff; prompt refreshed after batch 61).
    probes (triangle-list AND meshlet coders rotate corners -- compare
    rotation-invariant; index-sequence + vertex coders are byte-exact;
    Box2D revolute GetAngle wraps to [-pi,pi]); the 100%-coverage owner
-   directive; the "stage only your own relay items" rule; git fetch + git
+   directive; the upstream-first policy (POLICY block above: clone the
+   upstream SOURCE at pin + record PROVENANCE.md per package from the next
+   touch; clones registered in E:\repos\CLEANUP.md); the "stage only your
+   own relay items" rule; git fetch + git
    log before every commit (parallel owner session). Package traps:
    xiom.assimp needs `-TimeoutSec 600` (125 TUs, ~4-5 min/build) and
    keeps its `.obj` fixture via a scoped .gitignore negation; xiom.glfw

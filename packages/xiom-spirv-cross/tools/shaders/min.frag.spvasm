@@ -1,0 +1,51 @@
+; Minimal fragment shader fixture for the xiom.spirv.cross conformance suite.
+; GLSL source (cross-compile target expectation: "void main" in the output):
+;
+;   #version 450
+;   layout(binding = 0, std140) uniform UBO { vec4 tint; } ubo;
+;   layout(location = 0) in vec4 inUV;
+;   layout(location = 0) out vec4 outColor;
+;   void main() { outColor = inUV + ubo.tint; }
+;
+; Assemble (Vulkan SDK 1.4.350.0):
+;   spirv-as min.frag.spvasm -o min.frag.spv --target-env vulkan1.0
+;   spirv-val min.frag.spv
+; Then embed deterministically:
+;   python tools/embed_spv_xiom.py
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %inUV %outColor
+               OpExecutionMode %main OriginUpperLeft
+               OpName %main "main"
+               OpName %inUV "inUV"
+               OpName %outColor "outColor"
+               OpName %ubo "ubo"
+               OpDecorate %inUV Location 0
+               OpDecorate %outColor Location 0
+               OpDecorate %ubo_t Block
+               OpMemberDecorate %ubo_t 0 Offset 0
+               OpDecorate %ubo DescriptorSet 0
+               OpDecorate %ubo Binding 0
+        %void = OpTypeVoid
+          %fn = OpTypeFunction %void
+         %f32 = OpTypeFloat 32
+          %v4 = OpTypeVector %f32 4
+       %ubo_t = OpTypeStruct %v4
+    %ptr_ubo_t = OpTypePointer Uniform %ubo_t
+         %ubo = OpVariable %ptr_ubo_t Uniform
+        %int = OpTypeInt 32 1
+       %int0 = OpConstant %int 0
+      %ptr_in = OpTypePointer Input %v4
+        %inUV = OpVariable %ptr_in Input
+     %ptr_out = OpTypePointer Output %v4
+    %outColor = OpVariable %ptr_out Output
+ %ptr_ubo_v4 = OpTypePointer Uniform %v4
+        %main = OpFunction %void None %fn
+       %label = OpLabel
+         %val = OpLoad %v4 %inUV
+         %acc = OpAccessChain %ptr_ubo_v4 %ubo %int0
+         %uvb = OpLoad %v4 %acc
+         %sum = OpFAdd %v4 %val %uvb
+               OpStore %outColor %sum
+               OpReturn
+               OpFunctionEnd

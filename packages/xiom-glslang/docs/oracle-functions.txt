@@ -1,0 +1,69 @@
+# glslang C entry-point oracle -- parsed mechanically from the pinned headers
+# by tools/gen_glslang.ps1 (SDK-100 program; do not edit by hand).
+#
+# core   (glslang.dll):                      57
+# limits (glslang-default-resource-limits.dll): 4
+# total:                                     61
+#
+# name<TAB>source-header
+ShInitialize	Public/ShaderLang.h
+ShFinalize	Public/ShaderLang.h
+StageName	Public/ShaderLang.h
+ShConstructCompiler	Public/ShaderLang.h
+ShConstructLinker	Public/ShaderLang.h
+ShConstructUniformMap	Public/ShaderLang.h
+ShDestruct	Public/ShaderLang.h
+ShCompile	Public/ShaderLang.h
+ShLinkExt	Public/ShaderLang.h
+ShSetEncryptionMethod	Public/ShaderLang.h
+ShGetInfoLog	Public/ShaderLang.h
+ShGetExecutable	Public/ShaderLang.h
+ShSetVirtualAttributeBindings	Public/ShaderLang.h
+ShSetFixedAttributeBindings	Public/ShaderLang.h
+ShExcludeAttributes	Public/ShaderLang.h
+ShGetUniformLocation	Public/ShaderLang.h
+glslang_get_version	Include/glslang_c_interface.h
+glslang_initialize_process	Include/glslang_c_interface.h
+glslang_finalize_process	Include/glslang_c_interface.h
+glslang_shader_create	Include/glslang_c_interface.h
+glslang_shader_delete	Include/glslang_c_interface.h
+glslang_shader_set_preamble	Include/glslang_c_interface.h
+glslang_shader_set_entry_point	Include/glslang_c_interface.h
+glslang_shader_set_invert_y	Include/glslang_c_interface.h
+glslang_shader_shift_binding	Include/glslang_c_interface.h
+glslang_shader_shift_binding_for_set	Include/glslang_c_interface.h
+glslang_shader_set_options	Include/glslang_c_interface.h
+glslang_shader_set_glsl_version	Include/glslang_c_interface.h
+glslang_shader_set_default_uniform_block_set_and_binding	Include/glslang_c_interface.h
+glslang_shader_set_default_uniform_block_name	Include/glslang_c_interface.h
+glslang_shader_set_resource_set_binding	Include/glslang_c_interface.h
+glslang_shader_preprocess	Include/glslang_c_interface.h
+glslang_shader_parse	Include/glslang_c_interface.h
+glslang_shader_get_preprocessed_code	Include/glslang_c_interface.h
+glslang_shader_set_preprocessed_code	Include/glslang_c_interface.h
+glslang_shader_get_info_log	Include/glslang_c_interface.h
+glslang_shader_get_info_debug_log	Include/glslang_c_interface.h
+glslang_program_create	Include/glslang_c_interface.h
+glslang_program_delete	Include/glslang_c_interface.h
+glslang_program_add_shader	Include/glslang_c_interface.h
+glslang_program_link	Include/glslang_c_interface.h
+glslang_program_add_source_text	Include/glslang_c_interface.h
+glslang_program_set_source_file	Include/glslang_c_interface.h
+glslang_program_map_io	Include/glslang_c_interface.h
+glslang_program_map_io_with_resolver_and_mapper	Include/glslang_c_interface.h
+glslang_program_SPIRV_generate	Include/glslang_c_interface.h
+glslang_program_SPIRV_generate_with_options	Include/glslang_c_interface.h
+glslang_program_SPIRV_get_size	Include/glslang_c_interface.h
+glslang_program_SPIRV_get	Include/glslang_c_interface.h
+glslang_program_SPIRV_get_ptr	Include/glslang_c_interface.h
+glslang_program_SPIRV_get_messages	Include/glslang_c_interface.h
+glslang_program_get_info_log	Include/glslang_c_interface.h
+glslang_program_get_info_debug_log	Include/glslang_c_interface.h
+glslang_glsl_mapper_create	Include/glslang_c_interface.h
+glslang_glsl_mapper_delete	Include/glslang_c_interface.h
+glslang_glsl_resolver_create	Include/glslang_c_interface.h
+glslang_glsl_resolver_delete	Include/glslang_c_interface.h
+glslang_resource	Public/resource_limits_c.h
+glslang_default_resource	Public/resource_limits_c.h
+glslang_default_resource_string	Public/resource_limits_c.h
+glslang_decode_resource_limits	Public/resource_limits_c.h
