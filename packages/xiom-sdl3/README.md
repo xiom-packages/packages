@@ -6,11 +6,10 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.10.0 audio + joystick + runtime**
-> (playback/recording device enumeration + device names + current audio
-> driver; joystick enumeration + name-for-id; `SDL_PIXELFORMAT_ABGR8888`
-> exported with the 8888 naming note -- engine ask `REL-20261011-1321-engine`).
-> Suite **48/48 x2** with the official SDL 3.4.8 DLL + absent 4/4 x2.
+> **Status:** `incubating` -- **0.11.0 full constant tables + runtime**
+> (source-generated ~190 constants: the complete `SDL_EVENT_*` enum,
+> window flags, keymods and the explicit-value pixel formats). Suite
+> **48/48 x2** with the official SDL 3.4.8 DLL + absent 4/4 x2.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start

@@ -2,12 +2,12 @@
 
 ## Status (2026-10-11)
 
-Dynamic-loader implementation at **0.7.0** (filesystem basics added). The
-pre-pilot static-extern module (`src/sdl3_safe.xi`) and the extern-backed
-tail of the root module were removed: they could not satisfy the
-SKIP-when-absent gate (link-time symbol requirements). The full pre-pilot
-constant tables and resource wrappers remain in git history and return over
-this loader.
+Dynamic-loader implementation at **0.11.0** (full source-generated constant
+tables added). The pre-pilot static-extern module (`src/sdl3_safe.xi`) and
+the extern-backed tail of the root module were removed: they could not
+satisfy the SKIP-when-absent gate (link-time symbol requirements). The full
+pre-pilot constant tables and resource wrappers remain in git history and
+return over this loader.
 
 | Item | State |
 |------|-------|
@@ -16,7 +16,7 @@ this loader.
 | Link model | none at build time; runtime `LoadLibraryA`/`GetProcAddress` via `xiom.ffi.dl` |
 | FFI confinement | all `unsafe` + fn-pointer casts in the root module `xiom.sdl3` only |
 | Suite | `tests/test_conformance.xi`, 48 checks (4 run without the DLL) |
-| Runs | absent (PATH-filtered): PASS 4/4 x2; present (SDL 3.4.8): PASS 48/48 x2; demo probe `examples/demo_sdl3.xi` exit 0 with the blit section green -- all via `scripts/port.ps1`/direct run (v0.64.3, 2026-10-11) |
+| Runs | absent (PATH-filtered): PASS 4/4 x2; present (SDL 3.4.8): PASS 48/48 x2; demo probe `examples/demo_sdl3.xi` exit 0 with the blit section green -- all via `scripts/port.ps1`/direct run (v0.64.3, 2026-10-11; refreshed each version) |
 | Resources (0.3.0) | window (hidden 320x200, size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration + SKIP when none attached |
 | Event decode (0.4.0) | `SDL_Event` over an owned 128-byte buffer: shared header + key/mouse-motion/mouse-button/window accessors + f32 bit decode; offsets pinned to the 3.4.8 headers (== the 3.2.10 clone) |
 | Event filter/watch (0.5.0) | fixed dispatchers + 1-arg handler registries; keep/drop proven (reject makes SDL refuse the push); watch non-consuming + removable; B-14/B-15 workarounds documented (`docs/repro/bindings-pilot/cb-abi/probe7_element_units.xi`) |
@@ -25,6 +25,7 @@ this loader.
 | Display blit (0.8.0) | 3 resource-loader symbols (SDL_UpdateTexture / SDL_RenderTexture / SDL_SetRenderVSync); our-buffer read direction only (B-11 avoided); engine ask `REL-20261011-1153-engine` met with the host demo probe + the suite blit check |
 | Mouse/window contract (0.9.0) | SDL_GetMouseState (f32 out-params + mask) + SDL_SetWindowSize/Resizable; full WINDOW event family exported; typed resize proven through the watch (engine input route; README snippet) |
 | Audio/joystick (0.10.0) | 6 symbols; device arrays freed per call, names/driver copied from SDL-owned consts; ABGR8888 + 8888 naming note (engine ask 1321); AUDIO/JOYSTICK-init SKIP path |
+| Constant tables (0.11.0) | ~190 constants source-generated from the release-3.2.10 headers (full event enum, window flags, keymods, explicit-value pixel formats); deduped against earlier sections; suite samples across all families |
 
 ## G2 pin
 
