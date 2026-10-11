@@ -109,8 +109,14 @@ clone: stage ONLY your own item files). The two working rules are in
   post witness is that line), glfw **37/37** (time check SKIP
   pre-1904-fix; `--link user32` auto), B-11 `vulkan-slot-recycle` red pre
   (`inside: a=3 b=0 c=1 rc=0`; vma bridge from the package, no extra
-  args). Remaining pre-run gap: B-05/B-10 alloc-guard-spin (spin risk) +
-  jolt (needs m258+) -- run at the archive.
+  args). B-05/B-10 `alloc-guard-spin` (20:10Z, after the archive watch):
+  compiled clean (`compile_exit=0`, `-o` to temp); watchdog run on
+  v0.64.3 = still spins (15 s wall cap hit, ~1 core, flat ~4-4.5 MB, no
+  output after "before"). Archive-day procedure validated: use the
+  tracked `background_process` runner (monitor + `stop` kills the tree);
+  one direct `Start-Process` attempt escaped the harness kill -- if that
+  recurs, kill by exact PID. Remaining pre-run gap: jolt (needs m258+)
+  -- runs at the archive.
 - **Archive watch fire (19:50Z)**: v0.64.4 still not on GitHub (v0.64.3
   latest; compiler origin/main still batch 1); relay gained `-1856`
   (stdlib->xvector), `-1904-pulse` (pulse A/B on m271: batch-5 witness
