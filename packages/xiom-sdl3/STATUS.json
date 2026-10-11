@@ -6,11 +6,11 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  43,
+                  "passed":  44,
                   "failed":  0,
                   "run_by":  "task:bindings-sdl3",
-                  "commit":  "7317c433",
-                  "checked":  "2026-10-11T11:56:55Z"
+                  "commit":  "3d7f6f3e",
+                  "checked":  "2026-10-11T12:03:47Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: bindings batch 41 (eco-v0.1.138)"
