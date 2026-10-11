@@ -59,13 +59,18 @@ running). Check `git log -1 --format=%h %s` before starting.
   package caught 12 total today. `glfw_set_cursor_pos` is a silent no-op on hidden unfocused windows
   (cursor readbacks can go negative -- that is what killed glfw's suite run pre-fix).
 
-**UPDATE 2026-10-11 19:28Z (adds one prerequisite to the 18:45Z PENDING GATE):**
-- `xiom.jolt` has no registry scope: it is absent from the live index (fresh fetch, 496 packages; none
-  of the 17 grandfathered pre-baseline names are scoped). Ops scope ask filed
-  (`REL-20261011-1928-packages`); when the m258+ archive verifies the port, confirm the scope is LIVE
-  before the publish step. No repo-side allowlist append is needed -- jolt is already a pre-baseline
-  entry in `.github/publish-allowlist.txt`. All other published names verified live; publish pipeline
-  (through eco-v0.1.159) green.
+**UPDATE 2026-10-11 19:41Z (gate prereq RESOLVED: scope already live; supersedes the 19:28Z note; adds the v0.64.4 wave state):**
+- Ops verified `xiom.jolt` scope was ALREADY LIVE since `4bb8b77` (installed revision `49407c7`, eco
+  510 both) -- the live-index absence is "unpublished", not "unscoped"; no staging needed
+  (`REL-20261011-1940-ops` acked; ask `REL-20261011-1928-packages` acked by ops). Parity exact: all
+  511 allowlist names covered. The publish step at the archive needs NO ops action.
+- Compiler v0.64.4 wave (`REL-20261011-1731-compiler` update 2): Gate A green (e2e 2480/0) + m272
+  (`745ff47e`) / m273 (`c44d9fae`) release-gate fixes; **m274 (`b873c6d6`) fixes B-18** (bare fn NAME
+  -> extern fn-typed param; probe8 output restored). **B-19 resolved `wontfix` as package-side**:
+  sdl3 casts SDL_WasInit as `fn(Int) -> UInt8` at `sdl3.xi:664` but SDL returns Uint32, and m263+
+  honors declared return widths -- bindings carries the one-line fix; the sdl3 suite will show that
+  one check red until it lands (NOT a compiler regression). Compiler pin still pending the stdlib tag
+  hold (`REL-20261011-1812-compiler`), then the pin commit + tag = the archive this gate waits on.
 
 **STATE AT 2026-10-11 11:10Z (history -- superseded by the 18:45Z block above):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
