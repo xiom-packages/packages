@@ -133,6 +133,17 @@ pub type Sdl3Library = {
   p_set_event_filter: Int;
   p_add_event_watch: Int;
   p_remove_event_watch: Int;
+  p_get_displays: Int;
+  p_get_primary_display: Int;
+  p_get_display_name: Int;
+  p_get_display_bounds: Int;
+  p_get_display_usable_bounds: Int;
+  p_get_current_display_mode: Int;
+  p_get_desktop_display_mode: Int;
+  p_get_keyboard_state: Int;
+  p_get_mod_state: Int;
+  p_get_keyboard_focus: Int;
+  p_free: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -176,6 +187,28 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a14.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_AddEventWatch: " + a14.error }); }
   let a15 = dl.dl_sym(handle, "SDL_RemoveEventWatch");
   if !a15.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_RemoveEventWatch: " + a15.error }); }
+  let a16 = dl.dl_sym(handle, "SDL_GetDisplays");
+  if !a16.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetDisplays: " + a16.error }); }
+  let a17 = dl.dl_sym(handle, "SDL_GetPrimaryDisplay");
+  if !a17.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetPrimaryDisplay: " + a17.error }); }
+  let a18 = dl.dl_sym(handle, "SDL_GetDisplayName");
+  if !a18.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetDisplayName: " + a18.error }); }
+  let a19 = dl.dl_sym(handle, "SDL_GetDisplayBounds");
+  if !a19.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetDisplayBounds: " + a19.error }); }
+  let a20 = dl.dl_sym(handle, "SDL_GetDisplayUsableBounds");
+  if !a20.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetDisplayUsableBounds: " + a20.error }); }
+  let a21 = dl.dl_sym(handle, "SDL_GetCurrentDisplayMode");
+  if !a21.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetCurrentDisplayMode: " + a21.error }); }
+  let a22 = dl.dl_sym(handle, "SDL_GetDesktopDisplayMode");
+  if !a22.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetDesktopDisplayMode: " + a22.error }); }
+  let a23 = dl.dl_sym(handle, "SDL_GetKeyboardState");
+  if !a23.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetKeyboardState: " + a23.error }); }
+  let a24 = dl.dl_sym(handle, "SDL_GetModState");
+  if !a24.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetModState: " + a24.error }); }
+  let a25 = dl.dl_sym(handle, "SDL_GetKeyboardFocus");
+  if !a25.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetKeyboardFocus: " + a25.error }); }
+  let a26 = dl.dl_sym(handle, "SDL_free");
+  if !a26.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_free: " + a26.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -194,6 +227,17 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_set_event_filter: a13.value,
     p_add_event_watch: a14.value,
     p_remove_event_watch: a15.value,
+    p_get_displays: a16.value,
+    p_get_primary_display: a17.value,
+    p_get_display_name: a18.value,
+    p_get_display_bounds: a19.value,
+    p_get_display_usable_bounds: a20.value,
+    p_get_current_display_mode: a21.value,
+    p_get_desktop_display_mode: a22.value,
+    p_get_keyboard_state: a23.value,
+    p_get_mod_state: a24.value,
+    p_get_keyboard_focus: a25.value,
+    p_free: a26.value,
   });
 }
 
@@ -1133,4 +1177,284 @@ pub fn sdl3_remove_event_watch(lib: &Sdl3Library, userdata: Int) -> Bool
     f(sdl3_watch_dispatch, userdata);
   }
   return true;
+}
+
+// =========================================================================
+// 0.6.0: displays + keyboard state (needs SDL_INIT_VIDEO)
+//
+// Out-params go through owned byte slots (proven readback direction); the
+// display list and the SDL_DisplayMode struct are SDL-owned memory read
+// with ffi.ptr_read_* (read direction proven by the 0.5.0 event copy).
+// SDL_Rect = 4x int32; SDL_DisplayMode layout pinned from the release-3.2.10
+// header (ABI-stable in SDL3): displayID u32 @0, format u32 @4, w @8, h @12,
+// pixel_density f32 @16, refresh_rate f32 @20.
+// =========================================================================
+
+pub type Sdl3Rect = {
+  x: Int;
+  y: Int;
+  w: Int;
+  h: Int;
+}
+
+pub type Sdl3DisplayMode = {
+  pixel_format: Int;
+  w: Int;
+  h: Int;
+  pixel_density: Float64;
+  refresh_rate: Float64;
+}
+
+// Generic zeroed slot (any size).
+fn sdl3_slot(n: Int) -> Vec[UInt8]
+  requires: n > 0
+{
+  var s: Vec[UInt8] = Vec[UInt8].new();
+  var i: Int = 0;
+  while i < n {
+    s.push(0 as UInt8);
+    i = i + 1;
+  }
+  return s;
+}
+
+fn sdl3_read_u32_at(buf: &Vec[UInt8], off: Int) -> Int
+  requires: off >= 0
+  requires: buf.len() >= off + 4
+{
+  let b0 = buf[off + 0] as Int;
+  let b1 = buf[off + 1] as Int;
+  let b2 = buf[off + 2] as Int;
+  let b3 = buf[off + 3] as Int;
+  return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+fn sdl3_read_i32_at(buf: &Vec[UInt8], off: Int) -> Int
+  requires: off >= 0
+  requires: buf.len() >= off + 4
+{
+  let u = sdl3_read_u32_at(buf, off);
+  if u >= 0x80000000 { return u - 0x100000000; }
+  return u;
+}
+
+// Signed i32 at a raw address.
+fn ptr_i32(q: Int) -> Int
+  requires: q != 0
+{
+  unsafe {
+    let u = ffi.ptr_read_u32_le(q as *UInt8);
+    if u >= 0x80000000 { return u - 0x100000000; }
+    return u;
+  }
+}
+
+// f32 at a raw address, decoded pure-arithmetic (B-12 discipline).
+fn ptr_f32(q: Int) -> Float64
+  requires: q != 0
+{
+  unsafe {
+    return sdl3_f32_from_bits(ffi.ptr_read_u32_le(q as *UInt8));
+  }
+}
+
+fn sdl3_mode_from_ptr(p: Int) -> Sdl3DisplayMode
+  requires: p != 0
+{
+  return Sdl3DisplayMode{
+    pixel_format: unsafe { ffi.ptr_read_u32_le((p + 4) as *UInt8) },
+    w: ptr_i32(p + 8),
+    h: ptr_i32(p + 12),
+    pixel_density: ptr_f32(p + 16),
+    refresh_rate: ptr_f32(p + 20),
+  };
+}
+
+/// SDL_GetDisplays count (array freed via SDL_free).  Requires VIDEO.
+/// Complexity: O(displays).
+pub fn sdl3_display_count(lib: &Sdl3Library) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_displays as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    if arr != 0 {
+      let fr = lib.p_free as fn(Int);
+      fr(arr);
+    }
+    return n;
+  }
+}
+
+/// i-th display id from SDL_GetDisplays (0 when out of range).
+/// Complexity: O(displays).
+pub fn sdl3_display_at(lib: &Sdl3Library, i: Int) -> Int
+  requires: lib.handle != 0
+  requires: i >= 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_displays as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    var id = 0;
+    if arr != 0 {
+      if i < n {
+        id = ffi.ptr_read_u32_le((arr + i * 4) as *UInt8);
+      }
+      let fr = lib.p_free as fn(Int);
+      fr(arr);
+    }
+    return id;
+  }
+}
+
+/// SDL_GetPrimaryDisplay id.
+/// Complexity: O(1).
+pub fn sdl3_primary_display(lib: &Sdl3Library) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_primary_display as fn() -> Int32;
+    return f() as Int;
+  }
+}
+
+/// SDL_GetDisplayName ("" when SDL has no name).
+/// Complexity: O(len).
+pub fn sdl3_display_name(lib: &Sdl3Library, id: Int) -> Str
+  requires: lib.handle != 0
+  requires: id >= 0
+{
+  unsafe {
+    let f = lib.p_get_display_name as fn(Int) -> *UInt8;
+    let p = f(id);
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
+  }
+}
+
+/// SDL_GetDisplayBounds -> Sdl3Rect (zeros on failure).
+/// Complexity: O(1).
+pub fn sdl3_display_bounds(lib: &Sdl3Library, id: Int) -> Sdl3Rect
+  requires: lib.handle != 0
+  requires: id >= 0
+{
+  unsafe {
+    var slot = sdl3_slot(16);
+    let f = lib.p_get_display_bounds as fn(Int, *UInt8) -> UInt8;
+    let ok = (f(id, slot.as_mut_ptr()) as Int) != 0;
+    if !ok { return Sdl3Rect{ x: 0; y: 0; w: 0; h: 0 }; }
+    return Sdl3Rect{
+      x: sdl3_read_i32_at(&slot, 0),
+      y: sdl3_read_i32_at(&slot, 4),
+      w: sdl3_read_i32_at(&slot, 8),
+      h: sdl3_read_i32_at(&slot, 12),
+    };
+  }
+}
+
+/// SDL_GetDisplayUsableBounds -> Sdl3Rect (zeros on failure).
+/// Complexity: O(1).
+pub fn sdl3_display_usable_bounds(lib: &Sdl3Library, id: Int) -> Sdl3Rect
+  requires: lib.handle != 0
+  requires: id >= 0
+{
+  unsafe {
+    var slot = sdl3_slot(16);
+    let f = lib.p_get_display_usable_bounds as fn(Int, *UInt8) -> UInt8;
+    let ok = (f(id, slot.as_mut_ptr()) as Int) != 0;
+    if !ok { return Sdl3Rect{ x: 0; y: 0; w: 0; h: 0 }; }
+    return Sdl3Rect{
+      x: sdl3_read_i32_at(&slot, 0),
+      y: sdl3_read_i32_at(&slot, 4),
+      w: sdl3_read_i32_at(&slot, 8),
+      h: sdl3_read_i32_at(&slot, 12),
+    };
+  }
+}
+
+/// SDL_GetCurrentDisplayMode (all-zero struct when SDL returns NULL).
+/// Complexity: O(1).
+pub fn sdl3_display_mode(lib: &Sdl3Library, id: Int) -> Sdl3DisplayMode
+  requires: lib.handle != 0
+  requires: id >= 0
+{
+  unsafe {
+    let f = lib.p_get_current_display_mode as fn(Int) -> Int;
+    let p = f(id);
+    if p == 0 { return Sdl3DisplayMode{ pixel_format: 0; w: 0; h: 0; pixel_density: 0.0; refresh_rate: 0.0 }; }
+    return sdl3_mode_from_ptr(p);
+  }
+}
+
+/// SDL_GetDesktopDisplayMode (all-zero struct when SDL returns NULL).
+/// Complexity: O(1).
+pub fn sdl3_desktop_display_mode(lib: &Sdl3Library, id: Int) -> Sdl3DisplayMode
+  requires: lib.handle != 0
+  requires: id >= 0
+{
+  unsafe {
+    let f = lib.p_get_desktop_display_mode as fn(Int) -> Int;
+    let p = f(id);
+    if p == 0 { return Sdl3DisplayMode{ pixel_format: 0; w: 0; h: 0; pixel_density: 0.0; refresh_rate: 0.0 }; }
+    return sdl3_mode_from_ptr(p);
+  }
+}
+
+/// SDL_GetKeyboardState: number of scancodes in the state array (0 when
+/// unavailable; ~512 with VIDEO initialized).
+/// Complexity: O(1).
+pub fn sdl3_keyboard_state_count(lib: &Sdl3Library) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_keyboard_state as fn(*UInt8) -> Int;
+    let p = f(slot.as_mut_ptr());
+    if p == 0 { return 0; }
+    return sdl3_read_u32(&slot);
+  }
+}
+
+/// True when the given scancode is currently held (SDL_GetKeyboardState).
+/// Complexity: O(1).
+pub fn sdl3_keyboard_key_down(lib: &Sdl3Library, scancode: Int) -> Bool
+  requires: lib.handle != 0
+  requires: scancode >= 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_keyboard_state as fn(*UInt8) -> Int;
+    let p = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    if p == 0 { return false; }
+    if scancode >= n { return false; }
+    let b = ffi.ptr_read_u8((p + scancode) as *UInt8);
+    return (b as Int) != 0;
+  }
+}
+
+/// SDL_GetModState -> SDL_Keymod (masked to 16 bits).
+/// Complexity: O(1).
+pub fn sdl3_mod_state(lib: &Sdl3Library) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_mod_state as fn() -> Int32;
+    return (f() as Int) & 0xFFFF;
+  }
+}
+
+/// SDL_GetKeyboardFocus -> focused window handle (0 when none).
+/// Complexity: O(1).
+pub fn sdl3_keyboard_focus(lib: &Sdl3Library) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_keyboard_focus as fn() -> Int;
+    return f();
+  }
 }

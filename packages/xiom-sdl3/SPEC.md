@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.5.0 |
+| Version | 0.6.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -131,12 +131,27 @@ proven by the suite: a keep-filter passes a pushed KEY_DOWN to the poll; a
 rejecting filter makes `SDL_PushEvent` itself return false (drop proof);
 the watch observes without consuming and removal stops further firing.
 
+**0.6.0 addition (displays + keyboard, 2026-10-11):** 11 symbols joined the
+core loader: `SDL_GetDisplays` (+ `SDL_free` of the returned array),
+`SDL_GetPrimaryDisplay`, `SDL_GetDisplayName`, `SDL_GetDisplayBounds`,
+`SDL_GetDisplayUsableBounds`, `SDL_GetCurrentDisplayMode`,
+`SDL_GetDesktopDisplayMode`, `SDL_GetKeyboardState`, `SDL_GetModState`,
+`SDL_GetKeyboardFocus`.  Needs `SDL_INIT_VIDEO`; the suite SKIPs the block
+when video init fails.  `SDL_Rect` out-params use owned 16-byte slots
+(proven readback direction); the display list and `SDL_DisplayMode` are
+SDL-owned memory read with `ffi.ptr_read_*` (read direction proven by the
+0.5.0 event copy); `SDL_DisplayMode` layout pinned from the release-3.2.10
+header (ABI-stable): displayID/format u32, w/h i32, pixel_density @16 f32,
+refresh_rate @20 f32 -- floats decode via `sdl3_f32_from_bits` (B-12
+discipline).  `SDL_GetDisplays` returns one id per `sdl3_display_at` call
+(array fetched + freed per call; O(displays)).
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 27/27 x2** -- decode layer + smoke + resources (window/renderer/texture/gamepad) + synthetic user event + KEY_DOWN + filter keep (calls=4 incl. internal passes, last=KEY_DOWN, userdata echoed) + filter reject (push refused) + watch non-consuming/removal |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 36/36 x2** -- previous 27 checks + displays (count=2, primary=1 in list, name "C24F390", bounds 1920x1080, usable 1920x1032, current+desktop modes 1920x1080) + keyboard (numkeys=512 idle, mod state non-lock bits idle) on this desktop box |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no
 extra compiler flags (this is the design win of the loader path over a C
