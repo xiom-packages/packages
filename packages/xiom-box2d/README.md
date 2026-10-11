@@ -5,7 +5,7 @@ into `vendor/` (MIT) and compiled into the test binary with `--c-source` --
 no system library, no DLL, no SDK.
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
-> v0.64.2; 5/5). Published in `eco-v0.1.123` (sha256 `314568d7...`).
+> v0.64.3; 7/7). Published in `eco-v0.1.123` (sha256 `314568d7...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -40,6 +40,7 @@ Values cross the boundary as **thousandths (milli)**: `10000` = 10.0 m,
 | Version | `b2_version` (packed), `b2_version_str` |
 | World | `b2_gravity` -> `B2Gravity` |
 | Simulation | `b2_drop(start_y_milli, steps)` -> `B2DropResult`, `b2_impulse(impulse_milli)` -> vx milli |
+| Joints | `b2_revolute_motor(motor_speed_milli, steps)` -> `B2RevoluteMotor`, `b2_prismatic_motor(motor_speed_milli, steps)` -> `B2PrismaticMotor` |
 | Constant | `B2_DEFAULT_STEPS` (300 = 5 s at 60 Hz) |
 
 Full details: `SPEC.md`; vendored provenance + per-file pin: `SPEC.md` §2.
@@ -50,5 +51,6 @@ Full details: `SPEC.md`; vendored provenance + per-file pin: `SPEC.md` §2.
 scripts/port.ps1 -Package xiom.box2d
 ```
 
-Expected: 5 `[PASS]`, exit 0. The suite runs real simulation steps
-(resting drop + impulse), not only symbol resolution.
+Expected: 7 `[PASS]`, exit 0. The suite runs real simulation steps
+(resting drop + impulse + motor-driven revolute/prismatic joints), not only
+symbol resolution.
