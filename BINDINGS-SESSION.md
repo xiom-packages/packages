@@ -29,6 +29,19 @@ fn-type mangling warning flagged; 1-arg handler restriction droppable at
 release+pin. v0.64.4 archive NOT yet released (v0.64.3 latest as of 18:44Z);
 all six batches m261-m271 staged (`-1731`).
 Lane tree tip: handoff commit on top of `8b541db5` (clean; all pushed).
+**Doorbell 21:00Z**: engine NEW ask **`REL-20261011-2015`** (Vulkan mini-RHI)
+-- **ACKED** on the item (7-step order + acceptance shape); our
+`-1113-bindings` info item **CLOSED**; compiler `-1731` updated (v0.64.4
+wave staged; **pin pending the stdlib tag**); packages lane handed off
+("batch lane drained", `-1828` awaiting engine adoption). **Owner session
+(parallel, same worktree)**: fixed **B-19 package-side** (sdl3 0.16.1, suite
+59/59 x2; items `-2048-bindings` -> packages, `-2048-bindings-2` -> compiler;
+packages acked batch 62), acked the mini-RHI with planned batches
+0.6.0-0.12.0 (`-2048-bindings-3`, `-2100-bindings`; engine acked 21:03Z and
+will start `engine/rhi/vulkan.xi` on delivery), and **launched the Vulkan SDK
+100 program** (`docs/checklists/vulkan-sdk-100.md` + the `730e926b` plan;
+`sdk100-*` agent worktrees for dxc/glslang/shaderc/slang/spirv-tools/
+spirv-cross/spirv-reflect).
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
 **B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
 >=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
@@ -71,14 +84,18 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 18:45Z, context-limit handoff)**: batches 31-61
-  relayed; **ALL PUBLISHED through `eco-v0.1.159`** (meshopt 0.4.0 live
-  18:36:32Z, `0e98c707...`); **publish queue EMPTY** (jolt m258-parked
-  only). Pool sweep complete + published; meshopt Phase-3 items 1+2
-  shipped (0.3.0/0.4.0); assimp contract routed to engine (`-1828`);
-  compiler staged-build re-verify green for B-13/14/15 (`-1801`), B-16
-  open; v0.64.4 archive not yet released. Relay: `-1553`..`-1829` batch
-  items sent.
+- **CURRENT (2026-10-11 21:05Z, doorbell tick)**: batches 31-61 + the owner
+  session's 62 (sdl3 0.16.1 B-19 fix) relayed; **ALL PUBLISHED through
+  `eco-v0.1.159`** (meshopt 0.4.0 live 18:36:32Z); **publish queue EMPTY**
+  (jolt m258-parked only). Pool sweep complete + published; meshopt
+  Phase-3 1+2 shipped (0.3.0/0.4.0); assimp contract routed to engine
+  (`-1828`). Compiler v0.64.4 wave staged -- **pin pending the stdlib tag**;
+  staged-build re-verify green for B-13/14/15 (`-1801`), B-16 open.
+  **Engine Vulkan mini-RHI `-2015` ACKED** (item status at 21:01Z + owner
+  items `-2048-3`/`-2100`; engine acked 21:03Z, will build
+  `engine/rhi/vulkan.xi` on delivery); **owner session drives the Vulkan SDK
+  100 program** (checklist + `sdk100-*` agent worktrees). `-1113-bindings`
+  closed. Relay: `-1553`..`-2100` items sent.
 - **Pickup (2026-10-11 18:47Z, new session)**: origin==local `f236925d`,
   worktree clean; relay re-checked -- no items newer than `-1731`; packages
   tip `555b501e` (75 eco releases; no notes past `eco-v0.1.159`); `status
@@ -555,20 +572,29 @@ context-limit handoff; prompt refreshed after batch 61).
    eco-v0.1.153-159; jolt parked).
 
 3. Continue the ordered tasks. Priority: (a) compiler v0.64.4 -- check
-   `gh release list -R xiom-lang/xiom`; when the archive lands, pin it,
-   re-run the bindings probe rows from REL-20261011-1731 (six batches
-   m261-m271 staged; B-13/14/15 already green on the staged build per
-   -1801; B-16 needs a fresh probe), reply to compiler with evidence,
-   then lift the workarounds the fixes cover (glfw/sdl3 dispatcher +
-   registry callbacks, 1-arg handler shapes); (b) optional package-local
-   Phase 3 items, pick only on consumer ask or drift-guard re-pin:
-   meshopt cluster pipeline (buildMeshlets -> optimizeMeshlet ->
-   computeMeshletBounds), box2d broad-phase queries + contact events
-   (callbacks need a C trampoline), imgui widget wrappers; (c) SDL3
-   continuance: only the POSIX soname remains (deferred -- no Linux CI
-   target); (d) Vulkan phase 4 only if the engine asks (orders #4-7
-   gated on the slot-recycle fix); watch for engine replies to the
-   assimp contract (REL-20261011-1828).
+   `gh release list -R xiom-lang/xiom`; the wave is staged with the pin
+   pending the stdlib tag; when it lands, pin it, re-run the bindings
+   probe rows from REL-20261011-1731 (six batches m254-m273; B-13/14/15
+   already green on the staged build per -1801; B-16 needs a fresh
+   probe), reply to compiler with evidence, then lift the workarounds
+   the fixes cover (glfw/sdl3 dispatcher + registry callbacks, 1-arg
+   handler shapes);    (b) VULKAN -- the mini-RHI ask is ACKED (REL-20261011-2015; owner items
+   -2048-3 / -2100; engine acked 21:03Z) and the parallel OWNER SESSION
+   drives the Vulkan SDK 100 program in this worktree: READ
+   `docs/checklists/vulkan-sdk-100.md` + the `730e926b` plan BEFORE any
+   Vulkan work; `sdk100-*` agent worktrees exist (dxc/glslang/shaderc/
+   slang/spirv-tools/spirv-cross/spirv-reflect) -- coordinate, do not
+   duplicate owner-session work; the mini-RHI batches are planned
+   0.6.0-0.12.0 (sync/recording; buffers + upload; SPIR-V pipelines stride
+   48/96; texture + sampler; depth; SDL3 surface swapchain; acquire/present
+   FIFO+IMMEDIATE) with SKIP-when-absent and the slot-recycle constraint
+   (packed/scalar + owned slots until the pin proves the fixes); acceptance
+   = engine P3/P4 demo via RhiCmdList at 640x480 uncapped;
+   (c) optional package-local Phase 3 items, pick only on consumer ask:
+   meshopt cluster pipeline, box2d broad-phase queries + contact events,
+   imgui widget wrappers; (d) SDL3 continuance: only the POSIX soname
+   remains (deferred -- no Linux CI target); (e) watch for engine replies
+   to the assimp contract (REL-20261011-1828).
 
    Respect: B-11..B-17/B-20 discipline (byte-indexed slot writes, packed
    returns, dispatcher+registry callbacks, 1-arg handler shapes,
