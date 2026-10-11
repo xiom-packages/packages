@@ -3,24 +3,26 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: IMGUI 0.3.0 SHIPPED -- batches 31-58 relayed** (session resumed
-2026-10-11 17:19Z from the 17:15Z context-limit handoff; this continuation
-shipped batch 56: meshopt 0.2.0 vendored + 30/30 x2, batch 57: ozz 0.3.0
-clip pipeline + combine.py bundler + 5/5 x2, and batch 58: imgui 0.3.0
-long-lived context handles + 7/7 x2).
+**STATUS: BOX2D 0.3.0 SHIPPED -- batches 31-59 relayed; POOL SWEEP COMPLETE**
+(session resumed 2026-10-11 17:19Z from the 17:15Z context-limit handoff;
+this continuation shipped batches 56-59: meshopt 0.2.0 vendored + 30/30,
+ozz 0.3.0 clip pipeline + 5/5, imgui 0.3.0 context handles + 7/7, box2d
+0.3.0 joint motors + 7/7).
 Published through the window: `eco-v0.1.132`..`eco-v0.1.155` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
-(`154`), meshopt **0.2.0** (`155`, sha256 `1158faef...`, live 17:41:40Z).
-**Publish queue (packages)**: ozz **0.3.0** relayed 17:40Z
-(`REL-20261011-1740-bindings`); imgui **0.3.0** relayed 17:52Z
-(`REL-20261011-1750-bindings`); jolt 0.2.0 stays parked on the m258 archive.
-**Batch 58: xiom.imgui 0.3.0** -- long-lived context handles
-(create/frame/destroy, 4-slot registry, frames persist across calls; 7/7 x2)
-+ side-effect-free runs (`io.IniFilename = 0`; tracked imgui.ini removed).
-Lane tree tip: `05c30982` (clean; all pushed).
-Compiler v0.64.4 six-batch stack staged (`REL-20261011-1731-compiler`, to
-all): re-run our open probe rows when the archive lands; workarounds stay.
+(`154`), meshopt **0.2.0** (`155`).
+**Publish queue (packages)**: ozz **0.3.0** (`REL-20261011-1740-bindings`,
+17:40Z), imgui **0.3.0** (`REL-20261011-1750-bindings`, 17:52Z), box2d
+**0.3.0** (`REL-20261011-1754-bindings`, 17:56Z); jolt 0.2.0 m258-parked.
+**Batch 59: xiom.box2d 0.3.0** -- revolute + prismatic joint motors (rotor
+w = motor speed with wrapped-angle semantics; gravity-held slider; 7/7 x2).
+**Pool drive complete**: miniaudio/meshopt/ozz/imgui/box2d all re-verified
+on v0.64.3, each clearing a ROADMAP next item.
+Lane tree tip: `0e4604f7` (clean; all pushed).
+Compiler v0.64.4: all six batches staged (m261-m271,
+`REL-20261011-1731`): re-run our open probe rows when the archive lands;
+workarounds stay.
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
 **B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
 >=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
@@ -61,12 +63,20 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 17:55Z, batch-58 ship tick)**: batches 31-58
+- **CURRENT (2026-10-11 18:00Z, batch-59 ship tick)**: batches 31-59
   relayed; sdl3 **0.12.0-0.16.0** + assimp **0.8.0** + miniaudio **0.3.0**
   + meshopt **0.2.0** PUBLISHED (`eco-v0.1.148`-`155`); **publish queue:
-  ozz 0.3.0 + imgui 0.3.0** (jolt m258-parked only). Engine P3+P4 asks ALL
-  delivered/published. Relay: `-1553`/`-1602`/`-1622`/`-1655`/`-1708`/
-  `-1733`/`-1740`/`-1750` batch items sent.
+  ozz 0.3.0 + imgui 0.3.0 + box2d 0.3.0** (jolt m258-parked only). **Pool
+  drive complete (5/5 re-verified + next items)**. Engine P3+P4 asks ALL
+  delivered/published. Relay: `-1553`..`-1754` batch items sent.
+- **Latest batch 59 (2026-10-11)**: `xiom.box2d` **0.3.0 -- joint motors
+  (pool drive)**: bridge gains `b2probe_revolute_motor` (2.0x0.2 bar
+  hinged at the origin, gravity off, motor-only torque -> w settles at the
+  motor speed; the joint angle pins Box2D's [-pi,pi] wrap: 4 - 2*pi ~
+  -2283 milli) and `b2probe_prismatic_motor` (slider on +x under gravity
+  -> translation ~1999 milli while y is held at ~1999). Joint defs stay
+  inside C; the milli ABI is unchanged. Suite: **7/7 x2**. feat `56b7e31c`
+  + record `0e4604f7`; relayed `REL-20261011-1754-bindings`.
 - **Latest batch 58 (2026-10-11)**: `xiom.imgui` **0.3.0 -- long-lived
   context handles (pool drive)**: 4-slot registry of `ImGuiContext*` with
   1-based handles (`imgui_context_create/frame/destroy` + count/frames);
@@ -411,20 +421,20 @@ clone: stage ONLY your own item files). The two working rules are in
    pointers -- have C copy into an owned slot**. Ship each batch as: feat
    -> x2 (present + absent PATH-filtered) -> record -> relay -> ledger.
    Constant regeneration recipe: comment-strip + enum-parse + macro-eval
-   vs the headers (ROADMAP item 1).    **Assimp 0.8.0 + miniaudio 0.3.0
-   PUBLISHED** (`eco-v0.1.153`/`154`). **Pool drive in progress**: miniaudio
-   done (0.3.0); meshopt done (**0.2.0 vendored** v1.2 + bridge + 30/30 x2,
-   batch 56 relayed); next: ozz (4 tests), imgui (4), box2d (5) --
-   re-verify on v0.64.3 then clear their ROADMAP Phase-3 items, binding
-   from the real sources, never from memory.
+   vs the headers (ROADMAP item 1). **POOL DRIVE COMPLETE**: miniaudio
+   0.3.0 + meshopt 0.2.0 + ozz 0.3.0 + imgui 0.3.0 + box2d 0.3.0 all
+   re-verified on v0.64.3 and each cleared a ROADMAP next item (batches
+   55-59). Remaining pool work is the package-local Phase 3 backlog (per
+   each package's ROADMAP); pick the next item only when a consumer asks
+   or the drift guard flags a re-pin.
 4. ~~stb publish~~ **DONE** (`eco-v0.1.139`); batches 39/40/41 wrapped on
    main (`470e13f3`); vulkan 0.5.0 live (`eco-v0.1.138`).
 
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- clean pickup (2026-10-11 17:40Z, post-handoff
-continuation; prompt refreshed after batch 56).
+Bindings lane continuation -- clean pickup (2026-10-11 18:05Z, post-batch-59
+refresh; pool sweep complete).
 
 1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
    BINDINGS-SESSION.md (STATUS + RESUME HERE: CURRENT state, ordered next
@@ -443,19 +453,21 @@ continuation; prompt refreshed after batch 56).
    eco publish notes and record confirmed eco versions in
    BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
    action." Then check relay once now; also check the packages publish
-   queue (at this handoff: EMPTY -- assimp 0.8.0 = eco-v0.1.153,
-   miniaudio 0.3.0 = eco-v0.1.154; batch 56 xiom.meshopt 0.2.0 relayed
-   REL-20261011-1733-bindings, expect eco-v0.1.155+).
+   queue (at this handoff: meshopt 0.2.0 live in eco-v0.1.155; ozz 0.3.0
+   = REL-20261011-1740-bindings, imgui 0.3.0 = REL-20261011-1750-bindings
+   and box2d 0.3.0 = REL-20261011-1754-bindings relayed 17:40-17:56Z,
+   expect eco-v0.1.156+).
 
-3. Continue the ordered tasks. Priority: (a) the pool drive (in progress):
-   meshopt 0.2.0 done (vendored v1.2 + bridge + 30/30 x2); next: re-verify
-   ozz (4 tests), imgui (4), box2d (5) on v0.64.3 and clear their ROADMAP
-   Phase-3 items -- bind from the real sources in E:\repos, never from
-   memory; (b) SDL3 continuance: only the POSIX soname remains (deferred
-   -- no Linux CI target); (c) publish watch: EMPTY (jolt m258-parked);
-   (d) compiler v0.64.4: when the archive lands, re-run our open probe
-   rows from REL-20261011-1731-compiler; (e) Vulkan phase 4 only if the
-   engine asks (compute/descriptors/textures/frames-in-flight).
+3. Continue the ordered tasks. Priority: (a) pool drive COMPLETE (batches
+   55-59: miniaudio 0.3.0, meshopt 0.2.0, ozz 0.3.0, imgui 0.3.0, box2d
+   0.3.0 -- all re-verified on v0.64.3 with a ROADMAP next item each); next
+   pool work is package-local Phase 3 backlog, pick only on consumer ask or
+   drift-guard re-pin; (b) compiler v0.64.4: when the archive lands, re-run
+   our open probe rows (REL-20261011-1731; all six batches m261-m271
+   staged); (c) publish watch: ozz/imgui/box2d 0.3.0 relayed 17:40-17:56Z,
+   expect `eco-v0.1.156+`; jolt m258-parked; (d) SDL3 continuance: only the
+   POSIX soname remains (deferred -- no Linux CI target); (e) Vulkan phase
+   4 only if the engine asks (compute/descriptors/textures/frames-in-flight).
 
    Respect: B-11..B-17/B-20 discipline (byte-indexed slot writes, packed
    returns, dispatcher+registry callbacks, 1-arg handler shapes,
@@ -543,6 +555,11 @@ continuation; prompt refreshed after batch 56).
   `io.LogFilename` must be nulled or every run rewrites `imgui.ini` in the
   CWD. Upstream null backends keep only per-context io flags, so multiple
   live contexts work if every call makes its context current.
+- **Box2D revolute angles wrap**: `b2RevoluteJoint_GetAngle` returns the
+  RELATIVE angle wrapped to [-pi, pi] (b2RelativeAngle), so a 4 rad
+  integration reads back as 4 - 2*pi ~ -2283 milli; assert the wrapped
+  value. The prismatic `GetTranslation` is not wrapped. Joint defs stay
+  inside the bridge; milli ABI unchanged.
 - **B-12: floating-point RETURNS through fn-pointer cast calls are broken**
   on v0.64.2/v0.64.3 (f64 -> 0, f32 -> garbage). Never rely on fp returns
   from casts; fp OUT-params via XIOM slots are fine. Repro:
