@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.imgui` |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Dear ImGui -- https://github.com/ocornut/imgui |
 | Upstream version | **v1.92.9b** (tag) |
 | Upstream license | MIT (`vendor/LICENSE.txt`) |
 | Package license | MIT OR Apache-2.0 (everything outside `vendor/`) |
 | Platform | Windows x64 (primary); the vendored path is portable |
-| Compiler pin | v0.64.2 |
+| Compiler pin | v0.64.3 |
 
 ## 2. Vendored path (G2 pin)
 
@@ -79,12 +79,30 @@ newly created window on its very first frame, so the reported stats are the
 steady-state second frame. There is no SKIP path -- the vendored core
 always compiles in.
 
+0.3.0 adds long-lived context handles (registry, assimp pattern):
+`imgui_context_create(width, height)` -> 1-based handle (<= 4 live),
+`imgui_context_frame(handle)` -> stats, `imgui_context_destroy(handle)`,
+plus `imgui_context_count` / `imgui_context_frames`. A newly created window
+is hidden on its first frame and the auto-size settles by the 4th frame, so
+the suite drives five frames and requires frames 4 and 5 to match.
+Contexts must be bound with the RETURN value of `ImGui::CreateContext`:
+upstream only makes the new context current when none is, so
+`GetCurrentContext()` otherwise aliases every slot to the first context
+(this showed up as a shared pointer and a NewFrame assertion -- the fix
+pins the returned pointer with `SetCurrentContext`). All probes set
+`io.IniFilename = 0` / `io.LogFilename = 0` so runs are side-effect-free
+(the earlier behavior updated a tracked `imgui.ini` on every run; the
+artifact is removed and ignored).
+
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- 4 checks: version pin
+Suite: `tests/test_conformance.xi` -- 7 checks: version pin
 (`19291` / `"1.92.9b"`), headless frame tessellation (two-frame warmup;
 vertices > 0, indices > 0, cmd_lists >= 1), empty frame (cmd_lists == 0),
-and frame determinism (repeated counts identical).
+frame determinism (repeated counts identical), context create (two handles,
+distinct, registry count 2), long-lived frames (first hidden, frames 4/5
+identical, frame counter 5), and destroy semantics (h1 gone while h2 keeps
+framing, registry counts, double-destroy false).
 
 Command (cwd = this package directory; the runner hook adds the C sources):
 
@@ -97,8 +115,8 @@ bridge (observed ~5 s on the development machine).
 
 ## 5. Scope
 
-Pilot: version + headless frame lifecycle + tessellation stats. Widget
-wrappers, tables, draw-list APIs, and the GLFW/Vulkan backend integration
-(the pre-pilot `bridge/` tree) are Phase 2 (`ROADMAP.md`). The pre-pilot
-implementation (90 externs, precompiled bridge objects, GLFW/Vulkan
-backends, demo) is preserved in git history.
+0.3.0: version + headless frame lifecycle + tessellation stats + long-lived
+context handles. Widget wrappers, tables, draw-list APIs, and the
+GLFW/Vulkan backend integration (the pre-pilot `bridge/` tree) are Phase 3
+(`ROADMAP.md`). The pre-pilot implementation (90 externs, precompiled
+bridge objects, GLFW/Vulkan backends, demo) is preserved in git history.

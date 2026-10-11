@@ -1,21 +1,21 @@
 # AUDIT: xiom.imgui
 
-## Status (2026-10-09)
+## Status (2026-10-11)
 
-Vendored-C++ implementation at 0.2.0. The pre-pilot tree (a 90-extern
+Vendored-C++ implementation at 0.3.0. The pre-pilot tree (a 90-extern
 surface with precompiled bridge objects, GLFW + Vulkan backends, and a
 demo) is preserved in git history only; it required the Vulkan SDK and
 prebuilt `.obj` files at build time, which breaks the binding gate. The
-0.2.0 probe is headless and SDK-free.
+headless probe since 0.2.0 is SDK-free.
 
 | Item | State |
 |------|-------|
-| Compiler | xiom v0.64.2 |
+| Compiler | xiom v0.64.3 |
 | Upstream | Dear ImGui v1.92.9b (tag), vendored unmodified (MIT) |
-| Link model | `--c-source` (4 core sources + bridge via `port.args.json`) |
+| Link model | `--c-source` (4 core sources + null backend + bridge via `port.args.json`) |
 | FFI confinement | all `unsafe`/`extern` in the root module `imgui.xi` (G5) |
-| Suite | `tests/test_conformance.xi`, 4 checks (real headless frames) |
-| Runs | 4/4 on the pin (see the session relay for the recorded matrix) |
+| Suite | `tests/test_conformance.xi`, 7 checks (real headless frames + context handles) |
+| Runs | **7/7 x2** on the pin (`scripts/port.ps1`) |
 
 ## Design notes
 
@@ -24,6 +24,19 @@ prebuilt `.obj` files at build time, which breaks the binding gate. The
   `ImDrawData` stats are reported (ImGui hides a newly created window on its
   first frame). No platform or renderer backend, so the suite runs on any CI
   machine.
+- **Long-lived context handles (0.3.0)**: a 4-slot registry of
+  `ImGuiContext*` with 1-based handles; create/frame/destroy cross as ints
+  and window state persists across separate XIOM calls (frames 4/5 of the
+  settled window are identical). Two gotchas: `ImGui::CreateContext`
+  returns the new context but only makes it current when none is -- bind
+  and store the RETURN value (GetCurrentContext() aliases every slot to the
+  first context, surfacing as a NewFrame assertion); and windows settle
+  over ~4 frames (first hidden, auto-size adjusts), which is why the
+  steadiness check uses frames 4 and 5.
+- **Side-effect-free runs**: all probes set `io.IniFilename = 0` /
+  `io.LogFilename = 0`; previously every run rewrote a tracked `imgui.ini`
+  (LastUsed timestamps). The artifact was removed from the repo and is now
+  ignored.
 - **Flat vendor layout**: every core include is same-directory quoted; no
   `-I` passthrough needed and the vendored bytes stay unmodified (per-file
   SHA256 table in `SPEC.md` §2).
@@ -37,9 +50,11 @@ prebuilt `.obj` files at build time, which breaks the binding gate. The
 
 ## Known limitations
 
-- Pilot scope: version + frame lifecycle + tessellation stats; widget
-  wrappers and backends are Phase 2 (`ROADMAP.md`).
-- The probe creates and destroys a fresh context per call -- sufficient for
-  assertions, not a long-lived UI loop (Phase 2 will own a context handle).
+- Scope at 0.3.0: version + frame lifecycle + tessellation stats +
+  long-lived context handles; widget wrappers and backends are Phase 3
+  (`ROADMAP.md`).
+- The context API is a probe-shaped handle registry, not a full UI loop
+  (no input, no rendering): Phase 3 adds widget wrappers and the
+  GLFW/Vulkan backends over the same handles.
 - Windows x64 primary; the vendored path is portable, no other platform has
   been run yet.

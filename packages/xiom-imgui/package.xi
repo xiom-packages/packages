@@ -4,7 +4,7 @@
 
 package xiom_imgui {
   name: "xiom.imgui";
-  version: "0.2.0";
+  version: "0.3.0";
   description: "Dear ImGui immediate-mode GUI bindings for XIOM (vendored v1.92.9b core, headless frame probe)";
   categories: ["graphics"];
   keywords: ["imgui", "gui", "immediate-mode", "widgets", "binding"];

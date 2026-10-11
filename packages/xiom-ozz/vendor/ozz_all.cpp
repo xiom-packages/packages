@@ -17291,3 +17291,1204 @@ unique_ptr<ozz::animation::Skeleton> SkeletonBuilder::operator()(
 }  // namespace animation
 }  // namespace ozz
 /**** ended inlining animation/offline/skeleton_builder.cc ****/
+/**** start inlining animation/offline/raw_animation.cc ****/
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) Guillaume Blanc                                              //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+/**** start inlining ozz/animation/offline/raw_animation.h ****/
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) Guillaume Blanc                                              //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
+
+/**** skipping file: ozz/animation/offline/export.h ****/
+/**** skipping file: ozz/base/containers/string.h ****/
+/**** skipping file: ozz/base/containers/vector.h ****/
+/**** skipping file: ozz/base/io/archive_traits.h ****/
+/**** skipping file: ozz/base/maths/quaternion.h ****/
+/**** skipping file: ozz/base/maths/vec_float.h ****/
+
+namespace ozz {
+namespace animation {
+namespace offline {
+
+// Offline animation type.
+// This animation type is not intended to be used in run time. It is used to
+// define the offline animation object that can be converted to the runtime
+// animation using the AnimationBuilder.
+// This animation structure exposes tracks of keyframes. Keyframes are defined
+// with a time and a value which can either be a translation (3 float x, y, z),
+// a rotation (a quaternion) or scale coefficient (3 floats x, y, z). Tracks are
+// defined as a set of three different std::vectors (translation, rotation and
+// scales). Animation structure is then a vector of tracks, along with a
+// duration value.
+// Finally the RawAnimation structure exposes Validate() function to check that
+// it is valid, meaning that all the following rules are respected:
+//  1. Animation duration is greater than 0.
+//  2. Keyframes' time are sorted in a strict ascending order.
+//  3. Keyframes' time are all within [0,animation duration] range.
+// Animations that would fail this validation will fail to be converted by the
+// AnimationBuilder.
+struct OZZ_ANIMOFFLINE_DLL RawAnimation {
+  // Constructs a valid RawAnimation with a 1s default duration.
+  RawAnimation();
+
+  // Tests for *this validity.
+  // Returns true if animation data (duration, tracks) is valid:
+  //  1. Animation duration is greater than 0.
+  //  2. Keyframes' time are sorted in a strict ascending order.
+  //  3. Keyframes' time are all within [0,animation duration] range.
+  bool Validate() const;
+
+  // Get the estimated animation's size in bytes.
+  size_t size() const;
+
+  // Defines a raw translation key frame.
+  struct TranslationKey {
+    // Key frame time.
+    float time;
+
+    // Key frame value.
+    typedef math::Float3 Value;
+    Value value;
+
+    // Provides identity transformation for a translation key.
+    static math::Float3 identity() { return math::Float3::zero(); }
+  };
+
+  // Defines a raw rotation key frame.
+  struct RotationKey {
+    // Key frame time.
+    float time;
+
+    // Key frame value.
+    typedef math::Quaternion Value;
+    math::Quaternion value;
+
+    // Provides identity transformation for a rotation key.
+    static math::Quaternion identity() { return math::Quaternion::identity(); }
+  };
+
+  // Defines a raw scaling key frame.
+  struct ScaleKey {
+    // Key frame time.
+    float time;
+
+    // Key frame value.
+    typedef math::Float3 Value;
+    math::Float3 value;
+
+    // Provides identity transformation for a scale key.
+    static math::Float3 identity() { return math::Float3::one(); }
+  };
+
+  // Defines a track of key frames for a bone, including translation, rotation
+  // and scale.
+  struct JointTrack {
+    typedef ozz::vector<TranslationKey> Translations;
+    Translations translations;
+    typedef ozz::vector<RotationKey> Rotations;
+    Rotations rotations;
+    typedef ozz::vector<ScaleKey> Scales;
+    Scales scales;
+
+    // Validates track. See RawAnimation::Validate for more details.
+    // Use an infinite value for _duration if unknown. This will validate
+    // keyframe orders, but not maximum duration.
+    bool Validate(float _duration) const;
+  };
+
+  // Returns the number of tracks of this animation.
+  int num_tracks() const { return static_cast<int>(tracks.size()); }
+
+  // Stores per joint JointTrack, ie: per joint animation key-frames.
+  // tracks_.size() gives the number of animated joints.
+  ozz::vector<JointTrack> tracks;
+
+  // The duration of the animation. All the keys of a valid RawAnimation are in
+  // the range [0,duration].
+  float duration;
+
+  // Name of the animation.
+  ozz::string name;
+};
+}  // namespace offline
+}  // namespace animation
+namespace io {
+OZZ_IO_TYPE_VERSION(3, animation::offline::RawAnimation)
+OZZ_IO_TYPE_TAG("ozz-raw_animation", animation::offline::RawAnimation)
+
+// Should not be called directly but through io::Archive << and >> operators.
+template <>
+struct OZZ_ANIMOFFLINE_DLL Extern<animation::offline::RawAnimation> {
+  static void Save(OArchive& _archive,
+                   const animation::offline::RawAnimation* _animations,
+                   size_t _count);
+  static void Load(IArchive& _archive,
+                   animation::offline::RawAnimation* _animations, size_t _count,
+                   uint32_t _version);
+};
+}  // namespace io
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
+/**** ended inlining ozz/animation/offline/raw_animation.h ****/
+/**** skipping file: ozz/animation/runtime/skeleton.h ****/
+
+namespace ozz {
+namespace animation {
+namespace offline {
+
+RawAnimation::RawAnimation() : duration(1.f) {}
+
+namespace {
+
+// Implements key frames' time range and ordering checks.
+// See AnimationBuilder::Create for more details.
+template <typename _Key>
+static bool ValidateTrack(const typename ozz::vector<_Key>& _track,
+                          float _duration) {
+  float previous_time = -1.f;
+  for (size_t k = 0; k < _track.size(); ++k) {
+    const float frame_time = _track[k].time;
+    // Tests frame's time is in range [0:duration].
+    if (frame_time < 0.f || frame_time > _duration) {
+      return false;
+    }
+    // Tests that frames are sorted.
+    if (frame_time <= previous_time) {
+      return false;
+    }
+    previous_time = frame_time;
+  }
+  return true;  // Validated.
+}
+}  // namespace
+bool RawAnimation::JointTrack::Validate(float _duration) const {
+  return ValidateTrack<TranslationKey>(translations, _duration) &&
+         ValidateTrack<RotationKey>(rotations, _duration) &&
+         ValidateTrack<ScaleKey>(scales, _duration);
+}
+
+bool RawAnimation::Validate() const {
+  if (duration <= 0.f) {  // Tests duration is valid.
+    return false;
+  }
+  if (tracks.size() > Skeleton::kMaxJoints) {  // Tests number of tracks.
+    return false;
+  }
+  // Ensures that all key frames' time are valid, ie: in a strict ascending
+  // order and within range [0:duration].
+  bool valid = true;
+  for (size_t i = 0; valid && i < tracks.size(); ++i) {
+    valid = tracks[i].Validate(duration);
+  }
+  return valid;  // *this is valid.
+}
+
+size_t RawAnimation::size() const {
+  size_t size = sizeof(*this);
+
+  // Accumulates keyframes size.
+  const size_t tracks_count = tracks.size();
+  for (size_t i = 0; i < tracks_count; ++i) {
+    size += tracks[i].translations.size() * sizeof(TranslationKey);
+    size += tracks[i].rotations.size() * sizeof(RotationKey);
+    size += tracks[i].scales.size() * sizeof(ScaleKey);
+  }
+
+  // Accumulates tracks.
+  size += tracks_count * sizeof(JointTrack);
+  size += name.size();
+
+  return size;
+}
+
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
+/**** ended inlining animation/offline/raw_animation.cc ****/
+/**** start inlining animation/offline/raw_animation_utils.cc ****/
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) Guillaume Blanc                                              //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+/**** start inlining ozz/animation/offline/raw_animation_utils.h ****/
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) Guillaume Blanc                                              //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
+
+/**** skipping file: ozz/animation/offline/export.h ****/
+/**** skipping file: ozz/animation/offline/raw_animation.h ****/
+/**** skipping file: ozz/base/containers/vector.h ****/
+/**** skipping file: ozz/base/maths/transform.h ****/
+/**** skipping file: ozz/base/span.h ****/
+
+namespace ozz {
+namespace animation {
+namespace offline {
+
+// Translation interpolation method.
+OZZ_ANIMOFFLINE_DLL math::Float3 LerpTranslation(const math::Float3& _a,
+                                                 const math::Float3& _b,
+                                                 float _alpha);
+
+// Rotation interpolation method.
+OZZ_ANIMOFFLINE_DLL math::Quaternion LerpRotation(const math::Quaternion& _a,
+                                                  const math::Quaternion& _b,
+                                                  float _alpha);
+
+// Scale interpolation method.
+OZZ_ANIMOFFLINE_DLL math::Float3 LerpScale(const math::Float3& _a,
+                                           const math::Float3& _b,
+                                           float _alpha);
+
+// Samples a RawAnimation track. This function shall be used for offline
+// purpose. Use ozz::animation::Animation and ozz::animation::SamplingJob for
+// runtime purpose.
+// Returns false if track is invalid.
+OZZ_ANIMOFFLINE_DLL bool SampleTrack(const RawAnimation::JointTrack& _track,
+                                     float _time,
+                                     ozz::math::Transform* _transform);
+
+// Samples a RawAnimation. This function shall be used for offline
+// purpose. Use ozz::animation::Animation and ozz::animation::SamplingJob for
+// runtime purpose.
+// _animation must be valid.
+// Returns false output range is too small or animation is invalid.
+OZZ_ANIMOFFLINE_DLL bool SampleAnimation(
+    const RawAnimation& _animation, float _time,
+    const span<ozz::math::Transform>& _transforms);
+
+// Get the union of all keyframe times from a valid RawAnimation.
+OZZ_ANIMOFFLINE_DLL ozz::vector<float> ExtractTimePoints(
+    const RawAnimation& _animation);
+
+// Implement fixed rate keyframe time iteration. This utility purpose is to
+// ensure that sampling goes strictly from 0 to duration, and that period
+// between consecutive time samples have a fixed period.
+// This sounds trivial, but floating point error could occur if keyframe time
+// was accumulated for a long duration.
+class OZZ_ANIMOFFLINE_DLL FixedRateSamplingTime {
+ public:
+  FixedRateSamplingTime(float _duration, float _frequency);
+
+  float time(size_t _key) const {
+    assert(_key < num_keys_);
+    return ozz::math::Min(_key * period_, duration_);
+  }
+
+  size_t num_keys() const { return num_keys_; }
+
+ private:
+  float duration_;
+  float period_;
+  size_t num_keys_;
+};
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
+/**** ended inlining ozz/animation/offline/raw_animation_utils.h ****/
+
+#include <algorithm>
+#include <limits>
+
+namespace ozz {
+namespace animation {
+namespace offline {
+
+// Translation interpolation method.
+// This must be the same Lerp as the one used by the sampling job.
+math::Float3 LerpTranslation(const math::Float3& _a, const math::Float3& _b,
+                             float _alpha) {
+  return math::Lerp(_a, _b, _alpha);
+}
+
+// Rotation interpolation method.
+// This must be the same Lerp as the one used by the sampling job.
+// The goal is to take the shortest path between _a and _b. This code replicates
+// this behavior that is actually not done at runtime, but when building the
+// animation.
+math::Quaternion LerpRotation(const math::Quaternion& _a,
+                              const math::Quaternion& _b, float _alpha) {
+  // Finds the shortest path. This is done by the AnimationBuilder for runtime
+  // animations.
+  const float dot = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
+  return math::NLerp(_a, dot < 0.f ? -_b : _b, _alpha);  // _b an -_b are the
+                                                         // same rotation.
+}
+
+// Scale interpolation method.
+// This must be the same Lerp as the one used by the sampling job.
+math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
+                       float _alpha) {
+  return math::Lerp(_a, _b, _alpha);
+}
+
+namespace {
+
+// The next functions are used to sample a RawAnimation. This feature is not
+// part of ozz sdk, as RawAnimation is a intermediate format used to build the
+// runtime animation.
+
+// Less comparator, used by search algorithm to walk through track sorted
+// keyframes
+template <typename _Key>
+bool Less(const _Key& _left, const _Key& _right) {
+  return _left.time < _right.time;
+}
+
+// Samples a component (translation, rotation or scale) of a track.
+template <typename _Track, typename _Lerp>
+typename _Track::value_type::Value SampleComponent(const _Track& _track,
+                                                   const _Lerp& _lerp,
+                                                   float _time) {
+  if (_track.size() == 0) {
+    // Return identity if there's no key for this track.
+    return _Track::value_type::identity();
+  } else if (_time <= _track.front().time) {
+    // Returns the first keyframe if _time is before the first keyframe.
+    return _track.front().value;
+  } else if (_time >= _track.back().time) {
+    // Returns the last keyframe if _time is before the last keyframe.
+    return _track.back().value;
+  } else {
+    // Needs to interpolate the 2 keyframes before and after _time.
+    assert(_track.size() >= 2);
+    // First find the 2 keys.
+    const typename _Track::value_type cmp = {_time,
+                                             _Track::value_type::identity()};
+    typename _Track::const_pointer it =
+        std::lower_bound(array_begin(_track), array_end(_track), cmp,
+                         Less<typename _Track::value_type>);
+    assert(it > array_begin(_track) && it < array_end(_track));
+
+    // Then interpolate them at t = _time.
+    const typename _Track::const_reference right = it[0];
+    const typename _Track::const_reference left = it[-1];
+    const float alpha = (_time - left.time) / (right.time - left.time);
+    return _lerp(left.value, right.value, alpha);
+  }
+}
+
+void SampleTrack_NoValidate(const RawAnimation::JointTrack& _track, float _time,
+                            ozz::math::Transform* _transform) {
+  _transform->translation =
+      SampleComponent(_track.translations, LerpTranslation, _time);
+  _transform->rotation = SampleComponent(_track.rotations, LerpRotation, _time);
+  _transform->scale = SampleComponent(_track.scales, LerpScale, _time);
+}
+}  // namespace
+
+bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
+                 ozz::math::Transform* _transform) {
+  if (!_track.Validate(std::numeric_limits<float>::infinity())) {
+    return false;
+  }
+
+  SampleTrack_NoValidate(_track, _time, _transform);
+  return true;
+}
+
+bool SampleAnimation(const RawAnimation& _animation, float _time,
+                     const span<ozz::math::Transform>& _transforms) {
+  if (!_animation.Validate()) {
+    return false;
+  }
+  if (_animation.tracks.size() > _transforms.size()) {
+    return false;
+  }
+
+  for (size_t i = 0; i < _animation.tracks.size(); ++i) {
+    SampleTrack_NoValidate(_animation.tracks[i], _time,
+                           _transforms.begin() + i);
+  }
+  return true;
+}
+
+namespace {
+template <typename _Track, typename _Times>
+inline void CopyKeyTimes(const _Track& _track, _Times* _key_times) {
+  for (size_t i = 0; i < _track.size(); ++i) {
+    _key_times->push_back(_track[i].time);
+  }
+}
+}  // namespace
+
+ozz::vector<float> ExtractTimePoints(const RawAnimation& _animation) {
+  ozz::vector<float> times;
+
+  if (!_animation.Validate()) {
+    return times;
+  }
+
+  // Gets union of all possible keyframe times.
+  for (int i = 0; i < _animation.num_tracks(); ++i) {
+    const RawAnimation::JointTrack& track = _animation.tracks[i];
+    CopyKeyTimes(track.translations, &times);
+    CopyKeyTimes(track.rotations, &times);
+    CopyKeyTimes(track.scales, &times);
+
+    std::sort(times.begin(), times.end());
+    times.erase(std::unique(times.begin(), times.end()), times.end());
+  }
+
+  return times;
+}
+
+FixedRateSamplingTime::FixedRateSamplingTime(float _duration, float _frequency)
+    : duration_(_duration),
+      period_(1.f / _frequency),
+      num_keys_(static_cast<size_t>(std::ceil(1.f + _duration * _frequency))) {}
+
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
+/**** ended inlining animation/offline/raw_animation_utils.cc ****/
+/**** start inlining animation/offline/animation_builder.cc ****/
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) Guillaume Blanc                                              //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+/**** start inlining ozz/animation/offline/animation_builder.h ****/
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) Guillaume Blanc                                              //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
+
+/**** skipping file: ozz/animation/offline/export.h ****/
+/**** skipping file: ozz/base/memory/unique_ptr.h ****/
+
+namespace ozz {
+namespace animation {
+
+// Forward declares the runtime animation type.
+class Animation;
+
+namespace offline {
+
+// Forward declares the offline animation type.
+struct RawAnimation;
+
+// Defines the class responsible of building runtime animation instances from
+// offline raw animations.
+// No optimization at all is performed on the raw animation.
+class OZZ_ANIMOFFLINE_DLL AnimationBuilder {
+ public:
+  // Creates an Animation based on _raw_animation and *this builder parameters.
+  // Returns a valid Animation on success.
+  // See RawAnimation::Validate() for more details about failure reasons.
+  // The animation is returned as an unique_ptr as ownership is given back to
+  // the caller.
+  unique_ptr<Animation> operator()(const RawAnimation& _raw_animation) const;
+
+  // IFrames allow the sampler to instantly seek to a point in time in the
+  // animation. If no iframe is available, the sampler needs to read
+  // sequentially forward or backward to reach a point. So that's useful for
+  // long animations, if they are accessed randomly, or if sampling starts from
+  // the end. A 0 interval means no iframe is generated. Any positive number is
+  // the interval between iframes, with a guaranteed one at the end of the
+  // animation (even if interval is smaller than animation duration).
+  float iframe_interval = 0.f;
+};
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
+/**** ended inlining ozz/animation/offline/animation_builder.h ****/
+
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <cstring>
+#include <limits>
+#include <numeric>
+
+/**** skipping file: ozz/animation/offline/raw_animation.h ****/
+/**** skipping file: ozz/animation/offline/raw_animation_utils.h ****/
+/**** skipping file: ozz/animation/runtime/animation.h ****/
+/**** skipping file: ozz/base/containers/vector.h ****/
+/**** skipping file: ozz/base/encode/group_varint.h ****/
+/**** skipping file: ozz/base/maths/math_ex.h ****/
+/**** skipping file: ozz/base/maths/simd_math.h ****/
+/**** skipping file: ozz/base/memory/allocator.h ****/
+
+// Internal include file
+#define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
+/**** skipping file: animation/runtime/animation_keyframe.h ****/
+
+namespace ozz {
+namespace animation {
+namespace offline {
+namespace {
+
+template <typename _Key>
+struct SortingKey {
+  uint16_t track;
+  float prev_key_time;
+  _Key key;
+};
+
+typedef SortingKey<RawAnimation::TranslationKey> SortingTranslationKey;
+typedef SortingKey<RawAnimation::RotationKey> SortingQuaternionKey;
+typedef SortingKey<RawAnimation::ScaleKey> SortingScaleKey;
+
+// Keyframe sorting. Stores first by time and then track number.
+template <typename _Key>
+bool SortingKeyLess(const _Key& _left, const _Key& _right) {
+  const float time_diff = _left.prev_key_time - _right.prev_key_time;
+  return time_diff < 0.f || (time_diff == 0.f && _left.track < _right.track);
+}
+
+template <typename _SrcKey, typename _DestTrack>
+void PushBackIdentityKey(uint16_t _track, float _time, _DestTrack* _dest) {
+  typedef typename _DestTrack::value_type DestKey;
+  float prev_time = -1.f;
+  if (!_dest->empty() && _dest->back().track == _track) {
+    prev_time = _dest->back().key.time;
+  }
+  const DestKey key = {_track, prev_time, {_time, _SrcKey::identity()}};
+  _dest->push_back(key);
+}
+
+// Copies a track from a RawAnimation to an Animation.
+// Also fixes up the front (t = 0) and back keys (t = duration).
+template <typename _SrcTrack, typename _DestTrack>
+void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
+             _DestTrack* _dest) {
+  typedef typename _SrcTrack::value_type SrcKey;
+  typedef typename _DestTrack::value_type DestKey;
+
+  if (_src.size() == 0) {  // Adds 2 new keys.
+    PushBackIdentityKey<SrcKey, _DestTrack>(_track, 0.f, _dest);
+    PushBackIdentityKey<SrcKey, _DestTrack>(_track, _duration, _dest);
+  } else if (_src.size() == 1) {  // Adds 1 new key.
+    const SrcKey& raw_key = _src.front();
+    assert(raw_key.time >= 0 && raw_key.time <= _duration);
+    const DestKey first = {_track, -1.f, {0.f, raw_key.value}};
+    _dest->push_back(first);
+    const DestKey last = {_track, 0.f, {_duration, raw_key.value}};
+    _dest->push_back(last);
+  } else {  // Copies all keys, and fixes up first and last keys.
+    float prev_time = -1.f;
+    if (_src.front().time != 0.f) {  // Needs a key at t = 0.f.
+      const DestKey first = {_track, prev_time, {0.f, _src.front().value}};
+      _dest->push_back(first);
+      prev_time = 0.f;
+    }
+    for (size_t k = 0; k < _src.size(); ++k) {  // Copies all keys.
+      const SrcKey& raw_key = _src[k];
+      assert(raw_key.time >= 0 && raw_key.time <= _duration);
+      const DestKey key = {_track, prev_time, {raw_key.time, raw_key.value}};
+      _dest->push_back(key);
+      prev_time = raw_key.time;
+    }
+    if (_src.back().time - _duration != 0.f) {  // Needs a key at t = _duration.
+      const DestKey last = {_track, prev_time, {_duration, _src.back().value}};
+      _dest->push_back(last);
+    }
+  }
+  assert(_dest->front().key.time == 0.f &&
+         _dest->back().key.time - _duration == 0.f);
+}
+
+template <typename _SortingKey, class _Lerp, class _Compare>
+void Sort(ozz::vector<_SortingKey>& _src, size_t _num_tracks,
+          const _Lerp& _lerp, const _Compare& _comp) {
+  // Sorts whole vector
+  std::sort(_src.begin(), _src.end(), _comp);
+
+  // Will store last 2 keys (last and penultimate) for a track.
+  ozz::vector<std::pair<int, int>> previouses(_num_tracks);
+  for (bool loop = true; loop;) {
+    loop = false;  // Will be set to true again if vector was changed.
+
+    // Reset all previouses to default.
+    const std::pair<int, int> default_previous{-1, -1};
+    std::fill(previouses.begin(), previouses.end(), default_previous);
+
+    // Loop through all keys.
+    for (size_t i = 0; i < _src.size(); ++i) {
+      const uint16_t track = _src[i].track;
+      auto& previous = previouses[track];
+
+      // Inject key if distance from previous one is too big to be stored in
+      // runtime data structure (aka index to previous frame bigger than
+      // kMaxPreviousOffset)
+      if (previous.first != -1 &&
+          i - previous.first > ozz::animation::internal::kMaxPreviousOffset) {
+        assert(previous.second != -1 &&
+               "Not possible not to have a valid penultimate key.");
+        // Copy as originals are going to be (re)moved.
+        _SortingKey last = _src[previous.first];
+        const _SortingKey penultimate = _src[previous.second];
+
+        // Prepares new key to insert.
+        const _SortingKey insert = {
+            track,
+            penultimate.key.time,
+            {(penultimate.key.time + last.key.time) * .5f,
+             _lerp(penultimate.key.value, last.key.value, .5f)}};
+
+        // Removes previous.first key that is changing and needs to be resorted.
+        _src.erase(_src.begin() + previous.first);
+
+        // Pushes the new key....
+        _src.push_back(insert);
+
+        // ... and the modified one, in the correct order (for the merge).
+        last.prev_key_time = insert.key.time;
+        _src.push_back(last);
+
+        // Re-sorts vector in place. Last 2 keys where added. Nothing has
+        // changed before previous.second.
+        std::inplace_merge(_src.begin() + previous.second, _src.end() - 2,
+                           _src.end(), _comp);
+
+        // Restart as things have changed behind insertion point and previouses
+        // need to be rebuilt.
+        loop = true;
+        break;
+      }
+
+      // Updates previouses
+      previous.second = previous.first;
+      previous.first = static_cast<int>(i);
+    }
+  }
+}
+
+void CopyTimePoints(const span<const float>& _times, float _inv_duration,
+                    const span<float>& _ratios) {
+  assert(_times.size() == _ratios.size());
+  for (size_t i = 0; i < _times.size(); ++i) {
+    _ratios[i] = _times[i] * _inv_duration;
+  }
+}
+
+uint16_t TimePointToIndex(const span<const float>& _timepoints, float _time) {
+  const float* found =
+      std::lower_bound(_timepoints.begin(), _timepoints.end(), _time);
+  assert(found != _timepoints.end() && *found == _time);
+  const ptrdiff_t distance = found - _timepoints.begin();
+  assert(distance >= 0 && distance < std::numeric_limits<uint16_t>::max());
+  return static_cast<uint16_t>(distance);
+}
+
+template <typename _SortingKey, typename _DestKey, typename _Compressor>
+void Compress(const span<const float>& _timepoints,
+              const span<_SortingKey>& _src, size_t _num_tracks,
+              const span<_DestKey> _dest, const Animation::KeyframesCtrl& _base,
+              const _Compressor& _compressor) {
+  ozz::vector<_DestKey*> previouses(_num_tracks);
+  for (size_t i = 0; i < _src.size(); ++i) {
+    const _SortingKey& src = _src[i];
+    _DestKey& dest_key = _dest[i];
+
+    // Ratio
+    const uint16_t ratio = TimePointToIndex(_timepoints, src.key.time);
+    if (_timepoints.size() <= std::numeric_limits<uint8_t>::max()) {
+      assert(ratio <= std::numeric_limits<uint8_t>::max());
+      reinterpret_span<uint8_t>(_base.ratios)[i] = static_cast<uint8_t>(ratio);
+    } else {
+      reinterpret_span<uint16_t>(_base.ratios)[i] = ratio;
+    }
+
+    // Previous
+    const ptrdiff_t diff =
+        previouses[src.track] ? &dest_key - previouses[src.track] : 0;
+    assert(diff < ozz::animation::internal::kMaxPreviousOffset);
+    _base.previouses[i] = static_cast<uint16_t>(diff);
+
+    // Value
+    _compressor(src.key.value, &dest_key);
+
+    // Stores track position
+    previouses[src.track] = &dest_key;
+  }
+}
+
+void CompressFloat3(const ozz::math::Float3& _src,
+                    ozz::animation::internal::Float3Key* _dest) {
+  _dest->values[0] = ozz::math::FloatToHalf(_src.x);
+  _dest->values[1] = ozz::math::FloatToHalf(_src.y);
+  _dest->values[2] = ozz::math::FloatToHalf(_src.z);
+}
+
+// Compares float absolute values.
+bool LessAbs(float _left, float _right) {
+  return std::abs(_left) < std::abs(_right);
+}
+
+// Compresses quaternion to ozz::animation::RotationKey format.
+// The 3 smallest components of the quaternion are quantized to x bits
+// integers, while the largest is recomputed thanks to quaternion
+// normalization property (x^2+y^2+z^2+w^2 = 1). Because the 3 components are
+// the 3 smallest, their value cannot be greater than sqrt(2)/2. Thus
+// quantization quality is improved by pre-multiplying each componenent by
+// sqrt(2).
+void CompressQuaternion(const ozz::math::Quaternion& _src,
+                        ozz::animation::internal::QuaternionKey* _dest) {
+  // Finds the largest quaternion component.
+  const float quat[4] = {_src.x, _src.y, _src.z, _src.w};
+  const ptrdiff_t largest = std::max_element(quat, quat + 4, LessAbs) - quat;
+  assert(largest <= 3);
+
+  // Quantize the 3 smallest components on x bits signed integers.
+  const float kScale = internal::QuaternionKey::kfScale / math::kSqrt2;
+  const float kOffset = -math::kSqrt2_2;
+  const int kMapping[4][3] = {{1, 2, 3}, {0, 2, 3}, {0, 1, 3}, {0, 1, 2}};
+  const int* map = kMapping[largest];
+  const int cpnt[3] = {
+      math::Min(static_cast<int>((quat[map[0]] - kOffset) * kScale + .5f),
+                internal::QuaternionKey::kiScale),
+      math::Min(static_cast<int>((quat[map[1]] - kOffset) * kScale + .5f),
+                internal::QuaternionKey::kiScale),
+      math::Min(static_cast<int>((quat[map[2]] - kOffset) * kScale + .5f),
+                internal::QuaternionKey::kiScale)};
+
+  pack(static_cast<int>(largest), quat[largest] < 0.f, cpnt, _dest);
+}  // namespace
+
+// Normalize quaternions. Fixes-up successive opposite quaternions that would
+// fail to take the shortest path during the normalized-lerp. Note that keys
+// are still sorted per-track at that point, which allows this algorithm to
+// process all consecutive keys.
+void FixupQuaternions(ozz::vector<SortingQuaternionKey>* _src) {
+  size_t track = std::numeric_limits<size_t>::max();
+  const math::Quaternion identity = math::Quaternion::identity();
+  for (size_t i = 0; i < _src->size(); ++i) {
+    SortingQuaternionKey& src = _src->at(i);
+    math::Quaternion normalized = NormalizeSafe(src.key.value, identity);
+    if (track != _src->at(i).track) {  // First key of the track.
+      if (normalized.w < 0.f) {    // .w eq to a dot with identity quaternion.
+        normalized = -normalized;  // Q an -Q are the same rotation.
+      }
+    } else {  // Still on the same track: so fixes-up quaternion.
+      const SortingQuaternionKey& prev_src = _src->at(i - 1);
+      const math::Float4 prev(prev_src.key.value.x, prev_src.key.value.y,
+                              prev_src.key.value.z, prev_src.key.value.w);
+      const math::Float4 curr(normalized.x, normalized.y, normalized.z,
+                              normalized.w);
+      if (Dot(prev, curr) < 0.f) {
+        normalized = -normalized;  // Q an -Q are the same rotation.
+      }
+    }
+    // Stores fixed-up quaternion.
+    src.key.value = normalized;
+    track = src.track;
+  }
+}
+
+ozz::vector<float> BuildTimePoints(
+    ozz::vector<SortingTranslationKey>& _translations,
+    ozz::vector<SortingQuaternionKey>& _rotations,
+    ozz::vector<SortingScaleKey>& _scales) {
+  ozz::vector<float> timepoints;
+
+  for (const auto& _key : _translations) {
+    timepoints.push_back(_key.key.time);
+  }
+  for (const auto& _key : _rotations) {
+    timepoints.push_back(_key.key.time);
+  }
+  for (const auto& _key : _scales) {
+    timepoints.push_back(_key.key.time);
+  }
+
+  std::sort(timepoints.begin(), timepoints.end());
+  timepoints.erase(std::unique(timepoints.begin(), timepoints.end()),
+                   timepoints.end());
+
+  return timepoints;
+}
+
+struct BuilderIFrame {
+  ozz::vector<byte> entries;
+  size_t last;
+};
+
+template <typename _SortingKey>
+BuilderIFrame BuildIFrame(const ozz::span<_SortingKey>& _src, float _time,
+                          size_t _num_soa_tracks) {
+  BuilderIFrame iframe;
+
+  // Initialize vector with initial cached keys at t=0. Due to sorting, they
+  // are the 2nd set keyframes, hence starting from _num_soa_tracks.
+  const uint32_t num_entries = static_cast<uint32_t>(_num_soa_tracks);
+  ozz::vector<uint32_t> entries(num_entries);
+
+  // The loop can end as soon as it finds a key greater that _time. It
+  // will mean that all the keys lower than _time have been processed, meaning
+  // all cache entries are up to date.
+  for (size_t i = 0, end = _src.size();
+       i < end && _src[i].prev_key_time <= _time; ++i) {
+    // Stores the last key found for this track.
+    entries[_src[i].track] = static_cast<uint32_t>(i);
+    iframe.last = i;
+  }
+  assert(iframe.last >= _num_soa_tracks * 2 - 1);
+
+  // Compress buffer.
+  // Entries is a multiple of 4 (number os soa tracks).
+  const size_t worst_size = ozz::ComputeGV4WorstBufferSize(make_span(entries));
+  iframe.entries.resize(worst_size);
+  auto remain =
+      ozz::EncodeGV4Stream(make_span(entries), make_span(iframe.entries));
+  iframe.entries.resize(iframe.entries.size() - remain.size_bytes());
+
+  return iframe;
+}
+
+struct BuilderIFrames {
+  ozz::vector<byte> entries;
+  ozz::vector<uint32_t> desc;
+  float interval = 1.f;
+};
+
+// Splits src into parts of similar sizes. The "time" of each part doesn't
+// really matter, it's the number of keys that impact performance.
+template <typename _SortingKey>
+BuilderIFrames BuildIFrames(const ozz::span<_SortingKey>& _src,
+                            size_t _num_soa_tracks, float _interval,
+                            float _duration) {
+  BuilderIFrames iframes;
+  if (_num_soa_tracks == 0 || _interval <= 0.f) {
+    return iframes;
+  }
+
+  const size_t iframes_divs =
+      static_cast<size_t>(math::Max(1.f, _duration / _interval));
+  for (size_t i = 0; i < iframes_divs; ++i) {
+    const float time = _duration * (i + 1) / iframes_divs;
+    const auto& iframe = BuildIFrame(_src, time, _num_soa_tracks);
+
+    // Don't need to add an iframe for the first set of keyframes.
+    if (iframe.last <= _num_soa_tracks * 2 - 1) {
+      continue;
+    }
+
+    // Don't need to append an iframe if there's not enough keyframes between
+    // two iframes.
+    if (!iframes.desc.empty() && iframe.last <= iframes.desc.back()) {
+      continue;
+    }
+
+    // Pushes offset.
+    iframes.desc.push_back(static_cast<uint32_t>(iframes.entries.size()));
+    iframes.desc.push_back(static_cast<uint32_t>(iframe.last));
+
+    // Pushes compressed data.
+    iframes.entries.insert(iframes.entries.end(), iframe.entries.begin(),
+                           iframe.entries.end());
+  }
+
+  // Computes actual interval (duration ratio) between iframes.
+  const size_t actual_intervals = iframes.desc.size() / 2;
+  iframes.interval = iframes.entries.empty() ? 1.f : 1.f / actual_intervals;
+  return iframes;
+}
+
+void CopyIFrames(const BuilderIFrames& _src, Animation::KeyframesCtrl& _dest) {
+  assert(_dest.iframe_entries.size() == _src.entries.size());
+  std::copy(_src.entries.begin(), _src.entries.end(),
+            _dest.iframe_entries.begin());
+  assert(_dest.iframe_desc.size() == _src.desc.size());
+  std::copy(_src.desc.begin(), _src.desc.end(), _dest.iframe_desc.begin());
+  _dest.iframe_interval = _src.interval;
+}
+}  // namespace
+
+// Ensures _input's validity and allocates _animation.
+// An animation needs to have at least two key frames per joint, the first at
+// t = 0 and the last at t = duration. If at least one of those keys are not
+// in the RawAnimation then the builder creates it.
+unique_ptr<Animation> AnimationBuilder::operator()(
+    const RawAnimation& _input) const {
+  // Tests _raw_animation validity.
+  if (!_input.Validate()) {
+    return nullptr;
+  }
+
+  // Everything is fine, allocates and fills the animation.
+  // Nothing can fail now.
+  unique_ptr<Animation> animation = make_unique<Animation>();
+
+  // Sets duration.
+  const float duration = _input.duration;
+  // A _duration == 0 would create some division by 0 during sampling.
+  // Also we need at least to keys with different times, which cannot be done
+  // if duration is 0.
+  assert(duration > 0.f);  // This case is handled by Validate().
+  const float inv_duration = 1.f / _input.duration;
+  animation->duration_ = duration;
+
+  // Sets tracks count. Can be safely casted to uint16_t as number of tracks as
+  // already been validated.
+  const uint16_t num_tracks = static_cast<uint16_t>(_input.num_tracks());
+  animation->num_tracks_ = num_tracks;
+  const uint16_t num_soa_tracks = Align(num_tracks, 4);
+
+  // Declares and preallocates tracks to sort.
+  size_t translations = 0, rotations = 0, scales = 0;
+  for (uint16_t i = 0; i < num_tracks; ++i) {
+    const RawAnimation::JointTrack& raw_track = _input.tracks[i];
+    translations += raw_track.translations.size() + 2;  // +2 because worst case
+    rotations += raw_track.rotations.size() + 2;        // needs to add the
+    scales += raw_track.scales.size() + 2;              // first and last keys.
+  }
+  ozz::vector<SortingTranslationKey> sorting_translations;
+  sorting_translations.reserve(translations);
+  ozz::vector<SortingQuaternionKey> sorting_rotations;
+  sorting_rotations.reserve(rotations);
+  ozz::vector<SortingScaleKey> sorting_scales;
+  sorting_scales.reserve(scales);
+
+  // Filters RawAnimation keys and copies them to the output sorting structure.
+  uint16_t i = 0;
+  for (; i < num_tracks; ++i) {
+    const RawAnimation::JointTrack& raw_track = _input.tracks[i];
+    CopyRaw(raw_track.translations, i, duration, &sorting_translations);
+    CopyRaw(raw_track.rotations, i, duration, &sorting_rotations);
+    CopyRaw(raw_track.scales, i, duration, &sorting_scales);
+  }
+
+  // Add enough identity keys to match soa requirements.
+  for (; i < num_soa_tracks; ++i) {
+    typedef RawAnimation::TranslationKey SrcTKey;
+    PushBackIdentityKey<SrcTKey>(i, 0.f, &sorting_translations);
+    PushBackIdentityKey<SrcTKey>(i, duration, &sorting_translations);
+
+    typedef RawAnimation::RotationKey SrcRKey;
+    PushBackIdentityKey<SrcRKey>(i, 0.f, &sorting_rotations);
+    PushBackIdentityKey<SrcRKey>(i, duration, &sorting_rotations);
+
+    typedef RawAnimation::ScaleKey SrcSKey;
+    PushBackIdentityKey<SrcSKey>(i, 0.f, &sorting_scales);
+    PushBackIdentityKey<SrcSKey>(i, duration, &sorting_scales);
+  }
+
+  FixupQuaternions(&sorting_rotations);
+
+  // Sort animation keys to favor cache coherency.
+  Sort(sorting_translations, num_soa_tracks, &LerpTranslation,
+       &SortingKeyLess<SortingTranslationKey>);
+  Sort(sorting_rotations, num_soa_tracks, &LerpRotation,
+       &SortingKeyLess<SortingQuaternionKey>);
+  Sort(sorting_scales, num_soa_tracks, &LerpScale,
+       &SortingKeyLess<SortingScaleKey>);
+
+  // Get all timepoints. Shall be done on sorting keys as time points might have
+  // been added during the process.
+  const ozz::vector<float>& time_points =
+      BuildTimePoints(sorting_translations, sorting_rotations, sorting_scales);
+
+  // Maximum time points reached.
+  if (time_points.size() > std::numeric_limits<uint16_t>::max()) {
+    return nullptr;
+  }
+
+  // Maximum number of keys reached.
+  if (sorting_translations.size() > std::numeric_limits<uint32_t>::max() &&
+      sorting_rotations.size() > std::numeric_limits<uint32_t>::max() &&
+      sorting_scales.size() > std::numeric_limits<uint32_t>::max()) {
+    return nullptr;
+  }
+
+  // Build cache snaphots/iframes.
+  const auto& translation_ss =
+      BuildIFrames(make_span(sorting_translations), num_soa_tracks,
+                   iframe_interval, duration);
+  const auto& rotation_ss = BuildIFrames(
+      make_span(sorting_rotations), num_soa_tracks, iframe_interval, duration);
+  const auto& scale_ss = BuildIFrames(make_span(sorting_scales), num_soa_tracks,
+                                      iframe_interval, duration);
+
+  // Allocate animation members.
+  const Animation::AllocateParams params{
+      _input.name.length(),
+      time_points.size(),
+      sorting_translations.size(),
+      sorting_rotations.size(),
+      sorting_scales.size(),
+      {translation_ss.entries.size(), translation_ss.desc.size()},
+      {rotation_ss.entries.size(), rotation_ss.desc.size()},
+      {scale_ss.entries.size(), scale_ss.desc.size()}};
+  animation->Allocate(params);
+
+  CopyIFrames(translation_ss, animation->translations_ctrl_);
+  CopyIFrames(rotation_ss, animation->rotations_ctrl_);
+  CopyIFrames(scale_ss, animation->scales_ctrl_);
+
+  // Copy sorted keys to final animation.
+  Compress(make_span(time_points), make_span(sorting_translations),
+           num_soa_tracks, make_span(animation->translations_values_),
+           animation->translations_ctrl_, &CompressFloat3);
+  Compress(make_span(time_points), make_span(sorting_rotations), num_soa_tracks,
+           make_span(animation->rotations_values_), animation->rotations_ctrl_,
+           &CompressQuaternion);
+  Compress(make_span(time_points), make_span(sorting_scales), num_soa_tracks,
+           make_span(animation->scales_values_), animation->scales_ctrl_,
+           &CompressFloat3);
+
+  // Converts timepoints to ratio and copy to animation. Must be done once
+  // indices have been set.
+  CopyTimePoints(make_span(time_points), inv_duration, animation->timepoints_);
+
+  // Copy animation's name.
+  if (animation->name_) {
+    strcpy(animation->name_, _input.name.c_str());
+  }
+
+  return animation;  // Success.
+}
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
+/**** ended inlining animation/offline/animation_builder.cc ****/

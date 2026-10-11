@@ -18,10 +18,12 @@
 // G2 pin (SPEC.md): upstream tag 0.16.0 archive SHA256 + generated TU hashes
 // + MIT license.
 //
-// API subset (pilot): math primitives (Float3 dot/cross, quaternion axis
-// rotation), offline RawSkeleton -> runtime Skeleton construction, and a
-// LocalToModelJob run verifying model-space translations.  Animation sampling
-// with real assets is Phase 2 (ROADMAP.md).
+// API subset (pilot + 0.3.0): math primitives (Float3 dot/cross, quaternion
+// axis rotation), offline RawSkeleton -> runtime Skeleton construction, a
+// LocalToModelJob run verifying model-space translations, and (0.3.0) the
+// clip pipeline: offline RawAnimation -> AnimationBuilder -> runtime
+// Animation -> SamplingJob with a context, verified against a hand-computed
+// pose.  Blending/IK/archive I/O are Phase 2 (ROADMAP.md).
 
 module xiom.ozz
 
@@ -29,6 +31,7 @@ extern "C" {
   fn ozz_probe_math() -> Int32;
   fn ozz_probe_skeleton() -> Int32;
   fn ozz_probe_local_to_model() -> Int32;
+  fn ozz_probe_clip() -> Int32;
   fn ozz_probe_all() -> Int32;
 }
 
@@ -59,6 +62,15 @@ pub fn ozz_local_to_model_ok() -> Bool
   unsafe { return (ozz_probe_local_to_model() as Int) != 0; }
 }
 
+/// Clip pipeline smoke: RawAnimation (child y 1 -> 3 over 1 s) built by the
+/// AnimationBuilder, then sampled at ratio 0.5 (y == 2) and 1.0 (y == 3)
+/// through a SamplingJob::Context.  Complexity: O(1).
+pub fn ozz_clip_ok() -> Bool
+  requires: true
+{
+  unsafe { return (ozz_probe_clip() as Int) != 0; }
+}
+
 /// Run every probe.  Ok(()) when all pass; Err lists the failed probe names.
 /// Complexity: O(1).
 pub fn ozz_probe() -> Result[Unit, Str]
@@ -72,5 +84,6 @@ pub fn ozz_probe() -> Result[Unit, Str]
   if (mask & 1) != 0 { msg = msg + " math"; }
   if (mask & 2) != 0 { msg = msg + " skeleton"; }
   if (mask & 4) != 0 { msg = msg + " local_to_model"; }
+  if (mask & 8) != 0 { msg = msg + " clip"; }
   return Err(msg);
 }

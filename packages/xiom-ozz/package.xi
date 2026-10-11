@@ -4,7 +4,7 @@
 
 package {
   name: "xiom.ozz"
-  version: "0.2.0"
+  version: "0.3.0"
   description: "Ozz-Animation (v0.16.0) bindings for XIOM -- vendored C++ amalgamation, no system library"
   categories: ["media", "graphics"]
   keywords: ["ozz", "animation", "skeletal", "binding"]

@@ -31,3 +31,6 @@
 
 #include "animation/offline/raw_skeleton.cc"
 #include "animation/offline/skeleton_builder.cc"
+#include "animation/offline/raw_animation.cc"
+#include "animation/offline/raw_animation_utils.cc"
+#include "animation/offline/animation_builder.cc"
