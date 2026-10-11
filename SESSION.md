@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (updated 16:12Z -- batches 38-52 + btree 0.1.1 + ann 0.2.0 delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-11 11:10Z (updated 16:37Z -- batches 38-53 + btree 0.1.1 + ann 0.2.0 delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -109,6 +109,10 @@ running). Check `git log -1 --format=%h %s` before starting.
   surface proven hardware-free via `SDL_AttachVirtualJoystick` (axis0 set/read 16384,
   button1=true, name, clean detach); native **58/58 x2** + absent **4/4 x2**;
   `eco-v0.1.151` sha256 `3d29c0ed...` @16:10:06Z; item fixed.
+- **`xiom.sdl3` 0.16.0 PUBLISHED** (batch 53, merge `04273269`): drag-drop payload decode
+  (`SDL_DropEvent` windowID/xy + source/data C-string copies; NULL-safe, DLL-independent);
+  native **59/59 x2** + absent **5/5 x2** (the decode arm runs without the DLL); `eco-v0.1.152`
+  sha256 `0e667ea4...` @16:35:53Z; item fixed.
 - **Compiler batch plan noted** (`REL-20261011-1342-compiler`, to all, high): six fix batches
   landing after their unpushed stack; for packages, batch 4 (TOOLCHAIN HOME/PATH, 2100+2102)
   covers our parked `REL-20261010-1549-packages-5/-7` and xvector's WSL bug, and batch 2
@@ -120,8 +124,8 @@ running). Check `git log -1 --format=%h %s` before starting.
 - Compliance noted from the ops hygiene broadcast (`REL-20261011-1134-ops`, to all): shared
   toolchain homes stay read-only for this lane; suites run from package-local scratch; PATH
   filtering for absent shapes is non-destructive.
-- Validate **524/0**; guard **511/494/17/0**. Session tally: **67 eco releases**
-  (`eco-v0.1.86` -> `eco-v0.1.151`).
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **68 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.152`).
 - **PENDING GATE (only one left):** **m258 archive** -- none yet (`gh release list -R
   xiom-lang/xiom`: v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never
   publish it unverified. (PULSE SQL-migrations design `REL-20261011-1137-pulse` acked for the
