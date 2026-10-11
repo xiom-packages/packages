@@ -558,3 +558,6 @@ xiom.wal
 xiom.btree
 # XVECTOR extraction (dense-vector primitives); ops scope confirmed LIVE 2026-10-10.
 xiom.vectors
+# XVECTOR extraction follow-on (ann HNSW) + vendored stb codecs; ops scope confirmed LIVE 2026-10-11 (eco 510).
+xiom.ann
+xiom.stb
