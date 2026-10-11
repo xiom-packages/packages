@@ -22,6 +22,7 @@
 
 module xiom.sdl3
 
+use xiom.ffi;
 use xiom.ffi.dl;
 
 // =========================================================================
@@ -129,6 +130,9 @@ pub type Sdl3Library = {
   p_poll_event: Int;
   p_push_event: Int;
   p_get_error: Int;
+  p_set_event_filter: Int;
+  p_add_event_watch: Int;
+  p_remove_event_watch: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -166,6 +170,12 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a11.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetError: " + a11.error }); }
   let a12 = dl.dl_sym(handle, "SDL_PushEvent");
   if !a12.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_PushEvent: " + a12.error }); }
+  let a13 = dl.dl_sym(handle, "SDL_SetEventFilter");
+  if !a13.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetEventFilter: " + a13.error }); }
+  let a14 = dl.dl_sym(handle, "SDL_AddEventWatch");
+  if !a14.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_AddEventWatch: " + a14.error }); }
+  let a15 = dl.dl_sym(handle, "SDL_RemoveEventWatch");
+  if !a15.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_RemoveEventWatch: " + a15.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -181,6 +191,9 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_poll_event: a10.value,
     p_push_event: a12.value,
     p_get_error: a11.value,
+    p_set_event_filter: a13.value,
+    p_add_event_watch: a14.value,
+    p_remove_event_watch: a15.value,
   });
 }
 
@@ -973,4 +986,151 @@ pub fn sdl3_event_window_data2(buf: &Vec[UInt8]) -> Int
   requires: buf.len() >= 28
 {
   return ev_read_i32(buf, 24);
+}
+
+// =========================================================================
+// 0.5.0: event filter + event watch (C callbacks into XIOM)
+//
+// SDL_EventFilter / SDL_EventWatcher are C callbacks (`bool/void (*)(void*
+// userdata, SDL_Event* event)`).  ABI (proven by docs/repro/bindings-pilot/
+// cb-abi; finding B-13): only a fixed top-level dispatcher's NAME may cross
+// into C -- fn-typed PARAM values marshal to 0.  So each registration hands
+// SDL ONE fixed dispatcher; user handlers live in a module-level `Vec[fn]`
+// registry (m130 element ABI, last set wins).  The dispatcher copies the
+// 128-byte event into an owned buffer (our memcpy, safe read direction) so
+// handlers use the 0.4.0 decode accessors; this avoids the B-11
+// foreign-write readback path entirely.
+//
+// v0.64.3 constraint (finding B-15): `Vec[fn]` element CALLS with >= 2
+// arguments type their result as `()` -- so handler types here take the
+// event only (1-arg calls, proven) and the caller's userdata is exposed via
+// `sdl3_filter_userdata()` / `sdl3_watch_userdata()`.  Dispatcher bodies
+// also avoid `return;` in explicitly `-> Unit` fns (finding B-14).
+//
+// SDL semantics: the filter runs as events are flushed (pump); returning
+// false DROPS the event.  Watches observe without consuming.
+// =========================================================================
+
+var sdl3_filter_handlers: Vec[fn(Vec[UInt8]) -> Bool] = Vec[fn(Vec[UInt8]) -> Bool].new();
+var sdl3_watch_handlers: Vec[fn(Vec[UInt8]) -> Unit] = Vec[fn(Vec[UInt8]) -> Unit].new();
+var sdl3_filter_user: Int = 0;
+var sdl3_watch_user: Int = 0;
+
+/// Copy the foreign SDL_Event into an owned 128-byte buffer.
+fn ev_copy_from(event: Int) -> Vec[UInt8]
+  requires: event != 0
+{
+  var buf: Vec[UInt8] = Vec[UInt8].new();
+  var i = 0;
+  while i < 128 {
+    buf.push(0 as UInt8);
+    i = i + 1;
+  }
+  unsafe {
+    ffi.memcpy(buf.as_mut_ptr(), event as *UInt8, 128);
+  }
+  return buf;
+}
+
+/// Fixed filter dispatcher (the address SDL keeps); last handler wins.
+fn sdl3_filter_dispatch(userdata: Int, event: Int) -> UInt8 {
+  if event == 0 {
+    return 1 as UInt8;
+  }
+  if sdl3_filter_handlers.len() == 0 {
+    return 1 as UInt8;
+  }
+  let buf = ev_copy_from(event);
+  let h = sdl3_filter_handlers[sdl3_filter_handlers.len() - 1];
+  let keep = h(buf);
+  if keep {
+    return 1 as UInt8;
+  }
+  return 0 as UInt8;
+}
+
+/// Fixed watch dispatcher; observers cannot consume.
+fn sdl3_watch_dispatch(userdata: Int, event: Int) -> Unit {
+  if event != 0 {
+    if sdl3_watch_handlers.len() != 0 {
+      let buf = ev_copy_from(event);
+      let h = sdl3_watch_handlers[sdl3_watch_handlers.len() - 1];
+      h(buf);
+    }
+  }
+}
+
+/// Userdata passed at filter registration (SDL hands it to the dispatcher;
+/// the 1-arg handler shape reads it here).
+/// Complexity: O(1).
+pub fn sdl3_filter_userdata() -> Int
+  requires: true
+{
+  return sdl3_filter_user;
+}
+
+/// Userdata passed at watch registration.
+/// Complexity: O(1).
+pub fn sdl3_watch_userdata() -> Int
+  requires: true
+{
+  return sdl3_watch_user;
+}
+
+/// SDL_SetEventFilter(dispatcher, userdata).  The handler
+/// `fn(event: Vec[UInt8]) -> Bool` decides per event: true keeps it, false
+/// drops it (last registered wins; call `sdl3_clear_event_filter` to
+/// remove).  Read the registration userdata with `sdl3_filter_userdata()`.
+/// Complexity: O(1).
+pub fn sdl3_set_event_filter(lib: &Sdl3Library, filter: fn(Vec[UInt8]) -> Bool, userdata: Int) -> Bool
+  requires: lib.handle != 0
+{
+  sdl3_filter_handlers.push(filter);
+  sdl3_filter_user = userdata;
+  unsafe {
+    let f = lib.p_set_event_filter as fn(fn(Int, Int) -> UInt8, Int);
+    f(sdl3_filter_dispatch, userdata);
+  }
+  return true;
+}
+
+/// SDL_SetEventFilter(NULL, NULL) -- removes the filter.
+/// Complexity: O(1).
+pub fn sdl3_clear_event_filter(lib: &Sdl3Library) -> Bool
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_set_event_filter as fn(Int, Int);
+    f(0, 0);
+  }
+  return true;
+}
+
+/// SDL_AddEventWatch(dispatcher, userdata) -- observe events without
+/// consuming.  The handler is `fn(event: Vec[UInt8]) -> Unit` (last
+/// registered wins; read the userdata via `sdl3_watch_userdata`; remove
+/// with the same userdata via `sdl3_remove_event_watch`).
+/// Complexity: O(1).
+pub fn sdl3_add_event_watch(lib: &Sdl3Library, watch: fn(Vec[UInt8]) -> Unit, userdata: Int) -> Bool
+  requires: lib.handle != 0
+{
+  sdl3_watch_handlers.push(watch);
+  sdl3_watch_user = userdata;
+  unsafe {
+    let f = lib.p_add_event_watch as fn(fn(Int, Int) -> Unit, Int) -> UInt8;
+    return (f(sdl3_watch_dispatch, userdata) as Int) != 0;
+  }
+}
+
+/// SDL_RemoveEventWatch(dispatcher, userdata); pass the userdata used at
+/// registration (the registered handler is the fixed dispatcher).
+/// Complexity: O(1).
+pub fn sdl3_remove_event_watch(lib: &Sdl3Library, userdata: Int) -> Bool
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_remove_event_watch as fn(fn(Int, Int) -> Unit, Int);
+    f(sdl3_watch_dispatch, userdata);
+  }
+  return true;
 }

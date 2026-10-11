@@ -49,5 +49,11 @@ fail package discovery, and `--c-source` links from a scratch cwd.)
    in module-level `Vec[fn]` storage (m130 element semantics); only a fixed
    top-level dispatcher per event type has its address (`dispatch as Int`)
    handed to the DLL. Callers keep typed handlers with no user-side `unsafe`.
-3. The loader cast-call supports fn-typed params for top-level names
+3. **The loader cast-call supports fn-typed params for top-level names**
    (probe4 `cast_fnparam=42`), so the DLL call itself needs no `Int` shim.
+4. **B-14/B-15 (`probe7_element_units.xi`, negative compile repro):**
+   calling a `Vec[fn]` ELEMENT with >= 2 arguments types the result as `()`
+   at use sites (statement position silently discards -- why the glfw
+   dispatchers were unaffected); and bare `return;` inside an explicitly
+   `-> Unit` fn is a type error. The SDL3 0.5.0 filter/watch dispatchers work
+   around both (1-arg handler shapes + structured ifs).
