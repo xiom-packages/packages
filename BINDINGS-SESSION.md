@@ -8,7 +8,8 @@ below records evidence and open asks.
 `eco-v0.1.132`; batch 33
 (`xiom.vulkan` 0.3.0: instance w/ Win32 surface ext -> device pick ->
 graphics queue family -> logical device -> command pool/buffer + REAL
-submit/wait; **15/15 x2** on the RTX 3070 Ti) committed and relayed. New
+submit/wait; **15/15 x2** on the RTX 3070 Ti) published in `eco-v0.1.133`
+(sha `668b143b...`); new
 compiler finding **B-12** (fp returns through cast calls; repro bundle)
 filed; `xiom.glfw` value checks carry labelled SKIPs for it. Engine lane:
 items acked; build order #1 delivered -- #2 (surface/swapchain/present)
@@ -17,8 +18,17 @@ ffmpeg growth waits on a shared+dev build request. **Batch 34 (`xiom.stb`
 0.2.0: vendored stb_image + stb_image_write; in-memory PNG encode+decode
 round trip (85 B, checksum 8400) + 1x1 red BMP decode; 5/5 x2;
 ALLOWLIST-APPEND ask filed -- the name was excluded as declaration-only)
-also committed and relayed.** Doorbell armed
-(`0 */3 * * *`).
+also committed and relayed.** **Batch 35 (`xiom.jolt` 0.2.0: Jolt v5.6.0
+vendored, verified **4/4 x2** with `--cxx-standard 17` on the m258 local
+build; queue: `-1815` verified, `-7` closed superseded, stdlib `-9`/`-10`
+verified+closed; archive re-verdict tracked) committed and relayed.**
+Doorbell armed
+(`0 */3 * * *`). **Batch 36 (`xiom.sdl3` 0.3.1: `SDL_PushEvent` added +
+headless synthetic-event pump proof (inject 0x8000 -> pump -> `poll(NULL)`
+consumes; 22/22 x2 with SDL 3.4.8); engine ask `-1834-engine-3` FIXED with
+the coverage list) committed and relayed.  B-11 ADDENDUM: the foreign-write
+buffer-readback corruption reproduces in this probe with NO driver context
+(SDL3, headless) -- minimal reproducer filed (`REL-20261011-0304-bindings`).**
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -72,9 +82,24 @@ clone: stage ONLY your own item files). The two working rules are in
 - **Batch 34** (`xiom.stb` 0.2.0: vendored stb_image + stb_image_write at
   commit `2c980bb5...`; one TU + probe bridge; PNG 85-byte encode +
   pixel-exact decode (checksum 8400) + 1x1 red BMP decode; **5/5 x2**):
-  feat `a369fa52` + record commit; relayed with an ALLOWLIST-APPEND ask;
-  closes the engine lane's image-codec wishlist
+  feat `a369fa52` + record commit; relayed with an ALLOWLIST-APPEND ask
+  (packages acked; ops scope ask `REL-20261010-2301-packages`; publish
+  pending the appends); closes the engine lane's image-codec wishlist
   (`REL-20261010-1900-packages`).
+- **Batch 35** (`xiom.jolt` 0.2.0: vendored Jolt v5.6.0, 25 TUs + bridge
+  shim, tree `ea20c2d1...`; **4/4 x2** on the locally built m258 compiler
+  with `--cxx-standard 17` threaded in `port.args.json` -- drop settles at
+  479 milli asleep, impulse vx=4995, ~34 s/run): feat `00cfc0c8` + record;
+  bus item `REL-20261011-0008-bindings` (merge after the m258 archive is
+  canonical; archive re-verdict of `-7`/`-1815` rides with it).
+- **Batch 36** (`xiom.sdl3` 0.3.1: `SDL_PushEvent` in the loader +
+  headless synthetic-event proof -- inject a user event (0x8000) into a
+  128-byte slot, pump, `poll(NULL)` consumes; **22/22 x2** with SDL 3.4.8,
+  absent shape green): feat `b12a1d77` + record; engine ask
+  `REL-20261010-1834-engine-3` **fixed** with the present/missing coverage
+  list; **B-11 addendum**: the slot-read corruption reproduces here with
+  no GPU/driver context (minimal reproducer filed as
+  `REL-20261011-0304-bindings`).
 - **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
   feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
   merged (packages tip `d96f4112`), **published** `eco-v0.1.130` (live sha256
@@ -106,14 +131,12 @@ clone: stage ONLY your own item files). The two working rules are in
    `packages/xiom-assimp/tools/combine.py` (`ENABLED`,
    `ASSET_DIRS_BY_IMPORTER`, `CONTRIB_MIRROR`, `CONTRIB_EXTRA`); check each
    importer's own guard names (glTF2 adds `ASSIMP_BUILD_NO_GLTF2_IMPORTER`).
-4. **`xiom.jolt` is STAGED, BLOCKED**: the v0.64.3 "verified" verdict was a
-   false positive (`if constexpr` is a C++14 clang extension; correction
-   `REL-20261010-1815-bindings`, release-check row fixed). The vendored
-   generator + bridge + module + suite are committed and validated under
-   `-std=c++17`; `vendor/` regenerates with `tools/combine.py` (recipe in
-   `packages/xiom-jolt/AUDIT.md`). Unblock = `--cxx-standard` (or a gnu++17
-   default) from the compiler lane. B-05/B-07/B-10/B-11 sit with the
-   compiler for v0.64.4.
+4. **`xiom.jolt` is DONE pending the archive**: vendored v5.6.0 + suite
+   **4/4 x2** on the locally built m258 compiler (`--cxx-standard 17` in
+   `port.args.json`); bus item `REL-20261011-0008-bindings` asks for the
+   merge once the m258 archive is canonical; re-verdict `-1815` (and close
+   it) on that archive. B-05/B-07/B-10/B-11 sit with the compiler for
+   v0.64.4.
 5. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
    go-ahead; accelerators stay gated on the `xiom.vectors` extraction
    (`REL-...-1550-xvector-11`).
@@ -128,6 +151,11 @@ clone: stage ONLY your own item files). The two working rules are in
 - **Verification probes**: never use `if constexpr` to test "does this
   toolchain support C++17" -- clang accepts it as a C++14 extension
   (warning only). Use `std::string_view` / `std::align_val_t`.
+- **Foreign-written buffer readback can be unreliable on this host**: the
+  B-11 slot corruption reproduced in the SDL3 headless event probe (no
+  driver context; recycled bytes after the call, e.g. 0x33323100). Prefer
+  consume-semantics probes (`poll(NULL)`) when readback matters, and file
+  readback evidence with the compiler lane.
 - **Confined blocks**: no malloc/free (B-05); name locals `f_` (B-10);
   no enum payload reads if the compiler pin regresses (B-01).
 - **Relays**: everything cross-lane goes through the bus now; file a
@@ -180,6 +208,18 @@ in eco-v0.1.132 (run 38078757165). Batch 30 (0.6.0 BLEND) stays gated as
 superseded -- its build is flaky under concurrent multi-lane compiles and
 eco-v0.1.131 skipped it; 0.7.0 is the go-forward. Watchdog raised to 1800 s
 in the assimp port.args (item REL-20261010-1852 acked).
+```
+
+```
+BINDINGS PUBLISH CONFIRM (batch 33): xiom.vulkan 0.3.0 (engine RHI
+bring-up) is live in eco-v0.1.133 (sha256 668b143b...; 21:07:37Z; native
+15/15 x2 on the RTX 3070 Ti).
+```
+
+```
+BINDINGS BATCH 34 STATUS: xiom.stb 0.2.0 merged + native-verified (5/5 x2;
+merge 07f5b9da, record 5fff08f9, wrap 8517c43e); publish pending the ops
+allowlist appends (ann + stb, 509 -> 511; item REL-20261010-2301-packages).
 ```
 
 ```

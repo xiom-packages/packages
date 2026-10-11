@@ -4,7 +4,7 @@
 
 package {
   name: "xiom.sdl3"
-  version: "0.3.0"
+  version: "0.3.1"
   description: "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources"
   categories: ["graphics", "media"]
   keywords: ["sdl3", "windowing", "input", "audio", "binding"]
