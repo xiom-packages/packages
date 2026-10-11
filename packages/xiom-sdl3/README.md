@@ -6,12 +6,15 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.11.0 full constant tables + runtime**
-> (source-generated ~190 constants: the complete `SDL_EVENT_*` enum,
-> window flags, keymods and the explicit-value pixel formats). Native
-> **48/48 x2** with the official SDL 3.4.8 DLL + absent **4/4 x2** (v0.64.3).
-> 0.10.0 shipped in `eco-v0.1.146`; 0.11.0 published in `eco-v0.1.147`
-> (sha256 `d2aec7d4...`). **Lane:** bindings (`keywords: ["binding"]`).
+> **Status:** `incubating` -- **0.12.0 audio streaming + mouse wheel + runtime**
+> (push audio streams: open default playback device, queue PCM from an XIOM
+> buffer, resume/pause/destroy; mouse-wheel event accessors -- engine ask
+> `REL-20261011-1411-engine-2`). Native **49/49 x2** with the official
+> SDL 3.4.8 DLL + absent **4/4 x2** (v0.64.3; 5 byte-level `Vec<UInt8>` in
+> the new wheel accessors normalized to `Vec[UInt8]` pre-publish,
+> `ec8e557a`). 0.11.0 shipped in `eco-v0.1.147`; 0.12.0 published in
+> `eco-v0.1.148` (sha256 `e7c005e6...`). **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -51,6 +54,8 @@ fn main() {
 | Display blit (0.8.0) | `sdl3_update_texture(res, tex, pixels, w, h)` (RGBA8 upload from an XIOM buffer), `sdl3_render_texture(res, ren, tex)` (whole-texture blit), `sdl3_set_render_vsync(res, ren, vsync)` -- `SDL_TEXTUREACCESS_STREAMING` exported; clear -> update -> blit -> present is the minimal engine present path |
 | Input/window contract (0.9.0) | `sdl3_mouse_state` (`Sdl3MouseState`: window-relative x/y + button mask), `sdl3_set_window_size`, `sdl3_set_window_resizable`, the full `SDL_EVENT_WINDOW_*` family (RESIZED/MOVED/PIXEL_SIZE_CHANGED/FOCUS_*/MINIMIZED/MAXIMIZED/RESTORED/SHOWN/HIDDEN/EXPOSED/CLOSE_REQUESTED) |
 | Audio/joystick (0.10.0) | `sdl3_audio_playback_count/at`, `sdl3_audio_recording_count/at`, `sdl3_audio_device_name`, `sdl3_current_audio_driver` (requires `SDL_INIT_AUDIO`); `sdl3_joystick_count/at`, `sdl3_joystick_name_for_id` (requires `SDL_INIT_JOYSTICK`); constant `SDL_PIXELFORMAT_ABGR8888` |
+| Audio stream (0.12.0) | `sdl3_open_audio_playback_stream(format, channels, freq)` (default device, NULL callback = push mode), `sdl3_put_audio_stream_data(stream, buf, len)`, `sdl3_resume/pause_audio_stream_device`, `sdl3_audio_stream_device_paused`, `sdl3_get_audio_stream_queued`, `sdl3_destroy_audio_stream`; `SDL_AUDIO_F32`, `SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK` |
+| Mouse wheel (0.12.0) | `sdl3_event_wheel_x/_y` (+`_bits`), `sdl3_event_wheel_direction`, `sdl3_event_wheel_mouse_x/_y`; `SDL_MOUSEWHEEL_NORMAL/FLIPPED` |
 | Event decode (0.4.0) | `sdl3_event_type`, `sdl3_event_timestamp`, `sdl3_event_window_id`, `sdl3_event_key_scancode/key_code/mods/down/repeat`, `sdl3_event_mouse_state/x_bits/y_bits/x/y/button/button_down/clicks`, `sdl3_event_window_data1/data2`, `sdl3_f32_from_bits`, `SDL_EVENT_SIZE` |
 | Error | `sdl3_get_error` |
 | Resources | `sdl3_load_resources`, `sdl3_resources_close`, `sdl3_create_window`, `sdl3_destroy_window`, `sdl3_show_window`, `sdl3_hide_window`, `sdl3_window_size`, `sdl3_set_window_title`, `sdl3_create_renderer`, `sdl3_destroy_renderer`, `sdl3_set_render_draw_color`, `sdl3_render_clear`, `sdl3_render_present`, `sdl3_create_texture`, `sdl3_destroy_texture`, `sdl3_has_gamepad`, `sdl3_gamepad_count`, `sdl3_open_gamepad`, `sdl3_close_gamepad` |
@@ -121,11 +126,11 @@ anywhere on `PATH`. G2 pin (soname + header-set manifest hash): `SPEC.md` §2.
 xiom --run tests/test_conformance.xi
 ```
 
-- With SDL3: 48 `[PASS]` (decode layer + smoke + hidden window, renderer
+- With SDL3: 49 `[PASS]` (decode layer + smoke + hidden window, renderer
   clear/present, textures, gamepad enumeration, synthetic event injection,
   filter keep/drop + watch semantics, displays + keyboard, filesystem round
   trip, 64x64 RGBA blit, window resize typed event + mouse, audio/joystick
-  enumeration), exit 0 (~14 s).
+  enumeration, 7680 B silent push stream), exit 0 (~14 s).
 - Without SDL3: the loader smoke reports explicit `SKIP` labels and stays
   green; the decode layer runs in both shapes (pure XIOM; no DLL needed).
 
