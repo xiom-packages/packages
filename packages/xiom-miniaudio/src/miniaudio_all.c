@@ -10,10 +10,15 @@
  *   int  xma_context_probe(int* playback, int* capture);   0=ok, else ma_result
  *   int  xma_decode_probe(int* frames, int* channels, int* rate, int* fmt);
  *                                                         0=ok, 1=probe mismatch
+ *   int  xma_encode_roundtrip(void);                       0=ok, else negative
+ *   int  xma_encode_frames(void); / xma_encode_equal(void) / xma_encode_removed(void);
+ *                                                         0.3.0 cached results
  */
 
 #define MINIAUDIO_IMPLEMENTATION
 #include "../vendor/miniaudio.h"
+
+#include <stdio.h>
 
 /* ---------------------------------------------------------------------- */
 
@@ -131,3 +136,67 @@ int xma_decode_probe(int* frames, int* channels, int* rate, int* fmt) {
   ma_decoder_uninit(&decoder);
   return 0;
 }
+
+/* ---------------------------------------------------------------------- */
+/* 0.3.0: encoder + file round trip (device-free, deterministic).          */
+/* Encodes a 64-frame 8 kHz mono s16 tone to a temp WAV with ma_encoder,   */
+/* re-decodes it with ma_decoder_init_file, compares every sample, and     */
+/* removes the temp file.  Results are cached for the getters.             */
+
+static int g_encode_frames = 0;
+static int g_encode_equal = 0;
+static int g_encode_removed = 0;
+
+#define XMA_ROUNDTRIP_PATH "xma_roundtrip_tmp.wav"
+
+int xma_encode_roundtrip(void) {
+  g_encode_frames = 0;
+  g_encode_equal = 0;
+  g_encode_removed = 0;
+
+  /* 64 frames: four periods of the precomputed 16-sample tone. */
+  short src[64];
+  for (int i = 0; i < 64; i++) {
+    src[i] = kSine16[i % 16];
+  }
+
+  ma_encoder_config cfg = ma_encoder_config_init(ma_encoding_format_wav, ma_format_s16, 1, 8000);
+  ma_encoder enc;
+  if (ma_encoder_init_file(XMA_ROUNDTRIP_PATH, &cfg, &enc) != MA_SUCCESS) {
+    return -1;
+  }
+  ma_uint64 written = 0;
+  ma_result wr = ma_encoder_write_pcm_frames(&enc, src, 64, &written);
+  ma_encoder_uninit(&enc);
+  if (wr != MA_SUCCESS || written != 64) {
+    remove(XMA_ROUNDTRIP_PATH);
+    return -2;
+  }
+
+  ma_decoder dec;
+  if (ma_decoder_init_file(XMA_ROUNDTRIP_PATH, NULL, &dec) != MA_SUCCESS) {
+    remove(XMA_ROUNDTRIP_PATH);
+    return -3;
+  }
+  short back[64];
+  ma_uint64 read = 0;
+  ma_result rd = ma_decoder_read_pcm_frames(&dec, back, 64, &read);
+  int ch = (int)dec.outputChannels;
+  int rate = (int)dec.outputSampleRate;
+  int fmt = (int)dec.outputFormat;
+  ma_decoder_uninit(&dec);
+
+  g_encode_removed = (remove(XMA_ROUNDTRIP_PATH) == 0) ? 1 : 0;
+  if (rd != MA_SUCCESS || read != 64) return -4;
+  if (ch != 1 || rate != 8000 || fmt != (int)ma_format_s16) return -5;
+  for (int i = 0; i < 64; i++) {
+    if (back[i] != src[i]) return -6;
+  }
+  g_encode_frames = (int)read;
+  g_encode_equal = 1;
+  return 0;
+}
+
+int xma_encode_frames(void) { return g_encode_frames; }
+int xma_encode_equal(void) { return g_encode_equal; }
+int xma_encode_removed(void) { return g_encode_removed; }

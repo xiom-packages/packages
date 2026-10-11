@@ -27,6 +27,11 @@ fn report(ok: Bool, name: Str) -> Int {
   return 1;
 }
 
+fn b2s(b: Bool) -> Str {
+  if b { return "true"; }
+  return "false";
+}
+
 fn main() -> Int {
   io.println("=== xiom.miniaudio conformance tests (vendored header) ===");
   io.flush_stdout();
@@ -55,6 +60,18 @@ fn main() -> Int {
       "decode: output format s16 (" + to_string(info.format) + ")");
   } else {
     failed = failed + report(false, "decode: " + wav.error);
+  }
+
+  // 0.3.0: encoder + file round trip (device-free).
+  let enc = ma_encode_roundtrip();
+  if enc.is_ok {
+    failed = failed + report(enc.value.frames == 64 && enc.value.equal,
+      "encode: 64-frame s16 WAV round trip sample-exact (frames="
+        + to_string(enc.value.frames) + " equal=" + b2s(enc.value.equal) + ")");
+    failed = failed + report(enc.value.removed,
+      "encode: temp file removed (" + b2s(enc.value.removed) + ")");
+  } else {
+    failed = failed + report(false, "encode: " + enc.error);
   }
 
   if failed == 0 {
