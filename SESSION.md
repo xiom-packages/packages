@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (updated 18:02Z -- batches 38-59 + btree 0.1.1 + ann 0.2.0 delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-11 11:10Z (updated 18:28Z -- batches 38-60 + btree 0.1.1 + ann 0.2.0 delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -142,6 +142,15 @@ running). Check `git log -1 --format=%h %s` before starting.
   + prismatic joint motors (wrapped-angle semantics; gravity-held slider); native **7/7 x2**;
   `eco-v0.1.157` sha256 `3c2ebda1...` @18:00:59Z; item fixed. Bindings' full-coverage pool
   (miniaudio/meshopt/ozz/imgui/box2d) is now 5/5 re-verified + published on this side.
+- **`xiom.meshopt` 0.3.0 PUBLISHED** (batch 60, merge `22811723`): owned-buffer wrappers
+  (remap/optimize/simplify over caller-owned byte meshes) -- suite now 33/33 with Section 4;
+  native **33/33 x2**; `eco-v0.1.158` sha256 `cbcd2ef7...` @18:25:26Z; item fixed.
+- **assimp consumer contract routed** (`REL-20261011-1811-bindings` fixed): CONTRACT.md is in
+  main (`packages/xiom-assimp/CONTRACT.md`, tip 1b303bdf) -- frozen P2+ consumer subset
+  (import/release, owned-copy accessors, single-threaded, non-goals; additive-only stability),
+  witness = the 16/16 suite; routed to engine as `REL-20261011-1828-packages` (they can adopt
+  as-is at 0.8.0/eco-v0.1.153; additions come back as a new item). NOTE: `REL-20261010-1900-2`
+  is not a relay item in this repo -- treated as an engine-side tracker id.
 - **Compiler batch plan noted** (`REL-20261011-1342-compiler`, to all, high): six fix batches
   landing after their unpushed stack; for packages, batch 4 (TOOLCHAIN HOME/PATH, 2100+2102)
   covers our parked `REL-20261010-1549-packages-5/-7` and xvector's WSL bug, and batch 2
@@ -153,8 +162,8 @@ running). Check `git log -1 --format=%h %s` before starting.
 - Compliance noted from the ops hygiene broadcast (`REL-20261011-1134-ops`, to all): shared
   toolchain homes stay read-only for this lane; suites run from package-local scratch; PATH
   filtering for absent shapes is non-destructive.
-- Validate **524/0**; guard **511/494/17/0**. Session tally: **73 eco releases**
-  (`eco-v0.1.86` -> `eco-v0.1.157`).
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **74 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.158`).
 - **PENDING GATE (only one left):** **m258 archive** -- none yet (`gh release list -R
   xiom-lang/xiom`: v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never
   publish it unverified. (PULSE SQL-migrations design `REL-20261011-1137-pulse` acked for the
