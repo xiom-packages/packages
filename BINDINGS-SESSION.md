@@ -3,18 +3,25 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: GLFW 0.5.0 SHIPPED (124/124) -- batches 31-39 relayed** -- batches
-31/32 published (`eco-v0.1.132`); batch 33 (vulkan 0.3.0) published in
+**STATUS: VULKAN 0.5.0 RENDER PIPELINE SHIPPED -- batches 31-40 relayed** --
+batches 31/32 published (`eco-v0.1.132`); batch 33 (vulkan 0.3.0) published in
 `eco-v0.1.133`; batch 36 (sdl3 0.3.1) published in `eco-v0.1.134`;
 batches 34 (stb 0.2.0, publish pending the ops appends), 35 (jolt 0.2.0,
-parked on the m258 archive), 37 (`xiom.vulkan` 0.4.0 WSI) and 38
-(`xiom.glfw` 0.4.0, superseded by 39) relayed. **Batch 39 (`xiom.glfw`
+parked on the m258 archive), 38 (`xiom.glfw` 0.4.0, superseded by 39) and 37
+(`xiom.vulkan` 0.4.0 WSI, superseded by 40) relayed. **Batch 39 (`xiom.glfw`
 0.5.0: the 20 event-callback setters + `glfwInitAllocator`; dispatcher +
 fn-registry callback ABI; **37/37 x2** + absent SKIP 3/3) committed
-(`1b77cf17` + record `81e0927f`) and relayed
-(`REL-20261011-1055-bindings`); new compiler finding **B-13** (fn-typed
-PARAM values marshal to 0 at the C boundary) filed
-(`REL-20261011-1055-bindings-2`).** Upstream sources cloned into `E:\repos`
+(`1b77cf17` + record `81e0927f`) and relayed (`REL-20261011-1055-bindings`);
+new compiler finding **B-13** (fn-typed PARAM values marshal to 0 at the C
+boundary) filed. Batch 40 (`xiom.vulkan` 0.5.0: render pass + graphics
+pipeline from embedded SPIR-V + 3-vertex draw + copy-to-buffer readback +
+present; **pixel-proven**: center rgb(0,255,0) triangle over the clear;
+**22/22 x2**) committed (`2b08eb96` + record `7a941c1f`) and relayed
+(`REL-20261011-1100-bindings`). Batch 41 (`xiom.sdl3` 0.4.0: SDL_Event
+decoding layer -- owned 128-byte buffer + typed accessors pinned to the
+3.4.8 headers; synthetic KEY_DOWN injection; **24/24 x2** + absent 4/4 x2)
+committed (`df8cdf30` + record `9c1326ea`) and relayed
+(`REL-20261011-1106-bindings`).** Upstream sources cloned into `E:\repos`
 (Vulkan-Headers, SDL3, FFmpeg + pool) for source-truth binding work.
 
 ## RESUME HERE (handoff, 2026-10-11)
@@ -25,22 +32,34 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 11:00Z)**: batches 31-39 relayed. **Published**:
+- **CURRENT (2026-10-11 11:15Z)**: batches 31-41 relayed. **Published**:
   `eco-v0.1.132` (assimp 0.7.0 + glfw 0.3.0), `eco-v0.1.133` (vulkan 0.3.0),
   `eco-v0.1.134` (sdl3 0.3.1, sha256 `a779ae4b...` @10:33:55Z).
   **In the packages queue (relayed/acked, publish pending)**: batch 34 stb
   0.2.0 (ops allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
-  batch 35 jolt 0.2.0 (parked on the m258 archive), batch 37 vulkan 0.4.0,
-  batch 39 glfw 0.5.0 (**supersedes batch 38**; `REL-20261011-1055-bindings`).
-- **Latest batch 39 (2026-10-11)**: `xiom.glfw` **0.5.0 -- full surface,
-  124/124** (20 event-callback setters + `glfwInitAllocator`). Callback ABI:
-  fixed top-level dispatcher per event type + module-level `Vec[fn]`
-  registries (bare top-level fn names marshal to C pointers; fn-typed PARAM
-  values marshal to 0 -- finding **B-13**, `REL-20261011-1055-bindings-2`).
-  Ports: 37/37 x2 + absent SKIP 3/3; includes real error/key/close callback
-  round trips (posted WM_KEYDOWN/WM_CLOSE + poll) and an allocator cycle
-  (alloc=10 realloc=1 dealloc=6, user echoed). feat `1b77cf17` + record
-  `81e0927f`; new `port.args.json` `--link user32` (suite only).
+  batch 35 jolt 0.2.0 (parked on the m258 archive), batch 39 glfw 0.5.0
+  (**supersedes 38**; `REL-20261011-1055-bindings`), batch 40 vulkan 0.5.0
+  (**supersedes 37**; `REL-20261011-1100-bindings`), batch 41 sdl3 0.4.0
+  (`REL-20261011-1106-bindings`).
+- **Latest batch 41 (2026-10-11)**: `xiom.sdl3` **0.4.0 -- SDL_Event
+  decoding layer**: owned 128-byte buffer + typed accessors (header,
+  keyboard, mouse motion/button, window data1/data2, f32 `_bits` +
+  `sdl3_f32_from_bits`); offsets pinned by grep against the release-3.4.8
+  header, byte-identical in the local release-3.2.10 clone; synthetic
+  KEY_DOWN injected through the real queue (consume semantics). Ports:
+  **24/24 x2** present + **4/4 x2** absent (decode runs DLL-free; absent
+  reproduced by filtering the VulkanSDK dir out of PATH). No new DLL
+  symbols. feat `df8cdf30` + record `9c1326ea`.
+- **Latest batch 40 (2026-10-11)**: `xiom.vulkan` **0.5.0 -- render pipeline
+  (build order #3)**: render pass (clear, TRANSFER_SRC final) + graphics
+  pipeline from embedded SPIR-V (`src/shaders/tri.vert|frag` -> glslc ->
+  `tools/embed_spv.py` -> committed `.inc`), 3-vertex draw via
+  `gl_VertexIndex`, `vkCmdCopyImageToBuffer` readback, present. Pixel proof:
+  center rgb(0,255,0) (triangle), bottom-left sample rgb(25,51,76) (0.1/0.2/0.3
+  clear). Pinned against Vulkan-Headers 1.4.350 (draft corrections:
+  TRANSFER_READ=0x800, VIEW_TYPE_2D=1; fixed 0.4.0's misnamed
+  TRANSFER_DST layout 6->7). Ports: **22/22 x2** + skip-path per run; feat
+  `2b08eb96` + record `7a941c1f`.
 - **Compiler pin is now v0.64.3** (installed slot + `COMPILER_VERSION`);
   runs record `v0.64.3`.
 - **Latest batches**: 33 vulkan 0.3.0 RHI bring-up (device/queue + real
@@ -142,36 +161,35 @@ clone: stage ONLY your own item files). The two working rules are in
 
 ### Next actions (ordered)
 1. **Doorbell armed** (`0 */3 * * *`, next fire 12:00Z); relay inbox clean
-   (8 acked items + batch 39 + B-13 filed). Inbox: no actionables.
-2. ~~glfw 0.5.0~~ **DONE** (37/37 x2 + absent; batch 39 relayed).
-3. **vulkan 0.5.0 -- build order #3**: pipeline + SPIR-V + clear/triangle/
-   present smoke. Compile shaders with
-   `C:\VulkanSDK\1.4.350.0\Bin\glslc.exe`; embed SPIR-V bytes like the
-   assimp BLEND fixture (`tools/embed_*` + committed `.inc`). Extend
-   `src/vk_rhi.c`: shader modules + graphics pipeline (render pass 1.0
-   structs), draw 3 verts, present. Engine done-bar = "clears, draws a
-   triangle, and presents".
-4. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`):
-   grow the 0.3.1 loader binding toward the full public API, subsystem by
-   subsystem (video/render/windowed, events incl. callbacks later, audio,
-   joystick, filesystem, misc), keep SKIP-when-absent.
-5. **Publish watch**: batch 34 stb + ann publish once the ops appends land;
-   then batches 36/37/38 in the queue. Note eco versions in the relay area.
-6. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
+   (8 acked + batches 39/40 + B-13 filed). No actionables.
+2. ~~glfw 0.5.0~~ **DONE** (batch 39); ~~vulkan 0.5.0 render pipeline~~
+   **DONE** (batch 40; engine build orders #1-#3 delivered).
+3. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`;
+   runtime/pin `release-3.4.8`): **0.4.0 event decoding shipped** (batch
+   41). Continue subsystem by subsystem: displays/video modes, keyboard
+   state (`SDL_GetKeyboardState`), audio device enumeration, joystick,
+   filesystem, texture updates/vsync (ROADMAP Phase 2 list). Keep
+   SKIP-when-absent; the absent shape needs the VulkanSDK dir filtered
+   from PATH on this host.
+4. **Publish watch**: batch 34 stb publish once the ops appends land; then
+   batches 39/40 (and 35 jolt when the m258 archive arrives). Note eco
+   versions in the relay area.
+5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
    source clone at `E:\repos\FFmpeg` for headers/pins. On assets: dynamic
    loader, decode path (avformat/avcodec/swresample), same slot discipline.
-7. **Open asks**: engine `-1834-engine-2` (vulkan growth; orders #1/#2
-   delivered -- #3 in progress), assimp consumer contract
-   `REL-20261010-1900-2` (mini-contract proposal due), stb scope
-   `-1900` (delivered; close on publish), `-1852` (assimp watchdog 1800 s,
-   done).
-8. **jolt**: parked on the m258 archive; on arrival: repin + merge tip
+6. **Open asks**: engine `-1834-engine-2` (vulkan growth; orders #1/#2/#3
+   delivered), assimp consumer contract `REL-20261010-1900-2` (mini-contract
+   proposal due), stb scope `-1900` (delivered; close on publish), `-1852`
+   (assimp watchdog 1800 s, done).
+7. **jolt**: parked on the m258 archive; on arrival: repin + merge tip
    `0aea531c` + port x2 + re-verdict `-1815` (then close).
-9. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
+8. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
    go-ahead; accelerators stay gated on `xiom.vectors`.
-10. **Full-coverage pool** (E:\repos): next candidates after SDL3 --
-    miniaudio, meshoptimizer, ozz-animation, imgui, box2d (all have real
-    sources now); generate/vendor + probe per the assimp pattern.
+9. **Full-coverage pool** (E:\repos): next candidates after/with SDL3 --
+   miniaudio, meshoptimizer, ozz-animation, imgui, box2d (all have real
+   sources now); generate/vendor + probe per the assimp pattern.
+10. **Vulkan phase 4** (when the engine asks): compute pipeline + storage
+    buffers, descriptors + textures, depth/stencil, frames-in-flight.
 
 ### Gotchas (learned this session)
 - **Driver-heavy FFI**: return packed/scalar values; out-param slots can be
@@ -235,7 +253,11 @@ clone: stage ONLY your own item files). The two working rules are in
 - Suite: `& scripts\port.ps1 -Package xiom.<name> [-Quiet] [-TimeoutSec N]`
   (repo root; assimp needs >=600 s / 125 TUs with `--timeout 1800`; glfw
   ~15 s, now with `port.args.json` `--link user32` applied automatically
-  (37/37 x2); vulkan ~10 s with its two C sources + `--link user32`).
+  (37/37 x2); vulkan ~25 s with its two C sources + `--link user32`
+  (22/22 x2, triangle frames included)).
+- Shaders (vulkan): `C:\VulkanSDK\1.4.350.0\Bin\glslc.exe <shader> -o
+  <shader>.spv` then `python tools\embed_spv.py <name> <spv> src\<name>.inc`
+  (run from `packages\xiom-vulkan`; regenerate + commit both in one change).
 - glfw positive path: prepend the DLL dir:
   `$env:PATH = "C:\glfw-3.4.bin.WIN64\lib-vc2022;" + $env:PATH`.
 - Shaders (vulkan #3): `C:\VulkanSDK\1.4.350.0\Bin\glslc.exe`.

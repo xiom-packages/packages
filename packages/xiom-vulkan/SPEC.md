@@ -5,13 +5,13 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.vulkan` |
-| Version | 0.4.0 |
+| Version | 0.5.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Vulkan (Khronos); Windows loader `vulkan-1.dll` |
 | Upstream license | Apache-2.0 (headers); no headers or code vendored -- the bridge is our code and declares the minimal ABI locally |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (system loader `vulkan-1.dll`, driver-installed in System32) |
-| Compiler pin | v0.64.1 |
+| Compiler pin | v0.64.3 |
 
 ## 2. G2 pin: soname + header hash + entry-point set
 
@@ -66,6 +66,24 @@ when the GPU offers it -- device-level lookups otherwise return null. The
 suite runs 3 real clear+present cycles on a never-shown popup window
 (`xw_window_create` -> `xw_surface` -> `xw_swapchain` -> `xw_frames`).
 
+**0.5.0 render-pipeline additions** (`src/vk_rhi.c`, build order #3): render
+pass (`XwRenderPassCreateInfo` 38; one attachment, loadOp CLEAR, finalLayout
+TRANSFER_SRC, one subpass, one dependency), image views (15, type 2D=1) +
+framebuffers (37), shader modules (16) from embedded SPIR-V
+(`src/shaders/tri.vert|frag` via glslc + `tools/embed_spv.py` ->
+`src/tri_*_spv.inc`), pipeline layout (30), graphics pipeline (28) with
+empty vertex input, TRIANGLE_LIST, static viewport/scissor, color blend
+write-mask 0xF; `XwRenderPassBeginInfo` (43) + clear value; draw 3 verts;
+`vkCmdCopyImageToBuffer` into a HOST_VISIBLE|HOST_COHERENT buffer
+(allocation path: 12/5 + requirements + memory types from
+`vkGetPhysicalDeviceMemoryProperties`, types at offset 4, stride 8);
+barriers COLOR_ATTACHMENT_WRITE->TRANSFER_READ (layout 6->6) and
+TRANSFER_WRITE->bottom (6->PRESENT_SRC). Constants pinned from the header
+grep: TRANSFER_SRC=6 / TRANSFER_DST=7 (the 0.4.0 clear path's constant was
+corrected 6->7), ACCESS TRANSFER_READ=0x800, VIEW_TYPE_2D=1,
+STAGE_COLOR_ATTACHMENT_OUTPUT=0x400. Readback pixels cross the boundary as
+`r<<16 | g<<8 | b`.
+
 **Local runtime sample used for positive-path proof (NOT the pin):**
 
 | Artifact | Value |
@@ -107,17 +125,19 @@ suite runs 3 real clear+present cycles on a never-shown popup window
   is preserved in git history and its scope returns over this loader in
   later phases (`ROADMAP.md`, `AUDIT.md`).
 
-## 4. Test matrix (recorded 2026-10-08, compiler v0.64.1)
+## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Vulkan present (System32 loader 1.4.350) | `scripts/port.ps1 -Package xiom.vulkan` | **PASS 10/10 x2** -- version packing, SKIP classification (bogus soname), loader API 1.4.350, 20 instance extensions + head, 15 layers, bogus extension absent, `VK_KHR_surface` present, device (RTX 3070 Ti, type 2, api 1.4) |
+| Vulkan present (System32 loader 1.4.350) | `scripts/port.ps1 -Package xiom.vulkan` | **PASS 22/22 x2** -- probe surface + RHI bring-up (queue 0, real submit) + WSI (320x240, format 44, 3 images, 3 clear+present) + triangle (2 frames; center pixel rgb(0,255,0), bottom-left sample rgb(25,51,76) = the clear) on the RTX 3070 Ti |
 | Loader absent (CI shape) | not reproducible on this host (driver-installed loader); the bogus-soname classification runs in every suite invocation | SKIP path exercised + code-reviewed |
 | No ICD/driver | not reproducible on this host; instance failure maps to `VULKAN_LOAD_NO_DEVICE` (SKIP) | code-reviewed |
 
 ## 5. Scope
 
-Capability probe only: loader identification, instance extensions/layers,
-instance creation, physical-device identification. Instance/device creation
-with extensions, queues, surfaces/swapchains, and compute/render pipelines
-are later phases over the same loader seam (`ROADMAP.md`).
+Engine RHI bring-up + WSI + render pipeline over the loader seam: capability
+probe, instance/device/queue + submit, hidden-window surface + swapchain +
+clear/present, and the triangle pipeline (render pass + embedded SPIR-V +
+3-vertex draw + readback + present). Compute pipelines, descriptors,
+textures, depth/stencil and per-frame synchronization are later phases
+(`ROADMAP.md`).

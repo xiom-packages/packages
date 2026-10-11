@@ -14,10 +14,12 @@
 //   VULKAN_LOAD_NO_DEVICE -> vkCreateInstance failed (no ICD/driver) -> SKIP
 //   VULKAN_LOAD_ABI      -> loader present but entry points missing -> FAIL
 //
-// Coverage (pilot smoke): loader API version, instance extension count/scan,
-// layer count, minimal instance creation, physical-device count + first
-// device name/type/apiVersion. Swapchain/render resources remain the
-// pre-pilot bridge's territory (preserved in git history; see AUDIT.md).
+// Coverage: loader API version, instance extension count/scan, layer count,
+// minimal instance creation, physical-device count + first device
+// name/type/apiVersion; RHI bring-up (instance + device + queue + submit);
+// WSI (hidden window + surface + swapchain + clear/present round trips);
+// render pipeline (embedded SPIR-V + render pass + 3-vertex draw + readback +
+// present).  See ROADMAP.md for the remaining engine surface.
 //
 // G2 pin (SPEC.md): soname `vulkan-1.dll` + Vulkan-Headers tag
 // `vulkan-sdk-1.4.350.0` `vulkan_core.h` hash + the resolved entry-point set.
@@ -66,6 +68,12 @@ extern "C" {
   fn xw_image_count() -> Int32;
   fn xw_frames_done() -> Int32;
   fn xw_destroy();
+  // Render pipeline bridge (src/vk_rhi.c, build order #3).
+  fn xw_pipeline() -> Int32;
+  fn xw_draw_triangle(r: Float32, g: Float32, b: Float32) -> Int32;
+  fn xw_center_pixel() -> UInt32;
+  fn xw_corner_pixel() -> UInt32;
+  fn xw_tri_drawn() -> Int32;
 }
 
 // =========================================================================
@@ -400,4 +408,123 @@ pub fn vulkan_wsi_probe(frames: Int) -> Result[VulkanWsi, VulkanLoadError]
   requires: frames > 0
 {
   return vulkan_wsi_probe_named(VULKAN_SONAME, frames);
+}
+
+// =========================================================================
+// Render pipeline (build order #3): SPIR-V + render pass + draw + present
+// =========================================================================
+
+pub type VulkanTriangle = {
+  device_name: Str;
+  extent_w: Int;
+  extent_h: Int;
+  format: Int;
+  center_pixel: Int;   // packed r<<16 | g<<8 | b, read back from the frame
+  corner_pixel: Int;   // outside the triangle (clear color)
+  frames: Int;
+}
+
+/// Render round trip: hidden window -> surface -> swapchain -> render pass
+/// (clear to the given color) -> graphics pipeline (embedded SPIR-V, 3-vertex
+/// draw from `gl_VertexIndex`) -> copy-to-buffer readback -> present, `frames`
+/// times.  The engine done-bar: "clears, draws a triangle, and presents" --
+/// the returned center pixel proves the green triangle covered the frame
+/// center and the corner pixel proves the clear color outside it.
+/// Headless-safe (window never shown); cleanup always runs; scalar boundary.
+/// Complexity: O(load+device+pipeline+frames).
+pub fn vulkan_triangle_probe_named(soname: Str, frames: Int, r: Float32, g: Float32, b: Float32) -> Result[VulkanTriangle, VulkanLoadError]
+  requires: soname.len() > 0
+  requires: frames > 0
+{
+  let rc = unsafe { xr_load(soname.c_str()) as Int };
+  if rc != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    if rc == 1 {
+      return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABSENT; message: msg });
+    }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let ir = unsafe { xr_instance() as Int };
+  if ir != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_NO_DEVICE; message: msg });
+  }
+  let pr = unsafe { xr_pick_device() as Int };
+  if pr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_NO_DEVICE; message: msg });
+  }
+  let dr = unsafe { xr_create_device() as Int };
+  if dr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let spr = unsafe { xr_submit_probe() as Int };
+  if spr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let wr = unsafe { xw_window_create() as Int };
+  if wr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_NO_DEVICE; message: msg });
+  }
+  let su = unsafe { xw_surface() as Int };
+  if su != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xw_destroy(); xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_NO_DEVICE; message: msg });
+  }
+  let sw = unsafe { xw_swapchain() as Int };
+  if sw != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xw_destroy(); xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let pp = unsafe { xw_pipeline() as Int };
+  if pp != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xw_destroy(); xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  var i = 0;
+  while i < frames {
+    let frc = unsafe { xw_draw_triangle(r, g, b) as Int };
+    if frc != 0 {
+      let msg = unsafe { Str::from_c_str(xr_error()) };
+      unsafe { xw_destroy(); xr_destroy(); xr_unload(); }
+      return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+    }
+    i = i + 1;
+  }
+  let dn = unsafe { Str::from_c_str(xr_device_name()) };
+  let ew = unsafe { xw_extent_w() as Int };
+  let eh = unsafe { xw_extent_h() as Int };
+  let fm = unsafe { xw_format() as Int };
+  let cp = unsafe { xw_center_pixel() as Int };
+  let op = unsafe { xw_corner_pixel() as Int };
+  let td = unsafe { xw_tri_drawn() as Int };
+  unsafe { xw_destroy(); xr_destroy(); xr_unload(); }
+  return Ok(VulkanTriangle{
+    device_name: dn;
+    extent_w: ew;
+    extent_h: eh;
+    format: fm;
+    center_pixel: cp;
+    corner_pixel: op;
+    frames: td;
+  });
+}
+
+/// Triangle round trip on the default loader (clear color 0.1/0.2/0.3).
+/// Complexity: O(load+device+pipeline+frames).
+pub fn vulkan_triangle_probe(frames: Int) -> Result[VulkanTriangle, VulkanLoadError]
+  requires: frames > 0
+{
+  return vulkan_triangle_probe_named(VULKAN_SONAME, frames, 0.1, 0.2, 0.3);
 }

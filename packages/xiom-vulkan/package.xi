@@ -4,8 +4,8 @@
 
 package {
   name: "xiom.vulkan"
-  version: "0.4.0"
-  description: "Vulkan bindings for XIOM via dynamic loader (vulkan-1.dll at runtime, no SDK required, SKIP when absent); capability probe + engine RHI bring-up (instance/device/queue/real submit) + WSI (Win32 surface, swapchain, clear+present)"
+  version: "0.5.0"
+  description: "Vulkan bindings for XIOM via dynamic loader (vulkan-1.dll at runtime, no SDK required, SKIP when absent); capability probe + engine RHI bring-up (instance/device/queue/real submit) + WSI (Win32 surface, swapchain, clear+present) + render pipeline (embedded SPIR-V, 3-vertex draw, readback proof, present)"
   categories: ["graphics"]
   keywords: ["vulkan", "gpu", "rendering", "binding"]
   license: "MIT OR Apache-2.0"
