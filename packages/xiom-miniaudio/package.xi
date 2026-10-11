@@ -4,8 +4,8 @@
 
 package {
   name: "xiom.miniaudio"
-  version: "0.2.0"
-  description: "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library)"
+  version: "0.3.0"
+  description: "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library; version/context enumeration, in-memory + file WAV decode, encoder round trip)"
   categories: ["media"]
   keywords: ["miniaudio", "audio", "playback", "capture", "binding"]
   license: "MIT OR Apache-2.0"

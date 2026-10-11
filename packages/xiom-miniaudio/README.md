@@ -4,9 +4,11 @@ miniaudio (audio playback/capture) bindings for XIOM via the **vendored
 single header** (0.11.25, Unlicense OR MIT-0). The library is compiled into
 the test binary -- no system audio library at link time.
 
-> **Status:** `incubating` -- suite green x2 on the pin (v0.64.1): 4/4
+> **Status:** `incubating` -- suite green x2 on the pin (v0.64.3): 6/6
 > (miniaudio 0.11.25, 9 playback + 4 capture devices enumerated, in-memory
-> WAV decode verified at 16 frames / 1 channel / 8000 Hz / s16).
+> WAV decode verified at 16 frames / 1 channel / 8000 Hz / s16, and a
+> device-free encoder + file round trip: 64 frames sample-exact, temp file
+> removed).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -36,6 +38,7 @@ fn main() {
 | Version | `ma_version_packed` |
 | Devices | `ma_context_probe` -> `MaContextInfo` (playback/capture counts) |
 | Decode | `ma_decode_probe` -> `MaWavInfo` (frames/channels/rate/format) |
+| Encode (0.3.0) | `ma_encode_roundtrip` -> `Result[MaEncodeInfo, Str]` (64-frame s16 WAV via `ma_encoder` -> `ma_decoder_init_file` re-decode, sample-exact, temp file removed; device-free) |
 | Constants | `MA_FORMAT_*` |
 
 Failure model: no library-absence path (vendored). The context check reports
@@ -54,5 +57,5 @@ no `--link` flags. Provenance + re-pin: `SPEC.md` §2.
 scripts/port.ps1 -Package xiom.miniaudio
 ```
 
-Expected: 4 `[PASS]`, exit 0. Playback engines/mixing/encoding are Phase 2
+Expected: 6 `[PASS]`, exit 0. Playback engines/mixing/capture are Phase 2
 (`ROADMAP.md`).

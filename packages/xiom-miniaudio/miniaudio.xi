@@ -14,10 +14,12 @@
 // G2 pin (SPEC.md): upstream tag 0.11.25 header SHA256 + license file SHA256
 // + upstream archive provenance.
 //
-// Coverage (pilot): version, context init + device enumeration, and an
+// Coverage (pilot): version, context init + device enumeration, an
 // in-memory WAV decode probe (8 kHz mono s16, 16 frames) exercising
-// ma_decoder_init_memory/read_pcm_frames with sample spot-checks.  Playback
-// engines, mixing, capture and file I/O are Phase 2 (ROADMAP.md).
+// ma_decoder_init_memory/read_pcm_frames with sample spot-checks, and
+// (0.3.0) an encoder + file round trip (ma_encoder_init_file/write ->
+// ma_decoder_init_file -> sample compare -> temp cleanup).  Playback
+// engines, mixing and capture are Phase 2 (ROADMAP.md).
 
 module xiom.miniaudio
 
@@ -25,6 +27,10 @@ extern "C" {
   fn xma_version(major: *UInt8, minor: *UInt8, rev: *UInt8);
   fn xma_context_probe(playback: *UInt8, capture: *UInt8) -> Int32;
   fn xma_decode_probe(frames: *UInt8, channels: *UInt8, rate: *UInt8, fmt: *UInt8) -> Int32;
+  fn xma_encode_roundtrip() -> Int32;
+  fn xma_encode_frames() -> Int32;
+  fn xma_encode_equal() -> Int32;
+  fn xma_encode_removed() -> Int32;
 }
 
 // miniaudio format codes (ma_format).
@@ -44,6 +50,13 @@ pub type MaWavInfo = {
   channels: Int;
   sample_rate: Int;
   format: Int;
+}
+
+/// 0.3.0 encoder + file round-trip result.
+pub type MaEncodeInfo = {
+  frames: Int;
+  equal: Bool;
+  removed: Bool;
 }
 
 fn slot4() -> Vec[UInt8]
@@ -126,6 +139,26 @@ pub fn ma_decode_probe() -> Result[MaWavInfo, Str]
       channels: read_u32_le(&sc),
       sample_rate: read_u32_le(&sr),
       format: read_u32_le(&sm),
+    });
+  }
+}
+
+/// 0.3.0: encode a 64-frame 8 kHz mono s16 tone to a temp WAV with
+/// ma_encoder, re-decode it with ma_decoder_init_file, compare every sample
+/// and remove the temp file (device-free, deterministic).
+/// Complexity: O(1).
+pub fn ma_encode_roundtrip() -> Result[MaEncodeInfo, Str]
+  requires: true
+{
+  unsafe {
+    let rc = xma_encode_roundtrip() as Int;
+    if rc != 0 {
+      return Err("miniaudio: encode round trip rc=" + int_to_str(rc));
+    }
+    return Ok(MaEncodeInfo{
+      frames: xma_encode_frames() as Int,
+      equal: (xma_encode_equal() as Int) != 0,
+      removed: (xma_encode_removed() as Int) != 0,
     });
   }
 }

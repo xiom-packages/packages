@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.miniaudio` |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | miniaudio -- https://github.com/mackron/miniaudio |
 | Upstream version pinned | tag **0.11.25** |
 | Upstream license | Unlicense (public domain) OR MIT-0, at your option (`vendor/LICENSE`) |
 | Package license | MIT OR Apache-2.0 (everything outside `vendor/`) |
 | Platform | Windows x64 (miniaudio resolves platform backends itself) |
-| Compiler pin | v0.64.1 |
+| Compiler pin | v0.64.3 |
 
 ## 2. Vendored path (G2 pin)
 
@@ -43,21 +43,26 @@ LICENSE, recompute hashes, update the table and version rows, re-run
 
 `miniaudio.xi` is the only module with `extern "C"`; wrappers:
 `ma_version_packed`, `ma_context_probe` (context init + device enumeration),
-`ma_decode_probe` (in-memory WAV decode with sample spot-checks), plus
-`MaContextInfo` / `MaWavInfo` and format constants. Out-params use
-XIOM-owned 4-byte slots read little-endian; local `int_to_str` for error
-text (the stdlib convert must not be called inside confined blocks -- see
-the lane findings).
+`ma_decode_probe` (in-memory WAV decode with sample spot-checks),
+`ma_encode_roundtrip` (0.3.0: `ma_encoder` WAV write -> `ma_decoder_init_file`
+re-decode -> sample compare -> temp cleanup; device-free), plus
+`MaContextInfo` / `MaWavInfo` / `MaEncodeInfo` and format constants.
+Out-params use XIOM-owned 4-byte slots read little-endian; local
+`int_to_str` for error text (the stdlib convert must not be called inside
+confined blocks -- see the lane findings).
 
 Compile-unit probe details: the embedded WAV is 8 kHz mono s16, 16 frames of
 a precomputed sine (no libm dependency); the decode asserts 16 frames read,
-zero frames at EOS (`MA_AT_END` accepted), and spot-checked samples.
+zero frames at EOS (`MA_AT_END` accepted), and spot-checked samples.  The
+0.3.0 round trip encodes 64 frames (four periods of the same tone) to
+`xma_roundtrip_tmp.wav`, re-decodes with `ma_decoder_init_file`, compares
+every sample, and removes the file (the getter reports removal success).
 
-## 4. Test matrix (recorded 2026-10-09, compiler v0.64.1)
+## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Vendored header (always compiled in) | `scripts/port.ps1 -Package xiom.miniaudio` | **PASS 4/4 x2** -- version 0.11.25, context playback=9/capture=4, WAV decode 16 frames / 1 channel / 8000 Hz / s16 |
+| Vendored header (always compiled in) | `scripts/port.ps1 -Package xiom.miniaudio` | **PASS 6/6 x2** -- version 0.11.25, context playback=9/capture=4, WAV decode 16 frames / 1 channel / 8000 Hz / s16, encoder + file round trip 64 frames sample-exact with temp cleanup |
 
 There is no library-absence SKIP path (the library is vendored). A host
 without an audio service reports the context check as SKIP with the
@@ -65,7 +70,7 @@ miniaudio result code.
 
 ## 5. Scope
 
-Pilot: version, device enumeration and in-memory WAV decoding. Playback
-engines, mixing, capture, encoding and file I/O are Phase 2
+Pilot + 0.3.0: version, device enumeration, in-memory WAV decoding, and the
+encoder/file round trip. Playback engines, mixing and capture are Phase 2
 (`ROADMAP.md`). The pre-pilot files referenced a bridge and a miniaudio
 header that were never vendored; they are preserved in git history.
