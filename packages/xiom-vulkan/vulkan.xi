@@ -54,6 +54,18 @@ extern "C" {
   fn xr_error() -> *UInt8;
   fn xr_destroy();
   fn xr_unload();
+  // WSI bridge (src/vk_rhi.c, build order #2).
+  fn xw_window_create() -> Int32;
+  fn xw_surface() -> Int32;
+  fn xw_swapchain() -> Int32;
+  fn xw_frames(n: Int32) -> Int32;
+  fn xw_extent_w() -> UInt32;
+  fn xw_extent_h() -> UInt32;
+  fn xw_format() -> UInt32;
+  fn xw_present_mode() -> UInt32;
+  fn xw_image_count() -> Int32;
+  fn xw_frames_done() -> Int32;
+  fn xw_destroy();
 }
 
 // =========================================================================
@@ -282,4 +294,110 @@ pub fn vulkan_rhi_probe() -> Result[VulkanRhi, VulkanLoadError]
   requires: true
 {
   return vulkan_rhi_probe_named(VULKAN_SONAME);
+}
+
+// =========================================================================
+// WSI (build order #2): window -> surface -> swapchain -> clear/present
+// =========================================================================
+
+pub type VulkanWsi = {
+  device_name: Str;
+  extent_w: Int;
+  extent_h: Int;
+  format: Int;
+  present_mode: Int;
+  image_count: Int;
+  frames_presented: Int;
+}
+
+/// WSI round trip: hidden Win32 window -> `VkSurfaceKHR` -> swapchain
+/// (FIFO, B8G8R8A8 when offered) -> `frames` acquire/clear/present cycles.
+/// Headless-safe: the window is never shown; cleanup always runs.  All
+/// structs live in the C bridge (scalar-only boundary).
+/// Complexity: O(load+device+swapchain+frames).
+pub fn vulkan_wsi_probe_named(soname: Str, frames: Int) -> Result[VulkanWsi, VulkanLoadError]
+  requires: soname.len() > 0
+  requires: frames > 0
+{
+  let rc = unsafe { xr_load(soname.c_str()) as Int };
+  if rc != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    if rc == 1 {
+      return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABSENT; message: msg });
+    }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let ir = unsafe { xr_instance() as Int };
+  if ir != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_NO_DEVICE; message: msg });
+  }
+  let pr = unsafe { xr_pick_device() as Int };
+  if pr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_NO_DEVICE; message: msg });
+  }
+  let dr = unsafe { xr_create_device() as Int };
+  if dr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let spr = unsafe { xr_submit_probe() as Int };
+  if spr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let wr = unsafe { xw_window_create() as Int };
+  if wr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_NO_DEVICE; message: msg });
+  }
+  let su = unsafe { xw_surface() as Int };
+  if su != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xw_destroy(); xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_NO_DEVICE; message: msg });
+  }
+  let sw = unsafe { xw_swapchain() as Int };
+  if sw != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xw_destroy(); xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let fr = unsafe { xw_frames(frames as Int32) as Int };
+  if fr != 0 {
+    let msg = unsafe { Str::from_c_str(xr_error()) };
+    unsafe { xw_destroy(); xr_destroy(); xr_unload(); }
+    return Err(VulkanLoadError{ kind: VULKAN_LOAD_ABI; message: msg });
+  }
+  let dn = unsafe { Str::from_c_str(xr_device_name()) };
+  let ew = unsafe { xw_extent_w() as Int };
+  let eh = unsafe { xw_extent_h() as Int };
+  let fm = unsafe { xw_format() as Int };
+  let pm = unsafe { xw_present_mode() as Int };
+  let ic = unsafe { xw_image_count() as Int };
+  let fd = unsafe { xw_frames_done() as Int };
+  unsafe { xw_destroy(); xr_destroy(); xr_unload(); }
+  return Ok(VulkanWsi{
+    device_name: dn;
+    extent_w: ew;
+    extent_h: eh;
+    format: fm;
+    present_mode: pm;
+    image_count: ic;
+    frames_presented: fd;
+  });
+}
+
+/// WSI round trip on the default loader.
+/// Complexity: O(load+device+swapchain+frames).
+pub fn vulkan_wsi_probe(frames: Int) -> Result[VulkanWsi, VulkanLoadError]
+  requires: frames > 0
+{
+  return vulkan_wsi_probe_named(VULKAN_SONAME, frames);
 }
