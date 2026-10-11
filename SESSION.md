@@ -14,7 +14,33 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:00Z (CLEAN HANDOFF -- bus-based workflow; bindings batches 20-37 all delivered; three gates pending):**
+**STATE AT 2026-10-11 11:10Z (batches 38 + 39 delivered; two native glfw fixes; supersedes the 11:00Z block below):**
+- **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
+  window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
+  **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
+- **`xiom.glfw` 0.5.0 PUBLISHED** (batch 39, merge `4ca7856f`; its relay supersedes 0.4.0, which
+  had already published immutably): full surface **124/124** -- the 20 event-callback setters
+  (fixed top-level dispatcher + module-level `Vec[fn]` registries; B-13 path avoided) +
+  `glfwInitAllocator`; **two native fixes pre-publish** (fix `5a213f30`): (a) `f64_from_bits`
+  dropped `requires: bits >= 0` -- a raw IEEE-754 pattern read as signed Int is a NEGATIVE Int
+  for any negative float (cursor left/above the window, negative pad axes) and trapped at
+  `contract violated: requires at 598:13`; deterministic repro kept at
+  `packages/xiom-glfw/tests/probe_neg_f64.xi` (pre-fix crash -> green); (b) the key-name check is
+  now layout-invariant (Greek layout on this box: the `kn == "A"/"a"` assertion failed; now
+  non-empty localized name + scancode 30 + explicit-scancode agreement). Recorded `342baea6`;
+  native **37/37 x2** + absent SKIP 3/3; `eco-v0.1.137` sha256 `04ad5ed2...` @11:05:47Z; fix
+  notice filed to bindings (`REL-20261011-1108-packages`); bus item fixed; README/SPEC synced.
+- Validate **524/0**; guard **509/492/17/0** (unchanged). Session tally: **53 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.137`).
+- **PENDING GATES unchanged:** (1) ops live for `xiom.ann` + `xiom.stb` -- both asks still
+  **open** on the bus (no confirmation); on live: append both (509 -> 511), guard, wrap, one eco
+  batch, live-verify; (2) **m258 archive** -- none yet (`gh release list -R xiom-lang/xiom`:
+  v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never publish it unverified.
+- Parallel-actor caution re-checked before every commit/push (owner session can commit in this
+  worktree); no divergence this session. Probe note: `glfw_set_cursor_pos` is a silent no-op on a
+  hidden unfocused window -- cursor readbacks reflect the LIVE pointer and may be negative.
+
+**STATE AT 2026-10-11 11:00Z (history -- superseded by the 11:10Z block above):**
 - **Relay bus is the coordination path** (`E:\xiom-lang\xiom-relays`). Sync the shared clone with
   `git fetch origin` + `git merge --ff-only origin/main` -- do NOT use `git pull` there (its pull
   config errors "Cannot fast-forward to multiple branches"). Queue: `python tools/relay.py view
@@ -38,12 +64,12 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **NEW operating resource (owner):** `E:\repos\` -- clone upstream projects there and STUDY them
   before writing package code (disposable when done); no writing from memory.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-11 11:00Z) -- USE THIS ONE
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-11 11:10Z) -- USE THIS ONE
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
-Read SESSION.md first -- the 2026-10-11 11:00Z STATE block is the live handoff;
+Read SESSION.md first -- the 2026-10-11 11:10Z STATE block is the live handoff;
 all older STATE blocks and paste prompts below are history.
 
 RELAY BUS (do FIRST and LAST every session): sync E:\xiom-lang\xiom-relays with
