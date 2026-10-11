@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (updated 17:14Z -- batches 38-54 + btree 0.1.1 + ann 0.2.0 delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-11 11:10Z (updated 17:24Z -- batches 38-55 + btree 0.1.1 + ann 0.2.0 delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -117,7 +117,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   (`import_file` -> handle on `tests/fixtures/quad_uv.obj`; positions/uvs/indices copies,
   release, missing-file -> Err; carries B-20 documentation with the foreign-ptr-read repro);
   native **16/16 x2**, quiet sequential (the historical 0.6.0 concurrency-flake shape
-  avoided); `eco-v0.1.153` sha256 `b5b32f16...` @17:12:37Z; item fixed.
+  avoided);   `eco-v0.1.153` sha256 `b5b32f16...` @17:12:37Z; item fixed.
+- **`xiom.miniaudio` 0.3.0 PUBLISHED** (batch 55, merge `3c38a4d2`; full-coverage pool drive):
+  device-free encoder + file round trip (64-frame s16 WAV sample-exact, temp removed) + the
+  original decode/context checks; native **6/6 x2**; `eco-v0.1.154` sha256 `6a2a77dd...`
+  @17:22:01Z; item fixed. (Bindings posted a context-limit handoff 17:15Z -- pool drive
+  continues: meshopt next; batches 45-55 + B-13..B-20 recorded.)
 - **Compiler batch plan noted** (`REL-20261011-1342-compiler`, to all, high): six fix batches
   landing after their unpushed stack; for packages, batch 4 (TOOLCHAIN HOME/PATH, 2100+2102)
   covers our parked `REL-20261010-1549-packages-5/-7` and xvector's WSL bug, and batch 2
@@ -129,8 +134,8 @@ running). Check `git log -1 --format=%h %s` before starting.
 - Compliance noted from the ops hygiene broadcast (`REL-20261011-1134-ops`, to all): shared
   toolchain homes stay read-only for this lane; suites run from package-local scratch; PATH
   filtering for absent shapes is non-destructive.
-- Validate **524/0**; guard **511/494/17/0**. Session tally: **69 eco releases**
-  (`eco-v0.1.86` -> `eco-v0.1.153`).
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **70 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.154`).
 - **PENDING GATE (only one left):** **m258 archive** -- none yet (`gh release list -R
   xiom-lang/xiom`: v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never
   publish it unverified. (PULSE SQL-migrations design `REL-20261011-1137-pulse` acked for the
