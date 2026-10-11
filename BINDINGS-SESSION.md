@@ -3,7 +3,7 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: ASSIMP 0.8.0 SHIPPED -- batches 31-54 relayed** (CLEAN HANDOFF
+**STATUS: MINIAUDIO 0.3.0 SHIPPED -- batches 31-55 relayed** (CLEAN HANDOFF
 2026-10-11 14:45Z; ticks 14:47Z/15:00Z/15:12Z/15:53Z/16:02Z/16:22Z).
 Published through the window: `eco-v0.1.132`..`eco-v0.1.151` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0 (incl. the pre-publish native fixes), vulkan 0.5.0
@@ -12,10 +12,11 @@ ops append gate cleared), sdl3 0.5.0 `a350dd46` (`140`), btree 0.1.1 (`141`,
 other lane), sdl3 **0.7.0-0.15.0** (`142`-`151`; `144` also carries ann
 0.2.0; `149` = capture streams + query, `150` = pointer/relative mouse,
 `151` = live joystick path).
-**Publish queue (packages): xiom.assimp 0.8.0** (batch 54 relayed 16:55Z via
-`REL-20261011-1655-bindings`; sdl3 0.16.0 landed in `eco-v0.1.152`) + jolt
-0.2.0 (parked on the m258 archive).
-Lane tree tip: `c3f83489` at handoff; now `a76bdef4` (clean; all pushed).
+**Publish queue (packages): xiom.assimp 0.8.0 + xiom.miniaudio 0.3.0**
+(batches 54/55 relayed 16:55Z/17:08Z via
+`REL-20261011-1655/1708-bindings`; sdl3 0.16.0 landed in `eco-v0.1.152`) +
+jolt 0.2.0 (parked on the m258 archive).
+Lane tree tip: `c3f83489` at handoff; now `ab8dc89e` (clean; all pushed).
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
 **B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
 >=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
@@ -45,15 +46,20 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 16:55Z, batch-54 ship tick)**: batches 31-54
-  relayed; sdl3 **0.12.0-0.16.0 PUBLISHED** (`eco-v0.1.148`-`152`; `152` =
-  drag-drop decode, 59/59 + absent 5/5).
-  **Publish queue (packages): xiom.assimp 0.8.0** (batch 54)
-  + jolt 0.2.0 (m258 parked only). Engine P3 asks: ... through live joystick
-  (0.15.0, `151`) ALL PUBLISHED; engine P4 assimp ask DELIVERED (0.8.0
-  relayed `-1655`). Relay: `REL-20261011-1533-compiler` processed
-  (verdicts + B-18/B-19/B-20 rows); batch items
-  `-1553`/`-1602`/`-1622`/`-1655` sent.
+- **CURRENT (2026-10-11 17:08Z, batch-55 ship tick)**: batches 31-55
+  relayed; sdl3 **0.12.0-0.16.0 PUBLISHED** (`eco-v0.1.148`-`152`).
+  **Publish queue (packages): xiom.assimp 0.8.0 + xiom.miniaudio 0.3.0**
+  (batches 54/55) + jolt 0.2.0 (m258 parked only). Engine P3+P4 asks ALL
+  delivered/published (through assimp 0.8.0). Relay: `-1553`/`-1602`/
+  `-1622`/`-1655`/`-1708` batch items sent.
+- **Latest batch 55 (2026-10-11)**: `xiom.miniaudio` **0.3.0 -- encoder +
+  file round trip** (pool drive, package 1): `ma_encode_roundtrip` encodes
+  a 64-frame 8 kHz mono s16 tone to a temp WAV with `ma_encoder`, re-decodes
+  it with `ma_decoder_init_file`, compares every sample, and removes the
+  temp file -- device-free and deterministic; results read through scalar
+  getters (B-20 rule). Ports: **6/6 x2** (0.11.25; playback=9/capture=4;
+  decode 16/1/8000/s16; round trip sample-exact + temp removed). feat
+  `9f1c1bcd` + record `ab8dc89e`.
 - **Latest batch 54 (2026-10-11)**: `xiom.assimp` **0.8.0 -- file import +
   mesh-data getters** (engine P4 asset pipeline): `assimp_import_file(path)`
   (Triangulate + FlipUVs; 1-based registry, 4 live imports),
@@ -325,11 +331,12 @@ clone: stage ONLY your own item files). The two working rules are in
    but replied (`REL-20261011-1345-bindings-2`,
    `REL-20261011-1437-bindings-2`), xvector `1203` + engine `1153`
    acked by their lanes, compiler `1342` open (info).
-2. **Publish watch**: packages queue = **xiom.assimp 0.8.0** (batch 54,
-   relayed 16:55Z) + jolt 0.2.0 (m258 archive parked). sdl3 0.7.0-0.16.0
-   landed in `eco-v0.1.142`-`152` (152 = drag-drop decode). Record new eco
-   versions in the relay area of this file. The engine consumes only
-   published packages -- if asked, nudge packages.
+2. **Publish watch**: packages queue = **xiom.assimp 0.8.0 +
+   xiom.miniaudio 0.3.0** (batches 54/55, relayed 16:55Z/17:08Z) + jolt
+   0.2.0 (m258 archive parked). sdl3 0.7.0-0.16.0 landed in
+   `eco-v0.1.142`-`152`. Record new eco versions in the relay area of this
+   file. The engine consumes only published packages -- if asked, nudge
+   packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): 0.4.0-0.16.0 shipped (batches 41-53;
    capture in 0.13.0, pointer/relative mouse in 0.14.0, live joystick
@@ -341,10 +348,12 @@ clone: stage ONLY your own item files). The two working rules are in
    pointers -- have C copy into an owned slot**. Ship each batch as: feat
    -> x2 (present + absent PATH-filtered) -> record -> relay -> ledger.
    Constant regeneration recipe: comment-strip + enum-parse + macro-eval
-   vs the headers (ROADMAP item 1). **Assimp 0.8.0 SHIPPED** (batch 54;
-   engine P4 ask delivered). **Next lane task: the `E:\repos`
-   full-coverage pool** (miniaudio, meshoptimizer, ozz-animation, imgui,
-   box2d) -- bind from the real sources, never from memory.
+   vs the headers (ROADMAP item 1). **Assimp 0.8.0 + miniaudio 0.3.0
+   SHIPPED** (batches 54/55). **Pool drive in progress**: miniaudio done
+   (0.3.0: encoder + file round trip); next: meshopt (72 tests, last run
+   fleet-sweep v0.64.0 -- re-verify on v0.64.3 + publish per its ROADMAP),
+   then ozz (4 tests), imgui (4), box2d (5) -- each per its own ROADMAP,
+   binding from the real sources, never from memory.
 4. ~~stb publish~~ **DONE** (`eco-v0.1.139`); batches 39/40/41 wrapped on
    main (`470e13f3`); vulkan 0.5.0 live (`eco-v0.1.138`).
 
@@ -370,16 +379,18 @@ Bindings lane continuation -- clean handoff pickup (2026-10-11 15:12Z).
    eco publish notes and record confirmed eco versions in
    BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
    action." Then check relay once now; also check the packages publish
-   queue (assimp 0.8.0 at handoff).
+   queue (assimp 0.8.0 + miniaudio 0.3.0 at handoff).
 
 3. Continue the ordered tasks. Priority: (a) SDL3 continuance from
    E:\repos\SDL3 (remaining candidate: POSIX soname; drag-drop decode
    shipped in 0.16.0); (b) the E:\repos
    full-coverage pool (miniaudio, meshoptimizer, ozz-animation, imgui,
    box2d) -- bind from the real sources, never from memory;
-   assimp 0.8.0 (engine P4) shipped in batch 54; (c) publish
-   watch for assimp 0.8.0 + jolt (m258); (d) Vulkan phase 4 only if
-   the engine asks (compute/descriptors/textures/frames-in-flight).
+   assimp 0.8.0 (engine P4) + miniaudio 0.3.0 (encoder round trip) shipped
+   in batches 54/55; (c) publish
+   watch for assimp 0.8.0 + miniaudio 0.3.0 + jolt (m258); (d) Vulkan
+   phase 4 only if the engine asks (compute/descriptors/textures/
+   frames-in-flight).
 
    Respect: B-11/B-12/B-13/B-14/B-15/B-16/B-17/B-20 discipline (byte-indexed
    slot writes, packed returns, dispatcher+registry callbacks, 1-arg
