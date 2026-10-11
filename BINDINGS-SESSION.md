@@ -3,29 +3,22 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: OZZ 0.3.0 SHIPPED -- batches 31-57 relayed** (session resumed
+**STATUS: IMGUI 0.3.0 SHIPPED -- batches 31-58 relayed** (session resumed
 2026-10-11 17:19Z from the 17:15Z context-limit handoff; this continuation
-shipped batch 56: xiom.meshopt 0.2.0 vendored + 30/30 x2, and batch 57:
-xiom.ozz 0.3.0 clip pipeline + in-package combine.py bundler + 5/5 x2).
-Published through the window: `eco-v0.1.132`..`eco-v0.1.154` -- assimp 0.7.0,
-glfw 0.3.0-0.5.0 (incl. the pre-publish native fixes), vulkan 0.5.0
-`0cd7bc00` + sdl3 0.4.0 `a9006d4c` (`138`), ann 0.1.0 + stb 0.2.0 (`139`,
-ops append gate cleared), sdl3 0.5.0 `a350dd46` (`140`), btree 0.1.1 (`141`,
-other lane), sdl3 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`,
-sha256 `b5b32f16...`, live 17:12:37Z), miniaudio **0.3.0** (`154`, sha256
-`6a2a77dd...`, live 17:22:01Z).
-**Publish queue (packages)**: assimp 0.8.0 + miniaudio 0.3.0 live; **meshopt
-0.2.0 acked 17:37Z -- publish pending as `eco-v0.1.155`** (packages merging
-tip `94bb28c6`); ozz **0.3.0** relayed 17:40Z (`REL-20261011-1740-bindings`);
-jolt 0.2.0 stays parked on the m258 archive only.
-**Batch 56: xiom.meshopt 0.2.0** -- vendored meshoptimizer v1.2 (@ f843aae0)
-+ C++ probe bridge + 30 real-library checks (30/30 x2); relayed
-`REL-20261011-1733-bindings` (packages to wrap/publish).
-**Batch 57: xiom.ozz 0.3.0** -- clip pipeline (RawAnimation ->
-AnimationBuilder -> SamplingJob, hand-checked pose; 5/5 x2) + the
-SPEC-referenced amalgamation bundler restored in-package (`tools/combine.py`,
-regeneration validated byte-identically); relayed `REL-20261011-1740-bindings`.
-Lane tree tip: `1b1389e2` (clean; all pushed).
+shipped batch 56: meshopt 0.2.0 vendored + 30/30 x2, batch 57: ozz 0.3.0
+clip pipeline + combine.py bundler + 5/5 x2, and batch 58: imgui 0.3.0
+long-lived context handles + 7/7 x2).
+Published through the window: `eco-v0.1.132`..`eco-v0.1.155` -- assimp 0.7.0,
+glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
+**0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
+(`154`), meshopt **0.2.0** (`155`, sha256 `1158faef...`, live 17:41:40Z).
+**Publish queue (packages)**: ozz **0.3.0** relayed 17:40Z
+(`REL-20261011-1740-bindings`); imgui **0.3.0** relayed 17:52Z
+(`REL-20261011-1750-bindings`); jolt 0.2.0 stays parked on the m258 archive.
+**Batch 58: xiom.imgui 0.3.0** -- long-lived context handles
+(create/frame/destroy, 4-slot registry, frames persist across calls; 7/7 x2)
++ side-effect-free runs (`io.IniFilename = 0`; tracked imgui.ini removed).
+Lane tree tip: `05c30982` (clean; all pushed).
 Compiler v0.64.4 six-batch stack staged (`REL-20261011-1731-compiler`, to
 all): re-run our open probe rows when the archive lands; workarounds stay.
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
@@ -68,13 +61,26 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 17:42Z, batch-57 ship tick)**: batches 31-57
+- **CURRENT (2026-10-11 17:55Z, batch-58 ship tick)**: batches 31-58
   relayed; sdl3 **0.12.0-0.16.0** + assimp **0.8.0** + miniaudio **0.3.0**
-  PUBLISHED (`eco-v0.1.148`-`154`); **meshopt 0.2.0 acked, publishing as
-  `eco-v0.1.155`**. **Publish queue: meshopt 0.2.0 (in flight) + ozz 0.3.0
-  (relayed)** (jolt 0.2.0 m258-parked only). Engine P3+P4 asks ALL
+  + meshopt **0.2.0** PUBLISHED (`eco-v0.1.148`-`155`); **publish queue:
+  ozz 0.3.0 + imgui 0.3.0** (jolt m258-parked only). Engine P3+P4 asks ALL
   delivered/published. Relay: `-1553`/`-1602`/`-1622`/`-1655`/`-1708`/
-  `-1733`/`-1740` batch items sent.
+  `-1733`/`-1740`/`-1750` batch items sent.
+- **Latest batch 58 (2026-10-11)**: `xiom.imgui` **0.3.0 -- long-lived
+  context handles (pool drive)**: 4-slot registry of `ImGuiContext*` with
+  1-based handles (`imgui_context_create/frame/destroy` + count/frames);
+  window state persists across separate XIOM calls -- the suite drives 5
+  frames on one handle (first hidden, auto-size settles by frame 4, frames
+  4/5 identical) and checks registry counts across create/destroy of two
+  handles. Two bridge lessons pinned (SPEC/AUDIT): `ImGui::CreateContext`
+  returns the new context but only makes it current when none is -- bind
+  the RETURN value with `SetCurrentContext` (GetCurrentContext() aliased
+  every slot to the first context -> NewFrame assertion); windows settle
+  over ~4 frames. Hygiene: probes now set `io.IniFilename = 0` /
+  `io.LogFilename = 0`; the tracked `imgui.ini` artifact is removed and
+  ignored. Suite: **7/7 x2**. feat `bb69c92a` + record `05c30982`; relayed
+  `REL-20261011-1750-bindings`.
 - **Latest batch 57 (2026-10-11)**: `xiom.ozz` **0.3.0 -- clip pipeline +
   bundler restoration (pool drive)**: bridge builds a two-track
   RawAnimation (child y 1 -> 3 over 1 s), converts via the offline
@@ -386,14 +392,14 @@ clone: stage ONLY your own item files). The two working rules are in
    `-1655-bindings-2`), xvector `1203` + engine `1153` acked by their
    lanes, compiler `1533` re-verified (B-18/B-19 filed), compiler `1731`
    (v0.64.4 staged, info -> re-verify on archive), ops `1134` closed.
-2. **Publish watch**: assimp 0.8.0 live in `eco-v0.1.153`
-   (`b5b32f16...`, 17:12:37Z), miniaudio 0.3.0 live in `eco-v0.1.154`
-   (`6a2a77dd...`, 17:22:01Z); **meshopt 0.2.0 acked 17:37Z -- publishing
-   as `eco-v0.1.155`**; ozz 0.3.0 relayed 17:40Z (expect `eco-v0.1.156+`);
-   jolt 0.2.0 m258-parked only. sdl3 0.7.0-0.16.0 landed in
-   `eco-v0.1.142`-`152`. Record new eco versions in the relay area of this
-   file. The engine consumes only published packages -- if asked, nudge
-   packages.
+2. **Publish watch**: assimp 0.8.0 = `eco-v0.1.153`, miniaudio 0.3.0 =
+   `eco-v0.1.154`, **meshopt 0.2.0 = `eco-v0.1.155`** (`1158faef...`, live
+   17:41:40Z; the packages run hit a transient ntp registry blip, resolved
+   with a CI retry patch, meshopt unaffected); **ozz 0.3.0 relayed 17:40Z +
+   imgui 0.3.0 relayed 17:52Z (expect `eco-v0.1.156+`)**; jolt 0.2.0
+   m258-parked only. sdl3 0.7.0-0.16.0 landed in `eco-v0.1.142`-`152`.
+   Record new eco versions in the relay area of this file. The engine
+   consumes only published packages -- if asked, nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): 0.4.0-0.16.0 shipped (batches 41-53;
    capture in 0.13.0, pointer/relative mouse in 0.14.0, live joystick
@@ -528,6 +534,15 @@ continuation; prompt refreshed after batch 56).
   heuristic (7-axis seeding + expansion), not the minimal sphere: assert on
   point sets where it is exact (2x2 planar square -> center 1,1, r=sqrt(2),
   i.e. 1414 milli).
+- **ImGui contexts**: `ImGui::CreateContext` returns the new context but
+  only makes it CURRENT when none is -- always bind the return value with
+  `SetCurrentContext` (using `GetCurrentContext()` aliases every registry
+  slot to the first context; it surfaced as a shared pointer and a
+  "Forgot to call Render()" NewFrame assertion). Windows settle over ~4
+  frames (first hidden, auto-size adjusts), and `io.IniFilename` /
+  `io.LogFilename` must be nulled or every run rewrites `imgui.ini` in the
+  CWD. Upstream null backends keep only per-context io flags, so multiple
+  live contexts work if every call makes its context current.
 - **B-12: floating-point RETURNS through fn-pointer cast calls are broken**
   on v0.64.2/v0.64.3 (f64 -> 0, f32 -> garbage). Never rely on fp returns
   from casts; fp OUT-params via XIOM slots are fine. Repro:
