@@ -1,0 +1,60 @@
+; XIOM -- xiom.spirv-reflect conformance fixture (minimal fragment shader).
+; Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+; SPDX-License-Identifier: MIT OR Apache-2.0
+;
+; Regenerate the embedded bytes with:
+;   "C:\VulkanSDK\1.4.350.0\Bin\spirv-as.exe" --target-env spv1.0 ^
+;       tests/fixtures/minimal_frag.spvasm -o minimal_frag.spv
+; The bridge (src/spvref_bridge.c) embeds the assembled byte words verbatim;
+; the suite asserts the reflection results listed below.
+;
+; Expected reflection (asserted by tests/test_conformance.xi):
+;   shader stage            FRAGMENT (0x10)
+;   entry point             "main", execution model Fragment (4)
+;   descriptor bindings     1  (set 0, binding 0, COMBINED_IMAGE_SAMPLER)
+;   input variables         1  (location 0, name "uv", R32G32_SFLOAT)
+;   output variables        1  (location 0, name "outColor", R32G32B32A32_SFLOAT)
+;   interface variables     2  (uv + outColor)
+;   push constant blocks    0
+;   spec constants          1  (SpecId 0, name "sc", default 42)
+;   source language         GLSL (2), version 450
+;   generator               Khronos SPIR-V Tools assembler (7)
+
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %uv %outColor
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 450
+               OpName %main "main"
+               OpName %uv "uv"
+               OpName %outColor "outColor"
+               OpName %tex "tex"
+               OpName %sc "sc"
+               OpDecorate %uv Location 0
+               OpDecorate %outColor Location 0
+               OpDecorate %tex DescriptorSet 0
+               OpDecorate %tex Binding 0
+               OpDecorate %sc SpecId 0
+       %void = OpTypeVoid
+         %fn = OpTypeFunction %void
+      %float = OpTypeFloat 32
+       %uint = OpTypeInt 32 0
+         %v2 = OpTypeVector %float 2
+         %v4 = OpTypeVector %float 4
+   %ptr_v2_i = OpTypePointer Input %v2
+         %uv = OpVariable %ptr_v2_i Input
+   %ptr_v4_o = OpTypePointer Output %v4
+   %outColor = OpVariable %ptr_v4_o Output
+        %img = OpTypeImage %float 2D 0 0 0 1 Unknown
+    %sampled = OpTypeSampledImage %img
+     %ptr_uc = OpTypePointer UniformConstant %sampled
+        %tex = OpVariable %ptr_uc UniformConstant
+         %sc = OpSpecConstant %uint 42
+         %f1 = OpConstant %float 1
+         %c4 = OpConstantComposite %v4 %f1 %f1 %f1 %f1
+       %main = OpFunction %void None %fn
+      %entry = OpLabel
+          %s = OpLoad %sampled %tex
+               OpStore %outColor %c4
+               OpReturn
+               OpFunctionEnd

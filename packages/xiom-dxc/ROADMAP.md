@@ -1,32 +1,32 @@
 # xiom.dxc -- Roadmap
 
-**Version**: v0.2.0 | **Compiler**: xiom v0.64.1 | **Last updated**: 2026-10-08
+**Version**: v0.3.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-12
 
 ## Current state
 
 | Criterion | Status |
 |-----------|--------|
-| Dynamic loader (no SDK/header/link dependency) | Done -- `DxcCreateInstance` seam |
-| Header-free COM ABI (GUIDs + vtable slots pinned) | Done |
-| G2 pin (soname + header hashes + ABI) | Done -- `SPEC.md` §2 |
-| Capability probe (instance + trivial compile) | Done -- 3/3 x2 (2,532-byte DXIL blob) |
-| SKIP/FAIL classification | Done |
-| Generic compile API (source/target/entry/defines) | Phase 2 |
-| Include handler + multi-entry/library targets | Phase 2 |
-| Validator (`IDxcValidator`, `dxil.dll`) + signature info | Phase 2 |
-| Reflection / disassembly (`IDxcResult` extra outputs) | Phase 2 |
+| Dynamic loader (no SDK/header/link dependency) | Done -- `DxcCreateInstance(2)` seam |
+| Header-free COM ABI (GUIDs + flattened vtable structs, generated) | Done -- `src/dxc_abi.h` |
+| G2 pin (soname + header hashes + ABI counts) | Done -- `SPEC.md` Â§2 |
+| 100% dxcapi.h COM surface (27 interfaces / 128 methods) | Done -- `bound=128/128` x2 |
+| Generated bridge + family-split wrappers + `--check` drift gate | Done -- `tools/gen_dxc.py` |
+| Capability probe + SKIP/FAIL classification | Done -- 20/20, SKIP exercise per run |
+| Runtime pipeline probes (compile, errors, reflection, disasm, version, factory) | Done -- `docs/COVERAGE.md` |
+| Validator (`IDxcValidator`, `dxil.dll` signing) | Phase 2 (bound; `dxil.dll` absent on host) |
+| PDB tooling exercises (`IDxcPdbUtils*`) | Phase 2 (bound; needs full PDB inputs) |
+| Linker/assembler/optimizer execution probes | Phase 2 (bound; need library/bitcode/pass inputs) |
 
 ## Phase 2 (next touches)
 
-1. Generic compile: `dxc_compile(source, target, entry, args)` returning the
-   object blob as an owned XIOM buffer plus the error text blob; expose
-   `dxc_compile_hlsl(...)` with defines.
-2. Error surfacing: `DXC_OUT_ERRORS` blob as `Str` on failure (currently only
-   the HRESULT is reported).
-3. Validator: create `CLSID_DxcValidator` (IID `IDxcValidator`) and report
-   validation success/hash; requires `dxil.dll` on the host (SKIP when
-   absent).
-4. Reflection/disassembly: `DXC_OUT_REFLECTION` + `IDxcCompiler3::Disassemble`
-   for tooling consumers.
-5. Feed compiled DXIL into the directx11/12 tier when those land (SPIR-V
-   output via `-spirv` also enables Vulkan content later).
+1. Validator: install `dxil.dll` in CI and exercise `Validate`/`ValidateWithDebug`
+   end to end (hash + status), promoting `IDxcValidator(2)` from bound to
+   functional.
+2. PDB pipeline: compile with `-Zi/-Qembed_debug`, read back sources/flags/args
+   via `IDxcPdbUtils2`, promoting the 49 PDB methods.
+3. Linker flow: register two `IDxcBlob` libraries and `Link` them; assemble
+   LLVM bitcode through `IDxcAssembler`; run `IDxcOptimizer` passes.
+4. Reflection consumers: `IDxcUtils::CreateReflection` + `IDxcContainerReflection`
+   `GetPartReflection` with a D3D12 reflection IID when the directx tier lands.
+5. Feed compiled DXIL into the directx11/12 tier; `-spirv` output enables
+   Vulkan content later (shares the generated bridge).

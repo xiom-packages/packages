@@ -23,3 +23,7 @@ Thumbs.db
 # XIOM cache
 .xiom_ai_cache/
 .xiom_ai.json
+
+# Python tooling cache (tools/gen_dxc.py)
+__pycache__/
+*.pyc
