@@ -8,9 +8,11 @@ is not installed.
 
 > **Status:** `incubating` -- **0.16.0 drag-drop payload decode + runtime**
 > (`SDL_DropEvent` windowID/xy + source/data C-string copies, NULL-safe and
-> DLL-independent; live joystick path landed in 0.15.0). Suite **59/59 x2**
+> DLL-independent; live joystick path landed in 0.15.0). Native **59/59 x2**
 > with the official SDL 3.4.8 DLL + absent **5/5 x2** (decode arms run
-> without the DLL). **Lane:** bindings (`keywords: ["binding"]`).
+> without the DLL; v0.64.3). 0.15.0 shipped in `eco-v0.1.151`; 0.16.0
+> published in `eco-v0.1.152` (sha256 `0e667ea4...`). **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
