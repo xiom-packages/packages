@@ -292,9 +292,20 @@ jobs:
               if (cd "$dir" && xiom pkg publish); then
                 published=$((published+1))
               else
-                echo "::error::publish failed: $name@$version"
-                failed=$((failed+1))
-                failed_list="$failed_list $name@$version"
+                # Rerun-safe: a transient registry blip can make the version
+                # pre-check miss an existing version, then the attempt lands
+                # on a hard 409 version_exists (seen 2026-10-11: xiom.ntp).
+                # Re-check the registry before failing the run: if the
+                # version is present now, this was a race -- skip it.
+                code="$(curl -s -o /tmp/pkg_retry.json -w '%{http_code}' "$XIOM_REGISTRY/packages/$name" || true)"
+                if [ "$code" = "200" ] && python3 -c 'import json,sys; d=json.load(open("/tmp/pkg_retry.json")); sys.exit(0 if sys.argv[1] in (d.get("versions") or {}) else 1)' "$version"; then
+                  echo "skip (already published; found on retry recheck): $name@$version"
+                  skipped=$((skipped+1))
+                else
+                  echo "::error::publish failed: $name@$version"
+                  failed=$((failed+1))
+                  failed_list="$failed_list $name@$version"
+                fi
               fi
             fi
             sleep 4   # stay under the 20 publishes/minute limit
