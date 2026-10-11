@@ -18,6 +18,14 @@
 //   Simplification, Stripification, Analysis, Meshlet Building,
 //   Meshlet Optimization, Bounds, Partitioning, Spatial,
 //   Opacity Maps, Tangents, Quantization, Allocator.
+//
+// 0.2.0 (pool drive): upstream sources are vendored in vendor/src
+// (v1.2, commit f843aae0) and compiled with the suite via port.args.json.
+// The `xmo_*` block at the bottom exposes real runtime probes over the
+// vendored build (SPEC.md); the raw declarations remain the 100%-coverage
+// surface.  ABI-sensitive shapes (fp returns through casts, struct-by-value
+// returns) go through the bridge; probes never read through foreign
+// pointers (B-20 -- C copies into XIOM-owned slots read byte-indexed).
 
 module xiom.meshopt
 
@@ -313,4 +321,335 @@ pub fn analyze_vertex_cache(indices_ptr: Int, index_count: Int, vertex_count: In
   requires: index_count > 0
 {
   return unsafe { meshopt_analyzeVertexCache(indices_ptr, index_count, vertex_count, cache_size, warp_size, primgroup_size) };
+}
+
+// =========================================================================
+// 0.2.0: vendored runtime probes (src/meshopt_bridge.cpp)
+// =========================================================================
+//
+// The vendored tree (vendor/src) is compiled with the suite via
+// port.args.json.  These wrappers run real meshes through the library:
+// out-params are 4-byte XIOM-owned slots read little-endian (B-11/B-16/B-17),
+// meshes are either built inside the bridge or copied by C into an
+// XIOM-owned byte slot (B-20 -- never read through a foreign pointer).
+
+extern "C" {
+  fn xmo_version() -> Int32;
+  fn xmo_remap_probe(unique: *UInt8, valid: *UInt8) -> Int32;
+  fn xmo_cache_probe(acmr_before_milli: *UInt8, acmr_after_milli: *UInt8, transformed_before: *UInt8, transformed_after: *UInt8) -> Int32;
+  fn xmo_fetch_probe(bytes_fetched: *UInt8, overfetch_milli: *UInt8) -> Int32;
+  fn xmo_simplify_probe(out_count: *UInt8, err_milli: *UInt8) -> Int32;
+  fn xmo_encode_index_probe(enc_size: *UInt8, dec_rc: *UInt8, equal: *UInt8) -> Int32;
+  fn xmo_vertex_codec_probe(enc_size: *UInt8, dec_rc: *UInt8, equal: *UInt8) -> Int32;
+  fn xmo_strip_probe(strip_count: *UInt8, unstrip_triangles: *UInt8, set_equal: *UInt8) -> Int32;
+  fn xmo_quant_probe(half_one: *UInt8, half_neg_two: *UInt8, back_one_milli: *UInt8) -> Int32;
+  fn xmo_bounds_probe(radius_milli: *UInt8, center_x_milli: *UInt8, center_y_milli: *UInt8) -> Int32;
+  fn xmo_meshlet_probe(meshlet_count: *UInt8, triangle_sum: *UInt8, input_triangles: *UInt8) -> Int32;
+  fn xmo_filter_probe(max_err_milli: *UInt8) -> Int32;
+  fn xmo_build_indices(dst: *UInt8, capacity: Int32) -> Int32;
+  fn xmo_optimize_inplace(buf: *UInt8, index_count: Int32, vertex_count: Int32) -> Int32;
+  fn xmo_checksum(buf: *UInt8, byte_count: Int32) -> Int32;
+}
+
+fn xmo_slot4() -> Vec[UInt8]
+  requires: true
+{
+  var s: Vec[UInt8] = Vec[UInt8].new();
+  var i: Int = 0;
+  while i < 4 {
+    s.push(0 as UInt8);
+    i = i + 1;
+  }
+  return s;
+}
+
+fn xmo_read_u32(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 4
+{
+  let b0 = buf[0] as Int;
+  let b1 = buf[1] as Int;
+  let b2 = buf[2] as Int;
+  let b3 = buf[3] as Int;
+  return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+pub type MeshoptRemapProbe = {
+  unique: Int;
+  valid: Bool;
+}
+
+pub type MeshoptCacheProbe = {
+  acmr_before_milli: Int;
+  acmr_after_milli: Int;
+  transformed_before: Int;
+  transformed_after: Int;
+}
+
+pub type MeshoptFetchProbe = {
+  bytes_fetched: Int;
+  overfetch_milli: Int;
+}
+
+pub type MeshoptSimplifyProbe = {
+  out_count: Int;
+  err_milli: Int;
+}
+
+pub type MeshoptCodecProbe = {
+  enc_size: Int;
+  dec_rc: Int;
+  equal: Bool;
+}
+
+pub type MeshoptStripProbe = {
+  strip_count: Int;
+  unstrip_triangles: Int;
+  set_equal: Bool;
+}
+
+pub type MeshoptQuantProbe = {
+  half_one: Int;
+  half_neg_two: Int;
+  back_one_milli: Int;
+}
+
+pub type MeshoptSphereProbe = {
+  radius_milli: Int;
+  center_x_milli: Int;
+  center_y_milli: Int;
+}
+
+pub type MeshoptMeshletProbe = {
+  meshlet_count: Int;
+  triangle_sum: Int;
+  input_triangles: Int;
+}
+
+/// Probe grid: 8x8 vertices, 98 triangles, 294 indices, 1176 bytes.
+pub const MESHOPT_PROBE_INDEX_COUNT: Int = 294;
+pub const MESHOPT_PROBE_VERTEX_COUNT: Int = 64;
+pub const MESHOPT_PROBE_INDEX_BYTES: Int = 1176;
+
+/// Packed MESHOPTIMIZER_VERSION (major*1000 + minor*10 + patch).
+/// v1.2 -> 1020.  Complexity: O(1).
+pub fn meshopt_version() -> Int
+  requires: true
+{
+  return unsafe { xmo_version() as Int };
+}
+
+/// Remap the duplicated-corner quad: 6 vertices -> 4 unique, mapped
+/// indices valid.  Complexity: O(vertices).
+pub fn meshopt_remap_probe() -> MeshoptRemapProbe
+  requires: true
+{
+  unsafe {
+    var su = xmo_slot4();
+    var sv = xmo_slot4();
+    xmo_remap_probe(su.as_mut_ptr(), sv.as_mut_ptr());
+    return MeshoptRemapProbe{
+      unique: xmo_read_u32(&su),
+      valid: xmo_read_u32(&sv) != 0
+    };
+  }
+}
+
+/// ACMR (x1000) and transformed-vertex counts before/after
+/// optimizeVertexCache on the deliberately scrambled probe grid.
+/// Complexity: O(triangles).
+pub fn meshopt_cache_probe() -> MeshoptCacheProbe
+  requires: true
+{
+  unsafe {
+    var sa = xmo_slot4();
+    var sb = xmo_slot4();
+    var sc = xmo_slot4();
+    var sd = xmo_slot4();
+    xmo_cache_probe(sa.as_mut_ptr(), sb.as_mut_ptr(), sc.as_mut_ptr(), sd.as_mut_ptr());
+    return MeshoptCacheProbe{
+      acmr_before_milli: xmo_read_u32(&sa),
+      acmr_after_milli: xmo_read_u32(&sb),
+      transformed_before: xmo_read_u32(&sc),
+      transformed_after: xmo_read_u32(&sd)
+    };
+  }
+}
+
+/// analyzeVertexFetch on the cache-optimized probe grid (12-byte vertices).
+/// Complexity: O(triangles).
+pub fn meshopt_fetch_probe() -> MeshoptFetchProbe
+  requires: true
+{
+  unsafe {
+    var sb = xmo_slot4();
+    var so = xmo_slot4();
+    xmo_fetch_probe(sb.as_mut_ptr(), so.as_mut_ptr());
+    return MeshoptFetchProbe{
+      bytes_fetched: xmo_read_u32(&sb),
+      overfetch_milli: xmo_read_u32(&so)
+    };
+  }
+}
+
+/// Simplify the 11x11 bumpy grid (600 indices) toward 100 indices at a 5%
+/// relative error budget.  Complexity: O(n log n).
+pub fn meshopt_simplify_probe() -> MeshoptSimplifyProbe
+  requires: true
+{
+  unsafe {
+    var sc = xmo_slot4();
+    var se = xmo_slot4();
+    xmo_simplify_probe(sc.as_mut_ptr(), se.as_mut_ptr());
+    return MeshoptSimplifyProbe{
+      out_count: xmo_read_u32(&sc),
+      err_milli: xmo_read_u32(&se)
+    };
+  }
+}
+
+/// Index codec round trip on the probe grid (encode -> decode -> rotation-
+/// invariant triangle-set compare; upstream rotates corners by design).
+/// Complexity: O(triangles).
+pub fn meshopt_index_codec_probe() -> MeshoptCodecProbe
+  requires: true
+{
+  unsafe {
+    var ss = xmo_slot4();
+    var sr = xmo_slot4();
+    var se = xmo_slot4();
+    xmo_encode_index_probe(ss.as_mut_ptr(), sr.as_mut_ptr(), se.as_mut_ptr());
+    return MeshoptCodecProbe{
+      enc_size: xmo_read_u32(&ss),
+      dec_rc: xmo_read_u32(&sr),
+      equal: xmo_read_u32(&se) != 0
+    };
+  }
+}
+
+/// Vertex codec round trip on the 64-vertex float3 grid.  Complexity: O(n).
+pub fn meshopt_vertex_codec_probe() -> MeshoptCodecProbe
+  requires: true
+{
+  unsafe {
+    var ss = xmo_slot4();
+    var sr = xmo_slot4();
+    var se = xmo_slot4();
+    xmo_vertex_codec_probe(ss.as_mut_ptr(), sr.as_mut_ptr(), se.as_mut_ptr());
+    return MeshoptCodecProbe{
+      enc_size: xmo_read_u32(&ss),
+      dec_rc: xmo_read_u32(&sr),
+      equal: xmo_read_u32(&se) != 0
+    };
+  }
+}
+
+/// stripify -> unstripify over the cache-optimized grid with an order-
+/// insensitive triangle-set check.  Complexity: O(triangles).
+pub fn meshopt_strip_probe() -> MeshoptStripProbe
+  requires: true
+{
+  unsafe {
+    var ss = xmo_slot4();
+    var su = xmo_slot4();
+    var se = xmo_slot4();
+    xmo_strip_probe(ss.as_mut_ptr(), su.as_mut_ptr(), se.as_mut_ptr());
+    return MeshoptStripProbe{
+      strip_count: xmo_read_u32(&ss),
+      unstrip_triangles: xmo_read_u32(&su),
+      set_equal: xmo_read_u32(&se) != 0
+    };
+  }
+}
+
+/// fp16 quantize/dequantize spot checks (1.0 -> 0x3C00, -2.0 -> 0xC000).
+/// Complexity: O(1).
+pub fn meshopt_quant_probe() -> MeshoptQuantProbe
+  requires: true
+{
+  unsafe {
+    var sh = xmo_slot4();
+    var sn = xmo_slot4();
+    var sb = xmo_slot4();
+    xmo_quant_probe(sh.as_mut_ptr(), sn.as_mut_ptr(), sb.as_mut_ptr());
+    return MeshoptQuantProbe{
+      half_one: xmo_read_u32(&sh),
+      half_neg_two: xmo_read_u32(&sn),
+      back_one_milli: xmo_read_u32(&sb)
+    };
+  }
+}
+
+/// Sphere bounds of the (0,0,0)-(2,0,0)-(0,2,0)-(0,0,2) tetra; radius and
+/// center in milli-units.  Complexity: O(points).
+pub fn meshopt_sphere_bounds_probe() -> MeshoptSphereProbe
+  requires: true
+{
+  unsafe {
+    var sr = xmo_slot4();
+    var sx = xmo_slot4();
+    var sy = xmo_slot4();
+    xmo_bounds_probe(sr.as_mut_ptr(), sx.as_mut_ptr(), sy.as_mut_ptr());
+    return MeshoptSphereProbe{
+      radius_milli: xmo_read_u32(&sr),
+      center_x_milli: xmo_read_u32(&sx),
+      center_y_milli: xmo_read_u32(&sy)
+    };
+  }
+}
+
+/// buildMeshlets over the probe grid (max 64 vertices / 64 triangles per
+/// meshlet); triangle_sum must conserve the 98 input triangles.
+/// Complexity: O(triangles).
+pub fn meshopt_meshlet_probe() -> MeshoptMeshletProbe
+  requires: true
+{
+  unsafe {
+    var sm = xmo_slot4();
+    var st = xmo_slot4();
+    var si = xmo_slot4();
+    xmo_meshlet_probe(sm.as_mut_ptr(), st.as_mut_ptr(), si.as_mut_ptr());
+    return MeshoptMeshletProbe{
+      meshlet_count: xmo_read_u32(&sm),
+      triangle_sum: xmo_read_u32(&st),
+      input_triangles: xmo_read_u32(&si)
+    };
+  }
+}
+
+/// Max reconstruction error (x1000) of an 8-bit octahedral normal round
+/// trip.  Complexity: O(1).
+pub fn meshopt_oct_filter_probe() -> Int
+  requires: true
+{
+  unsafe {
+    var se = xmo_slot4();
+    xmo_filter_probe(se.as_mut_ptr());
+    return xmo_read_u32(&se);
+  }
+}
+
+/// C writes the 294-index scrambled probe grid into an XIOM-owned byte slot
+/// (C -> owned copy; the B-20-safe direction).  Returns the index count.
+/// Complexity: O(indices).
+pub fn meshopt_probe_build_indices(buf: &mut Vec[UInt8]) -> Int
+  requires: buf.len() >= MESHOPT_PROBE_INDEX_BYTES
+{
+  return unsafe { xmo_build_indices(buf.as_mut_ptr(), MESHOPT_PROBE_INDEX_BYTES as Int32) as Int };
+}
+
+/// Optimize the XIOM-owned index buffer in place; the bridge verifies the
+/// triangle multiset is preserved before copying the result back.
+/// Complexity: O(triangles).
+pub fn meshopt_probe_optimize_inplace(buf: &mut Vec[UInt8]) -> Bool
+  requires: buf.len() >= MESHOPT_PROBE_INDEX_BYTES
+{
+  return unsafe { (xmo_optimize_inplace(buf.as_mut_ptr(), MESHOPT_PROBE_INDEX_COUNT as Int32, MESHOPT_PROBE_VERTEX_COUNT as Int32) as Int) != 0 };
+}
+
+/// FNV-1a checksum over an XIOM-owned buffer (order-change evidence for the
+/// in-place optimization).  Complexity: O(bytes).
+pub fn meshopt_probe_checksum(buf: &mut Vec[UInt8]) -> Int
+  requires: buf.len() > 0
+{
+  return unsafe { xmo_checksum(buf.as_mut_ptr(), buf.len() as Int32) as Int };
 }

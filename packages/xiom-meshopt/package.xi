@@ -5,7 +5,7 @@
 
 package {
   name: "xiom.meshopt"
-  version: "0.1.0"
+  version: "0.2.0"
   description: "meshoptimizer bindings for XIOM (mesh simplification, compression, optimization)"
   categories: ["graphics"]
   keywords: ["meshopt", "mesh", "compression", "optimization"]
