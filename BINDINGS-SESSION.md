@@ -3,36 +3,32 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: MESHOPT 0.4.0 SHIPPED -- batches 31-61 relayed; pool sweep fully
-published; assimp mini-contract routed** (session resumed 2026-10-11 17:19Z;
-shipped batches 56-61 -- pool sweep + contract + meshopt wrappers (0.3.0)
-+ meshopt codec family (0.4.0); the parallel owner session re-verified the
-staged compiler build).
-Published through the window: `eco-v0.1.132`..`eco-v0.1.158` -- assimp 0.7.0,
+**STATUS: MESHOPT 0.4.0 PUBLISHED (eco-v0.1.159) -- batches 31-61 relayed;
+pool sweep fully published; assimp mini-contract routed -- CONTEXT-LIMIT
+HANDOFF 2026-10-11 18:45Z** (this session ran 17:19Z-18:45Z and shipped
+batches 56-61: meshopt 0.2.0 vendored, ozz 0.3.0 clip pipeline, imgui 0.3.0
+context handles, box2d 0.3.0 joint motors, meshopt 0.3.0 owned-buffer
+wrappers, meshopt 0.4.0 codec families, plus the assimp consumer
+mini-contract; the parallel owner session re-verified the staged build).
+Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
 (`154`), meshopt **0.2.0** (`155`), ozz **0.3.0** + imgui **0.3.0** (`156`),
-box2d **0.3.0** (`157`), meshopt **0.3.0** (`158`, sha256 `cbcd2ef7...`,
-live 18:25:26Z).
-**Publish queue (packages)**: meshopt **0.4.0** relayed 18:29Z
-(`REL-20261011-1829-bindings`, supersedes 0.3.0 on the same lineage; expect
-`eco-v0.1.159+`); jolt 0.2.0 m258-parked only.
+box2d **0.3.0** (`157`), meshopt **0.3.0** (`158`, `cbcd2ef7...`, 18:25:26Z),
+meshopt **0.4.0** (`159`, `0e98c707...`, 18:36:32Z).
+**Publish queue (packages): EMPTY** (jolt 0.2.0 m258-parked only).
 **Pool drive complete + published**: miniaudio/meshopt/ozz/imgui/box2d all
-re-verified on v0.64.3, each clearing a ROADMAP next item.
-**Batch 61: xiom.meshopt 0.4.0** -- codec family (index sequence byte-exact;
-quat/exp/color filters; meshlet codec typed 4/3; 38/38 x2); relayed
-`REL-20261011-1829-bindings`.
-**Assimp consumer mini-contract proposed + routed**:
-`packages/xiom-assimp/CONTRACT.md`; `-1811-bindings` replied to `-1900-2`;
-packages routed it to the engine (`REL-20261011-1828`, commit `9046b3d`).
-**Compiler (staged build)**: owner-session re-verify
-(`REL-20261011-1801-bindings`): B-13/B-14/B-15 fixed on staged `3b31599f`;
-B-16 not in scope (stays assumed open); fn-type mangling warning flagged;
-the 1-arg handler restriction is droppable at release+pin.
-Lane tree tip: `bd059406` (clean; all pushed).
-Compiler v0.64.4: all six batches staged (m261-m271,
-`REL-20261011-1731`): pin + full probe-row re-run when the archive lands;
-workarounds stay until then.
+re-verified on v0.64.3, each clearing a ROADMAP next item; meshopt Phase-3
+items 1+2 additionally shipped (0.3.0 wrappers, 0.4.0 codec families).
+**Assimp consumer mini-contract proposed + routed to engine**
+(`packages/xiom-assimp/CONTRACT.md`; `-1811-bindings` -> packages fixed
+routing -> `REL-20261011-1828` to engine, commit `9046b3d`).
+**Compiler (staged build)**: owner-session re-verify (`-1801-bindings`):
+B-13/B-14/B-15 fixed on staged `3b31599f`; B-16 stays assumed open;
+fn-type mangling warning flagged; 1-arg handler restriction droppable at
+release+pin. v0.64.4 archive NOT yet released (v0.64.3 latest as of 18:44Z);
+all six batches m261-m271 staged (`-1731`).
+Lane tree tip: handoff commit on top of `8b541db5` (clean; all pushed).
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
 **B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
 >=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
@@ -54,16 +50,18 @@ getters, relayed to packages (batch 54) and noted to engine
 (`REL-20261011-1655-bindings(-2)`). Upstream sources live in `E:\repos`
 (Vulkan-Headers, SDL3, FFmpeg + pool).
 
-**RESUME NOTE (2026-10-11, post-handoff continuation)**: this session picked
-up the 17:15Z context-limit handoff and delivered batch 56 -- `xiom.meshopt`
-0.2.0: meshoptimizer v1.2 vendored verbatim (commit `f843aae0`, object-store
-extraction, per-file SHA256, staged blobs byte-identical to upstream HEAD) +
-C++ probe bridge + 30 real-library checks (30/30 x2) -- and recorded the
-publish queue clearing (assimp 0.8.0 -> `eco-v0.1.153`, miniaudio 0.3.0 ->
-`eco-v0.1.154`). Next: pool drive ozz/imgui/box2d (re-verify + ROADMAP
-Phase-3 items), compiler v0.64.4 re-verify when the archive lands. Pick up
-from RESUME HERE below; the doorbell cron is per-session, so re-arm it
-first.
+**HANDOFF NOTE (context limit, 2026-10-11 18:45Z)**: this session ran
+17:19Z-18:45Z and shipped batches 56-61 -- meshopt 0.2.0 (vendored v1.2 +
+bridge + 30/30), ozz 0.3.0 (clip pipeline + combine.py restored), imgui
+0.3.0 (context handles + ini hygiene), box2d 0.3.0 (joint motors), meshopt
+0.3.0 (owned-buffer wrappers) and meshopt 0.4.0 (codec families) -- plus
+the assimp consumer mini-contract (proposed, then routed to the engine) and
+the ledger records for the whole pool sweep (all five pool packages
+published, `eco-v0.1.153`-`159`). The compiler staged-build re-verify
+(B-13/14/15 green on `3b31599f`) came from the parallel owner session.
+Everything is committed and pushed; the worktree is clean; the relay inbox
+is clean. Pick up from RESUME HERE below -- the doorbell cron is
+per-session, so re-arm it first.
 
 ## RESUME HERE (handoff, 2026-10-11)
 
@@ -73,11 +71,76 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 18:31Z, batch-61 ship tick)**: batches 31-61
-  relayed; everything through meshopt 0.3.0 published
-  (`eco-v0.1.148`-`158`); meshopt 0.4.0 relayed (`-1829`, expect
-  `eco-v0.1.159+`); assimp contract routed to engine (`-1828`); compiler
-  staged-build re-verify green for B-13/14/15 (`-1801`), B-16 open.
+- **CURRENT (2026-10-11 18:45Z, context-limit handoff)**: batches 31-61
+  relayed; **ALL PUBLISHED through `eco-v0.1.159`** (meshopt 0.4.0 live
+  18:36:32Z, `0e98c707...`); **publish queue EMPTY** (jolt m258-parked
+  only). Pool sweep complete + published; meshopt Phase-3 items 1+2
+  shipped (0.3.0/0.4.0); assimp contract routed to engine (`-1828`);
+  compiler staged-build re-verify green for B-13/14/15 (`-1801`), B-16
+  open; v0.64.4 archive not yet released. Relay: `-1553`..`-1829` batch
+  items sent.
+- **Pickup (2026-10-11 18:47Z, new session)**: origin==local `f236925d`,
+  worktree clean; relay re-checked -- no items newer than `-1731`; packages
+  tip `555b501e` (75 eco releases; no notes past `eco-v0.1.159`); `status
+  validate` 524 packages, 0 errors; compiler v0.64.4 archive NOT yet on
+  GitHub (v0.64.3 latest; six-batch stack + release commit staged locally
+  in the compiler worktree, origin/main still batch 1). Doorbell re-armed
+  `wku_12c49bd1b001pDrS40ht1pQSup` (`0 */3 * * *`, next 21:00Z) + one-shot
+  archive watch `wku_12c4c9f76001rgGvHSYUGPWn2b` (~19:49Z). Pre-archive
+  baselines re-run on the v0.64.3 slot: `ptr-slot-write` B-16 still red
+  (`ptr_write_sum=11`, `byte_index_sum=66`), `ptr-arith` B-17 still red
+  (`d0=-16448`, `d1=-26864`; Int-typed `d12=12` exact) -- witnesses fresh
+  for the archive post-pair.
+- **Pre-archive baseline sweep (2026-10-11 19:32Z, v0.64.3 slot)**: cb-abi
+  probes match the recorded v0.64.3 column -- `probe` control=42/direct=42/
+  stored=20 + GLFW shapes (calls=1 key=65 sc=33 action=1 mods=5,
+  close_win=4242); `probe2` relay=0 (B-13 pre); `probe3` fnparam=42,
+  `probe6` reg 42/63, `probe8` full output (after=42, callee-after=42,
+  main-after r=7) -- all B-18 shapes GREEN pre; `probe4` 0/42/42; `probe5`
+  all 0; `probe7` 2x T001 (B-14/15 pre). B-20 `foreign-ptr-read`: C-side
+  1065353216/1073741824, XIOM 0/0 (red pre). B-07 `ffi-alias-shadow`: 2x
+  T001 `c_strlen` (red pre). Addendum 19:45Z: B-19 `sdl3-init-arg` green
+  pre (`elapsed=100 init=1 w_all=16384`, SDL3 resolved from the Vulkan SDK
+  dir); 1904 `glfw-fp-return` red pre (`advance_ms=0`, `after_set99_ms=0`,
+  `opacity_x1000=262416000`, `gettime_ms=0`; probes run from
+  `packages/xiom-glfw/tests/` with `--link user32`). Suite/heavy addendum
+  19:58Z: sdl3 suite **59/59** (incl. `init: SDL_WasInit(TIMER|EVENTS)
+  reflects the flags` PASS -- the suite grew past the README's 52; B-19's
+  post witness is that line), glfw **37/37** (time check SKIP
+  pre-1904-fix; `--link user32` auto), B-11 `vulkan-slot-recycle` red pre
+  (`inside: a=3 b=0 c=1 rc=0`; vma bridge from the package, no extra
+  args). B-05/B-10 `alloc-guard-spin` (20:10Z, after the archive watch):
+  compiled clean (`compile_exit=0`, `-o` to temp); watchdog run on
+  v0.64.3 = still spins (15 s wall cap hit, ~1 core, flat ~4-4.5 MB, no
+  output after "before"). Archive-day procedure validated: use the
+  tracked `background_process` runner (monitor + `stop` kills the tree);
+  one direct `Start-Process` attempt escaped the harness kill -- if that
+  recurs, kill by exact PID. Remaining pre-run gap: jolt (needs m258+)
+  -- runs at the archive.
+- **Archive watch fire (19:50Z)**: v0.64.4 still not on GitHub (v0.64.3
+  latest; compiler origin/main still batch 1); relay gained `-1856`
+  (stdlib->xvector), `-1904-pulse` (pulse A/B on m271: batch-5 witness
+  green, SIGILL 1615 still red), `-1928`/`-1940` (jolt scope confirmed
+  LIVE on both eco entries -- "repin + port x2 + publish when the archive
+  lands"; no staging needed). None addressed to bindings; next check
+  `wku_12c83f8e1001LZ9U7eXCfvp5xt` (~21:20Z), doorbell 21:00Z.
+- **B-19 fixed package-side (20:48Z, pre-archive)**: the compiler's m274
+  wave diagnosed B-19 as a package-side declaration (`SDL_WasInit` cast
+  `fn(Int) -> UInt8`, but `SDL_InitFlags` is Uint32; m263+ honors declared
+  return widths -> 16384 masked to low byte 0). Fix `c2d3330f` + record
+  `7722369a` (sdl3 **0.16.1**): cast -> `UInt32`, doc + README updated,
+  repro probe corrected + resolution note; evidence on the pin = probe x2
+  `elapsed=100 init=1 w_all=16384`, suite **59/59 x2**. Relayed to packages
+  (`REL-20261011-2048-bindings`) and closure evidence to compiler
+  (`-2048-bindings-2`). **Engine Vulkan mini-RHI ask answered**
+  (`REL-20261011-2015-engine` -> `-2048-bindings-3`): priority order
+  adopted (sync/recording -> buffers -> pipelines -> textures -> depth ->
+  visible-window swapchain via SDL3 `SDL_Vulkan_CreateSurface` ->
+  acquire/present), queued after the archive wave; B-11 workaround shapes
+  stand (B-16/B-17 not in the wave). Compiler stack PUSHED (origin
+  `87c6ca3c`, m254-m274; m274 fixes B-18; B-19 resolved package-side);
+  archive expectations per packages SESSION: B-13/14/15/B-18 green,
+  B-16/B-17 stay red, packages rows `-4`/`-5`/`-6`/`-7`/`-2100` re-run.
 - **Latest batch 61 (2026-10-11)**: `xiom.meshopt` **0.4.0 -- codec family
   (Phase 3 item 2)**: index SEQUENCE codec (byte-exact order; contrast
   pinned with the triangle-list codec, which rotates corners), quat filter
@@ -423,24 +486,25 @@ clone: stage ONLY your own item files). The two working rules are in
   `python tools/relay.py digest --to <lane>`.
 
 ### Next actions (ordered)
-1. **Doorbell**: **RE-ARMED 17:20Z** (`wku_12bfae69e001ycW3vSGtLBzalY`,
-   `0 */3 * * *`, next 18:00Z; the cron is per-session -- re-arm on each
-   new session). Prompt = relay pull + process lane items + packages
-   SESSION eco notes. Relay repo `E:\xiom-lang\xiom-relays`: sync with
-   `git fetch origin` + compare -- do NOT `git pull` ("Cannot
-   fast-forward to multiple branches"); stage ONLY this lane's item
-   files; only the REPORTING lane moves its own items (reply with new
-   items). Inbox at 17:38Z: **clean** -- engine `1321`/`1411-2`/`1539`
-   open but delivered/replied (`-1345-bindings-2`, `-1437-bindings-2`,
-   `-1655-bindings-2`), xvector `1203` + engine `1153` acked by their
-   lanes, compiler `1533` re-verified (B-18/B-19 filed), compiler `1731`
-   (v0.64.4 staged, info -> re-verify on archive), ops `1134` closed.
-2. **Publish watch**: everything through meshopt 0.3.0 is live (assimp 0.8.0
-   = `153` .. box2d 0.3.0 = `157`, meshopt 0.3.0 = `158` `cbcd2ef7...`, live
-   18:25:26Z); **meshopt 0.4.0 relayed 18:29Z (`REL-20261011-1829-bindings`),
-   expect `eco-v0.1.159+`**; jolt 0.2.0 m258-parked only. sdl3 0.7.0-0.16.0
-   landed in `eco-v0.1.142`-`152`. Record new eco versions in the relay area
-   of this file. The engine consumes only published packages -- if asked,
+1. **Doorbell**: **RE-ARMED 18:47Z** (`wku_12c49bd1b001pDrS40ht1pQSup`,
+   `0 */3 * * *`; next 21:00Z; the cron is per-session -- re-arm on each
+   new session). Prompt = relay pull +
+   process lane items + packages SESSION eco notes. Relay repo
+   `E:\xiom-lang\xiom-relays`: sync with `git fetch origin` + compare --
+   do NOT `git pull` ("Cannot fast-forward to multiple branches"); stage
+   ONLY this lane's item files; only the REPORTING lane moves its own
+   items (reply with new items). Inbox at 18:45Z: **clean** -- engine
+   `1321`/`1411-2`/`1539` open but delivered/replied, xvector `1203` +
+   engine `1153` acked by their lanes, compiler `1533` re-verified
+   (B-18/B-19 filed), compiler `1731` (v0.64.4 staged, info -> re-verify
+   on archive), compiler `1801` re-verify sent (B-13/14/15 green on the
+   staged build), ops `1134` closed. Re-checked 18:47Z: still **clean**
+   (nothing newer than `-1731`; `-1828` routed to engine, awaiting reply).
+2. **Publish watch**: queue **EMPTY** -- everything through meshopt 0.4.0
+   is live (`eco-v0.1.153`-`159`; meshopt 0.4.0 = `159`, `0e98c707...`,
+   live 18:36:32Z); jolt 0.2.0 m258-parked only. sdl3 0.7.0-0.16.0 landed
+   in `eco-v0.1.142`-`152`. Record new eco versions in the relay area of
+   this file. The engine consumes only published packages -- if asked,
    nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): 0.4.0-0.16.0 shipped (batches 41-53;
@@ -456,17 +520,19 @@ clone: stage ONLY your own item files). The two working rules are in
    vs the headers (ROADMAP item 1). **POOL DRIVE COMPLETE**: miniaudio
    0.3.0 + meshopt 0.2.0 + ozz 0.3.0 + imgui 0.3.0 + box2d 0.3.0 all
    re-verified on v0.64.3 and each cleared a ROADMAP next item (batches
-   55-59). Remaining pool work is the package-local Phase 3 backlog (per
-   each package's ROADMAP); pick the next item only when a consumer asks
-   or the drift guard flags a re-pin.
+   55-59); meshopt Phase-3 items 1+2 additionally shipped (0.3.0 wrappers,
+   0.4.0 codec families; batches 60-61; all published). Remaining pool
+   work is the package-local Phase 3 backlog (per each package's ROADMAP);
+   pick the next item only when a consumer asks or the drift guard flags
+   a re-pin.
 4. ~~stb publish~~ **DONE** (`eco-v0.1.139`); batches 39/40/41 wrapped on
    main (`470e13f3`); vulkan 0.5.0 live (`eco-v0.1.138`).
 
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- clean pickup (2026-10-11 18:32Z, post-batch-61
-refresh; pool sweep published, meshopt wrappers + codec families shipped).
+Bindings lane continuation -- clean handoff pickup (2026-10-11 18:45Z,
+context-limit handoff; prompt refreshed after batch 61).
 
 1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
    BINDINGS-SESSION.md (STATUS + RESUME HERE: CURRENT state, ordered next
@@ -485,38 +551,44 @@ refresh; pool sweep published, meshopt wrappers + codec families shipped).
    eco publish notes and record confirmed eco versions in
    BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
    action." Then check relay once now; also check the packages publish
-   queue (at this handoff: everything through meshopt 0.3.0 live in
-   eco-v0.1.153-158; meshopt 0.4.0 relayed 18:29Z, expect eco-v0.1.159+;
-   jolt m258-parked).
+   queue (at handoff: EMPTY -- everything through meshopt 0.4.0 live in
+   eco-v0.1.153-159; jolt parked).
 
-3. Continue the ordered tasks. Priority: (a) pool drive COMPLETE + published
-   (batches 55-59); meshopt Phase-3 items 1+2 done (0.3.0 wrappers, 0.4.0
-   codec families; batches 60-61); next optional package-local items on
-   consumer ask: meshopt cluster pipeline / box2d broad-phase queries /
-   imgui widget wrappers -- pick only on consumer ask or drift-guard re-pin;
-   (b) compiler v0.64.4: when the archive lands, pin + re-run our open probe
-   rows (REL-20261011-1731; all six batches m261-m271 staged; staged-build
-   re-verify for B-13/14/15 is already green per -1801); (c) publish watch:
-   meshopt 0.4.0 in flight (expect `eco-v0.1.159+`); jolt m258-parked;
-   (d) SDL3 continuance: only the POSIX soname remains (deferred -- no
-   Linux CI target); (e) Vulkan phase 4 only if the engine asks (orders
-   #4-7 gated on the slot-recycle fix).
+3. Continue the ordered tasks. Priority: (a) compiler v0.64.4 -- check
+   `gh release list -R xiom-lang/xiom`; when the archive lands, pin it,
+   re-run the bindings probe rows from REL-20261011-1731 (six batches
+   m261-m271 staged; B-13/14/15 already green on the staged build per
+   -1801; B-16 needs a fresh probe), reply to compiler with evidence,
+   then lift the workarounds the fixes cover (glfw/sdl3 dispatcher +
+   registry callbacks, 1-arg handler shapes); (b) optional package-local
+   Phase 3 items, pick only on consumer ask or drift-guard re-pin:
+   meshopt cluster pipeline (buildMeshlets -> optimizeMeshlet ->
+   computeMeshletBounds), box2d broad-phase queries + contact events
+   (callbacks need a C trampoline), imgui widget wrappers; (c) SDL3
+   continuance: only the POSIX soname remains (deferred -- no Linux CI
+   target); (d) Vulkan phase 4 only if the engine asks (orders #4-7
+   gated on the slot-recycle fix); watch for engine replies to the
+   assimp contract (REL-20261011-1828).
 
    Respect: B-11..B-17/B-20 discipline (byte-indexed slot writes, packed
    returns, dispatcher+registry callbacks, 1-arg handler shapes,
    structured ifs, **no pointer arithmetic -- one owned slot per
    out-param; never read through foreign pointers, have C copy into an
    owned slot (B-20)**); vendored trees stay byte-pinned (`vendor/** -text`,
-   per-file SHA256 in SPEC.md, object-store extraction for LF fidelity);
-   the 100%-coverage owner directive; the "stage only your own relay
-   items" rule; git fetch + git log before every commit (parallel owner
-   session). Package traps: xiom.assimp needs `-TimeoutSec 600` (125 TUs,
-   ~4-5 min/build) and keeps its `.obj` fixture via a scoped .gitignore
-   negation; xiom.glfw needs `--link user32` (port.args.json) when run
-   manually; meshopt builds 21 TUs in ~9 s (`--timeout 900`). Deliver
-   batches as: feat -> x2 green (present + absent where applicable) via
-   scripts/port.ps1 -> record via scripts/status.ps1 -> relay item to
-   packages -> ledger update, all pushed; leave the worktree clean.
+   per-file SHA256 in SPEC.md, object-store extraction for LF fidelity --
+   `git archive` does NOT avoid autocrlf); codec semantics pinned by the
+   probes (triangle-list AND meshlet coders rotate corners -- compare
+   rotation-invariant; index-sequence + vertex coders are byte-exact;
+   Box2D revolute GetAngle wraps to [-pi,pi]); the 100%-coverage owner
+   directive; the "stage only your own relay items" rule; git fetch + git
+   log before every commit (parallel owner session). Package traps:
+   xiom.assimp needs `-TimeoutSec 600` (125 TUs, ~4-5 min/build) and
+   keeps its `.obj` fixture via a scoped .gitignore negation; xiom.glfw
+   needs `--link user32` (port.args.json) when run manually; meshopt
+   builds 21 TUs in ~25 s (`--timeout 900`). Deliver batches as: feat ->
+   x2 green (present + absent where applicable) via scripts/port.ps1 ->
+   record via scripts/status.ps1 -> relay item to packages -> ledger
+   update, all pushed; leave the worktree clean.
 ```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
    source clone at `E:\repos\FFmpeg` for headers/pins. On assets: dynamic
@@ -530,7 +602,20 @@ refresh; pool sweep published, meshopt wrappers + codec families shipped).
    (B-13/1904/B-14/B-15 fixed; B-18/B-19 regressions filed); staged-build
    re-verify green (owner item `-1801-bindings`: B-13/14/15 on `3b31599f`,
    B-16 stays open); `REL-20261011-1731` (v0.64.4 stack staged) -> pin +
-   full re-run when the archive lands. Engine `-1321`/`-1411-2`/`-1539`
+   full re-run when the archive lands. **Archive re-run checklist**
+   (prepared 18:50Z; rows/fix refs in
+   `release-checks/compiler-compiler-v0.64.3.md`, relay repo): pin
+   (`COMPILER_VERSION` + installed slot), then (a) v0.64.3 release-check
+   bindings rows B-11/B-10/B-07/B-05/B-02 + jolt re-verdict via `-1815`;
+   (b) probes: `docs/repro/bindings-pilot/cb-abi/` (B-13/14/15/1904;
+   `probe8_name_fnparam.xi` B-18), `ptr-slot-write/` (B-16 fresh),
+   `ptr-arith/` (B-17), `foreign-ptr-read/` (B-20), `sdl3-init-arg/`
+   (B-19); sdl3 suite (59 checks now -- B-19 post witness is the
+   `SDL_WasInit(TIMER|EVENTS) reflects the flags` line; pre 59/59) + glfw
+   37/37 (`--link user32`); jolt port x2 with `--cxx-standard 17`. Reply
+   to compiler with evidence, then lift the workarounds the fixes cover.
+   Engine
+   `-1321`/`-1411-2`/`-1539`
    delivered (batches 47/49/54) and replied; the engine lane moves its own
    items.
 7. **jolt**: parked on the m258 archive; on arrival: repin + merge tip

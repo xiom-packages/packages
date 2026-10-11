@@ -6,11 +6,11 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.16.0 drag-drop payload decode + runtime**
-> (`SDL_DropEvent` windowID/xy + source/data C-string copies, NULL-safe and
-> DLL-independent; live joystick path landed in 0.15.0). Native **59/59 x2**
-> with the official SDL 3.4.8 DLL + absent **5/5 x2** (decode arms run
-> without the DLL; v0.64.3). 0.15.0 shipped in `eco-v0.1.151`; 0.16.0
+> **Status:** `incubating` -- **0.16.1 drag-drop payload decode + runtime;
+> SDL_WasInit return-width fix (B-19: `SDL_InitFlags` is `Uint32`, the old
+> `UInt8` cast truncated the mask to its low byte on m263+)**. Suite
+> **59/59 x2** with the official SDL 3.4.8 DLL + absent **5/5 x2** (decode
+> arms run without the DLL). 0.15.0 shipped in `eco-v0.1.151`; 0.16.0
 > published in `eco-v0.1.152` (sha256 `0e667ea4...`). **Lane:** bindings
 > (`keywords: ["binding"]`).
 

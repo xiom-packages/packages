@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  59,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "16e94e8b",
-                  "checked":  "2026-10-11T16:30:48Z"
+                  "run_by":  "task:bindings-sdl3",
+                  "commit":  "c2d3330f",
+                  "checked":  "2026-10-11T20:43:36Z"
               },
     "publish":  false,
     "excluded_reason":  "published in eco-v0.1.152 (2026-10-11; 0.15.0 in eco-v0.1.151)"
