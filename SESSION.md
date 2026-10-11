@@ -30,6 +30,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   publish unverified); re-verify per the 19:55Z expectations block below (B-16/B-17 NOT in the wave
   -- still red, do not bounce; B-18 fixed m274; B-19 now shipped via 0.16.1). Watches: archive wakeup
   21:48Z, then the 2h doorbell.
+- **OWNER DOCTRINE ADOPTED (2026-10-11 21:30Z): upstream-first is standing policy** --
+  `docs/UPSTREAM-FIRST.md`: no code from memory; clone the authoritative upstream at a pinned
+  commit into `E:\repos\<name>` (shared, disposable; ledger + review-after retention in
+  `E:\repos\CLEANUP.md`); per-package `PROVENANCE.md`; license whitelist (MIT/Apache-2.0/BSD/ISC/
+  zlib/PD/Unicode/RFC-first; MPL/LGPL reference-only; never GPL/AGPL/SSPL/Elastic); verification =
+  upstream vectors/parity; bindings target **100% export coverage** (complete surface, not partial).
+  Directive relayed to bindings (`REL-20261011-2131-packages`).
 
 **STATE AT 2026-10-11 18:45Z (CLEAN HANDOFF -- batches 38-61 ALL delivered; one gate left; supersedes the 11:10Z block below):**
 - **Batch lane drained.** Every bindings item from today is delivered end-to-end (merge -> validate
@@ -319,6 +326,18 @@ expectations (SESSION.md 19:55Z block): B-13/14/15+B-18 green; B-16/B-17 NOT in
 the wave -- still red, do not bounce; B-19 shipped in sdl3 0.16.1; rows
 REL-20261010-1549-packages-4/-6 + REL-20261010-2100-packages to re-run from
 their witnesses.
+
+POLICY (owner, 2026-10-11): upstream-first for ALL package work -- no code from
+memory. Clone the authoritative upstream at a pinned commit into E:\repos\<name>
+(shared, disposable; never committed), study, then implement; write
+packages/<pkg>/PROVENANCE.md (upstream, commit, license, derived vs independent,
+imported vectors, re-carve steps); license whitelist MIT/Apache-2.0/BSD/ISC/zlib/
+PD/Unicode/RFC-first (MPL/LGPL reference-only; never GPL/AGPL/SSPL/Elastic);
+verification = upstream vectors/parity. Bindings: same clone-at-pin rule + 100%
+export coverage (complete surface, not partial). Canonical doc:
+docs/UPSTREAM-FIRST.md. Register clones in E:\repos\CLEANUP.md with a review-after
+date; sweep only at quiet moments, only when ship+verify is done and no lane
+needs the clone.
 
 CREDENTIAL NOTE: gh sometimes flips to `Lefteris-Ngonart` (403 on push); switch
 with `gh auth switch --user Lefteris-Notas`; verify with
