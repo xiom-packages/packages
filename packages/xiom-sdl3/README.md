@@ -7,10 +7,12 @@ build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
 > **Status:** `incubating` -- **0.14.0 pointer capture + relative mouse + runtime**
-> (per-window relative mode, global/relative mouse state, capture toggle;
-> capture streams + stream query landed in 0.13.0). Suite **56/56 x2**
-> with the official SDL 3.4.8 DLL + absent 4/4 x2. **Lane:** bindings
-> (`keywords: ["binding"]`).
+> (per-window relative mode, global/relative mouse state, capture toggle --
+> `capture on=false` without focus is the documented 3.4.8 behavior; capture
+> streams + stream query landed in 0.13.0). Native **56/56 x2** with the
+> official SDL 3.4.8 DLL + absent **4/4 x2** (v0.64.3). 0.13.0 shipped in
+> `eco-v0.1.149`; 0.14.0 published in `eco-v0.1.150` (sha256 `c9afc83b...`).
+> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
