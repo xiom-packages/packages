@@ -10,8 +10,10 @@ header-free C bridge.
 > Win32 window + `VkSurfaceKHR` + swapchain + clear/present; render pass +
 > graphics pipeline from embedded SPIR-V + **3-vertex draw with pixel
 > readback** (center rgb(0,255,0) triangle over the 0.1/0.2/0.3 clear,
-> verified by `vkCmdCopyImageToBuffer`). Suite **22/22 x2** on the RTX 3070
-> Ti (v0.64.3). **Lane:** bindings (`keywords: ["binding"]`).
+> verified by `vkCmdCopyImageToBuffer`). Native **22/22 x2** on the RTX 3070
+> Ti (v0.64.3; internal skip-path checks included). 0.4.0 (WSI) shipped in
+> `eco-v0.1.135`; 0.5.0 published in `eco-v0.1.138` (sha256 `0cd7bc00...`).
+> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
