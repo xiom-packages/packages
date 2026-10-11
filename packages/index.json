@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-11T18:20:40Z",
+    "updated":  "2026-10-11T19:00:09Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -6938,17 +6938,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.13.0",
+                         "version":  "0.14.0",
                          "name":  "xiom.sdl3",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors incl. mouse wheel) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit + mouse state + window contract + audio/joystick enumeration + push audio streaming + capture streams (default recording device, GetAudioStreamData/available/clear/format) + full source-generated constant tables",
+                         "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors incl. mouse wheel) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit + mouse state + window contract + audio/joystick enumeration + push audio streaming + capture streams (default recording device, GetAudioStreamData/available/clear/format) + pointer capture/relative mouse + full source-generated constant tables",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.13.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.14.0/package.tar.gz",
                          "source_files":  [
                                               "package.xi",
                                               "sdl3.xi"
