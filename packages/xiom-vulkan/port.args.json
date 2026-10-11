@@ -2,5 +2,7 @@
   "--c-source",
   "${PACKAGE_DIR}/src/vk_probe.c",
   "--c-source",
-  "${PACKAGE_DIR}/src/vk_rhi.c"
+  "${PACKAGE_DIR}/src/vk_rhi.c",
+  "--link",
+  "user32"
 ]

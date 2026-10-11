@@ -324,8 +324,33 @@ int __cdecl xr_create_device(void) {
   if (!s_phys || s_family < 0) { set_err("device not picked"); return 1; }
   typedef int (WINAPI* PFN_CreateDevice)(void*, const XrDeviceCreateInfo*, const void*, void**);
   typedef void (WINAPI* PFN_GetDeviceQueue)(void*, uint32_t, uint32_t, void**);
+  typedef int (WINAPI* PFN_EnumDevExt)(void*, const char*, uint32_t*, XrExtensionProperties*);
   PFN_CreateDevice create = (PFN_CreateDevice)gipa(s_instance, "vkCreateDevice");
   if (!create) { set_err("missing device entry points"); return 1; }
+
+  /* The logical device must enable VK_KHR_swapchain for device-level swapchain
+   * entry points to resolve through vkGetDeviceProcAddr. */
+  const char* dev_exts[1];
+  uint32_t dev_ext_count = 0;
+  PFN_EnumDevExt enum_dev_ext = (PFN_EnumDevExt)gipa(s_instance, "vkEnumerateDeviceExtensionProperties");
+  if (enum_dev_ext) {
+    uint32_t n = 0;
+    if (enum_dev_ext(s_phys, 0, &n, 0) == XR_OK && n > 0 && n < 512) {
+      XrExtensionProperties* props = (XrExtensionProperties*)malloc(sizeof(XrExtensionProperties) * n);
+      if (props) {
+        uint32_t got = n;
+        if (enum_dev_ext(s_phys, 0, &got, props) == XR_OK) {
+          for (uint32_t i = 0; i < got; i++) {
+            if (strcmp(props[i].extensionName, "VK_KHR_swapchain") == 0) {
+              dev_exts[dev_ext_count++] = "VK_KHR_swapchain";
+              break;
+            }
+          }
+        }
+        free(props);
+      }
+    }
+  }
 
   float priority = 1.0f;
   XrDeviceQueueCreateInfo qci;
@@ -340,6 +365,8 @@ int __cdecl xr_create_device(void) {
   dci.sType = XR_ST_DEVICE_CREATE_INFO;
   dci.queueCreateInfoCount = 1;
   dci.pQueueCreateInfos = &qci;
+  dci.enabledExtensionCount = dev_ext_count;
+  dci.ppEnabledExtensionNames = (dev_ext_count > 0) ? dev_exts : 0;
 
   void* device = 0;
   int rc = create(s_phys, &dci, 0, &device);
@@ -427,7 +454,427 @@ int __cdecl xr_surface_extensions(void) { return s_surface_exts; }
 int __cdecl xr_queue_family(void) { return s_family; }
 const char* __cdecl xr_error(void) { return s_error; }
 
+/* ======================================================================
+ * WSI (build order #2): hidden Win32 window -> VkSurfaceKHR -> swapchain
+ * -> acquire / clear / present round trips.  Scalar-only across the XIOM
+ * boundary; struct layouts follow Vulkan-Headers `vulkan-sdk-1.4.350.0`.
+ * ====================================================================== */
+
+#define XW_ST_WIN32_SURFACE_CREATE_INFO 1000009000u
+#define XW_ST_SWAPCHAIN_CREATE_INFO 1000001000u
+#define XW_ST_PRESENT_INFO 1000001002u
+#define XW_ST_SEMAPHORE_CREATE_INFO 9u
+#define XW_ST_IMAGE_MEMORY_BARRIER 45u
+
+#define XW_LAYOUT_UNDEFINED 0u
+#define XW_LAYOUT_TRANSFER_DST_OPTIMAL 6u
+#define XW_LAYOUT_PRESENT_SRC_KHR 1000001002u
+#define XW_ACCESS_TRANSFER_WRITE 0x00001000u
+#define XW_STAGE_TOP_OF_PIPE 0x00000001u
+#define XW_STAGE_TRANSFER 0x00001000u
+#define XW_STAGE_BOTTOM_OF_PIPE 0x00002000u
+#define XW_IMAGE_USAGE_TRANSFER_DST 0x00000002u
+#define XW_IMAGE_USAGE_COLOR_ATTACHMENT 0x00000010u
+#define XW_SHARING_EXCLUSIVE 0u
+#define XW_COMPOSITE_ALPHA_OPAQUE 1u
+#define XW_PRESENT_MODE_FIFO 2u
+#define XW_ASPECT_COLOR 1u
+#define XW_FORMAT_B8G8R8A8_UNORM 44u
+#define XW_FORMAT_B8G8R8A8_SRGB 50u
+#define XW_COLOR_SPACE_SRGB_NONLINEAR 0u
+
+typedef struct XwWin32SurfaceCreateInfo {
+  uint32_t sType;
+  const void* pNext;
+  uint32_t flags;
+  void* hinstance;
+  void* hwnd;
+} XwWin32SurfaceCreateInfo;
+
+typedef struct XwSurfaceCapabilities {
+  uint32_t minImageCount;
+  uint32_t maxImageCount;
+  uint32_t currentExtentW;
+  uint32_t currentExtentH;
+  uint32_t minImageExtentW;
+  uint32_t minImageExtentH;
+  uint32_t maxImageExtentW;
+  uint32_t maxImageExtentH;
+  uint32_t maxImageArrayLayers;
+  uint32_t supportedTransforms;
+  uint32_t currentTransform;
+  uint32_t supportedCompositeAlpha;
+  uint32_t supportedUsageFlags;
+} XwSurfaceCapabilities;
+
+typedef struct XwSurfaceFormat {
+  uint32_t format;
+  uint32_t colorSpace;
+} XwSurfaceFormat;
+
+typedef struct XwExtent2D { uint32_t width; uint32_t height; } XwExtent2D;
+
+typedef struct XwSwapchainCreateInfo {
+  uint32_t sType;
+  const void* pNext;
+  uint32_t flags;
+  void* surface;
+  uint32_t minImageCount;
+  uint32_t imageFormat;
+  uint32_t imageColorSpace;
+  XwExtent2D imageExtent;
+  uint32_t imageArrayLayers;
+  uint32_t imageUsage;
+  uint32_t imageSharingMode;
+  uint32_t queueFamilyIndexCount;
+  const uint32_t* pQueueFamilyIndices;
+  uint32_t preTransform;
+  uint32_t compositeAlpha;
+  uint32_t presentMode;
+  uint32_t clipped;
+  void* oldSwapchain;
+} XwSwapchainCreateInfo;
+
+typedef struct XwImageSubresourceRange {
+  uint32_t aspectMask;
+  uint32_t baseMipLevel;
+  uint32_t levelCount;
+  uint32_t baseArrayLayer;
+  uint32_t layerCount;
+} XwImageSubresourceRange;
+
+typedef struct XwImageMemoryBarrier {
+  uint32_t sType;
+  const void* pNext;
+  uint32_t srcAccessMask;
+  uint32_t dstAccessMask;
+  uint32_t oldLayout;
+  uint32_t newLayout;
+  uint32_t srcQueueFamilyIndex;
+  uint32_t dstQueueFamilyIndex;
+  void* image;
+  XwImageSubresourceRange subresourceRange;
+} XwImageMemoryBarrier;
+
+typedef struct XwImageSubresourceLayers {
+  uint32_t aspectMask;
+  uint32_t mipLevel;
+  uint32_t baseArrayLayer;
+  uint32_t layerCount;
+} XwImageSubresourceLayers;
+
+typedef struct XwClearColorValue { float f32[4]; } XwClearColorValue;
+
+typedef struct XwPresentInfo {
+  uint32_t sType;
+  const void* pNext;
+  uint32_t waitSemaphoreCount;
+  const void* pWaitSemaphores;
+  uint32_t swapchainCount;
+  const void* pSwapchains;
+  const void* pImageIndices;
+  void* pResults;
+} XwPresentInfo;
+
+static HWND s_hwnd = 0;
+static HINSTANCE s_hinst = 0;
+static void* s_surface = 0;
+static void* s_swapchain = 0;
+static void* s_acquire_sem = 0;
+static void* s_render_sem = 0;
+static void* s_sc_images[8];
+static int s_sc_image_count = 0;
+static unsigned s_sc_format = 0;
+static unsigned s_sc_present_mode = 0;
+static unsigned s_sc_width = 0;
+static unsigned s_sc_height = 0;
+static int s_frames_done = 0;
+
+static LRESULT CALLBACK xw_wndproc(HWND h, UINT m, WPARAM w, LPARAM l) {
+  return DefWindowProcW(h, m, w, l);
+}
+
+int __cdecl xw_window_create(void) {
+  s_hinst = GetModuleHandleW(0);
+  WNDCLASSW wc;
+  memset(&wc, 0, sizeof(wc));
+  wc.lpfnWndProc = xw_wndproc;
+  wc.hInstance = s_hinst;
+  wc.lpszClassName = L"xiomVkRhiWindow";
+  if (!RegisterClassW(&wc)) {
+    DWORD e = GetLastError();
+    if (e != 1410 /* ERROR_CLASS_ALREADY_EXISTS */) { set_err("RegisterClassW failed"); return 1; }
+  }
+  s_hwnd = CreateWindowExW(0, L"xiomVkRhiWindow", L"xiom.vulkan RHI probe",
+                           WS_POPUP, 0, 0, 320, 240, 0, 0, s_hinst, 0);
+  if (!s_hwnd) { set_err("CreateWindowExW failed"); return 1; }
+  return 0;
+}
+
+unsigned __cdecl xw_hwnd(void) { return (unsigned)(uintptr_t)s_hwnd; }
+
+int __cdecl xw_surface(void) {
+  if (!s_instance || !s_hwnd) { set_err("instance/window not ready"); return 1; }
+  typedef int (WINAPI* PFN_CreateWin32Surface)(void*, const XwWin32SurfaceCreateInfo*, const void*, void**);
+  PFN_CreateWin32Surface create = (PFN_CreateWin32Surface)gipa(s_instance, "vkCreateWin32SurfaceKHR");
+  if (!create) { set_err("missing: vkCreateWin32SurfaceKHR"); return 1; }
+  XwWin32SurfaceCreateInfo ci;
+  memset(&ci, 0, sizeof(ci));
+  ci.sType = XW_ST_WIN32_SURFACE_CREATE_INFO;
+  ci.hinstance = s_hinst;
+  ci.hwnd = s_hwnd;
+  void* surface = 0;
+  int rc = create(s_instance, &ci, 0, &surface);
+  if (rc != XR_OK || !surface) { set_err("vkCreateWin32SurfaceKHR failed"); return 1; }
+  s_surface = surface;
+  return 0;
+}
+
+int __cdecl xw_swapchain(void) {
+  if (!s_phys || !s_device || !s_surface) { set_err("surface/device not ready"); return 1; }
+  typedef int (WINAPI* PFN_SurfaceCaps)(void*, void*, XwSurfaceCapabilities*);
+  typedef int (WINAPI* PFN_SurfaceFormats)(void*, void*, uint32_t*, XwSurfaceFormat*);
+  typedef int (WINAPI* PFN_CreateSwapchain)(void*, const XwSwapchainCreateInfo*, const void*, void**);
+  typedef int (WINAPI* PFN_GetImages)(void*, void*, uint32_t*, void**);
+  PFN_SurfaceCaps caps_fn = (PFN_SurfaceCaps)gipa(s_instance, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+  PFN_SurfaceFormats fmt_fn = (PFN_SurfaceFormats)gipa(s_instance, "vkGetPhysicalDeviceSurfaceFormatsKHR");
+  PFN_CreateSwapchain create = (PFN_CreateSwapchain)gdpa_lookup("vkCreateSwapchainKHR");
+  PFN_GetImages get_images = (PFN_GetImages)gdpa_lookup("vkGetSwapchainImagesKHR");
+  if (!caps_fn || !fmt_fn || !create || !get_images) { set_err("missing swapchain entry points"); return 1; }
+
+  XwSurfaceCapabilities caps;
+  memset(&caps, 0, sizeof(caps));
+  if (caps_fn(s_phys, s_surface, &caps) != XR_OK) { set_err("vkGetPhysicalDeviceSurfaceCapabilitiesKHR failed"); return 1; }
+
+  uint32_t fcount = 0;
+  if (fmt_fn(s_phys, s_surface, &fcount, 0) != XR_OK || fcount == 0) { set_err("no surface formats"); return 1; }
+  if (fcount > 64) fcount = 64;
+  XwSurfaceFormat formats[64];
+  memset(formats, 0, sizeof(formats));
+  uint32_t fgot = fcount;
+  if (fmt_fn(s_phys, s_surface, &fgot, formats) != XR_OK && fgot == 0) { set_err("vkGetPhysicalDeviceSurfaceFormatsKHR(list) failed"); return 1; }
+  uint32_t chosen_fmt = formats[0].format;
+  uint32_t chosen_cs = formats[0].colorSpace;
+  for (uint32_t i = 0; i < fgot; i++) {
+    if ((formats[i].format == XW_FORMAT_B8G8R8A8_UNORM || formats[i].format == XW_FORMAT_B8G8R8A8_SRGB)
+        && formats[i].colorSpace == XW_COLOR_SPACE_SRGB_NONLINEAR) {
+      chosen_fmt = formats[i].format;
+      chosen_cs = formats[i].colorSpace;
+      break;
+    }
+  }
+
+  uint32_t w = (caps.currentExtentW == 0xFFFFFFFFu) ? 320u : caps.currentExtentW;
+  uint32_t h = (caps.currentExtentH == 0xFFFFFFFFu) ? 240u : caps.currentExtentH;
+  if (w == 0) w = 320;
+  if (h == 0) h = 240;
+
+  uint32_t min_images = caps.minImageCount + 1;
+  if (caps.maxImageCount > 0 && min_images > caps.maxImageCount) min_images = caps.maxImageCount;
+
+  XwSwapchainCreateInfo ci;
+  memset(&ci, 0, sizeof(ci));
+  ci.sType = XW_ST_SWAPCHAIN_CREATE_INFO;
+  ci.surface = s_surface;
+  ci.minImageCount = min_images;
+  ci.imageFormat = chosen_fmt;
+  ci.imageColorSpace = chosen_cs;
+  ci.imageExtent.width = w;
+  ci.imageExtent.height = h;
+  ci.imageArrayLayers = 1;
+  ci.imageUsage = XW_IMAGE_USAGE_COLOR_ATTACHMENT | XW_IMAGE_USAGE_TRANSFER_DST;
+  ci.imageSharingMode = XW_SHARING_EXCLUSIVE;
+  ci.preTransform = caps.currentTransform;
+  ci.compositeAlpha = XW_COMPOSITE_ALPHA_OPAQUE;
+  ci.presentMode = XW_PRESENT_MODE_FIFO;
+  ci.clipped = 1;
+
+  void* sc = 0;
+  int rc = create(s_device, &ci, 0, &sc);
+  if (rc != XR_OK || !sc) { set_err("vkCreateSwapchainKHR failed"); return 1; }
+  s_swapchain = sc;
+
+  uint32_t icount = 0;
+  if (get_images(s_device, sc, &icount, 0) != XR_OK || icount == 0) { set_err("vkGetSwapchainImagesKHR(count) failed"); return 1; }
+  if (icount > 8) icount = 8;
+  memset(s_sc_images, 0, sizeof(s_sc_images));
+  uint32_t igot = icount;
+  if (get_images(s_device, sc, &igot, s_sc_images) != XR_OK && igot == 0) { set_err("vkGetSwapchainImagesKHR(list) failed"); return 1; }
+  s_sc_image_count = (int)igot;
+  s_sc_format = chosen_fmt;
+  s_sc_present_mode = XW_PRESENT_MODE_FIFO;
+  s_sc_width = w;
+  s_sc_height = h;
+
+  typedef int (WINAPI* PFN_CreateSem)(void*, const void*, const void*, void**);
+  PFN_CreateSem create_sem = (PFN_CreateSem)gdpa_lookup("vkCreateSemaphore");
+  if (!create_sem) { set_err("missing: vkCreateSemaphore"); return 1; }
+  unsigned char sem_ci[16];
+  memset(sem_ci, 0, sizeof(sem_ci));
+  uint32_t st = XW_ST_SEMAPHORE_CREATE_INFO;
+  memcpy(sem_ci, &st, 4);
+  if (create_sem(s_device, sem_ci, 0, &s_acquire_sem) != XR_OK || !s_acquire_sem) { set_err("vkCreateSemaphore(acquire) failed"); return 1; }
+  if (create_sem(s_device, sem_ci, 0, &s_render_sem) != XR_OK || !s_render_sem) { set_err("vkCreateSemaphore(render) failed"); return 1; }
+  return 0;
+}
+
+int __cdecl xw_clear_present(float r, float g, float b) {
+  if (!s_swapchain || !s_pool || !s_cmd) { set_err("swapchain/commands not ready"); return 1; }
+  typedef int (WINAPI* PFN_Acquire)(void*, void*, uint64_t, void*, void*, uint32_t*);
+  typedef int (WINAPI* PFN_Reset)(void*, uint32_t);
+  typedef void (WINAPI* PFN_PipelineBarrier)(void*, uint32_t, uint32_t, uint32_t, uint32_t, const void*, uint32_t, const void*, uint32_t, const XwImageMemoryBarrier*);
+  typedef void (WINAPI* PFN_ClearColorImage)(void*, void*, uint32_t, const XwClearColorValue*, uint32_t, const XwImageSubresourceLayers*);
+  typedef int (WINAPI* PFN_Submit2)(void*, uint32_t, const XrSubmitInfo*, void*);
+  typedef int (WINAPI* PFN_Present)(void*, const XwPresentInfo*);
+  typedef int (WINAPI* PFN_WaitIdle)(void*);
+  PFN_Acquire acquire = (PFN_Acquire)gdpa_lookup("vkAcquireNextImageKHR");
+  PFN_Reset reset = (PFN_Reset)gdpa_lookup("vkResetCommandBuffer");
+  PFN_PipelineBarrier barrier = (PFN_PipelineBarrier)gdpa_lookup("vkCmdPipelineBarrier");
+  PFN_ClearColorImage clear = (PFN_ClearColorImage)gdpa_lookup("vkCmdClearColorImage");
+  PFN_Submit2 submit = (PFN_Submit2)gdpa_lookup("vkQueueSubmit");
+  PFN_Present present = (PFN_Present)gdpa_lookup("vkQueuePresentKHR");
+  PFN_WaitIdle wait_idle = (PFN_WaitIdle)gdpa_lookup("vkQueueWaitIdle");
+  if (!acquire || !reset || !barrier || !clear || !submit || !present || !wait_idle) {
+    set_err("missing WSI entry points");
+    return 1;
+  }
+
+  uint32_t idx = 0;
+  int rc = acquire(s_device, s_swapchain, 0xFFFFFFFFFFFFFFFFull, s_acquire_sem, 0, &idx);
+  if (rc != XR_OK && rc != 1 /* SUBOPTIMAL */) { set_err("vkAcquireNextImageKHR failed"); return 1; }
+  if ((int)idx >= s_sc_image_count) { set_err("acquired image index out of range"); return 1; }
+
+  reset(s_cmd, 0);
+  typedef int (WINAPI* PFN_Begin2)(void*, const XrCommandBufferBeginInfo*);
+  typedef int (WINAPI* PFN_End2)(void*);
+  PFN_Begin2 begin = (PFN_Begin2)gdpa_lookup("vkBeginCommandBuffer");
+  PFN_End2 end = (PFN_End2)gdpa_lookup("vkEndCommandBuffer");
+  if (!begin || !end) { set_err("missing command begin/end"); return 1; }
+  XrCommandBufferBeginInfo bi;
+  memset(&bi, 0, sizeof(bi));
+  bi.sType = XR_ST_COMMAND_BUFFER_BEGIN_INFO;
+  bi.flags = XR_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+  if (begin(s_cmd, &bi) != XR_OK) { set_err("vkBeginCommandBuffer failed"); return 1; }
+
+  XwImageMemoryBarrier b1;
+  memset(&b1, 0, sizeof(b1));
+  b1.sType = XW_ST_IMAGE_MEMORY_BARRIER;
+  b1.srcAccessMask = 0;
+  b1.dstAccessMask = XW_ACCESS_TRANSFER_WRITE;
+  b1.oldLayout = XW_LAYOUT_UNDEFINED;
+  b1.newLayout = XW_LAYOUT_TRANSFER_DST_OPTIMAL;
+  b1.srcQueueFamilyIndex = 0xFFFFFFFFu;
+  b1.dstQueueFamilyIndex = 0xFFFFFFFFu;
+  b1.image = s_sc_images[idx];
+  b1.subresourceRange.aspectMask = XW_ASPECT_COLOR;
+  b1.subresourceRange.levelCount = 1;
+  b1.subresourceRange.layerCount = 1;
+  barrier(s_cmd, XW_STAGE_TOP_OF_PIPE, XW_STAGE_TRANSFER, 0, 0, 0, 0, 0, 1, &b1);
+
+  XwClearColorValue color;
+  color.f32[0] = r;
+  color.f32[1] = g;
+  color.f32[2] = b;
+  color.f32[3] = 1.0f;
+  XwImageSubresourceLayers layers;
+  memset(&layers, 0, sizeof(layers));
+  layers.aspectMask = XW_ASPECT_COLOR;
+  layers.layerCount = 1;
+  clear(s_cmd, s_sc_images[idx], XW_LAYOUT_TRANSFER_DST_OPTIMAL, &color, 1, &layers);
+
+  XwImageMemoryBarrier b2;
+  memset(&b2, 0, sizeof(b2));
+  b2.sType = XW_ST_IMAGE_MEMORY_BARRIER;
+  b2.srcAccessMask = XW_ACCESS_TRANSFER_WRITE;
+  b2.dstAccessMask = 0;
+  b2.oldLayout = XW_LAYOUT_TRANSFER_DST_OPTIMAL;
+  b2.newLayout = XW_LAYOUT_PRESENT_SRC_KHR;
+  b2.srcQueueFamilyIndex = 0xFFFFFFFFu;
+  b2.dstQueueFamilyIndex = 0xFFFFFFFFu;
+  b2.image = s_sc_images[idx];
+  b2.subresourceRange.aspectMask = XW_ASPECT_COLOR;
+  b2.subresourceRange.levelCount = 1;
+  b2.subresourceRange.layerCount = 1;
+  barrier(s_cmd, XW_STAGE_TRANSFER, XW_STAGE_BOTTOM_OF_PIPE, 0, 0, 0, 0, 0, 1, &b2);
+
+  if (end(s_cmd) != XR_OK) { set_err("vkEndCommandBuffer failed"); return 1; }
+
+  uint32_t wait_stage = XW_STAGE_TRANSFER;
+  XrSubmitInfo si;
+  memset(&si, 0, sizeof(si));
+  si.sType = XR_ST_SUBMIT_INFO;
+  si.waitSemaphoreCount = 1;
+  si.pWaitSemaphores = &s_acquire_sem;
+  si.pWaitDstStageMask = &wait_stage;
+  si.commandBufferCount = 1;
+  si.pCommandBuffers = &s_cmd;
+  si.signalSemaphoreCount = 1;
+  si.pSignalSemaphores = &s_render_sem;
+  rc = submit(s_queue, 1, &si, 0);
+  if (rc != XR_OK) { set_err("vkQueueSubmit(WSI) failed"); return 1; }
+  if (wait_idle(s_queue) != XR_OK) { set_err("vkQueueWaitIdle(WSI) failed"); return 1; }
+
+  XwPresentInfo pi;
+  memset(&pi, 0, sizeof(pi));
+  pi.sType = XW_ST_PRESENT_INFO;
+  pi.waitSemaphoreCount = 1;
+  pi.pWaitSemaphores = &s_render_sem;
+  pi.swapchainCount = 1;
+  pi.pSwapchains = &s_swapchain;
+  pi.pImageIndices = &idx;
+  rc = present(s_queue, &pi);
+  if (rc != XR_OK) { set_err("vkQueuePresentKHR failed"); return 1; }
+  if (wait_idle(s_queue) != XR_OK) { set_err("vkQueueWaitIdle(present) failed"); return 1; }
+  s_frames_done++;
+  return 0;
+}
+
+int __cdecl xw_frames(int n) {
+  if (n <= 0) { set_err("frame count must be > 0"); return 1; }
+  for (int i = 0; i < n; i++) {
+    float t = (float)i / (float)n;
+    int rc = xw_clear_present(0.05f + 0.5f * t, 0.10f, 0.35f - 0.3f * t);
+    if (rc != 0) return rc;
+  }
+  return 0;
+}
+
+unsigned __cdecl xw_extent_w(void) { return s_sc_width; }
+unsigned __cdecl xw_extent_h(void) { return s_sc_height; }
+unsigned __cdecl xw_format(void) { return s_sc_format; }
+unsigned __cdecl xw_present_mode(void) { return s_sc_present_mode; }
+int __cdecl xw_image_count(void) { return s_sc_image_count; }
+int __cdecl xw_frames_done(void) { return s_frames_done; }
+
+void __cdecl xw_destroy(void) {
+  if (s_device) {
+    typedef void (WINAPI* PFN_DestroySem)(void*, void*, const void*);
+    PFN_DestroySem destroy_sem = (PFN_DestroySem)gdpa_lookup("vkDestroySemaphore");
+    if (destroy_sem) {
+      if (s_acquire_sem) { destroy_sem(s_device, s_acquire_sem, 0); s_acquire_sem = 0; }
+      if (s_render_sem) { destroy_sem(s_device, s_render_sem, 0); s_render_sem = 0; }
+    }
+    if (s_swapchain) {
+      typedef void (WINAPI* PFN_DestroySwapchain)(void*, void*, const void*);
+      PFN_DestroySwapchain destroy_sc = (PFN_DestroySwapchain)gdpa_lookup("vkDestroySwapchainKHR");
+      if (destroy_sc) destroy_sc(s_device, s_swapchain, 0);
+      s_swapchain = 0;
+    }
+  }
+  if (s_instance && s_surface) {
+    typedef void (WINAPI* PFN_DestroySurface)(void*, void*, const void*);
+    PFN_DestroySurface destroy_surface = (PFN_DestroySurface)gipa(s_instance, "vkDestroySurfaceKHR");
+    if (destroy_surface) destroy_surface(s_instance, s_surface, 0);
+    s_surface = 0;
+  }
+  if (s_hwnd) { DestroyWindow(s_hwnd); s_hwnd = 0; }
+  s_sc_image_count = 0;
+  s_sc_width = 0; s_sc_height = 0;
+  s_frames_done = 0;
+}
+
 void __cdecl xr_destroy(void) {
+  xw_destroy();
   if (s_device) {
     typedef void (WINAPI* PFN_DestroyPool)(void*, void*, const void*);
     typedef void (WINAPI* PFN_DestroyDevice)(void*, const void*);

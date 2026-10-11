@@ -6,12 +6,12 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  15,
+                  "passed":  18,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "3acce9a5",
-                  "checked":  "2026-10-10T21:02:44Z"
+                  "run_by":  "task:bindings-vulkan",
+                  "commit":  "432eae2f",
+                  "checked":  "2026-10-11T10:28:41Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.133 (2026-10-10)"
+    "excluded_reason":  "publish pending: bindings batch 37 (xiom.vulkan 0.4.0)"
 }

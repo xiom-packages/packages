@@ -135,6 +135,35 @@ fn main() -> Int {
     }
   }
 
+  // WSI round trip (build order #2): hidden window -> surface -> swapchain
+  // -> acquire/clear/present cycles.
+  let wsi_missing = vulkan_wsi_probe_named("xiom-absent-vulkan-wsi-xyz.dll", 1);
+  if wsi_missing.is_ok {
+    failed = failed + report(false, "wsi skip-path: bogus soname unexpectedly succeeded");
+  } else {
+    failed = failed + report(wsi_missing.error.kind == VULKAN_LOAD_ABSENT,
+      "wsi skip-path: absent loader classified as SKIP");
+  }
+
+  let wsi = vulkan_wsi_probe(3);
+  if wsi.is_ok {
+    let w: VulkanWsi = wsi.value;
+    failed = failed + report(w.extent_w > 0 && w.extent_h > 0 && w.image_count >= 2,
+      "wsi swapchain: " + to_string(w.extent_w) + "x" + to_string(w.extent_h)
+        + " format=" + to_string(w.format) + " images=" + to_string(w.image_count));
+    failed = failed + report(w.present_mode == 2 && w.frames_presented == 3,
+      "wsi present: FIFO, " + to_string(w.frames_presented)
+        + " clear+present round trips (" + w.device_name + ")");
+  } else {
+    if wsi.error.kind == VULKAN_LOAD_ABSENT {
+      failed = failed + report(true, "wsi: SKIP -- loader absent (" + wsi.error.message + ")");
+    } else if wsi.error.kind == VULKAN_LOAD_NO_DEVICE {
+      failed = failed + report(true, "wsi: SKIP -- no display/driver path (" + wsi.error.message + ")");
+    } else {
+      failed = failed + report(false, "wsi: failed -- " + wsi.error.message);
+    }
+  }
+
   if failed == 0 {
     io.println("xiom.vulkan: all tests passed");
   } else {
