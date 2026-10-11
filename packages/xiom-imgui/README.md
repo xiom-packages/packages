@@ -6,7 +6,9 @@ binary with `--c-source` -- no precompiled objects, no SDK, no graphics
 backend needed.
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
-> v0.64.3; 7/7). Published in `eco-v0.1.123` (sha256 `4d016de5...`).
+> v0.64.3; native 7/7 x2; 0.3.0 adds long-lived context handles +
+> side-effect-free runs). 0.2.0 shipped in `eco-v0.1.123` (sha256
+> `4d016de5...`); 0.3.0 published in `eco-v0.1.156` (sha256 `1a7feb3d...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
