@@ -9,8 +9,11 @@ is not installed.
 > **Status:** `incubating` -- **0.15.0 live joystick path + runtime**
 > (open/close/axis/button/name/connected reads, proven with a hardware-free
 > virtual pad through the real open path; pointer capture + relative mouse
-> landed in 0.14.0). Suite **58/58 x2** with the official SDL 3.4.8 DLL +
-> absent 4/4 x2. **Lane:** bindings (`keywords: ["binding"]`).
+> landed in 0.14.0). Native **58/58 x2** with the official SDL 3.4.8 DLL +
+> absent **4/4 x2** (v0.64.3; virtual pad axis set/read 16384, button1
+> true, clean detach here). 0.14.0 shipped in `eco-v0.1.150`; 0.15.0
+> published in `eco-v0.1.151` (sha256 `3d29c0ed...`). **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
