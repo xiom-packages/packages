@@ -9,8 +9,13 @@
       input polling, monitors + video modes, clipboard, time, GL-context
       basics, Win32 native accessors, Vulkan helpers (28/28 x2)
 
-## Phase 3 (Planned)
-- [ ] 0.4.0: cursors, joystick/gamepad, gamma ramps, window icons
-- [ ] 0.4.0: event-callback setters (needs a proven XIOM-fn->C-callback ABI)
+## Phase 3 (Done) -- full surface
+- [x] 0.4.0: cursors, joystick/gamepad, gamma ramps, window icons
+- [x] 0.5.0: event-callback setters (20) + `glfwInitAllocator` -- 124/124
+      exports; fixed-dispatcher + fn-registry ABI (probe:
+      `docs/repro/bindings-pilot/cb-abi/`)
+
+## Phase 4 (Planned)
 - [ ] POSIX soname (`libglfw.so.3`) resolution path
 - [ ] File-based test fixtures for the absent-DLL CI shape
+- [ ] Per-window callback routing helper (user pointer -> handler map)

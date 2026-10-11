@@ -17,8 +17,9 @@
 // video modes, clipboard, time, GL-context basics, Win32 native accessors,
 // and the Vulkan helpers (supported / instance proc / required extensions /
 // win32 surface). 0.4.0 adds gamma ramps, cursors, window icons,
-// joystick/gamepad polling and the Vulkan-loader hook -- 105/124 exports;
-// 0.5.0 adds the event-callback setters (ROADMAP.md).
+// joystick/gamepad polling and the Vulkan-loader hook. 0.5.0 completes the
+// surface (124/124): the 20 event-callback setters (fixed-dispatcher +
+// fn-registry ABI; see the 0.5.0 section) and glfwInitAllocator.
 //
 // G2 pin (SPEC.md): soname `glfw3.dll` (Windows) + upstream tag 3.4 header
 // hash + resolved symbol set. Vulkan helpers are resolved best-effort
@@ -441,6 +442,28 @@ pub type GlfwLibrary = {
   p_get_gamepad_state: Int;
   p_update_gamepad_mappings: Int;
   p_init_vulkan_loader: Int;
+  // 0.5.0 additions: 20 event-callback setters + glfwInitAllocator.
+  p_set_error_callback: Int;
+  p_set_monitor_callback: Int;
+  p_set_joystick_callback: Int;
+  p_set_window_pos_callback: Int;
+  p_set_window_size_callback: Int;
+  p_set_window_close_callback: Int;
+  p_set_window_refresh_callback: Int;
+  p_set_window_focus_callback: Int;
+  p_set_window_iconify_callback: Int;
+  p_set_window_maximize_callback: Int;
+  p_set_framebuffer_size_callback: Int;
+  p_set_window_content_scale_callback: Int;
+  p_set_key_callback: Int;
+  p_set_char_callback: Int;
+  p_set_char_mods_callback: Int;
+  p_set_mouse_button_callback: Int;
+  p_set_cursor_pos_callback: Int;
+  p_set_cursor_enter_callback: Int;
+  p_set_scroll_callback: Int;
+  p_set_drop_callback: Int;
+  p_init_allocator: Int;
   // Optional (build-dependent; 0 = export absent).
   p_vulkan_supported: Int;
   p_get_required_instance_extensions: Int;
@@ -711,6 +734,28 @@ fn glfw_symbol_names() -> Vec[Str]
   n.push("glfwGetGamepadState");                   // 98
   n.push("glfwUpdateGamepadMappings");             // 99
   n.push("glfwInitVulkanLoader");                  // 100
+  // 0.5.0 additions (order must match GlfwLibrary).
+  n.push("glfwSetErrorCallback");                  // 101
+  n.push("glfwSetMonitorCallback");                // 102
+  n.push("glfwSetJoystickCallback");               // 103
+  n.push("glfwSetWindowPosCallback");              // 104
+  n.push("glfwSetWindowSizeCallback");             // 105
+  n.push("glfwSetWindowCloseCallback");            // 106
+  n.push("glfwSetWindowRefreshCallback");          // 107
+  n.push("glfwSetWindowFocusCallback");            // 108
+  n.push("glfwSetWindowIconifyCallback");          // 109
+  n.push("glfwSetWindowMaximizeCallback");         // 110
+  n.push("glfwSetFramebufferSizeCallback");        // 111
+  n.push("glfwSetWindowContentScaleCallback");     // 112
+  n.push("glfwSetKeyCallback");                    // 113
+  n.push("glfwSetCharCallback");                   // 114
+  n.push("glfwSetCharModsCallback");               // 115
+  n.push("glfwSetMouseButtonCallback");            // 116
+  n.push("glfwSetCursorPosCallback");              // 117
+  n.push("glfwSetCursorEnterCallback");            // 118
+  n.push("glfwSetScrollCallback");                 // 119
+  n.push("glfwSetDropCallback");                   // 120
+  n.push("glfwInitAllocator");                     // 121
   return n;
 }
 
@@ -855,6 +900,27 @@ pub fn glfw_load() -> Result[GlfwLibrary, GlfwLoadError] {
     p_get_gamepad_state: ptrs[98],
     p_update_gamepad_mappings: ptrs[99],
     p_init_vulkan_loader: ptrs[100],
+    p_set_error_callback: ptrs[101],
+    p_set_monitor_callback: ptrs[102],
+    p_set_joystick_callback: ptrs[103],
+    p_set_window_pos_callback: ptrs[104],
+    p_set_window_size_callback: ptrs[105],
+    p_set_window_close_callback: ptrs[106],
+    p_set_window_refresh_callback: ptrs[107],
+    p_set_window_focus_callback: ptrs[108],
+    p_set_window_iconify_callback: ptrs[109],
+    p_set_window_maximize_callback: ptrs[110],
+    p_set_framebuffer_size_callback: ptrs[111],
+    p_set_window_content_scale_callback: ptrs[112],
+    p_set_key_callback: ptrs[113],
+    p_set_char_callback: ptrs[114],
+    p_set_char_mods_callback: ptrs[115],
+    p_set_mouse_button_callback: ptrs[116],
+    p_set_cursor_pos_callback: ptrs[117],
+    p_set_cursor_enter_callback: ptrs[118],
+    p_set_scroll_callback: ptrs[119],
+    p_set_drop_callback: ptrs[120],
+    p_init_allocator: ptrs[121],
     p_vulkan_supported: ov[0],
     p_get_required_instance_extensions: ov[1],
     p_get_instance_proc_address: ov[2],
@@ -2489,5 +2555,539 @@ pub fn glfw_init_vulkan_loader(lib: &GlfwLibrary, get_instance_proc_addr: Int)
   unsafe {
     let f = lib.p_init_vulkan_loader as fn(*UInt8);
     f(get_instance_proc_addr as *UInt8);
+  }
+}
+
+// =========================================================================
+// 0.5.0: event-callback setters + glfwInitAllocator (124/124)
+//
+// ABI (proven by docs/repro/bindings-pilot/cb-abi on v0.64.3): only a bare
+// top-level fn NAME marshals to a C function pointer; fn-typed parameter
+// VALUES do not (finding B-13).  Design: each event type has ONE fixed
+// top-level dispatcher whose address is handed to the DLL; user handlers
+// live in module-level `Vec[fn]` registries (m130 element semantics; push of
+// a fn-typed param + element call proven by probe6).  Handlers are
+// process-global per event type (last set wins); window handlers receive the
+// window handle so multi-window callers can route inside the handler.
+// =========================================================================
+
+/// Little-endian u64 store into an XIOM-owned byte slot (B-11 discipline).
+/// Complexity: O(1).
+fn write_u64_le(buf: &mut Vec[UInt8], off: Int, v: Int)
+  requires: off >= 0
+  requires: buf.len() >= off + 8
+{
+  buf[off + 0] = ( v        & 0xFF) as UInt8;
+  buf[off + 1] = ((v >>  8) & 0xFF) as UInt8;
+  buf[off + 2] = ((v >> 16) & 0xFF) as UInt8;
+  buf[off + 3] = ((v >> 24) & 0xFF) as UInt8;
+  buf[off + 4] = ((v >> 32) & 0xFF) as UInt8;
+  buf[off + 5] = ((v >> 40) & 0xFF) as UInt8;
+  buf[off + 6] = ((v >> 48) & 0xFF) as UInt8;
+  buf[off + 7] = ((v >> 56) & 0xFF) as UInt8;
+}
+
+// ---- handler registries (one per event type; last set wins) ---------------
+
+var cb_error_handlers: Vec[fn(Int32, Str) -> Unit] = Vec[fn(Int32, Str) -> Unit].new();
+var cb_monitor_handlers: Vec[fn(Int, Int32) -> Unit] = Vec[fn(Int, Int32) -> Unit].new();
+var cb_joystick_handlers: Vec[fn(Int32, Int32) -> Unit] = Vec[fn(Int32, Int32) -> Unit].new();
+var cb_window_pos_handlers: Vec[fn(Int, Int32, Int32) -> Unit] = Vec[fn(Int, Int32, Int32) -> Unit].new();
+var cb_window_size_handlers: Vec[fn(Int, Int32, Int32) -> Unit] = Vec[fn(Int, Int32, Int32) -> Unit].new();
+var cb_window_close_handlers: Vec[fn(Int) -> Unit] = Vec[fn(Int) -> Unit].new();
+var cb_window_refresh_handlers: Vec[fn(Int) -> Unit] = Vec[fn(Int) -> Unit].new();
+var cb_window_focus_handlers: Vec[fn(Int, Int32) -> Unit] = Vec[fn(Int, Int32) -> Unit].new();
+var cb_window_iconify_handlers: Vec[fn(Int, Int32) -> Unit] = Vec[fn(Int, Int32) -> Unit].new();
+var cb_window_maximize_handlers: Vec[fn(Int, Int32) -> Unit] = Vec[fn(Int, Int32) -> Unit].new();
+var cb_framebuffer_size_handlers: Vec[fn(Int, Int32, Int32) -> Unit] = Vec[fn(Int, Int32, Int32) -> Unit].new();
+var cb_content_scale_handlers: Vec[fn(Int, Float64, Float64) -> Unit] = Vec[fn(Int, Float64, Float64) -> Unit].new();
+var cb_key_handlers: Vec[fn(Int, Int32, Int32, Int32, Int32) -> Unit] = Vec[fn(Int, Int32, Int32, Int32, Int32) -> Unit].new();
+var cb_char_handlers: Vec[fn(Int, Int32) -> Unit] = Vec[fn(Int, Int32) -> Unit].new();
+var cb_char_mods_handlers: Vec[fn(Int, Int32, Int32) -> Unit] = Vec[fn(Int, Int32, Int32) -> Unit].new();
+var cb_mouse_button_handlers: Vec[fn(Int, Int32, Int32, Int32) -> Unit] = Vec[fn(Int, Int32, Int32, Int32) -> Unit].new();
+var cb_cursor_pos_handlers: Vec[fn(Int, Float64, Float64) -> Unit] = Vec[fn(Int, Float64, Float64) -> Unit].new();
+var cb_cursor_enter_handlers: Vec[fn(Int, Int32) -> Unit] = Vec[fn(Int, Int32) -> Unit].new();
+var cb_scroll_handlers: Vec[fn(Int, Float64, Float64) -> Unit] = Vec[fn(Int, Float64, Float64) -> Unit].new();
+var cb_drop_handlers: Vec[fn(Int, Int32, Vec[Str]) -> Unit] = Vec[fn(Int, Int32, Vec[Str]) -> Unit].new();
+
+// ---- fixed dispatchers (the addresses handed to the DLL) ------------------
+
+fn cb_error_dispatch(code: Int32, desc: *UInt8) -> Unit {
+  if cb_error_handlers.len() > 0 {
+    var d = "";
+    if desc != 0 {
+      d = Str::from_c_str(desc);
+    }
+    let h = cb_error_handlers[cb_error_handlers.len() - 1];
+    h(code, d);
+  }
+}
+
+fn cb_monitor_dispatch(monitor: Int, event: Int32) -> Unit {
+  if cb_monitor_handlers.len() > 0 {
+    let h = cb_monitor_handlers[cb_monitor_handlers.len() - 1];
+    h(monitor, event);
+  }
+}
+
+fn cb_joystick_dispatch(jid: Int32, event: Int32) -> Unit {
+  if cb_joystick_handlers.len() > 0 {
+    let h = cb_joystick_handlers[cb_joystick_handlers.len() - 1];
+    h(jid, event);
+  }
+}
+
+fn cb_window_pos_dispatch(win: Int, xpos: Int32, ypos: Int32) -> Unit {
+  if cb_window_pos_handlers.len() > 0 {
+    let h = cb_window_pos_handlers[cb_window_pos_handlers.len() - 1];
+    h(win, xpos, ypos);
+  }
+}
+
+fn cb_window_size_dispatch(win: Int, width: Int32, height: Int32) -> Unit {
+  if cb_window_size_handlers.len() > 0 {
+    let h = cb_window_size_handlers[cb_window_size_handlers.len() - 1];
+    h(win, width, height);
+  }
+}
+
+fn cb_window_close_dispatch(win: Int) -> Unit {
+  if cb_window_close_handlers.len() > 0 {
+    let h = cb_window_close_handlers[cb_window_close_handlers.len() - 1];
+    h(win);
+  }
+}
+
+fn cb_window_refresh_dispatch(win: Int) -> Unit {
+  if cb_window_refresh_handlers.len() > 0 {
+    let h = cb_window_refresh_handlers[cb_window_refresh_handlers.len() - 1];
+    h(win);
+  }
+}
+
+fn cb_window_focus_dispatch(win: Int, focused: Int32) -> Unit {
+  if cb_window_focus_handlers.len() > 0 {
+    let h = cb_window_focus_handlers[cb_window_focus_handlers.len() - 1];
+    h(win, focused);
+  }
+}
+
+fn cb_window_iconify_dispatch(win: Int, iconified: Int32) -> Unit {
+  if cb_window_iconify_handlers.len() > 0 {
+    let h = cb_window_iconify_handlers[cb_window_iconify_handlers.len() - 1];
+    h(win, iconified);
+  }
+}
+
+fn cb_window_maximize_dispatch(win: Int, maximized: Int32) -> Unit {
+  if cb_window_maximize_handlers.len() > 0 {
+    let h = cb_window_maximize_handlers[cb_window_maximize_handlers.len() - 1];
+    h(win, maximized);
+  }
+}
+
+fn cb_framebuffer_size_dispatch(win: Int, width: Int32, height: Int32) -> Unit {
+  if cb_framebuffer_size_handlers.len() > 0 {
+    let h = cb_framebuffer_size_handlers[cb_framebuffer_size_handlers.len() - 1];
+    h(win, width, height);
+  }
+}
+
+fn cb_content_scale_dispatch(win: Int, xscale: Float32, yscale: Float32) -> Unit {
+  if cb_content_scale_handlers.len() > 0 {
+    let h = cb_content_scale_handlers[cb_content_scale_handlers.len() - 1];
+    h(win, xscale as Float64, yscale as Float64);
+  }
+}
+
+fn cb_key_dispatch(win: Int, key: Int32, scancode: Int32, action: Int32, mods: Int32) -> Unit {
+  if cb_key_handlers.len() > 0 {
+    let h = cb_key_handlers[cb_key_handlers.len() - 1];
+    h(win, key, scancode, action, mods);
+  }
+}
+
+fn cb_char_dispatch(win: Int, codepoint: Int32) -> Unit {
+  if cb_char_handlers.len() > 0 {
+    let h = cb_char_handlers[cb_char_handlers.len() - 1];
+    h(win, codepoint);
+  }
+}
+
+fn cb_char_mods_dispatch(win: Int, codepoint: Int32, mods: Int32) -> Unit {
+  if cb_char_mods_handlers.len() > 0 {
+    let h = cb_char_mods_handlers[cb_char_mods_handlers.len() - 1];
+    h(win, codepoint, mods);
+  }
+}
+
+fn cb_mouse_button_dispatch(win: Int, button: Int32, action: Int32, mods: Int32) -> Unit {
+  if cb_mouse_button_handlers.len() > 0 {
+    let h = cb_mouse_button_handlers[cb_mouse_button_handlers.len() - 1];
+    h(win, button, action, mods);
+  }
+}
+
+fn cb_cursor_pos_dispatch(win: Int, xpos: Float64, ypos: Float64) -> Unit {
+  if cb_cursor_pos_handlers.len() > 0 {
+    let h = cb_cursor_pos_handlers[cb_cursor_pos_handlers.len() - 1];
+    h(win, xpos, ypos);
+  }
+}
+
+fn cb_cursor_enter_dispatch(win: Int, entered: Int32) -> Unit {
+  if cb_cursor_enter_handlers.len() > 0 {
+    let h = cb_cursor_enter_handlers[cb_cursor_enter_handlers.len() - 1];
+    h(win, entered);
+  }
+}
+
+fn cb_scroll_dispatch(win: Int, xoffset: Float64, yoffset: Float64) -> Unit {
+  if cb_scroll_handlers.len() > 0 {
+    let h = cb_scroll_handlers[cb_scroll_handlers.len() - 1];
+    h(win, xoffset, yoffset);
+  }
+}
+
+fn cb_drop_dispatch(win: Int, path_count: Int32, paths: *UInt8) -> Unit {
+  if cb_drop_handlers.len() > 0 {
+    var ps: Vec[Str] = Vec[Str].new();
+    unsafe {
+      let n = path_count as Int;
+      var i = 0;
+      while i < n {
+        let p = ffi.ptr_read_u64_le(paths + i * 8);
+        if p != 0 {
+          ps.push(Str::from_c_str(p as *UInt8));
+        }
+        i = i + 1;
+      }
+    }
+    let h = cb_drop_handlers[cb_drop_handlers.len() - 1];
+    h(win, path_count, ps);
+  }
+}
+
+// ---- public setters (previous raw callback address, 0 = none) -------------
+
+/// glfwSetErrorCallback() -- process-global error handler.
+/// Complexity: O(1).
+pub fn glfw_set_error_callback(lib: &GlfwLibrary, handler: fn(Int32, Str) -> Unit) -> Int
+  requires: lib.handle != 0
+{
+  cb_error_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_error_callback as fn(fn(Int32, *UInt8) -> Unit) -> *UInt8;
+    let prev = f(cb_error_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetMonitorCallback() -- process-global monitor handler.
+/// Complexity: O(1).
+pub fn glfw_set_monitor_callback(lib: &GlfwLibrary, handler: fn(Int, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+{
+  cb_monitor_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_monitor_callback as fn(fn(Int, Int32) -> Unit) -> *UInt8;
+    let prev = f(cb_monitor_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetJoystickCallback() -- process-global joystick handler.
+/// Complexity: O(1).
+pub fn glfw_set_joystick_callback(lib: &GlfwLibrary, handler: fn(Int32, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+{
+  cb_joystick_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_joystick_callback as fn(fn(Int32, Int32) -> Unit) -> *UInt8;
+    let prev = f(cb_joystick_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetWindowPosCallback().
+/// Complexity: O(1).
+pub fn glfw_set_window_pos_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_window_pos_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_window_pos_callback as fn(*UInt8, fn(Int, Int32, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_window_pos_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetWindowSizeCallback().
+/// Complexity: O(1).
+pub fn glfw_set_window_size_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_window_size_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_window_size_callback as fn(*UInt8, fn(Int, Int32, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_window_size_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetWindowCloseCallback().
+/// Complexity: O(1).
+pub fn glfw_set_window_close_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_window_close_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_window_close_callback as fn(*UInt8, fn(Int) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_window_close_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetWindowRefreshCallback().
+/// Complexity: O(1).
+pub fn glfw_set_window_refresh_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_window_refresh_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_window_refresh_callback as fn(*UInt8, fn(Int) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_window_refresh_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetWindowFocusCallback().
+/// Complexity: O(1).
+pub fn glfw_set_window_focus_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_window_focus_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_window_focus_callback as fn(*UInt8, fn(Int, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_window_focus_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetWindowIconifyCallback().
+/// Complexity: O(1).
+pub fn glfw_set_window_iconify_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_window_iconify_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_window_iconify_callback as fn(*UInt8, fn(Int, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_window_iconify_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetWindowMaximizeCallback().
+/// Complexity: O(1).
+pub fn glfw_set_window_maximize_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_window_maximize_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_window_maximize_callback as fn(*UInt8, fn(Int, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_window_maximize_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetFramebufferSizeCallback().
+/// Complexity: O(1).
+pub fn glfw_set_framebuffer_size_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_framebuffer_size_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_framebuffer_size_callback as fn(*UInt8, fn(Int, Int32, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_framebuffer_size_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetWindowContentScaleCallback() -- C floats are widened to Float64.
+/// Complexity: O(1).
+pub fn glfw_set_window_content_scale_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Float64, Float64) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_content_scale_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_window_content_scale_callback as fn(*UInt8, fn(Int, Float32, Float32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_content_scale_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetKeyCallback().
+/// Complexity: O(1).
+pub fn glfw_set_key_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32, Int32, Int32, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_key_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_key_callback as fn(*UInt8, fn(Int, Int32, Int32, Int32, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_key_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetCharCallback() (Unicode code point).
+/// Complexity: O(1).
+pub fn glfw_set_char_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_char_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_char_callback as fn(*UInt8, fn(Int, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_char_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetCharModsCallback() (deprecated in GLFW 3.4, still exported).
+/// Complexity: O(1).
+pub fn glfw_set_char_mods_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_char_mods_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_char_mods_callback as fn(*UInt8, fn(Int, Int32, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_char_mods_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetMouseButtonCallback().
+/// Complexity: O(1).
+pub fn glfw_set_mouse_button_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32, Int32, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_mouse_button_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_mouse_button_callback as fn(*UInt8, fn(Int, Int32, Int32, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_mouse_button_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetCursorPosCallback().
+/// Complexity: O(1).
+pub fn glfw_set_cursor_pos_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Float64, Float64) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_cursor_pos_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_cursor_pos_callback as fn(*UInt8, fn(Int, Float64, Float64) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_cursor_pos_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetCursorEnterCallback().
+/// Complexity: O(1).
+pub fn glfw_set_cursor_enter_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_cursor_enter_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_cursor_enter_callback as fn(*UInt8, fn(Int, Int32) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_cursor_enter_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetScrollCallback().
+/// Complexity: O(1).
+pub fn glfw_set_scroll_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Float64, Float64) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_scroll_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_scroll_callback as fn(*UInt8, fn(Int, Float64, Float64) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_scroll_dispatch);
+    return prev as Int;
+  }
+}
+
+/// glfwSetDropCallback() -- file paths are copied into an owned Vec[Str]
+/// while the C pointer array is live.
+/// Complexity: O(paths).
+pub fn glfw_set_drop_callback(lib: &GlfwLibrary, w: &GlfwWindow,
+    handler: fn(Int, Int32, Vec[Str]) -> Unit) -> Int
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  cb_drop_handlers.push(handler);
+  unsafe {
+    let f = lib.p_set_drop_callback as fn(*UInt8, fn(Int, Int32, *UInt8) -> Unit) -> *UInt8;
+    let prev = f(w.handle as *UInt8, cb_drop_dispatch);
+    return prev as Int;
+  }
+}
+
+// ---- glfwInitAllocator ----------------------------------------------------
+
+/// glfwInitAllocator() with raw C-ABI callback addresses (call BEFORE
+/// glfwInit).  Pass top-level XIOM fns cast with `as Int`:
+///   allocate   = `fn(size: Int, user: Int) -> Int`   (returns the block)
+///   reallocate = `fn(block: Int, size: Int, user: Int) -> Int`
+///   deallocate = `fn(block: Int, user: Int) -> Int`  (return ignored)
+/// The 32-byte GLFWallocator struct is built in an XIOM-owned slot (B-11);
+/// `reallocate`/`deallocate` may be 0 (GLFW then requires the corresponding
+/// handler to handle NULL calls itself); `allocate` is required.
+/// Complexity: O(1).
+pub fn glfw_init_allocator_raw(lib: &GlfwLibrary, allocate: Int,
+    reallocate: Int, deallocate: Int, user: Int)
+  requires: lib.handle != 0
+  requires: allocate != 0
+{
+  unsafe {
+    var s = slot_new(32);
+    write_u64_le(&mut s, 0, allocate);
+    write_u64_le(&mut s, 8, reallocate);
+    write_u64_le(&mut s, 16, deallocate);
+    write_u64_le(&mut s, 24, user);
+    let f = lib.p_init_allocator as fn(*UInt8);
+    f(s.as_mut_ptr() as *UInt8);
   }
 }

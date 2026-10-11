@@ -3,29 +3,19 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: VULKAN 0.4.0 WSI SHIPPED (build order #2)** -- batches 31/32
-published (`eco-v0.1.132`); batch 33 (vulkan 0.3.0) published in
-`eco-v0.1.133`; batches 34 (stb 0.2.0, publish pending the ops appends),
-35 (jolt 0.2.0, parked on the m258 archive) and 36 (sdl3 0.3.1,
-engine-3 fixed) relayed; batch 37 (`xiom.vulkan` 0.4.0: hidden Win32
-window + `VkSurfaceKHR` + swapchain + **3 real clear+present round trips**;
-**18/18 x2** on the RTX 3070 Ti) committed and relayed. Upstream sources
-cloned into `E:\repos` (Vulkan-Headers, SDL3, FFmpeg + pool) for
-source-truth binding work. **Batch 35 (`xiom.jolt` 0.2.0: Jolt v5.6.0
-vendored, 4/4 x2 with `--cxx-standard 17` on the m258 local build; queue:
-`-1815` verified, `-7` closed superseded, stdlib `-9`/`-10` verified+closed;
-parked on the m258 archive) relayed. Batch 36 (`xiom.sdl3` 0.3.1:
-`SDL_PushEvent` + headless synthetic-event pump (inject 0x8000 -> pump ->
-`poll(NULL)` consumes; 22/22 x2); engine ask `-1834-engine-3` FIXED with the
-coverage list) relayed. Batch 34 (`xiom.stb` 0.2.0: vendored stb_image +
-stb_image_write; in-memory PNG encode+decode (85 B, checksum 8400) + 1x1
-red BMP decode; 5/5 x2; allowlist-append ask filed) relayed. B-11
-ADDENDUM: the foreign-write buffer-readback corruption reproduces with NO
-driver context (SDL3, headless) -- minimal reproducer filed
-(`REL-20261011-0304-bindings`).** **Batch 38 (`xiom.glfw` 0.4.0:
-gamma ramps, cursors, window icon, joystick/gamepad polling, Vulkan-loader
-hook; **32/32 x2**; 105/124 exports -- 0.5.0 completes the 19 event
-callbacks pending the C-callback ABI) relayed.**
+**STATUS: GLFW 0.5.0 SHIPPED (124/124) -- batches 31-39 relayed** -- batches
+31/32 published (`eco-v0.1.132`); batch 33 (vulkan 0.3.0) published in
+`eco-v0.1.133`; batch 36 (sdl3 0.3.1) published in `eco-v0.1.134`;
+batches 34 (stb 0.2.0, publish pending the ops appends), 35 (jolt 0.2.0,
+parked on the m258 archive), 37 (`xiom.vulkan` 0.4.0 WSI) and 38
+(`xiom.glfw` 0.4.0, superseded by 39) relayed. **Batch 39 (`xiom.glfw`
+0.5.0: the 20 event-callback setters + `glfwInitAllocator`; dispatcher +
+fn-registry callback ABI; **37/37 x2** + absent SKIP 3/3) committed
+(`1b77cf17` + record `81e0927f`) and relayed
+(`REL-20261011-1055-bindings`); new compiler finding **B-13** (fn-typed
+PARAM values marshal to 0 at the C boundary) filed
+(`REL-20261011-1055-bindings-2`).** Upstream sources cloned into `E:\repos`
+(Vulkan-Headers, SDL3, FFmpeg + pool) for source-truth binding work.
 
 ## RESUME HERE (handoff, 2026-10-11)
 
@@ -35,13 +25,22 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 10:50Z)**: batches 31-38 relayed. **Published**:
+- **CURRENT (2026-10-11 11:00Z)**: batches 31-39 relayed. **Published**:
   `eco-v0.1.132` (assimp 0.7.0 + glfw 0.3.0), `eco-v0.1.133` (vulkan 0.3.0),
   `eco-v0.1.134` (sdl3 0.3.1, sha256 `a779ae4b...` @10:33:55Z).
   **In the packages queue (relayed/acked, publish pending)**: batch 34 stb
   0.2.0 (ops allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
   batch 35 jolt 0.2.0 (parked on the m258 archive), batch 37 vulkan 0.4.0,
-  batch 38 glfw 0.4.0.
+  batch 39 glfw 0.5.0 (**supersedes batch 38**; `REL-20261011-1055-bindings`).
+- **Latest batch 39 (2026-10-11)**: `xiom.glfw` **0.5.0 -- full surface,
+  124/124** (20 event-callback setters + `glfwInitAllocator`). Callback ABI:
+  fixed top-level dispatcher per event type + module-level `Vec[fn]`
+  registries (bare top-level fn names marshal to C pointers; fn-typed PARAM
+  values marshal to 0 -- finding **B-13**, `REL-20261011-1055-bindings-2`).
+  Ports: 37/37 x2 + absent SKIP 3/3; includes real error/key/close callback
+  round trips (posted WM_KEYDOWN/WM_CLOSE + poll) and an allocator cycle
+  (alloc=10 realloc=1 dealloc=6, user echoed). feat `1b77cf17` + record
+  `81e0927f`; new `port.args.json` `--link user32` (suite only).
 - **Compiler pin is now v0.64.3** (installed slot + `COMPILER_VERSION`);
   runs record `v0.64.3`.
 - **Latest batches**: 33 vulkan 0.3.0 RHI bring-up (device/queue + real
@@ -142,19 +141,9 @@ clone: stage ONLY your own item files). The two working rules are in
   `python tools/relay.py digest --to <lane>`.
 
 ### Next actions (ordered)
-1. **Check relay first** (owner handoff instruction), then **Doorbell**:
-   the session cron is per-session. Run `cron_create` with schedule
-   `0 */3 * * *` and the standard prompt (pull xiom-relays; process
-   `view --lane bindings`; ack/fix/verify; commit+push only this lane's
-   item files; note new eco versions in this file's relay area), then pull
-   + process once now. Inbox currently: 8 acked items + any new ones.
-2. **glfw 0.5.0 -- finish 124/124**: the remaining 19 exports are the 20
-   event-callback setters + `glfwInitAllocator`. First prove the
-   C-callback ABI with a tiny probe (C `int xt_cb(int(*)(int))` called with
-   an XIOM `fn(Int32) -> Int32` value through an extern param -- check the
-   unsafe-ffi guide + `tests/regression/m13*` for the syntax); if green,
-   bind the setters (fn-pointer cast calls; XIOM fn values into C); if red,
-   file the finding and note it in ROADMAP.
+1. **Doorbell armed** (`0 */3 * * *`, next fire 12:00Z); relay inbox clean
+   (8 acked items + batch 39 + B-13 filed). Inbox: no actionables.
+2. ~~glfw 0.5.0~~ **DONE** (37/37 x2 + absent; batch 39 relayed).
 3. **vulkan 0.5.0 -- build order #3**: pipeline + SPIR-V + clear/triangle/
    present smoke. Compile shaders with
    `C:\VulkanSDK\1.4.350.0\Bin\glslc.exe`; embed SPIR-V bytes like the
@@ -217,6 +206,13 @@ clone: stage ONLY your own item files). The two working rules are in
   from casts; fp OUT-params via XIOM slots are fine. Repro:
   `docs/repro/bindings-pilot/glfw-fp-return/`; item
   `REL-20261010-1904-bindings-2`; glfw value checks carry labelled SKIPs.
+- **B-13: fn-typed PARAM values cannot cross into C** (cast to Int -> 0,
+  re-passed to extern fn-typed param -> 0, copied to a local -> 0, boxed in
+  a struct field -> 0). Bare top-level fn names, locals initialized from
+  names, and dynamic-loader cast-call args all marshal correctly. Callback
+  bindings use: one fixed top-level dispatcher per event whose address goes
+  to C + a `Vec[fn]` registry of user handlers (m130 element ABI). Repro:
+  `docs/repro/bindings-pilot/cb-abi/`; item `REL-20261011-1055-bindings-2`.
 - **Vec-of-struct element extraction AVs** (`mons[0]`); use `Vec[Int]`
   handles + raw byte buffers (glfw monitors/video-modes pattern).
   `Result[Vec[...]]` and `Result[Float32/64]` payload extraction also
@@ -238,7 +234,8 @@ clone: stage ONLY your own item files). The two working rules are in
 ### Commands
 - Suite: `& scripts\port.ps1 -Package xiom.<name> [-Quiet] [-TimeoutSec N]`
   (repo root; assimp needs >=600 s / 125 TUs with `--timeout 1800`; glfw
-  ~15 s; vulkan ~10 s with its two C sources + `--link user32`).
+  ~15 s, now with `port.args.json` `--link user32` applied automatically
+  (37/37 x2); vulkan ~10 s with its two C sources + `--link user32`).
 - glfw positive path: prepend the DLL dir:
   `$env:PATH = "C:\glfw-3.4.bin.WIN64\lib-vc2022;" + $env:PATH`.
 - Shaders (vulkan #3): `C:\VulkanSDK\1.4.350.0\Bin\glslc.exe`.

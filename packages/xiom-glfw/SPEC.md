@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.glfw` |
-| Version | 0.4.0 |
+| Version | 0.5.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | GLFW -- https://github.com/glfw/glfw |
 | Upstream version pinned | **3.4** (tag `3.4`) |
 | Upstream license | zlib (bindings only; no code vendored) |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (soname `glfw3.dll`; POSIX soname documented for later phases) |
-| Compiler pin | xiom v0.64.2 |
+| Compiler pin | xiom v0.64.3 |
 
 ## 2. G2 pin: soname + header hash + symbol set
 
@@ -27,13 +27,15 @@ there is no link-time dependency and nothing vendored.
 |--------|-------|--------|
 | `GLFW/glfw3.h` | 241,826 | `AA370985F6B493BBE0358A36AB49F5780A6397C0209C6D98A62143DEA595B73C` |
 
-**Resolved symbol set (0.3.0):** 85 fail-closed core exports (init, version,
-error, platform, hints, window lifecycle/attrs/props, events, input,
-monitors/video modes/gamma, clipboard, time, GL-context basics, Win32
-native) plus 5 best-effort Vulkan helper exports (`glfwVulkanSupported`,
-`glfwGetRequiredInstanceExtensions`, `glfwGetInstanceProcAddress`,
-`glfwGetPhysicalDevicePresentationSupport`, `glfwCreateWindowSurface`;
-pointer 0 when the build lacks them, wrappers return explicit errors).
+**Resolved symbol set (0.5.0):** **124 fail-closed core exports** --
+complete GLFW 3.4 public surface (init, version, error, platform, hints,
+window lifecycle/attrs/props, events, input, monitors/video modes/gamma,
+clipboard, time, GL-context basics, Win32 native, the 20 event-callback
+setters and `glfwInitAllocator`) -- plus 5 best-effort Vulkan helper exports
+(`glfwVulkanSupported`, `glfwGetRequiredInstanceExtensions`,
+`glfwGetInstanceProcAddress`, `glfwGetPhysicalDevicePresentationSupport`,
+`glfwCreateWindowSurface`; pointer 0 when the build lacks them, wrappers
+return explicit errors).
 
 **Reference runtime used for positive-path runs (NOT the pin):**
 
@@ -63,11 +65,13 @@ pointer 0 when the build lacks them, wrappers return explicit errors).
   read back byte-wise (no compiler out-slots, no malloc/free in confined
   blocks). Foreign memory is copied with `ffi.memcpy` into slots
   (`copy_from`) -- no pointer arithmetic.
-- **Known compiler issues dodged by design (v0.64.2):**
+- **Known compiler issues dodged by design (v0.64.3):**
   - floating-point RETURNS through cast calls are miscompiled
     (0/garbage) -- `glfw_get_time` / `glfw_get_window_opacity` are callable
     but their values are unverifiable; the suite labels the skip; repro in
-    `docs/repro/bindings-pilot/glfw-fp-return/`.
+    `docs/repro/bindings-pilot/glfw-fp-return/` (B-12).
+  - fn-typed PARAM values cannot be used as C callbacks (0; finding B-13) --
+    the dispatcher + registry design avoids the path entirely.
   - Vec-of-struct element extraction (AV) -- monitors are returned as
     `Vec[Int]` handles and video modes as a raw 24-byte-record buffer
     (`glfw_vidmode_count`/`glfw_vidmode_at`).
@@ -76,20 +80,32 @@ pointer 0 when the build lacks them, wrappers return explicit errors).
   - f32/f64 slots are decoded with pure bit arithmetic
     (`f32_from_bits`/`f64_from_bits`) after a `Result[Float*]` payload
     miscompile surfaced in the first build.
-- **No `port.args.json`**: pure-XIOM loader, no C source, no extra flags.
+- **Callback ABI (0.5.0)**: each event type has ONE fixed top-level
+  dispatcher whose address (`dispatch as Int`) is handed to the DLL; user
+  handlers are stored in module-level `Vec[fn]` registries and invoked by
+  the dispatcher (last set wins; window handlers receive the window handle).
+  Basis: probe evidence in `docs/repro/bindings-pilot/cb-abi/` -- bare
+  top-level fn names marshal correctly through extern and cast-call paths,
+  while fn-typed PARAM values marshal to 0 (B-13); registry element push +
+  call follows the m130 fn-value ABI.
+- **glfwInitAllocator**: `glfw_init_allocator_raw` builds the 32-byte
+  `GLFWallocator` struct (allocate/reallocate/deallocate/user) in an
+  XIOM-owned byte slot; callbacks are top-level fns cast with `as Int`.
+- **`port.args.json`**: none for the loader itself; it only links `user32`
+  for the deterministic `PostMessageA` key/close callback round trips in
+  the suite.
 
 ## 4. Test matrix
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| GLFW absent (CI shape) | `port.ps1 -Package xiom.glfw`, no glfw3.dll on PATH | PASS (loader/smoke SKIP labels, green) |
-| GLFW 3.4 present | same, with `C:\glfw-3.4.bin.WIN64\lib-vc2022` on PATH | **PASS 28/28 x2** (2026-10-10, compiler v0.64.2; ~12 s/run: version/platform/timer/monitors/video mode/window lifecycle+attrs/input/clipboard/events/user pointer/HWND/Vulkan helpers/terminate) |
+| GLFW absent (CI shape) | `port.ps1 -Package xiom.glfw`, no glfw3.dll on PATH | PASS (loader/smoke SKIP labels, green; 2026-10-11) |
+| GLFW 3.4 present | same, with `C:\glfw-3.4.bin.WIN64\lib-vc2022` on PATH | **PASS 37/37 x2** (2026-10-11, compiler v0.64.3; ~15 s/run: full surface + 20 setters + error/key/close callback round trips + allocator cycle) |
 | Headless present (init fails) | init-dependent checks SKIP with the GLFW error text | path implemented, not force-tested |
 
 ## 5. Scope
 
-0.3.0 -- engine surface (see README/`ROADMAP.md`). 0.4.0 adds cursors,
-joystick/gamepad, gamma ramps, window icons, and the event-callback setters
-(callback ABI for XIOM function values passed to C is still unproven in
-this lane). POSIX soname handling and file-based CI for the absent case are
-later items.
+0.5.0 -- **full GLFW 3.4 public surface (124/124 core exports)** plus the
+best-effort Vulkan helpers (see README/`ROADMAP.md`). Callback handlers are
+process-global per event type (last set wins); per-window routing helpers,
+POSIX soname handling and file-based CI for the absent case are later items.
