@@ -18,7 +18,11 @@ ffmpeg growth waits on a shared+dev build request. **Batch 34 (`xiom.stb`
 0.2.0: vendored stb_image + stb_image_write; in-memory PNG encode+decode
 round trip (85 B, checksum 8400) + 1x1 red BMP decode; 5/5 x2;
 ALLOWLIST-APPEND ask filed -- the name was excluded as declaration-only)
-also committed and relayed.** Doorbell armed
+also committed and relayed.** **Batch 35 (`xiom.jolt` 0.2.0: Jolt v5.6.0
+vendored, verified **4/4 x2** with `--cxx-standard 17` on the m258 local
+build; queue: `-1815` verified, `-7` closed superseded, stdlib `-9`/`-10`
+verified+closed; archive re-verdict tracked) committed and relayed.**
+Doorbell armed
 (`0 */3 * * *`).
 
 ## RESUME HERE (handoff, 2026-10-10)
@@ -77,6 +81,12 @@ clone: stage ONLY your own item files). The two working rules are in
   (packages acked; ops scope ask `REL-20261010-2301-packages`; publish
   pending the appends); closes the engine lane's image-codec wishlist
   (`REL-20261010-1900-packages`).
+- **Batch 35** (`xiom.jolt` 0.2.0: vendored Jolt v5.6.0, 25 TUs + bridge
+  shim, tree `ea20c2d1...`; **4/4 x2** on the locally built m258 compiler
+  with `--cxx-standard 17` threaded in `port.args.json` -- drop settles at
+  479 milli asleep, impulse vx=4995, ~34 s/run): feat `00cfc0c8` + record;
+  bus item `REL-20261011-0008-bindings` (merge after the m258 archive is
+  canonical; archive re-verdict of `-7`/`-1815` rides with it).
 - **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
   feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
   merged (packages tip `d96f4112`), **published** `eco-v0.1.130` (live sha256
@@ -108,14 +118,12 @@ clone: stage ONLY your own item files). The two working rules are in
    `packages/xiom-assimp/tools/combine.py` (`ENABLED`,
    `ASSET_DIRS_BY_IMPORTER`, `CONTRIB_MIRROR`, `CONTRIB_EXTRA`); check each
    importer's own guard names (glTF2 adds `ASSIMP_BUILD_NO_GLTF2_IMPORTER`).
-4. **`xiom.jolt` is STAGED, BLOCKED**: the v0.64.3 "verified" verdict was a
-   false positive (`if constexpr` is a C++14 clang extension; correction
-   `REL-20261010-1815-bindings`, release-check row fixed). The vendored
-   generator + bridge + module + suite are committed and validated under
-   `-std=c++17`; `vendor/` regenerates with `tools/combine.py` (recipe in
-   `packages/xiom-jolt/AUDIT.md`). Unblock = `--cxx-standard` (or a gnu++17
-   default) from the compiler lane. B-05/B-07/B-10/B-11 sit with the
-   compiler for v0.64.4.
+4. **`xiom.jolt` is DONE pending the archive**: vendored v5.6.0 + suite
+   **4/4 x2** on the locally built m258 compiler (`--cxx-standard 17` in
+   `port.args.json`); bus item `REL-20261011-0008-bindings` asks for the
+   merge once the m258 archive is canonical; re-verdict `-1815` (and close
+   it) on that archive. B-05/B-07/B-10/B-11 sit with the compiler for
+   v0.64.4.
 5. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
    go-ahead; accelerators stay gated on the `xiom.vectors` extraction
    (`REL-...-1550-xvector-11`).
