@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-11T14:42:49Z",
+    "updated":  "2026-10-11T14:54:44Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -875,7 +875,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.btree",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM in-memory B-tree index: insert/search/delete with predecessor/successor replacement, underflow borrow/merge, inclusive range scans and in-order traversal over a flat append-only node array",
@@ -885,7 +885,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-btree/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-btree/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "btree.xi",
                                               "package.xi"
