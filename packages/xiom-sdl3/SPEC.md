@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.11.0 |
+| Version | 0.12.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -210,12 +210,30 @@ JOYSTICK_AXIS_MOTION/GAMEPAD_ADDED/AUDIO_DEVICE_ADDED/POLL_SENTINEL,
 FULLSCREEN/BORDERLESS/RESIZABLE/HIGH_PIXEL_DENSITY/TRANSPARENT,
 LSHIFT/LCTRL/RALT/NUM/SCROLL, RGB565/XRGB8888/NV12).
 
+**0.12.0 addition (audio streaming + mouse wheel, 2026-10-11; engine asks):
+** 7 symbols joined the core loader: `SDL_OpenAudioDeviceStream` (called
+with a NULL callback = push mode), `SDL_PutAudioStreamData`,
+`SDL_ResumeAudioStreamDevice`, `SDL_PauseAudioStreamDevice`,
+`SDL_DestroyAudioStream`, `SDL_GetAudioStreamQueued`,
+`SDL_AudioStreamDevicePaused`.  `SDL_AudioSpec` = {format u32 @0, channels
+i32 @4, freq i32 @8}; `SDL_AUDIO_F32` (0x8120) and
+`SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK` exported.  **Important verification
+note:** the spec MUST be built with byte-indexed slot writes; a first build
+using `ffi.ptr_write_u32_le(slot + N)` lost the non-base fields and the
+runtime rejected it -- that is now compiler finding **B-16** with repro
+`docs/repro/bindings-pilot/ptr-slot-write/` (ptr_write_sum=11 vs
+byte_index_sum=66).  Suite: 7680 B of silence (960 frames F32/2ch/48k)
+pushed, device resumed (not paused) and paused again.  Mouse wheel: layout
+pinned (x @24, y @28, direction @32, mouse_x @36, mouse_y @40) with 7
+accessors + `SDL_MOUSEWHEEL_NORMAL/FLIPPED` (engine ask
+`REL-20261011-1411-engine-2`).
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 48/48 x2** -- same 48 checks with the constant test now covering the full tables (sampled) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 49/49 x2** -- previous 48 checks + the silent push-stream round trip (put=true queued=7680 resumed=true device-paused=false pause-ok=true) + wheel decode |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no

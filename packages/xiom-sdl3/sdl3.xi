@@ -375,6 +375,13 @@ pub type Sdl3Library = {
   p_get_current_audio_driver: Int;
   p_get_joysticks: Int;
   p_get_joystick_name_for_id: Int;
+  p_open_audio_device_stream: Int;
+  p_put_audio_stream_data: Int;
+  p_resume_audio_stream_device: Int;
+  p_pause_audio_stream_device: Int;
+  p_destroy_audio_stream: Int;
+  p_get_audio_stream_queued: Int;
+  p_audio_stream_device_paused: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -466,6 +473,20 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a38.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetJoysticks: " + a38.error }); }
   let a39 = dl.dl_sym(handle, "SDL_GetJoystickNameForID");
   if !a39.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetJoystickNameForID: " + a39.error }); }
+  let a40 = dl.dl_sym(handle, "SDL_OpenAudioDeviceStream");
+  if !a40.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_OpenAudioDeviceStream: " + a40.error }); }
+  let a41 = dl.dl_sym(handle, "SDL_PutAudioStreamData");
+  if !a41.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_PutAudioStreamData: " + a41.error }); }
+  let a42 = dl.dl_sym(handle, "SDL_ResumeAudioStreamDevice");
+  if !a42.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_ResumeAudioStreamDevice: " + a42.error }); }
+  let a43 = dl.dl_sym(handle, "SDL_PauseAudioStreamDevice");
+  if !a43.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_PauseAudioStreamDevice: " + a43.error }); }
+  let a44 = dl.dl_sym(handle, "SDL_DestroyAudioStream");
+  if !a44.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_DestroyAudioStream: " + a44.error }); }
+  let a45 = dl.dl_sym(handle, "SDL_GetAudioStreamQueued");
+  if !a45.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetAudioStreamQueued: " + a45.error }); }
+  let a46 = dl.dl_sym(handle, "SDL_AudioStreamDevicePaused");
+  if !a46.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_AudioStreamDevicePaused: " + a46.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -508,6 +529,13 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_get_current_audio_driver: a37.value,
     p_get_joysticks: a38.value,
     p_get_joystick_name_for_id: a39.value,
+    p_open_audio_device_stream: a40.value,
+    p_put_audio_stream_data: a41.value,
+    p_resume_audio_stream_device: a42.value,
+    p_pause_audio_stream_device: a43.value,
+    p_destroy_audio_stream: a44.value,
+    p_get_audio_stream_queued: a45.value,
+    p_audio_stream_device_paused: a46.value,
   });
 }
 
@@ -2170,4 +2198,186 @@ pub fn sdl3_joystick_name_for_id(lib: &Sdl3Library, id: Int) -> Str
     if (p as Int) == 0 { return ""; }
     return Str::from_c_str(p);
   }
+}
+
+// =========================================================================
+// 0.12.0: audio streaming (silent push path) + mouse-wheel event accessors
+//
+// Audio: SDL_OpenAudioDeviceStream with a NULL callback/userdata gives a
+// PUSH stream -- we feed interleaved PCM from an XIOM buffer
+// (SDL_PutAudioStreamData, own-buffer read direction) and control the
+// device with resume/pause.  SDL_AudioSpec = { format u32 @0, channels i32
+// @4, freq i32 @8 } (pinned); SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK requests
+// the default output.  No C callback threads are involved.
+// Wheel: SDL_MouseWheelEvent layout (pinned): x f32 @24, y f32 @28,
+// direction u32 @32, mouse_x f32 @36, mouse_y f32 @40.
+// =========================================================================
+
+pub const SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK: Int = 0xFFFFFFFF;
+pub const SDL_AUDIO_F32: Int = 0x8120;
+pub const SDL_MOUSEWHEEL_NORMAL: Int = 0;
+pub const SDL_MOUSEWHEEL_FLIPPED: Int = 1;
+
+/// Little-endian u32 store into an XIOM-owned byte slot (B-11 discipline:
+/// byte-indexed writes, the proven in-param slot path).
+fn sdl3_write_u32_le(buf: &mut Vec[UInt8], off: Int, v: Int)
+  requires: off >= 0
+  requires: buf.len() >= off + 4
+{
+  buf[off + 0] = ( v        & 0xFF) as UInt8;
+  buf[off + 1] = ((v >>  8) & 0xFF) as UInt8;
+  buf[off + 2] = ((v >> 16) & 0xFF) as UInt8;
+  buf[off + 3] = ((v >> 24) & 0xFF) as UInt8;
+}
+
+/// SDL_OpenAudioDeviceStream(DEFAULT_PLAYBACK, {format, channels, freq},
+/// NULL, NULL) -> stream handle (0 on failure; see the error string).
+/// Requires SDL_INIT_AUDIO.
+/// Complexity: O(device open).
+pub fn sdl3_open_audio_playback_stream(lib: &Sdl3Library, format: Int, channels: Int, freq: Int) -> Int
+  requires: lib.handle != 0
+  requires: format > 0
+  requires: channels > 0
+  requires: freq > 0
+{
+  unsafe {
+    var slot = sdl3_slot(12);
+    // format u32 @0, channels i32 @4, freq i32 @8 (byte-indexed writes).
+    sdl3_write_u32_le(&mut slot, 0, format);
+    sdl3_write_u32_le(&mut slot, 4, channels);
+    sdl3_write_u32_le(&mut slot, 8, freq);
+    let f = lib.p_open_audio_device_stream as fn(Int, *UInt8, Int, Int) -> Int;
+    return f(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, slot.as_mut_ptr(), 0, 0);
+  }
+}
+
+/// SDL_PutAudioStreamData(stream, buf, len): queue `len` bytes of
+/// interleaved PCM from an XIOM buffer (SDL reads our memory).
+/// Complexity: O(len).
+pub fn sdl3_put_audio_stream_data(lib: &Sdl3Library, stream: Int, buf: &mut Vec[UInt8], len: Int) -> Bool
+  requires: lib.handle != 0
+  requires: stream != 0
+  requires: len > 0
+  requires: buf.len() >= len
+{
+  unsafe {
+    let f = lib.p_put_audio_stream_data as fn(Int, *UInt8, Int) -> UInt8;
+    return (f(stream, buf.as_mut_ptr(), len) as Int) != 0;
+  }
+}
+
+/// SDL_ResumeAudioStreamDevice -> bool (starts playback of queued data).
+/// Complexity: O(1).
+pub fn sdl3_resume_audio_stream_device(lib: &Sdl3Library, stream: Int) -> Bool
+  requires: lib.handle != 0
+  requires: stream != 0
+{
+  unsafe {
+    let f = lib.p_resume_audio_stream_device as fn(Int) -> UInt8;
+    return (f(stream) as Int) != 0;
+  }
+}
+
+/// SDL_PauseAudioStreamDevice -> bool.
+/// Complexity: O(1).
+pub fn sdl3_pause_audio_stream_device(lib: &Sdl3Library, stream: Int) -> Bool
+  requires: lib.handle != 0
+  requires: stream != 0
+{
+  unsafe {
+    let f = lib.p_pause_audio_stream_device as fn(Int) -> UInt8;
+    return (f(stream) as Int) != 0;
+  }
+}
+
+/// SDL_AudioStreamDevicePaused -> bool.
+/// Complexity: O(1).
+pub fn sdl3_audio_stream_device_paused(lib: &Sdl3Library, stream: Int) -> Bool
+  requires: lib.handle != 0
+  requires: stream != 0
+{
+  unsafe {
+    let f = lib.p_audio_stream_device_paused as fn(Int) -> UInt8;
+    return (f(stream) as Int) != 0;
+  }
+}
+
+/// SDL_GetAudioStreamQueued -> bytes still queued.
+/// Complexity: O(1).
+pub fn sdl3_get_audio_stream_queued(lib: &Sdl3Library, stream: Int) -> Int
+  requires: lib.handle != 0
+  requires: stream != 0
+{
+  unsafe {
+    let f = lib.p_get_audio_stream_queued as fn(Int) -> Int32;
+    return f(stream) as Int;
+  }
+}
+
+/// SDL_DestroyAudioStream (closes the device; nil-safe at the caller).
+/// Complexity: O(1).
+pub fn sdl3_destroy_audio_stream(lib: &Sdl3Library, stream: Int)
+  requires: lib.handle != 0
+  requires: stream != 0
+{
+  unsafe {
+    let f = lib.p_destroy_audio_stream as fn(Int);
+    f(stream);
+  }
+}
+
+/// Mouse-wheel event: horizontal scroll (f32 @24).
+/// Complexity: O(1).
+pub fn sdl3_event_wheel_x(ev: &Vec[UInt8]) -> Float64
+  requires: ev.len() >= 28
+{
+  return sdl3_f32_from_bits(sdl3_read_u32_at(ev, 24));
+}
+
+/// Mouse-wheel event: vertical scroll (f32 @28).
+/// Complexity: O(1).
+pub fn sdl3_event_wheel_y(ev: &Vec[UInt8]) -> Float64
+  requires: ev.len() >= 32
+{
+  return sdl3_f32_from_bits(sdl3_read_u32_at(ev, 28));
+}
+
+/// Mouse-wheel event: raw horizontal bits (u32 @24).
+/// Complexity: O(1).
+pub fn sdl3_event_wheel_x_bits(ev: &Vec<UInt8>) -> Int
+  requires: ev.len() >= 28
+{
+  return sdl3_read_u32_at(ev, 24);
+}
+
+/// Mouse-wheel event: raw vertical bits (u32 @28).
+/// Complexity: O(1).
+pub fn sdl3_event_wheel_y_bits(ev: &Vec<UInt8>) -> Int
+  requires: ev.len() >= 32
+{
+  return sdl3_read_u32_at(ev, 28);
+}
+
+/// Mouse-wheel event: direction (u32 @32; SDL_MOUSEWHEEL_NORMAL/FLIPPED).
+/// Complexity: O(1).
+pub fn sdl3_event_wheel_direction(ev: &Vec<UInt8>) -> Int
+  requires: ev.len() >= 36
+{
+  return sdl3_read_u32_at(ev, 32);
+}
+
+/// Mouse-wheel event: cursor x when the wheel fired (f32 @36).
+/// Complexity: O(1).
+pub fn sdl3_event_wheel_mouse_x(ev: &Vec<UInt8>) -> Float64
+  requires: ev.len() >= 40
+{
+  return sdl3_f32_from_bits(sdl3_read_u32_at(ev, 36));
+}
+
+/// Mouse-wheel event: cursor y when the wheel fired (f32 @40).
+/// Complexity: O(1).
+pub fn sdl3_event_wheel_mouse_y(ev: &Vec<UInt8>) -> Float64
+  requires: ev.len() >= 44
+{
+  return sdl3_f32_from_bits(sdl3_read_u32_at(ev, 40));
 }

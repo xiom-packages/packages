@@ -192,6 +192,23 @@ fn t_event_decode() -> Bool {
   // f32 bit decode sanity (exact powers of two).
   if sdl3_f32_from_bits(0x3F800000) != 1.0 { ok = false; }
   if sdl3_f32_from_bits(0xC0500000) != -3.25 { ok = false; }
+
+  // 0.12.0: mouse-wheel event (engine ask 1411-2): x=0.5, y=-1.25,
+  // direction=FLIPPED, cursor at 100.5/200.25.
+  var wheel_ev = slot_new(128);
+  wr_u32(&mut wheel_ev, 0, SDL_EVENT_MOUSE_WHEEL);
+  wr_u32(&mut wheel_ev, 16, 4);
+  wr_u32(&mut wheel_ev, 24, 0x3F000000);
+  wr_u32(&mut wheel_ev, 28, 0xBFA00000);
+  wr_u32(&mut wheel_ev, 32, SDL_MOUSEWHEEL_FLIPPED);
+  wr_u32(&mut wheel_ev, 36, 0x42C90000);
+  wr_u32(&mut wheel_ev, 40, 0x43484000);
+  if sdl3_event_type(&wheel_ev) != SDL_EVENT_MOUSE_WHEEL { ok = false; }
+  if sdl3_event_wheel_x(&wheel_ev) != 0.5 || sdl3_event_wheel_y(&wheel_ev) != -1.25 { ok = false; }
+  if sdl3_event_wheel_x_bits(&wheel_ev) != 0x3F000000 { ok = false; }
+  if sdl3_event_wheel_direction(&wheel_ev) != SDL_MOUSEWHEEL_FLIPPED { ok = false; }
+  if sdl3_event_wheel_mouse_x(&wheel_ev) != 100.5 { ok = false; }
+  if sdl3_event_wheel_mouse_y(&wheel_ev) != 200.25 { ok = false; }
   return ok;
 }
 
@@ -640,6 +657,30 @@ fn main() -> Int {
     failed = failed + report(jc >= 0 && jbad.len() == 0,
       "joystick: enumeration count=" + to_string(jc) + " (unknown-id name empty="
         + b2s(jbad.len() == 0) + ")");
+
+    // 0.12.0: push audio stream (silent buffer: no audible surprise).
+    let stream = sdl3_open_audio_playback_stream(&lib, SDL_AUDIO_F32, 2, 48000);
+    if stream == 0 {
+      failed = failed + report(false, "audio-stream: open failed -- " + sdl3_get_error(&lib));
+    } else {
+      var silence: Vec[UInt8] = Vec[UInt8].new();
+      var sb = 0;
+      while sb < 7680 {
+        silence.push(0 as UInt8);
+        sb = sb + 1;
+      }
+      let put = sdl3_put_audio_stream_data(&lib, stream, &mut silence, 7680);
+      let queued = sdl3_get_audio_stream_queued(&lib, stream);
+      let resumed = sdl3_resume_audio_stream_device(&lib, stream);
+      let paused = sdl3_audio_stream_device_paused(&lib, stream);
+      sdl3_delay(&lib, 20);
+      let paus = sdl3_pause_audio_stream_device(&lib, stream);
+      sdl3_destroy_audio_stream(&lib, stream);
+      failed = failed + report(put && resumed && !paused && paus && queued >= 0,
+        "audio-stream: 7680B silence pushed + device resumed/paused (put=" + b2s(put)
+          + " queued=" + to_string(queued) + " resumed=" + b2s(resumed)
+          + " device-paused=" + b2s(paused) + " pause-ok=" + b2s(paus) + ")");
+    }
     sdl3_quit(&lib);
   }
 
