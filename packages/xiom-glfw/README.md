@@ -4,13 +4,17 @@ GLFW **3.4** bindings for XIOM via a **dynamic loader** (no link-time
 dependency; `glfw3.dll` resolved at runtime; the suite SKIPs green when the
 backend is absent).
 
-> **Status:** `incubating` -- engine surface (0.3.0): init/hints, window
-> lifecycle + attributes, events (poll/wait), input polling, monitors +
-> video modes, clipboard, time, GL-context basics, Win32 native accessors
-> and the Vulkan helpers (`glfwVulkanSupported`, required instance
-> extensions, `glfwCreateWindowSurface`). Native verified on v0.64.3:
-> **present 28/28 x2** (official GLFW 3.4 win64 DLL) + **absent SKIP 3/3**;
-> published in `eco-v0.1.132` (sha256 `8c025086...`).
+> **Status:** `incubating` -- engine surface (0.4.0): gamma ramps (raw
+> 1536-byte read/write), cursors (standard shapes + RGBA create/set/destroy),
+> window icon (RGBA8), joystick/gamepad polling (axes/buttons/hats raw
+> buffers, names/GUIDs, `GLFWgamepadstate` raw + button/axis decoders, mapping
+> update) and the `glfwInitVulkanLoader` hook -- 105/124 exports (the
+> remaining 19 event-callback setters + `glfwInitAllocator` are queued for
+> 0.5.0 pending the C-callback ABI). Native verified on v0.64.3: **present
+> 32/32 x2** (official GLFW 3.4 win64 DLL) + **absent SKIP 3/3**; 0.3.0
+> (init/hints, window/events/input, monitors, clipboard, time, GL basics,
+> Win32 + Vulkan helpers) shipped in `eco-v0.1.132` (sha256 `8c025086...`);
+> 0.4.0 published in `eco-v0.1.136` (sha256 `c393b079...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
