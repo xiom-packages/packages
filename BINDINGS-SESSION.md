@@ -4,13 +4,14 @@ Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
 **STATUS: SDL3 0.12.0 SHIPPED -- batches 31-49 relayed** (CLEAN HANDOFF
-2026-10-11 14:45Z). Published through the window: `eco-v0.1.132`..`eco-v0.1.137`
-(assimp 0.7.0, glfw 0.3.0-0.5.0 incl. the pre-publish native fixes),
-`eco-v0.1.138` (vulkan 0.5.0 `0cd7bc00` + sdl3 0.4.0 `a9006d4c`),
-`eco-v0.1.139` (ann 0.1.0 + stb 0.2.0 -- the ops append gate cleared),
-`eco-v0.1.140` (sdl3 0.5.0 `a350dd46`); `eco-v0.1.141` is another lane's
-(btree). Publish queue (packages): sdl3 **0.6.0-0.12.0** (batches 43-49
-relayed) + jolt 0.2.0 (parked on the m258 archive). Lane tree tip at
+2026-10-11 14:45Z; doorbell tick 14:47Z). Published through the window:
+`eco-v0.1.132`..`eco-v0.1.147` -- assimp 0.7.0, glfw 0.3.0-0.5.0 (incl.
+the pre-publish native fixes), vulkan 0.5.0 `0cd7bc00` + sdl3 0.4.0
+`a9006d4c` (`138`), ann 0.1.0 + stb 0.2.0 (`139`, ops append gate
+cleared), sdl3 0.5.0 `a350dd46` (`140`), btree 0.1.1 (`141`, other lane),
+sdl3 **0.7.0-0.11.0** (`142`-`147`; `144` also carries ann 0.2.0).
+**Publish queue (packages): sdl3 0.12.0 only** (batch 49; packages acked
+`bb3d27b`) + jolt 0.2.0 (parked on the m258 archive). Lane tree tip at
 handoff: `c3f83489` (clean; all pushed). Compiler findings filed this
 window: **B-13** (fn-param C-callback marshal=0), **B-14** (`return;` in
 explicit `-> Unit`), **B-15** (Vec[fn] element call >=2 args -> ()),
@@ -27,15 +28,18 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 14:45Z, handoff)**: batches 31-49 relayed; tree
-  clean at `c3f83489` (`origin/bindings` == local). Published through
-  `eco-v0.1.140` (see the STATUS block above). **Publish queue (packages):
-  sdl3 0.6.0-0.12.0 (batches 43-49; relay items
-  `REL-20261011-1152/1157/1204/1310/1345/1408/1437-bindings`) + jolt 0.2.0
-  (m258 archive parked).** Engine asks delivered and pending publish:
-  blit (0.8.0), displays/keyboard (0.6.0), mouse/window contract (0.9.0),
-  audio+joystick enum (0.10.0), tables (0.11.0), audio stream + wheel
-  (0.12.0).
+- **CURRENT (2026-10-11 14:47Z, doorbell tick)**: batches 31-49 relayed;
+  tree clean at `f965a23a` (`origin/bindings` == local). Published through
+  `eco-v0.1.147` (see the STATUS block above; sdl3 0.7.0-0.11.0 landed).
+  **Publish queue (packages): sdl3 0.12.0 only** (batch 49, relay item
+  `REL-20261011-1437-bindings`; packages acked `bb3d27b`) + jolt 0.2.0
+  (m258 archive parked).** Engine asks delivered: blit (0.8.0, PUBLISHED
+  `143`), displays/keyboard (0.6.0 superseded by 0.7.0, PUBLISHED `142`),
+  mouse/window contract (0.9.0, PUBLISHED `145`), audio+joystick enum
+  (0.10.0, PUBLISHED `146`), tables (0.11.0, PUBLISHED `147`), audio
+  stream + wheel (0.12.0, awaiting publish). Relay inbox at the tick:
+  clean (1321/1411-2 replies already on the bus; 1159/1203/1342
+  informational/open on the reporting lanes).
 - **Batches 45-48 (2026-10-11, compact)**: 45 sdl3 **0.8.0** display blit
   (`sdl3_update_texture`/`sdl3_render_texture`/`sdl3_set_render_vsync`;
   demo probe green; 44/44 x2; feat `3d7f6f3e`); 46 sdl3 **0.9.0** mouse +
@@ -209,19 +213,22 @@ clone: stage ONLY your own item files). The two working rules are in
   `python tools/relay.py digest --to <lane>`.
 
 ### Next actions (ordered)
-1. **Doorbell**: the session cron is per-session -- re-arm with
-   `cron_create` `0 */3 * * *` and the standard prompt (relay pull +
-   process lane items + packages SESSION eco notes). Relay repo
-   `E:\xiom-lang\xiom-relays`: sync with `git fetch origin` + compare --
-   do NOT `git pull` ("Cannot fast-forward to multiple branches"); stage
-   ONLY this lane's item files; only the REPORTING lane moves its own
-   items (reply with new items). Inbox at handoff: engine `1321`/`1411-2`
-   open (delivered; replies sent), xvector `1203` open (replied),
+1. **Doorbell**: **RE-ARMED 14:47Z** (`wku_12b6c26ff001C4Vt6tbf8wl048`,
+   `0 */3 * * *`, next 15:00Z; the cron is per-session -- re-arm on each
+   new session). Prompt = relay pull + process lane items + packages
+   SESSION eco notes. Relay repo `E:\xiom-lang\xiom-relays`: sync with
+   `git fetch origin` + compare -- do NOT `git pull` ("Cannot
+   fast-forward to multiple branches"); stage ONLY this lane's item
+   files; only the REPORTING lane moves its own items (reply with new
+   items). Inbox at the tick: **clean** -- engine `1321`/`1411-2` open
+   but replied (`REL-20261011-1345-bindings-2`,
+   `REL-20261011-1437-bindings-2`), xvector `1203` open (replied),
    compiler `1342` open (info), `1159` open (engine status note).
-2. **Publish watch**: packages queue = sdl3 **0.6.0-0.12.0** (batches
-   43-49) + jolt 0.2.0 (m258 archive parked). Record new eco versions in
-   the relay area of this file. The engine consumes only published
-   packages (registry sdl3 0.3.1 at handoff) -- if asked, nudge packages.
+2. **Publish watch**: packages queue = sdl3 **0.12.0** only (batch 49;
+   acked by packages `bb3d27b`) + jolt 0.2.0 (m258 archive parked).
+   0.7.0-0.11.0 landed in `eco-v0.1.142`-`147` (tick 14:47Z). Record new
+   eco versions in the relay area of this file. The engine consumes only
+   published packages -- if asked, nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): 0.4.0-0.12.0 shipped (batches 41-49).
    Next candidates (ROADMAP Phase 2): recording/capture streams
