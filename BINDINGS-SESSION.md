@@ -3,17 +3,19 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: SDL3 0.14.0 SHIPPED -- batches 31-51 relayed** (CLEAN HANDOFF
-2026-10-11 14:45Z; ticks 14:47Z/15:00Z/15:12Z/15:53Z). Published through the
-window: `eco-v0.1.132`..`eco-v0.1.149` -- assimp 0.7.0, glfw 0.3.0-0.5.0
-(incl. the pre-publish native fixes), vulkan 0.5.0 `0cd7bc00` + sdl3 0.4.0
-`a9006d4c` (`138`), ann 0.1.0 + stb 0.2.0 (`139`, ops append gate cleared),
-sdl3 0.5.0 `a350dd46` (`140`), btree 0.1.1 (`141`, other lane), sdl3
-**0.7.0-0.13.0** (`142`-`149`; `144` also carries ann 0.2.0; `149` = capture
-streams + query, packages re-ran 52/52 x2 + absent 4/4 x2, corruption-free).
-**Publish queue (packages): sdl3 0.14.0** (batch 51 relayed 15:53Z via
-`REL-20261011-1553-bindings`) + jolt 0.2.0 (parked on the m258 archive).
-Lane tree tip: `c3f83489` at handoff; now `bfd7cd74` (clean; all pushed).
+**STATUS: SDL3 0.15.0 SHIPPED -- batches 31-52 relayed** (CLEAN HANDOFF
+2026-10-11 14:45Z; ticks 14:47Z/15:00Z/15:12Z/15:53Z/16:02Z). Published
+through the window: `eco-v0.1.132`..`eco-v0.1.149` -- assimp 0.7.0, glfw
+0.3.0-0.5.0 (incl. the pre-publish native fixes), vulkan 0.5.0 `0cd7bc00` +
+sdl3 0.4.0 `a9006d4c` (`138`), ann 0.1.0 + stb 0.2.0 (`139`, ops append gate
+cleared), sdl3 0.5.0 `a350dd46` (`140`), btree 0.1.1 (`141`, other lane),
+sdl3 **0.7.0-0.13.0** (`142`-`149`; `144` also carries ann 0.2.0; `149` =
+capture streams + query, packages re-ran 52/52 x2 + absent 4/4 x2,
+corruption-free).
+**Publish queue (packages): sdl3 0.14.0 + 0.15.0** (batches 51/52 relayed
+15:53Z/16:02Z via `REL-20261011-1553/1602-bindings`) + jolt 0.2.0 (parked on
+the m258 archive). Lane tree tip: `c3f83489` at handoff; now `9f771f88`
+(clean; all pushed).
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
 **B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
 >=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
@@ -27,8 +29,10 @@ success but initializes nothing -- sdl3 suite 51/52 vs 52/52 -- repro
 `docs/repro/bindings-pilot/sdl3-init-arg/`).
 Engine P3 asks: blit (0.8.0), typed input (0.6.0/0.9.0), wheel + audio
 stream (0.12.0), capture streams + query (0.13.0) -- ALL PUBLISHED;
-pointer/relative mouse (0.14.0) in the publish queue. Upstream sources live
-in `E:\repos` (Vulkan-Headers, SDL3, FFmpeg + pool).
+pointer/relative mouse (0.14.0) + live joystick (0.15.0) in the publish
+queue. Engine P4 ask scoped (assimp 0.8.0 helpers, reply sent
+`REL-20261011-1602-bindings-2`). Upstream sources live in `E:\repos`
+(Vulkan-Headers, SDL3, FFmpeg + pool).
 
 ## RESUME HERE (handoff, 2026-10-11)
 
@@ -38,16 +42,30 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 15:53Z, batch-51 ship tick)**: batches 31-51
-  relayed; sdl3 **0.12.0 + 0.13.0 PUBLISHED** (`eco-v0.1.148`/`149`).
-  **Publish queue (packages): sdl3 0.14.0** (batch 51 relayed 15:53Z)
-  + jolt 0.2.0 (m258 parked only). Engine asks: blit (0.8.0, `143`),
+- **CURRENT (2026-10-11 16:02Z, batch-52 ship tick)**: batches 31-52
+  relayed; sdl3 **0.12.0-0.13.0 PUBLISHED** (`eco-v0.1.148`/`149`).
+  **Publish queue (packages): sdl3 0.14.0 + 0.15.0** (batches 51/52)
+  + jolt 0.2.0 (m258 parked only). Engine P3 asks: blit (0.8.0, `143`),
   displays/keyboard (0.7.0, `142`), mouse/window contract (0.9.0, `145`),
   audio+joystick enum (0.10.0, `146`), tables (0.11.0, `147`), audio stream
   + wheel (0.12.0, `148`), capture + query (0.13.0, `149`) -- ALL
-  PUBLISHED. Relay: `REL-20261011-1533-compiler` processed (verdicts +
-  B-18/B-19 regressions filed); batch-51 item
-  `REL-20261011-1553-bindings` sent.
+  PUBLISHED; pointer/relative mouse (0.14.0) + live joystick (0.15.0)
+  queued. Relay: `REL-20261011-1533-compiler` processed (verdicts +
+  B-18/B-19 regressions filed); batch items `-1553`/`-1602` sent; engine
+  P4 assimp scope accepted + replied (`REL-20261011-1602-bindings-2`).
+- **Latest batch 52 (2026-10-11)**: `xiom.sdl3` **0.15.0 -- live joystick
+  path**: 10 symbols -- `SDL_OpenJoystick`/`SDL_CloseJoystick`,
+  `SDL_JoystickConnected`, `SDL_GetJoystickName`, `SDL_GetJoystickAxis`
+  (16-bit result sign-extended explicitly), `SDL_GetJoystickButton`,
+  `SDL_SetJoystickVirtualAxis/Button`, `SDL_Attach/DetachVirtualJoystick`;
+  `SDL_VIRTUAL_JOYSTICK_DESC_SIZE` = 136 (x64 pin; `version` =
+  sizeof(desc) per `SDL_INIT_INTERFACE`). The desc slot is byte-indexed
+  (B-16/B-17); name pointer must outlive the joystick (documented).
+  **No SKIP**: the suite attaches a hardware-free virtual pad, opens it
+  through the real read path, feeds axis0=16384 + button1, reads them
+  back exactly (name `xiom-virtual-pad`, connected=true), then detaches.
+  Ports: **58/58 x2** present + **4/4 x2** absent + **7/7 stability**.
+  feat `fbd60b6e` + record `9f771f88`.
 - **Latest batch 51 (2026-10-11)**: `xiom.sdl3` **0.14.0 -- pointer capture
   + relative mouse**: 5 symbols -- `SDL_GetGlobalMouseState`,
   `SDL_GetRelativeMouseState` (button mask + two f32 out-params into one
@@ -286,23 +304,24 @@ clone: stage ONLY your own item files). The two working rules are in
    but replied (`REL-20261011-1345-bindings-2`,
    `REL-20261011-1437-bindings-2`), xvector `1203` + engine `1153`
    acked by their lanes, compiler `1342` open (info).
-2. **Publish watch**: packages queue = sdl3 **0.14.0** (batch 51, relayed
-   15:53Z) + jolt 0.2.0 (m258 archive parked). 0.7.0-0.13.0 landed in
-   `eco-v0.1.142`-`149`. Record new eco versions in the relay area of this
-   file. The engine consumes only published packages -- if asked, nudge
-   packages.
+2. **Publish watch**: packages queue = sdl3 **0.14.0 + 0.15.0** (batches
+   51/52, relayed 15:53Z/16:02Z) + jolt 0.2.0 (m258 archive parked).
+   0.7.0-0.13.0 landed in `eco-v0.1.142`-`149`. Record new eco versions in
+   the relay area of this file. The engine consumes only published
+   packages -- if asked, nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
-   runtime/pin `release-3.4.8`): 0.4.0-0.14.0 shipped (batches 41-51;
-   capture + query in 0.13.0, pointer/relative mouse in 0.14.0). Next
-   candidates (ROADMAP Phase 2): joystick open/axis/button reads (no pad on
-   this box -- SKIP-safe shapes), drag-drop payload decoding (paths/text
-   via ptr reads), POSIX soname. Apply the 1-arg handler
+   runtime/pin `release-3.4.8`): 0.4.0-0.15.0 shipped (batches 41-52;
+   capture in 0.13.0, pointer/relative mouse in 0.14.0, live joystick
+   reads in 0.15.0 via virtual-pad instrumentation). Next candidates
+   (ROADMAP Phase 2): drag-drop payload decoding (paths/text via ptr
+   reads), POSIX soname. Apply the 1-arg handler
    discipline (B-15), byte-indexed slot writes (B-16), and **no pointer
    arithmetic (B-17: one owned slot per out-param; Int address math stays
    correct)**. Ship each batch as: feat -> x2 (present + absent
    PATH-filtered) -> record -> relay -> ledger. Constant regeneration
    recipe: comment-strip + enum-parse + macro-eval vs the headers
-   (ROADMAP item 1).
+   (ROADMAP item 1). Also queued: engine P4 ask (assimp 0.8.0 file-import
+   + mesh-data helpers; scope accepted `REL-20261011-1602-bindings-2`).
 4. ~~stb publish~~ **DONE** (`eco-v0.1.139`); batches 39/40/41 wrapped on
    main (`470e13f3`); vulkan 0.5.0 live (`eco-v0.1.138`).
 
@@ -328,11 +347,12 @@ Bindings lane continuation -- clean handoff pickup (2026-10-11 15:12Z).
    eco publish notes and record confirmed eco versions in
    BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
    action." Then check relay once now; also check the packages publish
-   queue (sdl3 0.14.0 at handoff).
+   queue (sdl3 0.14.0 + 0.15.0 at handoff).
 
 3. Continue the ordered tasks. Priority: (a) SDL3 continuance from
-   E:\repos\SDL3 (next candidates: joystick open/axis reads -- SKIP-safe
-   without a pad, drag-drop payload decoding, POSIX soname); (b) the E:\repos
+   E:\repos\SDL3 (next candidates: drag-drop payload decoding,
+   POSIX soname; joystick live reads shipped in 0.15.0 via virtual-pad
+   instrumentation); (b) the E:\repos
    full-coverage pool (miniaudio, meshoptimizer, ozz-animation, imgui,
    box2d) -- bind from the real sources, never from memory; (c) publish
    watch for sdl3 0.13.0 + jolt (m258); (d) Vulkan phase 4 only if
