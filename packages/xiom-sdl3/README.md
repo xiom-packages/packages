@@ -6,14 +6,12 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.10.0 audio + joystick + runtime**
-> (playback/recording device enumeration + device names + current audio
-> driver; joystick enumeration + name-for-id; `SDL_PIXELFORMAT_ABGR8888`
-> exported with the 8888 naming note -- engine ask `REL-20261011-1321-engine`).
-> Native **48/48 x2** with the official SDL 3.4.8 DLL + absent **4/4 x2**
-> (v0.64.3; wasapi 9 playback / 4 recording devices here). 0.9.0 shipped in
-> `eco-v0.1.145`; 0.10.0 published in `eco-v0.1.146` (sha256 `6c465084...`).
-> **Lane:** bindings (`keywords: ["binding"]`).
+> **Status:** `incubating` -- **0.11.0 full constant tables + runtime**
+> (source-generated ~190 constants: the complete `SDL_EVENT_*` enum,
+> window flags, keymods and the explicit-value pixel formats). Native
+> **48/48 x2** with the official SDL 3.4.8 DLL + absent **4/4 x2** (v0.64.3).
+> 0.10.0 shipped in `eco-v0.1.146`; 0.11.0 published in `eco-v0.1.147`
+> (sha256 `d2aec7d4...`). **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
