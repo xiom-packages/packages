@@ -49,6 +49,18 @@ fn slot_new(n: Int) -> Vec[UInt8] {
   return s;
 }
 
+// Drain the event queue (consume semantics; returns the drained count).
+fn drain_events(lib: &Sdl3Library, max: Int) -> Int
+  requires: max > 0
+{
+  var n = 0;
+  while n < max {
+    if !sdl3_poll_event(lib, 0) { break; }
+    n = n + 1;
+  }
+  return n;
+}
+
 // Constant tables and version arithmetic (independent of the DLL).
 fn t_constants() -> Bool {
   var ok = true;
@@ -168,6 +180,35 @@ fn t_event_decode() -> Bool {
   return ok;
 }
 
+// ---- 0.5.0: event filter + watch capture state ----------------------------
+// Handlers take the event only (B-15: Vec[fn] element calls with >= 2 args
+// type their result as ()); userdata comes back via the package getters.
+
+var flt_calls: Int = 0;
+var flt_last_type: Int = 0;
+var flt_userdata: Int = 0;
+var flt_drop_type: Int = 0;
+
+fn on_filter(ev: Vec[UInt8]) -> Bool {
+  flt_calls = flt_calls + 1;
+  flt_last_type = sdl3_event_type(&ev);
+  flt_userdata = sdl3_filter_userdata();
+  if flt_drop_type != 0 && flt_last_type == flt_drop_type {
+    return false;
+  }
+  return true;
+}
+
+var wtc_calls: Int = 0;
+var wtc_last_type: Int = 0;
+var wtc_userdata: Int = 0;
+
+fn on_watch(ev: Vec[UInt8]) -> Unit {
+  wtc_calls = wtc_calls + 1;
+  wtc_last_type = sdl3_event_type(&ev);
+  wtc_userdata = sdl3_watch_userdata();
+}
+
 fn main() -> Int {
   io.println("=== xiom.sdl3 conformance tests (dynamic loader) ===");
   io.flush_stdout();
@@ -269,6 +310,73 @@ fn main() -> Int {
     failed = failed + report(kpushed && kconsumed,
       "events: synthetic KEY_DOWN (scancode A) injected + consumed (pushed=" + b2s(kpushed)
         + ", consumed=" + b2s(kconsumed) + ")");
+
+    // 0.5.0: event filter (C callback -> dispatcher -> handler registry).
+    // Drains keep the queue deterministic (SDL's filter/poll internals can
+    // leave sentinel residue).  Keep-path: the filter sees the KEY_DOWN and
+    // the event survives to the poll.  Drop-path proof: SDL refuses the
+    // push (returns false) when the filter rejects the event.
+    var dr0 = drain_events(&lib, 50);
+    flt_calls = 0;
+    flt_drop_type = 0;
+    let flt_set = sdl3_set_event_filter(&lib, on_filter, 0x77);
+    var kev2 = slot_new(128);
+    wr_u32(&mut kev2, 0, SDL_EVENT_KEY_DOWN);
+    wr_u32(&mut kev2, 24, SDL_SCANCODE_A);
+    wr_u32(&mut kev2, 28, 97);
+    wr_u8(&mut kev2, 36, 1);
+    let fpushed = sdl3_push_event(&lib, kev2.as_mut_ptr() as Int);
+    sdl3_pump_events(&lib);
+    let fkept = sdl3_poll_event(&lib, 0);
+    failed = failed + report(flt_set && fpushed && fkept && flt_calls >= 1
+        && flt_last_type == SDL_EVENT_KEY_DOWN && flt_userdata == 0x77,
+      "events: filter saw the pushed KEY_DOWN and kept it (drained=" + to_string(dr0)
+        + " calls=" + to_string(flt_calls) + " last=" + to_string(flt_last_type)
+        + " userdata=" + to_string(flt_userdata) + ")");
+
+    // Drop-path: the filter rejects MOUSE_MOTION -> SDL refuses the push.
+    let dr1 = drain_events(&lib, 50);
+    flt_calls = 0;
+    flt_drop_type = SDL_EVENT_MOUSE_MOTION;
+    var mev2 = slot_new(128);
+    wr_u32(&mut mev2, 0, SDL_EVENT_MOUSE_MOTION);
+    wr_u32(&mut mev2, 28, 0x41480000);
+    let mpushed = sdl3_push_event(&lib, mev2.as_mut_ptr() as Int);
+    sdl3_pump_events(&lib);
+    let fc_ok = sdl3_clear_event_filter(&lib);
+    let dr2 = drain_events(&lib, 50);
+    failed = failed + report(fc_ok && !mpushed && flt_calls >= 1
+        && flt_last_type == SDL_EVENT_MOUSE_MOTION,
+      "events: filter rejected the pushed MOUSE_MOTION (push refused=" + b2s(!mpushed)
+        + " drained=" + to_string(dr1) + " calls=" + to_string(flt_calls)
+        + " last=" + to_string(flt_last_type) + " cleared=" + b2s(fc_ok)
+        + " residue=" + to_string(dr2) + ")");
+
+    // Event watch: observes without consuming; removal stops the firing.
+    let dr3 = drain_events(&lib, 50);
+    wtc_calls = 0;
+    let wset = sdl3_add_event_watch(&lib, on_watch, 0x88);
+    var kev3 = slot_new(128);
+    wr_u32(&mut kev3, 0, SDL_EVENT_KEY_UP);
+    wr_u8(&mut kev3, 36, 0);
+    let k3pushed = sdl3_push_event(&lib, kev3.as_mut_ptr() as Int);
+    sdl3_pump_events(&lib);
+    let k3kept = sdl3_poll_event(&lib, 0);
+    let wc_before = wtc_calls;
+    let wremoved = sdl3_remove_event_watch(&lib, 0x88);
+    var kev4 = slot_new(128);
+    wr_u32(&mut kev4, 0, SDL_EVENT_KEY_UP);
+    let k4pushed = sdl3_push_event(&lib, kev4.as_mut_ptr() as Int);
+    sdl3_pump_events(&lib);
+    let k4kept = sdl3_poll_event(&lib, 0);
+    let dr4 = drain_events(&lib, 50);
+    failed = failed + report(wset && k3pushed && k3kept && k4pushed && k4kept
+        && wremoved && wc_before >= 1 && wtc_last_type == SDL_EVENT_KEY_UP
+        && wtc_userdata == 0x88 && wtc_calls == wc_before,
+      "events: watch saw KEY_UP without consuming; removed watch stopped firing (drained="
+        + to_string(dr3) + " calls=" + to_string(wtc_calls) + " last="
+        + to_string(wtc_last_type) + " userdata=" + to_string(wtc_userdata)
+        + " removed=" + b2s(wremoved) + " residue=" + to_string(dr4) + ")");
 
     // Quit and verify the flags are cleared.
     sdl3_quit(&lib);

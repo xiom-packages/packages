@@ -1,6 +1,6 @@
 # xiom.sdl3 -- Roadmap
 
-**Version**: v0.4.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
+**Version**: v0.5.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
 
 ## Current state
 
@@ -16,6 +16,7 @@
 | Gamepad (enumeration + open/close seam) | Done -- 0.3.0 (device paths SKIP when none) |
 | Event decoding (owned 128-byte buffer + typed accessors) | Done -- 0.4.0 |
 | Synthetic event injection (user + KEY_DOWN) | Done -- 0.3.1/0.4.0 |
+| Event filter + watch (callbacks, keep/drop) | Done -- 0.5.0 |
 | Full constant tables | Phase 2 |
 | POSIX soname fallback | Phase 2 |
 

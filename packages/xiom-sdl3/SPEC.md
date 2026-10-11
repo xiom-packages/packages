@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.4.0 |
+| Version | 0.5.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -113,12 +113,30 @@ discipline -- no fp cast-call returns).  The suite decodes self-built buffers
 in every shape (DLL-free) and injects a synthetic KEY_DOWN through the real
 queue (consume semantics; B-11 readback deferral unchanged).
 
+**0.5.0 addition (event filter + watch, 2026-10-11):** `SDL_SetEventFilter`,
+`SDL_AddEventWatch`, `SDL_RemoveEventWatch` joined the resolved symbol set
+(so the ABI-mismatch classification covers them).  Each registration hands
+SDL a FIXED top-level dispatcher (`sdl3_filter_dispatch` /
+`sdl3_watch_dispatch`; B-13: fn-typed param values cannot cross into C);
+user handlers live in module-level `Vec[fn]` registries (m130 element ABI,
+last registered wins).  The dispatcher copies the 128-byte `SDL_Event` into
+an owned buffer via our own `ffi.memcpy` (safe read direction) so handlers
+decode with the 0.4.0 accessors and the B-11 foreign-write readback path is
+never touched.  Handler shapes are 1-argument (event only) because
+`Vec[fn]` element calls with >= 2 arguments type their result as `()`
+(finding B-15); the registration userdata is exposed via
+`sdl3_filter_userdata()` / `sdl3_watch_userdata()`.  Dispatcher bodies avoid
+bare `return;` in explicitly `-> Unit` fns (finding B-14).  Semantics
+proven by the suite: a keep-filter passes a pushed KEY_DOWN to the poll; a
+rejecting filter makes `SDL_PushEvent` itself return false (drop proof);
+the watch observes without consuming and removal stops further firing.
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 3/3 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still 13 checks in this shape -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 24/24 x2** -- decode layer + smoke + resources: symbol set, hidden 320x200 window (size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration (0 attached -> SKIP open), synthetic user event + KEY_DOWN injection, resource handle release |
+| SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 27/27 x2** -- decode layer + smoke + resources (window/renderer/texture/gamepad) + synthetic user event + KEY_DOWN + filter keep (calls=4 incl. internal passes, last=KEY_DOWN, userdata echoed) + filter reject (push refused) + watch non-consuming/removal |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no
 extra compiler flags (this is the design win of the loader path over a C

@@ -6,15 +6,12 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.4.0 event decoding + runtime** (event layer:
-> `SDL_Event` over an owned 128-byte buffer with typed accessors, offsets
-> pinned to the release-3.4.8 headers and verified against the 3.2.10 clone).
-> Native **24/24 x2** with the official SDL 3.4.8 DLL + absent **4/4 x2**
-> (headless synthetic-event pump + KEY_DOWN injection,
-> window/renderer/texture/gamepad, decode layer; 7 byte-level `Vec<UInt8>`
-> sites normalized to `Vec[UInt8]` pre-publish, `799fceaa`). 0.3.1 shipped in
-> `eco-v0.1.134`; 0.4.0 published in `eco-v0.1.138` (sha256 `a9006d4c...`).
-> **Lane:** bindings (`keywords: ["binding"]`).
+> **Status:** `incubating` -- **0.5.0 event filter/watch + runtime** (input
+> interception: SDL_SetEventFilter / SDL_AddEventWatch over fixed
+> dispatchers + handler registries; keep/drop semantics and non-consuming
+> observation proven by synthetic events). Suite **27/27 x2** with the
+> official SDL 3.4.8 DLL + absent 4/4 x2. **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -48,6 +45,7 @@ fn main() {
 | Version | `sdl3_get_version`, `sdl3_get_revision`, `sdl3_versionnum`, `sdl3_version_major/minor/patch` |
 | Timer | `sdl3_get_ticks`, `sdl3_get_performance_counter`, `sdl3_delay` |
 | Events | `sdl3_pump_events`, `sdl3_poll_event`, `sdl3_push_event` |
+| Event filter/watch (0.5.0) | `sdl3_set_event_filter(filter, userdata)` (keep/drop via the Bool result), `sdl3_clear_event_filter`, `sdl3_add_event_watch(watch, userdata)`, `sdl3_remove_event_watch`, `sdl3_filter_userdata()`, `sdl3_watch_userdata()` -- handlers take the owned event buffer (1-arg shapes; B-15) |
 | Event decode (0.4.0) | `sdl3_event_type`, `sdl3_event_timestamp`, `sdl3_event_window_id`, `sdl3_event_key_scancode/key_code/mods/down/repeat`, `sdl3_event_mouse_state/x_bits/y_bits/x/y/button/button_down/clicks`, `sdl3_event_window_data1/data2`, `sdl3_f32_from_bits`, `SDL_EVENT_SIZE` |
 | Error | `sdl3_get_error` |
 | Resources | `sdl3_load_resources`, `sdl3_resources_close`, `sdl3_create_window`, `sdl3_destroy_window`, `sdl3_show_window`, `sdl3_hide_window`, `sdl3_window_size`, `sdl3_set_window_title`, `sdl3_create_renderer`, `sdl3_destroy_renderer`, `sdl3_set_render_draw_color`, `sdl3_render_clear`, `sdl3_render_present`, `sdl3_create_texture`, `sdl3_destroy_texture`, `sdl3_has_gamepad`, `sdl3_gamepad_count`, `sdl3_open_gamepad`, `sdl3_close_gamepad` |
@@ -69,9 +67,9 @@ anywhere on `PATH`. G2 pin (soname + header-set manifest hash): `SPEC.md` §2.
 xiom --run tests/test_conformance.xi
 ```
 
-- With SDL3: 24 `[PASS]` (decode layer + smoke + hidden window, renderer
+- With SDL3: 27 `[PASS]` (decode layer + smoke + hidden window, renderer
   clear/present, RGBA8888 texture, gamepad enumeration, synthetic event
-  injection), exit 0 (~10 s).
+  injection, filter keep/drop + watch semantics), exit 0 (~12 s).
 - Without SDL3: the loader smoke reports explicit `SKIP` labels and stays
   green; the decode layer runs in both shapes (pure XIOM; no DLL needed).
 
