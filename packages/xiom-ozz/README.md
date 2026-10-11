@@ -6,10 +6,12 @@ units (base + math + animation runtime + offline builder; plus our C
 bridge) and compiled into the test binary -- no system library, no SDK, no
 separate build step.
 
-> **Status:** `incubating` -- suite green x2 on the pin (v0.64.3): 5/5 with
-> real runtime objects (offline `SkeletonBuilder`/`AnimationBuilder` ->
-> runtime `Skeleton`/`Animation` -> `LocalToModelJob`/`SamplingJob` with
-> verified poses).
+> **Status:** `incubating` -- suite green on the pin (v0.64.3): native
+> **5/5 x2** with real runtime objects (offline
+> `SkeletonBuilder`/`AnimationBuilder` -> runtime `Skeleton`/`Animation` ->
+> `LocalToModelJob`/`SamplingJob` with verified poses; 0.3.0 adds the clip
+> pipeline + the in-package `tools/combine.py` bundler). 0.2.0 shipped in
+> `eco-v0.1.109`; 0.3.0 published in `eco-v0.1.156` (sha256 `f84988e7...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
