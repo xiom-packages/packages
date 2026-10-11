@@ -23,13 +23,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   tag `eco-v0.1.160`; gate approved (`environment_ids:[22424011031]`); run `38174860356` green
   (publish job 4m34s); live sha256 `f2d99b9e...` @21:08:25Z; bus item `REL-20261011-2048-bindings`
   fixed; README/STATUS synced. Tally: **76 eco releases** (`eco-v0.1.86` -> `eco-v0.1.160`).
-- **PENDING GATE unchanged + imminent**: v0.64.4 -- compiler push landed (`677d65a7 -> 87c6ca3c`,
-  m254-m274; Gate A green 2480/0); stdlib runs the archive/witness/revert/tag sequence (~1h from
-  20:21Z); compiler pins/tags after `stdlib-v0.64.4` -> archive. On release: repin + merge
-  origin/bindings + jolt port x2 (watchdog >= 600 s) + publish 0.2.0 (jolt scope ALREADY LIVE; never
-  publish unverified); re-verify per the 19:55Z expectations block below (B-16/B-17 NOT in the wave
-  -- still red, do not bounce; B-18 fixed m274; B-19 now shipped via 0.16.1). Watches: archive wakeup
-  21:48Z, then the 2h doorbell.
+- **PENDING GATE unchanged + imminent**: v0.64.4 -- stdlib VERIFIED the refreshed archive green
+  (22:11Z: corpus 954/954, probes 288/288, modules 509/509) and was cleared to tag; compiler PIN
+  landed (`df493530`; stdlib-v0.64.4 `3df0843`); the release tag/archive is the last step. On
+  release: repin + (bindings already merged through `242ad767`) + jolt port x2 + the eleven SDK100
+  x2 runs on the new pin + publish; re-verify per the 19:55Z expectations block below (B-16/B-17 NOT
+  in the wave -- still red, do not bounce; B-18 fixed m274; B-19 shipped via 0.16.1). Watches:
+  doorbell 23:00 fired, gate bridge 23:13Z.
 - **OWNER DOCTRINE ADOPTED (2026-10-11 21:30Z): upstream-first is standing policy** --
   `docs/UPSTREAM-FIRST.md`: no code from memory; clone the authoritative upstream at a pinned
   commit into `E:\repos\<name>` (shared, disposable; ledger + review-after retention in
@@ -39,15 +39,19 @@ running). Check `git log -1 --format=%h %s` before starting.
   Directive relayed to bindings (`REL-20261011-2131-packages`); codification ask with a paste-ready
   block for their session doc `REL-20261011-2141-packages`; lane gates **G6** (upstream-first +
   PROVENANCE.md) / **G7** (coverage = 100%) added to `docs/BINDINGS-LANE.md`.
-- **SDK100 wave-1 merged + staged (2026-10-11 22:45Z)**: bindings tip `a4066826` merged (no
-  conflicts; 224 files, +94k) -- six new shader-toolchain packages (spirv-tools/cross/reflect/
-  glslang/slang 0.1.0 + dxc 0.3.0; oracle-counted 100% coverage, PROVENANCE.md) + the full Vulkan
-  SDK 1.4.350 surface on xiom.vulkan (845 cmds + consts + struct-meta; stays **0.5.0** -- publish
-  skips it until its own owner-coordinated bump). Validate **529/0** post-merge; guard 511/494/17/0
-  unchanged. Five new names need registry scopes (`REL-20261011-2234-packages` filed with ops:
-  check/stage) + allowlist append at wrap; dxc already allowlisted. **x2 runs deferred to the
-  v0.64.4 pin** (verified == publish-build integrity, same rule as jolt) and run with the gate.
-  Bus acks: `REL-20261011-2231-bindings` (batch), `REL-20261011-2155-bindings` (vulkan fold).
+- **SDK100 waves 1+2 merged + staged (2026-10-11 23:02Z)**: bindings tips `a4066826` + `242ad767`
+  merged (no conflicts; ~230 files) -- eleven packages staged: wave-1 six (spirv-tools/cross/
+  reflect/glslang/slang 0.1.0 + dxc 0.3.0), wave-2 five (sdl2 0.1.0 new; spirv-headers 0.1.0 new;
+  shaderc 0.1.0 new; vma 0.2.0->**0.3.0**; sdl3 additive full surface 1270/1270). xiom.vulkan full
+  SDK surface merged but stays **0.5.0** (publish skips; own owner-coordinated bump). **sdl3 full
+  surface sits under the already-published 0.16.1 -> bump to 0.17.0 at wrap** (feature-wave
+  convention; note on the fix). Validate **532/0**; guard 511/494/17/0. **Eight new names** need
+  registry scopes: wave-1 five (`REL-20261011-2234-packages`), wave-2 three
+  (`REL-20261011-2301-packages`) + allowlist append at wrap (after records are green). x2 for all
+  eleven deferred to the **v0.64.4 pin** (verified == publish-build) and run with the gate. Bus:
+  acks -2231/-2155/-2305; non-ASCII report on bindings' `REL-20261011-2320-bindings` (section-sign;
+  validate red repo-wide) filed as `REL-20261011-2302-packages`; their wave-2 findings incl. a HIGH
+  `Vec[UInt8].with_len` HBO (stdlib, worked around) are with compiler.
 
 **STATE AT 2026-10-11 18:45Z (CLEAN HANDOFF -- batches 38-61 ALL delivered; one gate left; supersedes the 11:10Z block below):**
 - **Batch lane drained.** Every bindings item from today is delivered end-to-end (merge -> validate
