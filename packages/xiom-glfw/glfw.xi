@@ -16,8 +16,9 @@
 // events (poll/wait), input polling (key/mouse/cursor + modes), monitors +
 // video modes, clipboard, time, GL-context basics, Win32 native accessors,
 // and the Vulkan helpers (supported / instance proc / required extensions /
-// win32 surface). 0.4.0 adds cursors, joystick/gamepad, gamma ramps, window
-// icons, and the event-callback setters (ROADMAP.md).
+// win32 surface). 0.4.0 adds gamma ramps, cursors, window icons,
+// joystick/gamepad polling and the Vulkan-loader hook -- 105/124 exports;
+// 0.5.0 adds the event-callback setters (ROADMAP.md).
 //
 // G2 pin (SPEC.md): soname `glfw3.dll` (Windows) + upstream tag 3.4 header
 // hash + resolved symbol set. Vulkan helpers are resolved best-effort
@@ -419,6 +420,27 @@ pub type GlfwLibrary = {
   p_get_win32_adapter: Int;
   p_get_win32_monitor: Int;
   p_get_win32_window: Int;
+  // 0.4.0 additions.
+  p_get_gamma_ramp: Int;
+  p_set_gamma_ramp: Int;
+  p_set_window_icon: Int;
+  p_create_cursor: Int;
+  p_create_standard_cursor: Int;
+  p_destroy_cursor: Int;
+  p_set_cursor: Int;
+  p_joystick_present: Int;
+  p_get_joystick_axes: Int;
+  p_get_joystick_buttons: Int;
+  p_get_joystick_hats: Int;
+  p_get_joystick_name: Int;
+  p_get_joystick_guid: Int;
+  p_set_joystick_user_pointer: Int;
+  p_get_joystick_user_pointer: Int;
+  p_joystick_is_gamepad: Int;
+  p_get_gamepad_name: Int;
+  p_get_gamepad_state: Int;
+  p_update_gamepad_mappings: Int;
+  p_init_vulkan_loader: Int;
   // Optional (build-dependent; 0 = export absent).
   p_vulkan_supported: Int;
   p_get_required_instance_extensions: Int;
@@ -668,6 +690,27 @@ fn glfw_symbol_names() -> Vec[Str]
   n.push("glfwGetWin32Adapter");                   // 78
   n.push("glfwGetWin32Monitor");                   // 79
   n.push("glfwGetWin32Window");                    // 80
+  // 0.4.0 additions (order must match GlfwLibrary).
+  n.push("glfwGetGammaRamp");                      // 81
+  n.push("glfwSetGammaRamp");                      // 82
+  n.push("glfwSetWindowIcon");                     // 83
+  n.push("glfwCreateCursor");                      // 84
+  n.push("glfwCreateStandardCursor");              // 85
+  n.push("glfwDestroyCursor");                     // 86
+  n.push("glfwSetCursor");                         // 87
+  n.push("glfwJoystickPresent");                   // 88
+  n.push("glfwGetJoystickAxes");                   // 89
+  n.push("glfwGetJoystickButtons");                // 90
+  n.push("glfwGetJoystickHats");                   // 91
+  n.push("glfwGetJoystickName");                   // 92
+  n.push("glfwGetJoystickGUID");                   // 93
+  n.push("glfwSetJoystickUserPointer");            // 94
+  n.push("glfwGetJoystickUserPointer");            // 95
+  n.push("glfwJoystickIsGamepad");                 // 96
+  n.push("glfwGetGamepadName");                    // 97
+  n.push("glfwGetGamepadState");                   // 98
+  n.push("glfwUpdateGamepadMappings");             // 99
+  n.push("glfwInitVulkanLoader");                  // 100
   return n;
 }
 
@@ -792,6 +835,26 @@ pub fn glfw_load() -> Result[GlfwLibrary, GlfwLoadError] {
     p_get_win32_adapter: ptrs[78],
     p_get_win32_monitor: ptrs[79],
     p_get_win32_window: ptrs[80],
+    p_get_gamma_ramp: ptrs[81],
+    p_set_gamma_ramp: ptrs[82],
+    p_set_window_icon: ptrs[83],
+    p_create_cursor: ptrs[84],
+    p_create_standard_cursor: ptrs[85],
+    p_destroy_cursor: ptrs[86],
+    p_set_cursor: ptrs[87],
+    p_joystick_present: ptrs[88],
+    p_get_joystick_axes: ptrs[89],
+    p_get_joystick_buttons: ptrs[90],
+    p_get_joystick_hats: ptrs[91],
+    p_get_joystick_name: ptrs[92],
+    p_get_joystick_guid: ptrs[93],
+    p_set_joystick_user_pointer: ptrs[94],
+    p_get_joystick_user_pointer: ptrs[95],
+    p_joystick_is_gamepad: ptrs[96],
+    p_get_gamepad_name: ptrs[97],
+    p_get_gamepad_state: ptrs[98],
+    p_update_gamepad_mappings: ptrs[99],
+    p_init_vulkan_loader: ptrs[100],
     p_vulkan_supported: ov[0],
     p_get_required_instance_extensions: ov[1],
     p_get_instance_proc_address: ov[2],
@@ -2069,5 +2132,362 @@ pub fn glfw_create_window_surface(lib: &GlfwLibrary, instance: Int, w: &GlfwWind
       return Err("glfwCreateWindowSurface failed: VkResult " + int_to_string(rc));
     }
     return Ok(read_u64_le(&ss, 0));
+  }
+}
+
+// =========================================================================
+// 0.4.0: gamma ramps, cursors, window icon, joystick/gamepad, loader hook
+// =========================================================================
+
+/// Build a GLFWimage record (width i32, height i32, pixels ptr) in an
+/// XIOM-owned slot pointing at `rgba`.
+fn glfw_make_image(width: Int, height: Int, rgba: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  requires: width > 0
+  requires: height > 0
+  requires: rgba.len() >= width * height * 4
+{
+  var img = slot_new(16);
+  unsafe {
+    let raw = img.as_mut_ptr() as *UInt8;
+    let r = safe_ptr_from_raw(raw, 16);
+    if !r.is_ok {
+      return Err("image slot wrap failed: " + r.error);
+    }
+    var sp = r.value;
+    var a = safe_ptr_write_i32(&mut sp, 0, width);
+    var b = safe_ptr_write_i32(&mut sp, 4, height);
+    var c = safe_ptr_write_i64(&mut sp, 8, rgba.as_mut_ptr() as Int);
+    if !a.is_ok || !b.is_ok || !c.is_ok {
+      return Err("image slot write failed");
+    }
+  }
+  return Ok(img);
+}
+
+/// glfwGetGammaRamp() -> raw GLFWgammaramp copy (1536 bytes: little-endian
+/// u16 red[256] + green[256] + blue[256]).  Empty when the monitor has none.
+/// Complexity: O(1).
+pub fn glfw_get_gamma_ramp_raw(lib: &GlfwLibrary, m: &GlfwMonitor) -> Vec[UInt8]
+  requires: lib.handle != 0
+  requires: m.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_gamma_ramp as fn(*UInt8) -> *UInt8;
+    let p = f(m.handle as *UInt8);
+    if (p as Int) == 0 {
+      var e: Vec[UInt8] = Vec[UInt8].new();
+      return e;
+    }
+    return copy_from(p as Int, 1536);
+  }
+}
+
+/// glfwSetGammaRamp() from a raw 1536-byte ramp buffer.
+/// Complexity: O(1).
+pub fn glfw_set_gamma_ramp_raw(lib: &GlfwLibrary, m: &GlfwMonitor, buf: &Vec[UInt8])
+  requires: lib.handle != 0
+  requires: m.handle != 0
+  requires: buf.len() == 1536
+{
+  unsafe {
+    let f = lib.p_set_gamma_ramp as fn(*UInt8, *UInt8);
+    f(m.handle as *UInt8, buf.as_mut_ptr() as *UInt8);
+  }
+}
+
+/// glfwSetWindowIcon() with a single RGBA8 image.
+/// Complexity: O(w*h).
+pub fn glfw_set_window_icon(lib: &GlfwLibrary, w: &GlfwWindow, width: Int, height: Int,
+    rgba: &Vec[UInt8]) -> Result[Unit, Str]
+  requires: lib.handle != 0
+  requires: w.handle != 0
+  requires: width > 0
+  requires: height > 0
+  requires: rgba.len() >= width * height * 4
+{
+  let mk = glfw_make_image(width, height, rgba);
+  if !mk.is_ok {
+    return Err(mk.error);
+  }
+  var img: Vec[UInt8] = mk.value;
+  unsafe {
+    let f = lib.p_set_window_icon as fn(*UInt8, Int32, *UInt8);
+    f(w.handle as *UInt8, 1, img.as_mut_ptr() as *UInt8);
+  }
+  return Ok(());
+}
+
+/// glfwCreateStandardCursor(shape) -> cursor handle (0 = failure).
+/// Complexity: O(1).
+pub fn glfw_create_standard_cursor(lib: &GlfwLibrary, shape: Int) -> Result[Int, Str]
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_create_standard_cursor as fn(Int32) -> *UInt8;
+    let p = f(shape as Int32);
+    if (p as Int) == 0 {
+      return Err(glfw_last_error(lib));
+    }
+    return Ok(p as Int);
+  }
+}
+
+/// glfwCreateCursor() from RGBA8 pixels.
+/// Complexity: O(w*h).
+pub fn glfw_create_cursor(lib: &GlfwLibrary, width: Int, height: Int, xhot: Int, yhot: Int,
+    rgba: &Vec[UInt8]) -> Result[Int, Str]
+  requires: lib.handle != 0
+  requires: width > 0
+  requires: height > 0
+  requires: rgba.len() >= width * height * 4
+{
+  let mk = glfw_make_image(width, height, rgba);
+  if !mk.is_ok {
+    return Err(mk.error);
+  }
+  var img: Vec[UInt8] = mk.value;
+  unsafe {
+    let f = lib.p_create_cursor as fn(*UInt8, Int32, Int32) -> *UInt8;
+    let p = f(img.as_mut_ptr() as *UInt8, xhot as Int32, yhot as Int32);
+    if (p as Int) == 0 {
+      return Err(glfw_last_error(lib));
+    }
+    return Ok(p as Int);
+  }
+}
+
+/// glfwDestroyCursor().
+/// Complexity: O(1).
+pub fn glfw_destroy_cursor(lib: &GlfwLibrary, cursor: Int)
+  requires: lib.handle != 0
+  requires: cursor != 0
+{
+  unsafe {
+    let f = lib.p_destroy_cursor as fn(*UInt8);
+    f(cursor as *UInt8);
+  }
+}
+
+/// glfwSetCursor() (0 restores the default arrow).
+/// Complexity: O(1).
+pub fn glfw_set_cursor(lib: &GlfwLibrary, w: &GlfwWindow, cursor: Int)
+  requires: lib.handle != 0
+  requires: w.handle != 0
+{
+  unsafe {
+    let f = lib.p_set_cursor as fn(*UInt8, *UInt8);
+    f(w.handle as *UInt8, cursor as *UInt8);
+  }
+}
+
+/// glfwJoystickPresent().
+/// Complexity: O(1).
+pub fn glfw_joystick_present(lib: &GlfwLibrary, jid: Int) -> Bool
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    let f = lib.p_joystick_present as fn(Int32) -> Int32;
+    return f(jid as Int32) != 0;
+  }
+}
+
+/// glfwGetJoystickAxes() -> raw f32 little-endian pairs (4 bytes per axis);
+/// empty when the joystick is absent.
+/// Complexity: O(axes).
+pub fn glfw_get_joystick_axes_raw(lib: &GlfwLibrary, jid: Int) -> Vec[UInt8]
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    var sc = slot_new(4);
+    let f = lib.p_get_joystick_axes as fn(Int32, *UInt8) -> *UInt8;
+    let p = f(jid as Int32, sc.as_mut_ptr() as *UInt8);
+    let n = read_i32_le(&sc, 0);
+    if (p as Int) == 0 || n <= 0 {
+      var e: Vec[UInt8] = Vec[UInt8].new();
+      return e;
+    }
+    return copy_from(p as Int, n * 4);
+  }
+}
+
+/// glfwGetJoystickButtons() -> raw button bytes; empty when absent.
+/// Complexity: O(buttons).
+pub fn glfw_get_joystick_buttons_raw(lib: &GlfwLibrary, jid: Int) -> Vec[UInt8]
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    var sc = slot_new(4);
+    let f = lib.p_get_joystick_buttons as fn(Int32, *UInt8) -> *UInt8;
+    let p = f(jid as Int32, sc.as_mut_ptr() as *UInt8);
+    let n = read_i32_le(&sc, 0);
+    if (p as Int) == 0 || n <= 0 {
+      var e: Vec[UInt8] = Vec[UInt8].new();
+      return e;
+    }
+    return copy_from(p as Int, n);
+  }
+}
+
+/// glfwGetJoystickHats() -> raw hat bytes; empty when absent.
+/// Complexity: O(hats).
+pub fn glfw_get_joystick_hats_raw(lib: &GlfwLibrary, jid: Int) -> Vec[UInt8]
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    var sc = slot_new(4);
+    let f = lib.p_get_joystick_hats as fn(Int32, *UInt8) -> *UInt8;
+    let p = f(jid as Int32, sc.as_mut_ptr() as *UInt8);
+    let n = read_i32_le(&sc, 0);
+    if (p as Int) == 0 || n <= 0 {
+      var e: Vec[UInt8] = Vec[UInt8].new();
+      return e;
+    }
+    return copy_from(p as Int, n);
+  }
+}
+
+/// glfwGetJoystickName() ("" when absent/NULL).
+/// Complexity: O(len).
+pub fn glfw_get_joystick_name(lib: &GlfwLibrary, jid: Int) -> Str
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    let f = lib.p_get_joystick_name as fn(Int32) -> *UInt8;
+    let p = f(jid as Int32);
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
+  }
+}
+
+/// glfwGetJoystickGUID() ("" when absent/NULL).
+/// Complexity: O(len).
+pub fn glfw_get_joystick_guid(lib: &GlfwLibrary, jid: Int) -> Str
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    let f = lib.p_get_joystick_guid as fn(Int32) -> *UInt8;
+    let p = f(jid as Int32);
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
+  }
+}
+
+/// glfwSetJoystickUserPointer().
+/// Complexity: O(1).
+pub fn glfw_set_joystick_user_pointer(lib: &GlfwLibrary, jid: Int, pointer: Int)
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    let f = lib.p_set_joystick_user_pointer as fn(Int32, *UInt8);
+    f(jid as Int32, pointer as *UInt8);
+  }
+}
+
+/// glfwGetJoystickUserPointer().
+/// Complexity: O(1).
+pub fn glfw_get_joystick_user_pointer(lib: &GlfwLibrary, jid: Int) -> Int
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    let f = lib.p_get_joystick_user_pointer as fn(Int32) -> *UInt8;
+    return f(jid as Int32) as Int;
+  }
+}
+
+/// glfwJoystickIsGamepad().
+/// Complexity: O(1).
+pub fn glfw_joystick_is_gamepad(lib: &GlfwLibrary, jid: Int) -> Bool
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    let f = lib.p_joystick_is_gamepad as fn(Int32) -> Int32;
+    return f(jid as Int32) != 0;
+  }
+}
+
+/// glfwGetGamepadName() ("" when not a gamepad).
+/// Complexity: O(len).
+pub fn glfw_get_gamepad_name(lib: &GlfwLibrary, jid: Int) -> Str
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    let f = lib.p_get_gamepad_name as fn(Int32) -> *UInt8;
+    let p = f(jid as Int32);
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
+  }
+}
+
+/// glfwGetGamepadState() -> raw 40-byte GLFWgamepadstate copy
+/// (15 button bytes at 0..14, 16 bytes pad, 6 little-endian f32 axes at
+/// 16..39).  Empty when the jid is not a gamepad.
+/// Complexity: O(1).
+pub fn glfw_get_gamepad_state_raw(lib: &GlfwLibrary, jid: Int) -> Vec[UInt8]
+  requires: lib.handle != 0
+  requires: jid >= 0 && jid < 16
+{
+  unsafe {
+    var s = slot_new(40);
+    let f = lib.p_get_gamepad_state as fn(Int32, *UInt8) -> Int32;
+    let rc = f(jid as Int32, s.as_mut_ptr() as *UInt8);
+    if rc == 0 {
+      var e: Vec[UInt8] = Vec[UInt8].new();
+      return e;
+    }
+    return s;
+  }
+}
+
+/// Button byte from a `glfw_get_gamepad_state_raw` buffer.
+/// Complexity: O(1).
+pub fn glfw_gamepad_button(buf: &Vec[UInt8], i: Int) -> Int
+  requires: i >= 0
+  requires: i < 15
+  requires: buf.len() >= 40
+{
+  return buf[i] as Int;
+}
+
+/// Axis value from a `glfw_get_gamepad_state_raw` buffer (f32 decode).
+/// Complexity: O(1).
+pub fn glfw_gamepad_axis(buf: &Vec[UInt8], i: Int) -> Float64
+  requires: i >= 0
+  requires: i < 6
+  requires: buf.len() >= 40
+{
+  return f32_from_bits(read_u32_le(buf, 16 + i * 4));
+}
+
+/// glfwUpdateGamepadMappings() from a mapping string.
+/// Complexity: O(len).
+pub fn glfw_update_gamepad_mappings(lib: &GlfwLibrary, mappings: Str) -> Bool
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_update_gamepad_mappings as fn(*UInt8) -> Int32;
+    return f(mappings as *UInt8) != 0;
+  }
+}
+
+/// glfwInitVulkanLoader() -- pass the address of a custom
+/// `vkGetInstanceProcAddr` (e.g. from the crafted loader) BEFORE `glfwInit`.
+/// Complexity: O(1).
+pub fn glfw_init_vulkan_loader(lib: &GlfwLibrary, get_instance_proc_addr: Int)
+  requires: lib.handle != 0
+  requires: get_instance_proc_addr != 0
+{
+  unsafe {
+    let f = lib.p_init_vulkan_loader as fn(*UInt8);
+    f(get_instance_proc_addr as *UInt8);
   }
 }
