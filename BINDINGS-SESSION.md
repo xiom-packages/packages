@@ -8,13 +8,13 @@ below records evidence and open asks.
 this continuation shipped batches 56-59: meshopt 0.2.0 vendored + 30/30,
 ozz 0.3.0 clip pipeline + 5/5, imgui 0.3.0 context handles + 7/7, box2d
 0.3.0 joint motors + 7/7).
-Published through the window: `eco-v0.1.132`..`eco-v0.1.155` -- assimp 0.7.0,
+Published through the window: `eco-v0.1.132`..`eco-v0.1.156` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
-(`154`), meshopt **0.2.0** (`155`).
-**Publish queue (packages)**: ozz **0.3.0** (`REL-20261011-1740-bindings`,
-17:40Z), imgui **0.3.0** (`REL-20261011-1750-bindings`, 17:52Z), box2d
-**0.3.0** (`REL-20261011-1754-bindings`, 17:56Z); jolt 0.2.0 m258-parked.
+(`154`), meshopt **0.2.0** (`155`), ozz **0.3.0** + imgui **0.3.0** (`156`,
+sha256 `f84988e7...`/`1a7feb3d...`, live 17:54-17:55Z).
+**Publish queue (packages)**: box2d **0.3.0** acked 17:58Z -- publishing as
+`eco-v0.1.157` (`REL-20261011-1754-bindings`); jolt 0.2.0 m258-parked only.
 **Batch 59: xiom.box2d 0.3.0** -- revolute + prismatic joint motors (rotor
 w = motor speed with wrapped-angle semantics; gravity-held slider; 7/7 x2).
 **Pool drive complete**: miniaudio/meshopt/ozz/imgui/box2d all re-verified
@@ -63,12 +63,13 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 18:00Z, batch-59 ship tick)**: batches 31-59
-  relayed; sdl3 **0.12.0-0.16.0** + assimp **0.8.0** + miniaudio **0.3.0**
-  + meshopt **0.2.0** PUBLISHED (`eco-v0.1.148`-`155`); **publish queue:
-  ozz 0.3.0 + imgui 0.3.0 + box2d 0.3.0** (jolt m258-parked only). **Pool
-  drive complete (5/5 re-verified + next items)**. Engine P3+P4 asks ALL
-  delivered/published. Relay: `-1553`..`-1754` batch items sent.
+- **CURRENT (2026-10-11 18:01Z, doorbell tick)**: batches 31-59 relayed;
+  sdl3 **0.12.0-0.16.0** + assimp **0.8.0** + miniaudio **0.3.0** + meshopt
+  **0.2.0** + ozz **0.3.0** + imgui **0.3.0** PUBLISHED
+  (`eco-v0.1.148`-`156`); **publish queue: box2d 0.3.0 acked, publishing as
+  `eco-v0.1.157`** (jolt m258-parked only). **Pool drive complete (5/5
+  re-verified + next items)**. Engine P3+P4 asks ALL delivered/published.
+  Relay: `-1553`..`-1754` batch items sent.
 - **Latest batch 59 (2026-10-11)**: `xiom.box2d` **0.3.0 -- joint motors
   (pool drive)**: bridge gains `b2probe_revolute_motor` (2.0x0.2 bar
   hinged at the origin, gravity off, motor-only torque -> w settles at the
@@ -403,13 +404,13 @@ clone: stage ONLY your own item files). The two working rules are in
    lanes, compiler `1533` re-verified (B-18/B-19 filed), compiler `1731`
    (v0.64.4 staged, info -> re-verify on archive), ops `1134` closed.
 2. **Publish watch**: assimp 0.8.0 = `eco-v0.1.153`, miniaudio 0.3.0 =
-   `eco-v0.1.154`, **meshopt 0.2.0 = `eco-v0.1.155`** (`1158faef...`, live
-   17:41:40Z; the packages run hit a transient ntp registry blip, resolved
-   with a CI retry patch, meshopt unaffected); **ozz 0.3.0 relayed 17:40Z +
-   imgui 0.3.0 relayed 17:52Z (expect `eco-v0.1.156+`)**; jolt 0.2.0
-   m258-parked only. sdl3 0.7.0-0.16.0 landed in `eco-v0.1.142`-`152`.
-   Record new eco versions in the relay area of this file. The engine
-   consumes only published packages -- if asked, nudge packages.
+   `eco-v0.1.154`, meshopt 0.2.0 = `eco-v0.1.155` (`1158faef...`), **ozz
+   0.3.0 + imgui 0.3.0 = `eco-v0.1.156`** (`f84988e7...`/`1a7feb3d...`, live
+   17:54-17:55Z); **box2d 0.3.0 acked 17:58Z -- publishing as
+   `eco-v0.1.157`**; jolt 0.2.0 m258-parked only. sdl3 0.7.0-0.16.0 landed
+   in `eco-v0.1.142`-`152`. Record new eco versions in the relay area of
+   this file. The engine consumes only published packages -- if asked,
+   nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): 0.4.0-0.16.0 shipped (batches 41-53;
    capture in 0.13.0, pointer/relative mouse in 0.14.0, live joystick
@@ -453,10 +454,8 @@ refresh; pool sweep complete).
    eco publish notes and record confirmed eco versions in
    BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
    action." Then check relay once now; also check the packages publish
-   queue (at this handoff: meshopt 0.2.0 live in eco-v0.1.155; ozz 0.3.0
-   = REL-20261011-1740-bindings, imgui 0.3.0 = REL-20261011-1750-bindings
-   and box2d 0.3.0 = REL-20261011-1754-bindings relayed 17:40-17:56Z,
-   expect eco-v0.1.156+).
+   queue (at this handoff: ozz 0.3.0 + imgui 0.3.0 live in eco-v0.1.156;
+   box2d 0.3.0 acked -- publishing as eco-v0.1.157; jolt m258-parked).
 
 3. Continue the ordered tasks. Priority: (a) pool drive COMPLETE (batches
    55-59: miniaudio 0.3.0, meshopt 0.2.0, ozz 0.3.0, imgui 0.3.0, box2d
