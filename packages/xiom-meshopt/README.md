@@ -5,9 +5,9 @@ vertex processing). The upstream C++ sources are vendored into `vendor/`
 (MIT) and compiled into the test binary with `--c-source` -- no system
 library, no DLL, no SDK.
 
-> **Status:** `incubating` -- vendored runtime path + owned-buffer wrappers
-> green on the pin (xiom v0.64.3; 33/33 x2). Registry carry-over: `v0.1.0`.
-> **Lane:** bindings.
+> **Status:** `incubating` -- vendored runtime path, owned-buffer wrappers
+> and the codec families green on the pin (xiom v0.64.3; 38/38 x2).
+> Registry carry-over: `v0.1.0`. **Lane:** bindings.
 
 ## Quick start
 
@@ -33,6 +33,7 @@ fn main() {
 | Runtime probes (vendored) | `meshopt_version`, `meshopt_remap_probe`, `meshopt_cache_probe`, `meshopt_fetch_probe`, `meshopt_simplify_probe`, `meshopt_index_codec_probe`, `meshopt_vertex_codec_probe`, `meshopt_strip_probe`, `meshopt_quant_probe`, `meshopt_sphere_bounds_probe`, `meshopt_meshlet_probe`, `meshopt_oct_filter_probe` |
 | Owned-buffer probes | `meshopt_probe_build_indices`, `meshopt_probe_optimize_inplace`, `meshopt_probe_checksum` |
 | Owned-buffer wrappers (0.3.0) | `meshopt_remap_mesh` -> unique count, `meshopt_optimize_mesh` -> Bool, `meshopt_simplify_mesh` -> `MeshoptSimplifyResult`; `meshopt_fill_grid` fixture |
+| Codec family (0.4.0) | `meshopt_index_sequence_probe` -> `MeshoptCodecProbe` (byte-exact order), `meshopt_filter_quat_probe` / `meshopt_filter_exp_probe` / `meshopt_filter_color_probe` -> max error (micro), `meshopt_meshlet_codec_probe` -> `MeshoptMeshletCodec` |
 
 Full details: `SPEC.md`; vendored provenance + per-file SHA256 pins:
 `SPEC.md` section 2.
@@ -43,9 +44,9 @@ Full details: `SPEC.md`; vendored provenance + per-file SHA256 pins:
 scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900
 ```
 
-Expected: 33 `[PASS]`, exit 0. The suite runs real meshes through the
-vendored library (remap, cache/fetch analysis, simplify, index/vertex
-codecs, stripify, meshlets, sphere bounds, octahedral filters), the
-XIOM-owned in-place optimization path read back byte-indexed, and the
-0.3.0 owned-buffer wrappers (remap/optimize/simplify over caller-owned
-byte meshes).
+Expected: 38 `[PASS]`, exit 0. The suite runs real meshes through the
+vendored library (remap, cache/fetch analysis, simplify, index/sequence/
+vertex codecs, stripify, meshlets + meshlet codec, sphere bounds, oct/quat/
+exp/color filters), the XIOM-owned in-place optimization path read back
+byte-indexed, and the owned-buffer wrappers (remap/optimize/simplify over
+caller-owned byte meshes).

@@ -353,6 +353,11 @@ extern "C" {
   fn xmo_remap_bytes(vertices: *UInt8, vertex_count: Int32, vertex_size: Int32, indices: *UInt8, index_count: Int32, out_vertices: *UInt8, out_capacity: Int32, out_unique: *UInt8) -> Int32;
   fn xmo_optimize_bytes(indices: *UInt8, index_count: Int32, vertex_count: Int32) -> Int32;
   fn xmo_simplify_bytes(vertices: *UInt8, vertex_count: Int32, vertex_stride: Int32, indices: *UInt8, index_count: Int32, target_index_count: Int32, target_error_milli: Int32, out_indices: *UInt8, out_capacity: Int32, out_count: *UInt8, out_err_milli: *UInt8) -> Int32;
+  fn xmo_index_sequence_probe(out_size: *UInt8, out_rc: *UInt8, out_equal: *UInt8) -> Int32;
+  fn xmo_filter_quat_probe(out_max_err_micro: *UInt8) -> Int32;
+  fn xmo_filter_exp_probe(out_max_err_micro: *UInt8) -> Int32;
+  fn xmo_filter_color_probe(out_max_err_micro: *UInt8) -> Int32;
+  fn xmo_meshlet_codec_probe(out_vertex_count: *UInt8, out_triangle_count: *UInt8, out_size: *UInt8, out_rc: *UInt8, out_equal: *UInt8) -> Int32;
 }
 
 fn xmo_slot4() -> Vec[UInt8]
@@ -761,6 +766,101 @@ pub fn meshopt_simplify_mesh(vertices: &mut Vec[UInt8], vertex_count: Int, verte
     return Ok(MeshoptSimplifyResult{
       index_count: xmo_read_u32(&fc),
       error_milli: xmo_read_u32(&fe)
+    });
+  }
+}
+
+// =========================================================================
+// 0.4.0: codec-family probes (ROADMAP Phase 3 item 2)
+// =========================================================================
+
+pub type MeshoptMeshletCodec = {
+  vertex_count: Int;
+  triangle_count: Int;
+  enc_size: Int;
+  dec_rc: Int;
+  equal: Bool;
+}
+
+/// Index SEQUENCE codec round trip over the reversed 294-index grid:
+/// arbitrary topology, order preserved byte-exactly (unlike the triangle-
+/// list codec, which rotates corners).  Complexity: O(indices).
+pub fn meshopt_index_sequence_probe() -> Result[MeshoptCodecProbe, Str]
+  requires: true
+{
+  unsafe {
+    var ss = xmo_slot4();
+    var sr = xmo_slot4();
+    var se = xmo_slot4();
+    let rc = xmo_index_sequence_probe(ss.as_mut_ptr(), sr.as_mut_ptr(), se.as_mut_ptr()) as Int;
+    if rc != 0 { return Err("meshopt: index sequence probe rc=" + xmo_i2s(rc)); }
+    return Ok(MeshoptCodecProbe{
+      enc_size: xmo_read_u32(&ss),
+      dec_rc: xmo_read_u32(&sr),
+      equal: xmo_read_u32(&se) != 0
+    });
+  }
+}
+
+/// Quat filter round trip (90-degree rotation about Z, 16-bit); returns the
+/// max component error in micro units (1e-6).  Complexity: O(1).
+pub fn meshopt_filter_quat_probe() -> Int
+  requires: true
+{
+  unsafe {
+    var se = xmo_slot4();
+    xmo_filter_quat_probe(se.as_mut_ptr());
+    return xmo_read_u32(&se);
+  }
+}
+
+/// Exp filter round trip ((1.5, 3.0, 8.0), 16-bit mantissa, separate
+/// exponents); returns the max RELATIVE error in micro units.
+/// Complexity: O(1).
+pub fn meshopt_filter_exp_probe() -> Int
+  requires: true
+{
+  unsafe {
+    var se = xmo_slot4();
+    xmo_filter_exp_probe(se.as_mut_ptr());
+    return xmo_read_u32(&se);
+  }
+}
+
+/// Color filter round trip ((1.0, 0.5, 0.25, 1.0), 8-bit YCoCg); returns the
+/// max component error in micro units.  Complexity: O(1).
+pub fn meshopt_filter_color_probe() -> Int
+  requires: true
+{
+  unsafe {
+    var se = xmo_slot4();
+    xmo_filter_color_probe(se.as_mut_ptr());
+    return xmo_read_u32(&se);
+  }
+}
+
+/// Meshlet codec round trip: encode meshlet 0 of the probe grid (u32 vertex
+/// refs + u8 local triangle indices) and decode it typed (4-byte vertices,
+/// 3-byte triangles).  Vertex refs are byte-exact; triangles are compared
+/// rotation-invariant (the meshlet triangle coder rotates corners to line up
+/// next-bits, like the index codec).  Complexity: O(meshlet).
+pub fn meshopt_meshlet_codec_probe() -> Result[MeshoptMeshletCodec, Str]
+  requires: true
+{
+  unsafe {
+    var fv = xmo_slot4();
+    var ft = xmo_slot4();
+    var fs = xmo_slot4();
+    var fr = xmo_slot4();
+    var fe = xmo_slot4();
+    let rc = xmo_meshlet_codec_probe(fv.as_mut_ptr(), ft.as_mut_ptr(), fs.as_mut_ptr(), fr.as_mut_ptr(), fe.as_mut_ptr()) as Int;
+    if rc != 0 { return Err("meshopt: meshlet codec probe rc=" + xmo_i2s(rc)); }
+    return Ok(MeshoptMeshletCodec{
+      vertex_count: xmo_read_u32(&fv),
+      triangle_count: xmo_read_u32(&ft),
+      enc_size: xmo_read_u32(&fs),
+      dec_rc: xmo_read_u32(&fr),
+      equal: xmo_read_u32(&fe) != 0
     });
   }
 }

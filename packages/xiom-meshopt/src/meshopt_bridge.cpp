@@ -19,6 +19,13 @@
  *   xmo_optimize_bytes     in-place cache optimize with triangle-set check
  *   xmo_simplify_bytes     simplify into an owned out slot (count + error out)
  *
+ * 0.4.0 codec-family probes (ROADMAP Phase 3 item 2):
+ *   xmo_index_sequence_probe -> index sequence codec, byte-exact order
+ *   xmo_filter_quat_probe    -> quat filter round trip, max error (micro)
+ *   xmo_filter_exp_probe     -> exp filter round trip, max relative error (micro)
+ *   xmo_filter_color_probe   -> color filter round trip, max error (micro)
+ *   xmo_meshlet_codec_probe  -> meshlet encode/decode round trip (typed 4/3)
+ *
  * Probe surface (all return 0; out-params may be NULL):
  *   xmo_version            -> MESHOPTIMIZER_VERSION (v1.2 = 1020)
  *   xmo_remap_probe        -> unique vertex count + mapped-index validity
@@ -588,6 +595,187 @@ int xmo_simplify_bytes(const unsigned char* vertices, int vertex_count, int vert
 	}
 	*out_count = (int)count;
 	*out_err_milli = (int)(err * 1000.0f + 0.5f);
+	return 0;
+}
+
+// ---- 0.4.0: codec-family probes (ROADMAP Phase 3 item 2) -------------------
+// Index sequence codec, the quat/exp/color filter family (oct shipped in
+// 0.2.0), and the meshlet codec -- all scalar/owned-slot shapes.
+
+// Index SEQUENCE codec: arbitrary topology, exact order preserved (unlike
+// the triangle-list codec, which rotates corners).  Reports encoded size,
+// decode rc, and byte-exact equality against the reversed probe grid.
+int xmo_index_sequence_probe(int* out_size, int* out_rc, int* out_equal)
+{
+	static unsigned char buffer[4096];
+	static unsigned int decoded[kGridIndices];
+	size_t size;
+	int rc = -1;
+	int eq = 0;
+
+	if (out_size == 0 || out_rc == 0 || out_equal == 0) return 1;
+
+	grid_indices_reversed(g_indices_bad, kGridW, kGridH);
+	{
+		size_t bound = meshopt_encodeIndexSequenceBound(kGridIndices, kGridVerts);
+		if (bound > sizeof(buffer)) bound = sizeof(buffer);
+		size = meshopt_encodeIndexSequence(buffer, bound, g_indices_bad, kGridIndices);
+	}
+	if (size > 0)
+	{
+		rc = meshopt_decodeIndexSequence(decoded, kGridIndices, 4, buffer, size);
+		eq = (rc == 0 && memcmp(decoded, g_indices_bad, sizeof(unsigned int) * kGridIndices) == 0) ? 1 : 0;
+	}
+
+	*out_size = (int)size;
+	*out_rc = rc;
+	*out_equal = eq;
+	return 0;
+}
+
+// Quat filter: a 90-degree rotation about Z at 16 bits; decode reconstructs
+// four int16 components scaled by 32767 (w >= 0 via double cover).  Reports
+// the max component error in micro units (1e-6).
+int xmo_filter_quat_probe(int* out_max_err_micro)
+{
+	static const float quat[4] = { 0.0f, 0.0f, 0.70710678f, 0.70710678f };
+	short data[4];
+	float max_err = 0.0f;
+
+	if (out_max_err_micro == 0) return 1;
+
+	meshopt_encodeFilterQuat(data, 1, 8, 16, quat);
+	meshopt_decodeFilterQuat(data, 1, 8);
+
+	for (int i = 0; i < 4; ++i)
+	{
+		float v = (float)data[i] / 32767.0f;
+		float e = v - quat[i];
+		if (e < 0) e = -e;
+		if (e > max_err) max_err = e;
+	}
+
+	*out_max_err_micro = (int)(max_err * 1000000.0f + 0.5f);
+	return 0;
+}
+
+// Exp filter: (1.5, 3.0, 8.0) at a 16-bit mantissa, separate exponents;
+// decode writes float bits in place.  Reports the max RELATIVE error in
+// micro units.
+int xmo_filter_exp_probe(int* out_max_err_micro)
+{
+	static const float vec[3] = { 1.5f, 3.0f, 8.0f };
+	unsigned int data[3];
+	float max_rel = 0.0f;
+
+	if (out_max_err_micro == 0) return 1;
+
+	meshopt_encodeFilterExp(data, 1, 12, 16, vec, meshopt_EncodeExpSeparate);
+	meshopt_decodeFilterExp(data, 1, 12);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		float f;
+		memcpy(&f, &data[i], 4);
+		float e = f - vec[i];
+		if (e < 0) e = -e;
+		float rel = e / vec[i];
+		if (rel > max_rel) max_rel = rel;
+	}
+
+	*out_max_err_micro = (int)(max_rel * 1000000.0f + 0.5f);
+	return 0;
+}
+
+// Color filter: (1.0, 0.5, 0.25, 1.0) at 8 bits; decode writes four
+// unsigned bytes (YCoCg -> RGB, A expanded) in place.  Reports the max
+// component error in micro units.
+int xmo_filter_color_probe(int* out_max_err_micro)
+{
+	static const float color[4] = { 1.0f, 0.5f, 0.25f, 1.0f };
+	unsigned char data[4];
+	float max_err = 0.0f;
+
+	if (out_max_err_micro == 0) return 1;
+
+	meshopt_encodeFilterColor(data, 1, 4, 8, color);
+	meshopt_decodeFilterColor(data, 1, 4);
+
+	for (int i = 0; i < 4; ++i)
+	{
+		float v = (float)data[i] / 255.0f;
+		float e = v - color[i];
+		if (e < 0) e = -e;
+		if (e > max_err) max_err = e;
+	}
+
+	*out_max_err_micro = (int)(max_err * 1000000.0f + 0.5f);
+	return 0;
+}
+
+// Meshlet codec: encode meshlet 0 of the probe grid (u32 vertex refs + u8
+// local triangle indices) and decode it back typed (4-byte vertices,
+// 3-byte triangles).  Vertex references are byte-exact; the triangle coder
+// rotates corners to line up next-bits (meshletcodec.cpp), so triangles are
+// compared as a rotation-invariant multiset.
+int xmo_meshlet_codec_probe(int* out_vertex_count, int* out_triangle_count, int* out_size, int* out_rc, int* out_equal)
+{
+	static meshopt_Meshlet meshlets[128];
+	static unsigned int meshlet_vertices[kGridIndices];
+	static unsigned char meshlet_triangles[kGridIndices];
+	static unsigned char buffer[4096];
+	static unsigned int dec_vertices[128];
+	static unsigned char dec_triangles[512 * 3];
+	static unsigned int src_tris_u32[512 * 3];
+	static unsigned int dec_tris_u32[512 * 3];
+	meshopt_Meshlet m0;
+	const unsigned int* src_vertices;
+	const unsigned char* src_triangles;
+	size_t mc;
+	size_t size = 0;
+	int rc = -1;
+	int eq = 0;
+
+	if (out_vertex_count == 0 || out_triangle_count == 0 || out_size == 0 || out_rc == 0 || out_equal == 0) return 1;
+
+	grid_positions(g_positions, kGridW, kGridH, 0.25f);
+	grid_indices_reversed(g_indices_bad, kGridW, kGridH);
+	meshopt_optimizeVertexCache(g_indices_good, g_indices_bad, kGridIndices, kGridVerts);
+	mc = meshopt_buildMeshlets(meshlets, meshlet_vertices, meshlet_triangles, g_indices_good, kGridIndices, g_positions, kGridVerts, 12, 64, 64, 0.0f);
+	if (mc == 0) return 2;
+
+	m0 = meshlets[0];
+	src_vertices = &meshlet_vertices[m0.vertex_offset];
+	src_triangles = &meshlet_triangles[m0.triangle_offset];
+
+	{
+		size_t bound = meshopt_encodeMeshletBound(m0.vertex_count, m0.triangle_count);
+		if (bound > sizeof(buffer)) return 3;
+		size = meshopt_encodeMeshlet(buffer, bound, src_vertices, m0.vertex_count, src_triangles, m0.triangle_count);
+	}
+	if (size > 0)
+	{
+		rc = meshopt_decodeMeshlet(dec_vertices, m0.vertex_count, 4, dec_triangles, m0.triangle_count, 3, buffer, size);
+		if (rc == 0)
+		{
+			int vtx_eq = memcmp(dec_vertices, src_vertices, (size_t)m0.vertex_count * 4) == 0 ? 1 : 0;
+			int tri_eq;
+			int i;
+			for (i = 0; i < (int)m0.triangle_count * 3; ++i)
+			{
+				src_tris_u32[i] = src_triangles[i];
+				dec_tris_u32[i] = dec_triangles[i];
+			}
+			tri_eq = triangle_sets_equal(src_tris_u32, (int)m0.triangle_count * 3, dec_tris_u32, (int)m0.triangle_count * 3);
+			eq = (vtx_eq && tri_eq) ? 1 : 0;
+		}
+	}
+
+	*out_vertex_count = (int)m0.vertex_count;
+	*out_triangle_count = (int)m0.triangle_count;
+	*out_size = (int)size;
+	*out_rc = rc;
+	*out_equal = eq;
 	return 0;
 }
 
