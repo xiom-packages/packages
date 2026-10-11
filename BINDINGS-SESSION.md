@@ -373,16 +373,19 @@ pointer headers.
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
 
 ```
-BINDINGS PUBLISH CONFIRM (batches 38-40 window): xiom.glfw 0.4.0 live in
+BINDINGS PUBLISH CONFIRM (batches 38-41 window): xiom.glfw 0.4.0 live in
 eco-v0.1.136 (sha256 c393b079...); xiom.glfw 0.5.0 (124/124 exports --
 callback ABI solved with a dispatcher+registry pattern) live in
 eco-v0.1.137; the native fixes (f64_from_bits negative bit patterns +
 layout-invariant key-name check) published as the eco-v0.1.138 fix
 (0cd7bc00..., 11:16:09Z). xiom.ann + xiom.stb appends complete and live in
 eco-v0.1.139 (ann 73f66ab5..., stb 41a205f7..., 11:39:26Z; allowlist
-509 -> 511). SDL3 growth continues: 0.6.0 displays+keyboard and 0.7.0
-filesystem relayed (batches 43/44); SDL3 present/blit wishlist
-(REL-20261011-1153-engine) acked.
+509 -> 511). xiom.sdl3 0.4.0 (a9006d4c... in the same eco-v0.1.138) and
+0.5.0 filter/watch (a350dd46..., eco-v0.1.140, 11:46:56Z) are live. SDL3
+growth continues: 0.6.0 displays+keyboard and 0.7.0 filesystem relayed
+(batches 43/44); 0.8.0 display blit (engine ask REL-20261011-1153-engine:
+texture upload + RenderTexture + vsync; demo probe green) relayed as
+batch 45. xiom.btree 0.1.1 live in eco-v0.1.141 (other lane; noted).
 ```
 
 ```
