@@ -13,5 +13,5 @@
                   "checked":  "2026-10-11T11:11:50Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: bindings batch 41 (eco-v0.1.138)"
+    "excluded_reason":  "published in eco-v0.1.138 (2026-10-11; 0.3.1 in eco-v0.1.134)"
 }

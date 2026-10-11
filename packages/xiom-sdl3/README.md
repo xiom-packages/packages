@@ -9,9 +9,12 @@ is not installed.
 > **Status:** `incubating` -- **0.4.0 event decoding + runtime** (event layer:
 > `SDL_Event` over an owned 128-byte buffer with typed accessors, offsets
 > pinned to the release-3.4.8 headers and verified against the 3.2.10 clone).
-> Suite **24/24 x2** with the official SDL 3.4.8 DLL (headless
-> synthetic-event pump + KEY_DOWN injection, window/renderer/texture/gamepad,
-> decode layer). **Lane:** bindings (`keywords: ["binding"]`).
+> Native **24/24 x2** with the official SDL 3.4.8 DLL + absent **4/4 x2**
+> (headless synthetic-event pump + KEY_DOWN injection,
+> window/renderer/texture/gamepad, decode layer; 7 byte-level `Vec<UInt8>`
+> sites normalized to `Vec[UInt8]` pre-publish, `799fceaa`). 0.3.1 shipped in
+> `eco-v0.1.134`; 0.4.0 published in `eco-v0.1.138` (sha256 `a9006d4c...`).
+> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
