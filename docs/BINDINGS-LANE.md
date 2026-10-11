@@ -58,6 +58,15 @@ Binding gate, per package:
   minimal probe; GPU/OS SDKs capability-only (no rendering in CI).
 - **G5 Confinement**: `unsafe` blocks confined to one module per package; typed wrappers;
   SPEC documents the safe boundary and error mapping.
+- **G6 Upstream-first (owner policy 2026-10-11)**: in addition to the SDK/headers, clone the
+  upstream SOURCE at a pinned commit/tag into `E:\repos\<name>`, study it, and record
+  `PROVENANCE.md` per package (upstream, pin, license, derived vs independent, vectors).
+  Canonical rules: `docs/UPSTREAM-FIRST.md` (license whitelist for copied material;
+  MPL/LGPL reference-only; never GPL/AGPL/SSPL/Elastic; clone retention via
+  `E:\repos\CLEANUP.md`).
+- **G7 Coverage = 100%**: every export of the target public API surface is bound before a
+  wave is done -- the glfw 124/124 shape is the standard for all libraries. Runtime
+  SKIP-when-absent stays a classified platform state, NOT a coverage gap.
 - **Drift guard** (CI job, report-only at first): re-hash headers/symbols vs the G2 pin;
   flag when upstream moved. Re-pin only when the hash changes.
 - **Exclusion**: binding packages are excluded from `scripts/contract-coverage.ps1` (zero-
