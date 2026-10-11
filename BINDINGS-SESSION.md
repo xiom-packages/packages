@@ -27,7 +27,7 @@ gamma ramps, cursors, window icon, joystick/gamepad polling, Vulkan-loader
 hook; **32/32 x2**; 105/124 exports -- 0.5.0 completes the 19 event
 callbacks pending the C-callback ABI) relayed.**
 
-## RESUME HERE (handoff, 2026-10-10)
+## RESUME HERE (handoff, 2026-10-11)
 
 **Lane**: bindings. Worktree `E:\xiom-packages\bindings`, branch `bindings`.
 **Relay bus**: `xiom-lang/xiom-relays` at `E:\xiom-lang\xiom-relays` (shared
@@ -35,6 +35,31 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
+- **CURRENT (2026-10-11 10:45Z)**: batches 31-38 relayed. **Published**:
+  `eco-v0.1.132` (assimp 0.7.0 + glfw 0.3.0), `eco-v0.1.133` (vulkan 0.3.0).
+  **In the packages queue (relayed/acked, publish pending)**: batch 34 stb
+  0.2.0 (ops allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
+  batch 35 jolt 0.2.0 (parked on the m258 archive), batch 36 sdl3 0.3.1,
+  batch 37 vulkan 0.4.0, batch 38 glfw 0.4.0.
+- **Compiler pin is now v0.64.3** (installed slot + `COMPILER_VERSION`);
+  runs record `v0.64.3`.
+- **Latest batches**: 33 vulkan 0.3.0 RHI bring-up (device/queue + real
+  submit; 15/15 x2); 34 stb 0.2.0 (5/5 x2); 35 jolt 0.2.0 (4/4 x2 on the
+  m258 local build); 36 sdl3 0.3.1 (22/22 x2; engine-3 fixed; B-11
+  addendum); 37 **vulkan 0.4.0 WSI** (hidden Win32 window + surface +
+  swapchain + clear/present; **18/18 x2**; feat `432eae2f`, record
+  `27cc1b6b`); 38 **glfw 0.4.0** (gamma/cursors/icon/joystick-gamepad/
+  loader hook; 105/124 exports; **32/32 x2**; feat `ad1cacc3`, record
+  `949238bd`).
+- **Upstream sources cloned into `E:\repos`** for source-truth binding:
+  Vulkan-Headers (`vulkan-sdk-1.4.350.0`), SDL3 (`release-3.2.10`), FFmpeg
+  (shallow) + the pool (box2d, imgui, JoltPhysics, lzfse, meshoptimizer,
+  miniaudio, ozz-animation, phonon, steam-audio, GameNetworkingSockets,
+  crypto-algorithms, bbolt, DiskANN, faiss, gin, h11, redb, sqlite,
+  sqlite-vec). Godot is NOT a binding target (owner); mine its `thirdparty/`
+  only for useful bits.
+- **Owner instruction for this window**: bind from the cloned upstream
+  repos ("100% coverage" drive); sources can be deleted once we're good.
 - **Published**: batches 21-29 -> `eco-v0.1.122`..`eco-v0.1.130` (openssl
   0.2.0, sqlite 0.3.0, box2d 0.2.0, imgui 0.2.0, vma 0.2.0, cuda 0.2.0,
   assimp 0.2.0/0.3.0/0.4.0/0.5.0 in `eco-v0.1.127`/`128`/`129`/`130`).
@@ -116,27 +141,47 @@ clone: stage ONLY your own item files). The two working rules are in
   `python tools/relay.py digest --to <lane>`.
 
 ### Next actions (ordered)
-1. **Doorbell**: a session cron is per-session. In the new session run
-   `cron_create` with schedule `0 */3 * * *` and the standard prompt
-   (pull xiom-relays; process `view --lane bindings`; ack/fix/verify;
-   commit+push only this lane's item files), then pull + process once now.
-2. Release-check v0.64.3 is done (relay area below); keep noting new eco
-   versions in this file's relay area (next expected: whatever follows
-   `eco-v0.1.130`).
-3. Continue assimp expansion if wanted: **X3D** next (BLEND/OFF/SMD done in
-   0.6.0/0.7.0). Generator knobs live in
-   `packages/xiom-assimp/tools/combine.py` (`ENABLED`,
-   `ASSET_DIRS_BY_IMPORTER`, `CONTRIB_MIRROR`, `CONTRIB_EXTRA`); check each
-   importer's own guard names (glTF2 adds `ASSIMP_BUILD_NO_GLTF2_IMPORTER`).
-4. **`xiom.jolt` is DONE pending the archive**: vendored v5.6.0 + suite
-   **4/4 x2** on the locally built m258 compiler (`--cxx-standard 17` in
-   `port.args.json`); bus item `REL-20261011-0008-bindings` asks for the
-   merge once the m258 archive is canonical; re-verdict `-1815` (and close
-   it) on that archive. B-05/B-07/B-10/B-11 sit with the compiler for
-   v0.64.4.
-5. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
-   go-ahead; accelerators stay gated on the `xiom.vectors` extraction
-   (`REL-...-1550-xvector-11`).
+1. **Check relay first** (owner handoff instruction), then **Doorbell**:
+   the session cron is per-session. Run `cron_create` with schedule
+   `0 */3 * * *` and the standard prompt (pull xiom-relays; process
+   `view --lane bindings`; ack/fix/verify; commit+push only this lane's
+   item files; note new eco versions in this file's relay area), then pull
+   + process once now. Inbox currently: 8 acked items + any new ones.
+2. **glfw 0.5.0 -- finish 124/124**: the remaining 19 exports are the 20
+   event-callback setters + `glfwInitAllocator`. First prove the
+   C-callback ABI with a tiny probe (C `int xt_cb(int(*)(int))` called with
+   an XIOM `fn(Int32) -> Int32` value through an extern param -- check the
+   unsafe-ffi guide + `tests/regression/m13*` for the syntax); if green,
+   bind the setters (fn-pointer cast calls; XIOM fn values into C); if red,
+   file the finding and note it in ROADMAP.
+3. **vulkan 0.5.0 -- build order #3**: pipeline + SPIR-V + clear/triangle/
+   present smoke. Compile shaders with
+   `C:\VulkanSDK\1.4.350.0\Bin\glslc.exe`; embed SPIR-V bytes like the
+   assimp BLEND fixture (`tools/embed_*` + committed `.inc`). Extend
+   `src/vk_rhi.c`: shader modules + graphics pipeline (render pass 1.0
+   structs), draw 3 verts, present. Engine done-bar = "clears, draws a
+   triangle, and presents".
+4. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`):
+   grow the 0.3.1 loader binding toward the full public API, subsystem by
+   subsystem (video/render/windowed, events incl. callbacks later, audio,
+   joystick, filesystem, misc), keep SKIP-when-absent.
+5. **Publish watch**: batch 34 stb + ann publish once the ops appends land;
+   then batches 36/37/38 in the queue. Note eco versions in the relay area.
+6. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
+   source clone at `E:\repos\FFmpeg` for headers/pins. On assets: dynamic
+   loader, decode path (avformat/avcodec/swresample), same slot discipline.
+7. **Open asks**: engine `-1834-engine-2` (vulkan growth; orders #1/#2
+   delivered -- #3 in progress), assimp consumer contract
+   `REL-20261010-1900-2` (mini-contract proposal due), stb scope
+   `-1900` (delivered; close on publish), `-1852` (assimp watchdog 1800 s,
+   done).
+8. **jolt**: parked on the m258 archive; on arrival: repin + merge tip
+   `0aea531c` + port x2 + re-verdict `-1815` (then close).
+9. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
+   go-ahead; accelerators stay gated on `xiom.vectors`.
+10. **Full-coverage pool** (E:\repos): next candidates after SDL3 --
+    miniaudio, meshoptimizer, ozz-animation, imgui, box2d (all have real
+    sources now); generate/vendor + probe per the assimp pattern.
 
 ### Gotchas (learned this session)
 - **Driver-heavy FFI**: return packed/scalar values; out-param slots can be
@@ -166,11 +211,36 @@ clone: stage ONLY your own item files). The two working rules are in
 - **Vendored trees**: `vendor/** -text` byte pins; regenerate assimp with the
   generator, never hand-edit vendor files. System headers must never be
   basename-remapped (the generator has a skip list).
+- **B-12: floating-point RETURNS through fn-pointer cast calls are broken**
+  on v0.64.2/v0.64.3 (f64 -> 0, f32 -> garbage). Never rely on fp returns
+  from casts; fp OUT-params via XIOM slots are fine. Repro:
+  `docs/repro/bindings-pilot/glfw-fp-return/`; item
+  `REL-20261010-1904-bindings-2`; glfw value checks carry labelled SKIPs.
+- **Vec-of-struct element extraction AVs** (`mons[0]`); use `Vec[Int]`
+  handles + raw byte buffers (glfw monitors/video-modes pattern).
+  `Result[Vec[...]]` and `Result[Float32/64]` payload extraction also
+  miscompile -- return small structs or decode bytes (pure bit-decode
+  helpers `f32_from_bits`/`f64_from_bits` in glfw.xi).
+- **Vulkan WSI gotchas**: resolve DEVICE-level entry points via
+  `vkGetDeviceProcAddr` (1.4.x loader VUID-fast-fails a device through
+  `vkGetInstanceProcAddr`); the logical device must enable
+  `VK_KHR_swapchain`; `user32` must be linked (`port.args.json`
+  `--link user32`); struct layouts pinned in SPEC against the cloned
+  Vulkan-Headers tag.
+- **Console buffering**: `io.flush_stdout` does not force a CRT flush, so a
+  crash loses buffered output; use `io.append_line(path, tag)` markers for
+  crash bisects (see the glfw WSI debug session in git history).
+- **Parallel actor**: the owner's session also commits in this worktree on
+  the same branch (merges from main included). Always `git fetch` +
+  `git log --oneline` before committing and re-check the tree state.
 
 ### Commands
 - Suite: `& scripts\port.ps1 -Package xiom.<name> [-Quiet] [-TimeoutSec N]`
-  (repo root; assimp needs >=600 s, 125 TUs -- the package raises the
-  compiler watchdog to 900 s via `port.args.json`).
+  (repo root; assimp needs >=600 s / 125 TUs with `--timeout 1800`; glfw
+  ~15 s; vulkan ~10 s with its two C sources + `--link user32`).
+- glfw positive path: prepend the DLL dir:
+  `$env:PATH = "C:\glfw-3.4.bin.WIN64\lib-vc2022;" + $env:PATH`.
+- Shaders (vulkan #3): `C:\VulkanSDK\1.4.350.0\Bin\glslc.exe`.
 - Bus (from `E:\xiom-lang\xiom-relays`): `git pull --ff-only` ->
   `python tools/relay.py view --lane bindings` -> `ack/fix/verify` ->
   commit+push only your files.
