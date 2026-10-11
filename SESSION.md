@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (updated 12:00Z -- batches 38-42 + the btree 0.1.1 re-extract delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-11 11:10Z (updated 12:10Z -- batches 38-44 + the btree 0.1.1 re-extract delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -56,11 +56,17 @@ running). Check `git log -1 --format=%h %s` before starting.
   reproducer `-Order 3 -Ops 2000 -N 16 -Seed 777` now GREEN; order-3 remaining=1353/1022 by
   seed); `eco-v0.1.141` sha256 `ba4b1782...` @11:56:33Z; SPEC 2.3 rewritten (defect fixed),
   README/ROADMAP synced; item fixed -- ORBITDB's two-way consumer probe is their follow-up.
+- **`xiom.sdl3` 0.7.0 PUBLISHED** (batch 44, merge `594212e6`; batch 43's 0.6.0 superseded
+  pre-publish): displays + video modes + keyboard state + filesystem basics (base/pref/cwd
+  paths, create/remove, `SDL_GetPathInfo`; the pref-path scratch dir lives under
+  `%APPDATA%\xiom-lane` and is created+cleaned per the ops hygiene note); native **43/43 x2**
+  + absent **4/4 x2**; `eco-v0.1.142` sha256 `66f397cc...` @12:05:47Z; items 43 (superseded)
+  + 44 (delivered) both fixed.
 - Compliance noted from the ops hygiene broadcast (`REL-20261011-1134-ops`, to all): shared
   toolchain homes stay read-only for this lane; suites run from package-local scratch; PATH
   filtering for absent shapes is non-destructive.
-- Validate **524/0**; guard **511/494/17/0**. Session tally: **57 eco releases**
-  (`eco-v0.1.86` -> `eco-v0.1.141`).
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **58 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.142`).
 - **PENDING GATE (only one left):** **m258 archive** -- none yet (`gh release list -R
   xiom-lang/xiom`: v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never
   publish it unverified. (PULSE SQL-migrations design `REL-20261011-1137-pulse` acked for the
