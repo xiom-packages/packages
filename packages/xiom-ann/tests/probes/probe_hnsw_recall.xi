@@ -9,7 +9,10 @@
 // no RNG dependency), indexes it into the flat oracle and the HNSW graph,
 // then measures recall@10 over queries for ef=64 and ef=8 (beam width effect)
 // plus a cosine-metric sanity run. Also checks structural invariants
-// (len <= k, ascending, unique ids, empty graph, dimension mismatch).
+// (len <= k, ascending, unique ids, empty graph, dimension mismatch) and the
+// P-a level-0 generosity device (reference study 01): m0 = 2*m capacity,
+// engaged level-0 degree, and a generous-vs-legacy-control comparison on a
+// hard clustered corpus.
 // Exit = failed checks.
 
 module probe_hnsw_recall
@@ -167,6 +170,7 @@ fn main() -> Int {
     i = i + 1;
   }
   fails = check(hnsw_size(&graph) == n && flat_ids.len() == n, "dataset indexed: HNSW + flat oracle both size 200", fails);
+  fails = check(graph.m0 == 32 && graph.m == 16, "generous level 0: m0 == 2*m (16 -> 32)", fails);
   fails = check(hnsw_find_node_pos(&graph, 100) == 99 && hnsw_find_node_pos(&graph, 999) == -1,
     "find_node_pos: 100 -> 99, missing -> -1", fails);
   var bops = hnsw_build_ops(&graph);
@@ -176,11 +180,18 @@ fn main() -> Int {
   // diag: layer-0 degree stats, level distribution, reachability from entry
   var zero_deg: Int = 0;
   var max_deg: Int = 0;
+  var max_deg_hi: Int = 0;
   i = 0;
   while i < hnsw_size(&graph) {
     var d = graph.deg[i * hnsw_layer_capacity()];
     if d == 0 { zero_deg = zero_deg + 1; }
     if d > max_deg { max_deg = d; }
+    var lhi: Int = 1;
+    while lhi < hnsw_layer_capacity() {
+      var dhi = graph.deg[i * hnsw_layer_capacity() + lhi];
+      if dhi > max_deg_hi { max_deg_hi = dhi; }
+      lhi = lhi + 1;
+    }
     i = i + 1;
   }
   var level_hist = Vec[Int].new();
@@ -212,7 +223,7 @@ fn main() -> Int {
     var crow = cur * hnsw_layer_capacity();
     var j = 0;
     while j < graph.deg[crow] {
-      var nb = graph.adj[crow * graph.m + j];
+      var nb = graph.adj[crow * graph.m0 + j];
       if !reach[nb] {
         reach[nb] = true;
         reach_count = reach_count + 1;
@@ -223,7 +234,11 @@ fn main() -> Int {
   }
   io.println("    diag graph: reachable(L0)=" + int_to_str(reach_count) + "/" + int_to_str(n)
     + " zero_deg=" + int_to_str(zero_deg) + " max_deg=" + int_to_str(max_deg)
+    + " max_deg_hi=" + int_to_str(max_deg_hi)
     + " top_level=" + int_to_str(top_level) + " levels: " + lhs);
+  fails = check(max_deg > graph.m && max_deg <= graph.m0,
+    "generous L0 engaged: max level-0 degree > m and <= m0", fails);
+  fails = check(max_deg_hi <= graph.m, "higher-layer degrees <= m", fails);
 
   // --- recall@10: ef=64 and ef=8 ---
   var hits64: Int = 0;
@@ -379,6 +394,84 @@ fn main() -> Int {
     + "  top_level=" + int_to_str(graph3.levels[graph3.entry]));
   fails = check(hits3 * 100 >= denom3 * 80, "n=800 recall@10 ef=64 >= 0.80", fails);
   fails = check(hnsw_size(&graph3) == nbig, "n=800 graph size", fails);
+
+  // --- P-a: generous level-0 degree vs the legacy control on a HARD,
+  // clustered corpus (reference study 01; FAISS keep_max_size_level0). The
+  // control is the same build with m0 = m (the pre-P-a graph exactly).
+  var ncl: Int = 300;
+  var dimc: Int = 16;
+  var ncent: Int = 6;
+  var cstate: Int = 555001;
+  var centers = Vec[Float32].new();
+  var ci: Int = 0;
+  while ci < ncent * dimc {
+    cstate = lcg_next(cstate);
+    var cc = (cstate % 4001) as Float32;
+    centers.push(cc / 1000.0 * 2.0 - 4.0);
+    ci = ci + 1;
+  }
+  var flatc_vecs = Vec[Vector].new();
+  var flatc_ids = Vec[UInt64].new();
+  var gen = hnsw_new(16, 4.0);
+  var ctl = hnsw_new_full(16, 4.0, 16);
+  var scx: Int = 777001;
+  var pj: Int = 0;
+  while pj < ncl {
+    var cl: Int = pj % ncent;
+    var coords = Vec[Float32].new();
+    var dc: Int = 0;
+    while dc < dimc {
+      scx = lcg_next(scx);
+      var jit = ((scx % 2001) as Float32) / 1000.0 - 1.0;
+      coords.push(centers[cl * dimc + dc] + jit * 0.35);
+      dc = dc + 1;
+    }
+    var va = vec_from_coords(&coords);
+    var vb = vec_from_coords(&coords);
+    var vc = vec_from_coords(&coords);
+    flat_upsert(&mut flatc_vecs, &mut flatc_ids, (pj + 1) as UInt64, va);
+    hnsw_insert(&mut gen, pj + 1, vb, DistanceMetric.Euclidean);
+    hnsw_insert(&mut ctl, pj + 1, vc, DistanceMetric.Euclidean);
+    pj = pj + 1;
+  }
+  var qp: Int = 30;
+  var hgen: Int = 0;
+  var hctl: Int = 0;
+  var vgen: Int = 0;
+  var vctl: Int = 0;
+  var qj: Int = 0;
+  while qj < qp {
+    var coords = Vec[Float32].new();
+    scx = lcg_next(scx);
+    var ca: Int = scx % ncent;
+    scx = lcg_next(scx);
+    var cb: Int = scx % ncent;
+    var dc: Int = 0;
+    while dc < dimc {
+      var mid = (centers[ca * dimc + dc] + centers[cb * dimc + dc]) / 2.0;
+      scx = lcg_next(scx);
+      var jit = ((scx % 1001) as Float32) / 1000.0 - 0.5;
+      coords.push(mid + jit * 0.1);
+      dc = dc + 1;
+    }
+    var q = vec_from_coords(&coords);
+    var oracle = flat_search(&flatc_vecs, &flatc_ids, &q, k, DistanceMetric.Euclidean);
+    var agen = hnsw_search(&gen, &q, k, 8, DistanceMetric.Euclidean);
+    var actl = hnsw_search(&ctl, &q, k, 8, DistanceMetric.Euclidean);
+    hgen = hgen + hit_count(&oracle, &agen);
+    hctl = hctl + hit_count(&oracle, &actl);
+    vgen = vgen + hnsw_search_visited(&gen, &q, k, 8, DistanceMetric.Euclidean);
+    vctl = vctl + hnsw_search_visited(&ctl, &q, k, 8, DistanceMetric.Euclidean);
+    qj = qj + 1;
+  }
+  var denom_pa: Int = qp * k;
+  io.println("    diag P-a hard corpus (n=300 dim=16 6 clusters, midpoint queries, ef=8):"
+    + " generous=" + int_to_str(hgen) + "/" + int_to_str(denom_pa)
+    + " control=" + int_to_str(hctl) + "/" + int_to_str(denom_pa)
+    + " avg_visited generous=" + int_to_str(vgen / qp) + " control=" + int_to_str(vctl / qp));
+  fails = check(gen.m0 == 32 && ctl.m0 == 16, "P-a: generous m0=32 vs control m0=16", fails);
+  fails = check(hgen > hctl, "P-a: generous L0 recall > legacy control on the hard corpus", fails);
+  fails = check(hgen * 100 >= denom_pa * 80, "P-a: generous recall@10 ef=8 >= 0.80 on the hard corpus", fails);
 
   // --- deletes/tombstones (n=200 graph) ---
   var del_ok = hnsw_delete(&mut graph, 42);

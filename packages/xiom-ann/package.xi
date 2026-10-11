@@ -9,8 +9,8 @@
 
 package xiom_ann {
   name: "xiom.ann";
-  version: "0.1.0";
-  description: "ANN index surface: AnnIndexKind/AnnParams with stable on-disk codes, the exact flat-scan oracle, and a multi-layer HNSW graph over flat parallel arrays";
+  version: "0.2.0";
+  description: "ANN index surface: AnnIndexKind/AnnParams with stable on-disk codes, the exact flat-scan oracle, and a multi-layer HNSW graph over flat parallel arrays (P-a generous level 0, codec v3)";
   categories: ["database", "systems"];
   keywords: ["ann", "hnsw", "vector", "index", "database"];
   license: "MIT OR Apache-2.0";

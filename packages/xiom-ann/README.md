@@ -7,10 +7,12 @@ deterministic levels and diversified `m`-nearest connect, best-first search,
 tombstones/compaction, and a strict `Vec[Int]` codec. Extracted from XVECTOR;
 pure XIOM on `xiom.std` + `xiom.vectors`.
 
-> **Status:** `incubating` -- conformance suite green on the pin (v0.64.3):
-> **24/24 x2** plus the recall probe GREEN x2 (recall@10 ef=64 **1.000**,
-> ef=8 **0.9867**, 35/35 checks). Published in `eco-v0.1.139` (sha256
-> `73f66ab5...`; ops scope LIVE 2026-10-11).
+> **Status:** `incubating` -- **0.2.0 P-a refresh**: generous level 0
+> (`m0 = 2*m`, FAISS-style prune headroom 0.2) + codec v3 (`m0` word; v2
+> streams still decode with `m0 = m`). Suite **24/24 x2** + recall probe
+> **GREEN x2 (40 checks)** on v0.64.3; P-a hard-corpus gate **285/300
+> generous vs 275/300 legacy control** (ef=8). 0.1.0 shipped in
+> `eco-v0.1.139` (sha256 `73f66ab5...`); 0.2.0 publish pending.
 
 ## Consumer snippet
 

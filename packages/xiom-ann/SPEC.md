@@ -1,4 +1,4 @@
-# xiom.ann 0.1.0 -- specification
+# xiom.ann 0.2.0 -- specification
 
 ANN index surface extracted from XVECTOR (`E:\xiom-projects\xiom-xvector`):
 the `AnnIndexKind` dispatch type with its stable on-disk codes, `AnnParams` +
@@ -21,7 +21,8 @@ are OUT (XVECTOR / future `xiom.db` territory).
 | `AnnParams { m; ef_construction; ef_search }` + `ann_params_default()` | defaults `m=16`, `ef_construction=200`, `ef_search=64` |
 | `ann_params_valid(&p)` | `Bool`; `m` in 1..512 (`max_graph_degree`), both ef fields >= 1 |
 | `flat_search(&vectors, &ids, &q, k, metric)` | exact brute-force k-NN over parallel arrays; the oracle (addition, section 3) |
-| `hnsw_new(m, ml)` | empty `HNSWGraph` |
+| `hnsw_new(m, ml)` | empty `HNSWGraph` (generous level 0: `m0 = 2*m`, P-a) |
+| `hnsw_new_full(m, ml, m0)` | empty `HNSWGraph` with an explicit level-0 cap (clamped `>= m`; `m0 = m` reproduces the pre-P-a graph -- the gate's legacy control) |
 | `hnsw_layer_capacity()` | fixed layer capacity 8 (verbatim) |
 | `hnsw_insert(&mut g, id, vec, metric)` / `hnsw_insert_ref(&mut g, id, &vec, metric)` | insert/update in place (revives tombstones; dimension mismatch ignored) |
 | `hnsw_search(&g, &q, k, ef, metric)` | up to k ascending neighbors; empty on cold graph or dim mismatch |
@@ -31,7 +32,7 @@ are OUT (XVECTOR / future `xiom.db` territory).
 | `hnsw_compact(&g, metric)` | fresh graph rebuilt from live nodes only |
 | `hnsw_build_ops(&g)` | distance-computation work proxy from the build path |
 | `hnsw_set_ef_construction(&mut g, ef)` | values < 1 ignored; build clamps to >= m |
-| `hnsw_encode(&g)` / `hnsw_decode(&words)` | deterministic `Vec[Int]` codec; strict decode (`None` on malformed) |
+| `hnsw_encode(&g)` / `hnsw_decode(&words)` | deterministic `Vec[Int]` codec v3 (carries `m0`; v2 streams still decode with `m0 = m`); strict decode (`None` on malformed) |
 
 Guarantees:
 
@@ -51,6 +52,13 @@ Guarantees:
 - Levels are assigned deterministically (LCG seeded by node position, high
   bits tested); the graph is a fixed 8-layer-capacity flat-array layout, so
   rebuilds/updates are reproducible.
+- P-a level-0 generosity (reference study 01): default builds cap level 0 at
+  `m0 = 2*m` (FAISS `set_default_probas` gives level 0 `2*M` slots) and prune
+  a full level-0 block to 80% of the cap (FAISS-style `prune_headroom` 0.2)
+  so saturated blocks are not re-pruned on every incoming edge; layers >= 1
+  stay capped at `m`. The encoded stream stays decodable by v2 readers of
+  legacy (`m0 = m`) graphs (codec v3 adds the `m0` word; decode accepts both
+  versions and validates per-layer degree: level 0 `<= m0`, higher `<= m`).
 - `hnsw_delete` tombstones only (nodes stay as routers); `hnsw_compact`
   rebuilds from live nodes preserving insertion order and reclaiming
   tombstones.
@@ -64,22 +72,23 @@ Guarantees:
 
 ## 2. Pins and format
 
-### 2.1 Extraction pins (2026-10-10)
+### 2.1 Extraction pins (0.1.0 carve 2026-10-10; 0.2.0 refresh 2026-10-11)
 
-SHA256 of each extracted source file at extraction time:
+SHA256 of each extracted source file at extraction time (worktree bytes):
 
 | Source (XVECTOR) | SHA256 |
 | --- | --- |
-| `src/index/ann_index.xi` | `0ca3ea3cad7fae29dea99c079c4812ddecb12ca26bd595f7eb2345c79ca9b510` |
-| `src/index/hnsw.xi` | `ed6e2838bbb635ec885700be94ce9872b541ba7554f1fcb5ea9882b2c3795731` |
-| `tests/probes/probe_hnsw_recall.xi` | `aeef192c58ed47bf043006a142563135c659d42eb1f2040c90c8817e54a1d8b9` |
+| `src/index/ann_index.xi` | `0ca3ea3cad7fae29dea99c079c4812ddecb12ca26bd595f7eb2345c79ca9b510` (unchanged since 8a8b0ff) |
+| `src/index/hnsw.xi` | `092a15c92510ad41967403e4396e5e0980b4c5aecf2ec54556a1591360f74aac` |
+| `tests/probes/probe_hnsw_recall.xi` | `c2adcc00983cade8e931a3ecf5c2ff0736bac7e7fef540805c4c2e998c672afd` |
 
-XVECTOR commit at extraction time:
-`8a8b0ff` (`8a8b0ff9bf4efdd4439bb8f696c9e495310c1d46`, 2026-10-10 20:47:44
-+0300, "docs: xiom.rate adoption wrap -- pins, v0.64.3 release noted,
-readiness"). The carve set was re-verified against this commit at dispatch
-(all three files clean in the worktree apart from two pre-existing bracket
-artifacts, section 3.3).
+XVECTOR commit at refresh: `d42171c`
+(`d42171c8b1e65beb0d585abdd70da700f29c9c4d`, 2026-10-11 15:04:50 +0300);
+the 0.1.0 carve was `8a8b0ff`
+(`8a8b0ff9bf4efdd4439bb8f696c9e495310c1d46`, 2026-10-10 20:47:44 +0300).
+The 0.2.0 refresh carries the P-a generous level-0 + codec v3 study
+(`9f00836`) and the xiom.vectors internals swap (`c414e2a`); no `src`
+changes land after `d42171c` at dispatch time.
 
 ### 2.2 Index-kind code table (on-disk)
 
@@ -94,40 +103,46 @@ semantics, mirroring the metric-code fallback in `xiom.vectors`).
 
 ### 2.3 HNSW graph layout and codec
 
-Flat parallel-array layout (from the reference, unchanged):
+Flat parallel-array layout (from the reference):
 
 ```
 row(pos, layer) = pos * hnsw_layer_capacity() + layer   (into `deg`)
-adj row base    = row(pos, layer) * m                    (into `adj`)
+adj row base    = row(pos, layer) * m0                   (into `adj`)
 ```
 
 Levels 0..7 per node; live adjacency slots are `0 .. deg[row]`; levels are
 assigned deterministically per insert (LCG seeded by node position, high-bit
-sampling). Build connects the `m` nearest layer members per layer with
-farthest-edge pruning over a full block (diversified selection); search does
-greedy descent above layer 0 then a best-first beam on layer 0 with breadth
-`max(k, ef)`.
+sampling). The row stride is `m0` for every layer; level 0 caps at `m0`
+(generous, `2*m` by default, pruned to 80% of the cap with FAISS-style
+headroom) and higher layers cap at `m`; full-block pruning uses the
+diversified selection. Search does greedy descent above layer 0 then a
+best-first beam on layer 0 with breadth `max(k, ef)`.
 
-Codec words (`hnsw_encode` / `hnsw_decode`, version 2):
+Codec words (`hnsw_encode` / `hnsw_decode`, version 3; version 2 still
+decodes with `m0 = m`):
 
 ```
-[version=2, m, ml_bits(Float64), ef_construction, layer_capacity, entry,
- node_count, per node: id, level, deleted(0|1), vector_words_len,
+[version=3, m, m0, ml_bits(Float64), ef_construction, layer_capacity,
+ entry, node_count, per node: id, level, deleted(0|1), vector_words_len,
  vector words..., per layer (0..capacity): degree, neighbor positions...]
 ```
 
-Vector words are `xiom.vectors.vector_encode` payloads (dim + f32 bits;
-bit-exact). Decode is strict (section 1 guarantees).
+The encoded stream carries only live slots; the decoder pads every row to
+the uniform `m0` stride and validates per-layer degree (level 0 `<= m0`,
+higher `<= m`; `m0 <= 1024 = 2 * max_graph_degree`). Vector words are
+`xiom.vectors.vector_encode` payloads (dim + f32 bits; bit-exact). Decode is
+strict (section 1 guarantees).
 
-### 2.4 Recorded evidence (2026-10-10, official v0.64.3 bits)
+### 2.4 Recorded evidence (2026-10-11, official v0.64.3 bits, 0.2.0 refresh)
 
 | Check | Command | Result |
 | --- | --- | --- |
-| conformance x2 | `.\scripts\port.ps1 -Package xiom-ann -TimeoutSec 120` | PASS passed=24 failed=0 program_exit=0 exit=0 (run 1, 21.9 s wall), identical (run 2, 18.1 s wall); no watchdog widening needed |
-| recall probe x2 | `xiom --run tests/probes/probe_hnsw_recall.xi` | GREEN x2, exit 0, 35/35 checks, 0 warnings both runs |
+| conformance x2 | `.\scripts\port.ps1 -Package xiom-ann -TimeoutSec 240` | PASS passed=24 failed=0 program_exit=0 exit=0, identical on run 2 |
+| recall probe x2 | `xiom --run tests/probes/probe_hnsw_recall.xi` | GREEN x2, exit 0, 40 checks, 0 failures both runs |
 | recall@10 ef=64 | same probe | 300/300 = 1.000 both runs |
-| recall@10 ef=8 | same probe | 296/300 = 0.9867 both runs (beam-width effect, avg_visited 170/200 at ef=64) |
+| recall@10 ef=8 | same probe | 297/300 both runs; ef sweep 98/100 (ef=8) -> 100/100 (ef>=16) |
 | cosine sanity | same probe | 100/100; n=800 run 200/200; update path 200/200; post-delete 300/300; compacted 200/200 |
+| P-a hard-corpus gate | same probe (n=300 dim=16 6 clusters, midpoint queries, ef=8) | generous **285/300** vs legacy control (m0=m) **275/300**; avg_visited 71 vs 65; generous L0 engaged (max level-0 degree 26, `m < 26 <= m0`) |
 | bracket scan | five bracket shapes over `packages/xiom-ann` (all .xi files) | 0 raw hits |
 
 ## 3. Additions and deviations over the reference
@@ -169,27 +184,31 @@ bit-exact). Decode is strict (section 1 guarantees).
    `k` parameter). The deterministic LCG dataset, recall@10 for ef=64/ef=8,
    the ef sweep, the cosine run, n=800 scaling, updates, deletes/revive,
    compaction and the structural invariants (len <= k, ascending, unique
-   ids, empty graph, dimension mismatch) are kept; exit = failed checks.
+   ids, empty graph, dimension mismatch) are kept; the 0.2.0 refresh adds the
+   P-a gate (m0 = 2*m assert, engaged-L0 diag checks, and the
+   generous-vs-control hard-corpus comparison with `hnsw_new_full` as the
+   legacy control); exit = failed checks.
 
 ## 4. Layout
 
 ```
 packages/xiom-ann/
-  package.xi                  manifest (xiom.ann 0.1.0, xiom.std + xiom.vectors deps)
+  package.xi                  manifest (xiom.ann 0.2.0, xiom.std + xiom.vectors deps)
   xiom.toml                   dependency-root manifest for the v0.64.3 resolver
   src/ann.xi                  module `xiom.ann` (kinds/params + flat_search)
-  src/hnsw.xi                 module `xiom.ann.hnsw` (the 24 KB flat-array HNSW)
+  src/hnsw.xi                 module `xiom.ann.hnsw` (flat-array HNSW; 825 lines after the 0.2.0 refresh)
   tests/test_conformance.xi   24 checks, [PASS]/[FAIL] per check
-  tests/probes/probe_hnsw_recall.xi  recall/acceptance harness vs the local oracle
+  tests/probes/probe_hnsw_recall.xi  recall/acceptance harness vs the local oracle (40 checks)
   SPEC.md README.md ROADMAP.md STATUS.json .gitignore
 ```
 
-Two root modules (ann.xi 109 lines, hnsw.xi 762 lines); the HNSW file is a
+Two root modules (ann.xi 109 lines, hnsw.xi 825 lines); the HNSW file is a
 single cohesive port kept whole (same cohesion argument as the reference).
 
 ## 5. Provenance and XVECTOR reconciliation
 
-This package was carved read-only from XVECTOR at commit `8a8b0ff` (pins in
+This package was carved read-only from XVECTOR at commit `8a8b0ff` and
+refreshed 2026-10-11 at `d42171c` (P-a generous level 0 + codec v3; pins in
 2.1). This package does NOT modify XVECTOR: XVECTOR owns the reference tree
 until its consumption step. At that step, XVECTOR's fold-in targets are
 `src/index/ann_index.xi` and `src/index/hnsw.xi`; the engine, payload/
