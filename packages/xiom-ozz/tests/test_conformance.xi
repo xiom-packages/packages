@@ -5,9 +5,10 @@
 //   scripts/port.ps1 -Package xiom.ozz
 // (port.args.json passes vendor/ozz_all.cpp + vendor/ozz_bridge.cpp).
 //
-// Coverage: math primitives, offline RawSkeleton -> runtime Skeleton, and a
-// LocalToModelJob run with verified model-space translations.  There is no
-// SKIP path (the library is compiled in).
+// Coverage: math primitives, offline RawSkeleton -> runtime Skeleton, a
+// LocalToModelJob run with verified model-space translations, and the clip
+// pipeline (RawAnimation -> AnimationBuilder -> SamplingJob, hand-checked
+// pose).  There is no SKIP path (the library is compiled in).
 
 module ozz_conformance
 
@@ -38,6 +39,8 @@ fn main() -> Int {
     "skeleton: offline RawSkeleton -> runtime Skeleton (2 joints, parents -1/0)");
   failed = failed + report(ozz_local_to_model_ok(),
     "local_to_model: root at origin, child translated (0,1,0) in model space");
+  failed = failed + report(ozz_clip_ok(),
+    "clip: RawAnimation -> AnimationBuilder -> SamplingJob (child y=1->3 linear; 0.5 -> 2.0, 1.0 -> 3.0)");
 
   let all = ozz_probe();
   if all.is_ok {

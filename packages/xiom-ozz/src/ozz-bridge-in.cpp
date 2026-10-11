@@ -12,8 +12,12 @@
 #include "ozz/base/memory/unique_ptr.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/animation_builder.h"
 
 extern "C" {
 
@@ -70,11 +74,63 @@ int ozz_probe_local_to_model() {
   return 1;
 }
 
+int ozz_probe_clip() {
+  using namespace ozz::math;
+  ozz::unique_ptr<ozz::animation::Skeleton> skel = ozz_build_probe_skeleton();
+  if (!skel) return 0;
+  if (skel->num_joints() != 2) return 0;
+
+  // Two-track raw clip: the child translates y=1 -> y=3 over one second.
+  ozz::animation::offline::RawAnimation raw;
+  raw.duration = 1.f;
+  raw.tracks.resize(2);
+  raw.tracks[0].translations.resize(2);
+  raw.tracks[0].translations[0].time = 0.f;
+  raw.tracks[0].translations[0].value = Float3(0.f, 0.f, 0.f);
+  raw.tracks[0].translations[1].time = 1.f;
+  raw.tracks[0].translations[1].value = Float3(0.f, 0.f, 0.f);
+  raw.tracks[1].translations.resize(2);
+  raw.tracks[1].translations[0].time = 0.f;
+  raw.tracks[1].translations[0].value = Float3(0.f, 1.f, 0.f);
+  raw.tracks[1].translations[1].time = 1.f;
+  raw.tracks[1].translations[1].value = Float3(0.f, 3.f, 0.f);
+  if (!raw.Validate()) return 0;
+
+  ozz::animation::offline::AnimationBuilder builder;
+  ozz::unique_ptr<ozz::animation::Animation> anim = builder(raw);
+  if (!anim) return 0;
+  if (anim->num_tracks() != 2) return 0;
+  if (anim->duration() < 0.99f || anim->duration() > 1.01f) return 0;
+
+  ozz::vector<SoaTransform> output(anim->num_soa_tracks(), SoaTransform::identity());
+  ozz::animation::SamplingJob::Context context(anim->num_tracks());
+  ozz::animation::SamplingJob job;
+  job.animation = anim.get();
+  job.context = &context;
+  job.output = ozz::make_span(output);
+
+  // Midpoint: linear interpolation -> child y == 2, root stays at 0.
+  job.ratio = 0.5f;
+  if (!job.Run()) return 0;
+  const float root_y = GetX(output[0].translation.y);
+  const float mid_y = GetY(output[0].translation.y);
+  if (root_y < -0.001f || root_y > 0.001f) return 0;
+  if (mid_y < 1.999f || mid_y > 2.001f) return 0;
+
+  // End: child y == 3.
+  job.ratio = 1.f;
+  if (!job.Run()) return 0;
+  const float end_y = GetY(output[0].translation.y);
+  if (end_y < 2.999f || end_y > 3.001f) return 0;
+  return 1;
+}
+
 int ozz_probe_all() {
   int r = 0;
   if (!ozz_probe_math()) r |= 1;
   if (!ozz_probe_skeleton()) r |= 2;
   if (!ozz_probe_local_to_model()) r |= 4;
+  if (!ozz_probe_clip()) r |= 8;
   return r;
 }
 

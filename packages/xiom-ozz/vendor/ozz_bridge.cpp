@@ -9226,6 +9226,421 @@ struct OZZ_ANIMATION_DLL LocalToModelJob {
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_LOCAL_TO_MODEL_JOB_H_
 /**** ended inlining ozz/animation/runtime/local_to_model_job.h ****/
+/**** start inlining ozz/animation/runtime/animation.h ****/
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) Guillaume Blanc                                              //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_
+
+/**** skipping file: ozz/animation/runtime/export.h ****/
+/**** skipping file: ozz/base/io/archive_traits.h ****/
+/**** skipping file: ozz/base/platform.h ****/
+/**** skipping file: ozz/base/span.h ****/
+
+namespace ozz {
+namespace io {
+class IArchive;
+class OArchive;
+}  // namespace io
+namespace animation {
+
+// Forward declares the AnimationBuilder, used to instantiate an Animation.
+namespace offline {
+class AnimationBuilder;
+}
+
+// Forward declaration of key frame's type.
+namespace internal {
+struct Float3Key;
+struct QuaternionKey;
+}  // namespace internal
+
+// Defines a runtime skeletal animation clip.
+// The runtime animation data structure stores animation keyframes, for all the
+// joints of a skeleton. This structure is usually filled by the
+// AnimationBuilder and deserialized/loaded at runtime.
+// For each transformation type (translation, rotation and scale), Animation
+// structure stores a single array of keyframes that contains all the tracks
+// required to animate all the joints of a skeleton, matching breadth-first
+// joints order of the runtime skeleton structure. In order to optimize cache
+// coherency when sampling the animation, Keyframes in this array are sorted by
+// time, then by track number.
+class OZZ_ANIMATION_DLL Animation {
+ public:
+  // Builds a default animation.
+  Animation() = default;
+
+  // Allow moves.
+  Animation(Animation&&);
+  Animation& operator=(Animation&&);
+
+  // Delete copies.
+  Animation(Animation const&) = delete;
+  Animation& operator=(Animation const&) = delete;
+
+  // Declares the public non-virtual destructor.
+  ~Animation();
+
+  // Gets the animation clip duration.
+  float duration() const { return duration_; }
+
+  // Gets the number of animated tracks.
+  int num_tracks() const { return num_tracks_; }
+
+  // Returns the number of SoA elements matching the number of tracks of *this
+  // animation. This value is useful to allocate SoA runtime data structures.
+  int num_soa_tracks() const { return (num_tracks_ + 3) / 4; }
+
+  // Gets animation name.
+  const char* name() const { return name_ ? name_ : ""; }
+
+  // Gets the buffer of time points.
+  span<const float> timepoints() const { return timepoints_; }
+
+  template <bool _Const>
+  struct TKeyframesCtrl {
+    size_t size_bytes() const {
+      return ratios.size_bytes() + previouses.size_bytes() +
+             iframe_entries.size_bytes() + iframe_desc.size_bytes();
+    }
+
+    // Implicit conversion to const.
+    operator TKeyframesCtrl<true>() const {
+      return {ratios, previouses, iframe_entries, iframe_desc, iframe_interval};
+    }
+
+    template <typename _Ty, bool>
+    struct ConstQualifier {
+      typedef const _Ty type;
+    };
+
+    template <typename _Ty>
+    struct ConstQualifier<_Ty, false> {
+      typedef _Ty type;
+    };
+
+    // Indices to timepoints. uint8_t or uint16_t depending on timepoints size.
+    span<typename ConstQualifier<byte, _Const>::type> ratios;
+
+    // Offsets from the previous keyframe of the same track.
+    span<typename ConstQualifier<uint16_t, _Const>::type> previouses;
+
+    // Cached iframe entries packed with GV4 encoding.
+    span<typename ConstQualifier<byte, _Const>::type> iframe_entries;
+
+    // 2 intergers per iframe:
+    // 1. Offset in compressed entries
+    // 2. Maximum key index (latest updated key).
+    span<typename ConstQualifier<uint32_t, _Const>::type> iframe_desc;
+
+    // Interval, used at runtime to index iframe_desc.
+    float iframe_interval = 0.f;
+  };
+
+  typedef TKeyframesCtrl<true> KeyframesCtrlConst;
+  typedef TKeyframesCtrl<false> KeyframesCtrl;
+
+  // Gets the buffer of translations keys.
+  KeyframesCtrlConst translations_ctrl() const { return translations_ctrl_; }
+  span<const internal::Float3Key> translations_values() const {
+    return translations_values_;
+  }
+
+  // Gets the buffer of rotation keys.
+  KeyframesCtrlConst rotations_ctrl() const { return rotations_ctrl_; }
+  span<const internal::QuaternionKey> rotations_values() const {
+    return rotations_values_;
+  }
+
+  // Gets the buffer of scale keys.
+  KeyframesCtrlConst scales_ctrl() const { return scales_ctrl_; }
+  span<const internal::Float3Key> scales_values() const {
+    return scales_values_;
+  }
+
+  // Get the estimated animation's size in bytes.
+  size_t size() const;
+
+  // Serialization functions.
+  // Should not be called directly but through io::Archive << and >> operators.
+  void Save(ozz::io::OArchive& _archive) const;
+  void Load(ozz::io::IArchive& _archive, uint32_t _version);
+
+ private:
+  // AnimationBuilder class is allowed to instantiate an Animation.
+  friend class offline::AnimationBuilder;
+
+  // Internal memory management functions.
+  struct AllocateParams {
+    size_t name_len;
+    size_t timepoints;
+
+    size_t translations;
+    size_t rotations;
+    size_t scales;
+
+    struct IFrames {
+      size_t entries;
+      size_t offsets;
+    };
+
+    IFrames translation_iframes;
+    IFrames rotation_iframes;
+    IFrames scale_iframes;
+  };
+  void Allocate(const AllocateParams& _params);
+  void Deallocate();
+
+  // Duration of the animation clip.
+  float duration_ = 0.f;
+
+  // The number of joint tracks. Can differ from the data stored in translation/
+  // rotation/scale buffers because of SoA requirements.
+  int num_tracks_ = 0;
+
+  // Allocated buffer for the whole animation.
+  void* allocation_ = nullptr;
+
+  // Animation name.
+  char* name_ = nullptr;
+
+  // Stores all translation/rotation/scale keys.
+  span<float> timepoints_;
+
+  // Keyframes series controllers.
+  KeyframesCtrl translations_ctrl_;
+  KeyframesCtrl rotations_ctrl_;
+  KeyframesCtrl scales_ctrl_;
+
+  // Keyframes series values.
+  span<internal::Float3Key> translations_values_;
+  span<internal::QuaternionKey> rotations_values_;
+  span<internal::Float3Key> scales_values_;
+};
+}  // namespace animation
+
+namespace io {
+OZZ_IO_TYPE_VERSION(7, animation::Animation)
+OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
+}  // namespace io
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_
+/**** ended inlining ozz/animation/runtime/animation.h ****/
+/**** start inlining ozz/animation/runtime/sampling_job.h ****/
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) Guillaume Blanc                                              //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_SAMPLING_JOB_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_SAMPLING_JOB_H_
+
+/**** skipping file: ozz/animation/runtime/export.h ****/
+/**** skipping file: ozz/base/platform.h ****/
+/**** skipping file: ozz/base/span.h ****/
+
+namespace ozz {
+
+// Forward declaration of math structures.
+namespace math {
+struct SoaTransform;
+}
+
+namespace animation {
+
+// Forward declares the animation type to sample.
+class Animation;
+
+// Samples an animation at a given time ratio in the unit interval [0,1] (where
+// 0 is the beginning of the animation, 1 is the end), to output the
+// corresponding posture in local-space.
+// SamplingJob uses a context (aka SamplingJob::Context) to store intermediate
+// values (decompressed animation keyframes...) while sampling. This context
+// also stores pre-computed values that allows drastic optimization while
+// playing/sampling the animation forward. Backward sampling works, but isn't
+// optimized through the context. The job does not owned the buffers (in/output)
+// and will thus not delete them during job's destruction.
+struct OZZ_ANIMATION_DLL SamplingJob {
+  // Validates job parameters. Returns true for a valid job, or false otherwise:
+  // -if any input pointer is nullptr
+  // -if output range is invalid.
+  bool Validate() const;
+
+  // Runs job's sampling task.
+  // The job is validated before any operation is performed, see Validate() for
+  // more details.
+  // Returns false if *this job is not valid.
+  bool Run() const;
+
+  // Time ratio in the unit interval [0,1] used to sample animation (where 0 is
+  // the beginning of the animation, 1 is the end). It should be computed as the
+  // current time in the animation , divided by animation duration.
+  // This ratio is clamped before job execution in order to resolves any
+  // approximation issue on range bounds.
+  float ratio = 0.f;
+
+  // The animation to sample.
+  const Animation* animation = nullptr;
+
+  // Forward declares the context object used by the SamplingJob.
+  class Context;
+
+  // A context object that must be big enough to sample *this animation.
+  Context* context = nullptr;
+
+  // Job output.
+  // The output range to be filled with sampled joints during job execution.
+  // If there are less joints in the animation compared to the output range,
+  // then remaining SoaTransform are left unchanged.
+  // If there are more joints in the animation, then the last joints are not
+  // sampled.
+  span<ozz::math::SoaTransform> output;
+};
+
+namespace internal {
+// Soa hot data to interpolate.
+struct InterpSoaFloat3;
+struct InterpSoaQuaternion;
+}  // namespace internal
+
+// Declares the context object used by the workload to take advantage of the
+// frame coherency of animation sampling.
+class OZZ_ANIMATION_DLL SamplingJob::Context {
+ public:
+  // Constructs an empty context. The context needs to be resized with the
+  // appropriate number of tracks before it can be used with a SamplingJob.
+  Context();
+
+  // Constructs a context that can be used to sample any animation with at most
+  // _max_tracks tracks. _num_tracks is internally aligned to a multiple of
+  // soa size, which means max_tracks() can return a different (but bigger)
+  // value than _max_tracks.
+  explicit Context(int _max_tracks);
+
+  // Disables copy and assignation.
+  Context(const Context&) = delete;
+  Context& operator=(const Context&) = delete;
+  Context(Context&&) = delete;
+  Context& operator=(Context&&) = delete;
+
+  // Deallocates context.
+  ~Context();
+
+  // Resize the number of joints that the context can support.
+  // This also implicitly invalidate the context.
+  void Resize(int _max_tracks);
+
+  // Invalidate the context.
+  // The SamplingJob automatically invalidates a context when required
+  // during sampling. This automatic mechanism is based on the animation
+  // address and sampling time ratio. The weak point is that it can result in a
+  // crash if ever the address of an animation is used again with another
+  // animation (could be the result of successive call to delete / new).
+  // Therefore it is recommended to manually invalidate a context when it is
+  // known that this context will not be used for with an animation again.
+  void Invalidate();
+
+  // The maximum number of tracks that the context can handle.
+  int max_tracks() const { return max_soa_tracks_ * 4; }
+  int max_soa_tracks() const { return max_soa_tracks_; }
+
+  struct Cache {
+    // Points to the keys in the animation that are valid for the current time
+    // ratio.
+    span<uint32_t> entries;
+
+    // Outdated soa entries. One bit per soa entry (32 joints per byte).
+    span<byte> outdated;
+
+    // Next key to process in the animation.
+    uint32_t next;
+  };
+
+ private:
+  friend struct SamplingJob;
+
+  // Steps the context in order to use it for a potentially new animation. If
+  // the _animation is different from the animation currently cached, then the
+  // context is invalidated and reset for the new _animation and _ratio.
+  // Return previous ratio.
+  float Step(const Animation& _animation, float _ratio);
+
+  void Deallocate();
+
+  // The animation this context refers to. nullptr means that the context is
+  // invalid.
+  const Animation* animation_;
+
+  // The current time ratio in the animation.
+  float ratio_;
+
+  // The number of soa tracks that can store this context.
+  int max_soa_tracks_;
+
+  // Single allocation for the whole context.
+  void* allocation_ = nullptr;
+
+  // Context cache instances per component.
+  Cache translations_cache_;
+  Cache rotations_cache_;
+  Cache scales_cache_;
+
+  // SoA hot decompressed data to interpolate.
+  span<internal::InterpSoaFloat3> translations_;
+  span<internal::InterpSoaQuaternion> rotations_;
+  span<internal::InterpSoaFloat3> scales_;
+};
+}  // namespace animation
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_SAMPLING_JOB_H_
+/**** ended inlining ozz/animation/runtime/sampling_job.h ****/
 /**** start inlining ozz/animation/offline/raw_skeleton.h ****/
 //----------------------------------------------------------------------------//
 //                                                                            //
@@ -9530,6 +9945,239 @@ class OZZ_ANIMOFFLINE_DLL SkeletonBuilder {
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
 /**** ended inlining ozz/animation/offline/skeleton_builder.h ****/
+/**** start inlining ozz/animation/offline/raw_animation.h ****/
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) Guillaume Blanc                                              //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
+
+/**** skipping file: ozz/animation/offline/export.h ****/
+/**** skipping file: ozz/base/containers/string.h ****/
+/**** skipping file: ozz/base/containers/vector.h ****/
+/**** skipping file: ozz/base/io/archive_traits.h ****/
+/**** skipping file: ozz/base/maths/quaternion.h ****/
+/**** skipping file: ozz/base/maths/vec_float.h ****/
+
+namespace ozz {
+namespace animation {
+namespace offline {
+
+// Offline animation type.
+// This animation type is not intended to be used in run time. It is used to
+// define the offline animation object that can be converted to the runtime
+// animation using the AnimationBuilder.
+// This animation structure exposes tracks of keyframes. Keyframes are defined
+// with a time and a value which can either be a translation (3 float x, y, z),
+// a rotation (a quaternion) or scale coefficient (3 floats x, y, z). Tracks are
+// defined as a set of three different std::vectors (translation, rotation and
+// scales). Animation structure is then a vector of tracks, along with a
+// duration value.
+// Finally the RawAnimation structure exposes Validate() function to check that
+// it is valid, meaning that all the following rules are respected:
+//  1. Animation duration is greater than 0.
+//  2. Keyframes' time are sorted in a strict ascending order.
+//  3. Keyframes' time are all within [0,animation duration] range.
+// Animations that would fail this validation will fail to be converted by the
+// AnimationBuilder.
+struct OZZ_ANIMOFFLINE_DLL RawAnimation {
+  // Constructs a valid RawAnimation with a 1s default duration.
+  RawAnimation();
+
+  // Tests for *this validity.
+  // Returns true if animation data (duration, tracks) is valid:
+  //  1. Animation duration is greater than 0.
+  //  2. Keyframes' time are sorted in a strict ascending order.
+  //  3. Keyframes' time are all within [0,animation duration] range.
+  bool Validate() const;
+
+  // Get the estimated animation's size in bytes.
+  size_t size() const;
+
+  // Defines a raw translation key frame.
+  struct TranslationKey {
+    // Key frame time.
+    float time;
+
+    // Key frame value.
+    typedef math::Float3 Value;
+    Value value;
+
+    // Provides identity transformation for a translation key.
+    static math::Float3 identity() { return math::Float3::zero(); }
+  };
+
+  // Defines a raw rotation key frame.
+  struct RotationKey {
+    // Key frame time.
+    float time;
+
+    // Key frame value.
+    typedef math::Quaternion Value;
+    math::Quaternion value;
+
+    // Provides identity transformation for a rotation key.
+    static math::Quaternion identity() { return math::Quaternion::identity(); }
+  };
+
+  // Defines a raw scaling key frame.
+  struct ScaleKey {
+    // Key frame time.
+    float time;
+
+    // Key frame value.
+    typedef math::Float3 Value;
+    math::Float3 value;
+
+    // Provides identity transformation for a scale key.
+    static math::Float3 identity() { return math::Float3::one(); }
+  };
+
+  // Defines a track of key frames for a bone, including translation, rotation
+  // and scale.
+  struct JointTrack {
+    typedef ozz::vector<TranslationKey> Translations;
+    Translations translations;
+    typedef ozz::vector<RotationKey> Rotations;
+    Rotations rotations;
+    typedef ozz::vector<ScaleKey> Scales;
+    Scales scales;
+
+    // Validates track. See RawAnimation::Validate for more details.
+    // Use an infinite value for _duration if unknown. This will validate
+    // keyframe orders, but not maximum duration.
+    bool Validate(float _duration) const;
+  };
+
+  // Returns the number of tracks of this animation.
+  int num_tracks() const { return static_cast<int>(tracks.size()); }
+
+  // Stores per joint JointTrack, ie: per joint animation key-frames.
+  // tracks_.size() gives the number of animated joints.
+  ozz::vector<JointTrack> tracks;
+
+  // The duration of the animation. All the keys of a valid RawAnimation are in
+  // the range [0,duration].
+  float duration;
+
+  // Name of the animation.
+  ozz::string name;
+};
+}  // namespace offline
+}  // namespace animation
+namespace io {
+OZZ_IO_TYPE_VERSION(3, animation::offline::RawAnimation)
+OZZ_IO_TYPE_TAG("ozz-raw_animation", animation::offline::RawAnimation)
+
+// Should not be called directly but through io::Archive << and >> operators.
+template <>
+struct OZZ_ANIMOFFLINE_DLL Extern<animation::offline::RawAnimation> {
+  static void Save(OArchive& _archive,
+                   const animation::offline::RawAnimation* _animations,
+                   size_t _count);
+  static void Load(IArchive& _archive,
+                   animation::offline::RawAnimation* _animations, size_t _count,
+                   uint32_t _version);
+};
+}  // namespace io
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
+/**** ended inlining ozz/animation/offline/raw_animation.h ****/
+/**** start inlining ozz/animation/offline/animation_builder.h ****/
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) Guillaume Blanc                                              //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
+
+/**** skipping file: ozz/animation/offline/export.h ****/
+/**** skipping file: ozz/base/memory/unique_ptr.h ****/
+
+namespace ozz {
+namespace animation {
+
+// Forward declares the runtime animation type.
+class Animation;
+
+namespace offline {
+
+// Forward declares the offline animation type.
+struct RawAnimation;
+
+// Defines the class responsible of building runtime animation instances from
+// offline raw animations.
+// No optimization at all is performed on the raw animation.
+class OZZ_ANIMOFFLINE_DLL AnimationBuilder {
+ public:
+  // Creates an Animation based on _raw_animation and *this builder parameters.
+  // Returns a valid Animation on success.
+  // See RawAnimation::Validate() for more details about failure reasons.
+  // The animation is returned as an unique_ptr as ownership is given back to
+  // the caller.
+  unique_ptr<Animation> operator()(const RawAnimation& _raw_animation) const;
+
+  // IFrames allow the sampler to instantly seek to a point in time in the
+  // animation. If no iframe is available, the sampler needs to read
+  // sequentially forward or backward to reach a point. So that's useful for
+  // long animations, if they are accessed randomly, or if sampling starts from
+  // the end. A 0 interval means no iframe is generated. Any positive number is
+  // the interval between iframes, with a guaranteed one at the end of the
+  // animation (even if interval is smaller than animation duration).
+  float iframe_interval = 0.f;
+};
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
+/**** ended inlining ozz/animation/offline/animation_builder.h ****/
 
 extern "C" {
 
@@ -9586,11 +10234,63 @@ int ozz_probe_local_to_model() {
   return 1;
 }
 
+int ozz_probe_clip() {
+  using namespace ozz::math;
+  ozz::unique_ptr<ozz::animation::Skeleton> skel = ozz_build_probe_skeleton();
+  if (!skel) return 0;
+  if (skel->num_joints() != 2) return 0;
+
+  // Two-track raw clip: the child translates y=1 -> y=3 over one second.
+  ozz::animation::offline::RawAnimation raw;
+  raw.duration = 1.f;
+  raw.tracks.resize(2);
+  raw.tracks[0].translations.resize(2);
+  raw.tracks[0].translations[0].time = 0.f;
+  raw.tracks[0].translations[0].value = Float3(0.f, 0.f, 0.f);
+  raw.tracks[0].translations[1].time = 1.f;
+  raw.tracks[0].translations[1].value = Float3(0.f, 0.f, 0.f);
+  raw.tracks[1].translations.resize(2);
+  raw.tracks[1].translations[0].time = 0.f;
+  raw.tracks[1].translations[0].value = Float3(0.f, 1.f, 0.f);
+  raw.tracks[1].translations[1].time = 1.f;
+  raw.tracks[1].translations[1].value = Float3(0.f, 3.f, 0.f);
+  if (!raw.Validate()) return 0;
+
+  ozz::animation::offline::AnimationBuilder builder;
+  ozz::unique_ptr<ozz::animation::Animation> anim = builder(raw);
+  if (!anim) return 0;
+  if (anim->num_tracks() != 2) return 0;
+  if (anim->duration() < 0.99f || anim->duration() > 1.01f) return 0;
+
+  ozz::vector<SoaTransform> output(anim->num_soa_tracks(), SoaTransform::identity());
+  ozz::animation::SamplingJob::Context context(anim->num_tracks());
+  ozz::animation::SamplingJob job;
+  job.animation = anim.get();
+  job.context = &context;
+  job.output = ozz::make_span(output);
+
+  // Midpoint: linear interpolation -> child y == 2, root stays at 0.
+  job.ratio = 0.5f;
+  if (!job.Run()) return 0;
+  const float root_y = GetX(output[0].translation.y);
+  const float mid_y = GetY(output[0].translation.y);
+  if (root_y < -0.001f || root_y > 0.001f) return 0;
+  if (mid_y < 1.999f || mid_y > 2.001f) return 0;
+
+  // End: child y == 3.
+  job.ratio = 1.f;
+  if (!job.Run()) return 0;
+  const float end_y = GetY(output[0].translation.y);
+  if (end_y < 2.999f || end_y > 3.001f) return 0;
+  return 1;
+}
+
 int ozz_probe_all() {
   int r = 0;
   if (!ozz_probe_math()) r |= 1;
   if (!ozz_probe_skeleton()) r |= 2;
   if (!ozz_probe_local_to_model()) r |= 4;
+  if (!ozz_probe_clip()) r |= 8;
   return r;
 }
 
