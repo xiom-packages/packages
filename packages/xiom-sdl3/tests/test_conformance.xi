@@ -58,6 +58,12 @@ fn t_constants() -> Bool {
   if SDL_WINDOW_VULKAN != 0x10000000 { ok = false; }
   if SDL_WINDOW_HIDDEN != 0x8 { ok = false; }
   if SDL_EVENT_QUIT != 0x100 { ok = false; }
+  if SDL_EVENT_KEY_DOWN != 0x300 || SDL_EVENT_KEY_UP != 0x301 { ok = false; }
+  if SDL_EVENT_MOUSE_MOTION != 0x400 || SDL_EVENT_MOUSE_BUTTON_DOWN != 0x401 { ok = false; }
+  if SDL_EVENT_MOUSE_BUTTON_UP != 0x402 || SDL_EVENT_MOUSE_WHEEL != 0x403 { ok = false; }
+  if SDL_EVENT_USER != 0x8000 { ok = false; }
+  if SDL_SCANCODE_A != 4 || SDL_SCANCODE_ESCAPE != 41 || SDL_SCANCODE_SPACE != 44 { ok = false; }
+  if SDL_EVENT_SIZE != 128 { ok = false; }
   if SDL_PIXELFORMAT_RGBA8888 != 0x16462004 { ok = false; }
   if SDL_TEXTUREACCESS_STATIC != 0 { ok = false; }
   if sdl3_versionnum(3, 4, 8) != 3004008 { ok = false; }
@@ -67,12 +73,108 @@ fn t_constants() -> Bool {
   return ok;
 }
 
+// ---- 0.4.0: SDL_Event decoding over self-built 128-byte buffers -----------
+
+fn wr_u8(buf: &mut Vec[UInt8], off: Int, v: Int)
+  requires: buf.len() >= off + 1
+{
+  buf[off] = (v & 0xFF) as UInt8;
+}
+
+fn wr_u16(buf: &mut Vec[UInt8], off: Int, v: Int)
+  requires: buf.len() >= off + 2
+{
+  wr_u8(buf, off + 0, v & 0xFF);
+  wr_u8(buf, off + 1, (v >> 8) & 0xFF);
+}
+
+fn wr_u32(buf: &mut Vec[UInt8], off: Int, v: Int)
+  requires: buf.len() >= off + 4
+{
+  wr_u8(buf, off + 0, v & 0xFF);
+  wr_u8(buf, off + 1, (v >> 8) & 0xFF);
+  wr_u8(buf, off + 2, (v >> 16) & 0xFF);
+  wr_u8(buf, off + 3, (v >> 24) & 0xFF);
+}
+
+fn wr_u64(buf: &mut Vec[UInt8], off: Int, v: Int)
+  requires: buf.len() >= off + 8
+{
+  wr_u32(buf, off + 0, v & 0xFFFFFFFF);
+  wr_u32(buf, off + 4, (v >> 32) & 0xFFFFFFFF);
+}
+
+fn t_event_decode() -> Bool {
+  var ok = true;
+
+  // Key down: 'A' (scancode 4, keycode 97) with a modifier bit.
+  var ev = slot_new(128);
+  wr_u32(&mut ev, 0, SDL_EVENT_KEY_DOWN);
+  wr_u64(&mut ev, 8, 123456789);
+  wr_u32(&mut ev, 16, 7);
+  wr_u32(&mut ev, 24, SDL_SCANCODE_A);
+  wr_u32(&mut ev, 28, 97);
+  wr_u16(&mut ev, 32, 0x1001);
+  wr_u8(&mut ev, 36, 1);
+  wr_u8(&mut ev, 37, 0);
+  if sdl3_event_type(&ev) != SDL_EVENT_KEY_DOWN { ok = false; }
+  if sdl3_event_timestamp(&ev) != 123456789 { ok = false; }
+  if sdl3_event_window_id(&ev) != 7 { ok = false; }
+  if sdl3_event_key_scancode(&ev) != SDL_SCANCODE_A { ok = false; }
+  if sdl3_event_key_code(&ev) != 97 { ok = false; }
+  if sdl3_event_key_mods(&ev) != 0x1001 { ok = false; }
+  if !sdl3_event_key_down(&ev) { ok = false; }
+  if sdl3_event_key_repeat(&ev) { ok = false; }
+
+  // Mouse motion: x = 12.5 (0x41480000), y = -3.25 (0xC0500000).
+  var mev = slot_new(128);
+  wr_u32(&mut mev, 0, SDL_EVENT_MOUSE_MOTION);
+  wr_u32(&mut mev, 16, 3);
+  wr_u32(&mut mev, 24, 5);
+  wr_u32(&mut mev, 28, 0x41480000);
+  wr_u32(&mut mev, 32, 0xC0500000);
+  if sdl3_event_type(&mev) != SDL_EVENT_MOUSE_MOTION { ok = false; }
+  if sdl3_event_mouse_state(&mev) != 5 { ok = false; }
+  if sdl3_event_mouse_x_bits(&mev) != 0x41480000 { ok = false; }
+  if sdl3_event_mouse_x(&mev) != 12.5 { ok = false; }
+  if sdl3_event_mouse_y(&mev) != -3.25 { ok = false; }
+
+  // Mouse button: right button (3), double click, same x float slot.
+  var bev = slot_new(128);
+  wr_u32(&mut bev, 0, SDL_EVENT_MOUSE_BUTTON_DOWN);
+  wr_u8(&mut bev, 24, 3);
+  wr_u8(&mut bev, 25, 1);
+  wr_u8(&mut bev, 26, 2);
+  wr_u32(&mut bev, 28, 0x41480000);
+  if sdl3_event_mouse_button(&bev) != 3 { ok = false; }
+  if !sdl3_event_mouse_button_down(&bev) { ok = false; }
+  if sdl3_event_mouse_clicks(&bev) != 2 { ok = false; }
+  if sdl3_event_mouse_x(&bev) != 12.5 { ok = false; }
+
+  // Window event with a negative data1 (i32 sign handling).
+  var wev = slot_new(128);
+  wr_u32(&mut wev, 0, SDL_EVENT_WINDOW_CLOSE_REQUESTED);
+  wr_u32(&mut wev, 16, 9);
+  wr_u32(&mut wev, 20, 0xFFFFFFDF);
+  wr_u32(&mut wev, 24, 17);
+  if sdl3_event_type(&wev) != SDL_EVENT_WINDOW_CLOSE_REQUESTED { ok = false; }
+  if sdl3_event_window_id(&wev) != 9 { ok = false; }
+  if sdl3_event_window_data1(&wev) != -33 { ok = false; }
+  if sdl3_event_window_data2(&wev) != 17 { ok = false; }
+
+  // f32 bit decode sanity (exact powers of two).
+  if sdl3_f32_from_bits(0x3F800000) != 1.0 { ok = false; }
+  if sdl3_f32_from_bits(0xC0500000) != -3.25 { ok = false; }
+  return ok;
+}
+
 fn main() -> Int {
   io.println("=== xiom.sdl3 conformance tests (dynamic loader) ===");
   io.flush_stdout();
   var failed: Int = 0;
 
   failed = failed + report(t_constants(), "constants: init/window/event tables + SDL_VERSIONNUM math");
+  failed = failed + report(t_event_decode(), "events: decode layer (key/mouse-motion/mouse-button/window + f32 bits) on owned buffers");
 
   let l = sdl3_load();
   if !l.is_ok {
@@ -151,6 +253,22 @@ fn main() -> Int {
     failed = failed + report(pushed && consumed,
       "events: synthetic user event (0x8000) injected + consumed (pushed=" + b2s(pushed)
         + ", consumed=" + b2s(consumed) + ", drained-before=" + to_string(drained) + ")");
+
+    // 0.4.0: push a synthetic KEY_DOWN (the decode layout above is what the
+    // runtime reads) and consume it; the same consume semantics avoid the
+    // foreign-write readback path (B-11).
+    var kev = slot_new(128);
+    wr_u32(&mut kev, 0, SDL_EVENT_KEY_DOWN);
+    wr_u32(&mut kev, 16, 1);
+    wr_u32(&mut kev, 24, SDL_SCANCODE_A);
+    wr_u32(&mut kev, 28, 97);
+    wr_u8(&mut kev, 36, 1);
+    let kpushed = sdl3_push_event(&lib, kev.as_mut_ptr() as Int);
+    sdl3_pump_events(&lib);
+    let kconsumed = sdl3_poll_event(&lib, 0);
+    failed = failed + report(kpushed && kconsumed,
+      "events: synthetic KEY_DOWN (scancode A) injected + consumed (pushed=" + b2s(kpushed)
+        + ", consumed=" + b2s(kconsumed) + ")");
 
     // Quit and verify the flags are cleared.
     sdl3_quit(&lib);

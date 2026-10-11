@@ -6,10 +6,12 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- suite green on v0.64.2: 22/22 x2 with the
-> official SDL 3.4.8 DLL (incl. the headless synthetic-event pump proof and
-> window/renderer/texture/gamepad), 3/3 x2 without SDL3.
-> **Lane:** bindings (`keywords: ["binding"]`).
+> **Status:** `incubating` -- **0.4.0 event decoding + runtime** (event layer:
+> `SDL_Event` over an owned 128-byte buffer with typed accessors, offsets
+> pinned to the release-3.4.8 headers and verified against the 3.2.10 clone).
+> Suite **24/24 x2** with the official SDL 3.4.8 DLL (headless
+> synthetic-event pump + KEY_DOWN injection, window/renderer/texture/gamepad,
+> decode layer). **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -42,7 +44,8 @@ fn main() {
 | Lifecycle | `sdl3_init`, `sdl3_quit`, `sdl3_was_init` |
 | Version | `sdl3_get_version`, `sdl3_get_revision`, `sdl3_versionnum`, `sdl3_version_major/minor/patch` |
 | Timer | `sdl3_get_ticks`, `sdl3_get_performance_counter`, `sdl3_delay` |
-| Events | `sdl3_pump_events`, `sdl3_poll_event` |
+| Events | `sdl3_pump_events`, `sdl3_poll_event`, `sdl3_push_event` |
+| Event decode (0.4.0) | `sdl3_event_type`, `sdl3_event_timestamp`, `sdl3_event_window_id`, `sdl3_event_key_scancode/key_code/mods/down/repeat`, `sdl3_event_mouse_state/x_bits/y_bits/x/y/button/button_down/clicks`, `sdl3_event_window_data1/data2`, `sdl3_f32_from_bits`, `SDL_EVENT_SIZE` |
 | Error | `sdl3_get_error` |
 | Resources | `sdl3_load_resources`, `sdl3_resources_close`, `sdl3_create_window`, `sdl3_destroy_window`, `sdl3_show_window`, `sdl3_hide_window`, `sdl3_window_size`, `sdl3_set_window_title`, `sdl3_create_renderer`, `sdl3_destroy_renderer`, `sdl3_set_render_draw_color`, `sdl3_render_clear`, `sdl3_render_present`, `sdl3_create_texture`, `sdl3_destroy_texture`, `sdl3_has_gamepad`, `sdl3_gamepad_count`, `sdl3_open_gamepad`, `sdl3_close_gamepad` |
 | Constants | `SDL_INIT_*`, `SDL_WINDOW_*`, `SDL_EVENT_*`, `SDL_PIXELFORMAT_RGBA8888`, `SDL_TEXTUREACCESS_*`, `SDL3_SONAME`, `SDL3_LOAD_*` |
@@ -63,10 +66,14 @@ anywhere on `PATH`. G2 pin (soname + header-set manifest hash): `SPEC.md` §2.
 xiom --run tests/test_conformance.xi
 ```
 
-- Without SDL3: 3 `[PASS]` with explicit `SKIP` labels, exit 0.
-- With SDL3: 21 `[PASS]` (smoke + hidden window, renderer clear/present,
-  RGBA8888 texture, gamepad enumeration), exit 0.
+- With SDL3: 24 `[PASS]` (decode layer + smoke + hidden window, renderer
+  clear/present, RGBA8888 texture, gamepad enumeration, synthetic event
+  injection), exit 0 (~10 s).
+- Without SDL3: the loader smoke reports explicit `SKIP` labels and stays
+  green; the decode layer runs in both shapes (pure XIOM; no DLL needed).
 
-Full matrix + re-pin procedure: `SPEC.md` §4/§2. Event decoding, the full
-constant tables and the POSIX soname are the remaining Phase 2 items
-(`ROADMAP.md`).
+On a host where `C:\VulkanSDK\1.4.350.0\Bin` is on PATH (as on the dev
+box), SDL3 is always found, so the absent shape is code-reviewed only.
+
+Full matrix + re-pin procedure: `SPEC.md` §4/§2. The full constant tables,
+texture updates/vsync and the POSIX soname remain (`ROADMAP.md`).

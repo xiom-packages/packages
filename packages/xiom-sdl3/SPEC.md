@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.3.1 |
+| Version | 0.4.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
 | Upstream license | zlib (bindings only; no code vendored) |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (loader path is OS-agnostic in design; soname here is `SDL3.dll`) |
-| Compiler pin | v0.64.1 (repin landed 2026-10-08) |
+| Compiler pin | v0.64.3 |
 
 ## 2. G2 pin: soname + dev header hash set
 
@@ -100,12 +100,25 @@ on this host reading the foreign-written event buffer reproduces the
 B-11-family slot corruption (recycled bytes after the call; addendum item
 filed to the compiler lane).
 
-## 4. Test matrix (recorded 2026-10-08, compiler v0.64.1)
+**0.4.0 addition (event decoding, 2026-10-11):** `SDL_Event` decoded from an
+owned 128-byte buffer (`SDL_EVENT_SIZE`; the union's `padding[128]` pins the
+size).  Shared header: type u32 @0, reserved u32 @4, timestamp u64 @8,
+windowID u32 @16; keyboard: scancode @24, key @28, mod @32 (u16), down @36,
+repeat @37; mouse motion: state @24, x/y/xrel/yrel f32 @28/32/36/40; mouse
+button: button @24, down @25, clicks @26, x/y @28/32; window: data1 @20,
+data2 @24 (Sint32).  Offsets verified in the pinned `release-3.4.8` header
+and byte-identical in the local `release-3.2.10` clone.  Accessors are pure
+XIOM; f32 fields have `_bits` accessors plus `sdl3_f32_from_bits` (B-12
+discipline -- no fp cast-call returns).  The suite decodes self-built buffers
+in every shape (DLL-free) and injects a synthetic KEY_DOWN through the real
+queue (consume semantics; B-11 readback deferral unchanged).
+
+## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir removed from PATH | **PASS, 3/3 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 21/21 x2** -- smoke 10 checks + resources: symbol set, hidden 320x200 window (size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration (0 attached -> SKIP open), resource handle release |
+| SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 3/3 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still 13 checks in this shape -- it is pure XIOM) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 24/24 x2** -- decode layer + smoke + resources: symbol set, hidden 320x200 window (size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration (0 attached -> SKIP open), synthetic user event + KEY_DOWN injection, resource handle release |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no
 extra compiler flags (this is the design win of the loader path over a C
@@ -128,7 +141,7 @@ bridge). `scripts/port.ps1` runs it unchanged.
 
 ## 6. Scope
 
-0.3.0 covers the pilot smoke plus the resource stage (window/renderer/
-texture/gamepad) over the loader. Remaining Phase 2 items: event decoding
-with owned event buffers, the full constant tables (git history), POSIX
-soname fallback, and opengl-context interop -- see `ROADMAP.md`.
+0.4.0 covers the pilot smoke, the resource stage (window/renderer/texture/
+gamepad) and the event-decoding layer over the loader. Remaining Phase 2
+items: the full constant tables (git history), texture updates/vsync,
+POSIX soname fallback, and opengl-context interop -- see `ROADMAP.md`.

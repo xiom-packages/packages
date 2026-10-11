@@ -1,22 +1,23 @@
 # AUDIT: xiom.sdl3
 
-## Status (2026-10-08)
+## Status (2026-10-11)
 
-Dynamic-loader implementation at 0.2.0. The pre-pilot static-extern module
-(`src/sdl3_safe.xi`) and the extern-backed tail of the root module were
-removed: they could not satisfy the SKIP-when-absent gate (link-time symbol
-requirements). The full pre-pilot constant tables and resource wrappers
-remain in git history and return in Phase 2 over this loader.
+Dynamic-loader implementation at **0.4.0** (event-decoding layer added). The
+pre-pilot static-extern module (`src/sdl3_safe.xi`) and the extern-backed tail
+of the root module were removed: they could not satisfy the SKIP-when-absent
+gate (link-time symbol requirements). The full pre-pilot constant tables and
+resource wrappers remain in git history and return over this loader.
 
 | Item | State |
 |------|-------|
-| Compiler | v0.64.1 (repin landed 2026-10-08) |
+| Compiler | v0.64.3 |
 | Upstream pin | SDL 3.4.8 (tag `release-3.4.8`), soname `SDL3.dll` |
 | Link model | none at build time; runtime `LoadLibraryA`/`GetProcAddress` via `xiom.ffi.dl` |
 | FFI confinement | all `unsafe` + fn-pointer casts in the root module `xiom.sdl3` only |
-| Suite | `tests/test_conformance.xi` |
-| Runs | absent: PASS 3/3 x2; present (SDL 3.4.8): PASS 21/21 x2 -- both via `scripts/port.ps1` (v0.64.1) |
+| Suite | `tests/test_conformance.xi`, 24 checks (13 run without the DLL) |
+| Runs | absent (PATH-filtered): PASS 3/3 x2; present (SDL 3.4.8): PASS 24/24 x2 -- both via `scripts/port.ps1` (v0.64.3, 2026-10-11) |
 | Resources (0.3.0) | window (hidden 320x200, size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration + SKIP when none attached |
+| Event decode (0.4.0) | `SDL_Event` over an owned 128-byte buffer: shared header + key/mouse-motion/mouse-button/window accessors + f32 bit decode; offsets pinned to the 3.4.8 headers (== the 3.2.10 clone) |
 
 ## G2 pin
 
@@ -41,8 +42,11 @@ remain in git history and return in Phase 2 over this loader.
 
 ## Known limitations
 
-- Event decoding is not exposed yet (only pump/poll liveness); an owned
-  event-buffer API is Phase 2.
+- Event decoding covers the common members (key/mouse/window/quit); the
+  pump path still uses consume semantics (poll(0)) because SDL writing into
+  an XIOM-owned buffer reproduces the B-11-family corruption on v0.64.3.
+- On hosts with the Vulkan SDK bin on PATH (the dev box), SDL3 is always
+  found; the absent shape is exercised by filtering that dir out of PATH.
 - Curated constant subset only (full tables in git history).
 - Windows soname hard-coded (`SDL3.dll`); a `libSDL3.so.0` fallback is a
   Phase 2 item when POSIX CI exists.

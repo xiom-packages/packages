@@ -13,11 +13,12 @@
 // (SDL.h, SDL_version.h, SDL_init.h, SDL_timer.h, SDL_events.h, SDL_error.h,
 // SDL_stdinc.h) hashed in SPEC.md §2.
 //
-// Coverage (pilot smoke): init / quit / was_init, version + revision, ticks +
-// performance counter, delay, pump/poll events, error string.  Window /
-// renderer / texture / gamepad resources are Phase 2 (see ROADMAP.md); the
-// pre-pilot constant tables and resource wrappers are preserved in git
-// history (the file was rewritten at 0.2.0 to the loader design).
+// Coverage: init / quit / was_init, version + revision, ticks + performance
+// counter, delay, pump/poll/push events, error string; resource stage (window,
+// renderer, texture, gamepad enumeration); 0.4.0 adds SDL_Event decoding from
+// an owned 128-byte buffer with typed accessors (offsets pinned to the
+// release-3.4.8 header; verified byte-identical in the release-3.2.10 clone).
+// The full pre-pilot constant tables stay in git history (ROADMAP.md).
 
 module xiom.sdl3
 
@@ -50,7 +51,18 @@ pub const SDL_WINDOW_VULKAN: Int = 0x0000000010000000;
 pub const SDL_EVENT_QUIT: Int = 0x100;
 pub const SDL_EVENT_KEY_DOWN: Int = 0x300;
 pub const SDL_EVENT_KEY_UP: Int = 0x301;
+pub const SDL_EVENT_TEXT_INPUT: Int = 0x303;
 pub const SDL_EVENT_WINDOW_CLOSE_REQUESTED: Int = 0x210;
+pub const SDL_EVENT_MOUSE_MOTION: Int = 0x400;
+pub const SDL_EVENT_MOUSE_BUTTON_DOWN: Int = 0x401;
+pub const SDL_EVENT_MOUSE_BUTTON_UP: Int = 0x402;
+pub const SDL_EVENT_MOUSE_WHEEL: Int = 0x403;
+pub const SDL_EVENT_USER: Int = 0x8000;
+
+// SDL_Scancode examples (USB-HID; pinned from the release-3.4.8 header).
+pub const SDL_SCANCODE_A: Int = 4;
+pub const SDL_SCANCODE_ESCAPE: Int = 41;
+pub const SDL_SCANCODE_SPACE: Int = 44;
 
 /// SDL_VERSIONNUM(major, minor, patch) as returned by SDL_GetVersion.
 /// Complexity: O(1).
@@ -717,4 +729,248 @@ fn sdl3_read_u32(buf: &Vec[UInt8]) -> Int
   let b2 = buf[2] as Int;
   let b3 = buf[3] as Int;
   return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+// =========================================================================
+// 0.4.0: SDL_Event decoding from an owned 128-byte buffer
+//
+// SDL_Event is a 128-byte union (`padding[128]` in the pinned release-3.4.8
+// header; member layouts byte-identical in the release-3.2.10 clone).  Every
+// member starts with the 8-byte header: type u32 @0, reserved u32 @4,
+// timestamp u64 @8; window-scoped members carry windowID u32 @16.
+//
+// B-11 note: the accessors below are pure XIOM reads and safe on any buffer
+// -- but SDL writing INTO an XIOM-owned buffer (`SDL_PollEvent(ptr)`) can
+// come back corrupted on v0.64.3 (lane reproducer
+// REL-20261011-0304-bindings), so the pump path keeps consume semantics
+// (`sdl3_poll_event(lib, 0)`) and event tests decode self-built buffers.
+// =========================================================================
+
+/// Size of an `SDL_Event` on the pinned headers (write one when pushing).
+pub const SDL_EVENT_SIZE: Int = 128;
+
+// Offsets pinned to the release-3.4.8 headers (== 3.2.10).
+fn ev_read_u8(buf: &Vec[UInt8], off: Int) -> Int
+  requires: off >= 0
+  requires: buf.len() >= off + 1
+{
+  return buf[off] as Int;
+}
+
+fn ev_read_u16(buf: &Vec[UInt8], off: Int) -> Int
+  requires: off >= 0
+  requires: buf.len() >= off + 2
+{
+  let b0 = buf[off + 0] as Int;
+  let b1 = buf[off + 1] as Int;
+  return b0 | (b1 << 8);
+}
+
+fn ev_read_u32(buf: &Vec[UInt8], off: Int) -> Int
+  requires: off >= 0
+  requires: buf.len() >= off + 4
+{
+  let b0 = buf[off + 0] as Int;
+  let b1 = buf[off + 1] as Int;
+  let b2 = buf[off + 2] as Int;
+  let b3 = buf[off + 3] as Int;
+  return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+fn ev_read_i32(buf: &Vec[UInt8], off: Int) -> Int
+  requires: off >= 0
+  requires: buf.len() >= off + 4
+{
+  let u = ev_read_u32(buf, off);
+  if u >= 0x80000000 { return u - 0x100000000; }
+  return u;
+}
+
+fn ev_read_u64(buf: &Vec[UInt8], off: Int) -> Int
+  requires: off >= 0
+  requires: buf.len() >= off + 8
+{
+  let lo = ev_read_u32(buf, off);
+  let hi = ev_read_u32(buf, off + 4);
+  return lo | (hi << 32);
+}
+
+/// 2^e for small |e| (pure float arithmetic; e in [-1074, 1024]).
+fn pow2i(e: Int) -> Float64
+  requires: e >= -1074
+  requires: e <= 1024
+{
+  var r = 1.0;
+  var i = e;
+  while i > 0 {
+    r = r * 2.0;
+    i = i - 1;
+  }
+  while i < 0 {
+    r = r / 2.0;
+    i = i + 1;
+  }
+  return r;
+}
+
+/// IEEE-754 binary32 bits -> Float64 (pure arithmetic; avoids fp cast-call
+/// returns, B-12).
+pub fn sdl3_f32_from_bits(bits: Int) -> Float64
+  requires: bits >= 0
+  requires: bits <= 0xFFFFFFFF
+{
+  let sign = if ((bits >> 31) & 1) == 1 { -1.0 } else { 1.0 };
+  let exp = (bits >> 23) & 0xFF;
+  let frac = bits & 0x7FFFFF;
+  if exp == 0 {
+    if frac == 0 { return sign * 0.0; }
+    return sign * (frac as Float64) * pow2i(-149);
+  }
+  if exp == 255 { return 0.0; }
+  return sign * (1.0 + (frac as Float64) / 8388608.0) * pow2i(exp - 127);
+}
+
+/// Event type (u32 @0) -- compare against `SDL_EVENT_*`.
+/// Complexity: O(1).
+pub fn sdl3_event_type(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 4
+{
+  return ev_read_u32(buf, 0);
+}
+
+/// Event timestamp in nanoseconds (u64 @8).
+/// Complexity: O(1).
+pub fn sdl3_event_timestamp(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 16
+{
+  return ev_read_u64(buf, 8);
+}
+
+/// Window id the event belongs to (u32 @16; 0 when not window-scoped).
+/// Complexity: O(1).
+pub fn sdl3_event_window_id(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 20
+{
+  return ev_read_u32(buf, 16);
+}
+
+/// Key event: physical scancode (u32 @24) -- compare against `SDL_SCANCODE_*`.
+/// Complexity: O(1).
+pub fn sdl3_event_key_scancode(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 28
+{
+  return ev_read_u32(buf, 24);
+}
+
+/// Key event: virtual keycode (u32 @28; ASCII value for printable keys).
+/// Complexity: O(1).
+pub fn sdl3_event_key_code(buf: &Vec<UInt8>) -> Int
+  requires: buf.len() >= 32
+{
+  return ev_read_u32(buf, 28);
+}
+
+/// Key event: modifier mask (u16 @32).
+/// Complexity: O(1).
+pub fn sdl3_event_key_mods(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 34
+{
+  return ev_read_u16(buf, 32);
+}
+
+/// Key event: pressed flag (u8 @36).
+/// Complexity: O(1).
+pub fn sdl3_event_key_down(buf: &Vec[UInt8]) -> Bool
+  requires: buf.len() >= 37
+{
+  return ev_read_u8(buf, 36) != 0;
+}
+
+/// Key event: repeat flag (u8 @37).
+/// Complexity: O(1).
+pub fn sdl3_event_key_repeat(buf: &Vec[UInt8]) -> Bool
+  requires: buf.len() >= 38
+{
+  return ev_read_u8(buf, 37) != 0;
+}
+
+/// Mouse-motion event: button state mask (u32 @24).
+/// Complexity: O(1).
+pub fn sdl3_event_mouse_state(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 28
+{
+  return ev_read_u32(buf, 24);
+}
+
+/// Mouse x as raw f32 bits (u32 @28; decode with `sdl3_f32_from_bits`).
+/// Works for motion and button events (same offset).
+/// Complexity: O(1).
+pub fn sdl3_event_mouse_x_bits(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 32
+{
+  return ev_read_u32(buf, 28);
+}
+
+/// Mouse y as raw f32 bits (u32 @32).
+/// Complexity: O(1).
+pub fn sdl3_event_mouse_y_bits(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 36
+{
+  return ev_read_u32(buf, 32);
+}
+
+/// Mouse x as Float64 (motion and button events).
+/// Complexity: O(1).
+pub fn sdl3_event_mouse_x(buf: &Vec<UInt8>) -> Float64
+  requires: buf.len() >= 32
+{
+  return sdl3_f32_from_bits(ev_read_u32(buf, 28));
+}
+
+/// Mouse y as Float64 (motion and button events).
+/// Complexity: O(1).
+pub fn sdl3_event_mouse_y(buf: &Vec<UInt8>) -> Float64
+  requires: buf.len() >= 36
+{
+  return sdl3_f32_from_bits(ev_read_u32(buf, 32));
+}
+
+/// Mouse-button event: button index (u8 @24).
+/// Complexity: O(1).
+pub fn sdl3_event_mouse_button(buf: &Vec<UInt8>) -> Int
+  requires: buf.len() >= 25
+{
+  return ev_read_u8(buf, 24);
+}
+
+/// Mouse-button event: pressed flag (u8 @25).
+/// Complexity: O(1).
+pub fn sdl3_event_mouse_button_down(buf: &Vec<UInt8>) -> Bool
+  requires: buf.len() >= 26
+{
+  return ev_read_u8(buf, 25) != 0;
+}
+
+/// Mouse-button event: click count (u8 @26; 2 = double click).
+/// Complexity: O(1).
+pub fn sdl3_event_mouse_clicks(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 27
+{
+  return ev_read_u8(buf, 26);
+}
+
+/// Window event: data1 (Sint32 @20).
+/// Complexity: O(1).
+pub fn sdl3_event_window_data1(buf: &Vec<UInt8>) -> Int
+  requires: buf.len() >= 24
+{
+  return ev_read_i32(buf, 20);
+}
+
+/// Window event: data2 (Sint32 @24).
+/// Complexity: O(1).
+pub fn sdl3_event_window_data2(buf: &Vec<UInt8>) -> Int
+  requires: buf.len() >= 28
+{
+  return ev_read_i32(buf, 24);
 }
