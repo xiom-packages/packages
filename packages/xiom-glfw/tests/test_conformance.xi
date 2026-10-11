@@ -1,4 +1,4 @@
-// xiom.glfw conformance suite -- dynamic-loader path, engine surface (0.3.0).
+// xiom.glfw conformance suite -- dynamic-loader path, full surface (0.5.0).
 //
 // CI WITHOUT GLFW must stay green: glfw_load resolves `glfw3.dll` at runtime;
 // when the backend is absent every smoke check reports SKIP (printed under
@@ -7,8 +7,8 @@
 // (headless service session), the init-dependent checks SKIP with the GLFW
 // error text; version checks still run (they need no platform).
 //
-// Build+run (no extra compiler args: pure-XIOM loader):
-//   xiom --run tests/test_conformance.xi
+// Build+run (links user32 for the PostMessageA round trips; port.args.json):
+//   xiom --run tests/test_conformance.xi --link user32
 //
 // Positive path on this box (DLL dir prepended to PATH):
 //   $env:PATH = "C:\glfw-3.4.bin.WIN64\lib-vc2022;" + $env:PATH
@@ -22,6 +22,157 @@ use xiom.io;
 use xiom.convert;
 use xiom.test;
 use xiom.glfw;
+use xiom.ffi;
+
+// =========================================================================
+// 0.5.0 callback capture + test allocator (top-level fns: only a bare
+// top-level fn NAME marshals to a C function pointer -- finding B-13).
+// =========================================================================
+
+// Captured event state.
+var ev_err_calls: Int = 0;
+var ev_err_code: Int = 0;
+var ev_err_desc: Str = "";
+
+var ev_close_calls: Int = 0;
+var ev_close_win: Int = 0;
+
+var ev_key_calls: Int = 0;
+var ev_key_code: Int = 0;
+var ev_key_action: Int = 0;
+
+fn on_error(code: Int32, desc: Str) -> Unit {
+  ev_err_calls = ev_err_calls + 1;
+  ev_err_code = code as Int;
+  ev_err_desc = desc;
+}
+
+fn on_close(win: Int) -> Unit {
+  ev_close_calls = ev_close_calls + 1;
+  ev_close_win = win;
+}
+
+fn on_key(win: Int, key: Int32, scancode: Int32, action: Int32, mods: Int32) -> Unit {
+  ev_key_calls = ev_key_calls + 1;
+  ev_key_code = key as Int;
+  ev_key_action = action as Int;
+}
+
+// No-op stubs for the setters this suite registers but does not fire.
+var ev_stub_calls: Int = 0;
+
+fn on_monitor(monitor: Int, event: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+fn on_joystick(jid: Int32, event: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+fn on_pos(win: Int, a: Int32, b: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+fn on_flag(win: Int, v: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+fn on_scale(win: Int, a: Float64, b: Float64) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+fn on_char(win: Int, codepoint: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+fn on_char_mods(win: Int, codepoint: Int32, mods: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+fn on_mouse(win: Int, button: Int32, action: Int32, mods: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+fn on_drop(win: Int, count: Int32, paths: Vec[Str]) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+
+// ---- test allocator: 1 MiB bump arena, 16-byte aligned, size header at -8 --
+
+var arena: Vec[UInt8] = Vec[UInt8].new();
+var arena_ready: Bool = false;
+var arena_pos: Int = 0;
+var alloc_calls: Int = 0;
+var realloc_calls: Int = 0;
+var dealloc_calls: Int = 0;
+var alloc_user_seen: Int = 0;
+
+fn arena_init()
+  requires: true
+{
+  if !arena_ready {
+    var i = 0;
+    while i < 1048576 {
+      arena.push(0 as UInt8);
+      i = i + 1;
+    }
+    arena_ready = true;
+    arena_pos = 0;
+  }
+}
+
+fn arena_alloc(size: Int) -> Int
+  requires: true
+{
+  arena_init();
+  unsafe {
+    let base = arena.as_mut_ptr() as Int;
+    var off = arena_pos;
+    let misalign = (base + off) % 16;
+    if misalign != 0 { off = off + (16 - misalign); }
+    let need = 8 + size;
+    if off + need > arena.len() { return 0; }
+    let block = base + off;
+    ffi.ptr_write_u64_le(block as *UInt8, size);
+    arena_pos = off + need;
+    return block + 8;
+  }
+}
+
+fn arena_realloc(block: Int, size: Int, user: Int) -> Int
+  requires: true
+{
+  if block == 0 { return arena_alloc(size); }
+  var old = 0;
+  unsafe {
+    old = ffi.ptr_read_u64_le((block - 8) as *UInt8);
+  }
+  let nb = arena_alloc(size);
+  if nb == 0 { return 0; }
+  var n = old;
+  if size < old { n = size; }
+  if n > 0 {
+    unsafe {
+      ffi.memcpy(nb as *UInt8, block as *UInt8, n);
+    }
+  }
+  return nb;
+}
+
+// The three functions whose addresses go to glfwInitAllocator.
+fn alloc_cb(size: Int, user: Int) -> Int
+  requires: true
+{
+  alloc_calls = alloc_calls + 1;
+  alloc_user_seen = user;
+  return arena_alloc(size);
+}
+
+fn realloc_cb(block: Int, size: Int, user: Int) -> Int
+  requires: true
+{
+  realloc_calls = realloc_calls + 1;
+  alloc_user_seen = user;
+  return arena_realloc(block, size, user);
+}
+
+fn dealloc_cb(block: Int, user: Int) -> Int
+  requires: true
+{
+  dealloc_calls = dealloc_calls + 1;
+  alloc_user_seen = user;
+  return 0;
+}
+
+// ---- Win32 message posting (user32 via port.args.json) --------------------
+
+extern "C" {
+  fn PostMessageA(hwnd: Int, msg: UInt32, wparam: Int, lparam: Int) -> Int32;
+}
+
+fn post_message(hwnd: Int, msg: Int, wparam: Int, lparam: Int) -> Int
+  requires: hwnd != 0
+{
+  unsafe {
+    return PostMessageA(hwnd, msg as UInt32, wparam, lparam) as Int;
+  }
+}
+
+
 
 fn report(ok: Bool, name: Str) -> Int {
   if ok {
@@ -53,7 +204,7 @@ fn t_constants() -> Bool {
 }
 
 fn main() -> Int {
-  io.println("=== xiom.glfw conformance tests (dynamic loader, engine surface) ===");
+  io.println("=== xiom.glfw conformance tests (dynamic loader, full surface) ===");
   io.flush_stdout();
   var failed: Int = 0;
 
@@ -77,7 +228,7 @@ fn main() -> Int {
   }
 
   let lib: GlfwLibrary = l.value;
-  failed = failed + report(true, "loader: engine-surface export set resolved (105 core symbols)");
+  failed = failed + report(true, "loader: full-surface export set resolved (124 core symbols)");
 
   let inited = glfw_init(&lib);
   if !inited {
@@ -102,9 +253,9 @@ fn main() -> Int {
     failed = failed + report(tf > 0 && tv > 0,
       "timer: ticks=" + to_string(tv) + " freq=" + to_string(tf));
     // NOTE: `glfwGetTime`/`glfwSetTime` exercise the call path; the value
-    // roundtrip is UNVERIFIABLE on v0.64.2 because floating-point returns
+    // roundtrip is UNVERIFIABLE on v0.64.3 because floating-point returns
     // through fn-pointer cast calls are miscompiled (0/garbage; compiler
-    // finding filed -- see docs/repro/bindings-pilot/glfw-fp-return/). The
+    // finding B-12 -- see docs/repro/bindings-pilot/glfw-fp-return/). The
     // explicit SKIP label keeps the limitation visible.
     let t0 = glfw_get_time(&lib);
     glfw_set_time(&lib, 5.0);
@@ -113,7 +264,7 @@ fn main() -> Int {
       failed = failed + report(t0 >= 0.0, "time: getTime/setTime roundtrip (" + to_string(t1 as Int) + "s)");
     } else {
       failed = failed + report(true,
-        "time: getTime/setTime called -- value check SKIPPED (known: fp cast-call returns miscompiled on v0.64.2)");
+        "time: getTime/setTime called -- value check SKIPPED (known: fp cast-call returns miscompiled on v0.64.3)");
     }
 
     // Monitors + video modes.
@@ -240,6 +391,76 @@ fn main() -> Int {
       glfw_wait_events_timeout(&lib, 0.01);
       failed = failed + report(true, "events: post + poll + wait-timeout");
 
+      // 0.5.0: register all 20 callback setters (previous == 0 on first set).
+      var cb_reg = 0;
+      var cb_reg_ok = true;
+      if glfw_set_error_callback(&lib, on_error) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_monitor_callback(&lib, on_monitor) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_joystick_callback(&lib, on_joystick) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_window_pos_callback(&lib, &w, on_pos) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_window_size_callback(&lib, &w, on_pos) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_window_close_callback(&lib, &w, on_close) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_window_refresh_callback(&lib, &w, on_close) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_window_focus_callback(&lib, &w, on_flag) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_window_iconify_callback(&lib, &w, on_flag) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_window_maximize_callback(&lib, &w, on_flag) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_framebuffer_size_callback(&lib, &w, on_pos) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_window_content_scale_callback(&lib, &w, on_scale) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_key_callback(&lib, &w, on_key) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_char_callback(&lib, &w, on_char) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_char_mods_callback(&lib, &w, on_char_mods) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_mouse_button_callback(&lib, &w, on_mouse) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_cursor_pos_callback(&lib, &w, on_scale) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_cursor_enter_callback(&lib, &w, on_flag) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_scroll_callback(&lib, &w, on_scale) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      if glfw_set_drop_callback(&lib, &w, on_drop) != 0 { cb_reg_ok = false; }
+      cb_reg = cb_reg + 1;
+      failed = failed + report(cb_reg_ok, "callbacks: " + to_string(cb_reg)
+        + "/20 setters registered (all previous == 0)");
+
+      // Error round trip: an invalid key makes GLFW report GLFW_INVALID_ENUM
+      // through the (synchronous) error callback.
+      let _ = glfw_get_key(&lib, &w, 1048576);
+      failed = failed + report(ev_err_calls == 1 && ev_err_code != 0 && ev_err_desc.len() > 0,
+        "callbacks: error round trip (calls=" + to_string(ev_err_calls)
+          + " code=" + to_string(ev_err_code) + " desc=\"" + ev_err_desc + "\")");
+
+      // Key + close round trips through the real Win32 message pump.
+      let hwnd2 = glfw_get_win32_window(&lib, &w);
+      let pmk = post_message(hwnd2, 0x0100, 65, 0x001E0001);  // WM_KEYDOWN, VK 'A'
+      glfw_poll_events(&lib);
+      let key_now = glfw_get_key(&lib, &w, GLFW_KEY_A);
+      failed = failed + report(pmk != 0 && ev_key_calls == 1 && ev_key_code == GLFW_KEY_A
+          && ev_key_action == GLFW_PRESS && key_now == GLFW_PRESS,
+        "callbacks: key round trip (post=" + to_string(pmk) + " calls=" + to_string(ev_key_calls)
+          + " key=" + to_string(ev_key_code) + " action=" + to_string(ev_key_action)
+          + " state=" + to_string(key_now) + ")");
+
+      let pmc = post_message(hwnd2, 0x0010, 0, 0);  // WM_CLOSE
+      glfw_poll_events(&lib);
+      failed = failed + report(pmc != 0 && ev_close_calls == 1 && ev_close_win == w.handle,
+        "callbacks: close round trip (post=" + to_string(pmc)
+          + " calls=" + to_string(ev_close_calls) + " win=" + to_string(ev_close_win) + ")");
+
       glfw_destroy_window(&lib, &w);
       failed = failed + report(true, "window: destroyed");
     }
@@ -292,6 +513,37 @@ fn main() -> Int {
 
     glfw_terminate(&lib);
     failed = failed + report(true, "terminate: glfwTerminate");
+
+    // 0.5.0: glfwInitAllocator round trip (second init cycle; the allocator
+    // is process-global and persists, so this runs after the main cycle).
+    var a_addr = 0;
+    var r_addr = 0;
+    var d_addr = 0;
+    unsafe {
+      a_addr = alloc_cb as Int;
+      r_addr = realloc_cb as Int;
+      d_addr = dealloc_cb as Int;
+    }
+    glfw_init_allocator_raw(&lib, a_addr, r_addr, d_addr, 0x5A5A);
+    glfw_default_window_hints(&lib);
+    glfw_window_hint(&lib, GLFW_VISIBLE, GLFW_FALSE);
+    glfw_window_hint(&lib, GLFW_CLIENT_API, GLFW_NO_API);
+    let inited2 = glfw_init(&lib);
+    if !inited2 {
+      failed = failed + report(false, "allocator: second init failed -- " + glfw_last_error(&lib));
+    } else {
+      let cw2 = glfw_create_window(&lib, 64, 48, "xiom.glfw alloc probe", 0, 0);
+      var win_ok = false;
+      if cw2.is_ok {
+        win_ok = true;
+        glfw_destroy_window(&lib, cw2.value);
+      }
+      failed = failed + report(alloc_calls >= 1 && alloc_user_seen == 0x5A5A && win_ok,
+        "allocator: callbacks fired (alloc=" + to_string(alloc_calls) + " realloc="
+          + to_string(realloc_calls) + " dealloc=" + to_string(dealloc_calls)
+          + " user=" + to_string(alloc_user_seen) + ")");
+      glfw_terminate(&lib);
+    }
   }
 
   let cl = glfw_close(&lib);
