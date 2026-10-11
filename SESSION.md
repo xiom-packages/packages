@@ -14,7 +14,52 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (updated 18:38Z -- batches 38-61 + btree 0.1.1 + ann 0.2.0 delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-11 18:45Z (CLEAN HANDOFF -- batches 38-61 ALL delivered; one gate left; supersedes the 11:10Z block below):**
+- **Batch lane drained.** Every bindings item from today is delivered end-to-end (merge -> validate
+  -> native x2 -> record -> wrap -> gate -> live-verify -> item fixed), plus three follow-on flows:
+  - `xiom.glfw` 0.4.0/0.5.0 (`eco-v0.1.136`/`137`; two native fixes pre-publish: `f64_from_bits`
+    dropped the unsound `requires: bits >= 0` -- negative IEEE-754 patterns crashed; repro kept at
+    `packages/xiom-glfw/tests/probe_neg_f64.xi`; key-name check made layout-invariant (Greek layout
+    box). Bindings carried both, verified.)
+  - `xiom.vulkan` 0.5.0 (triangle pixel-proven; `eco-v0.1.138`), `xiom.sdl3` 0.4.0->0.16.0
+    (`eco-v0.1.138`..`152`; B-17 wild-address fix verified in 0.13.0; live joystick via virtual pad;
+    drag-drop decode; 5 fresh `Vec<UInt8>` normalized in 0.12.0), `xiom.sdl3` 0.9.0/0.10.0/0.11.0
+    (`eco-v0.1.145`..`147`)
+  - **Ops gate CLEARED**: `xiom.ann` 0.1.0 + `xiom.stb` 0.2.0 allowlisted (509 -> 511) and published
+    in `eco-v0.1.139`; ops catalog-verifies both.
+  - `xiom.btree` 0.1.1 (`eco-v0.1.141`; verbatim re-carve at ORBITDB `c017165` -- order-3 delete
+    defect fixed upstream; suite 23/23 + churn matrix re-expanded to orders 3/4/5/6, former
+    reproducer GREEN).
+  - `xiom.ann` 0.2.0 (`eco-v0.1.144`; XVECTOR `d42171c` refresh -- P-a generous level 0 + codec v3;
+    probe 40 checks; P-a gate 285/300 vs legacy 275/300).
+  - `xiom.assimp` 0.8.0 (`eco-v0.1.153`; engine P4 file import + mesh getters; B-20 documented),
+    `xiom.miniaudio` 0.3.0 (`eco-v0.1.154`), `xiom.meshopt` 0.2.0->0.4.0 (`eco-v0.1.155`..`159`;
+    wrappers + codec families), `xiom.ozz` 0.3.0 + `xiom.imgui` 0.3.0 (`eco-v0.1.156`),
+    `xiom.box2d` 0.3.0 (`eco-v0.1.157`). Bindings' full-coverage pool is 5/5 re-verified + published.
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **75 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.159`).
+- **PENDING GATE (only one):** an official archive carrying compiler >= m258 (`--cxx-standard`) --
+  the compiler lane reports its v0.64.4 stack complete/staged (m261-m271, `REL-20261011-1731-compiler`);
+  check `gh release list -R xiom-lang/xiom`. On release: repin + merge origin/bindings (jolt batch 35,
+  tip-era `0aea531c`) + port x2 (watchdog >= 600 s) + publish; jolt stays gated tests=unknown for the
+  official pin -- never publish it unverified. That archive also carries the fn-value ABI + HOME/PATH
+  fixes covering B-13..B-20 and `REL-20261010-1549-packages-5/-7` -- re-verify from the witnesses then.
+- Open bus items at handoff: `REL-20261011-1113-bindings` (bindings' to close), `REL-20261011-1731-compiler`
+  (broadcast), `REL-20261011-1828-packages` (assimp CONTRACT.md routed to engine -- awaiting adoption).
+  Acked/parked: `REL-20261010-1548-bindings-11` (consumer build hook -> compiler), `-1834-engine-5`
+  (assimp P2+, contract), `-1937-xvector` (WSL bug -> compiler), `-1137-pulse` (SQL-migrations ref),
+  `-1203-xvector-2` (owner priority -- chain stayed current).
+- Incidents resolved: (a) the `eco-v0.1.155` run failed AFTER meshopt published -- a transient registry
+  blip let `xiom.ntp@0.1.3` slip the version pre-check and its retry hit a hard 409 `version_exists`;
+  rerun went green and main now carries CI patch `42e7c489` (retry re-checks the registry before failing).
+  (b) relay ASCII validation fixed (playground `1201`; no non-ASCII in relay notes).
+- Carry-forward gotchas: conflict resolves on package READMEs can drop earlier shipped/published lines --
+  restores were needed for miniaudio/meshopt (source of truth: registry + pre-merge STATUS). Fresh
+  `Vec<UInt8>` sites keep appearing in new bindings code -- the 5-shape bracket scan on every touched
+  package caught 12 total today. `glfw_set_cursor_pos` is a silent no-op on hidden unfocused windows
+  (cursor readbacks can go negative -- that is what killed glfw's suite run pre-fix).
+
+**STATE AT 2026-10-11 11:10Z (history -- superseded by the 18:45Z block above):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -199,7 +244,82 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **NEW operating resource (owner):** `E:\repos\` -- clone upstream projects there and STUDY them
   before writing package code (disposable when done); no writing from memory.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-11 11:10Z) -- USE THIS ONE
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-11 18:45Z) -- USE THIS ONE
+
+```
+You are the packages session for xiom-packages/packages (native lane; local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
+Read SESSION.md first -- the 2026-10-11 18:45Z STATE block is the live handoff;
+all older STATE blocks and paste prompts below are history.
+
+RELAY BUS (do FIRST and LAST every session): sync E:\xiom-lang\xiom-relays with
+  git fetch origin; git merge --ff-only origin/main    (never git pull there)
+  python tools/relay.py view --lane packages
+Process every item addressed to packages (ack/fix/wontfix with evidence refs;
+move statuses only for items whose `to` is packages; never edit another lane's
+item -- open a new item instead; one item per issue; link evidence, never copy
+logs; keep notes ASCII-only -- the validator rejects non-ASCII). Commit+push
+status changes. The doorbell cron wku_128e7df9c001KbUPDr5q7ejEoK fires every 2 h
+(re-sync, process, check `gh release list -R xiom-lang/xiom` for the next
+official archive carrying compiler >= m258).
+
+STATE: compiler pin v0.64.3 (official archive, SHA256-verified; a shadow install
+exists at %LOCALAPPDATA%\xiom.new.0643 if the canonical is ever locked). Validate
+524/0; guard 511 allowlisted / 494 ready / 17 grandfathered / 0 failures.
+Today (2026-10-11): batches 38-61 ALL delivered -> eco-v0.1.136..eco-v0.1.159
+(glfw, vulkan, sdl3 0.4.0->0.16.0, ann/stb ops appends + ann 0.2.0, btree 0.1.1,
+assimp 0.8.0, miniaudio 0.3.0, meshopt 0.2.0->0.4.0, ozz/imgui/box2d 0.3.0);
+session tally 75 eco releases (eco-v0.1.86 -> eco-v0.1.159); bindings' 5-package
+pool fully re-verified + published; assimp CONTRACT.md routed to engine
+(REL-20261011-1828-packages -- awaiting their adoption).
+PENDING GATE (only one): the next official compiler archive (m258+; the compiler
+lane's v0.64.4 stack m261-m271 is complete/staged) -> repin + merge
+origin/bindings (jolt batch 35, tip-era 0aea531c) + port x2 (watchdog >= 600 s)
++ publish; jolt stays gated tests=unknown -- do NOT publish it unverified. That
+archive also carries the fn-value ABI + HOME/PATH fixes covering B-13..B-20 and
+REL-20261010-1549-packages-5/-7 -- re-verify from the witnesses when it lands.
+
+CREDENTIAL NOTE: gh sometimes flips to `Lefteris-Ngonart` (403 on push); switch
+with `gh auth switch --user Lefteris-Notas`; verify with
+`gh api repos/xiom-packages/packages --jq .permissions`.
+
+Start: git fetch; git status -sb; git log -1; relay sync + view (above); then
+  $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+  & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+
+Then do, in order:
+1. PENDING GATE: the next official archive (m258+; watch `gh release list -R
+   xiom-lang/xiom`) -> repin + jolt merge/port x2/publish as above.
+2. Bindings batches as items arrive (queue was empty at handoff): merge ONLY the
+   newest tip (each item supersedes prior ones of the SAME package; DIFFERENT
+   packages stack into one eco batch), resolve package STATUS/README conflicts
+   to THEIR side (but restore earlier shipped/published README lines -- conflict
+   resolves can drop them), ack on the bus, port x2 (absent shapes where
+   applicable; watchdogs: 90 normal, 240-300 vendored C/C++, 600+ for 100+ TU
+   compiles -- assimp/meshopt/box2d/ozz/imgui/miniaudio are vendored: run quiet,
+   sequential, never concurrent with another compile), record, wrap, publish,
+   live-verify, fix the item. ALWAYS run `status.ps1 -Action validate` AFTER the
+   merge and BEFORE tagging. Run the 5-shape bracket scan on every touched
+   package (fresh `Vec<UInt8>` sites keep appearing -- normalize to `Vec[UInt8]`
+   pre-publish and re-verify x2 before recording).
+3. Non-bindings asks (xvector/engine/pulse/ops/compiler): process or route --
+   toolchain bugs become new items to compiler with their repro. Reply to engine
+   on REL-20261011-1828-packages only if they ask; new engine asks become new
+   items, scoped additively.
+4. Carry-forwards: eco batch = wrap commit -> push -> tag `eco-v0.1.NNN` -> approve
+   the pending deployment (`environment_ids:[22424011031]`, note: integer `-F`
+   for the array) -> watch green -> live-verify the registry sha256 -> sync README
+   ("published in eco-vX") + STATUS excluded_reason -> fix the bus item -> fold
+   SESSION.md. The publish workflow now re-checks the registry before failing on
+   a retry (CI patch 42e7c489 after the ntp version_exists incident) -- leave
+   that block alone. `glfw_set_cursor_pos` is a silent no-op on hidden windows
+   (cursor readbacks can be negative; pre-shipped `probe_neg_f64.xi` documents
+   the class). `xiom.btree` churn runner: `tests/churn.ps1 -Order N -Ops 20000
+   -N 4096` (matrix incl. order 3). Update SESSION.md at each wrap with a fresh
+   STATE block.
+```
+
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, SUPERSEDED -- 2026-10-11 11:10Z; kept for history)
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local
