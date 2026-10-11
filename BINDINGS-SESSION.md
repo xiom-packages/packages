@@ -91,6 +91,17 @@ clone: stage ONLY your own item files). The two working rules are in
   (`ptr_write_sum=11`, `byte_index_sum=66`), `ptr-arith` B-17 still red
   (`d0=-16448`, `d1=-26864`; Int-typed `d12=12` exact) -- witnesses fresh
   for the archive post-pair.
+- **Pre-archive baseline sweep (2026-10-11 19:32Z, v0.64.3 slot)**: cb-abi
+  probes match the recorded v0.64.3 column -- `probe` control=42/direct=42/
+  stored=20 + GLFW shapes (calls=1 key=65 sc=33 action=1 mods=5,
+  close_win=4242); `probe2` relay=0 (B-13 pre); `probe3` fnparam=42,
+  `probe6` reg 42/63, `probe8` full output (after=42, callee-after=42,
+  main-after r=7) -- all B-18 shapes GREEN pre; `probe4` 0/42/42; `probe5`
+  all 0; `probe7` 2x T001 (B-14/15 pre). B-20 `foreign-ptr-read`: C-side
+  1065353216/1073741824, XIOM 0/0 (red pre). B-07 `ffi-alias-shadow`: 2x
+  T001 `c_strlen` (red pre). Fresh same-slot witnesses for the archive
+  verdicts; heavy rows (B-11, B-05/B-10, sdl3/glfw suites, jolt) run at
+  the archive.
 - **Latest batch 61 (2026-10-11)**: `xiom.meshopt` **0.4.0 -- codec family
   (Phase 3 item 2)**: index SEQUENCE codec (byte-exact order; contrast
   pinned with the triangle-list codec, which rotates corners), quat filter
