@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-11T20:38:18Z",
+    "updated":  "2026-10-11T20:51:52Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -3367,7 +3367,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.imgui",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Dear ImGui immediate-mode GUI bindings for XIOM (vendored v1.92.9b core, headless frame probe)",
@@ -3377,7 +3377,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imgui/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imgui/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "imgui.xi",
                                               "package.xi"
@@ -5372,7 +5372,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.ozz",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Ozz-Animation (v0.16.0) bindings for XIOM -- vendored C++ amalgamation, no system library",
@@ -5382,7 +5382,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ozz/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ozz/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "ozz.xi",
                                               "package.xi"
