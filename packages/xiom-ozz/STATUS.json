@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  4,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "12c564ba",
-                  "checked":  "2026-10-08T21:05:38Z"
+                  "run_by":  "task:bindings-pool",
+                  "commit":  "236e524c",
+                  "checked":  "2026-10-11T17:35:32Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: bindings batch 14 (eco-v0.1.109)"

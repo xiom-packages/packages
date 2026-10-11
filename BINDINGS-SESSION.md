@@ -3,20 +3,25 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: MINIAUDIO 0.3.0 SHIPPED -- batches 31-55 relayed** (CLEAN HANDOFF
-2026-10-11 14:45Z; this session ran 14:45Z-17:15Z; ticks 14:47Z/15:00Z/
-15:12Z/15:53Z/16:02Z/16:22Z/17:08Z; **context-limit handoff 17:15Z**).
-Published through the window: `eco-v0.1.132`..`eco-v0.1.152` -- assimp 0.7.0,
+**STATUS: MESHOPT 0.2.0 SHIPPED -- batches 31-56 relayed** (session resumed
+2026-10-11 17:19Z from the 17:15Z context-limit handoff; batches 45-55 were
+the handoff window 14:45Z-17:15Z; this continuation shipped batch 56:
+xiom.meshopt 0.2.0 vendored + 30/30 x2).
+Published through the window: `eco-v0.1.132`..`eco-v0.1.154` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0 (incl. the pre-publish native fixes), vulkan 0.5.0
 `0cd7bc00` + sdl3 0.4.0 `a9006d4c` (`138`), ann 0.1.0 + stb 0.2.0 (`139`,
 ops append gate cleared), sdl3 0.5.0 `a350dd46` (`140`), btree 0.1.1 (`141`,
-other lane), sdl3 **0.7.0-0.16.0** (`142`-`152`; `144` also carries ann
-0.2.0; `149` = capture streams + query, `150` = pointer/relative mouse,
-`151` = live joystick path, `152` = drag-drop payload decode).
-**Publish queue (packages): xiom.assimp 0.8.0 + xiom.miniaudio 0.3.0**
-(batches 54/55 relayed 16:55Z/17:08Z via `REL-20261011-1655/1708-bindings`;
-packages ACKED batch 54 at 17:09Z) + jolt 0.2.0 (parked on the m258 archive).
-Lane tree tip: `c3f83489` at handoff; now `c695f74c` (clean; all pushed).
+other lane), sdl3 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`,
+sha256 `b5b32f16...`, live 17:12:37Z), miniaudio **0.3.0** (`154`, sha256
+`6a2a77dd...`, live 17:22:01Z).
+**Publish queue (packages): EMPTY** -- assimp 0.8.0 + miniaudio 0.3.0 are
+live; jolt 0.2.0 stays parked on the m258 archive only.
+**Batch 56: xiom.meshopt 0.2.0** -- vendored meshoptimizer v1.2 (@ f843aae0)
++ C++ probe bridge + 30 real-library checks (30/30 x2); relayed
+`REL-20261011-1733-bindings` (packages to wrap/publish).
+Lane tree tip: `08bcde04` (clean; all pushed).
+Compiler v0.64.4 six-batch stack staged (`REL-20261011-1731-compiler`, to
+all): re-run our open probe rows when the archive lands; workarounds stay.
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
 **B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
 >=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
@@ -38,18 +43,16 @@ getters, relayed to packages (batch 54) and noted to engine
 (`REL-20261011-1655-bindings(-2)`). Upstream sources live in `E:\repos`
 (Vulkan-Headers, SDL3, FFmpeg + pool).
 
-**HANDOFF NOTE (context limit, 2026-10-11 17:15Z)**: this native session ran
-14:45Z-17:15Z and shipped batches 45-55 -- the sdl3 0.4.0-0.16.0 line
-completed (capture streams, stream query, pointer/relative mouse, live
-joystick via virtual-pad instrumentation, drag-drop payload decode), plus
-`xiom.assimp` 0.8.0 (engine P4 file import + mesh-data getters) and
-`xiom.miniaudio` 0.3.0 (encoder + file round trip) -- and produced the
-compiler-findings program B-13..B-20 (fde5548e re-verify -> B-18/B-19
-regressions; B-20 int-to-ptr trap pinned with a minimal repro and a shipped
-workaround). Everything is committed and pushed; the worktree is clean; the
-relay inbox is clean (all asks replied/delivered; packages acked batch 54).
-Pick up from RESUME HERE below -- the doorbell cron is per-session, so
-re-arm it first.
+**RESUME NOTE (2026-10-11, post-handoff continuation)**: this session picked
+up the 17:15Z context-limit handoff and delivered batch 56 -- `xiom.meshopt`
+0.2.0: meshoptimizer v1.2 vendored verbatim (commit `f843aae0`, object-store
+extraction, per-file SHA256, staged blobs byte-identical to upstream HEAD) +
+C++ probe bridge + 30 real-library checks (30/30 x2) -- and recorded the
+publish queue clearing (assimp 0.8.0 -> `eco-v0.1.153`, miniaudio 0.3.0 ->
+`eco-v0.1.154`). Next: pool drive ozz/imgui/box2d (re-verify + ROADMAP
+Phase-3 items), compiler v0.64.4 re-verify when the archive lands. Pick up
+from RESUME HERE below; the doorbell cron is per-session, so re-arm it
+first.
 
 ## RESUME HERE (handoff, 2026-10-11)
 
@@ -59,12 +62,28 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 17:08Z, batch-55 ship tick)**: batches 31-55
-  relayed; sdl3 **0.12.0-0.16.0 PUBLISHED** (`eco-v0.1.148`-`152`).
-  **Publish queue (packages): xiom.assimp 0.8.0 + xiom.miniaudio 0.3.0**
-  (batches 54/55) + jolt 0.2.0 (m258 parked only). Engine P3+P4 asks ALL
-  delivered/published (through assimp 0.8.0). Relay: `-1553`/`-1602`/
-  `-1622`/`-1655`/`-1708` batch items sent.
+- **CURRENT (2026-10-11 17:40Z, batch-56 ship tick)**: batches 31-56
+  relayed; sdl3 **0.12.0-0.16.0** + assimp **0.8.0** + miniaudio **0.3.0**
+  PUBLISHED (`eco-v0.1.148`-`154`). **Publish queue: EMPTY** (jolt 0.2.0
+  m258-parked only). Engine P3+P4 asks ALL delivered/published. Relay:
+  `-1553`/`-1602`/`-1622`/`-1655`/`-1708`/`-1733` batch items sent.
+- **Latest batch 56 (2026-10-11)**: `xiom.meshopt` **0.2.0 -- pool drive
+  (vendored)**: meshoptimizer v1.2 vendored verbatim (commit `f843aae0`,
+  20 C++ TUs + header + LICENSE; per-file SHA256 in SPEC §2; extraction
+  from the clone object store, every staged blob byte-identical to
+  upstream HEAD) compiled with the suite via `port.args.json` plus the
+  reviewable bridge `src/meshopt_bridge.cpp` (integer/scalar ABI; B-20:
+  C copies into XIOM-owned slots/buffers). Suite rewritten from the
+  assert-only compile checks to **30/30 x2** real-library runs (16
+  constants + 12 probes + 2 owned-buffer): remap 6->4, ACMR drops after
+  optimizeVertexCache, analyzeVertexFetch, simplify 600->~100 @<=5%,
+  index codec (rotation-invariant triangle-set equality -- upstream
+  encodeIndexBuffer rotates corners by design), vertex codec byte-exact,
+  stripify set-preserving, fp16 0x3C00/0xC000, sphere r=1414 on the 2x2
+  square, meshlets conserve 98 tris, oct error <=0.02, in-place optimize
+  preserves the set with checksum change. Legacy 72/72 re-verify recorded
+  first (`157094bc`); building takes ~9 s (21 TUs). feat `5a45d3bd` +
+  record `08bcde04`; relayed `REL-20261011-1733-bindings`.
 - **Latest batch 55 (2026-10-11)**: `xiom.miniaudio` **0.3.0 -- encoder +
   file round trip** (pool drive, package 1): `ma_encode_roundtrip` encodes
   a 64-frame 8 kHz mono s16 tone to a temp WAV with `ma_encoder`, re-decodes
@@ -333,23 +352,25 @@ clone: stage ONLY your own item files). The two working rules are in
   `python tools/relay.py digest --to <lane>`.
 
 ### Next actions (ordered)
-1. **Doorbell**: **RE-ARMED 14:47Z** (`wku_12b6c26ff001C4Vt6tbf8wl048`,
-   `0 */3 * * *`, next 15:00Z; the cron is per-session -- re-arm on each
+1. **Doorbell**: **RE-ARMED 17:20Z** (`wku_12bfae69e001ycW3vSGtLBzalY`,
+   `0 */3 * * *`, next 18:00Z; the cron is per-session -- re-arm on each
    new session). Prompt = relay pull + process lane items + packages
    SESSION eco notes. Relay repo `E:\xiom-lang\xiom-relays`: sync with
    `git fetch origin` + compare -- do NOT `git pull` ("Cannot
    fast-forward to multiple branches"); stage ONLY this lane's item
    files; only the REPORTING lane moves its own items (reply with new
-   items). Inbox at 15:00Z: **clean** -- engine `1321`/`1411-2` open
-   but replied (`REL-20261011-1345-bindings-2`,
-   `REL-20261011-1437-bindings-2`), xvector `1203` + engine `1153`
-   acked by their lanes, compiler `1342` open (info).
-2. **Publish watch**: packages queue = **xiom.assimp 0.8.0 +
-   xiom.miniaudio 0.3.0** (batches 54/55, relayed 16:55Z/17:08Z) + jolt
-   0.2.0 (m258 archive parked). sdl3 0.7.0-0.16.0 landed in
-   `eco-v0.1.142`-`152`. Record new eco versions in the relay area of this
-   file. The engine consumes only published packages -- if asked, nudge
-   packages.
+   items). Inbox at 17:38Z: **clean** -- engine `1321`/`1411-2`/`1539`
+   open but delivered/replied (`-1345-bindings-2`, `-1437-bindings-2`,
+   `-1655-bindings-2`), xvector `1203` + engine `1153` acked by their
+   lanes, compiler `1533` re-verified (B-18/B-19 filed), compiler `1731`
+   (v0.64.4 staged, info -> re-verify on archive), ops `1134` closed.
+2. **Publish watch**: queue **EMPTY** -- assimp 0.8.0 live in
+   `eco-v0.1.153` (`b5b32f16...`, 17:12:37Z), miniaudio 0.3.0 live in
+   `eco-v0.1.154` (`6a2a77dd...`, 17:22:01Z); jolt 0.2.0 m258-parked only.
+   sdl3 0.7.0-0.16.0 landed in `eco-v0.1.142`-`152`; batch 56 meshopt
+   0.2.0 relayed (expect `eco-v0.1.155+`). Record new eco versions in the
+   relay area of this file. The engine consumes only published packages --
+   if asked, nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): 0.4.0-0.16.0 shipped (batches 41-53;
    capture in 0.13.0, pointer/relative mouse in 0.14.0, live joystick
@@ -361,20 +382,20 @@ clone: stage ONLY your own item files). The two working rules are in
    pointers -- have C copy into an owned slot**. Ship each batch as: feat
    -> x2 (present + absent PATH-filtered) -> record -> relay -> ledger.
    Constant regeneration recipe: comment-strip + enum-parse + macro-eval
-   vs the headers (ROADMAP item 1). **Assimp 0.8.0 + miniaudio 0.3.0
-   SHIPPED** (batches 54/55). **Pool drive in progress**: miniaudio done
-   (0.3.0: encoder + file round trip); next: meshopt (72 tests, last run
-   fleet-sweep v0.64.0 -- re-verify on v0.64.3 + publish per its ROADMAP),
-   then ozz (4 tests), imgui (4), box2d (5) -- each per its own ROADMAP,
-   binding from the real sources, never from memory.
+   vs the headers (ROADMAP item 1).    **Assimp 0.8.0 + miniaudio 0.3.0
+   PUBLISHED** (`eco-v0.1.153`/`154`). **Pool drive in progress**: miniaudio
+   done (0.3.0); meshopt done (**0.2.0 vendored** v1.2 + bridge + 30/30 x2,
+   batch 56 relayed); next: ozz (4 tests), imgui (4), box2d (5) --
+   re-verify on v0.64.3 then clear their ROADMAP Phase-3 items, binding
+   from the real sources, never from memory.
 4. ~~stb publish~~ **DONE** (`eco-v0.1.139`); batches 39/40/41 wrapped on
    main (`470e13f3`); vulkan 0.5.0 live (`eco-v0.1.138`).
 
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- clean handoff pickup (2026-10-11 17:15Z,
-context-limit handoff).
+Bindings lane continuation -- clean pickup (2026-10-11 17:40Z, post-handoff
+continuation; prompt refreshed after batch 56).
 
 1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
    BINDINGS-SESSION.md (STATUS + RESUME HERE: CURRENT state, ordered next
@@ -393,32 +414,33 @@ context-limit handoff).
    eco publish notes and record confirmed eco versions in
    BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
    action." Then check relay once now; also check the packages publish
-   queue (at handoff: assimp 0.8.0 + miniaudio 0.3.0 relayed, packages
-   acked batch 54; expect eco-v0.1.153+).
+   queue (at this handoff: EMPTY -- assimp 0.8.0 = eco-v0.1.153,
+   miniaudio 0.3.0 = eco-v0.1.154; batch 56 xiom.meshopt 0.2.0 relayed
+   REL-20261011-1733-bindings, expect eco-v0.1.155+).
 
 3. Continue the ordered tasks. Priority: (a) the pool drive (in progress):
-   re-verify xiom.meshopt on v0.64.3 (72 tests; last run was a fleet-sweep
-   v0.64.0 build, STATUS commit ed680f75), clear its ROADMAP next items,
-   then ozz (4 tests), imgui (4), box2d (5) per their own ROADMAPs -- bind
-   from the real sources in E:\repos, never from memory; (b) SDL3
-   continuance: only the POSIX soname remains (deferred -- no Linux CI
-   target); (c) publish watch: assimp 0.8.0 + miniaudio 0.3.0 + jolt
-   (m258); (d) Vulkan phase 4 only if the engine asks
-   (compute/descriptors/textures/frames-in-flight).
+   meshopt 0.2.0 done (vendored v1.2 + bridge + 30/30 x2); next: re-verify
+   ozz (4 tests), imgui (4), box2d (5) on v0.64.3 and clear their ROADMAP
+   Phase-3 items -- bind from the real sources in E:\repos, never from
+   memory; (b) SDL3 continuance: only the POSIX soname remains (deferred
+   -- no Linux CI target); (c) publish watch: EMPTY (jolt m258-parked);
+   (d) compiler v0.64.4: when the archive lands, re-run our open probe
+   rows from REL-20261011-1731-compiler; (e) Vulkan phase 4 only if the
+   engine asks (compute/descriptors/textures/frames-in-flight).
 
    Respect: B-11..B-17/B-20 discipline (byte-indexed slot writes, packed
    returns, dispatcher+registry callbacks, 1-arg handler shapes,
    structured ifs, **no pointer arithmetic -- one owned slot per
    out-param; never read through foreign pointers, have C copy into an
-   owned slot (B-20)**); the 100%-coverage owner directive; the "stage
-   only your own relay items" rule; the absent shape needs the VulkanSDK
-   dir filtered from PATH on this host; git fetch + git log before every
-   commit (parallel owner session). Package traps: xiom.assimp needs
-   `-TimeoutSec 600` (125 TUs, ~4-5 min/build) and keeps its `.obj`
-   fixture via a scoped .gitignore negation; xiom.glfw needs
-   `--link user32` (port.args.json) when run manually; miniaudio's
-   vendor header is 4.1 MB (a few seconds of build). Deliver batches as:
-   feat -> x2 green (present + absent where applicable) via
+   owned slot (B-20)**); vendored trees stay byte-pinned (`vendor/** -text`,
+   per-file SHA256 in SPEC.md, object-store extraction for LF fidelity);
+   the 100%-coverage owner directive; the "stage only your own relay
+   items" rule; git fetch + git log before every commit (parallel owner
+   session). Package traps: xiom.assimp needs `-TimeoutSec 600` (125 TUs,
+   ~4-5 min/build) and keeps its `.obj` fixture via a scoped .gitignore
+   negation; xiom.glfw needs `--link user32` (port.args.json) when run
+   manually; meshopt builds 21 TUs in ~9 s (`--timeout 900`). Deliver
+   batches as: feat -> x2 green (present + absent where applicable) via
    scripts/port.ps1 -> record via scripts/status.ps1 -> relay item to
    packages -> ledger update, all pushed; leave the worktree clean.
 ```
@@ -427,8 +449,12 @@ context-limit handoff).
    loader, decode path (avformat/avcodec/swresample), same slot discipline.
 6. **Open asks**: engine `-1834-engine-2` (vulkan growth; orders #1/#2/#3
    delivered), assimp consumer contract `REL-20261010-1900-2` (mini-contract
-   proposal due), stb scope `-1900` (delivered; close on publish), `-1852`
-   (assimp watchdog 1800 s, done).
+   proposal due), stb scope `-1900` (delivered; live in eco-v0.1.139),
+   `-1852` (assimp watchdog 1800 s, done). Compiler `REL-20261011-1533`
+   re-verified (B-13/1904/B-14/B-15 fixed; B-18/B-19 regressions filed);
+   `REL-20261011-1731` (v0.64.4 stack staged) -> re-run our open rows when
+   the archive lands. Engine `-1321`/`-1411-2`/`-1539` delivered (batches
+   47/49/54) and replied; the engine lane moves its own items.
 7. **jolt**: parked on the m258 archive; on arrival: repin + merge tip
    `0aea531c` + port x2 + re-verdict `-1815` (then close).
 8. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
@@ -466,7 +492,19 @@ context-limit handoff).
   `*>&1 | Out-File`.
 - **Vendored trees**: `vendor/** -text` byte pins; regenerate assimp with the
   generator, never hand-edit vendor files. System headers must never be
-  basename-remapped (the generator has a skip list).
+  basename-remapped (the generator has a skip list). On this Windows clone
+  (core.autocrlf=true) the working tree is CRLF: extract vendored bytes from
+  the object store (`git cat-file blob HEAD:<path>`) and verify each file
+  with `git hash-object == git rev-parse HEAD:<path>` (meshopt 0.2.0
+  pattern; `git archive` does NOT avoid the EOL conversion).
+- **Index codec rotation**: `meshopt_encodeIndexBuffer` implicitly rotates
+  triangle corners to match the edge FIFO (upstream README: use
+  `meshopt_encodeIndexSequence` to preserve exact order); round-trip checks
+  must be triangle-set/rotation-invariant, not byte-exact. The vertex codec
+  IS byte-exact. `meshopt_computeSphereBounds` is an enclosing-sphere
+  heuristic (7-axis seeding + expansion), not the minimal sphere: assert on
+  point sets where it is exact (2x2 planar square -> center 1,1, r=sqrt(2),
+  i.e. 1414 milli).
 - **B-12: floating-point RETURNS through fn-pointer cast calls are broken**
   on v0.64.2/v0.64.3 (f64 -> 0, f32 -> garbage). Never rely on fp returns
   from casts; fp OUT-params via XIOM slots are fine. Repro:
