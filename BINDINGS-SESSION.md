@@ -35,12 +35,13 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 10:45Z)**: batches 31-38 relayed. **Published**:
-  `eco-v0.1.132` (assimp 0.7.0 + glfw 0.3.0), `eco-v0.1.133` (vulkan 0.3.0).
+- **CURRENT (2026-10-11 10:50Z)**: batches 31-38 relayed. **Published**:
+  `eco-v0.1.132` (assimp 0.7.0 + glfw 0.3.0), `eco-v0.1.133` (vulkan 0.3.0),
+  `eco-v0.1.134` (sdl3 0.3.1, sha256 `a779ae4b...` @10:33:55Z).
   **In the packages queue (relayed/acked, publish pending)**: batch 34 stb
   0.2.0 (ops allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
-  batch 35 jolt 0.2.0 (parked on the m258 archive), batch 36 sdl3 0.3.1,
-  batch 37 vulkan 0.4.0, batch 38 glfw 0.4.0.
+  batch 35 jolt 0.2.0 (parked on the m258 archive), batch 37 vulkan 0.4.0,
+  batch 38 glfw 0.4.0.
 - **Compiler pin is now v0.64.3** (installed slot + `COMPILER_VERSION`);
   runs record `v0.64.3`.
 - **Latest batches**: 33 vulkan 0.3.0 RHI bring-up (device/queue + real
@@ -302,6 +303,13 @@ in the assimp port.args (item REL-20261010-1852 acked).
 BINDINGS PUBLISH CONFIRM (batch 33): xiom.vulkan 0.3.0 (engine RHI
 bring-up) is live in eco-v0.1.133 (sha256 668b143b...; 21:07:37Z; native
 15/15 x2 on the RTX 3070 Ti).
+```
+
+```
+BINDINGS PUBLISH CONFIRM (batch 36): xiom.sdl3 0.3.1 (SDL_PushEvent +
+headless synthetic-event pump) is live in eco-v0.1.134 (sha256
+a779ae4b...; 10:33:55Z; native 22/22 x3 + sanitized-absent SKIP 3/3).
+Jolt 0.2.0 stays gated (parked on the m258 archive).
 ```
 
 ```
