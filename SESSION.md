@@ -14,7 +14,88 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 10:40Z (doorbell cycle -- bindings batch 36 (`xiom.sdl3` 0.3.1) PUBLISHED via `eco-v0.1.134`; jolt publish-gate incident fixed):**
+**STATE AT 2026-10-11 11:00Z (CLEAN HANDOFF -- bus-based workflow; bindings batches 20-37 all delivered; three gates pending):**
+- **Relay bus is the coordination path** (`E:\xiom-lang\xiom-relays`). Sync the shared clone with
+  `git fetch origin` + `git merge --ff-only origin/main` -- do NOT use `git pull` there (its pull
+  config errors "Cannot fast-forward to multiple branches"). Queue: `python tools/relay.py view
+  --lane packages`. Doorbell cron `wku_128e7df9c001KbUPDr5q7ejEoK` fires every 2 h (fetch+merge
+  variant; also checks for the m258 archive).
+- **Delivered since the 2026-10-10 handoff (50 eco releases, `eco-v0.1.86` -> `eco-v0.1.135`):**
+  bindings batches 20-37 -- openssl 0.2.0, ffmpeg 0.2.0, sqlite 0.3.0, box2d 0.2.0, imgui 0.2.0,
+  vma 0.2.0, assimp 0.2.0->0.7.0, cuda 0.2.0, glfw 0.3.0, vulkan 0.3.0->0.4.0, sdl3 0.3.1,
+  stb 0.2.0 (verified, awaiting ops) -- plus native-lane: http 0.1.4/0.1.5/0.1.6, durable port +
+  WAL reconciliation (152/152), wal 0.1.0, btree 0.1.0, vectors 0.1.0, ann 0.1.0 (verified,
+  awaiting ops), metrics `Vec<` fix, findings/wishlist ledgers + release-check verdicts.
+- **v0.64.3 repinned** (`849b24d3`; 522 records; all 11 release-check rows verdicted on the bus,
+  including the corrected C-ORBIT-06 = still-open). Validate **524/0**; guard **509/492/17/0**.
+- **PENDING GATES:** (1) **ops live** for `xiom.ann` (`REL-20261010-1908-packages`; 24/24 x2 +
+  recall probe) and `xiom.stb` (`REL-20261010-2301-packages`; 5/5 x2) -> append both
+  (**509 -> 511**), guard, wrap, one eco batch; (2) **m258 archive** (carries `--cxx-standard`;
+  none yet) -> repin + merge the jolt batch-35 tip-era `0aea531c` + port x2 (watchdog >= 600 s) +
+  publish; jolt's record is **gated `tests=unknown`** for the official pin -- never publish it
+  unverified; items -6/-7 re-verdict rides that archive; (3) engine asks routed to bindings
+  (image codec -> shipped as stb; assimp consumer contract P2+).
+- **NEW operating resource (owner):** `E:\repos\` -- clone upstream projects there and STUDY them
+  before writing package code (disposable when done); no writing from memory.
+
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-11 11:00Z) -- USE THIS ONE
+
+```
+You are the packages session for xiom-packages/packages (native lane; local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
+Read SESSION.md first -- the 2026-10-11 11:00Z STATE block is the live handoff;
+all older STATE blocks and paste prompts below are history.
+
+RELAY BUS (do FIRST and LAST every session): sync E:\xiom-lang\xiom-relays with
+  git fetch origin; git merge --ff-only origin/main    (never git pull there)
+  python tools/relay.py view --lane packages
+Process every item addressed to packages (ack/fix/wontfix with evidence refs;
+move statuses only for items whose `to` is packages; never edit another lane's
+item -- open a new item instead; one item per issue; link evidence, never copy
+logs). Commit+push status changes. Doorbell cron wku_128e7df9c001KbUPDr5q7ejEoK
+fires every 2 h (re-sync, process, check gh release list for m258).
+
+STATE: compiler pin v0.64.3 (official archive, SHA256-verified; a shadow install
+exists at %LOCALAPPDATA%\xiom.new.0643 if the canonical is ever locked). Validate
+524/0; guard 509 allowlisted / 492 ready / 17 grandfathered / 0 failures.
+PENDING GATES: (1) ops live for xiom.ann + xiom.stb -> append both (509 -> 511),
+guard, wrap, one eco batch publish, live-verify; (2) an official archive carrying
+compiler m258 (`--cxx-standard`; check `gh release list -R xiom-lang/xiom`) ->
+repin + merge origin/bindings (jolt batch 35, tip-era 0aea531c) + port x2
+(watchdog >= 600 s) + publish; jolt's record stays gated tests=unknown for the
+official pin -- do NOT publish it unverified.
+
+CREDENTIAL NOTE: gh sometimes flips to `Lefteris-Ngonart` (403 on push); switch
+with `gh auth switch --user Lefteris-Notas`; verify with
+`gh api repos/xiom-packages/packages --jq .permissions`.
+
+Start: git fetch; git status -sb; git log -1; relay sync + view (above); then
+  $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+  & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+
+Then do, in order:
+1. Ops-confirmed appends (ann + stb) as in PENDING GATES; same eco batch is fine.
+2. Bindings batches as items arrive (one item per batch): merge ONLY the newest
+   tip (each supersedes prior ones), resolve package STATUS/README conflicts to
+   THEIR side, ack on the bus, port x2 (absent+present shapes for loaders;
+   watchdogs: 90 normal, 240-300 vendored C/C++, 600+ for 100+ TU compiles),
+   record, wrap, publish, live-verify, fix the item. ALWAYS run
+   `status.ps1 -Action validate` AFTER the merge and BEFORE tagging (catch
+   records citing non-archive toolchains -- see the 2026-10-11 jolt incident).
+3. The m258 archive (jolt) as in PENDING GATES.
+4. Non-bindings asks (xvector/engine/pulse/ops): process or route -- toolchain
+   bugs become new items to compiler with their repro.
+5. Carry-forwards: after ANY merge validate before tag; byte-level bracket scan
+   on every touched package; SPEC/README synced when touched; bump only when
+   source changes; Vec/container `==` and `is Ok(<literal>)` are allowed on
+   v0.64.3 (Map/Set `==` is not); never rename raw externs (linker symbols);
+   loader fn-pointer locals use the `f_` prefix; `unsafe fn` is a hard P001
+   (`unsafe { }` in the body); for new package work clone + STUDY the upstream
+   in E:\repos\<name> first (owner resource, disposable) -- never write from
+   memory; update SESSION.md at each wrap with a fresh STATE block.
+```
+
+**STATE AT 2026-10-11 10:40Z (history -- superseded by the 11:00Z block above):**
 - **`xiom.sdl3` 0.3.1 PUBLISHED** (batch 36, merge `f624c097`): `SDL_PushEvent` + headless
   synthetic-event pump; native present **22/22 x3** (official SDL 3.4.8 via
   `C:\VulkanSDK\1.4.350.0\Bin`) + sanitized-absent **SKIP 3/3**; `eco-v0.1.134` sha256
@@ -374,7 +455,7 @@ running). Check `git log -1 --format=%h %s` before starting.
   re-syncs after the ORBITDB order-3 fix.
 - Session tally: **35 eco releases** (`eco-v0.1.86` -> `eco-v0.1.119`).
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-09 16:25Z) -- USE THIS ONE
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, SUPERSEDED -- 2026-10-10 16:25Z; kept for history only)
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local
