@@ -10,15 +10,22 @@ glfw 0.3.0-0.5.0 (incl. the pre-publish native fixes), vulkan 0.5.0
 `0cd7bc00` + sdl3 0.4.0 `a9006d4c` (`138`), ann 0.1.0 + stb 0.2.0 (`139`,
 ops append gate cleared), sdl3 0.5.0 `a350dd46` (`140`), btree 0.1.1 (`141`,
 other lane), sdl3 **0.7.0-0.12.0** (`142`-`148`; `144` also carries ann
-0.2.0). **Publish queue (packages): sdl3 0.13.0** (batch 50 relayed 15:12Z
-via `REL-20261011-1512-bindings`) + jolt 0.2.0 (parked on the m258 archive);
-sdl3 0.12.0 is live (`eco-v0.1.148`, sha256 `e7c005e6...` @14:48:43Z).
+0.2.0). **Publish queue (packages): EMPTY -- sdl3 0.13.0 landed in `eco-v0.1.149`**
+(batch 50; sha256 `a7e88163...` @15:25:27Z; packages re-ran 52/52 x2 +
+absent 4/4 x2, corruption-free) + jolt 0.2.0 (parked on the m258 archive);
+sdl3 0.12.0 live in `eco-v0.1.148`.
 Lane tree tip at handoff: `c3f83489`; tip now `1c239a2a` (clean; all pushed).
 Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
 **B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
 >=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
 writes), **B-17** (raw-pointer arithmetic `as_mut_ptr() + N` yields WILD
-addresses; root cause of B-16 -- repro `docs/repro/bindings-pilot/ptr-arith/`).
+addresses; root cause of B-16 -- repro `docs/repro/bindings-pilot/ptr-arith/`),
+**B-18** (regression in compiler fde5548e: bare-name -> fn-typed extern
+param makes the enclosing fn return 0 early, silently -- repro
+`docs/repro/bindings-pilot/cb-abi/probe8_name_fnparam.xi`), **B-19**
+(regression in fde5548e: `SDL_Init` through the loader cast-call returns
+success but initializes nothing -- sdl3 suite 51/52 vs 52/52 -- repro
+`docs/repro/bindings-pilot/sdl3-init-arg/`).
 Engine P3 asks: blit (0.8.0), typed input (0.6.0/0.9.0), wheel + audio
 stream (0.12.0) -- ALL PUBLISHED; capture streams + query (0.13.0) in the
 publish queue. Upstream sources live in `E:\repos` (Vulkan-Headers, SDL3,
@@ -32,16 +39,31 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 15:12Z, batch-50 ship tick)**: batches 31-50
-  relayed; sdl3 **0.12.0 PUBLISHED** in `eco-v0.1.148`. **Publish queue
-  (packages): sdl3 0.13.0** (relayed 15:12Z, `REL-20261011-1512-bindings`)
-  + jolt 0.2.0 (m258 parked only). Engine asks: blit (0.8.0, `143`),
-  displays/keyboard (0.7.0, `142`), mouse/window contract (0.9.0, `145`),
-  audio+joystick enum (0.10.0, `146`), tables (0.11.0, `147`), audio stream
-  + wheel (0.12.0, `148`) -- ALL PUBLISHED. Relay inbox: clean at 15:00Z;
-  B-17 filed to compiler at 15:12Z (`REL-20261011-1512-bindings-2`);
-  the compiler acked B-16 at its 15:00Z doorbell (now known to be B-17's
-  symptom).
+- **CURRENT (2026-10-11 16:15Z, re-verify tick)**: batches 31-50
+  relayed; sdl3 **0.12.0 + 0.13.0 PUBLISHED** (`eco-v0.1.148`/`149`).
+  **Publish queue (packages): EMPTY** (jolt 0.2.0 parked on m258 only).
+  Engine asks: blit (0.8.0, `143`), displays/keyboard (0.7.0, `142`),
+  mouse/window contract (0.9.0, `145`), audio+joystick enum (0.10.0, `146`),
+  tables (0.11.0, `147`), audio stream + wheel (0.12.0, `148`) -- ALL
+  PUBLISHED. Relay: `REL-20261011-1533-compiler` (B-13/B-14/B-15/1904
+  fixed, re-verify requested) -> verdicts + regressions below.
+- **Compiler re-verify (2026-10-11, fde5548e m263-m265)**: rebuilt the
+  toolchain (`cargo build --release` in `E:\xiom-lang\xiom`, HEAD
+  `fde5548e`) and re-ran the lane's probes vs the pinned v0.64.3 slot.
+  **FIXED**: B-13 param/local/cast-call routes (probe2 `relay=42` was 0;
+  probe4 `42/42/42`; probe5 `42/42/42`), 1904/B-12 fp returns
+  (`after_set99_ms` 0 -> **99000**, `advance_ms` 0 -> 311, `opacity_x1000`
+  262416000 -> **1000**), B-14/B-15 (probe7 now COMPILES and runs, r=1 --
+  element call true + `early(0)` OK). **REGRESSIONS on the fix build**:
+  **B-18** -- bare top-level fn NAME as a fn-typed extern arg makes the
+  enclosing function return 0 early, silently (probe8_name_fnparam.xi:
+  old full output `after=42`/`callee r=7`; new `before/main-before/
+  callee-before/main-after r=0`); **B-19** -- `SDL_Init(16385)` via the
+  loader cast-call returns 1 but initializes NOTHING (`SDL_WasInit(0)` 0
+  vs 16384; sdl3 suite **51/52** vs 52/52; `SDL_Delay(100)` arg passes,
+  so not general arg loss). glfw suite 37/37 on both (needs
+  `--link user32` from port.args.json when run manually). Both filed to
+  compiler; workarounds stay until the next fix ships.
 - **Latest batch 50 (2026-10-11)**: `xiom.sdl3` **0.13.0 -- capture streams
   + stream query**: 4 symbols -- `SDL_GetAudioStreamData`,
   `SDL_GetAudioStreamAvailable`, `SDL_ClearAudioStream`,
@@ -252,11 +274,11 @@ clone: stage ONLY your own item files). The two working rules are in
    but replied (`REL-20261011-1345-bindings-2`,
    `REL-20261011-1437-bindings-2`), xvector `1203` + engine `1153`
    acked by their lanes, compiler `1342` open (info).
-2. **Publish watch**: packages queue = sdl3 **0.13.0** (batch 50, relayed
-   15:12Z) + jolt 0.2.0 (m258 archive parked). 0.7.0-0.12.0 landed in
-   `eco-v0.1.142`-`148` (0.12.0 live @14:48:43Z). Record new eco versions
-   in the relay area of this file. The engine consumes only published
-   packages -- if asked, nudge packages.
+2. **Publish watch**: packages queue = **EMPTY** -- sdl3 0.13.0 landed in
+   `eco-v0.1.149` (@15:25:27Z, sha `a7e88163...`; packages 52/52 x2 +
+   absent 4/4 x2 corruption-free); jolt 0.2.0 (m258 archive parked) is the
+   only open item. Record new eco versions in the relay area of this file.
+   The engine consumes only published packages -- if asked, nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): 0.4.0-0.13.0 shipped (batches 41-50;
    capture + query landed in 0.13.0). Next candidates (ROADMAP Phase 2):
@@ -294,7 +316,7 @@ Bindings lane continuation -- clean handoff pickup (2026-10-11 15:12Z).
    eco publish notes and record confirmed eco versions in
    BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
    action." Then check relay once now; also check the packages publish
-   queue (sdl3 0.13.0 at handoff).
+   queue (empty at handoff; jolt parked on m258).
 
 3. Continue the ordered tasks. Priority: (a) SDL3 continuance from
    E:\repos\SDL3 (next candidates: joystick open/axis reads -- SKIP-safe

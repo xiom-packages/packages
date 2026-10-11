@@ -35,6 +35,38 @@ fail package discovery, and `--c-source` links from a scratch cwd.)
 | fn-typed PARAM -> struct field -> extern | probe5 | `param_to_box=0` (BROKEN) |
 | registry: push(param) -> dispatcher calls element | probe6 | `reg_double=42 reg_triple=63` |
 
+## Re-verify on compiler main fde5548e (2026-10-11, m263-m265)
+
+Ran the probes against the rebuilt toolchain (`cargo build --release` at
+`E:\xiom-lang\xiom`, HEAD `fde5548e`) on the same host, vs the pinned
+v0.64.3 slot:
+
+| Probe | v0.64.3 | fde5548e | Verdict |
+|-------|---------|----------|---------|
+| probe2 | relay=0 | relay=42 | B-13 FIXED |
+| probe4 | param_to_fnparam=0 | 42/42/42 | B-13 FIXED |
+| probe5 | all 0 | 42/42/42 | B-13 FIXED |
+| probe7 | 2x T001 (compile fail) | compiles; r=1 (element call true + early(0)) | B-14/B-15 FIXED |
+| probe3 | fnparam=42 | NO OUTPUT after the call, exit 0 | **B-18 REGRESSION** |
+| probe6 | reg_double=42 reg_triple=63 | NO OUTPUT, exit 0 | **B-18 REGRESSION** |
+| probe8_name_fnparam (arm 1+2) | full output (42/42, callee r=7) | `before`..`main-after r=0` (calls return 0 early) | **B-18 REGRESSION** |
+
+fp-return (1904/B-12), same builds, `glfw-fp-return` probes: `after_set99_ms`
+0 -> **99000**, `advance_ms` 0 -> 311, `opacity_x1000` 262416000 -> **1000**
+-- FIXED.
+
+**B-18 (new, regression in fde5548e):** passing a BARE TOP-LEVEL fn NAME as
+a fn-typed EXTERN parameter makes the enclosing function return 0 early --
+silently, exit code 0 (no diagnostic).  The B-13 fixed shapes (fn-typed
+param, local, cast-call) keep working; this was the ONE pre-fix-working
+name shape (it was the control for B-13).  Repro:
+`probe8_name_fnparam.xi`; control-flow arm shows the callee returns to its
+caller with 0 instead of executing `return 7`.
+
+Workarounds stay until the fix ships in a pinned release and is re-verified
+(per the relay program); `dispatcher as Int` + Int param and the
+local-first routing remain green.
+
 ## Findings
 
 1. **B-13 (new, v0.64.3): fn-typed PARAMETER values do not survive any use
