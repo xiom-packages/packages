@@ -64,6 +64,11 @@ SDL3_LOAD_ABSENT` -> callers SKIP) from **ABI mismatch** (`kind =
 SDL3_LOAD_ABI` -> callers FAIL). Everything else is `Bool`/value returns
 with contracts; no silent nulls.
 
+Pointer discipline (**B-17**, v0.64.3): never pass pointer arithmetic
+(`buf.as_mut_ptr() + N`) to a foreign call -- it compiles to a wild address.
+Every out-param gets its own owned slot; address math, when unavoidable,
+stays in `Int` (`(addr + N) as *UInt8`).
+
 **Pixel-format naming (8888):** SDL names 32-bit formats MSB-first
 (`SDL_PIXELFORMAT_RGBA8888` = R most significant). On little-endian memory
 the byte order reverses: RGBA8888 lands as `A,B,G,R`; **`ABGR8888` is the

@@ -19,7 +19,6 @@ module sdl3_conformance
 use xiom.io;
 use xiom.convert;
 use xiom.test;
-use xiom.ffi;
 use xiom.sdl3;
 
 fn b2s(b: Bool) -> Str {
@@ -327,8 +326,11 @@ fn main() -> Int {
     // the B-11 slot-read corruption (recycled bytes; see the addendum item
     // filed to the compiler lane).
     var ev_in = slot_new(128);
-    ffi.ptr_write_u8(ev_in.as_mut_ptr(), 0 as UInt8);
-    ffi.ptr_write_u8(ev_in.as_mut_ptr() + 1, 128 as UInt8);
+    // Byte-indexed writes only (B-16), and NO pointer arithmetic (B-17:
+    // `as_mut_ptr() + 1` compiles to a wild address on v0.64.3).  slot_new
+    // zero-fills, so byte 0 (the low half of 0x8000) is already 0; only
+    // byte 1 needs the 0x80 high half.
+    wr_u8(&mut ev_in, 1, 128);
     // Drain any early queue entries (bounded) so the consume check is ours.
     var drained: Int = 0;
     while drained < 500 {
@@ -688,10 +690,14 @@ fn main() -> Int {
     // 0.13.0: stream query round trip on a push stream (deterministic;
     // no capture hardware involved).  Format readback: the app side of a
     // stream opened through SDL_OpenAudioDeviceStream carries the requested
-    // spec on ONE side of the pair.  On the pinned 3.4.8 DLL that side is
-    // always src and dst is left untouched (sentinel probe: bytes 12-23
-    // keep their pre-call value while the call returns true); accept either
-    // side so a differently-ordered implementation still passes.
+    // spec on ONE side of the pair (on the pinned 3.4.8 DLL both sides come
+    // back equal here); accept either side so a differently-ordered
+    // implementation still passes.  HISTORY: an earlier build passed one
+    // 24-byte slot with `dst = as_mut_ptr() + 12` and read dst as zeros --
+    // that was compiler finding B-17 (pointer arithmetic yields a wild
+    // address; the DLL wrote dst to unowned memory and the process crashed
+    // nondeterministically with heap corruption).  The wrapper now uses two
+    // separate 12-byte slots (no pointer arithmetic).
     // Available/clear semantics: push 4096 B, clear, then queued/available
     // must be 0 and a read must return 0 (non-blocking).
     let qstream = sdl3_open_audio_playback_stream(&lib, SDL_AUDIO_F32, 2, 48000);

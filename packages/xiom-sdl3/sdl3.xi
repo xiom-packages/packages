@@ -2000,18 +2000,21 @@ pub type Sdl3MouseState = {
 }
 
 /// SDL_GetMouseState -> Sdl3MouseState (x/y window-relative, f32 decoded).
-/// Requires VIDEO.
+/// Requires VIDEO.  Out-params use TWO separate owned slots: pointer
+/// arithmetic on `as_mut_ptr()` is miscompiled on v0.64.3 (B-17 -- it
+/// yields wild addresses), so never pass `base + N` to foreign calls.
 /// Complexity: O(1).
 pub fn sdl3_mouse_state(lib: &Sdl3Library) -> Sdl3MouseState
   requires: lib.handle != 0
 {
   unsafe {
-    var slot = sdl3_slot(8);
+    var xslot = sdl3_slot(4);
+    var yslot = sdl3_slot(4);
     let f = lib.p_get_mouse_state as fn(*UInt8, *UInt8) -> Int32;
-    let buttons = f(slot.as_mut_ptr(), slot.as_mut_ptr() + 4);
+    let buttons = f(xslot.as_mut_ptr(), yslot.as_mut_ptr());
     return Sdl3MouseState{
-      x: sdl3_f32_from_bits(sdl3_read_u32_at(&slot, 0)),
-      y: sdl3_f32_from_bits(sdl3_read_u32_at(&slot, 4)),
+      x: sdl3_f32_from_bits(sdl3_read_u32_at(&xslot, 0)),
+      y: sdl3_f32_from_bits(sdl3_read_u32_at(&yslot, 0)),
       buttons: buttons as Int,
     };
   }
@@ -2391,7 +2394,7 @@ pub fn sdl3_event_wheel_y(ev: &Vec[UInt8]) -> Float64
 
 /// Mouse-wheel event: raw horizontal bits (u32 @24).
 /// Complexity: O(1).
-pub fn sdl3_event_wheel_x_bits(ev: &Vec<UInt8>) -> Int
+pub fn sdl3_event_wheel_x_bits(ev: &Vec[UInt8]) -> Int
   requires: ev.len() >= 28
 {
   return sdl3_read_u32_at(ev, 24);
@@ -2399,7 +2402,7 @@ pub fn sdl3_event_wheel_x_bits(ev: &Vec<UInt8>) -> Int
 
 /// Mouse-wheel event: raw vertical bits (u32 @28).
 /// Complexity: O(1).
-pub fn sdl3_event_wheel_y_bits(ev: &Vec<UInt8>) -> Int
+pub fn sdl3_event_wheel_y_bits(ev: &Vec[UInt8]) -> Int
   requires: ev.len() >= 32
 {
   return sdl3_read_u32_at(ev, 28);
@@ -2407,7 +2410,7 @@ pub fn sdl3_event_wheel_y_bits(ev: &Vec<UInt8>) -> Int
 
 /// Mouse-wheel event: direction (u32 @32; SDL_MOUSEWHEEL_NORMAL/FLIPPED).
 /// Complexity: O(1).
-pub fn sdl3_event_wheel_direction(ev: &Vec<UInt8>) -> Int
+pub fn sdl3_event_wheel_direction(ev: &Vec[UInt8]) -> Int
   requires: ev.len() >= 36
 {
   return sdl3_read_u32_at(ev, 32);
@@ -2415,7 +2418,7 @@ pub fn sdl3_event_wheel_direction(ev: &Vec<UInt8>) -> Int
 
 /// Mouse-wheel event: cursor x when the wheel fired (f32 @36).
 /// Complexity: O(1).
-pub fn sdl3_event_wheel_mouse_x(ev: &Vec<UInt8>) -> Float64
+pub fn sdl3_event_wheel_mouse_x(ev: &Vec[UInt8]) -> Float64
   requires: ev.len() >= 40
 {
   return sdl3_f32_from_bits(sdl3_read_u32_at(ev, 36));
@@ -2496,28 +2499,31 @@ pub type Sdl3AudioStreamFormat = {
 }
 
 /// SDL_GetAudioStreamFormat -> Sdl3AudioStreamFormat (ok=false on failure;
-/// see sdl3_get_error).  Both SDL_AudioSpecs are filled by SDL into one
-/// owned 24-byte slot (12 bytes each).
+/// see sdl3_get_error).  The two SDL_AudioSpecs are filled into TWO
+/// separate owned 12-byte slots -- pointer arithmetic (`base + 12`) is
+/// miscompiled on v0.64.3 and yields wild addresses (B-17), so this must
+/// NOT pass one slot with an offset.
 /// Complexity: O(1).
 pub fn sdl3_get_audio_stream_format(lib: &Sdl3Library, stream: Int) -> Sdl3AudioStreamFormat
   requires: lib.handle != 0
   requires: stream != 0
 {
   unsafe {
-    var slot = sdl3_slot(24);
+    var srcslot = sdl3_slot(12);
+    var dstslot = sdl3_slot(12);
     let f = lib.p_get_audio_stream_format as fn(Int, *UInt8, *UInt8) -> UInt8;
-    let ok = (f(stream, slot.as_mut_ptr(), slot.as_mut_ptr() + 12) as Int) != 0;
+    let ok = (f(stream, srcslot.as_mut_ptr(), dstslot.as_mut_ptr()) as Int) != 0;
     if !ok {
       return Sdl3AudioStreamFormat{ ok: false; src_format: 0; src_channels: 0; src_freq: 0; dst_format: 0; dst_channels: 0; dst_freq: 0 };
     }
     return Sdl3AudioStreamFormat{
       ok: true,
-      src_format: sdl3_read_u32_at(&slot, 0),
-      src_channels: sdl3_read_u32_at(&slot, 4),
-      src_freq: sdl3_read_u32_at(&slot, 8),
-      dst_format: sdl3_read_u32_at(&slot, 12),
-      dst_channels: sdl3_read_u32_at(&slot, 16),
-      dst_freq: sdl3_read_u32_at(&slot, 20),
+      src_format: sdl3_read_u32_at(&srcslot, 0),
+      src_channels: sdl3_read_u32_at(&srcslot, 4),
+      src_freq: sdl3_read_u32_at(&srcslot, 8),
+      dst_format: sdl3_read_u32_at(&dstslot, 0),
+      dst_channels: sdl3_read_u32_at(&dstslot, 4),
+      dst_freq: sdl3_read_u32_at(&dstslot, 8),
     };
   }
 }

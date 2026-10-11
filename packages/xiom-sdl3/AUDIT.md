@@ -27,7 +27,7 @@ return over this loader.
 | Audio/joystick (0.10.0) | 6 symbols; device arrays freed per call, names/driver copied from SDL-owned consts; ABGR8888 + 8888 naming note (engine ask 1321); AUDIO/JOYSTICK-init SKIP path |
 | Constant tables (0.11.0) | ~190 constants source-generated from the release-3.2.10 headers (full event enum, window flags, keymods, explicit-value pixel formats); deduped against earlier sections; suite samples across all families |
 | Audio stream + wheel (0.12.0) | push-mode stream (NULL callback; silence test), resume/pause/queued/destroy; wheel accessors pinned to the header layout; **B-16 filed** (ptr_write at base+N loses data; byte-indexed writes required -- repro `docs/repro/bindings-pilot/ptr-slot-write/`) |
-| Audio capture + query (0.13.0) | 4 symbols (GetAudioStreamData/Available/ClearAudioStream/GetAudioStreamFormat); default recording device opened (wasapi), resumed, 8192 B of PCM drained into an owned buffer (avail=11520); available/clear semantics proven on a push stream; **quirk pinned: the 3.4.8 DLL leaves the dst SDL_AudioSpec untouched on device-open streams (sentinel probe) while returning true -- src carries the requested spec; dst treated as informational** |
+| Audio capture + query (0.13.0) | 4 symbols (GetAudioStreamData/Available/ClearAudioStream/GetAudioStreamFormat); default recording device opened (wasapi), resumed, 8192 B of PCM drained into an owned buffer (avail=11520); available/clear semantics proven on a push stream; **compiler finding B-17 found + worked around** (pointer arithmetic `as_mut_ptr() + N` yields wild addresses: the first implementation's `dst = slot+12` made SDL write into unowned memory -- nondeterministic heap corruption; all out-params now use separate slots; the same fix corrected 0.9.0's mouse y) |
 
 ## G2 pin
 
@@ -58,10 +58,13 @@ return over this loader.
 - On hosts with the Vulkan SDK bin on PATH (the dev box), SDL3 is always
   found; the absent shape is exercised by filtering that dir out of PATH.
 - Curated constant subset only (full tables in git history).
-- `sdl3_get_audio_stream_format` returns `ok=true` on device-open streams
-  while the runtime (3.4.8 DLL) leaves the `dst` spec untouched; use `src`
-  (the requested app spec on this pin) and treat `dst` as informational
-  until a pin move re-probes it.
+- Never pass pointer arithmetic (`buf.as_mut_ptr() + N`) to foreign calls:
+  it is miscompiled on v0.64.3 (**B-17**, wild addresses).  Out-params use
+  one owned slot each; address math, when needed, stays in `Int`.
+- The 0.13.0 `dst`-reads-zero observation from the first build was the B-17
+  symptom (SDL wrote the dst spec to a wild address), not an SDL quirk: with
+  the two-slot call the 3.4.8 DLL writes BOTH specs (src=dst=33056/2/48k on
+  this host).
 - Windows soname hard-coded (`SDL3.dll`); a `libSDL3.so.0` fallback is a
   Phase 2 item when POSIX CI exists.
 - Video/audio init is not exercised (device-dependent); the smoke is

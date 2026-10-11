@@ -24,7 +24,7 @@
 | Audio + joystick enumeration | Done -- 0.10.0 |
 | Full constant tables (events/flags/keymods/pixel formats) | Done -- 0.11.0 (source-generated) |
 | Push audio streaming + mouse wheel accessors | Done -- 0.12.0 |
-| Capture streams + stream query (recording device, GetAudioStreamData, available/clear/format) | Done -- 0.13.0 |
+| Capture streams + stream query (recording device, GetAudioStreamData, available/clear/format; separate out-param slots per B-17) | Done -- 0.13.0 |
 | POSIX soname fallback | Phase 2 |
 
 ## Phase 2 (remaining)
