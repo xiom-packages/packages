@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (batches 38 + 39 delivered; two native glfw fixes; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-11 11:10Z (updated 11:20Z -- batches 38-41 delivered; three native fixes; supersedes the 11:00Z block below):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -30,8 +30,18 @@ running). Check `git log -1 --format=%h %s` before starting.
   non-empty localized name + scancode 30 + explicit-scancode agreement). Recorded `342baea6`;
   native **37/37 x2** + absent SKIP 3/3; `eco-v0.1.137` sha256 `04ad5ed2...` @11:05:47Z; fix
   notice filed to bindings (`REL-20261011-1108-packages`); bus item fixed; README/SPEC synced.
-- Validate **524/0**; guard **509/492/17/0** (unchanged). Session tally: **53 eco releases**
-  (`eco-v0.1.86` -> `eco-v0.1.137`).
+- **`xiom.vulkan` 0.5.0 PUBLISHED** (batch 40, merge `0d564680`): render pass + graphics
+  pipeline from embedded SPIR-V (`tools/embed_spv.py` -> `src/tri_*_spv.inc`), 3-vertex
+  `gl_VertexIndex` draw, `vkCmdCopyImageToBuffer` readback, present; native **22/22 x2** on
+  the RTX 3070 Ti (center pixel rgb(0,255,0) triangle over the 0.1/0.2/0.3 clear);
+  `eco-v0.1.138` sha256 `0cd7bc00...` @11:16:09Z; bus item fixed.
+- **`xiom.sdl3` 0.4.0 PUBLISHED** (batch 41, same merge/eco): `SDL_Event` decode layer over an
+  owned 128-byte buffer (typed accessors pinned to 3.4.8); native **24/24 x2** + absent
+  **4/4 x2** (PATH-filtered); **7 byte-level `Vec<UInt8>` normalized to `Vec[UInt8]`
+  pre-publish** (`799fceaa`, re-verified x2 both shapes); `eco-v0.1.138` sha256 `a9006d4c...`
+  @11:15:34Z; bus item fixed.
+- Validate **524/0**; guard **509/492/17/0** (unchanged). Session tally: **55 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.138`).
 - **PENDING GATES unchanged:** (1) ops live for `xiom.ann` + `xiom.stb` -- both asks still
   **open** on the bus (no confirmation); on live: append both (509 -> 511), guard, wrap, one eco
   batch, live-verify; (2) **m258 archive** -- none yet (`gh release list -R xiom-lang/xiom`:
