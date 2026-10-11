@@ -10,8 +10,10 @@ is not installed.
 > `REL-20261011-1153-engine`: `sdl3_update_texture` RGBA upload +
 > `sdl3_render_texture` (SDL3's RenderTexture) + `sdl3_set_render_vsync`;
 > the demo now uploads a 64x64 checker, blits and presents on this box).
-> Suite **44/44 x2** with the official SDL 3.4.8 DLL + absent 4/4 x2.
-> **Lane:** bindings (`keywords: ["binding"]`).
+> Native **44/44 x2** with the official SDL 3.4.8 DLL + absent **4/4 x2**
+> plus the demo green locally (v0.64.3). 0.7.0 shipped in `eco-v0.1.142`;
+> 0.8.0 published in `eco-v0.1.143` (sha256 `5849f0cf...`). **Lane:**
+> bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
