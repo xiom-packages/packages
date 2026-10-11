@@ -23,7 +23,12 @@ vendored, verified **4/4 x2** with `--cxx-standard 17` on the m258 local
 build; queue: `-1815` verified, `-7` closed superseded, stdlib `-9`/`-10`
 verified+closed; archive re-verdict tracked) committed and relayed.**
 Doorbell armed
-(`0 */3 * * *`).
+(`0 */3 * * *`). **Batch 36 (`xiom.sdl3` 0.3.1: `SDL_PushEvent` added +
+headless synthetic-event pump proof (inject 0x8000 -> pump -> `poll(NULL)`
+consumes; 22/22 x2 with SDL 3.4.8); engine ask `-1834-engine-3` FIXED with
+the coverage list) committed and relayed.  B-11 ADDENDUM: the foreign-write
+buffer-readback corruption reproduces in this probe with NO driver context
+(SDL3, headless) -- minimal reproducer filed (`REL-20261011-0304-bindings`).**
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -87,6 +92,14 @@ clone: stage ONLY your own item files). The two working rules are in
   479 milli asleep, impulse vx=4995, ~34 s/run): feat `00cfc0c8` + record;
   bus item `REL-20261011-0008-bindings` (merge after the m258 archive is
   canonical; archive re-verdict of `-7`/`-1815` rides with it).
+- **Batch 36** (`xiom.sdl3` 0.3.1: `SDL_PushEvent` in the loader +
+  headless synthetic-event proof -- inject a user event (0x8000) into a
+  128-byte slot, pump, `poll(NULL)` consumes; **22/22 x2** with SDL 3.4.8,
+  absent shape green): feat `b12a1d77` + record; engine ask
+  `REL-20261010-1834-engine-3` **fixed** with the present/missing coverage
+  list; **B-11 addendum**: the slot-read corruption reproduces here with
+  no GPU/driver context (minimal reproducer filed as
+  `REL-20261011-0304-bindings`).
 - **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
   feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
   merged (packages tip `d96f4112`), **published** `eco-v0.1.130` (live sha256
@@ -138,6 +151,11 @@ clone: stage ONLY your own item files). The two working rules are in
 - **Verification probes**: never use `if constexpr` to test "does this
   toolchain support C++17" -- clang accepts it as a C++14 extension
   (warning only). Use `std::string_view` / `std::align_val_t`.
+- **Foreign-written buffer readback can be unreliable on this host**: the
+  B-11 slot corruption reproduced in the SDL3 headless event probe (no
+  driver context; recycled bytes after the call, e.g. 0x33323100). Prefer
+  consume-semantics probes (`poll(NULL)`) when readback matters, and file
+  readback evidence with the compiler lane.
 - **Confined blocks**: no malloc/free (B-05); name locals `f_` (B-10);
   no enum payload reads if the compiler pin regresses (B-01).
 - **Relays**: everything cross-lane goes through the bus now; file a
