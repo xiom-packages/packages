@@ -6,9 +6,10 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- suite green on v0.64.2: 22/22 x2 with the
-> official SDL 3.4.8 DLL (incl. the headless synthetic-event pump proof and
-> window/renderer/texture/gamepad), 3/3 x2 without SDL3.
+> **Status:** `incubating` -- suite green on v0.64.3: 22/22 with the official
+> SDL 3.4.8 DLL (incl. the headless synthetic-event pump proof and
+> window/renderer/texture/gamepad), SKIP 3/3 with a sanitized-absent PATH.
+> Published in `eco-v0.1.134` (sha256 `a779ae4b...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
