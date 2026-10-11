@@ -53,6 +53,20 @@ pub const SDL_EVENT_QUIT: Int = 0x100;
 pub const SDL_EVENT_KEY_DOWN: Int = 0x300;
 pub const SDL_EVENT_KEY_UP: Int = 0x301;
 pub const SDL_EVENT_TEXT_INPUT: Int = 0x303;
+// Window-event family (sequential from 0x202 per the pinned header).
+pub const SDL_EVENT_WINDOW_SHOWN: Int = 0x202;
+pub const SDL_EVENT_WINDOW_HIDDEN: Int = 0x203;
+pub const SDL_EVENT_WINDOW_EXPOSED: Int = 0x204;
+pub const SDL_EVENT_WINDOW_MOVED: Int = 0x205;
+pub const SDL_EVENT_WINDOW_RESIZED: Int = 0x206;
+pub const SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: Int = 0x207;
+pub const SDL_EVENT_WINDOW_MINIMIZED: Int = 0x209;
+pub const SDL_EVENT_WINDOW_MAXIMIZED: Int = 0x20A;
+pub const SDL_EVENT_WINDOW_RESTORED: Int = 0x20B;
+pub const SDL_EVENT_WINDOW_MOUSE_ENTER: Int = 0x20C;
+pub const SDL_EVENT_WINDOW_MOUSE_LEAVE: Int = 0x20D;
+pub const SDL_EVENT_WINDOW_FOCUS_GAINED: Int = 0x20E;
+pub const SDL_EVENT_WINDOW_FOCUS_LOST: Int = 0x20F;
 pub const SDL_EVENT_WINDOW_CLOSE_REQUESTED: Int = 0x210;
 pub const SDL_EVENT_MOUSE_MOTION: Int = 0x400;
 pub const SDL_EVENT_MOUSE_BUTTON_DOWN: Int = 0x401;
@@ -150,6 +164,7 @@ pub type Sdl3Library = {
   p_create_directory: Int;
   p_remove_path: Int;
   p_get_path_info: Int;
+  p_get_mouse_state: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -227,6 +242,8 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a31.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_RemovePath: " + a31.error }); }
   let a32 = dl.dl_sym(handle, "SDL_GetPathInfo");
   if !a32.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetPathInfo: " + a32.error }); }
+  let a33 = dl.dl_sym(handle, "SDL_GetMouseState");
+  if !a33.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetMouseState: " + a33.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -262,6 +279,7 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_create_directory: a30.value,
     p_remove_path: a31.value,
     p_get_path_info: a32.value,
+    p_get_mouse_state: a33.value,
   });
 }
 
@@ -459,6 +477,8 @@ pub type Sdl3Resources = {
   p_update_texture: Int;
   p_render_texture: Int;
   p_set_render_vsync: Int;
+  p_set_window_size: Int;
+  p_set_window_resizable: Int;
 }
 
 fn sdl3_res_error(r: &Sdl3Resources) -> Str
@@ -525,6 +545,10 @@ pub fn sdl3_load_resources() -> Result[Sdl3Resources, Sdl3LoadError] {
   if !a21.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_RenderTexture: " + a21.error }); }
   let a22 = dl.dl_sym(handle, "SDL_SetRenderVSync");
   if !a22.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetRenderVSync: " + a22.error }); }
+  let a23 = dl.dl_sym(handle, "SDL_SetWindowSize");
+  if !a23.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetWindowSize: " + a23.error }); }
+  let a24 = dl.dl_sym(handle, "SDL_SetWindowResizable");
+  if !a24.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetWindowResizable: " + a24.error }); }
 
   return Ok(Sdl3Resources{
     handle: handle,
@@ -550,6 +574,8 @@ pub fn sdl3_load_resources() -> Result[Sdl3Resources, Sdl3LoadError] {
     p_update_texture: a20.value,
     p_render_texture: a21.value,
     p_set_render_vsync: a22.value,
+    p_set_window_size: a23.value,
+    p_set_window_resizable: a24.value,
   });
 }
 
@@ -1673,5 +1699,67 @@ pub fn sdl3_get_path_info(lib: &Sdl3Library, path: Str) -> Sdl3PathInfo
       modify_time: sdl3_read_u64_at(&slot, 24),
       exists: true,
     };
+  }
+}
+
+// =========================================================================
+// 0.9.0: mouse state + window contract setters (engine input layer)
+//
+// SDL_GetMouseState writes two f32 OUT-params (window-relative) and returns
+// the button mask as a u32; slot readback + pure-arithmetic f32 decode
+// (B-12 discipline).  Window setters back the engine window contract
+// (resize/resizable); the typed resize/focus events flow through the 0.4.0
+// decode accessors via an event watch (see README "engine event loop").
+// =========================================================================
+
+pub type Sdl3MouseState = {
+  x: Float64;
+  y: Float64;
+  buttons: Int;
+}
+
+/// SDL_GetMouseState -> Sdl3MouseState (x/y window-relative, f32 decoded).
+/// Requires VIDEO.
+/// Complexity: O(1).
+pub fn sdl3_mouse_state(lib: &Sdl3Library) -> Sdl3MouseState
+  requires: lib.handle != 0
+{
+  unsafe {
+    var slot = sdl3_slot(8);
+    let f = lib.p_get_mouse_state as fn(*UInt8, *UInt8) -> Int32;
+    let buttons = f(slot.as_mut_ptr(), slot.as_mut_ptr() + 4);
+    return Sdl3MouseState{
+      x: sdl3_f32_from_bits(sdl3_read_u32_at(&slot, 0)),
+      y: sdl3_f32_from_bits(sdl3_read_u32_at(&slot, 4)),
+      buttons: buttons as Int,
+    };
+  }
+}
+
+/// SDL_SetWindowSize(win, w, h); a WINDOW_RESIZED (+PIXEL_SIZE_CHANGED)
+/// event is queued for the next pump.
+/// Complexity: O(1).
+pub fn sdl3_set_window_size(r: &Sdl3Resources, win: Int, w: Int, h: Int) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+  requires: w > 0
+  requires: h > 0
+{
+  unsafe {
+    let f = r.p_set_window_size as fn(Int, Int, Int) -> UInt8;
+    return (f(win, w, h) as Int) != 0;
+  }
+}
+
+/// SDL_SetWindowResizable(win, resizable) -> bool.
+/// Complexity: O(1).
+pub fn sdl3_set_window_resizable(r: &Sdl3Resources, win: Int, resizable: Bool) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_set_window_resizable as fn(Int, UInt8) -> UInt8;
+    let v: UInt8 = if resizable { 1 as UInt8 } else { 0 as UInt8 };
+    return (f(win, v) as Int) != 0;
   }
 }

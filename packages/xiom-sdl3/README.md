@@ -6,14 +6,12 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.8.0 display blit + runtime** (engine ask
-> `REL-20261011-1153-engine`: `sdl3_update_texture` RGBA upload +
-> `sdl3_render_texture` (SDL3's RenderTexture) + `sdl3_set_render_vsync`;
-> the demo now uploads a 64x64 checker, blits and presents on this box).
-> Native **44/44 x2** with the official SDL 3.4.8 DLL + absent **4/4 x2**
-> plus the demo green locally (v0.64.3). 0.7.0 shipped in `eco-v0.1.142`;
-> 0.8.0 published in `eco-v0.1.143` (sha256 `5849f0cf...`). **Lane:**
-> bindings (`keywords: ["binding"]`).
+> **Status:** `incubating` -- **0.9.0 mouse + window contract + runtime**
+> (`sdl3_mouse_state`; `sdl3_set_window_size`/`sdl3_set_window_resizable`;
+> the full `SDL_EVENT_WINDOW_*` constant family; typed resize events proven
+> end-to-end through the event watch). Suite **46/46 x2** with the official
+> SDL 3.4.8 DLL + absent 4/4 x2. **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -51,6 +49,7 @@ fn main() {
 | Displays/keyboard (0.6.0) | `sdl3_display_count`, `sdl3_display_at`, `sdl3_primary_display`, `sdl3_display_name`, `sdl3_display_bounds`, `sdl3_display_usable_bounds`, `sdl3_display_mode`, `sdl3_desktop_display_mode` (`Sdl3Rect`/`Sdl3DisplayMode`), `sdl3_keyboard_state_count`, `sdl3_keyboard_key_down(scancode)`, `sdl3_mod_state`, `sdl3_keyboard_focus` -- all require SDL_INIT_VIDEO |
 | Filesystem (0.7.0) | `sdl3_get_base_path` (SDL-owned, copied), `sdl3_get_pref_path(org, app)` + `sdl3_get_current_directory` (freed after copy), `sdl3_create_directory`, `sdl3_remove_path`, `sdl3_get_path_info` (`Sdl3PathInfo`; `SDL_PATHTYPE_*`) |
 | Display blit (0.8.0) | `sdl3_update_texture(res, tex, pixels, w, h)` (RGBA8 upload from an XIOM buffer), `sdl3_render_texture(res, ren, tex)` (whole-texture blit), `sdl3_set_render_vsync(res, ren, vsync)` -- `SDL_TEXTUREACCESS_STREAMING` exported; clear -> update -> blit -> present is the minimal engine present path |
+| Input/window contract (0.9.0) | `sdl3_mouse_state` (`Sdl3MouseState`: window-relative x/y + button mask), `sdl3_set_window_size`, `sdl3_set_window_resizable`, the full `SDL_EVENT_WINDOW_*` family (RESIZED/MOVED/PIXEL_SIZE_CHANGED/FOCUS_*/MINIMIZED/MAXIMIZED/RESTORED/SHOWN/HIDDEN/EXPOSED/CLOSE_REQUESTED) |
 | Event decode (0.4.0) | `sdl3_event_type`, `sdl3_event_timestamp`, `sdl3_event_window_id`, `sdl3_event_key_scancode/key_code/mods/down/repeat`, `sdl3_event_mouse_state/x_bits/y_bits/x/y/button/button_down/clicks`, `sdl3_event_window_data1/data2`, `sdl3_f32_from_bits`, `SDL_EVENT_SIZE` |
 | Error | `sdl3_get_error` |
 | Resources | `sdl3_load_resources`, `sdl3_resources_close`, `sdl3_create_window`, `sdl3_destroy_window`, `sdl3_show_window`, `sdl3_hide_window`, `sdl3_window_size`, `sdl3_set_window_title`, `sdl3_create_renderer`, `sdl3_destroy_renderer`, `sdl3_set_render_draw_color`, `sdl3_render_clear`, `sdl3_render_present`, `sdl3_create_texture`, `sdl3_destroy_texture`, `sdl3_has_gamepad`, `sdl3_gamepad_count`, `sdl3_open_gamepad`, `sdl3_close_gamepad` |
@@ -60,6 +59,49 @@ Failure model: `sdl3_load` distinguishes **absent** (`kind =
 SDL3_LOAD_ABSENT` -> callers SKIP) from **ABI mismatch** (`kind =
 SDL3_LOAD_ABI` -> callers FAIL). Everything else is `Bool`/value returns
 with contracts; no silent nulls.
+
+## Engine event loop (typed events via the watch)
+
+SDL_Event data cannot be read back from a `SDL_PollEvent`-written buffer on
+v0.64.3 (B-11-family corruption), so the typed route is: register an event
+watch once; each queued event is COPIED into an owned buffer by the watch
+dispatcher and decoded with the 0.4.0 accessors. Drain with `poll(NULL)`
+for queue hygiene; `sdl3_filter_userdata()`/`sdl3_watch_userdata()` expose
+the registration userdata.
+
+```xiom
+use xiom.io;
+use xiom.sdl3;
+
+var running: Bool = true;
+
+fn on_event(ev: Vec[UInt8]) -> Unit {
+  let t = sdl3_event_type(&ev);
+  if t == SDL_EVENT_QUIT { running = false; }
+  if t == SDL_EVENT_WINDOW_CLOSE_REQUESTED { running = false; }
+  if t == SDL_EVENT_WINDOW_RESIZED {
+    io.println("resize " + to_string(sdl3_event_window_data1(&ev))
+      + "x" + to_string(sdl3_event_window_data2(&ev)));
+  }
+  if t == SDL_EVENT_KEY_DOWN {
+    io.println("key scancode " + to_string(sdl3_event_key_scancode(&ev)));
+  }
+  if t == SDL_EVENT_MOUSE_BUTTON_DOWN {
+    io.println("mouse button " + to_string(sdl3_event_mouse_button(&ev))
+      + " at " + to_string(sdl3_event_mouse_x(&ev) as Int));
+  }
+}
+
+fn run(lib: &Sdl3Library) {
+  let w = sdl3_add_event_watch(lib, on_event, 0);
+  while running {
+    sdl3_pump_events(lib);
+    let got = sdl3_poll_event(lib, 0);   // drain; the watch already delivered copies
+    // frame: engine render -> sdl3_update_texture -> sdl3_render_texture -> present
+  }
+  let removed = sdl3_remove_event_watch(lib, 0);
+}
+```
 
 ## Runtime requirements
 
@@ -72,10 +114,11 @@ anywhere on `PATH`. G2 pin (soname + header-set manifest hash): `SPEC.md` §2.
 xiom --run tests/test_conformance.xi
 ```
 
-- With SDL3: 44 `[PASS]` (decode layer + smoke + hidden window, renderer
+- With SDL3: 46 `[PASS]` (decode layer + smoke + hidden window, renderer
   clear/present, textures, gamepad enumeration, synthetic event injection,
   filter keep/drop + watch semantics, displays + keyboard, filesystem round
-  trip, 64x64 RGBA blit), exit 0 (~13 s).
+  trip, 64x64 RGBA blit, window resize typed event + mouse), exit 0
+  (~13 s).
 - Without SDL3: the loader smoke reports explicit `SKIP` labels and stays
   green; the decode layer runs in both shapes (pure XIOM; no DLL needed).
 
