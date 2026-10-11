@@ -50,5 +50,7 @@
   "--c-source",
   "${PACKAGE_DIR}/vendor/jolt_tu_TriangleSplitter.cpp",
   "--c-source",
-  "${PACKAGE_DIR}/vendor/jolt_bridge.cpp"
+  "${PACKAGE_DIR}/vendor/jolt_bridge.cpp",
+  "--cxx-standard",
+  "17"
 ]
