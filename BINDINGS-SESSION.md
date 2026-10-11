@@ -17,7 +17,11 @@ boundary) filed. Batch 40 (`xiom.vulkan` 0.5.0: render pass + graphics
 pipeline from embedded SPIR-V + 3-vertex draw + copy-to-buffer readback +
 present; **pixel-proven**: center rgb(0,255,0) triangle over the clear;
 **22/22 x2**) committed (`2b08eb96` + record `7a941c1f`) and relayed
-(`REL-20261011-1100-bindings`).** Upstream sources cloned into `E:\repos`
+(`REL-20261011-1100-bindings`). Batch 41 (`xiom.sdl3` 0.4.0: SDL_Event
+decoding layer -- owned 128-byte buffer + typed accessors pinned to the
+3.4.8 headers; synthetic KEY_DOWN injection; **24/24 x2** + absent 4/4 x2)
+committed (`df8cdf30` + record `9c1326ea`) and relayed
+(`REL-20261011-1106-bindings`).** Upstream sources cloned into `E:\repos`
 (Vulkan-Headers, SDL3, FFmpeg + pool) for source-truth binding work.
 
 ## RESUME HERE (handoff, 2026-10-11)
@@ -28,14 +32,24 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 11:05Z)**: batches 31-40 relayed. **Published**:
+- **CURRENT (2026-10-11 11:15Z)**: batches 31-41 relayed. **Published**:
   `eco-v0.1.132` (assimp 0.7.0 + glfw 0.3.0), `eco-v0.1.133` (vulkan 0.3.0),
   `eco-v0.1.134` (sdl3 0.3.1, sha256 `a779ae4b...` @10:33:55Z).
   **In the packages queue (relayed/acked, publish pending)**: batch 34 stb
   0.2.0 (ops allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
   batch 35 jolt 0.2.0 (parked on the m258 archive), batch 39 glfw 0.5.0
   (**supersedes 38**; `REL-20261011-1055-bindings`), batch 40 vulkan 0.5.0
-  (**supersedes 37**; `REL-20261011-1100-bindings`).
+  (**supersedes 37**; `REL-20261011-1100-bindings`), batch 41 sdl3 0.4.0
+  (`REL-20261011-1106-bindings`).
+- **Latest batch 41 (2026-10-11)**: `xiom.sdl3` **0.4.0 -- SDL_Event
+  decoding layer**: owned 128-byte buffer + typed accessors (header,
+  keyboard, mouse motion/button, window data1/data2, f32 `_bits` +
+  `sdl3_f32_from_bits`); offsets pinned by grep against the release-3.4.8
+  header, byte-identical in the local release-3.2.10 clone; synthetic
+  KEY_DOWN injected through the real queue (consume semantics). Ports:
+  **24/24 x2** present + **4/4 x2** absent (decode runs DLL-free; absent
+  reproduced by filtering the VulkanSDK dir out of PATH). No new DLL
+  symbols. feat `df8cdf30` + record `9c1326ea`.
 - **Latest batch 40 (2026-10-11)**: `xiom.vulkan` **0.5.0 -- render pipeline
   (build order #3)**: render pass (clear, TRANSFER_SRC final) + graphics
   pipeline from embedded SPIR-V (`src/shaders/tri.vert|frag` -> glslc ->
@@ -150,12 +164,13 @@ clone: stage ONLY your own item files). The two working rules are in
    (8 acked + batches 39/40 + B-13 filed). No actionables.
 2. ~~glfw 0.5.0~~ **DONE** (batch 39); ~~vulkan 0.5.0 render pipeline~~
    **DONE** (batch 40; engine build orders #1-#3 delivered).
-3. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`):
-   grow the 0.3.1 loader binding toward the full public API, subsystem by
-   subsystem (video/render/windowed, events incl. callbacks later, audio,
-   joystick, filesystem, misc), keep SKIP-when-absent. Apply the glfw
-   callback pattern (fixed dispatcher + fn registry; B-13) where SDL3 wants
-   C callbacks.
+3. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`;
+   runtime/pin `release-3.4.8`): **0.4.0 event decoding shipped** (batch
+   41). Continue subsystem by subsystem: displays/video modes, keyboard
+   state (`SDL_GetKeyboardState`), audio device enumeration, joystick,
+   filesystem, texture updates/vsync (ROADMAP Phase 2 list). Keep
+   SKIP-when-absent; the absent shape needs the VulkanSDK dir filtered
+   from PATH on this host.
 4. **Publish watch**: batch 34 stb publish once the ops appends land; then
    batches 39/40 (and 35 jolt when the m258 archive arrives). Note eco
    versions in the relay area.
