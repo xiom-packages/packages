@@ -14,6 +14,23 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-11 21:10Z (batch 62 delivered -- sdl3 0.16.1 PUBLISHED; this block is the live handoff):**
+- **`xiom.sdl3` 0.16.1 PUBLISHED (batch 62, merge `2fdf01f8`; B-19 package-side fix)**: `SDL_WasInit`
+  cast `fn(Int) -> UInt8` -> `UInt32` at `sdl3.xi:664` (`SDL_InitFlags` is Uint32; the old cast
+  truncated 16384 to its low byte 0 on m263+). Conflicts (sdl3 README/STATUS) resolved to bindings'
+  side + restored published-history lines; validate 524/0 post-merge; record `d5b9e571` (present
+  **59/59 x2** + absent **5/5 x2** on v0.64.3, both shapes re-run after the merge); wrap `82f242a0`;
+  tag `eco-v0.1.160`; gate approved (`environment_ids:[22424011031]`); run `38174860356` green
+  (publish job 4m34s); live sha256 `f2d99b9e...` @21:08:25Z; bus item `REL-20261011-2048-bindings`
+  fixed; README/STATUS synced. Tally: **76 eco releases** (`eco-v0.1.86` -> `eco-v0.1.160`).
+- **PENDING GATE unchanged + imminent**: v0.64.4 -- compiler push landed (`677d65a7 -> 87c6ca3c`,
+  m254-m274; Gate A green 2480/0); stdlib runs the archive/witness/revert/tag sequence (~1h from
+  20:21Z); compiler pins/tags after `stdlib-v0.64.4` -> archive. On release: repin + merge
+  origin/bindings + jolt port x2 (watchdog >= 600 s) + publish 0.2.0 (jolt scope ALREADY LIVE; never
+  publish unverified); re-verify per the 19:55Z expectations block below (B-16/B-17 NOT in the wave
+  -- still red, do not bounce; B-18 fixed m274; B-19 now shipped via 0.16.1). Watches: archive wakeup
+  21:48Z, then the 2h doorbell.
+
 **STATE AT 2026-10-11 18:45Z (CLEAN HANDOFF -- batches 38-61 ALL delivered; one gate left; supersedes the 11:10Z block below):**
 - **Batch lane drained.** Every bindings item from today is delivered end-to-end (merge -> validate
   -> native x2 -> record -> wrap -> gate -> live-verify -> item fixed), plus three follow-on flows:
@@ -264,12 +281,12 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **NEW operating resource (owner):** `E:\repos\` -- clone upstream projects there and STUDY them
   before writing package code (disposable when done); no writing from memory.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-11 18:45Z) -- USE THIS ONE
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-11 21:10Z) -- USE THIS ONE
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
-Read SESSION.md first -- the 2026-10-11 18:45Z STATE block is the live handoff;
+Read SESSION.md first -- the 2026-10-11 21:10Z STATE block is the live handoff;
 all older STATE blocks and paste prompts below are history.
 
 RELAY BUS (do FIRST and LAST every session): sync E:\xiom-lang\xiom-relays with
@@ -286,18 +303,22 @@ official archive carrying compiler >= m258).
 STATE: compiler pin v0.64.3 (official archive, SHA256-verified; a shadow install
 exists at %LOCALAPPDATA%\xiom.new.0643 if the canonical is ever locked). Validate
 524/0; guard 511 allowlisted / 494 ready / 17 grandfathered / 0 failures.
-Today (2026-10-11): batches 38-61 ALL delivered -> eco-v0.1.136..eco-v0.1.159
-(glfw, vulkan, sdl3 0.4.0->0.16.0, ann/stb ops appends + ann 0.2.0, btree 0.1.1,
+Today (2026-10-11): batches 38-62 ALL delivered -> eco-v0.1.136..eco-v0.1.160
+(glfw, vulkan, sdl3 0.4.0->0.16.1, ann/stb ops appends + ann 0.2.0, btree 0.1.1,
 assimp 0.8.0, miniaudio 0.3.0, meshopt 0.2.0->0.4.0, ozz/imgui/box2d 0.3.0);
-session tally 75 eco releases (eco-v0.1.86 -> eco-v0.1.159); bindings' 5-package
-pool fully re-verified + published; assimp CONTRACT.md routed to engine
-(REL-20261011-1828-packages -- awaiting their adoption).
-PENDING GATE (only one): the next official compiler archive (m258+; the compiler
-lane's v0.64.4 stack m261-m271 is complete/staged) -> repin + merge
-origin/bindings (jolt batch 35, tip-era 0aea531c) + port x2 (watchdog >= 600 s)
-+ publish; jolt stays gated tests=unknown -- do NOT publish it unverified. That
-archive also carries the fn-value ABI + HOME/PATH fixes covering B-13..B-20 and
-REL-20261010-1549-packages-5/-7 -- re-verify from the witnesses when it lands.
+session tally 76 eco releases (eco-v0.1.86 -> eco-v0.1.160); batch 62 = sdl3
+0.16.1 B-19 package-side width fix (published; sha256 f2d99b9e); bindings' pool
+re-verified + published; assimp CONTRACT.md routed to engine (-1828; engine
+acked, adopts at the next bump).
+PENDING GATE (imminent): compiler push landed (677d65a7 -> 87c6ca3c, m254-m274;
+Gate A green 2480/0); stdlib runs the archive/witness/revert/tag sequence (~1h
+from 20:21Z), then the compiler pin+tag = the archive. On release: repin + merge
+origin/bindings + jolt port x2 (watchdog >= 600 s) + publish 0.2.0 (jolt scope
+ALREADY LIVE per ops REL-20261011-1940-ops; never publish unverified). Re-verify
+expectations (SESSION.md 19:55Z block): B-13/14/15+B-18 green; B-16/B-17 NOT in
+the wave -- still red, do not bounce; B-19 shipped in sdl3 0.16.1; rows
+REL-20261010-1549-packages-4/-6 + REL-20261010-2100-packages to re-run from
+their witnesses.
 
 CREDENTIAL NOTE: gh sometimes flips to `Lefteris-Ngonart` (403 on push); switch
 with `gh auth switch --user Lefteris-Notas`; verify with

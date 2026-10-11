@@ -11,7 +11,8 @@ is not installed.
 > `UInt8` cast truncated the mask to its low byte on m263+)**. Suite
 > **59/59 x2** with the official SDL 3.4.8 DLL + absent **5/5 x2** (decode
 > arms run without the DLL). 0.15.0 shipped in `eco-v0.1.151`; 0.16.0
-> published in `eco-v0.1.152` (sha256 `0e667ea4...`). **Lane:** bindings
+> published in `eco-v0.1.152`; 0.16.1 published in `eco-v0.1.160` (sha256
+> `f2d99b9e...`). **Lane:** bindings
 > (`keywords: ["binding"]`).
 
 ## Quick start
