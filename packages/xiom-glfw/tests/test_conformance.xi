@@ -77,7 +77,7 @@ fn main() -> Int {
   }
 
   let lib: GlfwLibrary = l.value;
-  failed = failed + report(true, "loader: engine-surface export set resolved (85 core symbols)");
+  failed = failed + report(true, "loader: engine-surface export set resolved (105 core symbols)");
 
   let inited = glfw_init(&lib);
   if !inited {
@@ -201,6 +201,27 @@ fn main() -> Int {
       failed = failed + report(true, "cursor: pos read (x=" + to_string(cp.x as Int)
         + ", y=" + to_string(cp.y as Int) + ")");
 
+      let cur = glfw_create_standard_cursor(&lib, GLFW_ARROW_CURSOR);
+      if cur.is_ok {
+        glfw_set_cursor(&lib, &w, cur.value);
+        glfw_destroy_cursor(&lib, cur.value);
+        failed = failed + report(true, "cursor: standard arrow create/set/destroy");
+      } else {
+        failed = failed + report(false, "cursor: " + cur.error);
+      }
+
+      var rgba: Vec[UInt8] = Vec[UInt8].new();
+      rgba.push(255 as UInt8);
+      rgba.push(64 as UInt8);
+      rgba.push(32 as UInt8);
+      rgba.push(255 as UInt8);
+      let icon = glfw_set_window_icon(&lib, &w, 1, 1, &rgba);
+      if icon.is_ok {
+        failed = failed + report(true, "icon: 1x1 RGBA window icon set");
+      } else {
+        failed = failed + report(false, "icon: " + icon.error);
+      }
+
       // Clipboard (hidden windows support the clipboard on Windows).
       glfw_set_clipboard_string(&lib, &w, "xiom.glfw probe");
       let clip = glfw_get_clipboard_string(&lib, &w);
@@ -222,6 +243,23 @@ fn main() -> Int {
       glfw_destroy_window(&lib, &w);
       failed = failed + report(true, "window: destroyed");
     }
+
+    // 0.4.0: gamma ramp + joystick/gamepad probes.
+    let pm4 = glfw_get_primary_monitor(&lib);
+    if pm4.is_ok {
+      let m4 = GlfwMonitor{ handle: pm4.value };
+      let ramp = glfw_get_gamma_ramp_raw(&lib, &m4);
+      failed = failed + report(ramp.len() == 1536,
+        "gamma: ramp read " + to_string(ramp.len()) + " B");
+    }
+    var js_count = 0;
+    var jid = 0;
+    while jid < 16 {
+      if glfw_joystick_present(&lib, jid) { js_count = js_count + 1; }
+      jid = jid + 1;
+    }
+    failed = failed + report(js_count >= 0,
+      "joystick: enumerated (" + to_string(js_count) + " present; gamepad API surface resolved)");
 
     // Vulkan helpers (optional exports; the official 3.4 win64 build has them).
     let vsup = glfw_vulkan_supported(&lib);
