@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.15.0 |
+| Version | 0.16.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -273,12 +273,21 @@ caller's `Str` which SDL keeps).  Suite: a hardware-free virtual pad is
 attached, opened through the real read path, fed axis0=16384 + button1,
 read back exactly, and detached -- no SKIP.
 
+**0.16.0 addition (drag-drop payload decode, 2026-10-11):** pure-buffer
+`SDL_DropEvent` accessors (no new DLL symbols): `sdl3_event_drop_window_id`
+(u32 @16), `sdl3_event_drop_x`/`_y` (f32 @20/@24),
+`sdl3_event_drop_source`/`_data` (ptr @32/@40 -> `Str::from_c_str`,
+`""` when NULL), plus `sdl3_str_c_ptr` for building synthetic C structures.
+The SDL_EVENT_DROP_* type constants already existed (0.11.0 tables).
+Because the arm is DLL-independent it joins the decode layer that runs in
+BOTH shapes -- the absent baseline becomes 5 checks.
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 58/58 x2** -- previous 56 checks + live joystick path (virtual pad axis0 16384 read back, button + name + connected + detach) |
+| SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 5/5 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer + drag-drop decode still run -- both are pure XIOM) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 59/59 x2** -- previous 58 checks + drag-drop payload decode (windowID/xy + source/data C-string copies, NULL-safe) |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no

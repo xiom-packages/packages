@@ -214,6 +214,39 @@ fn t_event_decode() -> Bool {
   return ok;
 }
 
+// ---- 0.16.0: drag-drop payload decode (DLL-independent) -------------------
+// SDL_DropEvent: windowID u32 @16, x f32 @20, y f32 @24, source ptr @32,
+// data ptr @40.  Built with real C-string pointers; NULL payloads must
+// decode to "" without a crash.
+
+fn t_drop_decode() -> Bool {
+  var ok = true;
+  var dev = slot_new(128);
+  wr_u32(&mut dev, 0, SDL_EVENT_DROP_FILE);
+  wr_u32(&mut dev, 16, 7);
+  wr_u32(&mut dev, 20, 0x42C80000);            // x = 100.0
+  wr_u32(&mut dev, 24, 0x42700000);            // y = 60.0
+  let sptr = sdl3_str_c_ptr("xiom-source");
+  let dptr = sdl3_str_c_ptr("C:/tmp/suzanne.glb");
+  wr_u64(&mut dev, 32, sptr);
+  wr_u64(&mut dev, 40, dptr);
+  if sdl3_event_type(&dev) != SDL_EVENT_DROP_FILE { ok = false; }
+  if sdl3_event_drop_window_id(&dev) != 7 { ok = false; }
+  if sdl3_event_drop_x(&dev) != 100.0 { ok = false; }
+  if sdl3_event_drop_y(&dev) != 60.0 { ok = false; }
+  if sdl3_event_drop_source(&dev) != "xiom-source" { ok = false; }
+  if sdl3_event_drop_data(&dev) != "C:/tmp/suzanne.glb" { ok = false; }
+
+  // NULL payloads (DROP_BEGIN carries no data/source): empty + no crash.
+  var nev = slot_new(128);
+  wr_u32(&mut nev, 0, SDL_EVENT_DROP_BEGIN);
+  if sdl3_event_type(&nev) != SDL_EVENT_DROP_BEGIN { ok = false; }
+  if sdl3_event_drop_source(&nev) != "" { ok = false; }
+  if sdl3_event_drop_data(&nev) != "" { ok = false; }
+  if sdl3_event_drop_x(&nev) != 0.0 { ok = false; }
+  return ok;
+}
+
 // ---- 0.5.0: event filter + watch capture state ----------------------------
 // Handlers take the event only (B-15: Vec[fn] element calls with >= 2 args
 // type their result as ()); userdata comes back via the package getters.
@@ -262,6 +295,7 @@ fn main() -> Int {
 
   failed = failed + report(t_constants(), "constants: init/window/event tables + SDL_VERSIONNUM math");
   failed = failed + report(t_event_decode(), "events: decode layer (key/mouse-motion/mouse-button/window + f32 bits) on owned buffers");
+  failed = failed + report(t_drop_decode(), "events: drag-drop payload decode (windowID/xy + source/data C-string reads; NULL-safe)");
 
   let l = sdl3_load();
   if !l.is_ok {
