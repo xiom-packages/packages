@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-11T20:11:02Z",
+    "updated":  "2026-10-11T20:18:34Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -4585,17 +4585,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.miniaudio",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library)",
+                         "description":  "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library; version/context enumeration, in-memory + file WAV decode, encoder round trip)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-miniaudio/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-miniaudio/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "miniaudio.xi",
                                               "package.xi"
