@@ -20,7 +20,7 @@ running). Check `git log -1 --format=%h %s` before starting.
   config errors "Cannot fast-forward to multiple branches"). Queue: `python tools/relay.py view
   --lane packages`. Doorbell cron `wku_128e7df9c001KbUPDr5q7ejEoK` fires every 2 h (fetch+merge
   variant; also checks for the m258 archive).
-- **Delivered since the 2026-10-10 handoff (50 eco releases, `eco-v0.1.86` -> `eco-v0.1.135`):**
+- **Delivered since the 2026-10-10 handoff (51 eco releases, `eco-v0.1.86` -> `eco-v0.1.135`):**
   bindings batches 20-37 -- openssl 0.2.0, ffmpeg 0.2.0, sqlite 0.3.0, box2d 0.2.0, imgui 0.2.0,
   vma 0.2.0, assimp 0.2.0->0.7.0, cuda 0.2.0, glfw 0.3.0, vulkan 0.3.0->0.4.0, sdl3 0.3.1,
   stb 0.2.0 (verified, awaiting ops) -- plus native-lane: http 0.1.4/0.1.5/0.1.6, durable port +
