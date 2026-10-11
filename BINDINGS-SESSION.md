@@ -30,9 +30,13 @@ along the way **B-14/B-15** filed) committed (`b58f8071` + record
 lane-local artifacts). Batch 43 (`xiom.sdl3` 0.6.0: **displays + video
 modes + keyboard state** -- 11 new symbols, VIDEO-init SKIP path;
 **36/36 x2** + absent 4/4 x2) committed (`55db02e5` + record `5a5485b7`)
-and relayed (`REL-20261011-1152-bindings`).** Upstream sources cloned into
-`E:\repos` (Vulkan-Headers, SDL3, FFmpeg + pool) for source-truth binding
-work.
+and relayed (`REL-20261011-1152-bindings`). Batch 44 (`xiom.sdl3` 0.7.0:
+**filesystem basics** -- base/pref/cwd ownership-correct strings,
+create/remove/path-info round trip under the per-user pref path, fully
+cleaned up; **43/43 x2** + absent 4/4 x2) committed (`7317c433` + record
+`3e209d89`) and relayed (`REL-20261011-1157-bindings`).** Upstream sources
+cloned into `E:\repos` (Vulkan-Headers, SDL3, FFmpeg + pool) for
+source-truth binding work.
 
 ## RESUME HERE (handoff, 2026-10-11)
 
@@ -56,10 +60,16 @@ clone: stage ONLY your own item files). The two working rules are in
   3/3, sdl3 24/24 x2; reply item `REL-20261011-1113-bindings`.**
   **Still in the queue (publish pending)**: batch 34 stb 0.2.0 (ops
   allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
-  batch 35 jolt 0.2.0 (parked on the m258 archive); batch 42 sdl3 0.5.0
-  (`REL-20261011-1121-bindings`), batch 43 sdl3 0.6.0
-  (`REL-20261011-1152-bindings`); batches 39/40/41 wrapped on main
-  (`470e13f3`).
+  batch 35 jolt 0.2.0 (parked on the m258 archive); batches 42/43/44
+  sdl3 0.5.0/0.6.0/0.7.0 (`REL-20261011-1121/1152/1157-bindings`);
+  batches 39/40/41 wrapped on main (`470e13f3`).
+- **Latest batch 44 (2026-10-11)**: `xiom.sdl3` **0.7.0 -- filesystem
+  basics**: base/pref/current-dir paths (BasePath SDL-owned; others
+  SDL_free'd after copy), create/remove directory, `SDL_GetPathInfo`
+  (`Sdl3PathInfo`, `SDL_PATHTYPE_*`). Round trip under
+  `%APPDATA%\xiom-lane\sdl3-conformance\` (created + removed by the
+  suite; ops-hygiene compliant). Ports: **43/43 x2** + **4/4 x2** absent.
+  feat `7317c433` + record `3e209d89`.
 - **Latest batch 43 (2026-10-11)**: `xiom.sdl3` **0.6.0 -- displays +
   video modes + keyboard state**: SDL_GetDisplays/primary/name/bounds/
   usable-bounds/current+desktop mode, SDL_GetKeyboardState (+SDL_free of
@@ -213,12 +223,12 @@ clone: stage ONLY your own item files). The two working rules are in
    **DONE** (batch 40; engine build orders #1-#3 delivered).
 3. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): **0.4.0 decoding + 0.5.0 filter/watch +
-   0.6.0 displays/keyboard shipped** (batches 41/42/43). Continue:
-   audio device enumeration, joystick, filesystem, texture updates/vsync
-   (ROADMAP Phase 2). Keep SKIP-when-absent; the absent shape needs the
-   VulkanSDK dir filtered from PATH on this host. Apply the 1-arg handler
-   discipline (B-15) to any new callback binding; announce any destructive
-   window per the ops hygiene item.
+   0.6.0 displays/keyboard + 0.7.0 filesystem shipped** (batches
+   41-44). Continue: audio device enumeration, joystick, texture
+   updates/vsync (ROADMAP Phase 2). Keep SKIP-when-absent; the absent
+   shape needs the VulkanSDK dir filtered from PATH on this host. Apply
+   the 1-arg handler discipline (B-15) to any new callback binding;
+   announce any destructive window per the ops hygiene item.
 4. **Publish watch**: batch 34 stb publish once the ops appends land; then
    batches 39/40 (and 35 jolt when the m258 archive arrives). Note eco
    versions in the relay area.
