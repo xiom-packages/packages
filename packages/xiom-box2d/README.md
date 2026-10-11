@@ -5,7 +5,9 @@ into `vendor/` (MIT) and compiled into the test binary with `--c-source` --
 no system library, no DLL, no SDK.
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
-> v0.64.3; 7/7). Published in `eco-v0.1.123` (sha256 `314568d7...`).
+> v0.64.3; native 7/7 x2; 0.3.0 adds revolute + prismatic joint motors with
+> wrapped-angle semantics). 0.2.0 shipped in `eco-v0.1.123` (sha256
+> `314568d7...`); 0.3.0 published in `eco-v0.1.157` (sha256 `3c2ebda1...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
