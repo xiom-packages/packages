@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.14.0 |
+| Version | 0.15.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -259,12 +259,26 @@ the per-window relative-mode round trip is true/true/false/false, and the
 capture toggle calls succeed (enable=false on a hidden window is the
 documented foreground-only behavior; disable=true).
 
+**0.15.0 addition (live joystick path, 2026-10-11):** 10 symbols joined
+the core loader: `SDL_OpenJoystick`, `SDL_CloseJoystick`,
+`SDL_JoystickConnected`, `SDL_GetJoystickName`, `SDL_GetJoystickAxis`
+(16-bit result sign-extended explicitly), `SDL_GetJoystickButton`,
+`SDL_SetJoystickVirtualAxis`, `SDL_SetJoystickVirtualButton`,
+`SDL_AttachVirtualJoystick`, `SDL_DetachVirtualJoystick` (`Sdl3` +
+`SDL_VIRTUAL_JOYSTICK_DESC_SIZE`).  `SDL_AttachVirtualJoystick` builds the
+`SDL_VirtualJoystickDesc` as a 136-byte x64 slot with byte-indexed writes
+(`version` = sizeof(desc) per the `SDL_INIT_INTERFACE` convention, type =
+`SDL_JOYSTICK_TYPE_UNKNOWN`, full valid masks, name pointer into the
+caller's `Str` which SDL keeps).  Suite: a hardware-free virtual pad is
+attached, opened through the real read path, fed axis0=16384 + button1,
+read back exactly, and detached -- no SKIP.
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 56/56 x2** -- previous 52 checks + pointer/relative mouse (global state live cursor, relative 0,0, relative-mode round trip true/true/false/false, capture toggle); stability after the B-17 fix: 10/10 direct runs clean; 0.14.0: 7/7 |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 58/58 x2** -- previous 56 checks + live joystick path (virtual pad axis0 16384 read back, button + name + connected + detach) |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no

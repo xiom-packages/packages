@@ -20,7 +20,8 @@
 // release-3.4.8 header; verified byte-identical in the release-3.2.10 clone);
 // 0.13.0 adds capture streams (default recording device + GetAudioStreamData
 // /available/clear/format); 0.14.0 adds pointer capture + per-window relative
-// mouse + global/relative mouse state. The full pre-pilot constant tables
+// mouse + global/relative mouse state; 0.15.0 adds the joystick open/read
+// surface (virtual-joystick instrumented). The full pre-pilot constant tables
 // stay in git history (ROADMAP.md).
 
 module xiom.sdl3
@@ -394,6 +395,16 @@ pub type Sdl3Library = {
   p_set_window_relative_mouse_mode: Int;
   p_get_window_relative_mouse_mode: Int;
   p_capture_mouse: Int;
+  p_open_joystick: Int;
+  p_close_joystick: Int;
+  p_joystick_connected: Int;
+  p_joystick_name: Int;
+  p_joystick_axis: Int;
+  p_joystick_button: Int;
+  p_set_joystick_virtual_axis: Int;
+  p_set_joystick_virtual_button: Int;
+  p_attach_virtual_joystick: Int;
+  p_detach_virtual_joystick: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -517,6 +528,26 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a54.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetWindowRelativeMouseMode: " + a54.error }); }
   let a55 = dl.dl_sym(handle, "SDL_CaptureMouse");
   if !a55.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CaptureMouse: " + a55.error }); }
+  let a56 = dl.dl_sym(handle, "SDL_OpenJoystick");
+  if !a56.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_OpenJoystick: " + a56.error }); }
+  let a57 = dl.dl_sym(handle, "SDL_CloseJoystick");
+  if !a57.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CloseJoystick: " + a57.error }); }
+  let a58 = dl.dl_sym(handle, "SDL_JoystickConnected");
+  if !a58.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_JoystickConnected: " + a58.error }); }
+  let a59 = dl.dl_sym(handle, "SDL_GetJoystickName");
+  if !a59.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetJoystickName: " + a59.error }); }
+  let a60 = dl.dl_sym(handle, "SDL_GetJoystickAxis");
+  if !a60.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetJoystickAxis: " + a60.error }); }
+  let a61 = dl.dl_sym(handle, "SDL_GetJoystickButton");
+  if !a61.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetJoystickButton: " + a61.error }); }
+  let a62 = dl.dl_sym(handle, "SDL_SetJoystickVirtualAxis");
+  if !a62.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetJoystickVirtualAxis: " + a62.error }); }
+  let a63 = dl.dl_sym(handle, "SDL_SetJoystickVirtualButton");
+  if !a63.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetJoystickVirtualButton: " + a63.error }); }
+  let a64 = dl.dl_sym(handle, "SDL_AttachVirtualJoystick");
+  if !a64.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_AttachVirtualJoystick: " + a64.error }); }
+  let a65 = dl.dl_sym(handle, "SDL_DetachVirtualJoystick");
+  if !a65.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_DetachVirtualJoystick: " + a65.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -575,6 +606,16 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_set_window_relative_mouse_mode: a53.value,
     p_get_window_relative_mouse_mode: a54.value,
     p_capture_mouse: a55.value,
+    p_open_joystick: a56.value,
+    p_close_joystick: a57.value,
+    p_joystick_connected: a58.value,
+    p_joystick_name: a59.value,
+    p_joystick_axis: a60.value,
+    p_joystick_button: a61.value,
+    p_set_joystick_virtual_axis: a62.value,
+    p_set_joystick_virtual_button: a63.value,
+    p_attach_virtual_joystick: a64.value,
+    p_detach_virtual_joystick: a65.value,
   });
 }
 
@@ -2634,5 +2675,196 @@ pub fn sdl3_capture_mouse(lib: &Sdl3Library, enabled: Bool) -> Bool
     let f = lib.p_capture_mouse as fn(UInt8) -> UInt8;
     let v: UInt8 = if enabled { 1 as UInt8 } else { 0 as UInt8 };
     return (f(v) as Int) != 0;
+  }
+}
+
+// =========================================================================
+// 0.15.0: joystick open/read surface + virtual-joystick instrumentation
+//
+// SDL_OpenJoystick/CloseJoystick over an instance id, axis (Sint16) and
+// button (bool) reads, connected + name queries.  SDL_AttachVirtualJoystick
+// gives a hardware-free path through the REAL open/read code (the suite
+// feeds it with SDL_SetJoystickVirtualAxis/Button): the desc is a 136-byte
+// x64 slot built with byte-indexed writes (B-16/B-17); `version` =
+// sizeof(desc) per SDL_INIT_INTERFACE, type = SDL_JOYSTICK_TYPE_UNKNOWN,
+// full valid masks, and the name pointer points at the caller's Str which
+// SDL KEEPS -- pass a string that outlives the joystick.
+// =========================================================================
+
+/// SDL_VirtualJoystickDesc size on the x64 ABI (the `version` value
+/// SDL_INIT_INTERFACE writes).
+pub const SDL_VIRTUAL_JOYSTICK_DESC_SIZE: Int = 136;
+
+/// Little-endian u16 store into an XIOM-owned byte slot (B-16 discipline).
+fn sdl3_write_u16_le(buf: &mut Vec[UInt8], off: Int, v: Int)
+  requires: off >= 0
+  requires: buf.len() >= off + 2
+{
+  buf[off + 0] = (v & 0xFF) as UInt8;
+  buf[off + 1] = ((v >> 8) & 0xFF) as UInt8;
+}
+
+/// Little-endian u64 store (two byte-indexed u32 halves).
+fn sdl3_write_u64_le(buf: &mut Vec[UInt8], off: Int, v: Int)
+  requires: off >= 0
+  requires: buf.len() >= off + 8
+{
+  sdl3_write_u32_le(buf, off, v & 0xFFFFFFFF);
+  sdl3_write_u32_le(buf, off + 4, (v >> 32) & 0xFFFFFFFF);
+}
+
+/// SDL_OpenJoystick(instance_id) -> handle (0 on failure; see the error
+/// string).  Requires SDL_INIT_JOYSTICK.
+/// Complexity: O(1).
+pub fn sdl3_open_joystick(lib: &Sdl3Library, id: Int) -> Int
+  requires: lib.handle != 0
+  requires: id > 0
+{
+  unsafe {
+    let f = lib.p_open_joystick as fn(Int) -> Int;
+    return f(id);
+  }
+}
+
+/// SDL_CloseJoystick(handle).
+/// Complexity: O(1).
+pub fn sdl3_close_joystick(lib: &Sdl3Library, joy: Int)
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_close_joystick as fn(Int);
+    f(joy);
+  }
+}
+
+/// SDL_JoystickConnected -> bool.
+/// Complexity: O(1).
+pub fn sdl3_joystick_connected(lib: &Sdl3Library, joy: Int) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_joystick_connected as fn(Int) -> UInt8;
+    return (f(joy) as Int) != 0;
+  }
+}
+
+/// SDL_GetJoystickName (SDL-owned string, copied; "" on failure).
+/// Complexity: O(len).
+pub fn sdl3_joystick_name(lib: &Sdl3Library, joy: Int) -> Str
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_joystick_name as fn(Int) -> *UInt8;
+    let p = f(joy);
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
+  }
+}
+
+/// SDL_GetJoystickAxis -> -32768..32767 (0 when the axis is absent).
+/// The 16-bit return is sign-extended explicitly (the ABI guarantees only
+/// the low 16 bits).
+/// Complexity: O(1).
+pub fn sdl3_joystick_axis(lib: &Sdl3Library, joy: Int, axis: Int) -> Int
+  requires: lib.handle != 0
+  requires: joy != 0
+  requires: axis >= 0
+{
+  unsafe {
+    let f = lib.p_joystick_axis as fn(Int, Int) -> Int32;
+    let raw = (f(joy, axis) as Int) & 0xFFFF;
+    if raw >= 0x8000 {
+      return raw - 0x10000;
+    }
+    return raw;
+  }
+}
+
+/// SDL_GetJoystickButton -> bool.
+/// Complexity: O(1).
+pub fn sdl3_joystick_button(lib: &Sdl3Library, joy: Int, button: Int) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+  requires: button >= 0
+{
+  unsafe {
+    let f = lib.p_joystick_button as fn(Int, Int) -> UInt8;
+    return (f(joy, button) as Int) != 0;
+  }
+}
+
+/// SDL_SetJoystickVirtualAxis(joy, axis, value) -> bool (Sint16 value).
+/// Complexity: O(1).
+pub fn sdl3_set_joystick_virtual_axis(lib: &Sdl3Library, joy: Int, axis: Int, value: Int) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+  requires: axis >= 0
+  requires: value >= -32768
+  requires: value <= 32767
+{
+  unsafe {
+    let f = lib.p_set_joystick_virtual_axis as fn(Int, Int, Int) -> UInt8;
+    return (f(joy, axis, value) as Int) != 0;
+  }
+}
+
+/// SDL_SetJoystickVirtualButton(joy, button, down) -> bool.
+/// Complexity: O(1).
+pub fn sdl3_set_joystick_virtual_button(lib: &Sdl3Library, joy: Int, button: Int, down: Bool) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+  requires: button >= 0
+{
+  unsafe {
+    let f = lib.p_set_joystick_virtual_button as fn(Int, Int, UInt8) -> UInt8;
+    let v: UInt8 = if down { 1 as UInt8 } else { 0 as UInt8 };
+    return (f(joy, button, v) as Int) != 0;
+  }
+}
+
+/// SDL_AttachVirtualJoystick -> instance id (0 on failure).  `name` must
+/// outlive the joystick (SDL keeps the pointer).  Requires
+/// SDL_INIT_JOYSTICK.
+/// Complexity: O(1).
+pub fn sdl3_attach_virtual_joystick(lib: &Sdl3Library, name: Str, naxes: Int, nbuttons: Int) -> Int
+  requires: lib.handle != 0
+  requires: name.len() > 0
+  requires: naxes > 0
+  requires: naxes <= 16
+  requires: nbuttons > 0
+  requires: nbuttons <= 32
+{
+  unsafe {
+    var slot = sdl3_slot(SDL_VIRTUAL_JOYSTICK_DESC_SIZE);
+    // version u32 @0 = sizeof(desc) (SDL_INIT_INTERFACE convention);
+    // type u16 @4 = SDL_JOYSTICK_TYPE_UNKNOWN (0), vendor/product @8/@10 = 0.
+    sdl3_write_u32_le(&mut slot, 0, SDL_VIRTUAL_JOYSTICK_DESC_SIZE);
+    sdl3_write_u16_le(&mut slot, 12, naxes);
+    sdl3_write_u16_le(&mut slot, 14, nbuttons);
+    // balls/hats/touchpads/sensors @16-23 = 0; padding2 @24 = 0.
+    let bmask = (1 << nbuttons) - 1;  // button_mask u32 @28
+    let amask = (1 << naxes) - 1;     // axis_mask u32 @32
+    sdl3_write_u32_le(&mut slot, 28, bmask);
+    sdl3_write_u32_le(&mut slot, 32, amask);
+    let np = name.c_str() as Int;     // name ptr @40
+    sdl3_write_u64_le(&mut slot, 40, np);
+    // touchpads @48 / sensors @56 / userdata @64 / callbacks @72-135 = 0.
+    let f = lib.p_attach_virtual_joystick as fn(*UInt8) -> Int;
+    return f(slot.as_mut_ptr());
+  }
+}
+
+/// SDL_DetachVirtualJoystick(instance_id) -> bool.
+/// Complexity: O(1).
+pub fn sdl3_detach_virtual_joystick(lib: &Sdl3Library, id: Int) -> Bool
+  requires: lib.handle != 0
+  requires: id > 0
+{
+  unsafe {
+    let f = lib.p_detach_virtual_joystick as fn(Int) -> UInt8;
+    return (f(id) as Int) != 0;
   }
 }

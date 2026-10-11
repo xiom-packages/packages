@@ -6,11 +6,11 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.14.0 pointer capture + relative mouse + runtime**
-> (per-window relative mode, global/relative mouse state, capture toggle;
-> capture streams + stream query landed in 0.13.0). Suite **56/56 x2**
-> with the official SDL 3.4.8 DLL + absent 4/4 x2. **Lane:** bindings
-> (`keywords: ["binding"]`).
+> **Status:** `incubating` -- **0.15.0 live joystick path + runtime**
+> (open/close/axis/button/name/connected reads, proven with a hardware-free
+> virtual pad through the real open path; pointer capture + relative mouse
+> landed in 0.14.0). Suite **58/58 x2** with the official SDL 3.4.8 DLL +
+> absent 4/4 x2. **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -53,6 +53,7 @@ fn main() {
 | Audio stream (0.12.0) | `sdl3_open_audio_playback_stream(format, channels, freq)` (default device, NULL callback = push mode), `sdl3_put_audio_stream_data(stream, buf, len)`, `sdl3_resume/pause_audio_stream_device`, `sdl3_audio_stream_device_paused`, `sdl3_get_audio_stream_queued`, `sdl3_destroy_audio_stream`; `SDL_AUDIO_F32`, `SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK` |
 | Audio capture (0.13.0) | `sdl3_open_audio_recording_stream(format, channels, freq)` (default recording device, NULL callback = pull mode; returns 0 -> SKIP), `sdl3_get_audio_stream_data(stream, buf, len)` (bytes read into an XIOM buffer), `sdl3_get_audio_stream_available`, `sdl3_clear_audio_stream`, `sdl3_get_audio_stream_format` (`Sdl3AudioStreamFormat`); `SDL_AUDIO_DEVICE_DEFAULT_RECORDING` |
 | Pointer/relative mouse (0.14.0) | `sdl3_global_mouse_state`, `sdl3_relative_mouse_state` (`Sdl3MouseState`: x/y + button mask), `sdl3_set_window_relative_mouse_mode(win, enabled)` + `sdl3_window_relative_mouse_mode(win)` (per-window relative mode), `sdl3_capture_mouse(enabled)` -- require `SDL_INIT_VIDEO` |
+| Joystick live path (0.15.0) | `sdl3_open_joystick(id)` / `sdl3_close_joystick`, `sdl3_joystick_connected`, `sdl3_joystick_name`, `sdl3_joystick_axis` (signed, -32768..32767), `sdl3_joystick_button`, `sdl3_set_joystick_virtual_axis/button`, `sdl3_attach_virtual_joystick(name, naxes, nbuttons)` / `sdl3_detach_virtual_joystick(id)` -- hardware-free instrumentation for the real read path |
 | Mouse wheel (0.12.0) | `sdl3_event_wheel_x/_y` (+`_bits`), `sdl3_event_wheel_direction`, `sdl3_event_wheel_mouse_x/_y`; `SDL_MOUSEWHEEL_NORMAL/FLIPPED` |
 | Event decode (0.4.0) | `sdl3_event_type`, `sdl3_event_timestamp`, `sdl3_event_window_id`, `sdl3_event_key_scancode/key_code/mods/down/repeat`, `sdl3_event_mouse_state/x_bits/y_bits/x/y/button/button_down/clicks`, `sdl3_event_window_data1/data2`, `sdl3_f32_from_bits`, `SDL_EVENT_SIZE` |
 | Error | `sdl3_get_error` |
