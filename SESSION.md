@@ -36,7 +36,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   `E:\repos\CLEANUP.md`); per-package `PROVENANCE.md`; license whitelist (MIT/Apache-2.0/BSD/ISC/
   zlib/PD/Unicode/RFC-first; MPL/LGPL reference-only; never GPL/AGPL/SSPL/Elastic); verification =
   upstream vectors/parity; bindings target **100% export coverage** (complete surface, not partial).
-  Directive relayed to bindings (`REL-20261011-2131-packages`).
+  Directive relayed to bindings (`REL-20261011-2131-packages`); codification ask with a paste-ready
+  block for their session doc `REL-20261011-2141-packages`; lane gates **G6** (upstream-first +
+  PROVENANCE.md) / **G7** (coverage = 100%) added to `docs/BINDINGS-LANE.md`.
 
 **STATE AT 2026-10-11 18:45Z (CLEAN HANDOFF -- batches 38-61 ALL delivered; one gate left; supersedes the 11:10Z block below):**
 - **Batch lane drained.** Every bindings item from today is delivered end-to-end (merge -> validate
