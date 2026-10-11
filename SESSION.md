@@ -71,6 +71,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   honors declared return widths -- bindings carries the one-line fix; the sdl3 suite will show that
   one check red until it lands (NOT a compiler regression). Compiler pin still pending the stdlib tag
   hold (`REL-20261011-1812-compiler`), then the pin commit + tag = the archive this gate waits on.
+- Archive re-verify expectations (set 2026-10-11 19:55Z): B-13/-14/-15 (m263-265) and B-18 (m274)
+  expected GREEN; **B-16/B-17 are NOT in this wave** (queued as the separate FFI pointer-write/
+  narrowing batch; both items acked, workarounds stand) -- expected still RED, do not bounce.
+  Packages rows to re-run: `REL-20261010-1549-packages-4` (m266/267; ORBITDB phantom bundle, run from
+  their repo root), `-6` (m258; witness = jolt port x2), probes for `-5`/`-7` (no explicit fix refs in
+  the wave), and `REL-20261010-2100-packages` (already `fixed` by c86e2f2d/m268 -- verify the WSL
+  XIOM_HOME case, then move to verified).
 
 **STATE AT 2026-10-11 11:10Z (history -- superseded by the 18:45Z block above):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
