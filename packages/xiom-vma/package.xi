@@ -4,8 +4,8 @@
 
 package xiom_vma {
   name: "xiom.vma";
-  version: "0.2.0";
-  description: "Vulkan Memory Allocator (VMA) bindings for XIOM (vendored v3.4.0 header + pinned Vulkan-Headers core; runtime loader)";
+  version: "0.3.0";
+  description: "Vulkan Memory Allocator (VMA) bindings for XIOM -- 100% of the top-level vma* API surface (SDK 1.4.350.0 oracle, vendored v3.4.0 header + pinned Vulkan-Headers core + volk; runtime loader)";
   categories: ["graphics"];
   keywords: ["vma", "vulkan", "memory", "allocation", "binding"];
   license: "MIT OR Apache-2.0";

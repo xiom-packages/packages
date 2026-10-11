@@ -41,3 +41,16 @@ drives the real device through a runtime-loaded loader.
 - Device selection: the first physical device with a graphics queue (no
   discrete-GPU preference).
 - Windows x64 primary; the vendored path is portable, no other platform run.
+
+## 0.3.0 -- full top-level surface (2026-10-11)
+
+| Item | State |
+|------|-------|
+| Oracle | SDK 1.4.350.0 `vk_mem_alloc.h` (VMA v3.3.0), 72 top-level `vma*` fns; header SHA256 `90CE12FC...B112` |
+| Bound | 72/72 generated bridge wrappers (`src/vma_full_bridge.cpp`) + typed family modules; `bound=72/72` printed by `tests/test_full_surface.xi` |
+| Runtime | export table 72, link proof 72, live RHI path + null-arg error path + SKIP classification; 21/21 x2 (dev GPU) and 5/5 x2 on the unchanged conformance suite |
+| Confinement (G5) | all `unsafe`/`extern` stay in the package modules (`vma.xi` + generated `vma_full_*.xi`); the bridge is the only C++ TU |
+| Bridge config | `VOLK_IMPLEMENTATION` (volk loader not initialized; the Volk helper is null-guard-probed) + `VK_USE_PLATFORM_WIN32_KHR` (real `vmaGetMemoryWin32Handle` probe returns `VK_ERROR_FEATURE_NOT_PRESENT`) |
+| Vendor additions | `vendor/vulkan/vulkan_win32.h` (Vulkan-Headers v1.4.350), `vendor/volk/{volk.h,volk.c}` (3 documented include rewrites); pins in `PROVENANCE.md` |
+| B-20 discipline | bridge -> XIOM data crosses as scalar returns / C-side slot getters only; no foreign-pointer reads |
+| Compiler note | v0.64.3 does not resolve `use` inside dependency modules (entry-module imports only) -- family modules are therefore self-contained with module-local extern blocks; v0.64.3 also rejects 4-segment `use` paths |

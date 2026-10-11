@@ -176,6 +176,17 @@ clone: stage ONLY your own item files). The two working rules are in
   upstream-first policy folded (`fbb773fd`). B-21 filed (`-2140`: `&mut` of
   a struct-return/Result-payload temp crashes codegen; repro
   `docs/repro/bindings-pilot/mut-of-struct-return/`).
+- **SDK100 wave-2 complete (23:20Z)**: five slices integrated (`905fe004`,
+  all coordinator-validated in-lane): xiom.sdl2 16/16 + resolved=**844/844**;
+  xiom.sdl3 full surface resolved=**1270/1270** (74 additive modules; B-19
+  fix preserved; existing 59/59 green); xiom.vma full bridge
+  bound=**72/72** (volk + vulkan_win32 vendored); xiom.spirv-headers
+  **2,385 consts** (oracle byte-identical to the pinned clone);
+  xiom.shaderc **45/45** + suite 17/17. **Program matrix COMPLETE**
+  (`docs/SDK100-COVERAGE.md`, `616e21f5`). Relayed: `-2305` (wave-2 batch)
+  + `-2320` (findings: `Vec.with_len` heap-buffer-overflow HIGH; foreign-C++
+  exceptions vs confined-call machinery; unqualified 4-segment const
+  imports). Publish confirmations tracked via the doorbell.
 - **Latest batch 61 (2026-10-11)**: `xiom.meshopt` **0.4.0 -- codec family
   (Phase 3 item 2)**: index SEQUENCE codec (byte-exact order; contrast
   pinned with the triangle-list codec, which rotates corners), quat filter
