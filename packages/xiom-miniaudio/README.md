@@ -8,7 +8,8 @@ the test binary -- no system audio library at link time.
 > (miniaudio 0.11.25, 9 playback + 4 capture devices enumerated, in-memory
 > WAV decode verified at 16 frames / 1 channel / 8000 Hz / s16, and a
 > device-free encoder + file round trip: 64 frames sample-exact, temp file
-> removed).
+> removed). 0.2.0 shipped in `eco-v0.1.114`; 0.3.0 published in
+> `eco-v0.1.154` (sha256 `6a2a77dd...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
