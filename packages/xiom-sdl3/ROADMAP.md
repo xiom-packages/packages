@@ -1,6 +1,6 @@
 # xiom.sdl3 -- Roadmap
 
-**Version**: v0.10.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
+**Version**: v0.11.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
 
 ## Current state
 
@@ -22,13 +22,15 @@
 | Display blit (texture upload + RenderTexture + vsync) | Done -- 0.8.0 (engine ask 1153) |
 | Mouse state + window contract + typed window events | Done -- 0.9.0 (engine input layer) |
 | Audio + joystick enumeration | Done -- 0.10.0 |
-| Full constant tables | Phase 2 |
+| Full constant tables (events/flags/keymods/pixel formats) | Done -- 0.11.0 (source-generated) |
 | POSIX soname fallback | Phase 2 |
 
 ## Phase 2 (remaining)
 
-1. Restore the full SDL3 3.4.8 constant tables from git history (window
-   flags, pixel formats, event types) and re-attach the constant checks.
+1. Regenerate the constant tables at each pin move (the extraction recipe:
+   comment-strip + enum-parse + macro-eval vs the new headers); extend with
+   the remaining #define-style tables (KMOD combos done; scancodes/keycodes
+   next if a consumer needs them).
 2. Surface layer: texture update from a pixel buffer (done -- 0.8.0),
    `SDL_SetTextureBlendMode` + mono/alpha formats next.
 3. Poll-into-owned-buffer decoding once the B-11-family foreign-write

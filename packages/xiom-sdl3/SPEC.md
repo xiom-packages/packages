@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.10.0 |
+| Version | 0.11.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -197,12 +197,25 @@ RGBA8 framebuffer produces (the engine asked for exactly that).
 Requires `SDL_INIT_AUDIO`/`JOYSTICK`; the suite SKIPs the block when init
 fails.
 
+**0.11.0 addition (full constant tables, 2026-10-11):** ~190 constants
+source-generated from the release-3.2.10 headers (same values as the
+release-3.4.8 pin semantics): the complete `SDL_EVENT_*` enum (90 new
+entries beyond the previously shipped subset), the 23 remaining window
+flags, all 14 `SDL_KMOD_*` modifiers and 62 explicit-value pixel formats
+(`SDL_PIXELFORMAT_*`, including the RGB565/24/48, XRGB/BGRX/ARGB/BGRA
+families and the NV12/NV21/YV12/IYUV/P010/MJPG fourCCs).  Names already
+defined in earlier sections are not repeated.  The suite samples ~20
+values across all four families (FIRST/LAST/TEXT_EDITING/
+JOYSTICK_AXIS_MOTION/GAMEPAD_ADDED/AUDIO_DEVICE_ADDED/POLL_SENTINEL,
+FULLSCREEN/BORDERLESS/RESIZABLE/HIGH_PIXEL_DENSITY/TRANSPARENT,
+LSHIFT/LCTRL/RALT/NUM/SCROLL, RGB565/XRGB8888/NV12).
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 48/48 x2** -- previous 46 checks + audio (driver "wasapi", playback=9, recording=4, first device "Speakers (Realtek(R) Audio)") + joystick enumeration (0 attached; unknown-id name empty) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 48/48 x2** -- same 48 checks with the constant test now covering the full tables (sampled) |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no

@@ -86,6 +86,17 @@ fn t_constants() -> Bool {
   if sdl3_version_major(3004008) != 3 { ok = false; }
   if sdl3_version_minor(3004008) != 4 { ok = false; }
   if sdl3_version_patch(3004008) != 8 { ok = false; }
+  // 0.11.0: source-generated full tables (sampled).
+  if SDL_EVENT_FIRST != 0 || SDL_EVENT_LAST != 0xFFFF { ok = false; }
+  if SDL_EVENT_TEXT_EDITING != 0x302 { ok = false; }
+  if SDL_EVENT_JOYSTICK_AXIS_MOTION != 0x600 || SDL_EVENT_GAMEPAD_ADDED != 0x653 { ok = false; }
+  if SDL_EVENT_AUDIO_DEVICE_ADDED != 0x1100 || SDL_EVENT_POLL_SENTINEL != 0x7F00 { ok = false; }
+  if SDL_WINDOW_FULLSCREEN != 0x1 || SDL_WINDOW_BORDERLESS != 0x10 || SDL_WINDOW_RESIZABLE != 0x20 { ok = false; }
+  if SDL_WINDOW_HIGH_PIXEL_DENSITY != 0x2000 || SDL_WINDOW_TRANSPARENT != 0x40000000 { ok = false; }
+  if SDL_KMOD_LSHIFT != 0x1 || SDL_KMOD_LCTRL != 0x40 || SDL_KMOD_RALT != 0x200 { ok = false; }
+  if SDL_KMOD_NUM != 0x1000 || SDL_KMOD_SCROLL != 0x8000 { ok = false; }
+  if SDL_PIXELFORMAT_RGB565 != 0x15151002 || SDL_PIXELFORMAT_XRGB8888 != 0x16161804 { ok = false; }
+  if SDL_PIXELFORMAT_NV12 != 0x3231564E { ok = false; }
   return ok;
 }
 
