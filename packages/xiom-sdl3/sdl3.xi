@@ -864,7 +864,7 @@ pub fn sdl3_event_key_scancode(buf: &Vec[UInt8]) -> Int
 
 /// Key event: virtual keycode (u32 @28; ASCII value for printable keys).
 /// Complexity: O(1).
-pub fn sdl3_event_key_code(buf: &Vec<UInt8>) -> Int
+pub fn sdl3_event_key_code(buf: &Vec[UInt8]) -> Int
   requires: buf.len() >= 32
 {
   return ev_read_u32(buf, 28);
@@ -921,7 +921,7 @@ pub fn sdl3_event_mouse_y_bits(buf: &Vec[UInt8]) -> Int
 
 /// Mouse x as Float64 (motion and button events).
 /// Complexity: O(1).
-pub fn sdl3_event_mouse_x(buf: &Vec<UInt8>) -> Float64
+pub fn sdl3_event_mouse_x(buf: &Vec[UInt8]) -> Float64
   requires: buf.len() >= 32
 {
   return sdl3_f32_from_bits(ev_read_u32(buf, 28));
@@ -929,7 +929,7 @@ pub fn sdl3_event_mouse_x(buf: &Vec<UInt8>) -> Float64
 
 /// Mouse y as Float64 (motion and button events).
 /// Complexity: O(1).
-pub fn sdl3_event_mouse_y(buf: &Vec<UInt8>) -> Float64
+pub fn sdl3_event_mouse_y(buf: &Vec[UInt8]) -> Float64
   requires: buf.len() >= 36
 {
   return sdl3_f32_from_bits(ev_read_u32(buf, 32));
@@ -937,7 +937,7 @@ pub fn sdl3_event_mouse_y(buf: &Vec<UInt8>) -> Float64
 
 /// Mouse-button event: button index (u8 @24).
 /// Complexity: O(1).
-pub fn sdl3_event_mouse_button(buf: &Vec<UInt8>) -> Int
+pub fn sdl3_event_mouse_button(buf: &Vec[UInt8]) -> Int
   requires: buf.len() >= 25
 {
   return ev_read_u8(buf, 24);
@@ -945,7 +945,7 @@ pub fn sdl3_event_mouse_button(buf: &Vec<UInt8>) -> Int
 
 /// Mouse-button event: pressed flag (u8 @25).
 /// Complexity: O(1).
-pub fn sdl3_event_mouse_button_down(buf: &Vec<UInt8>) -> Bool
+pub fn sdl3_event_mouse_button_down(buf: &Vec[UInt8]) -> Bool
   requires: buf.len() >= 26
 {
   return ev_read_u8(buf, 25) != 0;
@@ -961,7 +961,7 @@ pub fn sdl3_event_mouse_clicks(buf: &Vec[UInt8]) -> Int
 
 /// Window event: data1 (Sint32 @20).
 /// Complexity: O(1).
-pub fn sdl3_event_window_data1(buf: &Vec<UInt8>) -> Int
+pub fn sdl3_event_window_data1(buf: &Vec[UInt8]) -> Int
   requires: buf.len() >= 24
 {
   return ev_read_i32(buf, 20);
@@ -969,7 +969,7 @@ pub fn sdl3_event_window_data1(buf: &Vec<UInt8>) -> Int
 
 /// Window event: data2 (Sint32 @24).
 /// Complexity: O(1).
-pub fn sdl3_event_window_data2(buf: &Vec<UInt8>) -> Int
+pub fn sdl3_event_window_data2(buf: &Vec[UInt8]) -> Int
   requires: buf.len() >= 28
 {
   return ev_read_i32(buf, 24);
