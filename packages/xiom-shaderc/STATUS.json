@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.shaderc",
+    "stage":  "incubating",
+    "compiler":  "v0.64.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  17,
+                  "failed":  0,
+                  "run_by":  "task:sdk100-shaderc",
+                  "commit":  "164161ed",
+                  "checked":  "2026-10-11T21:59:37Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "not allowlisted: no readiness evidence recorded"
+}

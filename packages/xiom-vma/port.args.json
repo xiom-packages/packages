@@ -1,4 +1,4 @@
 [
   "--c-source",
-  "${PACKAGE_DIR}/src/vma_bridge.cpp"
+  "${PACKAGE_DIR}/src/vma_full_bridge.cpp"
 ]

@@ -1,0 +1,875 @@
+{
+ "constants_float": 6,
+ "constants_int": 1445,
+ "constants_str": 565,
+ "constants_unresolved": [
+  [
+   "SDL_FUNCTION",
+   "SDL_assert.h",
+   "__FUNCTION__"
+  ],
+  [
+   "SDL_FILE",
+   "SDL_assert.h",
+   "__FILE_NAME__"
+  ],
+  [
+   "SDL_ASSERT_FILE",
+   "SDL_assert.h",
+   "SDL_FILE"
+  ],
+  [
+   "SDL_LINE",
+   "SDL_assert.h",
+   "__LINE__"
+  ],
+  [
+   "SDL_DEPRECATED",
+   "SDL_begin_code.h",
+   "__attribute__((deprecated))"
+  ],
+  [
+   "SDL_DECLSPEC",
+   "SDL_begin_code.h",
+   "__attribute__ ((visibility(\"default\")))"
+  ],
+  [
+   "SDL_INLINE",
+   "SDL_begin_code.h",
+   "__inline"
+  ],
+  [
+   "SDL_FORCE_INLINE",
+   "SDL_begin_code.h",
+   "__forceinline"
+  ],
+  [
+   "SDL_NORETURN",
+   "SDL_begin_code.h",
+   "__attribute__((noreturn))"
+  ],
+  [
+   "SDL_ANALYZER_NORETURN",
+   "SDL_begin_code.h",
+   "__attribute__((analyzer_noreturn))"
+  ],
+  [
+   "SDL_FALLTHROUGH",
+   "SDL_begin_code.h",
+   "[[fallthrough]]"
+  ],
+  [
+   "SDL_NODISCARD",
+   "SDL_begin_code.h",
+   "[[nodiscard]]"
+  ],
+  [
+   "SDL_MALLOC",
+   "SDL_begin_code.h",
+   "__declspec(allocator) __desclspec(restrict)"
+  ],
+  [
+   "SDL_RESTRICT",
+   "SDL_begin_code.h",
+   "__restrict"
+  ],
+  [
+   "SDL_DLNOTE_UNIQUE_NAME",
+   "SDL_dlopennote.h",
+   "SDL_DLNOTE_JOIN(s_SDL_dlopen_note_, __LINE__)"
+  ],
+  [
+   "SDL_SCOPED_CAPABILITY",
+   "SDL_mutex.h",
+   "SDL_THREAD_ANNOTATION_ATTRIBUTE__(scoped_lockable)"
+  ],
+  [
+   "SDL_NO_THREAD_SAFETY_ANALYSIS",
+   "SDL_mutex.h",
+   "SDL_THREAD_ANNOTATION_ATTRIBUTE__(no_thread_safety_analysis)"
+  ],
+  [
+   "SDL_WINAPI_FAMILY_PHONE",
+   "SDL_platform_defines.h",
+   "(WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)"
+  ],
+  [
+   "SDL_PRILLd",
+   "SDL_stdinc.h",
+   "SDL_PRILL_PREFIX \"d\""
+  ],
+  [
+   "SDL_PRILLu",
+   "SDL_stdinc.h",
+   "SDL_PRILL_PREFIX \"u\""
+  ],
+  [
+   "SDL_PRILLx",
+   "SDL_stdinc.h",
+   "SDL_PRILL_PREFIX \"x\""
+  ],
+  [
+   "SDL_PRILLX",
+   "SDL_stdinc.h",
+   "SDL_PRILL_PREFIX \"X\""
+  ],
+  [
+   "SDL_PRINTF_FORMAT_STRING",
+   "SDL_stdinc.h",
+   "_Printf_format_string_"
+  ],
+  [
+   "SDL_SCANF_FORMAT_STRING",
+   "SDL_stdinc.h",
+   "_Scanf_format_string_impl_"
+  ],
+  [
+   "SDL_memcpy",
+   "SDL_stdinc.h",
+   "memcpy"
+  ],
+  [
+   "SDL_memmove",
+   "SDL_stdinc.h",
+   "memmove"
+  ],
+  [
+   "SDL_memset",
+   "SDL_stdinc.h",
+   "memset"
+  ],
+  [
+   "SDL_malloc",
+   "SDL_stdinc.h",
+   "malloc"
+  ],
+  [
+   "SDL_calloc",
+   "SDL_stdinc.h",
+   "calloc"
+  ],
+  [
+   "SDL_realloc",
+   "SDL_stdinc.h",
+   "realloc"
+  ],
+  [
+   "SDL_free",
+   "SDL_stdinc.h",
+   "free"
+  ],
+  [
+   "SDL_memcmp",
+   "SDL_stdinc.h",
+   "memcmp"
+  ],
+  [
+   "SDL_strlcpy",
+   "SDL_stdinc.h",
+   "strlcpy"
+  ],
+  [
+   "SDL_strlcat",
+   "SDL_stdinc.h",
+   "strlcat"
+  ],
+  [
+   "SDL_strlen",
+   "SDL_stdinc.h",
+   "strlen"
+  ],
+  [
+   "SDL_wcslen",
+   "SDL_stdinc.h",
+   "wcslen"
+  ],
+  [
+   "SDL_wcslcpy",
+   "SDL_stdinc.h",
+   "wcslcpy"
+  ],
+  [
+   "SDL_wcslcat",
+   "SDL_stdinc.h",
+   "wcslcat"
+  ],
+  [
+   "SDL_strdup",
+   "SDL_stdinc.h",
+   "strdup"
+  ],
+  [
+   "SDL_wcsdup",
+   "SDL_stdinc.h",
+   "wcsdup"
+  ],
+  [
+   "SDL_strchr",
+   "SDL_stdinc.h",
+   "strchr"
+  ],
+  [
+   "SDL_strrchr",
+   "SDL_stdinc.h",
+   "strrchr"
+  ],
+  [
+   "SDL_strstr",
+   "SDL_stdinc.h",
+   "strstr"
+  ],
+  [
+   "SDL_wcsstr",
+   "SDL_stdinc.h",
+   "wcsstr"
+  ],
+  [
+   "SDL_strtok_r",
+   "SDL_stdinc.h",
+   "strtok_r"
+  ],
+  [
+   "SDL_strcmp",
+   "SDL_stdinc.h",
+   "strcmp"
+  ],
+  [
+   "SDL_wcscmp",
+   "SDL_stdinc.h",
+   "wcscmp"
+  ],
+  [
+   "SDL_strncmp",
+   "SDL_stdinc.h",
+   "strncmp"
+  ],
+  [
+   "SDL_wcsncmp",
+   "SDL_stdinc.h",
+   "wcsncmp"
+  ],
+  [
+   "SDL_strcasecmp",
+   "SDL_stdinc.h",
+   "strcasecmp"
+  ],
+  [
+   "SDL_strncasecmp",
+   "SDL_stdinc.h",
+   "strncasecmp"
+  ],
+  [
+   "SDL_strpbrk",
+   "SDL_stdinc.h",
+   "strpbrk"
+  ],
+  [
+   "SDL_sscanf",
+   "SDL_stdinc.h",
+   "sscanf"
+  ],
+  [
+   "SDL_vsscanf",
+   "SDL_stdinc.h",
+   "vsscanf"
+  ],
+  [
+   "SDL_snprintf",
+   "SDL_stdinc.h",
+   "snprintf"
+  ],
+  [
+   "SDL_vsnprintf",
+   "SDL_stdinc.h",
+   "vsnprintf"
+  ]
+ ],
+ "declared": 1271,
+ "declared_not_exported": [
+  "SDL_CreateThread",
+  "SDL_CreateThreadWithProperties"
+ ],
+ "dll": "SDL3.dll",
+ "dll_sha256": "6E2B4B6A60AFC19C0C03C4518910953EA0DBA7B5201C0B48D2927F2D9BA5C263",
+ "export_only": [
+  "SDL_DYNAPI_entry"
+ ],
+ "exported": 1270,
+ "header_count": 86,
+ "header_sha256": {
+  "SDL.h": "3E706319D35E274FF52BAD9D1376AE33C746CA188A2A12050AD79D7F45D0C9F8",
+  "SDL_assert.h": "A9937B2A4E5DA4EEFE9C568A486D69FAD977AC8808A259865C3D61A10DD937F3",
+  "SDL_asyncio.h": "ACEC5E4C8CBCFE8DC371ADB63AD986FF3521685BCA9B683AC4CC18ED13B1E840",
+  "SDL_atomic.h": "2E12F9943E8F1B7CA3488A75541A15A4EF9FE0A945B6A3F5196578DEA46B98DB",
+  "SDL_audio.h": "C6B868FF10BB6B24D8CFC2B145D74B802285F7DDA2EAA7ADADD0FEF5355D5859",
+  "SDL_begin_code.h": "00E0196D5356CA8C38557D8D473C78735AACB4412BA0C6D1012E8DF387270E28",
+  "SDL_bits.h": "028C845F51FE13238072778A282514F824D24622F4AF0B0AF63A3811271D0912",
+  "SDL_blendmode.h": "3A3E25B43BB2AB520B59A50C101A06F4CE17AF27E2250A4DFD6CB296C973C3D1",
+  "SDL_camera.h": "D0599A5549ECC8BA479427FB8CA9CE44A712B19B473A2E6103399A990153D658",
+  "SDL_clipboard.h": "6351B0B419168C98F95D2F131BC2F2208FBE0171AB32085488D25ADFFE8F6E37",
+  "SDL_close_code.h": "67AEED66C5310AC5DC62BC0F1C03713719F28529033CDE6BB668D5964D179C27",
+  "SDL_copying.h": "B5113EE040521690FECDA79E1E00D078166D2EC2632153A8EE498F3BCBF40886",
+  "SDL_cpuinfo.h": "9307452ECCAE54D8BF35DFF79DAA2E804E29F244E2208C5E7932DFADCF3E8C12",
+  "SDL_dialog.h": "B81AAF26316299BD9BFB1017C48A5D4B6FE525C64D0058821B70B3223DF579DB",
+  "SDL_dlopennote.h": "10449E075868D279114658D3024300B1E59D42EC98CB2374949BA18478544DF4",
+  "SDL_egl.h": "F477F952AFAD531447DC644D95FB564505D4C2C11D3E246A1AFFBCEABAF779BC",
+  "SDL_endian.h": "19405EB59C29E5A4EB69AFDCF3C38BD678FCF5660A529EC0B8015A82BA602D91",
+  "SDL_error.h": "C3FB65E2899D341F84AB3A0BBE99646D51EFAB252290FFF28CE36FFC7B5F9A34",
+  "SDL_events.h": "C3D19BB38D0F1B72B10C2490486E3D1926289DBB1E4062ED58A6D101F6D1CD43",
+  "SDL_filesystem.h": "594DF8CACD921611186FE9251C4771BB5A9733D36BDD3E821C2FD9382857097A",
+  "SDL_gamepad.h": "07A03FA54F85A678E724C3A74F75DAE4D6F63D0FBB494593A39B19C56D0BA291",
+  "SDL_gpu.h": "5FF0919A6BB969100C36A6F92713362B005BCF24BB56BCD7D04AD17B91160EFA",
+  "SDL_guid.h": "556ED320776337EF8AF8FADA3E3FE4A795DDDC2ABFB7F4813830ACB3272D879E",
+  "SDL_haptic.h": "B44F466CE6FFC44F4390C02C0688B9462EA48C0150373A4187C9C4EAF3829E95",
+  "SDL_hidapi.h": "129FCC4B99ACA44A30DCCB0D1C653C1A0B018F3E57D3547C414C81DB7DE508AF",
+  "SDL_hints.h": "2559353E6D4B821FE156E46720DD4BD050D06B5999CF647E0C47E4F510710AC2",
+  "SDL_init.h": "54F65B10221DE0E1EE59B99D01661A56472BC9ABB05690C0D5BD787670965A8D",
+  "SDL_intrin.h": "66F00CFB3259E0207D32D608BC326F2AEB25FC96D5223E26FF5501D0EFC5BD82",
+  "SDL_iostream.h": "81F8719B82F61D00A96DAC7B97313115172E82E05361878DBCBAAD96E334AED8",
+  "SDL_joystick.h": "DE936F3314F39BB02AAF3AFC758AA3AF7CF5CD2152C2265369D7DC5ABCA1F1BB",
+  "SDL_keyboard.h": "B7664FB34ABCF86F669EDF4FD5FDEF2D58FA025F49D91B4743888F192C519D8D",
+  "SDL_keycode.h": "82C54F5B995C952D6BDA3DAE6A409D0115B604EE17DA3C77DE8FE62DBB9C8E60",
+  "SDL_loadso.h": "14246190E220D2EC52C40A586CEB571EE928215D09E1D82B260675DA3A94634F",
+  "SDL_locale.h": "A65538F0A78A6FC5477C41A0EF359C8B57EACF03C2998D48CAC48DD7645BD6F8",
+  "SDL_log.h": "15F28418F4FE636B41F78541BD73217C32EC0E11A2EF0F39C2BA8033FC3702CF",
+  "SDL_main.h": "CC1B4A1AD67B6E090951BABC392548CE9CD7E5A33618F262F567A51659239FF9",
+  "SDL_main_impl.h": "E2084E6E8CA5EF1C6948AE2DE406E82C0DF45BF910C90260433ABAA24F232970",
+  "SDL_messagebox.h": "124139156DC7887B3F6FC5F8DFD45B9711D4D834204BAA20DEC89AEBBA522918",
+  "SDL_metal.h": "0689F189D73DC0B9B314013F77505CBECA10D96B23556A057EE8D676B46D8983",
+  "SDL_misc.h": "3302DDFEC11A0F2A1D9E0EDA88F6F23CA189CF93D401A01CA826BFCAD160E6EC",
+  "SDL_mouse.h": "6CAFF19A4841AFC5CAB4254E94A73DE874A331A6539F87D2D2C61A7C5E5D7E5B",
+  "SDL_mutex.h": "C0218AEEE31BA40F4F2990DFFF5184D22CDD39907DA834027D31F75F3A50A32E",
+  "SDL_oldnames.h": "59CB5DDE7A441D0B208C52F12F73A949DD747CE6B053F31B356CB64CEF20E6DC",
+  "SDL_opengl.h": "A8E7681BFFF83D2156B4F088B792789C30DA791CE4581C7AE64545E80A3522A1",
+  "SDL_opengl_glext.h": "D885E4AF07F53083CAC1AE90A61CCB39317947EE73E5216506FB25F6AE503324",
+  "SDL_opengles.h": "D0BEC38800302D14AE08DFD3AFC3A26D409C95555D77ACE5EFB64EBFAECB2B08",
+  "SDL_opengles2.h": "CF3445A371FBE8ED9D1C03C929E050D21E450E853F9C9CDE8ED3F7DEDB442552",
+  "SDL_opengles2_gl2.h": "D6EC44B1D73F3AFCE3A20AC6976DB7FB3DAC656C5190F0B563E4CE90D79A15AA",
+  "SDL_opengles2_gl2ext.h": "4FC5B0034DCDE9C125922E3E70D01489A6B335076856EE660294E1A6305A3719",
+  "SDL_opengles2_gl2platform.h": "4779BE999ACD1904458238F09C86983B7960AC40E612E05DB2DB97DB615F1E0F",
+  "SDL_opengles2_khrplatform.h": "7B1E01AAA7AD8F6FC34B5C7BDF79EBF5189BB09E2C4D2E79FC5D350623D11E83",
+  "SDL_pen.h": "30CF6DACD1A7CE079C4C2E53DF32F85ECDF1F4056FCE08089ABC26208BB32055",
+  "SDL_pixels.h": "A4C17EC0B7BD9DDD631CAD62CB38BAE7D3E1F2B9522914A816A5E86433691ADE",
+  "SDL_platform.h": "9A95A10A7F3C3D8F4958EBADED5C5E3B154F75C7351B1002E32429BC7DD28501",
+  "SDL_platform_defines.h": "AB5692C00D4ACA81466688A6C9ABE7F5154070B6118F48A67490D81DFF6AD36E",
+  "SDL_power.h": "ED0346C3C7454DA4E305FEB5A650A0859053442C68B388DC60848E002B86F3E2",
+  "SDL_process.h": "A52B5AF99B1130189C3510269BA73D8288B55FEB4B7086A1614CFAD395794655",
+  "SDL_properties.h": "F66E621B2B9D7D9C8126BFBC31A50F90F515DDF9E090B6E1CC6EA24B343BDD4A",
+  "SDL_rect.h": "F5A5C39FBFFD41EADBEB50E2DDFA4FFE655FF14241A23E4F20DE4CCE48E82D6E",
+  "SDL_render.h": "29B5C4A477BF5D20043ED58CD3D32CC71D2EA435EDDE85CBFEEEE94D608D626F",
+  "SDL_revision.h": "0D460944FA0BCC68DC7181FF770DA0855052B0EC0E6D844E8D947B1A29E4A141",
+  "SDL_scancode.h": "D5E3BB25B523B61ED354189919F2BCB058F0F2FA08E0529CE8E21480937C8CA5",
+  "SDL_sensor.h": "8C91002FC95799B820D07671541C97C012F77BCF8EB16F624E717142FA051C72",
+  "SDL_stdinc.h": "C8975D3B37C6E2E18CEE44F449DEB523A7DEF9A55A80E9DE949C4734A209293D",
+  "SDL_storage.h": "FBB7342D44526E0BB683FB645910EB1D3FCFFD1468B9C823B0654EF424BA60F0",
+  "SDL_surface.h": "8C4C6F4127B663B38167BE0E431A6015533D9B792F8DF42E213B8EC9A1D3BA96",
+  "SDL_system.h": "81D78F7A087BB1D122565B2310AD139A3672D372E3D1C4A615B00C2403EDEB90",
+  "SDL_test.h": "6D16A15E84DA000B0015AEBD50DED8F30E519EBCBC02F02A0B8C0F0079CBD86E",
+  "SDL_test_assert.h": "016C81211CA7D724E7482D55914900EC25D72EFE3117E363F069AA7AE167866A",
+  "SDL_test_common.h": "8C0C8F322C93A76BEEBCB69BD73526A0CD8841532C8F8926E61956B8AE881623",
+  "SDL_test_compare.h": "D4F06234EC5734CEA2ECFE0513CB6ECD1C7E13B3BD04A5F5940763DFD0B9C140",
+  "SDL_test_crc32.h": "7D5B4FC7C7BEA9E7355198C1B479700CE078A0E2A6AAD4EF1CDD767C06407C16",
+  "SDL_test_font.h": "14079A136E0399C71E6B148CE80C6A9B0E392CC1851C6CE8EF7736D4B0C9B42B",
+  "SDL_test_fuzzer.h": "AD78531A4FE77DBFF98FE0D9183EE09622A322D0ECFF27AA1FDC07ACBA99D3B1",
+  "SDL_test_harness.h": "81F1FE6472B312B3E0A3394E2CC39AC84EF06655DBF3C1265C5BC01A7C0C0C06",
+  "SDL_test_log.h": "001E91743189C4468DD3E93AFCB4CCD55F09BD28ED794611323BEE41530C7FF7",
+  "SDL_test_md5.h": "6DF30087DDAB5D65F291D7F3FAA7000EB88BA64C66E971112A8ADAF085E9B6DD",
+  "SDL_test_memory.h": "70CF38368FBF637E191933138A9663097ED22579B73B2382D3290B753C8300C6",
+  "SDL_thread.h": "B5F2B2D88729338CB0C1E95398F112BCCBB343FCF960E2DAE080E3695BE1BE76",
+  "SDL_time.h": "DB6DD02434F0B099748E728D1145486888659087E7742F7367DA9E4D1120C771",
+  "SDL_timer.h": "60A809DF30E0C549A91B986F517FF94515AB80A529DB95D97655A2C417F0F927",
+  "SDL_touch.h": "E69C97C2FC210F1E8EAB7199173097B4F4196A3EA4A39E1D08A48A145CC92132",
+  "SDL_tray.h": "00FE9D97CEF15ACC3ADB18A85689A619178C74DF12990090DA475C4F7E0E12A1",
+  "SDL_version.h": "9EC5E010A50FC115E48029B5AECC9D81479958EFF08AFEC536E322961B3B16DD",
+  "SDL_video.h": "E4A25B506DFB5B0657EDC264B7130CFEA3BAD0ABC0265E280E046F9EC4DCAEAF",
+  "SDL_vulkan.h": "A0D1B8C6A2A7982E419DBDB8EA60FCE09E99390238634CA117D82442953A4E1C"
+ },
+ "modules": [
+  {
+   "constants": 7,
+   "family": "assert",
+   "file": "sdl3_full_assert.xi",
+   "functions": 6,
+   "module": "xiom.sdl3.full.assert"
+  },
+  {
+   "constants": 6,
+   "family": "asyncio",
+   "file": "sdl3_full_asyncio.xi",
+   "functions": 11,
+   "module": "xiom.sdl3.full.asyncio"
+  },
+  {
+   "constants": 0,
+   "family": "atomic",
+   "file": "sdl3_full_atomic.xi",
+   "functions": 16,
+   "module": "xiom.sdl3.full.atomic"
+  },
+  {
+   "constants": 19,
+   "family": "audio",
+   "file": "sdl3_full_audio.xi",
+   "functions": 58,
+   "module": "xiom.sdl3.full.audio"
+  },
+  {
+   "constants": 1,
+   "family": "begin_code",
+   "file": "sdl3_full_begin_code.xi",
+   "functions": 0,
+   "module": "xiom.sdl3.full.begin_code"
+  },
+  {
+   "constants": 23,
+   "family": "blendmode",
+   "file": "sdl3_full_blendmode.xi",
+   "functions": 1,
+   "module": "xiom.sdl3.full.blendmode"
+  },
+  {
+   "constants": 6,
+   "family": "camera",
+   "file": "sdl3_full_camera.xi",
+   "functions": 15,
+   "module": "xiom.sdl3.full.camera"
+  },
+  {
+   "constants": 0,
+   "family": "clipboard",
+   "file": "sdl3_full_clipboard.xi",
+   "functions": 11,
+   "module": "xiom.sdl3.full.clipboard"
+  },
+  {
+   "constants": 1,
+   "family": "cpuinfo",
+   "file": "sdl3_full_cpuinfo.xi",
+   "functions": 19,
+   "module": "xiom.sdl3.full.cpuinfo"
+  },
+  {
+   "constants": 11,
+   "family": "dialog",
+   "file": "sdl3_full_dialog.xi",
+   "functions": 4,
+   "module": "xiom.sdl3.full.dialog"
+  },
+  {
+   "constants": 5,
+   "family": "dlopennote",
+   "file": "sdl3_full_dlopennote.xi",
+   "functions": 0,
+   "module": "xiom.sdl3.full.dlopennote"
+  },
+  {
+   "constants": 4,
+   "family": "endian",
+   "file": "sdl3_full_endian.xi",
+   "functions": 0,
+   "module": "xiom.sdl3.full.endian"
+  },
+  {
+   "constants": 0,
+   "family": "error",
+   "file": "sdl3_full_error.xi",
+   "functions": 5,
+   "module": "xiom.sdl3.full.error"
+  },
+  {
+   "constants": 127,
+   "family": "events",
+   "file": "sdl3_full_events.xi",
+   "functions": 20,
+   "module": "xiom.sdl3.full.events"
+  },
+  {
+   "constants": 20,
+   "family": "filesystem",
+   "file": "sdl3_full_filesystem.xi",
+   "functions": 11,
+   "module": "xiom.sdl3.full.filesystem"
+  },
+  {
+   "constants": 67,
+   "family": "gamepad",
+   "file": "sdl3_full_gamepad.xi",
+   "functions": 37,
+   "module": "xiom.sdl3.full.gamepad"
+  },
+  {
+   "constants": 0,
+   "family": "gamepad",
+   "file": "sdl3_full_gamepad_2.xi",
+   "functions": 36,
+   "module": "xiom.sdl3.full.gamepad_2"
+  },
+  {
+   "constants": 292,
+   "family": "gpu",
+   "file": "sdl3_full_gpu.xi",
+   "functions": 49,
+   "module": "xiom.sdl3.full.gpu"
+  },
+  {
+   "constants": 0,
+   "family": "gpu",
+   "file": "sdl3_full_gpu_2.xi",
+   "functions": 48,
+   "module": "xiom.sdl3.full.gpu_2"
+  },
+  {
+   "constants": 0,
+   "family": "guid",
+   "file": "sdl3_full_guid.xi",
+   "functions": 2,
+   "module": "xiom.sdl3.full.guid"
+  },
+  {
+   "constants": 25,
+   "family": "haptic",
+   "file": "sdl3_full_haptic.xi",
+   "functions": 31,
+   "module": "xiom.sdl3.full.haptic"
+  },
+  {
+   "constants": 6,
+   "family": "hidapi",
+   "file": "sdl3_full_hidapi.xi",
+   "functions": 23,
+   "module": "xiom.sdl3.full.hidapi"
+  },
+  {
+   "constants": 266,
+   "family": "hints",
+   "file": "sdl3_full_hints.xi",
+   "functions": 8,
+   "module": "xiom.sdl3.full.hints"
+  },
+  {
+   "constants": 18,
+   "family": "init",
+   "file": "sdl3_full_init.xi",
+   "functions": 10,
+   "module": "xiom.sdl3.full.init"
+  },
+  {
+   "constants": 13,
+   "family": "intrin",
+   "file": "sdl3_full_intrin.xi",
+   "functions": 0,
+   "module": "xiom.sdl3.full.intrin"
+  },
+  {
+   "constants": 18,
+   "family": "iostream",
+   "file": "sdl3_full_iostream.xi",
+   "functions": 48,
+   "module": "xiom.sdl3.full.iostream"
+  },
+  {
+   "constants": 31,
+   "family": "joystick",
+   "file": "sdl3_full_joystick.xi",
+   "functions": 58,
+   "module": "xiom.sdl3.full.joystick"
+  },
+  {
+   "constants": 18,
+   "family": "keyboard",
+   "file": "sdl3_full_keyboard.xi",
+   "functions": 24,
+   "module": "xiom.sdl3.full.keyboard"
+  },
+  {
+   "constants": 18,
+   "family": "keycode",
+   "file": "sdl3_full_keycode.xi",
+   "functions": 0,
+   "module": "xiom.sdl3.full.keycode"
+  },
+  {
+   "constants": 0,
+   "family": "loadso",
+   "file": "sdl3_full_loadso.xi",
+   "functions": 3,
+   "module": "xiom.sdl3.full.loadso"
+  },
+  {
+   "constants": 0,
+   "family": "locale",
+   "file": "sdl3_full_locale.xi",
+   "functions": 1,
+   "module": "xiom.sdl3.full.locale"
+  },
+  {
+   "constants": 29,
+   "family": "log",
+   "file": "sdl3_full_log.xi",
+   "functions": 18,
+   "module": "xiom.sdl3.full.log"
+  },
+  {
+   "constants": 2,
+   "family": "main",
+   "file": "sdl3_full_main.xi",
+   "functions": 6,
+   "module": "xiom.sdl3.full.main"
+  },
+  {
+   "constants": 13,
+   "family": "messagebox",
+   "file": "sdl3_full_messagebox.xi",
+   "functions": 2,
+   "module": "xiom.sdl3.full.messagebox"
+  },
+  {
+   "constants": 0,
+   "family": "metal",
+   "file": "sdl3_full_metal.xi",
+   "functions": 3,
+   "module": "xiom.sdl3.full.metal"
+  },
+  {
+   "constants": 0,
+   "family": "misc",
+   "file": "sdl3_full_misc.xi",
+   "functions": 1,
+   "module": "xiom.sdl3.full.misc"
+  },
+  {
+   "constants": 33,
+   "family": "mouse",
+   "file": "sdl3_full_mouse.xi",
+   "functions": 24,
+   "module": "xiom.sdl3.full.mouse"
+  },
+  {
+   "constants": 4,
+   "family": "mutex",
+   "file": "sdl3_full_mutex.xi",
+   "functions": 28,
+   "module": "xiom.sdl3.full.mutex"
+  },
+  {
+   "constants": 22,
+   "family": "pen",
+   "file": "sdl3_full_pen.xi",
+   "functions": 1,
+   "module": "xiom.sdl3.full.pen"
+  },
+  {
+   "constants": 189,
+   "family": "pixels",
+   "file": "sdl3_full_pixels.xi",
+   "functions": 11,
+   "module": "xiom.sdl3.full.pixels"
+  },
+  {
+   "constants": 0,
+   "family": "platform",
+   "file": "sdl3_full_platform.xi",
+   "functions": 1,
+   "module": "xiom.sdl3.full.platform"
+  },
+  {
+   "constants": 35,
+   "family": "platform_defines",
+   "file": "sdl3_full_platform_defines.xi",
+   "functions": 0,
+   "module": "xiom.sdl3.full.platform_defines"
+  },
+  {
+   "constants": 6,
+   "family": "power",
+   "file": "sdl3_full_power.xi",
+   "functions": 1,
+   "module": "xiom.sdl3.full.power"
+  },
+  {
+   "constants": 21,
+   "family": "process",
+   "file": "sdl3_full_process.xi",
+   "functions": 9,
+   "module": "xiom.sdl3.full.process"
+  },
+  {
+   "constants": 7,
+   "family": "properties",
+   "file": "sdl3_full_properties.xi",
+   "functions": 21,
+   "module": "xiom.sdl3.full.properties"
+  },
+  {
+   "constants": 0,
+   "family": "rect",
+   "file": "sdl3_full_rect.xi",
+   "functions": 10,
+   "module": "xiom.sdl3.full.rect"
+  },
+  {
+   "constants": 116,
+   "family": "render",
+   "file": "sdl3_full_render.xi",
+   "functions": 51,
+   "module": "xiom.sdl3.full.render"
+  },
+  {
+   "constants": 0,
+   "family": "render",
+   "file": "sdl3_full_render_2.xi",
+   "functions": 51,
+   "module": "xiom.sdl3.full.render_2"
+  },
+  {
+   "constants": 1,
+   "family": "revision",
+   "file": "sdl3_full_revision.xi",
+   "functions": 0,
+   "module": "xiom.sdl3.full.revision"
+  },
+  {
+   "constants": 249,
+   "family": "scancode",
+   "file": "sdl3_full_scancode.xi",
+   "functions": 0,
+   "module": "xiom.sdl3.full.scancode"
+  },
+  {
+   "constants": 10,
+   "family": "sensor",
+   "file": "sdl3_full_sensor.xi",
+   "functions": 14,
+   "module": "xiom.sdl3.full.sensor"
+  },
+  {
+   "constants": 37,
+   "family": "stdinc",
+   "file": "sdl3_full_stdinc.xi",
+   "functions": 56,
+   "module": "xiom.sdl3.full.stdinc"
+  },
+  {
+   "constants": 0,
+   "family": "stdinc",
+   "file": "sdl3_full_stdinc_2.xi",
+   "functions": 56,
+   "module": "xiom.sdl3.full.stdinc_2"
+  },
+  {
+   "constants": 0,
+   "family": "stdinc",
+   "file": "sdl3_full_stdinc_3.xi",
+   "functions": 54,
+   "module": "xiom.sdl3.full.stdinc_3"
+  },
+  {
+   "constants": 0,
+   "family": "storage",
+   "file": "sdl3_full_storage.xi",
+   "functions": 17,
+   "module": "xiom.sdl3.full.storage"
+  },
+  {
+   "constants": 18,
+   "family": "surface",
+   "file": "sdl3_full_surface.xi",
+   "functions": 33,
+   "module": "xiom.sdl3.full.surface"
+  },
+  {
+   "constants": 0,
+   "family": "surface",
+   "file": "sdl3_full_surface_2.xi",
+   "functions": 32,
+   "module": "xiom.sdl3.full.surface_2"
+  },
+  {
+   "constants": 7,
+   "family": "system",
+   "file": "sdl3_full_system.xi",
+   "functions": 33,
+   "module": "xiom.sdl3.full.system"
+  },
+  {
+   "constants": 12,
+   "family": "thread",
+   "file": "sdl3_full_thread.xi",
+   "functions": 12,
+   "module": "xiom.sdl3.full.thread"
+  },
+  {
+   "constants": 5,
+   "family": "time",
+   "file": "sdl3_full_time.xi",
+   "functions": 9,
+   "module": "xiom.sdl3.full.time"
+  },
+  {
+   "constants": 5,
+   "family": "timer",
+   "file": "sdl3_full_timer.xi",
+   "functions": 10,
+   "module": "xiom.sdl3.full.timer"
+  },
+  {
+   "constants": 6,
+   "family": "touch",
+   "file": "sdl3_full_touch.xi",
+   "functions": 4,
+   "module": "xiom.sdl3.full.touch"
+  },
+  {
+   "constants": 5,
+   "family": "tray",
+   "file": "sdl3_full_tray.xi",
+   "functions": 23,
+   "module": "xiom.sdl3.full.tray"
+  },
+  {
+   "constants": 4,
+   "family": "version",
+   "file": "sdl3_full_version.xi",
+   "functions": 2,
+   "module": "xiom.sdl3.full.version"
+  },
+  {
+   "constants": 178,
+   "family": "video",
+   "file": "sdl3_full_video.xi",
+   "functions": 57,
+   "module": "xiom.sdl3.full.video"
+  },
+  {
+   "constants": 0,
+   "family": "video",
+   "file": "sdl3_full_video_2.xi",
+   "functions": 57,
+   "module": "xiom.sdl3.full.video_2"
+  },
+  {
+   "constants": 0,
+   "family": "vulkan",
+   "file": "sdl3_full_vulkan.xi",
+   "functions": 7,
+   "module": "xiom.sdl3.full.vulkan"
+  }
+ ],
+ "sdk_root": "C:\\VulkanSDK\\1.4.350.0",
+ "target": 1269,
+ "unmapped_types": [
+  "unmapped param type: SDL_GLContext",
+  "unmapped param type: SDL_MetalView",
+  "unmapped param type: SDL_iconv_t",
+  "unmapped param type: VkInstance",
+  "unmapped param type: VkPhysicalDevice",
+  "unmapped param type: VkSurfaceKHR",
+  "unmapped param type: va_list",
+  "unmapped return type: SDL_EGLConfig",
+  "unmapped return type: SDL_EGLDisplay",
+  "unmapped return type: SDL_EGLSurface",
+  "unmapped return type: SDL_GLContext",
+  "unmapped return type: SDL_MetalView",
+  "unmapped return type: SDL_iconv_t"
+ ]
+}

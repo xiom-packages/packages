@@ -1,0 +1,244 @@
+{
+  "generator": "tools/gen_spirv_headers.py",
+  "package_name": "xiom.spirv.headers",
+  "module_namespace": "xiom.spirv_headers",
+  "oracle_header": "C:\\VulkanSDK\\1.4.350.0\\Include\\spirv-headers\\spirv.h",
+  "oracle_sha256": "93F82C0B51984974E60485C126945C40F264B89FD4D395A580A1BC59D211E24E",
+  "upstream": {
+    "repo": "https://github.com/KhronosGroup/SPIRV-Headers.git",
+    "tag": "vulkan-sdk-1.4.350.0",
+    "commit": "ad9184e76a66b1001c29db9b0a3e87f646c64de0",
+    "clone_header_sha256": "93F82C0B51984974E60485C126945C40F264B89FD4D395A580A1BC59D211E24E",
+    "clone_byte_identical": true
+  },
+  "spv_version": "0x10600",
+  "spv_revision": "1",
+  "enum_type_count": 74,
+  "enum_count": 2378,
+  "macro_count": 2,
+  "static_const_count": 5,
+  "const_count": 2385,
+  "modules": [
+    {
+      "file": "src\\spv_consts_core.xi",
+      "module": "xiom.spirv_headers.core",
+      "constants": 212,
+      "enums": [
+        "SpvSourceLanguage",
+        "SpvExecutionModel",
+        "SpvAddressingModel",
+        "SpvMemoryModel",
+        "SpvExecutionMode",
+        "SpvStorageClass",
+        "SpvDim",
+        "SpvSamplerAddressingMode",
+        "SpvSamplerFilterMode"
+      ],
+      "sha256": "05BBBF91084BEDCCE6AFB9A107D7358B26B2CDEDF227E246A01A50F66233855C"
+    },
+    {
+      "file": "src\\spv_consts_image.xi",
+      "module": "xiom.spirv_headers.image",
+      "constants": 133,
+      "enums": [
+        "SpvImageFormat",
+        "SpvImageChannelOrder",
+        "SpvImageChannelDataType",
+        "SpvImageOperandsShift",
+        "SpvImageOperandsMask"
+      ],
+      "sha256": "591A9B9F8E74F61998973182BED06285BFF2CC7834841A7AB00E095C59433BCC"
+    },
+    {
+      "file": "src\\spv_consts_fp.xi",
+      "module": "xiom.spirv_headers.fp",
+      "constants": 54,
+      "enums": [
+        "SpvFPFastMathModeShift",
+        "SpvFPFastMathModeMask",
+        "SpvFPRoundingMode",
+        "SpvFPDenormMode",
+        "SpvFPOperationMode",
+        "SpvQuantizationModes",
+        "SpvOverflowModes",
+        "SpvPackedVectorFormat",
+        "SpvFPEncoding"
+      ],
+      "sha256": "0D0DF77FC0EC68D7D67E3275830DE3B7FD8272FC54B53E9EA2FC3E29AB71B18B"
+    },
+    {
+      "file": "src\\spv_consts_decorations.xi",
+      "module": "xiom.spirv_headers.decorations",
+      "constants": 369,
+      "enums": [
+        "SpvLinkageType",
+        "SpvAccessQualifier",
+        "SpvFunctionParameterAttribute",
+        "SpvDecoration",
+        "SpvBuiltIn"
+      ],
+      "sha256": "59729A83B361ADF3FD134319D6ADBB651633338A24FF8DD6FA0035AA04350996"
+    },
+    {
+      "file": "src\\spv_consts_controls.xi",
+      "module": "xiom.spirv_headers.controls",
+      "constants": 347,
+      "enums": [
+        "SpvSelectionControlShift",
+        "SpvSelectionControlMask",
+        "SpvLoopControlShift",
+        "SpvLoopControlMask",
+        "SpvFunctionControlShift",
+        "SpvFunctionControlMask",
+        "SpvMemorySemanticsShift",
+        "SpvMemorySemanticsMask",
+        "SpvMemoryAccessShift",
+        "SpvMemoryAccessMask",
+        "SpvScope",
+        "SpvGroupOperation",
+        "SpvKernelEnqueueFlags",
+        "SpvKernelProfilingInfoShift",
+        "SpvKernelProfilingInfoMask",
+        "SpvRayFlagsShift",
+        "SpvRayFlagsMask",
+        "SpvRayQueryIntersection",
+        "SpvRayQueryCommittedIntersectionType",
+        "SpvRayQueryCandidateIntersectionType",
+        "SpvFragmentShadingRateShift",
+        "SpvFragmentShadingRateMask",
+        "SpvCooperativeMatrixOperandsShift",
+        "SpvCooperativeMatrixOperandsMask",
+        "SpvCooperativeMatrixLayout",
+        "SpvCooperativeMatrixUse",
+        "SpvCooperativeMatrixReduceShift",
+        "SpvCooperativeMatrixReduceMask",
+        "SpvTensorClampMode",
+        "SpvTensorAddressingOperandsShift",
+        "SpvTensorAddressingOperandsMask",
+        "SpvTensorOperandsShift",
+        "SpvTensorOperandsMask",
+        "SpvInitializationModeQualifier",
+        "SpvHostAccessQualifier",
+        "SpvLoadCacheControl",
+        "SpvStoreCacheControl",
+        "SpvNamedMaximumNumberOfRegisters",
+        "SpvMatrixMultiplyAccumulateOperandsShift",
+        "SpvMatrixMultiplyAccumulateOperandsMask",
+        "SpvRawAccessChainOperandsShift",
+        "SpvRawAccessChainOperandsMask",
+        "SpvCooperativeVectorMatrixLayout",
+        "SpvComponentType"
+      ],
+      "sha256": "804177FD548E86B90B5B087DE84F445C18E151B129AC4F440D99D626C9F32630"
+    },
+    {
+      "file": "src\\spv_consts_capabilities.xi",
+      "module": "xiom.spirv_headers.capabilities",
+      "constants": 338,
+      "enums": [
+        "SpvCapability"
+      ],
+      "sha256": "7782F65AEBAB52D1858C0594B1758A7576AF726CA94F90DEFDC046EDF199863D"
+    },
+    {
+      "file": "src\\spv_consts_ops_core.xi",
+      "module": "xiom.spirv_headers.ops_core",
+      "constants": 344,
+      "enums": [
+        "SpvOp"
+      ],
+      "sha256": "5F0842764A57E15F39AF357BE4276F28A70528F8AFEA4BBF7C5A51B5BB611C59"
+    },
+    {
+      "file": "src\\spv_consts_ops_4000.xi",
+      "module": "xiom.spirv_headers.ops_4000",
+      "constants": 77,
+      "enums": [
+        "SpvOp"
+      ],
+      "sha256": "22F5F2CEBE542F8C51CC748244C9635509D9DB8325FD77AC37DF4598E7377A0E"
+    },
+    {
+      "file": "src\\spv_consts_ops_5000.xi",
+      "module": "xiom.spirv_headers.ops_5000",
+      "constants": 432,
+      "enums": [
+        "SpvOp"
+      ],
+      "sha256": "6B3BDF2AF0AAAE82D8A02D14CD0BBEEFF2C0DA934EC0BE667F72E40AE0826652"
+    },
+    {
+      "file": "src\\spv_consts_ops_6000.xi",
+      "module": "xiom.spirv_headers.ops_6000",
+      "constants": 72,
+      "enums": [
+        "SpvOp"
+      ],
+      "sha256": "5A13EC85EE6D21CC04A2805EFC0117338EDE892EDC77D79A649EDBE19901A847"
+    }
+  ],
+  "spot_checks": {
+    "SpvOpTypeVoid": "19",
+    "SpvOpTypeInt": "21",
+    "SpvOpTypeFloat": "22",
+    "SpvOpTypeVector": "23",
+    "SpvOpConstant": "43",
+    "SpvOpFunction": "54",
+    "SpvOpEntryPoint": "15",
+    "SpvOpExecutionMode": "16",
+    "SpvOpDecorate": "71",
+    "SpvOpLoad": "61",
+    "SpvOpStore": "62",
+    "SpvOpReturn": "253",
+    "SpvOpMax": "0x7fffffff",
+    "SpvOpTerminateInvocation": "4416",
+    "SpvOpGroupNonUniformPartitionNV": "5296",
+    "SpvOpRayQueryGetRayTMinKHR": "6016",
+    "SpvExecutionModelVertex": "0",
+    "SpvExecutionModelFragment": "4",
+    "SpvExecutionModelGLCompute": "5",
+    "SpvStorageClassUniform": "2",
+    "SpvStorageClassFunction": "7",
+    "SpvStorageClassPushConstant": "9",
+    "SpvAddressingModelLogical": "0",
+    "SpvMemoryModelGLSL450": "1",
+    "SpvMemoryModelVulkan": "3",
+    "SpvSourceLanguageGLSL": "2",
+    "SpvSourceLanguageHLSL": "5",
+    "SpvCapabilityShader": "1",
+    "SpvCapabilityGeometry": "2",
+    "SpvCapabilityFloat64": "10",
+    "SpvCapabilityInt64": "11",
+    "SpvCapabilityRayTracingKHR": "4479",
+    "SpvCapabilityVulkanMemoryModel": "5345",
+    "SpvDecorationLocation": "30",
+    "SpvDecorationBinding": "33",
+    "SpvDecorationDescriptorSet": "34",
+    "SpvDecorationBuiltIn": "11",
+    "SpvBuiltInPosition": "0",
+    "SpvBuiltInVertexIndex": "42",
+    "SpvDim2D": "1",
+    "SpvDim3D": "2",
+    "SpvImageFormatRgba32f": "1",
+    "SpvScopeDevice": "1",
+    "SpvGroupOperationReduce": "0",
+    "SpvMemorySemanticsAcquireReleaseMask": "0x00000008",
+    "SpvMemoryAccessVolatileMask": "0x00000001",
+    "SpvFunctionControlInlineMask": "0x00000001",
+    "SpvImageOperandsBiasMask": "0x00000001",
+    "SpvFPFastMathModeNotNaNMask": "0x00000001",
+    "SpvFPRoundingModeRTE": "0",
+    "SpvSelectionControlFlattenMask": "0x00000001",
+    "SpvRayFlagsOpaqueKHRMask": "0x00000001",
+    "SpvLinkageTypeExport": "0",
+    "SpvAccessQualifierReadOnly": "0",
+    "SpvFunctionParameterAttributeNoAlias": "4",
+    "SpvSamplerFilterModeLinear": "1",
+    "SpvKernelEnqueueFlagsNoWait": "0",
+    "SpvCooperativeMatrixUseMatrixAKHR": "0",
+    "SpvStoreCacheControlWriteBackINTEL": "2",
+    "SpvInitializationModeQualifierInitOnDeviceReprogramALTERA": "0",
+    "SpvRayQueryCommittedIntersectionTypeRayQueryCommittedIntersectionTriangleKHR": "1"
+  },
+  "spot_check_count": 61
+}

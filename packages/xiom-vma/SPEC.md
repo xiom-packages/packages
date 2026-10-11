@@ -113,3 +113,40 @@ pattern check on the live device. Sub-allocation APIs (`vmaCreateAliasing*`,
 pools), defragmentation, device-local streaming, and integration examples
 with `xiom.vulkan` are Phase 2 (`ROADMAP.md`). The pre-pilot static-extern
 surface is preserved in git history.
+
+## 6. 100% top-level surface (0.3.0 -- SDK 100% program slice B3)
+
+- Oracle: `C:\VulkanSDK\1.4.350.0\Include\vma\vk_mem_alloc.h` (VMA v3.3.0,
+  SHA256 `90CE12FC4A2466235A09AE02905DD0C13AEE80C1BBF11B331AB61230C2CEB112`);
+  **72** top-level `vma*` functions. Parser + emitter:
+  `tools/gen_vma_full.py` (no manual lists; fails closed on family-map drift).
+- Generated (do not edit by hand; re-run the generator):
+  `src/vma_full_bridge.cpp` -- composes the unchanged `src/vma_bridge.cpp`
+  (VMA implementation + packed probe) and adds one signature-mirrored wrapper
+  per oracle function, the export table, the link proof, and the RHI-path
+  support. TU config `VOLK_IMPLEMENTATION` + `VK_USE_PLATFORM_WIN32_KHR`
+  makes the two config-gated oracle functions
+  (`vmaImportVulkanFunctionsFromVolk`, `vmaGetMemoryWin32Handle`) real.
+  `src/vma_full_ffi.xi` -- the raw bound surface (1:1) + `VkResult` subset
+  constants; `src/vma_full_<family>.xi` -- 10 typed family modules
+  (allocator/stats/memtype/pool/allocation/defrag/binding/buffer/image/
+  virtual); `src/vma_full_rhi.xi` -- typed RHI-path helpers. Family modules
+  are self-contained (module-local extern blocks): compiler v0.64.3 resolves
+  `use` imports only in the entry module.
+- Build wiring: `port.args.json` compiles **`src/vma_full_bridge.cpp`** as
+  the single `--c-source` entry (the file includes `vma_bridge.cpp`, so the
+  VMA implementation still compiles exactly once; no duplicate symbols).
+- Null-argument policy: `VMA_NOT_NULL` pointer parameters are guarded in the
+  bridge -> `VK_ERROR_INITIALIZATION_FAILED` (`VkBool32` -> `VK_FALSE`;
+  `void` -> no-op) -- deterministic error paths without `VMA_ASSERT` aborts.
+- New vendored inputs (per-file hashes in `PROVENANCE.md`):
+  `vendor/vulkan/vulkan_win32.h` (Vulkan-Headers v1.4.350) and
+  `vendor/volk/{volk.h,volk.c}` (three documented include rewrites in
+  `volk.h`, the same relative-include policy as `vk_mem_alloc.h`).
+- Suites: existing `tests/test_conformance.xi` unchanged (5/5 x2, now linked
+  against the composed bridge); new `tests/test_full_surface.xi` prints
+  `bound=72/72` and runs the RHI path + null-argument error path + SKIP
+  classification (21/21 x2). Coverage report: `docs/COVERAGE.md`.
+- Non-FFI remainder (documented in `docs/COVERAGE.md`): C++ class/template
+  methods of the implementation, data-struct members, enum/macro constants
+  (not part of this slice), and volk loader initialization.
