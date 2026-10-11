@@ -14,7 +14,26 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-10 23:05Z (doorbell cycle -- bindings batch 34 (`xiom.stb` 0.2.0) merged + verified; two ops appends pending):**
+**STATE AT 2026-10-11 10:40Z (doorbell cycle -- bindings batch 36 (`xiom.sdl3` 0.3.1) PUBLISHED via `eco-v0.1.134`; jolt publish-gate incident fixed):**
+- **`xiom.sdl3` 0.3.1 PUBLISHED** (batch 36, merge `f624c097`): `SDL_PushEvent` + headless
+  synthetic-event pump; native present **22/22 x3** (official SDL 3.4.8 via
+  `C:\VulkanSDK\1.4.350.0\Bin`) + sanitized-absent **SKIP 3/3**; `eco-v0.1.134` sha256
+  `a779ae4b...` @10:33:55Z; record + README synced; guard **509/493/16/0**; validate 524/0.
+- **Jolt publish-gate incident (fixed):** the same merge tip carried jolt's tree with a record
+  citing the local m258 build (tests=pass) -- `eco-v0.1.134` would have attempted an unbuildable
+  publish. Gated the record to `tests=unknown` for the official pin (`abf60f35`), re-tagged
+  `eco-v0.1.134` at the gated commit (original run cancelled), and the re-run correctly skipped
+  jolt. **Lesson: after any merge, run `validate` BEFORE tagging and watch for records citing
+  non-archive toolchains.**
+- **NEW operating resource (owner 2026-10-11):** `E:\repos\` is available for cloning upstream
+  projects to STUDY before writing package code (instead of writing from memory); disposable once
+  a package is done. Use it for new/next-touch package work (`xiom-kafka`/`zeromq`/`icu`/`jansson`
+  stubs are candidates; jolt is already vendored in-tree).
+- Pending: ann + stb ops appends (509 -> 511); jolt parked (m258 archive); `xiom-pkg` WSL bug with
+  the compiler lane.
+- Session tally: **50 eco releases** (`eco-v0.1.86` -> `eco-v0.1.134`).
+
+**STATE AT 2026-10-10 23:05Z (history -- superseded by the 2026-10-11 10:40Z block above):**
 - **`xiom.stb` 0.2.0** (batch 34, merge `07f5b9da`): vendored stb_image + stb_image_write
   (pinned `2c980bb5`, per-header SHA256 in SPEC); native **5/5 x2** (in-memory PNG encode+decode
   round trip pixel-exact, 1x1 BMP decode, determinism); record `5fff08f9`; wrap `8517c43e`;
