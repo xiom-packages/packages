@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.9.0 |
+| Version | 0.10.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -184,12 +184,25 @@ data1/data2 = 300/180 decoded from the copied buffer, plus the size
 readback; mouse state idle (buttons=0, coords decode).  README carries the
 engine event-loop snippet (watch + decode + drain).
 
+**0.10.0 addition (audio + joystick enumeration, 2026-10-11; engine device
+selection + `REL-20261011-1321-engine`):** 6 symbols joined the core loader:
+`SDL_GetAudioPlaybackDevices`, `SDL_GetAudioRecordingDevices`,
+`SDL_GetAudioDeviceName`, `SDL_GetCurrentAudioDriver`, `SDL_GetJoysticks`,
+`SDL_GetJoystickNameForID`.  Device arrays are caller-owned (freed via
+`SDL_free`; fetched + freed per `_at` call); device/driver strings are
+SDL-owned consts (copied, never freed).  `SDL_PIXELFORMAT_ABGR8888`
+(0x16762004) exported with the 8888 naming note: SDL names are MSB-first,
+so on little-endian `ABGR8888` is the byte-order `R,G,B,A` array a plain
+RGBA8 framebuffer produces (the engine asked for exactly that).
+Requires `SDL_INIT_AUDIO`/`JOYSTICK`; the suite SKIPs the block when init
+fails.
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 46/46 x2** -- previous 44 checks + resizable false/true + 300x180 resize with typed WINDOW_RESIZED through the watch + idle mouse state |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 48/48 x2** -- previous 46 checks + audio (driver "wasapi", playback=9, recording=4, first device "Speakers (Realtek(R) Audio)") + joystick enumeration (0 attached; unknown-id name empty) |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no

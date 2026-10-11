@@ -6,12 +6,11 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.9.0 mouse + window contract + runtime**
-> (`sdl3_mouse_state`; `sdl3_set_window_size`/`sdl3_set_window_resizable`;
-> the full `SDL_EVENT_WINDOW_*` constant family; typed resize events proven
-> end-to-end through the event watch). Native **46/46 x2** with the official
-> SDL 3.4.8 DLL + absent **4/4 x2** (v0.64.3). 0.8.0 shipped in
-> `eco-v0.1.143`; 0.9.0 published in `eco-v0.1.145` (sha256 `87edfa59...`).
+> **Status:** `incubating` -- **0.10.0 audio + joystick + runtime**
+> (playback/recording device enumeration + device names + current audio
+> driver; joystick enumeration + name-for-id; `SDL_PIXELFORMAT_ABGR8888`
+> exported with the 8888 naming note -- engine ask `REL-20261011-1321-engine`).
+> Suite **48/48 x2** with the official SDL 3.4.8 DLL + absent 4/4 x2.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -51,6 +50,7 @@ fn main() {
 | Filesystem (0.7.0) | `sdl3_get_base_path` (SDL-owned, copied), `sdl3_get_pref_path(org, app)` + `sdl3_get_current_directory` (freed after copy), `sdl3_create_directory`, `sdl3_remove_path`, `sdl3_get_path_info` (`Sdl3PathInfo`; `SDL_PATHTYPE_*`) |
 | Display blit (0.8.0) | `sdl3_update_texture(res, tex, pixels, w, h)` (RGBA8 upload from an XIOM buffer), `sdl3_render_texture(res, ren, tex)` (whole-texture blit), `sdl3_set_render_vsync(res, ren, vsync)` -- `SDL_TEXTUREACCESS_STREAMING` exported; clear -> update -> blit -> present is the minimal engine present path |
 | Input/window contract (0.9.0) | `sdl3_mouse_state` (`Sdl3MouseState`: window-relative x/y + button mask), `sdl3_set_window_size`, `sdl3_set_window_resizable`, the full `SDL_EVENT_WINDOW_*` family (RESIZED/MOVED/PIXEL_SIZE_CHANGED/FOCUS_*/MINIMIZED/MAXIMIZED/RESTORED/SHOWN/HIDDEN/EXPOSED/CLOSE_REQUESTED) |
+| Audio/joystick (0.10.0) | `sdl3_audio_playback_count/at`, `sdl3_audio_recording_count/at`, `sdl3_audio_device_name`, `sdl3_current_audio_driver` (requires `SDL_INIT_AUDIO`); `sdl3_joystick_count/at`, `sdl3_joystick_name_for_id` (requires `SDL_INIT_JOYSTICK`); constant `SDL_PIXELFORMAT_ABGR8888` |
 | Event decode (0.4.0) | `sdl3_event_type`, `sdl3_event_timestamp`, `sdl3_event_window_id`, `sdl3_event_key_scancode/key_code/mods/down/repeat`, `sdl3_event_mouse_state/x_bits/y_bits/x/y/button/button_down/clicks`, `sdl3_event_window_data1/data2`, `sdl3_f32_from_bits`, `SDL_EVENT_SIZE` |
 | Error | `sdl3_get_error` |
 | Resources | `sdl3_load_resources`, `sdl3_resources_close`, `sdl3_create_window`, `sdl3_destroy_window`, `sdl3_show_window`, `sdl3_hide_window`, `sdl3_window_size`, `sdl3_set_window_title`, `sdl3_create_renderer`, `sdl3_destroy_renderer`, `sdl3_set_render_draw_color`, `sdl3_render_clear`, `sdl3_render_present`, `sdl3_create_texture`, `sdl3_destroy_texture`, `sdl3_has_gamepad`, `sdl3_gamepad_count`, `sdl3_open_gamepad`, `sdl3_close_gamepad` |
@@ -60,6 +60,12 @@ Failure model: `sdl3_load` distinguishes **absent** (`kind =
 SDL3_LOAD_ABSENT` -> callers SKIP) from **ABI mismatch** (`kind =
 SDL3_LOAD_ABI` -> callers FAIL). Everything else is `Bool`/value returns
 with contracts; no silent nulls.
+
+**Pixel-format naming (8888):** SDL names 32-bit formats MSB-first
+(`SDL_PIXELFORMAT_RGBA8888` = R most significant). On little-endian memory
+the byte order reverses: RGBA8888 lands as `A,B,G,R`; **`ABGR8888` is the
+byte-order RGBA array** as produced by a plain RGBA8 framebuffer (pass it
+to `sdl3_create_texture` for `sdl3_update_texture` uploads).
 
 ## Engine event loop (typed events via the watch)
 
@@ -115,11 +121,11 @@ anywhere on `PATH`. G2 pin (soname + header-set manifest hash): `SPEC.md` §2.
 xiom --run tests/test_conformance.xi
 ```
 
-- With SDL3: 46 `[PASS]` (decode layer + smoke + hidden window, renderer
+- With SDL3: 48 `[PASS]` (decode layer + smoke + hidden window, renderer
   clear/present, textures, gamepad enumeration, synthetic event injection,
   filter keep/drop + watch semantics, displays + keyboard, filesystem round
-  trip, 64x64 RGBA blit, window resize typed event + mouse), exit 0
-  (~13 s).
+  trip, 64x64 RGBA blit, window resize typed event + mouse, audio/joystick
+  enumeration), exit 0 (~14 s).
 - Without SDL3: the loader smoke reports explicit `SKIP` labels and stays
   green; the decode layer runs in both shapes (pure XIOM; no DLL needed).
 

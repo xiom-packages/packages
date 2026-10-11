@@ -165,6 +165,12 @@ pub type Sdl3Library = {
   p_remove_path: Int;
   p_get_path_info: Int;
   p_get_mouse_state: Int;
+  p_get_audio_playback_devices: Int;
+  p_get_audio_recording_devices: Int;
+  p_get_audio_device_name: Int;
+  p_get_current_audio_driver: Int;
+  p_get_joysticks: Int;
+  p_get_joystick_name_for_id: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -244,6 +250,18 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a32.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetPathInfo: " + a32.error }); }
   let a33 = dl.dl_sym(handle, "SDL_GetMouseState");
   if !a33.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetMouseState: " + a33.error }); }
+  let a34 = dl.dl_sym(handle, "SDL_GetAudioPlaybackDevices");
+  if !a34.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetAudioPlaybackDevices: " + a34.error }); }
+  let a35 = dl.dl_sym(handle, "SDL_GetAudioRecordingDevices");
+  if !a35.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetAudioRecordingDevices: " + a35.error }); }
+  let a36 = dl.dl_sym(handle, "SDL_GetAudioDeviceName");
+  if !a36.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetAudioDeviceName: " + a36.error }); }
+  let a37 = dl.dl_sym(handle, "SDL_GetCurrentAudioDriver");
+  if !a37.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetCurrentAudioDriver: " + a37.error }); }
+  let a38 = dl.dl_sym(handle, "SDL_GetJoysticks");
+  if !a38.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetJoysticks: " + a38.error }); }
+  let a39 = dl.dl_sym(handle, "SDL_GetJoystickNameForID");
+  if !a39.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetJoystickNameForID: " + a39.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -280,6 +298,12 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_remove_path: a31.value,
     p_get_path_info: a32.value,
     p_get_mouse_state: a33.value,
+    p_get_audio_playback_devices: a34.value,
+    p_get_audio_recording_devices: a35.value,
+    p_get_audio_device_name: a36.value,
+    p_get_current_audio_driver: a37.value,
+    p_get_joysticks: a38.value,
+    p_get_joystick_name_for_id: a39.value,
   });
 }
 
@@ -441,7 +465,14 @@ pub fn sdl3_get_error(lib: &Sdl3Library) -> Str
 // =========================================================================
 
 // SDL pixel formats / texture access for the smoke.
+// NOTE on 8888 naming (engine ask REL-20261011-1321-engine): SDL names
+// 32-bit formats MSB-first (`SDL_PIXELFORMAT_RGBA8888` = R is the most
+// significant byte).  On little-endian memory that byte order REVERSES:
+// RGBA8888 lands in memory as A,B,G,R and ABGR8888 lands as R,G,B,A --
+// `SDL_PIXELFORMAT_ABGR8888` is the "byte-order RGBA" array as produced by
+// a plain RGBA8 framebuffer.
 pub const SDL_PIXELFORMAT_RGBA8888: Int = 0x16462004;
+pub const SDL_PIXELFORMAT_ABGR8888: Int = 0x16762004;
 pub const SDL_TEXTUREACCESS_STATIC: Int = 0;
 pub const SDL_TEXTUREACCESS_STREAMING: Int = 1;
 
@@ -1761,5 +1792,178 @@ pub fn sdl3_set_window_resizable(r: &Sdl3Resources, win: Int, resizable: Bool) -
     let f = r.p_set_window_resizable as fn(Int, UInt8) -> UInt8;
     let v: UInt8 = if resizable { 1 as UInt8 } else { 0 as UInt8 };
     return (f(win, v) as Int) != 0;
+  }
+}
+
+// =========================================================================
+// 0.10.0: audio + joystick enumeration (engine device selection)
+//
+// SDL_GetAudioPlaybackDevices / SDL_GetAudioRecordingDevices /
+// SDL_GetJoysticks return caller-owned arrays of u32 ids (freed via
+// SDL_free; fetched + freed per `_at` call, O(devices)).  Names and the
+// driver string are SDL-owned const strings (copied, never freed).
+// =========================================================================
+
+/// SDL_GetAudioPlaybackDevices count.  Requires SDL_INIT_AUDIO.
+/// Complexity: O(devices).
+pub fn sdl3_audio_playback_count(lib: &Sdl3Library) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_audio_playback_devices as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    if arr != 0 {
+      let fr = lib.p_free as fn(Int);
+      fr(arr);
+    }
+    return n;
+  }
+}
+
+/// i-th playback device id (0 when out of range).
+/// Complexity: O(devices).
+pub fn sdl3_audio_playback_at(lib: &Sdl3Library, i: Int) -> Int
+  requires: lib.handle != 0
+  requires: i >= 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_audio_playback_devices as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    var id = 0;
+    if arr != 0 {
+      if i < n {
+        id = ffi.ptr_read_u32_le((arr + i * 4) as *UInt8);
+      }
+      let fr = lib.p_free as fn(Int);
+      fr(arr);
+    }
+    return id;
+  }
+}
+
+/// SDL_GetAudioRecordingDevices count.
+/// Complexity: O(devices).
+pub fn sdl3_audio_recording_count(lib: &Sdl3Library) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_audio_recording_devices as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    if arr != 0 {
+      let fr = lib.p_free as fn(Int);
+      fr(arr);
+    }
+    return n;
+  }
+}
+
+/// i-th recording device id (0 when out of range).
+/// Complexity: O(devices).
+pub fn sdl3_audio_recording_at(lib: &Sdl3Library, i: Int) -> Int
+  requires: lib.handle != 0
+  requires: i >= 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_audio_recording_devices as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    var id = 0;
+    if arr != 0 {
+      if i < n {
+        id = ffi.ptr_read_u32_le((arr + i * 4) as *UInt8);
+      }
+      let fr = lib.p_free as fn(Int);
+      fr(arr);
+    }
+    return id;
+  }
+}
+
+/// SDL_GetAudioDeviceName (SDL-owned string, copied; "" for unknown ids).
+/// Complexity: O(len).
+pub fn sdl3_audio_device_name(lib: &Sdl3Library, id: Int) -> Str
+  requires: lib.handle != 0
+  requires: id >= 0
+{
+  unsafe {
+    let f = lib.p_get_audio_device_name as fn(Int) -> *UInt8;
+    let p = f(id);
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
+  }
+}
+
+/// SDL_GetCurrentAudioDriver (SDL-owned string, copied; "" before AUDIO init).
+/// Complexity: O(len).
+pub fn sdl3_current_audio_driver(lib: &Sdl3Library) -> Str
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_current_audio_driver as fn() -> Int;
+    let p = f();
+    if p == 0 { return ""; }
+    return Str::from_c_str(p as *UInt8);
+  }
+}
+
+/// SDL_GetJoysticks count (needs JOYSTICK for populated results).
+/// Complexity: O(joysticks).
+pub fn sdl3_joystick_count(lib: &Sdl3Library) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_joysticks as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    if arr != 0 {
+      let fr = lib.p_free as fn(Int);
+      fr(arr);
+    }
+    return n;
+  }
+}
+
+/// i-th joystick instance id (0 when out of range).
+/// Complexity: O(joysticks).
+pub fn sdl3_joystick_at(lib: &Sdl3Library, i: Int) -> Int
+  requires: lib.handle != 0
+  requires: i >= 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_joysticks as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    var id = 0;
+    if arr != 0 {
+      if i < n {
+        id = ffi.ptr_read_u32_le((arr + i * 4) as *UInt8);
+      }
+      let fr = lib.p_free as fn(Int);
+      fr(arr);
+    }
+    return id;
+  }
+}
+
+/// SDL_GetJoystickNameForID (SDL-owned string, copied; "" for unknown ids).
+/// Complexity: O(len).
+pub fn sdl3_joystick_name_for_id(lib: &Sdl3Library, id: Int) -> Str
+  requires: lib.handle != 0
+  requires: id >= 0
+{
+  unsafe {
+    let f = lib.p_get_joystick_name_for_id as fn(Int) -> *UInt8;
+    let p = f(id);
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
   }
 }

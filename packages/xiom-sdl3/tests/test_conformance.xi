@@ -77,6 +77,10 @@ fn t_constants() -> Bool {
   if SDL_SCANCODE_A != 4 || SDL_SCANCODE_ESCAPE != 41 || SDL_SCANCODE_SPACE != 44 { ok = false; }
   if SDL_EVENT_SIZE != 128 { ok = false; }
   if SDL_PIXELFORMAT_RGBA8888 != 0x16462004 { ok = false; }
+  // ABGR8888 is the byte-order RGBA array (engine ask 1321): SDL names are
+  // MSB-first, so on little-endian ABGR8888 lands as R,G,B,A in memory.
+  if SDL_PIXELFORMAT_ABGR8888 != 0x16762004 { ok = false; }
+  if SDL_INIT_AUDIO != 0x10 || SDL_INIT_JOYSTICK != 0x200 { ok = false; }
   if SDL_TEXTUREACCESS_STATIC != 0 { ok = false; }
   if sdl3_versionnum(3, 4, 8) != 3004008 { ok = false; }
   if sdl3_version_major(3004008) != 3 { ok = false; }
@@ -596,6 +600,35 @@ fn main() -> Int {
       "mouse: state idle (buttons=" + to_string(mst.buttons) + " at "
         + to_string(mst.x as Int) + "," + to_string(mst.y as Int) + ")");
 
+    sdl3_quit(&lib);
+  }
+
+  // -------------------------------------------------------------------
+  // 0.10.0: audio + joystick enumeration (engine device selection).
+  // SKIP when the platform cannot init audio/joystick (headless CI).
+  // -------------------------------------------------------------------
+  let aflags = SDL_INIT_AUDIO | SDL_INIT_JOYSTICK;
+  let ainited = sdl3_init(&lib, aflags);
+  if !ainited {
+    failed = failed + report(true, "audio: SKIP -- SDL_Init(AUDIO|JOYSTICK) failed ("
+      + sdl3_get_error(&lib) + ")");
+  } else {
+    let drv = sdl3_current_audio_driver(&lib);
+    let apc = sdl3_audio_playback_count(&lib);
+    let arc = sdl3_audio_recording_count(&lib);
+    var aname = "";
+    if apc > 0 {
+      aname = sdl3_audio_device_name(&lib, sdl3_audio_playback_at(&lib, 0));
+    }
+    failed = failed + report(drv.len() > 0 && apc >= 0 && arc >= 0 && (apc == 0 || aname.len() > 0),
+      "audio: driver=\"" + drv + "\" playback=" + to_string(apc) + " recording="
+        + to_string(arc) + " first-device=\"" + aname + "\"");
+
+    let jc = sdl3_joystick_count(&lib);
+    let jbad = sdl3_joystick_name_for_id(&lib, 999999);
+    failed = failed + report(jc >= 0 && jbad.len() == 0,
+      "joystick: enumeration count=" + to_string(jc) + " (unknown-id name empty="
+        + b2s(jbad.len() == 0) + ")");
     sdl3_quit(&lib);
   }
 
