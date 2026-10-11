@@ -502,6 +502,26 @@ clone: stage ONLY your own item files). The two working rules are in
 - Detailed evidence: relay blocks + notes below; bus digests via
   `python tools/relay.py digest --to <lane>`.
 
+### POLICY -- upstream-first + 100% coverage (owner, 2026-10-11)
+
+POLICY (owner, 2026-10-11): upstream-first for ALL bindings work -- no code from
+memory. For every library: clone the upstream SOURCE at a pinned commit into
+E:\repos\<name> (shared, disposable) alongside the SDK/headers, study it, and
+record packages/<pkg>/PROVENANCE.md (upstream, pin, license, derived vs
+independent, vectors). License whitelist for anything copied: MIT/Apache-2.0/BSD/
+ISC/zlib/PD/X11/Unicode/RFC-first; MPL/LGPL reference-only (no code/structure
+copying); never GPL/AGPL/SSPL/Elastic (FFmpeg reference-only / system-lib
+SKIP-only). COVERAGE TARGET = 100% of the target public API surface -- complete
+export coverage, not partial (glfw 124/124 is the standard); SKIP-when-absent
+stays a classified platform state, not a coverage gap. Register clones in
+E:\repos\CLEANUP.md with a review-after date; delete only at quiet moments,
+after ship+verify, with no open references and the owning lane's confirmation.
+Canonical doc: docs/UPSTREAM-FIRST.md.
+
+Relayed by packages as `REL-20261011-2131-packages` (ack) + the fold request
+`REL-20261011-2141-packages`; lane gates G6/G7 updated in docs/BINDINGS-LANE.md.
+Applied from the next touch onward (nothing shipped needs retraction).
+
 ### Next actions (ordered)
 1. **Doorbell**: **RE-ARMED 18:47Z** (`wku_12c49bd1b001pDrS40ht1pQSup`,
    `0 */3 * * *`; next 21:00Z; the cron is per-session -- re-arm on each
@@ -606,7 +626,10 @@ context-limit handoff; prompt refreshed after batch 61).
    probes (triangle-list AND meshlet coders rotate corners -- compare
    rotation-invariant; index-sequence + vertex coders are byte-exact;
    Box2D revolute GetAngle wraps to [-pi,pi]); the 100%-coverage owner
-   directive; the "stage only your own relay items" rule; git fetch + git
+   directive; the upstream-first policy (POLICY block above: clone the
+   upstream SOURCE at pin + record PROVENANCE.md per package from the next
+   touch; clones registered in E:\repos\CLEANUP.md); the "stage only your
+   own relay items" rule; git fetch + git
    log before every commit (parallel owner session). Package traps:
    xiom.assimp needs `-TimeoutSec 600` (125 TUs, ~4-5 min/build) and
    keeps its `.obj` fixture via a scoped .gitignore negation; xiom.glfw
