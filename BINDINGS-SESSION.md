@@ -99,9 +99,13 @@ clone: stage ONLY your own item files). The two working rules are in
   main-after r=7) -- all B-18 shapes GREEN pre; `probe4` 0/42/42; `probe5`
   all 0; `probe7` 2x T001 (B-14/15 pre). B-20 `foreign-ptr-read`: C-side
   1065353216/1073741824, XIOM 0/0 (red pre). B-07 `ffi-alias-shadow`: 2x
-  T001 `c_strlen` (red pre). Fresh same-slot witnesses for the archive
-  verdicts; heavy rows (B-11, B-05/B-10, sdl3/glfw suites, jolt) run at
-  the archive.
+  T001 `c_strlen` (red pre). Addendum 19:45Z: B-19 `sdl3-init-arg` green
+  pre (`elapsed=100 init=1 w_all=16384`, SDL3 resolved from the Vulkan SDK
+  dir); 1904 `glfw-fp-return` red pre (`advance_ms=0`, `after_set99_ms=0`,
+  `opacity_x1000=262416000`, `gettime_ms=0`; probes run from
+  `packages/xiom-glfw/tests/` with `--link user32`). Fresh same-slot
+  witnesses for the archive verdicts; heavy rows (B-11, B-05/B-10,
+  sdl3/glfw suites, jolt) run at the archive.
 - **Latest batch 61 (2026-10-11)**: `xiom.meshopt` **0.4.0 -- codec family
   (Phase 3 item 2)**: index SEQUENCE codec (byte-exact order; contrast
   pinned with the triangle-list codec, which rotates corners), quat filter
