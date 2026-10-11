@@ -8,9 +8,10 @@ is not installed.
 
 > **Status:** `incubating` -- **0.11.0 full constant tables + runtime**
 > (source-generated ~190 constants: the complete `SDL_EVENT_*` enum,
-> window flags, keymods and the explicit-value pixel formats). Suite
-> **48/48 x2** with the official SDL 3.4.8 DLL + absent 4/4 x2.
-> **Lane:** bindings (`keywords: ["binding"]`).
+> window flags, keymods and the explicit-value pixel formats). Native
+> **48/48 x2** with the official SDL 3.4.8 DLL + absent **4/4 x2** (v0.64.3).
+> 0.10.0 shipped in `eco-v0.1.146`; 0.11.0 published in `eco-v0.1.147`
+> (sha256 `d2aec7d4...`). **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
