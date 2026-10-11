@@ -9,8 +9,11 @@ is not installed.
 > **Status:** `incubating` -- **0.13.0 capture streams + stream query + runtime**
 > (audio capture from the default recording device: open, resume, drain PCM
 > via `SDL_GetAudioStreamData`, plus available/clear/format queries; push
-> audio streams and mouse-wheel accessors landed in 0.12.0). Suite **52/52 x2**
-> with the official SDL 3.4.8 DLL + absent 4/4 x2. **Lane:** bindings
+> audio streams and mouse-wheel accessors landed in 0.12.0; carries the
+> **B-17 fix** -- pointer arithmetic -> separate out-param slots). Native
+> **52/52 x2** with the official SDL 3.4.8 DLL + absent **4/4 x2**
+> (v0.64.3). 0.12.0 shipped in `eco-v0.1.148`; 0.13.0 published in
+> `eco-v0.1.149` (sha256 `a7e88163...`). **Lane:** bindings
 > (`keywords: ["binding"]`).
 
 ## Quick start
