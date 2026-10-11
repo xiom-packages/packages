@@ -8,7 +8,8 @@ below records evidence and open asks.
 `eco-v0.1.132`; batch 33
 (`xiom.vulkan` 0.3.0: instance w/ Win32 surface ext -> device pick ->
 graphics queue family -> logical device -> command pool/buffer + REAL
-submit/wait; **15/15 x2** on the RTX 3070 Ti) committed and relayed. New
+submit/wait; **15/15 x2** on the RTX 3070 Ti) published in `eco-v0.1.133`
+(sha `668b143b...`); new
 compiler finding **B-12** (fp returns through cast calls; repro bundle)
 filed; `xiom.glfw` value checks carry labelled SKIPs for it. Engine lane:
 items acked; build order #1 delivered -- #2 (surface/swapchain/present)
@@ -72,8 +73,9 @@ clone: stage ONLY your own item files). The two working rules are in
 - **Batch 34** (`xiom.stb` 0.2.0: vendored stb_image + stb_image_write at
   commit `2c980bb5...`; one TU + probe bridge; PNG 85-byte encode +
   pixel-exact decode (checksum 8400) + 1x1 red BMP decode; **5/5 x2**):
-  feat `a369fa52` + record commit; relayed with an ALLOWLIST-APPEND ask;
-  closes the engine lane's image-codec wishlist
+  feat `a369fa52` + record commit; relayed with an ALLOWLIST-APPEND ask
+  (packages acked; ops scope ask `REL-20261010-2301-packages`; publish
+  pending the appends); closes the engine lane's image-codec wishlist
   (`REL-20261010-1900-packages`).
 - **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
   feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
@@ -180,6 +182,18 @@ in eco-v0.1.132 (run 38078757165). Batch 30 (0.6.0 BLEND) stays gated as
 superseded -- its build is flaky under concurrent multi-lane compiles and
 eco-v0.1.131 skipped it; 0.7.0 is the go-forward. Watchdog raised to 1800 s
 in the assimp port.args (item REL-20261010-1852 acked).
+```
+
+```
+BINDINGS PUBLISH CONFIRM (batch 33): xiom.vulkan 0.3.0 (engine RHI
+bring-up) is live in eco-v0.1.133 (sha256 668b143b...; 21:07:37Z; native
+15/15 x2 on the RTX 3070 Ti).
+```
+
+```
+BINDINGS BATCH 34 STATUS: xiom.stb 0.2.0 merged + native-verified (5/5 x2;
+merge 07f5b9da, record 5fff08f9, wrap 8517c43e); publish pending the ops
+allowlist appends (ann + stb, 509 -> 511; item REL-20261010-2301-packages).
 ```
 
 ```
