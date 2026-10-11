@@ -9,9 +9,9 @@
                   "passed":  24,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "493e44d0",
-                  "checked":  "2026-10-10T19:07:56Z"
+                  "commit":  "934d9fd3",
+                  "checked":  "2026-10-11T12:18:12Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.139 (2026-10-11)"
+    "excluded_reason":  "publish pending: xvector ann 0.2.0 refresh (eco-v0.1.144)"
 }
