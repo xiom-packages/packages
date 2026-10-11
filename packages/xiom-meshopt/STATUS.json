@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  72,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.64.0",
-                  "commit":  "ed680f75",
-                  "checked":  "2026-10-05T19:14:22Z"
+                  "run_by":  "task:bindings-pool",
+                  "commit":  "d39f332a",
+                  "checked":  "2026-10-11T17:21:31Z"
               },
     "publish":  false,
     "excluded_reason":  null
