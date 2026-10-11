@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.13.0 |
+| Version | 0.14.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -248,12 +248,23 @@ slots; mouse state: two 4-byte slots); repro
 `docs/repro/bindings-pilot/ptr-arith/`.  With the fix the 3.4.8 DLL writes
 BOTH format specs (src=dst=33056/2ch/48000Hz).
 
+**0.14.0 addition (pointer capture + relative mouse, 2026-10-11):** 5
+symbols joined the core loader: `SDL_GetGlobalMouseState`,
+`SDL_GetRelativeMouseState` (each writes two f32 out-params into one owned
+slot per pointer -- B-17 discipline), `SDL_SetWindowRelativeMouseMode`,
+`SDL_GetWindowRelativeMouseMode` (SDL3 exposes relative mode per window),
+`SDL_CaptureMouse`.  Suite: the global state reads the live cursor
+(1684,386 on this host), the relative state reads 0,0 idle with mask 0,
+the per-window relative-mode round trip is true/true/false/false, and the
+capture toggle calls succeed (enable=false on a hidden window is the
+documented foreground-only behavior; disable=true).
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 52/52 x2** -- previous 49 checks + format query (src=33056/2ch/48000Hz dst=33056/2ch/48000Hz), available/clear semantics (pushed=4096 avail=4096 -> queued=0 avail=0 read=0) + capture (recording stream read=8192B avail=11520, resume/pause/clear OK); stability after the B-17 fix: 10/10 direct runs clean |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 56/56 x2** -- previous 52 checks + pointer/relative mouse (global state live cursor, relative 0,0, relative-mode round trip true/true/false/false, capture toggle); stability after the B-17 fix: 10/10 direct runs clean; 0.14.0: 7/7 |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no

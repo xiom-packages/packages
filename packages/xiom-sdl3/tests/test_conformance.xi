@@ -479,6 +479,33 @@ fn main() -> Int {
       let hidden = sdl3_hide_window(&r, win);
       failed = failed + report(true, "window: show/hide callable (show=" + b2s(shown) + " hide=" + b2s(hidden) + ")");
 
+      // 0.14.0: pointer + relative mouse (per-window relative mode; engine
+      // pointer-look).  Out-params use separate owned slots (B-17).
+      let gm = sdl3_global_mouse_state(&lib);
+      failed = failed + report(gm.buttons >= 0 && gm.x > -100000.0 && gm.x < 100000.0
+          && gm.y > -100000.0 && gm.y < 100000.0,
+        "pointer: global mouse state (buttons=" + to_string(gm.buttons) + " at "
+          + to_string(gm.x as Int) + "," + to_string(gm.y as Int) + ")");
+      let rm = sdl3_relative_mouse_state(&lib);
+      failed = failed + report(rm.buttons >= 0 && rm.x > -100000.0 && rm.x < 100000.0
+          && rm.y > -100000.0 && rm.y < 100000.0,
+        "pointer: relative mouse state (buttons=" + to_string(rm.buttons) + " delta "
+          + to_string(rm.x as Int) + "," + to_string(rm.y as Int) + ")");
+      let rmon = sdl3_set_window_relative_mouse_mode(&lib, win, true);
+      let rmg1 = sdl3_window_relative_mouse_mode(&lib, win);
+      let rmoff = sdl3_set_window_relative_mouse_mode(&lib, win, false);
+      let rmg2 = sdl3_window_relative_mouse_mode(&lib, win);
+      failed = failed + report(rmon && rmg1 && rmoff && !rmg2,
+        "pointer: relative mode round trip (set-true=" + b2s(rmon) + " get=" + b2s(rmg1)
+          + " set-false=" + b2s(rmoff) + " get=" + b2s(rmg2) + ")");
+      // Capture is foreground-only; on a hidden window the enable is
+      // expected to be refused (recorded), the disable must succeed.
+      let cap_on = sdl3_capture_mouse(&lib, true);
+      let cap_off = sdl3_capture_mouse(&lib, false);
+      failed = failed + report(cap_off,
+        "pointer: capture toggle callable (on=" + b2s(cap_on) + " off=" + b2s(cap_off)
+          + "; on=false without focus is documented)");
+
       let renr = sdl3_create_renderer(&r, win);
       if !renr.is_ok {
         failed = failed + report(true, "renderer: SKIP -- create failed: " + renr.error);
