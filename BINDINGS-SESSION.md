@@ -106,6 +106,13 @@ clone: stage ONLY your own item files). The two working rules are in
   `packages/xiom-glfw/tests/` with `--link user32`). Fresh same-slot
   witnesses for the archive verdicts; heavy rows (B-11, B-05/B-10,
   sdl3/glfw suites, jolt) run at the archive.
+- **Archive watch fire (19:50Z)**: v0.64.4 still not on GitHub (v0.64.3
+  latest; compiler origin/main still batch 1); relay gained `-1856`
+  (stdlib->xvector), `-1904-pulse` (pulse A/B on m271: batch-5 witness
+  green, SIGILL 1615 still red), `-1928`/`-1940` (jolt scope confirmed
+  LIVE on both eco entries -- "repin + port x2 + publish when the archive
+  lands"; no staging needed). None addressed to bindings; next check
+  `wku_12c83f8e1001LZ9U7eXCfvp5xt` (~21:20Z), doorbell 21:00Z.
 - **Latest batch 61 (2026-10-11)**: `xiom.meshopt` **0.4.0 -- codec family
   (Phase 3 item 2)**: index SEQUENCE codec (byte-exact order; contrast
   pinned with the triangle-list codec, which rotates corners), quat filter
