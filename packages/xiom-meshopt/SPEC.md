@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.meshopt` |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Kind | binding (`categories: ["graphics"]`) |
 | Upstream project | meshoptimizer -- https://github.com/zeux/meshoptimizer |
 | Upstream version pinned | commit `f843aae0` (post-tag `v1.2`, `v1.2-17-gf843aae0`; `MESHOPTIMIZER_VERSION` 1020) |
@@ -95,6 +95,16 @@ caller-owned `Vec[UInt8]` buffers (f32 positions, u32 indices); C reads the
 inputs and writes results into XIOM-owned outputs; XIOM reads results back
 byte-indexed (B-16/B-17/B-20 discipline).
 
+0.4.0 codec-family probes (ROADMAP Phase 3 item 2):
+`meshopt_index_sequence_probe` (index sequence codec -- arbitrary topology,
+**byte-exact order preserved**, unlike the triangle-list codec),
+`meshopt_filter_quat_probe` / `meshopt_filter_exp_probe` /
+`meshopt_filter_color_probe` (quat/exp/color filter round trips; max error
+in micro units) and `meshopt_meshlet_codec_probe` (meshlet encode/decode
+typed 4/3: vertex refs byte-exact, triangle corners may rotate -- the
+meshlet triangle coder rotates corners to line up next-bits, so the check
+is rotation-invariant).
+
 ABI discipline: probes return scalars or write 4-byte ints into XIOM-owned
 slots read little-endian (B-11/B-16/B-17); C++ structs (vertex-cache/fetch
 statistics, `meshopt_Bounds`, meshlets) never cross the boundary by value;
@@ -113,7 +123,7 @@ The vertex codec round trip is byte-exact.
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Vendored tree (always compiled in) | `scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900` | **PASS 33/33 x2** -- 16 constants + 12 runtime probes + 2 owned-buffer probes + 3 owned-buffer wrappers; version 1020, remap 6->4, ACMR drops after cache optimization, simplify ~100 indices at <= 5% error, both codecs round-trip, stripify set-preserving, fp16 patterns 0x3C00/0xC000, sphere r=1414 on the 2x2 square, 98 meshlet triangles conserved, oct error <= 0.02, in-place optimize preserves the triangle set, wrapper remap 6->4 with vertices copied out, wrapper optimize reorders while preserving the set, wrapper simplify 600->~100 indices in range |
+| Vendored tree (always compiled in) | `scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900` | **PASS 38/38 x2** -- 16 constants + 12 runtime probes + 2 owned-buffer probes + 3 owned-buffer wrappers + 5 codec-family checks; version 1020, remap 6->4, ACMR drops after cache optimization, simplify ~100 indices at <= 5% error, both index codecs round-trip (list: rotation-invariant; sequence: byte-exact), vertex codec byte-exact, stripify set-preserving, fp16 patterns 0x3C00/0xC000, sphere r=1414 on the 2x2 square, 98 meshlet triangles conserved, oct error <= 0.02, wrapper remap/optimize/simplify green, quat/exp/color filters within micro error bounds, meshlet codec round trip (refs exact, triangles rotation-invariant) |
 
 Build cost: 20 vendored TUs + the bridge, `--timeout 900` carried by
 `port.args.json` (watchdog headroom; ~25 s/run on this host). There is no
@@ -121,11 +131,11 @@ library-absence SKIP path -- the sources are vendored and always compiled in.
 
 ## 5. Scope
 
-0.3.0 delivers the owned-buffer wrappers (remap/optimize/simplify) on top
-of the 0.2.0 vendored runtime path and probe set. The remaining codec
-families (index sequence, meshlet codec, quat/exp/color filters), the
-cluster pipeline (buildMeshlets -> optimizeMeshlet -> computeMeshletBounds)
-and direct-surface safe wrappers beyond the wrapper trio are Phase 3
+0.3.0 delivered the owned-buffer wrappers (remap/optimize/simplify) and
+0.4.0 the codec-family probes (index sequence, quat/exp/color filters,
+meshlet codec). The cluster pipeline (buildMeshlets -> optimizeMeshlet ->
+computeMeshletBounds), the remaining family probes (partition, spatial sort,
+opacity maps, tangents) and a re-pin to the next upstream tag are Phase 3
 (`ROADMAP.md`). The legacy pre-vendor 72-check declaration-only suite is
 preserved in git history; its 72/72 re-verify on v0.64.3 was recorded
 before the modernization.

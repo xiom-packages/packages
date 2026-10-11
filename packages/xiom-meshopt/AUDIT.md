@@ -13,8 +13,8 @@ links them, so the suite now exercises the library.
 | Upstream | meshoptimizer v1.2 (commit `f843aae0`, `v1.2-17-gf843aae0`), vendored unmodified (MIT) |
 | Link model | `--c-source` (20 vendored TUs + `src/meshopt_bridge.cpp`) via `port.args.json`, `--timeout 900`; no system library |
 | FFI confinement | all `extern "C"` in the root module `meshopt.xi` (G5) |
-| Suite | `tests/test_conformance.xi`, 33 checks (16 constants + 14 real-library probes + 3 owned-buffer wrappers) |
-| Runs | **PASS 33/33 x2** on the pin (`scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900`) |
+| Suite | `tests/test_conformance.xi`, 38 checks (16 constants + 14 real-library probes + 3 owned-buffer wrappers + 5 codec-family checks) |
+| Runs | **PASS 38/38 x2** on the pin (`scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900`) |
 
 ## Design notes
 
@@ -38,6 +38,14 @@ links them, so the suite now exercises the library.
   optimization must reorder). Wrapper remap merges byte-identical vertices
   and copies the remapped vertex buffer out; optimize verifies the triangle
   multiset before write-back; simplify reports count + relative error.
+- **Codec family (0.4.0)**: index sequence codec (arbitrary topology,
+  byte-exact order -- unlike the triangle-list codec), the quat/exp/color
+  filter family at 16/16/8 bits (max error in micro units; decode layouts
+  pinned from the implementation: quat -> 4 int16 in place, exp -> float
+  bits in place, color -> 4 unsigned bytes), and the meshlet codec (typed
+  4/3 decode; vertex refs byte-exact, triangles compared rotation-invariant
+  because the meshlet triangle coder rotates corners to line up next-bits,
+  meshletcodec.cpp line 120).
 - **Deterministic probes**: an 8x8 grid (64 vertices / 98 triangles,
   triangle order reversed to be cache-hostile) and an 11x11 bumpy grid (121
   vertices / 200 triangles) for simplification. The index codec check is
@@ -57,11 +65,11 @@ links them, so the suite now exercises the library.
 ## Known limitations
 
 - Runtime coverage is a pilot slice of the vendored library: remap, cache and
-  fetch analysis, simplify, index/vertex codecs, stripify, meshlets, sphere
-  bounds, oct filter, plus the owned-buffer optimize path and the 0.3.0
-  owned-buffer wrappers (remap/optimize/simplify). The remaining families
-  (index sequence, meshlet codec, quat/exp/color filters, partition, spatial
-  sort, opacity maps, tangents) are Phase 3 (`ROADMAP.md`).
+  fetch analysis, simplify, index/sequence/vertex codecs, meshlet codec,
+  stripify, meshlets, sphere bounds, oct/quat/exp/color filters, plus the
+  owned-buffer optimize path and the 0.3.0 wrappers. The remaining families
+  (partition, spatial sort, opacity maps, tangents) and the cluster pipeline
+  are Phase 3 (`ROADMAP.md`).
 - The raw 85-function extern surface remains declaration-first: fp returns
   and struct-by-value returns must go through the bridge until the compiler
   fixes land (B-12/B-20); callbacks (custom remap, setAllocator) need a C

@@ -3,30 +3,33 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: MESHOPT 0.3.0 SHIPPED -- batches 31-60 relayed; pool sweep fully
-published; assimp mini-contract proposed** (session resumed 2026-10-11
-17:19Z from the 17:15Z context-limit handoff; shipped batches 56-59 plus 60:
-meshopt 0.3.0 owned-buffer wrappers, and the consumer contract; the parallel
-owner session re-verified the staged compiler build).
-Published through the window: `eco-v0.1.132`..`eco-v0.1.157` -- assimp 0.7.0,
+**STATUS: MESHOPT 0.4.0 SHIPPED -- batches 31-61 relayed; pool sweep fully
+published; assimp mini-contract routed** (session resumed 2026-10-11 17:19Z;
+shipped batches 56-61 -- pool sweep + contract + meshopt wrappers (0.3.0)
++ meshopt codec family (0.4.0); the parallel owner session re-verified the
+staged compiler build).
+Published through the window: `eco-v0.1.132`..`eco-v0.1.158` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
 (`154`), meshopt **0.2.0** (`155`), ozz **0.3.0** + imgui **0.3.0** (`156`),
-box2d **0.3.0** (`157`, sha256 `3c2ebda1...`, live 18:00:59Z).
-**Publish queue (packages)**: meshopt **0.3.0** relayed 18:18Z
-(`REL-20261011-1818-bindings`, expect `eco-v0.1.158+`); jolt 0.2.0
-m258-parked only.
+box2d **0.3.0** (`157`), meshopt **0.3.0** (`158`, sha256 `cbcd2ef7...`,
+live 18:25:26Z).
+**Publish queue (packages)**: meshopt **0.4.0** relayed 18:29Z
+(`REL-20261011-1829-bindings`, supersedes 0.3.0 on the same lineage; expect
+`eco-v0.1.159+`); jolt 0.2.0 m258-parked only.
 **Pool drive complete + published**: miniaudio/meshopt/ozz/imgui/box2d all
 re-verified on v0.64.3, each clearing a ROADMAP next item.
-**Batch 60: xiom.meshopt 0.3.0** -- owned-buffer wrappers (remap/optimize/
-simplify over caller-owned byte meshes; 33/33 x2).
-**Assimp consumer mini-contract proposed** (`packages/xiom-assimp/CONTRACT.md`;
-`REL-20261011-1811-bindings` replies to `-1900-2`; packages to route to engine).
+**Batch 61: xiom.meshopt 0.4.0** -- codec family (index sequence byte-exact;
+quat/exp/color filters; meshlet codec typed 4/3; 38/38 x2); relayed
+`REL-20261011-1829-bindings`.
+**Assimp consumer mini-contract proposed + routed**:
+`packages/xiom-assimp/CONTRACT.md`; `-1811-bindings` replied to `-1900-2`;
+packages routed it to the engine (`REL-20261011-1828`, commit `9046b3d`).
 **Compiler (staged build)**: owner-session re-verify
 (`REL-20261011-1801-bindings`): B-13/B-14/B-15 fixed on staged `3b31599f`;
 B-16 not in scope (stays assumed open); fn-type mangling warning flagged;
 the 1-arg handler restriction is droppable at release+pin.
-Lane tree tip: `89b48f07` (clean; all pushed).
+Lane tree tip: `bd059406` (clean; all pushed).
 Compiler v0.64.4: all six batches staged (m261-m271,
 `REL-20261011-1731`): pin + full probe-row re-run when the archive lands;
 workarounds stay until then.
@@ -70,11 +73,23 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 18:20Z, batch-60 ship tick)**: batches 31-60
-  relayed; everything through box2d 0.3.0 published (`eco-v0.1.148`-`157`);
-  meshopt 0.3.0 relayed (`-1818`, expect `eco-v0.1.158+`); pool sweep
-  complete + published; assimp mini-contract proposed (`-1811`); compiler
+- **CURRENT (2026-10-11 18:31Z, batch-61 ship tick)**: batches 31-61
+  relayed; everything through meshopt 0.3.0 published
+  (`eco-v0.1.148`-`158`); meshopt 0.4.0 relayed (`-1829`, expect
+  `eco-v0.1.159+`); assimp contract routed to engine (`-1828`); compiler
   staged-build re-verify green for B-13/14/15 (`-1801`), B-16 open.
+- **Latest batch 61 (2026-10-11)**: `xiom.meshopt` **0.4.0 -- codec family
+  (Phase 3 item 2)**: index SEQUENCE codec (byte-exact order; contrast
+  pinned with the triangle-list codec, which rotates corners), quat filter
+  (16-bit; decode -> 4 int16 in place; err <= 100 micro), exp filter
+  (16-bit mantissa, separate; decode -> float bits in place; rel err <=
+  200 micro), color filter (8-bit YCoCg; decode -> 4 unsigned bytes; err
+  <= 0.02), and the meshlet codec (encode meshlet 0: 45 refs / 64 tris ->
+  142 bytes; typed 4/3 decode; refs byte-exact, triangles rotation-
+  invariant -- the meshlet triangle coder rotates corners to line up
+  next-bits). Suite: **38/38 x2**. feat `e50b3f99` + record `bd059406`;
+  relayed `REL-20261011-1829-bindings` (supersedes the just-published
+  0.3.0 on the same lineage).
 - **Latest batch 60 (2026-10-11)**: `xiom.meshopt` **0.3.0 -- owned-buffer
   wrappers (Phase 3 item 1)**: `meshopt_remap_mesh` (duplicate-vertex merge;
   indices rewritten in place, remapped vertices copied into an owned out
@@ -420,13 +435,13 @@ clone: stage ONLY your own item files). The two working rules are in
    `-1655-bindings-2`), xvector `1203` + engine `1153` acked by their
    lanes, compiler `1533` re-verified (B-18/B-19 filed), compiler `1731`
    (v0.64.4 staged, info -> re-verify on archive), ops `1134` closed.
-2. **Publish watch**: everything through box2d 0.3.0 is live (assimp 0.8.0 =
-   `153`, miniaudio 0.3.0 = `154`, meshopt 0.2.0 = `155`, ozz/imgui 0.3.0 =
-   `156`, box2d 0.3.0 = `157`); **meshopt 0.3.0 relayed 18:18Z
-   (`REL-20261011-1818-bindings`), expect `eco-v0.1.158+`**; jolt 0.2.0
-   m258-parked only. sdl3 0.7.0-0.16.0 landed in `eco-v0.1.142`-`152`.
-   Record new eco versions in the relay area of this file. The engine
-   consumes only published packages -- if asked, nudge packages.
+2. **Publish watch**: everything through meshopt 0.3.0 is live (assimp 0.8.0
+   = `153` .. box2d 0.3.0 = `157`, meshopt 0.3.0 = `158` `cbcd2ef7...`, live
+   18:25:26Z); **meshopt 0.4.0 relayed 18:29Z (`REL-20261011-1829-bindings`),
+   expect `eco-v0.1.159+`**; jolt 0.2.0 m258-parked only. sdl3 0.7.0-0.16.0
+   landed in `eco-v0.1.142`-`152`. Record new eco versions in the relay area
+   of this file. The engine consumes only published packages -- if asked,
+   nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): 0.4.0-0.16.0 shipped (batches 41-53;
    capture in 0.13.0, pointer/relative mouse in 0.14.0, live joystick
@@ -450,8 +465,8 @@ clone: stage ONLY your own item files). The two working rules are in
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- clean pickup (2026-10-11 18:22Z, post-batch-60
-refresh; pool sweep published, meshopt wrappers shipped).
+Bindings lane continuation -- clean pickup (2026-10-11 18:32Z, post-batch-61
+refresh; pool sweep published, meshopt wrappers + codec families shipped).
 
 1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
    BINDINGS-SESSION.md (STATUS + RESUME HERE: CURRENT state, ordered next
@@ -470,22 +485,22 @@ refresh; pool sweep published, meshopt wrappers shipped).
    eco publish notes and record confirmed eco versions in
    BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
    action." Then check relay once now; also check the packages publish
-   queue (at this handoff: everything through box2d 0.3.0 live in
-   eco-v0.1.153-157; meshopt 0.3.0 relayed 18:18Z, expect eco-v0.1.158+;
+   queue (at this handoff: everything through meshopt 0.3.0 live in
+   eco-v0.1.153-158; meshopt 0.4.0 relayed 18:29Z, expect eco-v0.1.159+;
    jolt m258-parked).
 
 3. Continue the ordered tasks. Priority: (a) pool drive COMPLETE + published
-   (batches 55-59), and meshopt Phase-3 item 1 done (0.3.0 wrappers, batch
-   60); next optional package-local items on consumer ask: meshopt codec
-   families / box2d broad-phase queries / imgui widget wrappers -- pick only
-   on consumer ask or drift-guard re-pin; (b) compiler v0.64.4: when the
-   archive lands, pin + re-run our open probe rows (REL-20261011-1731; all
-   six batches m261-m271 staged; staged-build re-verify for B-13/14/15 is
-   already green per -1801); (c) publish watch: meshopt 0.3.0 in flight
-   (expect `eco-v0.1.158+`); jolt m258-parked; (d) SDL3 continuance: only
-   the POSIX soname remains (deferred -- no Linux CI target); (e) Vulkan
-   phase 4 only if the engine asks (orders #4-7 gated on the slot-recycle
-   fix).
+   (batches 55-59); meshopt Phase-3 items 1+2 done (0.3.0 wrappers, 0.4.0
+   codec families; batches 60-61); next optional package-local items on
+   consumer ask: meshopt cluster pipeline / box2d broad-phase queries /
+   imgui widget wrappers -- pick only on consumer ask or drift-guard re-pin;
+   (b) compiler v0.64.4: when the archive lands, pin + re-run our open probe
+   rows (REL-20261011-1731; all six batches m261-m271 staged; staged-build
+   re-verify for B-13/14/15 is already green per -1801); (c) publish watch:
+   meshopt 0.4.0 in flight (expect `eco-v0.1.159+`); jolt m258-parked;
+   (d) SDL3 continuance: only the POSIX soname remains (deferred -- no
+   Linux CI target); (e) Vulkan phase 4 only if the engine asks (orders
+   #4-7 gated on the slot-recycle fix).
 
    Respect: B-11..B-17/B-20 discipline (byte-indexed slot writes, packed
    returns, dispatcher+registry callbacks, 1-arg handler shapes,

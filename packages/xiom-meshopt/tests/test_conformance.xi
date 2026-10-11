@@ -14,6 +14,10 @@
 // in-place cache optimize, and simplify over caller-owned byte meshes
 // (f32 positions stride 12, u32 indices), all in the same safe direction.
 //
+// 0.4.0 (Phase 3 item 2): adds codec-family checks -- index sequence codec
+// (byte-exact order preserved), the quat/exp/color filter family, and the
+// meshlet codec (typed 4/3 decode round trip).
+//
 // Run: scripts/port.ps1 -Package xiom.meshopt (the port.args.json --c-source
 // list compiles the bridge + the 20 vendored TUs).
 
@@ -457,11 +461,49 @@ fn test_wrapper_simplify() -> TestResult {
 }
 
 // =========================================================================
+// SECTION 5 -- codec family (5 tests)
+// =========================================================================
+
+fn test_codec_index_sequence() -> TestResult {
+  let p = meshopt_index_sequence_probe();
+  var ok = false;
+  if p.is_ok {
+    ok = p.value.enc_size > 0 && p.value.dec_rc == 0 && p.value.equal;
+  }
+  return assert(ok, "codec: index sequence round trip is byte-exact (order preserved)");
+}
+
+fn test_codec_filter_quat() -> TestResult {
+  let e = meshopt_filter_quat_probe();
+  return assert(e <= 100, "codec: quat filter round trip (16-bit, max err <= 100 micro)");
+}
+
+fn test_codec_filter_exp() -> TestResult {
+  let e = meshopt_filter_exp_probe();
+  return assert(e <= 200, "codec: exp filter round trip (16-bit, max rel err <= 200 micro)");
+}
+
+fn test_codec_filter_color() -> TestResult {
+  let e = meshopt_filter_color_probe();
+  return assert(e <= 20000, "codec: color filter round trip (8-bit YCoCg, max err <= 0.02)");
+}
+
+fn test_codec_meshlet() -> TestResult {
+  let p = meshopt_meshlet_codec_probe();
+  var ok = false;
+  if p.is_ok {
+    ok = p.value.vertex_count >= 1 && p.value.triangle_count >= 1
+      && p.value.enc_size > 0 && p.value.dec_rc == 0 && p.value.equal;
+  }
+  return assert(ok, "codec: meshlet round trip (vertex refs exact; triangle corners may rotate)");
+}
+
+// =========================================================================
 // Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {
-  io.println("XIOM meshopt Conformance Suite (0.3.0 vendored)");
+  io.println("XIOM meshopt Conformance Suite (0.4.0 vendored)");
   io.println("==============================================");
   var total: Int = 0;
   var failed: Int = 0;
@@ -514,6 +556,15 @@ pub fn main() -> Int {
   let w0 = test_wrapper_remap();     total = total + 1; failed = failed + report(w0.passed, w0.name);
   let w1 = test_wrapper_optimize();  total = total + 1; failed = failed + report(w1.passed, w1.name);
   let w2 = test_wrapper_simplify();  total = total + 1; failed = failed + report(w2.passed, w2.name);
+
+  io.println("");
+  io.println("-- SECTION 5: codec family (5) --");
+
+  let c0 = test_codec_index_sequence();  total = total + 1; failed = failed + report(c0.passed, c0.name);
+  let c1 = test_codec_filter_quat();     total = total + 1; failed = failed + report(c1.passed, c1.name);
+  let c2 = test_codec_filter_exp();      total = total + 1; failed = failed + report(c2.passed, c2.name);
+  let c3 = test_codec_filter_color();    total = total + 1; failed = failed + report(c3.passed, c3.name);
+  let c4 = test_codec_meshlet();         total = total + 1; failed = failed + report(c4.passed, c4.name);
 
   io.println("");
   io.println("==============================================");
