@@ -6,11 +6,11 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  18,
+                  "passed":  22,
                   "failed":  0,
                   "run_by":  "task:bindings-vulkan",
-                  "commit":  "432eae2f",
-                  "checked":  "2026-10-11T10:28:41Z"
+                  "commit":  "2b08eb96",
+                  "checked":  "2026-10-11T11:00:42Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: bindings batch 37 (xiom.vulkan 0.4.0)"
