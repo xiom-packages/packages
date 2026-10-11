@@ -9,8 +9,11 @@ is not installed.
 > **Status:** `incubating` -- **0.7.0 filesystem + runtime** (base/pref/
 > current-dir paths, create/remove directory, `SDL_GetPathInfo` round trip;
 > the pref-path test creates + removes its own scratch dir under
-> `%APPDATA%\xiom-lane\`). Suite **43/43 x2** with the official SDL 3.4.8
-> DLL + absent 4/4 x2. **Lane:** bindings (`keywords: ["binding"]`).
+> `%APPDATA%\xiom-lane\`). Native **43/43 x2** with the official SDL 3.4.8
+> DLL + absent **4/4 x2** (v0.64.3). 0.6.0 (displays + keyboard state) was
+> superseded pre-publish; 0.5.0 shipped in `eco-v0.1.140`; 0.7.0 published
+> in `eco-v0.1.142` (sha256 `66f397cc...`). **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
