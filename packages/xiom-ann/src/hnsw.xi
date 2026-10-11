@@ -10,16 +10,24 @@ module xiom.ann.hnsw
 //
 // Layout: a fixed capacity of `hnsw_layer_capacity()` layers per node.
 //   row(pos, layer) = pos * layer_capacity + layer      (into `deg`)
-//   adj row base    = row(pos, layer) * m               (into `adj`)
+//   adj row base    = row(pos, layer) * m0              (into `adj`)
 // Live adjacency slots are `0 .. deg[row]`; unused (too-high) layers keep
-// deg 0. Levels are assigned deterministically per insert (LCG seeded by the
-// node's position): level 0 with probability 1 - 1/ml, then geometric.
+// deg 0. The row stride is `m0` (the LEVEL-0 cap) for every layer; levels
+// >= 1 prune to `m`. Level 0 is generous -- capacity `m0 = 2 * m` (FAISS
+// `set_default_probas` gives level 0 2*M slots) -- and a full level-0 block
+// prunes with FAISS-style headroom (`prune_headroom` 0.2: down to 80% of
+// the cap, not the cap) so saturated blocks are not re-pruned on every
+// incoming edge. Reference study 01, P-a; the `keep_max_size_level0` fill
+// arm was measured and not adopted (see `docs/REFERENCE-STUDY-01-FAISS.md`
+// and `probe_hnsw_recall`). Levels are assigned deterministically per
+// insert (LCG seeded by the node's position): level 0 with probability
+// 1 - 1/ml, then geometric.
 //
 // Build: for every layer the node belongs to (up to the existing top), the
-// `m` nearest layer members are selected exactly and connected
-// bidirectionally; a full adjacency block is pruned by replacing its
-// farthest edge when the incoming edge is closer. Search: greedy descent on
-// each layer above 0, then a best-first beam on layer 0 with breadth =
+// nearest layer members are selected with the diversified heuristic and
+// connected bidirectionally; a full adjacency block is pruned the same way
+// (level 0 to its 80% target, higher layers to `m`). Search: greedy descent
+// on each layer above 0, then a best-first beam on layer 0 with breadth =
 // max(k, ef). Results are `Vec[Neighbor]` with USER ids.
 
 use xiom.num.float;
@@ -40,13 +48,26 @@ pub type HNSWGraph = {
   id_keys: Vec[Int];
   id_vals: Vec[Int];
   m: Int;
+  m0: Int;
   ml: Float32;
   ef_construction: Int;
   build_ops: Int;
   entry: Int;
 }
 
+// Default constructor: level-0 capacity is generous (m0 = 2 * m; FAISS
+// set_default_probas gives level 0 2*M slots).
 pub fn hnsw_new(m: Int, ml: Float32) -> HNSWGraph {
+  return hnsw_new_full(m, ml, m * 2);
+}
+
+// Explicit level-0 capacity (the codec passes the persisted capacity
+// through; gates build the legacy control graph with m0 = m). A capacity
+// below `m` is clamped up -- level 0 never prunes harder than the other
+// layers.
+pub fn hnsw_new_full(m: Int, ml: Float32, m0: Int) -> HNSWGraph {
+  var cap: Int = m0;
+  if cap < m { cap = m; }
   var ids = Vec[Int].new();
   var vectors = Vec[Vector].new();
   var levels = Vec[Int].new();
@@ -65,6 +86,7 @@ pub fn hnsw_new(m: Int, ml: Float32) -> HNSWGraph {
     id_keys: id_keys,
     id_vals: id_vals,
     m: m,
+    m0: cap,
     ml: ml,
     ef_construction: 200,
     build_ops: 0,
@@ -207,20 +229,34 @@ fn edge_slot(g: &HNSWGraph, a: Int, layer: Int, b: Int) -> Int {
   var row = adj_row(a, layer);
   var i: Int = 0;
   while i < g.deg[row] {
-    if g.adj[row * g.m + i] == b { return i; }
+    if g.adj[row * g.m0 + i] == b { return i; }
     i = i + 1;
   }
   return -1;
 }
 
+// Per-layer adjacency cap: level 0 is generous (`m0`), higher layers `m`.
+fn layer_degree_cap(g: &HNSWGraph, layer: Int) -> Int {
+  if layer == 0 { return g.m0; }
+  return g.m;
+}
+
+// Generosity applies to level 0 only, and only when the graph actually
+// carries a generous capacity (m0 > m; an m0 = m graph reproduces the
+// pre-P-a build exactly -- the recall gate uses it as the legacy control).
+fn layer_generous(g: &HNSWGraph, layer: Int) -> Bool {
+  if layer != 0 { return false; }
+  return g.m0 > g.m;
+}
+
 // Diversified neighbour selection (the HNSW heuristic): walk candidates in
-// ascending distance to the anchor and keep up to `m` that are closer to the
-// anchor than to every already-selected neighbour. Reads only; takes &mut so
-// the build path can pass its mutable graph directly.
-fn select_diverse(g: &mut HNSWGraph, cands: &Vec[Neighbor], m: Int, metric: DistanceMetric) -> Vec[Neighbor] {
+// ascending distance to the anchor and keep up to `cap` that are closer to
+// the anchor than to every already-selected neighbour. Reads only; takes
+// &mut so the build path can pass its mutable graph directly.
+fn select_diverse(g: &mut HNSWGraph, cands: &Vec[Neighbor], cap: Int, metric: DistanceMetric) -> Vec[Neighbor] {
   var selected = Vec[Neighbor].new();
   var i: Int = 0;
-  while i < cands.len() && selected.len() < m {
+  while i < cands.len() && selected.len() < cap {
     var c = cands[i];
     var good: Bool = true;
     var s: Int = 0;
@@ -238,20 +274,23 @@ fn select_diverse(g: &mut HNSWGraph, cands: &Vec[Neighbor], m: Int, metric: Dist
 }
 
 // Add a directed edge a -> b on `layer`. A full block is pruned with the
-// diversified heuristic over (existing edges + the new one).
+// diversified heuristic over (existing edges + the new one); a generous
+// level 0 prunes with FAISS-style headroom (below the cap) so a saturated
+// block is not re-pruned on every incoming edge.
 fn add_edge(g: &mut HNSWGraph, a: Int, layer: Int, b: Int, metric: DistanceMetric) {
   if a == b { return; }
   if edge_slot(g, a, layer, b) >= 0 { return; }
   var row = adj_row(a, layer);
-  if g.deg[row] < g.m {
-    g.adj[row * g.m + g.deg[row]] = b;
+  var cap: Int = layer_degree_cap(g, layer);
+  if g.deg[row] < cap {
+    g.adj[row * g.m0 + g.deg[row]] = b;
     g.deg[row] = g.deg[row] + 1;
     return;
   }
   var cands = Vec[Neighbor].new();
   var j: Int = 0;
   while j < g.deg[row] {
-    var nb = g.adj[row * g.m + j];
+    var nb = g.adj[row * g.m0 + j];
     var d = dist_build(g, a, nb, metric);
     cands.push(Neighbor{ id: nb as UInt64, distance: d });
     j = j + 1;
@@ -264,10 +303,16 @@ fn add_edge(g: &mut HNSWGraph, a: Int, layer: Int, b: Int, metric: DistanceMetri
     neighbor_push_bounded(&mut sorted, cands[q].id, cands[q].distance, cands.len());
     q = q + 1;
   }
-  var sel = select_diverse(g, &sorted, g.m, metric);
+  // Full-block prune target: `cap` at higher layers; 80% of the generous
+  // level-0 cap (FAISS `prune_headroom` 0.2) at level 0. The headroom keeps
+  // a saturated block from being re-pruned on every incoming edge (the
+  // build-cost churn); saved slots refill by appends before the next prune.
+  var target: Int = cap;
+  if layer_generous(g, layer) { target = cap - cap / 5; }
+  var sel = select_diverse(g, &sorted, target, metric);
   var w: Int = 0;
   while w < sel.len() {
-    g.adj[row * g.m + w] = sel[w].id as Int;
+    g.adj[row * g.m0 + w] = sel[w].id as Int;
     w = w + 1;
   }
   g.deg[row] = sel.len();
@@ -278,7 +323,8 @@ fn add_edge(g: &mut HNSWGraph, a: Int, layer: Int, b: Int, metric: DistanceMetri
 // filtered when edges are applied).
 fn beam_select(g: &mut HNSWGraph, layer: Int, start: Int, ef: Int, nv: &Vector, metric: DistanceMetric) -> Vec[Neighbor] {
   var cands = search_layer_build(g, nv, start, ef, layer, metric);
-  return select_diverse(g, &cands, g.m, metric);
+  var cap: Int = layer_degree_cap(g, layer);
+  return select_diverse(g, &cands, cap, metric);
 }
 
 // Replace `pos`'s adjacency block on `layer` with `sel` (bidirectional
@@ -352,7 +398,7 @@ pub fn hnsw_insert(g: &mut HNSWGraph, id: Int, vec: Vector, metric: DistanceMetr
     i = i + 1;
   }
   i = 0;
-  while i < hnsw_layer_capacity() * g.m {
+  while i < hnsw_layer_capacity() * g.m0 {
     g.adj.push(0);
     i = i + 1;
   }
@@ -392,7 +438,7 @@ fn greedy_layer(g: &HNSWGraph, query: &Vector, start: Int, layer: Int, metric: D
     var row = adj_row(cur, layer);
     var j: Int = 0;
     while j < g.deg[row] {
-      var nb = g.adj[row * g.m + j];
+      var nb = g.adj[row * g.m0 + j];
       var d = vector_distance(&g.vectors[nb], query, metric);
       if d < cur_d {
         cur = nb;
@@ -416,7 +462,7 @@ fn greedy_layer_pos(g: &mut HNSWGraph, query: &Vector, start: Int, layer: Int, m
     var row = adj_row(cur, layer);
     var j: Int = 0;
     while j < g.deg[row] {
-      var nb = g.adj[row * g.m + j];
+      var nb = g.adj[row * g.m0 + j];
       g.build_ops = g.build_ops + 1;
       var d = vector_distance(&g.vectors[nb], query, metric);
       if d < cur_d {
@@ -464,7 +510,7 @@ fn search_layer_build(g: &mut HNSWGraph, query: &Vector, start: Int, ef: Int, la
       var crow = adj_row(cur.id as Int, layer);
       var j: Int = 0;
       while j < g.deg[crow] {
-        var npos = g.adj[crow * g.m + j];
+        var npos = g.adj[crow * g.m0 + j];
         if !visited[npos] {
           visited[npos] = true;
           g.build_ops = g.build_ops + 1;
@@ -540,7 +586,7 @@ fn hnsw_search_core(g: &HNSWGraph, query: &Vector, k: Int, ef: Int, metric: Dist
       var crow = adj_row(cpos, 0);
       var j: Int = 0;
       while j < g.deg[crow] {
-        var npos = g.adj[crow * g.m + j];
+        var npos = g.adj[crow * g.m0 + j];
         if !visited[npos] {
           visited[npos] = true;
           seen = seen + 1;
@@ -589,11 +635,11 @@ pub fn hnsw_insert_ref(g: &mut HNSWGraph, id: Int, vec: &Vector, metric: Distanc
 }
 
 // Live count and a rebuild path: `hnsw_compact` returns a fresh graph built
-// from the live nodes only (same m/ml, insertion order preserved). This is
-// the tombstone compaction / edge-repair step -- deleted nodes no longer
+// from the live nodes only (same m/m0/ml, insertion order preserved). This
+// is the tombstone compaction / edge-repair step -- deleted nodes no longer
 // route or occupy slots; memory is reclaimed.
 pub fn hnsw_compact(g: &HNSWGraph, metric: DistanceMetric) -> HNSWGraph {
-  var fresh = hnsw_new(g.m, g.ml);
+  var fresh = hnsw_new_full(g.m, g.ml, g.m0);
   var i: Int = 0;
   while i < g.ids.len() {
     if !g.deleted[i] {
@@ -622,16 +668,21 @@ pub fn hnsw_search_visited(g: &HNSWGraph, query: &Vector, k: Int, ef: Int, metri
 
 // ---- Graph codec (persistence) ----
 // Deterministic word encoding (Vec[Int]) mirroring the WAL codec style:
-//   [version=2, m, ml_bits(Float64), ef_construction, layer_capacity, entry,
-//    node_count, per node: id, level, deleted(0|1), vector_words_len, vector
-//    words..., per layer (0..capacity): degree, neighbor positions...]
-// Vectors are encoded with xiom.vectors.vector_encode (dim + f32 bits).
-// Decode is strict: malformed / truncated / out-of-range input returns None
-// (torn-record tolerance).
+//   [version=3, m, m0, ml_bits(Float64), ef_construction, layer_capacity,
+//    entry, node_count, per node: id, level, deleted(0|1), vector_words_len,
+//    vector words..., per layer (0..capacity): degree, neighbor positions...]
+// Level-0 rows carry up to m0 neighbors, higher layers up to m; the encoded
+// stream carries only live slots (the decoder pads every row to the uniform
+// m0 stride). Version 2 (no m0 word; m0 = m, the legacy non-generous graph)
+// stays decodable. Vectors are encoded with
+// xiom.vectors.vector_encode (dim + f32 bits). Decode is strict:
+// malformed / truncated / out-of-range input returns None (torn-record
+// tolerance).
 pub fn hnsw_encode(g: &HNSWGraph) -> Vec[Int] {
   var out = Vec[Int].new();
-  out.push(2);
+  out.push(3);
   out.push(g.m);
+  out.push(g.m0);
   out.push(float.float_bits(g.ml as Float64));
   out.push(g.ef_construction);
   out.push(hnsw_layer_capacity());
@@ -655,7 +706,7 @@ pub fn hnsw_encode(g: &HNSWGraph) -> Vec[Int] {
       out.push(g.deg[row]);
       var s: Int = 0;
       while s < g.deg[row] {
-        out.push(g.adj[row * g.m + s]);
+        out.push(g.adj[row * g.m0 + s]);
         s = s + 1;
       }
       l = l + 1;
@@ -677,23 +728,33 @@ fn pad_adj_slots(g: &mut HNSWGraph, n: Int) {
 
 pub fn hnsw_decode(words: &Vec[Int]) -> Option[HNSWGraph] {
   if words.len() < 7 { return None; }
-  if words[0] != 2 { return None; }
+  var ver: Int = words[0];
+  if ver != 2 && ver != 3 { return None; }
   var m: Int = words[1];
   if m <= 0 { return None; }
   if m > 512 { return None; }   // sanctioned max graph degree (AnnParams)
-  var ml = float.bits_to_float(words[2]) as Float32;
+  var off: Int = 0;
+  var m0: Int = m;
+  if ver == 3 {
+    if words.len() < 8 { return None; }
+    m0 = words[2];
+    if m0 < m { return None; }
+    if m0 > 1024 { return None; }   // 2 * max_graph_degree
+    off = 1;
+  }
+  var ml = float.bits_to_float(words[2 + off]) as Float32;
   if !(ml > 0.0) { return None; }
-  var ef: Int = words[3];
+  var ef: Int = words[3 + off];
   if ef < 1 { return None; }
-  if words[4] != hnsw_layer_capacity() { return None; }
-  var entry: Int = words[5];
-  var count: Int = words[6];
+  if words[4 + off] != hnsw_layer_capacity() { return None; }
+  var entry: Int = words[5 + off];
+  var count: Int = words[6 + off];
   if count < 0 { return None; }
   if count > words.len() { return None; }   // each node needs >= 1 word
-  var g = hnsw_new(m, ml);
+  var g = hnsw_new_full(m, ml, m0);
   hnsw_set_ef_construction(&mut g, ef);
   var expected_dim: Int = -1;
-  var pos: Int = 7;
+  var pos: Int = 7 + off;
   var i: Int = 0;
   while i < count {
     if pos + 3 > words.len() { return None; }
@@ -732,7 +793,9 @@ pub fn hnsw_decode(words: &Vec[Int]) -> Option[HNSWGraph] {
           if pos >= words.len() { return None; }
           var dg: Int = words[pos];
           pos = pos + 1;
-          if dg < 0 || dg > m { return None; }
+          var dcap: Int = m;
+          if l == 0 { dcap = m0; }
+          if dg < 0 || dg > dcap { return None; }
           if pos + dg > words.len() { return None; }
           g.deg.push(dg);
           var s: Int = 0;
@@ -743,7 +806,7 @@ pub fn hnsw_decode(words: &Vec[Int]) -> Option[HNSWGraph] {
             s = s + 1;
           }
           pos = pos + dg;
-          pad_adj_slots(&mut g, m - dg);
+          pad_adj_slots(&mut g, m0 - dg);   // rows are uniformly m0-strided
           l = l + 1;
         }
       }

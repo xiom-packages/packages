@@ -507,13 +507,34 @@ fn t_codec_malformed_rejected() -> TestResult {
   match hnsw_decode(&empty) { Some(_) => { ok = false; } None => {} }
   var words = hnsw_encode(&g);
   var bad_version = Vec[Int].new();
-  bad_version.push(3);
+  bad_version.push(99);
   var i: Int = 1;
   while i < words.len() {
     bad_version.push(words[i]);
     i = i + 1;
   }
   match hnsw_decode(&bad_version) { Some(_) => { ok = false; } None => {} }
+  // Codec v3 keeps the v2 layout readable: build a legacy-control graph
+  // (m0 = m), encode it, then stitch the same stream as v2 (drop the m0
+  // word, version 2). Degrees at level 0 fit m = m0, so it must decode.
+  var lg = hnsw_new_full(8, 4.0, 8);
+  var lfv = Vec[Vector].new();
+  var lfi = Vec[UInt64].new();
+  let lstate = fill_dataset(&mut lg, &mut lfv, &mut lfi, 6, 4, 424242, DistanceMetric.Euclidean);
+  if lstate == 424242 { ok = false; }
+  var lw = hnsw_encode(&lg);
+  var v2_words = Vec[Int].new();
+  v2_words.push(2);
+  v2_words.push(lw[1]);
+  i = 3;
+  while i < lw.len() {
+    v2_words.push(lw[i]);
+    i = i + 1;
+  }
+  match hnsw_decode(&v2_words) {
+    Some(dec) => { if hnsw_size(&dec) != hnsw_size(&lg) { ok = false; } }
+    None => { ok = false; }
+  }
   var truncated = Vec[Int].new();
   i = 0;
   while i < words.len() - 1 {
@@ -530,7 +551,7 @@ fn t_codec_malformed_rejected() -> TestResult {
   }
   match hnsw_decode(&bad_m) { Some(_) => { ok = false; } None => {} }
   if state == 888888 { ok = false; }
-  return assert(ok, "Codec: empty/version/truncated/bad-m -> None");
+  return assert(ok, "Codec: empty/invalid-version/truncated/bad-m -> None; v2 stream decodes");
 }
 
 fn t_codec_determinism() -> TestResult {
