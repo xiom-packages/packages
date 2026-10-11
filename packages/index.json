@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-11T16:43:36Z",
+    "updated":  "2026-10-11T16:50:35Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -6938,17 +6938,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.9.0",
+                         "version":  "0.10.0",
                          "name":  "xiom.sdl3",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit + mouse state + window contract (resize/resizable + typed window events)",
+                         "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit + mouse state + window contract + audio/joystick enumeration",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.9.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.10.0/package.tar.gz",
                          "source_files":  [
                                               "package.xi",
                                               "sdl3.xi"
