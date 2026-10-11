@@ -690,6 +690,37 @@ fn main() -> Int {
       "joystick: enumeration count=" + to_string(jc) + " (unknown-id name empty="
         + b2s(jbad.len() == 0) + ")");
 
+    // 0.15.0: virtual joystick instrumentation -> the REAL open/read path
+    // with no hardware.  desc version = sizeof(desc) (SDL_INIT_INTERFACE;
+    // 136 on x64); all desc writes are byte-indexed (B-16/B-17).
+    let vjid = sdl3_attach_virtual_joystick(&lib, "xiom-virtual-pad", 2, 2);
+    if vjid == 0 {
+      failed = failed + report(true, "joystick-live: SKIP -- attach virtual joystick failed ("
+        + sdl3_get_error(&lib) + ")");
+    } else {
+      let jh = sdl3_open_joystick(&lib, vjid);
+      if jh == 0 {
+        failed = failed + report(false, "joystick-live: SDL_OpenJoystick(attached virtual) failed -- "
+          + sdl3_get_error(&lib));
+      } else {
+        let jname = sdl3_joystick_name(&lib, jh);
+        let sva = sdl3_set_joystick_virtual_axis(&lib, jh, 0, 16384);
+        let svb = sdl3_set_joystick_virtual_button(&lib, jh, 1, true);
+        sdl3_pump_events(&lib);
+        let ax = sdl3_joystick_axis(&lib, jh, 0);
+        let bt = sdl3_joystick_button(&lib, jh, 1);
+        let conn = sdl3_joystick_connected(&lib, jh);
+        sdl3_close_joystick(&lib, jh);
+        failed = failed + report(sva && svb && ax == 16384 && bt && conn
+            && jname == "xiom-virtual-pad",
+          "joystick-live: virtual pad axis0 set=16384 read=" + to_string(ax)
+            + " button1=" + b2s(bt) + " connected=" + b2s(conn) + " name=\"" + jname
+            + "\" (set-axis=" + b2s(sva) + " set-button=" + b2s(svb) + ")");
+      }
+      let vdet = sdl3_detach_virtual_joystick(&lib, vjid);
+      failed = failed + report(vdet, "joystick-live: virtual pad detached=" + b2s(vdet));
+    }
+
     // 0.12.0: push audio stream (silent buffer: no audible surprise).
     let stream = sdl3_open_audio_playback_stream(&lib, SDL_AUDIO_F32, 2, 48000);
     if stream == 0 {
