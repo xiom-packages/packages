@@ -158,6 +158,24 @@ clone: stage ONLY your own item files). The two working rules are in
   `87c6ca3c`, m254-m274; m274 fixes B-18; B-19 resolved package-side);
   archive expectations per packages SESSION: B-13/14/15/B-18 green,
   B-16/B-17 stay red, packages rows `-4`/`-5`/`-6`/`-7`/`-2100` re-run.
+- **SDK100 program progress (21:53Z)**: Vulkan slice COMPLETE on the branch --
+  `xiom.vulkan` full surface: 845 commands (852 registry; 7 vulkansc twins
+  excluded) in generated `src/cmds_01..08`; 5,983 constants (`consts_1..12` +
+  float + str); 1,343 struct sizes + 6,905 member offsets
+  (`struct_meta_1..19`) from a clang offsetof dump; loadability suite PASS x2
+  (`unresolved_relevant=0`; 766/766 advertised-surface; 75 platform/SC
+  exclusions; 4 unadvertised ext verified) + existing RHI suite 22/22;
+  `PROVENANCE.md` + `docs/COVERAGE.md`; commits
+  `8cf95606`/`c18912b1`/`513f57b3`/`fbb773fd`. Wave-1 agent packages
+  integrated (`7c5fc26f`, re-validated in-lane): spirv-tools 39/39 (67/67
+  bound; 55/55 exported resolved), spirv-cross 20/20 (169/169), spirv-reflect
+  40/40 (45/45 vendored), glslang 29/29 (61/61), slang 20/20 (277/277), dxc
+  20/20 (128/128). Relayed: `-2231` (batch to packages) + `-2230` (findings
+  to compiler); CLEANUP rows appended centrally. Wave-2 in flight: sdl2,
+  sdl3-100, vma-100, spirv-headers; shaderc still building. Owner
+  upstream-first policy folded (`fbb773fd`). B-21 filed (`-2140`: `&mut` of
+  a struct-return/Result-payload temp crashes codegen; repro
+  `docs/repro/bindings-pilot/mut-of-struct-return/`).
 - **Latest batch 61 (2026-10-11)**: `xiom.meshopt` **0.4.0 -- codec family
   (Phase 3 item 2)**: index SEQUENCE codec (byte-exact order; contrast
   pinned with the triangle-list codec, which rotates corners), quat filter
