@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.12.0 |
+| Version | 0.13.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -228,12 +228,32 @@ pinned (x @24, y @28, direction @32, mouse_x @36, mouse_y @40) with 7
 accessors + `SDL_MOUSEWHEEL_NORMAL/FLIPPED` (engine ask
 `REL-20261011-1411-engine-2`).
 
+**0.13.0 addition (capture streams + stream query, 2026-10-11):** 4 symbols
+joined the core loader: `SDL_GetAudioStreamData`, `SDL_GetAudioStreamAvailable`,
+`SDL_ClearAudioStream`, `SDL_GetAudioStreamFormat`.
+`SDL_AUDIO_DEVICE_DEFAULT_RECORDING` (0xFFFFFFFE) exported;
+`sdl3_open_audio_recording_stream` reuses the shared
+`SDL_OpenAudioDeviceStream` path (NULL callback = pull mode).  Suite: the
+default recording device opens (wasapi), reports its format, resumes, and
+drains 8192 B of PCM into an owned buffer (avail=11520, pause-again +
+clear OK); the available/clear semantics are proven deterministically on a
+push stream (push 4096 B -> avail=4096 -> clear -> queued=0, avail=0,
+read-after-clear=0).  **Compiler finding B-17 found + worked around:** the
+first build passed one 24-byte slot with `dst_spec = slot.as_mut_ptr() + 12`
+and read the dst spec as zeros -- the `+ 12` pointer is miscompiled to a
+wild address, SDL wrote the spec into unowned memory and the process died
+with STATUS_HEAP_CORRUPTION on ~30-50 % of runs (same binary).  All
+out-params now use one separate slot per pointer (format query: two 12-byte
+slots; mouse state: two 4-byte slots); repro
+`docs/repro/bindings-pilot/ptr-arith/`.  With the fix the 3.4.8 DLL writes
+BOTH format specs (src=dst=33056/2ch/48000Hz).
+
 ## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 4/4 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer still runs -- it is pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 49/49 x2** -- previous 48 checks + the silent push-stream round trip (put=true queued=7680 resumed=true device-paused=false pause-ok=true) + wheel decode |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 52/52 x2** -- previous 49 checks + format query (src=33056/2ch/48000Hz dst=33056/2ch/48000Hz), available/clear semantics (pushed=4096 avail=4096 -> queued=0 avail=0 read=0) + capture (recording stream read=8192B avail=11520, resume/pause/clear OK); stability after the B-17 fix: 10/10 direct runs clean |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no

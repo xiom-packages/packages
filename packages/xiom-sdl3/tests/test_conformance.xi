@@ -19,7 +19,6 @@ module sdl3_conformance
 use xiom.io;
 use xiom.convert;
 use xiom.test;
-use xiom.ffi;
 use xiom.sdl3;
 
 fn b2s(b: Bool) -> Str {
@@ -81,6 +80,9 @@ fn t_constants() -> Bool {
   // MSB-first, so on little-endian ABGR8888 lands as R,G,B,A in memory.
   if SDL_PIXELFORMAT_ABGR8888 != 0x16762004 { ok = false; }
   if SDL_INIT_AUDIO != 0x10 || SDL_INIT_JOYSTICK != 0x200 { ok = false; }
+  // 0.13.0: default device selectors (pin header: 0xFFFFFFFF / 0xFFFFFFFE).
+  if SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK != 0xFFFFFFFF { ok = false; }
+  if SDL_AUDIO_DEVICE_DEFAULT_RECORDING != 0xFFFFFFFE { ok = false; }
   if SDL_TEXTUREACCESS_STATIC != 0 { ok = false; }
   if sdl3_versionnum(3, 4, 8) != 3004008 { ok = false; }
   if sdl3_version_major(3004008) != 3 { ok = false; }
@@ -324,8 +326,11 @@ fn main() -> Int {
     // the B-11 slot-read corruption (recycled bytes; see the addendum item
     // filed to the compiler lane).
     var ev_in = slot_new(128);
-    ffi.ptr_write_u8(ev_in.as_mut_ptr(), 0 as UInt8);
-    ffi.ptr_write_u8(ev_in.as_mut_ptr() + 1, 128 as UInt8);
+    // Byte-indexed writes only (B-16), and NO pointer arithmetic (B-17:
+    // `as_mut_ptr() + 1` compiles to a wild address on v0.64.3).  slot_new
+    // zero-fills, so byte 0 (the low half of 0x8000) is already 0; only
+    // byte 1 needs the 0x80 high half.
+    wr_u8(&mut ev_in, 1, 128);
     // Drain any early queue entries (bounded) so the consume check is ours.
     var drained: Int = 0;
     while drained < 500 {
@@ -680,6 +685,103 @@ fn main() -> Int {
         "audio-stream: 7680B silence pushed + device resumed/paused (put=" + b2s(put)
           + " queued=" + to_string(queued) + " resumed=" + b2s(resumed)
           + " device-paused=" + b2s(paused) + " pause-ok=" + b2s(paus) + ")");
+    }
+
+    // 0.13.0: stream query round trip on a push stream (deterministic;
+    // no capture hardware involved).  Format readback: the app side of a
+    // stream opened through SDL_OpenAudioDeviceStream carries the requested
+    // spec on ONE side of the pair (on the pinned 3.4.8 DLL both sides come
+    // back equal here); accept either side so a differently-ordered
+    // implementation still passes.  HISTORY: an earlier build passed one
+    // 24-byte slot with `dst = as_mut_ptr() + 12` and read dst as zeros --
+    // that was compiler finding B-17 (pointer arithmetic yields a wild
+    // address; the DLL wrote dst to unowned memory and the process crashed
+    // nondeterministically with heap corruption).  The wrapper now uses two
+    // separate 12-byte slots (no pointer arithmetic).
+    // Available/clear semantics: push 4096 B, clear, then queued/available
+    // must be 0 and a read must return 0 (non-blocking).
+    let qstream = sdl3_open_audio_playback_stream(&lib, SDL_AUDIO_F32, 2, 48000);
+    if qstream == 0 {
+      failed = failed + report(false, "audio-stream-format: open failed -- " + sdl3_get_error(&lib));
+    } else {
+      let qf = sdl3_get_audio_stream_format(&lib, qstream);
+      let qf_app = (qf.src_format == SDL_AUDIO_F32 && qf.src_channels == 2 && qf.src_freq == 48000)
+        || (qf.dst_format == SDL_AUDIO_F32 && qf.dst_channels == 2 && qf.dst_freq == 48000);
+      failed = failed + report(qf.ok && qf_app,
+        "audio-stream-format: src=" + to_string(qf.src_format) + "/" + to_string(qf.src_channels)
+          + "ch/" + to_string(qf.src_freq) + "Hz dst=" + to_string(qf.dst_format) + "/"
+          + to_string(qf.dst_channels) + "ch/" + to_string(qf.dst_freq) + "Hz (ok=" + b2s(qf.ok) + ")");
+
+      var qsil: Vec[UInt8] = Vec[UInt8].new();
+      var qb = 0;
+      while qb < 4096 {
+        qsil.push(0 as UInt8);
+        qb = qb + 1;
+      }
+      let qput = sdl3_put_audio_stream_data(&lib, qstream, &mut qsil, 4096);
+      let qavail = sdl3_get_audio_stream_available(&lib, qstream);
+      let qclear = sdl3_clear_audio_stream(&lib, qstream);
+      let qqueued = sdl3_get_audio_stream_queued(&lib, qstream);
+      let qavail2 = sdl3_get_audio_stream_available(&lib, qstream);
+      var qbuf = slot_new(512);
+      let qgot = sdl3_get_audio_stream_data(&lib, qstream, &mut qbuf, 512);
+      sdl3_destroy_audio_stream(&lib, qstream);
+      failed = failed + report(qput && qavail >= 0 && qclear && qqueued == 0
+          && qavail2 == 0 && qgot == 0,
+        "audio-stream-available: pushed=4096B avail=" + to_string(qavail)
+          + " cleared->queued=" + to_string(qqueued) + " avail=" + to_string(qavail2)
+          + " read-after-clear=" + to_string(qgot) + " (clear=" + b2s(qclear) + ")");
+    }
+
+    // 0.13.0: capture streams -- open the default recording device
+    // (SKIP-safe: no recording device / mic access denied by privacy
+    // settings), resume, then drain PCM via SDL_GetAudioStreamData into an
+    // owned buffer.  App side of a recording stream is the OUTPUT (dst).
+    let rstream = sdl3_open_audio_recording_stream(&lib, SDL_AUDIO_F32, 2, 48000);
+    if rstream == 0 {
+      failed = failed + report(true, "audio-capture: SKIP -- no default recording stream ("
+        + sdl3_get_error(&lib) + ")");
+    } else {
+      let rf = sdl3_get_audio_stream_format(&lib, rstream);
+      // Same either-side rule as the playback query above (3.4.8: src).
+      let rf_ok = rf.ok && ((rf.src_format == SDL_AUDIO_F32 && rf.src_channels == 2
+          && rf.src_freq == 48000)
+        || (rf.dst_format == SDL_AUDIO_F32 && rf.dst_channels == 2 && rf.dst_freq == 48000));
+      let rres = sdl3_resume_audio_stream_device(&lib, rstream);
+      // Bounded wait (<= 2 s): capture devices need a beat to deliver.
+      var rava = sdl3_get_audio_stream_available(&lib, rstream);
+      var rwait = 0;
+      while rava <= 0 && rwait < 40 {
+        sdl3_delay(&lib, 50);
+        rava = sdl3_get_audio_stream_available(&lib, rstream);
+        rwait = rwait + 1;
+      }
+      var rgot = 0;
+      if rava > 0 {
+        var rwant = 8192;
+        if rava < 8192 { rwant = rava; }
+        var rbuf = slot_new(rwant);
+        rgot = sdl3_get_audio_stream_data(&lib, rstream, &mut rbuf, rwant);
+      }
+      let rpaus = sdl3_pause_audio_stream_device(&lib, rstream);
+      let rclear = sdl3_clear_audio_stream(&lib, rstream);
+      sdl3_destroy_audio_stream(&lib, rstream);
+      if rava > 0 {
+        failed = failed + report(rf_ok && rres && rgot > 0 && rpaus && rclear,
+          "audio-capture: default recording stream src=" + to_string(rf.src_format) + "/"
+            + to_string(rf.src_channels) + "ch/" + to_string(rf.src_freq) + "Hz dst="
+            + to_string(rf.dst_format) + "/" + to_string(rf.dst_channels) + "ch/"
+            + to_string(rf.dst_freq) + "Hz read=" + to_string(rgot) + "B avail="
+            + to_string(rava) + " (resume=" + b2s(rres) + " paused-again=" + b2s(rpaus)
+            + " clear=" + b2s(rclear) + ")");
+      } else {
+        // Open + format + resume all worked but no PCM arrived (device
+        // silent/disabled): report honestly, do not fail the lane.
+        failed = failed + report(rf_ok && rres && rpaus && rclear,
+          "audio-capture: open+format+resume OK, no PCM within 2s (avail="
+            + to_string(rava) + " dst=" + to_string(rf.dst_format) + "/"
+            + to_string(rf.dst_channels) + "ch/" + to_string(rf.dst_freq) + "Hz)");
+      }
     }
     sdl3_quit(&lib);
   }

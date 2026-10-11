@@ -3,21 +3,26 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: SDL3 0.12.0 SHIPPED -- batches 31-49 relayed** (CLEAN HANDOFF
-2026-10-11 14:45Z). Published through the window: `eco-v0.1.132`..`eco-v0.1.137`
-(assimp 0.7.0, glfw 0.3.0-0.5.0 incl. the pre-publish native fixes),
-`eco-v0.1.138` (vulkan 0.5.0 `0cd7bc00` + sdl3 0.4.0 `a9006d4c`),
-`eco-v0.1.139` (ann 0.1.0 + stb 0.2.0 -- the ops append gate cleared),
-`eco-v0.1.140` (sdl3 0.5.0 `a350dd46`); `eco-v0.1.141` is another lane's
-(btree). Publish queue (packages): sdl3 **0.6.0-0.12.0** (batches 43-49
-relayed) + jolt 0.2.0 (parked on the m258 archive). Lane tree tip at
-handoff: `c3f83489` (clean; all pushed). Compiler findings filed this
-window: **B-13** (fn-param C-callback marshal=0), **B-14** (`return;` in
-explicit `-> Unit`), **B-15** (Vec[fn] element call >=2 args -> ()),
-**B-16** (`ffi.ptr_write_*` at base+N silently loses writes). Engine P3
-blockers cleared lane-side: blit (0.8.0), typed input (0.6.0/0.9.0),
-wheel (0.12.0), audio stream (0.12.0) -- all awaiting publish. Upstream
-sources live in `E:\repos` (Vulkan-Headers, SDL3, FFmpeg + pool).
+**STATUS: SDL3 0.13.0 SHIPPED -- batches 31-50 relayed** (CLEAN HANDOFF
+2026-10-11 14:45Z; doorbell ticks 14:47Z/15:00Z; batch-50 ship tick 15:12Z).
+Published through the window: `eco-v0.1.132`..`eco-v0.1.148` -- assimp 0.7.0,
+glfw 0.3.0-0.5.0 (incl. the pre-publish native fixes), vulkan 0.5.0
+`0cd7bc00` + sdl3 0.4.0 `a9006d4c` (`138`), ann 0.1.0 + stb 0.2.0 (`139`,
+ops append gate cleared), sdl3 0.5.0 `a350dd46` (`140`), btree 0.1.1 (`141`,
+other lane), sdl3 **0.7.0-0.12.0** (`142`-`148`; `144` also carries ann
+0.2.0). **Publish queue (packages): sdl3 0.13.0** (batch 50 relayed 15:12Z
+via `REL-20261011-1512-bindings`) + jolt 0.2.0 (parked on the m258 archive);
+sdl3 0.12.0 is live (`eco-v0.1.148`, sha256 `e7c005e6...` @14:48:43Z).
+Lane tree tip at handoff: `c3f83489`; tip now `1c239a2a` (clean; all pushed).
+Compiler findings filed this window: **B-13** (fn-param C-callback marshal=0),
+**B-14** (`return;` in explicit `-> Unit`), **B-15** (Vec[fn] element call
+>=2 args -> ()), **B-16** (`ffi.ptr_write_*` at base+N silently loses
+writes), **B-17** (raw-pointer arithmetic `as_mut_ptr() + N` yields WILD
+addresses; root cause of B-16 -- repro `docs/repro/bindings-pilot/ptr-arith/`).
+Engine P3 asks: blit (0.8.0), typed input (0.6.0/0.9.0), wheel + audio
+stream (0.12.0) -- ALL PUBLISHED; capture streams + query (0.13.0) in the
+publish queue. Upstream sources live in `E:\repos` (Vulkan-Headers, SDL3,
+FFmpeg + pool).
 
 ## RESUME HERE (handoff, 2026-10-11)
 
@@ -27,15 +32,42 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 14:45Z, handoff)**: batches 31-49 relayed; tree
-  clean at `c3f83489` (`origin/bindings` == local). Published through
-  `eco-v0.1.140` (see the STATUS block above). **Publish queue (packages):
-  sdl3 0.6.0-0.12.0 (batches 43-49; relay items
-  `REL-20261011-1152/1157/1204/1310/1345/1408/1437-bindings`) + jolt 0.2.0
-  (m258 archive parked).** Engine asks delivered and pending publish:
-  blit (0.8.0), displays/keyboard (0.6.0), mouse/window contract (0.9.0),
-  audio+joystick enum (0.10.0), tables (0.11.0), audio stream + wheel
-  (0.12.0).
+- **CURRENT (2026-10-11 15:12Z, batch-50 ship tick)**: batches 31-50
+  relayed; sdl3 **0.12.0 PUBLISHED** in `eco-v0.1.148`. **Publish queue
+  (packages): sdl3 0.13.0** (relayed 15:12Z, `REL-20261011-1512-bindings`)
+  + jolt 0.2.0 (m258 parked only). Engine asks: blit (0.8.0, `143`),
+  displays/keyboard (0.7.0, `142`), mouse/window contract (0.9.0, `145`),
+  audio+joystick enum (0.10.0, `146`), tables (0.11.0, `147`), audio stream
+  + wheel (0.12.0, `148`) -- ALL PUBLISHED. Relay inbox: clean at 15:00Z;
+  B-17 filed to compiler at 15:12Z (`REL-20261011-1512-bindings-2`);
+  the compiler acked B-16 at its 15:00Z doorbell (now known to be B-17's
+  symptom).
+- **Latest batch 50 (2026-10-11)**: `xiom.sdl3` **0.13.0 -- capture streams
+  + stream query**: 4 symbols -- `SDL_GetAudioStreamData`,
+  `SDL_GetAudioStreamAvailable`, `SDL_ClearAudioStream`,
+  `SDL_GetAudioStreamFormat`; `SDL_AUDIO_DEVICE_DEFAULT_RECORDING` (pull
+  mode via `sdl3_open_audio_recording_stream`, sharing the 0.12.0 open
+  path). Capture proof: default recording device (wasapi) opens, resumes,
+  drains **8192 B** of PCM (avail=11520, pause/clear OK); format query
+  src=dst=33056/2ch/48000Hz; available/clear determinism (push 4096 ->
+  clear -> queued=0 avail=0 read=0). Ports: **52/52 x2** present + **4/4
+  x2** absent + **10/10 direct-run stability**. feat `d07355ca` + record
+  `06e9db74`, then the **B-17 native fix** `68e79444` + record `1c239a2a`.
+  Along the way **B-17 found + filed + worked around**: raw-pointer
+  arithmetic (`as_mut_ptr() + N`) compiles to a WILD address on v0.64.3
+  (even +0; delta -30,929,264 for +12 in one probe); the first build's
+  `SDL_GetAudioStreamFormat(stream, slot, slot + 12)` made SDL write the
+  dst spec into unowned memory -> nondeterministic STATUS_HEAP_CORRUPTION
+  (c0000374/ntdll) on ~30-50% of runs of the SAME binary; bisect:
+  no-0.13.0 block 11/11 stable, format call alone 7/11 crash,
+  open+destroy without calls 11/11 stable; fix = one owned slot PER
+  out-param (two 12-byte slots for the format pair, two 4-byte slots for
+  mouse state). The same fix corrected the shipped 0.9.0 `SDL_GetMouseState`
+  y out-param (wild since batch 46; readback stayed 0; two-slot sentinel
+  probe showed both out-params land). **B-17 is the ROOT CAUSE of B-16**
+  (the "lost" +4/+8 `ptr_write` calls land at wild addresses). Repro
+  `docs/repro/bindings-pilot/ptr-arith/` (pure XIOM); relayed
+  `REL-20261011-1512-bindings-2`; batch item `REL-20261011-1512-bindings`.
 - **Batches 45-48 (2026-10-11, compact)**: 45 sdl3 **0.8.0** display blit
   (`sdl3_update_texture`/`sdl3_render_texture`/`sdl3_set_render_vsync`;
   demo probe green; 44/44 x2; feat `3d7f6f3e`); 46 sdl3 **0.9.0** mouse +
@@ -209,37 +241,41 @@ clone: stage ONLY your own item files). The two working rules are in
   `python tools/relay.py digest --to <lane>`.
 
 ### Next actions (ordered)
-1. **Doorbell**: the session cron is per-session -- re-arm with
-   `cron_create` `0 */3 * * *` and the standard prompt (relay pull +
-   process lane items + packages SESSION eco notes). Relay repo
-   `E:\xiom-lang\xiom-relays`: sync with `git fetch origin` + compare --
-   do NOT `git pull` ("Cannot fast-forward to multiple branches"); stage
-   ONLY this lane's item files; only the REPORTING lane moves its own
-   items (reply with new items). Inbox at handoff: engine `1321`/`1411-2`
-   open (delivered; replies sent), xvector `1203` open (replied),
-   compiler `1342` open (info), `1159` open (engine status note).
-2. **Publish watch**: packages queue = sdl3 **0.6.0-0.12.0** (batches
-   43-49) + jolt 0.2.0 (m258 archive parked). Record new eco versions in
-   the relay area of this file. The engine consumes only published
-   packages (registry sdl3 0.3.1 at handoff) -- if asked, nudge packages.
+1. **Doorbell**: **RE-ARMED 14:47Z** (`wku_12b6c26ff001C4Vt6tbf8wl048`,
+   `0 */3 * * *`, next 15:00Z; the cron is per-session -- re-arm on each
+   new session). Prompt = relay pull + process lane items + packages
+   SESSION eco notes. Relay repo `E:\xiom-lang\xiom-relays`: sync with
+   `git fetch origin` + compare -- do NOT `git pull` ("Cannot
+   fast-forward to multiple branches"); stage ONLY this lane's item
+   files; only the REPORTING lane moves its own items (reply with new
+   items). Inbox at 15:00Z: **clean** -- engine `1321`/`1411-2` open
+   but replied (`REL-20261011-1345-bindings-2`,
+   `REL-20261011-1437-bindings-2`), xvector `1203` + engine `1153`
+   acked by their lanes, compiler `1342` open (info).
+2. **Publish watch**: packages queue = sdl3 **0.13.0** (batch 50, relayed
+   15:12Z) + jolt 0.2.0 (m258 archive parked). 0.7.0-0.12.0 landed in
+   `eco-v0.1.142`-`148` (0.12.0 live @14:48:43Z). Record new eco versions
+   in the relay area of this file. The engine consumes only published
+   packages -- if asked, nudge packages.
 3. **SDL3 continuance** (source `E:\repos\SDL3` @ `release-3.2.10`;
-   runtime/pin `release-3.4.8`): 0.4.0-0.12.0 shipped (batches 41-49).
-   Next candidates (ROADMAP Phase 2): recording/capture streams
-   (`SDL_OpenAudioDeviceStream` recording + `SDL_GetAudioStreamData`),
+   runtime/pin `release-3.4.8`): 0.4.0-0.13.0 shipped (batches 41-50;
+   capture + query landed in 0.13.0). Next candidates (ROADMAP Phase 2):
    joystick open/axis/button reads (no pad on this box -- SKIP-safe
    shapes), pointer capture/relative mouse, drag-drop payload decoding
    (paths/text via ptr reads), POSIX soname. Apply the 1-arg handler
-   discipline (B-15) and byte-indexed slot writes (B-16). Ship each batch
-   as: feat -> x2 (present + absent PATH-filtered) -> record -> relay ->
-   ledger. Constant regeneration recipe: comment-strip + enum-parse +
-   macro-eval vs the headers (ROADMAP item 1).
+   discipline (B-15), byte-indexed slot writes (B-16), and **no pointer
+   arithmetic (B-17: one owned slot per out-param; Int address math stays
+   correct)**. Ship each batch as: feat -> x2 (present + absent
+   PATH-filtered) -> record -> relay -> ledger. Constant regeneration
+   recipe: comment-strip + enum-parse + macro-eval vs the headers
+   (ROADMAP item 1).
 4. ~~stb publish~~ **DONE** (`eco-v0.1.139`); batches 39/40/41 wrapped on
    main (`470e13f3`); vulkan 0.5.0 live (`eco-v0.1.138`).
 
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- clean handoff pickup (2026-10-11 14:45Z).
+Bindings lane continuation -- clean handoff pickup (2026-10-11 15:12Z).
 
 1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
    BINDINGS-SESSION.md (STATUS + RESUME HERE: CURRENT state, ordered next
@@ -258,20 +294,21 @@ Bindings lane continuation -- clean handoff pickup (2026-10-11 14:45Z).
    eco publish notes and record confirmed eco versions in
    BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
    action." Then check relay once now; also check the packages publish
-   queue (sdl3 0.6.0-0.12.0 at handoff).
+   queue (sdl3 0.13.0 at handoff).
 
 3. Continue the ordered tasks. Priority: (a) SDL3 continuance from
-   E:\repos\SDL3 (next candidates: recording/capture streams, joystick
-   open/axis reads -- SKIP-safe without a pad, pointer capture/relative
-   mouse, drag-drop payload decoding, POSIX soname); (b) the E:\repos
+   E:\repos\SDL3 (next candidates: joystick open/axis reads -- SKIP-safe
+   without a pad, pointer capture/relative mouse, drag-drop payload
+   decoding, POSIX soname); (b) the E:\repos
    full-coverage pool (miniaudio, meshoptimizer, ozz-animation, imgui,
    box2d) -- bind from the real sources, never from memory; (c) publish
-   watch for sdl3 0.6.0-0.12.0 + jolt (m258); (d) Vulkan phase 4 only if
+   watch for sdl3 0.13.0 + jolt (m258); (d) Vulkan phase 4 only if
    the engine asks (compute/descriptors/textures/frames-in-flight).
 
-   Respect: B-11/B-12/B-13/B-14/B-15/B-16 discipline (byte-indexed slot
-   writes, packed returns, dispatcher+registry callbacks, 1-arg handler
-   shapes, structured ifs); the 100%-coverage owner directive; the "stage
+   Respect: B-11/B-12/B-13/B-14/B-15/B-16/B-17 discipline (byte-indexed
+   slot writes, packed returns, dispatcher+registry callbacks, 1-arg
+   handler shapes, structured ifs, **no pointer arithmetic -- one owned
+   slot per out-param**); the 100%-coverage owner directive; the "stage
    only your own relay items" rule; re-arm 1-arg form; the absent shape
    needs the VulkanSDK dir filtered from PATH on this host; git fetch +
    git log before every commit (parallel owner session). Deliver batches

@@ -17,8 +17,10 @@
 // counter, delay, pump/poll/push events, error string; resource stage (window,
 // renderer, texture, gamepad enumeration); 0.4.0 adds SDL_Event decoding from
 // an owned 128-byte buffer with typed accessors (offsets pinned to the
-// release-3.4.8 header; verified byte-identical in the release-3.2.10 clone).
-// The full pre-pilot constant tables stay in git history (ROADMAP.md).
+// release-3.4.8 header; verified byte-identical in the release-3.2.10 clone);
+// 0.13.0 adds capture streams (default recording device + GetAudioStreamData
+// /available/clear/format). The full pre-pilot constant tables stay in git
+// history (ROADMAP.md).
 
 module xiom.sdl3
 
@@ -382,6 +384,10 @@ pub type Sdl3Library = {
   p_destroy_audio_stream: Int;
   p_get_audio_stream_queued: Int;
   p_audio_stream_device_paused: Int;
+  p_get_audio_stream_data: Int;
+  p_get_audio_stream_available: Int;
+  p_clear_audio_stream: Int;
+  p_get_audio_stream_format: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -487,6 +493,14 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a45.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetAudioStreamQueued: " + a45.error }); }
   let a46 = dl.dl_sym(handle, "SDL_AudioStreamDevicePaused");
   if !a46.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_AudioStreamDevicePaused: " + a46.error }); }
+  let a47 = dl.dl_sym(handle, "SDL_GetAudioStreamData");
+  if !a47.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetAudioStreamData: " + a47.error }); }
+  let a48 = dl.dl_sym(handle, "SDL_GetAudioStreamAvailable");
+  if !a48.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetAudioStreamAvailable: " + a48.error }); }
+  let a49 = dl.dl_sym(handle, "SDL_ClearAudioStream");
+  if !a49.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_ClearAudioStream: " + a49.error }); }
+  let a50 = dl.dl_sym(handle, "SDL_GetAudioStreamFormat");
+  if !a50.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetAudioStreamFormat: " + a50.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -536,6 +550,10 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_destroy_audio_stream: a44.value,
     p_get_audio_stream_queued: a45.value,
     p_audio_stream_device_paused: a46.value,
+    p_get_audio_stream_data: a47.value,
+    p_get_audio_stream_available: a48.value,
+    p_clear_audio_stream: a49.value,
+    p_get_audio_stream_format: a50.value,
   });
 }
 
@@ -1982,18 +2000,21 @@ pub type Sdl3MouseState = {
 }
 
 /// SDL_GetMouseState -> Sdl3MouseState (x/y window-relative, f32 decoded).
-/// Requires VIDEO.
+/// Requires VIDEO.  Out-params use TWO separate owned slots: pointer
+/// arithmetic on `as_mut_ptr()` is miscompiled on v0.64.3 (B-17 -- it
+/// yields wild addresses), so never pass `base + N` to foreign calls.
 /// Complexity: O(1).
 pub fn sdl3_mouse_state(lib: &Sdl3Library) -> Sdl3MouseState
   requires: lib.handle != 0
 {
   unsafe {
-    var slot = sdl3_slot(8);
+    var xslot = sdl3_slot(4);
+    var yslot = sdl3_slot(4);
     let f = lib.p_get_mouse_state as fn(*UInt8, *UInt8) -> Int32;
-    let buttons = f(slot.as_mut_ptr(), slot.as_mut_ptr() + 4);
+    let buttons = f(xslot.as_mut_ptr(), yslot.as_mut_ptr());
     return Sdl3MouseState{
-      x: sdl3_f32_from_bits(sdl3_read_u32_at(&slot, 0)),
-      y: sdl3_f32_from_bits(sdl3_read_u32_at(&slot, 4)),
+      x: sdl3_f32_from_bits(sdl3_read_u32_at(&xslot, 0)),
+      y: sdl3_f32_from_bits(sdl3_read_u32_at(&yslot, 0)),
       buttons: buttons as Int,
     };
   }
@@ -2214,6 +2235,7 @@ pub fn sdl3_joystick_name_for_id(lib: &Sdl3Library, id: Int) -> Str
 // =========================================================================
 
 pub const SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK: Int = 0xFFFFFFFF;
+pub const SDL_AUDIO_DEVICE_DEFAULT_RECORDING: Int = 0xFFFFFFFE;
 pub const SDL_AUDIO_F32: Int = 0x8120;
 pub const SDL_MOUSEWHEEL_NORMAL: Int = 0;
 pub const SDL_MOUSEWHEEL_FLIPPED: Int = 1;
@@ -2230,11 +2252,12 @@ fn sdl3_write_u32_le(buf: &mut Vec[UInt8], off: Int, v: Int)
   buf[off + 3] = ((v >> 24) & 0xFF) as UInt8;
 }
 
-/// SDL_OpenAudioDeviceStream(DEFAULT_PLAYBACK, {format, channels, freq},
-/// NULL, NULL) -> stream handle (0 on failure; see the error string).
-/// Requires SDL_INIT_AUDIO.
-/// Complexity: O(device open).
-pub fn sdl3_open_audio_playback_stream(lib: &Sdl3Library, format: Int, channels: Int, freq: Int) -> Int
+/// SDL_OpenAudioDeviceStream(devid, {format, channels, freq}, NULL, NULL)
+/// shared path: the spec is the APP side (input for playback, output for
+/// recording); a NULL callback keeps the stream in push/pull mode.  The
+/// spec slot is built with byte-indexed writes (B-16 discipline).  Returns
+/// the stream handle (0 on failure; see the error string).
+fn sdl3_open_device_stream(lib: &Sdl3Library, devid: Int, format: Int, channels: Int, freq: Int) -> Int
   requires: lib.handle != 0
   requires: format > 0
   requires: channels > 0
@@ -2247,8 +2270,35 @@ pub fn sdl3_open_audio_playback_stream(lib: &Sdl3Library, format: Int, channels:
     sdl3_write_u32_le(&mut slot, 4, channels);
     sdl3_write_u32_le(&mut slot, 8, freq);
     let f = lib.p_open_audio_device_stream as fn(Int, *UInt8, Int, Int) -> Int;
-    return f(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, slot.as_mut_ptr(), 0, 0);
+    return f(devid, slot.as_mut_ptr(), 0, 0);
   }
+}
+
+/// SDL_OpenAudioDeviceStream(DEFAULT_PLAYBACK, ...) -> push stream handle
+/// (0 on failure; see the error string).  Requires SDL_INIT_AUDIO.
+/// Complexity: O(device open).
+pub fn sdl3_open_audio_playback_stream(lib: &Sdl3Library, format: Int, channels: Int, freq: Int) -> Int
+  requires: lib.handle != 0
+  requires: format > 0
+  requires: channels > 0
+  requires: freq > 0
+{
+  return sdl3_open_device_stream(lib, SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, format, channels, freq);
+}
+
+/// SDL_OpenAudioDeviceStream(DEFAULT_RECORDING, ...) -> pull (capture)
+/// stream handle: resume it, then drain PCM with
+/// sdl3_get_audio_stream_data.  Returns 0 when no recording device exists
+/// or access is denied (mic privacy) -- callers treat that as SKIP.
+/// Requires SDL_INIT_AUDIO.
+/// Complexity: O(device open).
+pub fn sdl3_open_audio_recording_stream(lib: &Sdl3Library, format: Int, channels: Int, freq: Int) -> Int
+  requires: lib.handle != 0
+  requires: format > 0
+  requires: channels > 0
+  requires: freq > 0
+{
+  return sdl3_open_device_stream(lib, SDL_AUDIO_DEVICE_DEFAULT_RECORDING, format, channels, freq);
 }
 
 /// SDL_PutAudioStreamData(stream, buf, len): queue `len` bytes of
@@ -2380,4 +2430,100 @@ pub fn sdl3_event_wheel_mouse_y(ev: &Vec[UInt8]) -> Float64
   requires: ev.len() >= 44
 {
   return sdl3_f32_from_bits(sdl3_read_u32_at(ev, 40));
+}
+
+// =========================================================================
+// 0.13.0: capture streams + stream query (default recording device)
+//
+// SDL_OpenAudioDeviceStream with SDL_AUDIO_DEVICE_DEFAULT_RECORDING and a
+// NULL callback gives a PULL stream: resume it and drain converted PCM with
+// SDL_GetAudioStreamData into an XIOM-owned buffer.  SDL_GetAudioStreamFormat
+// fills two SDL_AudioSpecs (12 bytes each: format u32 @0, channels i32 @4,
+// freq i32 @8); for a recording stream the APP side is the output (dst),
+// for a playback stream it is the input (src).  SDL_GetAudioStreamAvailable
+// reports readable converted bytes; SDL_ClearAudioStream drops queued data.
+// =========================================================================
+
+/// SDL_GetAudioStreamData(stream, buf, len) -> bytes read (>= 0) or -1 on
+/// failure.  SDL writes into the XIOM-owned buffer (read direction); `len`
+/// must be <= buf.len().
+/// Complexity: O(len).
+pub fn sdl3_get_audio_stream_data(lib: &Sdl3Library, stream: Int, buf: &mut Vec[UInt8], len: Int) -> Int
+  requires: lib.handle != 0
+  requires: stream != 0
+  requires: len > 0
+  requires: buf.len() >= len
+{
+  unsafe {
+    let f = lib.p_get_audio_stream_data as fn(Int, *UInt8, Int) -> Int32;
+    return f(stream, buf.as_mut_ptr(), len) as Int;
+  }
+}
+
+/// SDL_GetAudioStreamAvailable -> converted bytes currently readable
+/// (>= 0) or -1 on failure.
+/// Complexity: O(1).
+pub fn sdl3_get_audio_stream_available(lib: &Sdl3Library, stream: Int) -> Int
+  requires: lib.handle != 0
+  requires: stream != 0
+{
+  unsafe {
+    let f = lib.p_get_audio_stream_available as fn(Int) -> Int32;
+    return f(stream) as Int;
+  }
+}
+
+/// SDL_ClearAudioStream -> bool (drops every queued/available byte).
+/// Complexity: O(1).
+pub fn sdl3_clear_audio_stream(lib: &Sdl3Library, stream: Int) -> Bool
+  requires: lib.handle != 0
+  requires: stream != 0
+{
+  unsafe {
+    let f = lib.p_clear_audio_stream as fn(Int) -> UInt8;
+    return (f(stream) as Int) != 0;
+  }
+}
+
+/// Stream format pair read back from SDL_GetAudioStreamFormat.  For a
+/// playback stream src is the app side; for a recording stream dst is the
+/// app side (the requested spec either way).
+pub type Sdl3AudioStreamFormat = {
+  ok: Bool;
+  src_format: Int;
+  src_channels: Int;
+  src_freq: Int;
+  dst_format: Int;
+  dst_channels: Int;
+  dst_freq: Int;
+}
+
+/// SDL_GetAudioStreamFormat -> Sdl3AudioStreamFormat (ok=false on failure;
+/// see sdl3_get_error).  The two SDL_AudioSpecs are filled into TWO
+/// separate owned 12-byte slots -- pointer arithmetic (`base + 12`) is
+/// miscompiled on v0.64.3 and yields wild addresses (B-17), so this must
+/// NOT pass one slot with an offset.
+/// Complexity: O(1).
+pub fn sdl3_get_audio_stream_format(lib: &Sdl3Library, stream: Int) -> Sdl3AudioStreamFormat
+  requires: lib.handle != 0
+  requires: stream != 0
+{
+  unsafe {
+    var srcslot = sdl3_slot(12);
+    var dstslot = sdl3_slot(12);
+    let f = lib.p_get_audio_stream_format as fn(Int, *UInt8, *UInt8) -> UInt8;
+    let ok = (f(stream, srcslot.as_mut_ptr(), dstslot.as_mut_ptr()) as Int) != 0;
+    if !ok {
+      return Sdl3AudioStreamFormat{ ok: false; src_format: 0; src_channels: 0; src_freq: 0; dst_format: 0; dst_channels: 0; dst_freq: 0 };
+    }
+    return Sdl3AudioStreamFormat{
+      ok: true,
+      src_format: sdl3_read_u32_at(&srcslot, 0),
+      src_channels: sdl3_read_u32_at(&srcslot, 4),
+      src_freq: sdl3_read_u32_at(&srcslot, 8),
+      dst_format: sdl3_read_u32_at(&dstslot, 0),
+      dst_channels: sdl3_read_u32_at(&dstslot, 4),
+      dst_freq: sdl3_read_u32_at(&dstslot, 8),
+    };
+  }
 }
