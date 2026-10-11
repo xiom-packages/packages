@@ -59,6 +59,14 @@ running). Check `git log -1 --format=%h %s` before starting.
   package caught 12 total today. `glfw_set_cursor_pos` is a silent no-op on hidden unfocused windows
   (cursor readbacks can go negative -- that is what killed glfw's suite run pre-fix).
 
+**UPDATE 2026-10-11 19:28Z (adds one prerequisite to the 18:45Z PENDING GATE):**
+- `xiom.jolt` has no registry scope: it is absent from the live index (fresh fetch, 496 packages; none
+  of the 17 grandfathered pre-baseline names are scoped). Ops scope ask filed
+  (`REL-20261011-1928-packages`); when the m258+ archive verifies the port, confirm the scope is LIVE
+  before the publish step. No repo-side allowlist append is needed -- jolt is already a pre-baseline
+  entry in `.github/publish-allowlist.txt`. All other published names verified live; publish pipeline
+  (through eco-v0.1.159) green.
+
 **STATE AT 2026-10-11 11:10Z (history -- superseded by the 18:45Z block above):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
