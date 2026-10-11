@@ -58,11 +58,20 @@ clone: stage ONLY your own item files). The two working rules are in
   (`799fceaa`). The lane branch was fast-forwarded `7869df27 -> 470e13f3`
   carrying all of it; post-merge lane verification: glfw 37/37 x2 + absent
   3/3, sdl3 24/24 x2; reply item `REL-20261011-1113-bindings`.**
-  **Still in the queue (publish pending)**: batch 34 stb 0.2.0 (ops
-  allowlist appends ann+stb, 509->511, `REL-20261010-2301-packages`),
-  batch 35 jolt 0.2.0 (parked on the m258 archive); batches 42/43/44
-  sdl3 0.5.0/0.6.0/0.7.0 (`REL-20261011-1121/1152/1157-bindings`);
+  **Still in the queue (publish pending)**: batch 35 jolt 0.2.0 (parked on
+  the m258 archive); batches 42/43/44 sdl3 0.5.0/0.6.0/0.7.0
+  (`REL-20261011-1121/1152/1157-bindings`; 0.5.0 since published in
+  eco-v0.1.140); batch 45 sdl3 0.8.0 (`REL-20261011-1204-bindings`);
   batches 39/40/41 wrapped on main (`470e13f3`).
+- **Latest batch 45 (2026-10-11)**: `xiom.sdl3` **0.8.0 -- display blit**
+  (engine ask `REL-20261011-1153-engine` delivered): `sdl3_update_texture`
+  (RGBA8 from an XIOM Vec; SDL reads our buffer), `sdl3_render_texture`
+  (SDL3 RenderTexture), `sdl3_set_render_vsync`; resource loader now 22
+  symbols. Engine done-bar met: `examples/demo_sdl3.xi` probe green on
+  this box (64x64 checker -> update/vsync/blit/present all true ->
+  clean shutdown). Ports: **44/44 x2** + absent **4/4 x2**. Reply to
+  engine `REL-20261011-1204-bindings-2` (covers the -1159 status note).
+  feat `3d7f6f3e` + record `a96877d5`.
 - **Latest batch 44 (2026-10-11)**: `xiom.sdl3` **0.7.0 -- filesystem
   basics**: base/pref/current-dir paths (BasePath SDL-owned; others
   SDL_free'd after copy), create/remove directory, `SDL_GetPathInfo`
@@ -223,12 +232,13 @@ clone: stage ONLY your own item files). The two working rules are in
    **DONE** (batch 40; engine build orders #1-#3 delivered).
 3. **SDL3 full-coverage pass** (source `E:\repos\SDL3` @ `release-3.2.10`;
    runtime/pin `release-3.4.8`): **0.4.0 decoding + 0.5.0 filter/watch +
-   0.6.0 displays/keyboard + 0.7.0 filesystem shipped** (batches
-   41-44). Continue: audio device enumeration, joystick, texture
-   updates/vsync (ROADMAP Phase 2). Keep SKIP-when-absent; the absent
-   shape needs the VulkanSDK dir filtered from PATH on this host. Apply
-   the 1-arg handler discipline (B-15) to any new callback binding;
-   announce any destructive window per the ops hygiene item.
+   0.6.0 displays/keyboard + 0.7.0 filesystem + 0.8.0 display blit
+   shipped** (batches 41-45). Continue: audio device enumeration,
+   joystick, typed mouse/window events for the engine input layer
+   (ROADMAP Phase 2). Keep SKIP-when-absent; the absent shape needs the
+   VulkanSDK dir filtered from PATH on this host. Apply the 1-arg handler
+   discipline (B-15) to any new callback binding; announce any destructive
+   window per the ops hygiene item.
 4. **Publish watch**: batch 34 stb publish once the ops appends land; then
    batches 39/40 (and 35 jolt when the m258 archive arrives). Note eco
    versions in the relay area.
