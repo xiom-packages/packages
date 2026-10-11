@@ -23,7 +23,7 @@ test vectors). This applies to BOTH lanes -- native ports and FFI bindings.
 
 Port/derive only from permissive sources:
 
-- OK: MIT, Apache-2.0, BSD-2/3-clause, ISC, zlib, public domain / CC0,
+- OK: MIT, Apache-2.0, BSD-2/3-clause, ISC, zlib, X11, public domain / CC0,
   Unicode License (data), RFCs and openly published test vectors.
 - Reference-only (do NOT copy code or structure): MPL-2.0, LGPL, EPL.
 - Never: GPL, AGPL, SSPL, Elastic License, or anything with unclear provenance.
