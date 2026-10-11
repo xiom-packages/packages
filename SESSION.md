@@ -39,6 +39,15 @@ running). Check `git log -1 --format=%h %s` before starting.
   Directive relayed to bindings (`REL-20261011-2131-packages`); codification ask with a paste-ready
   block for their session doc `REL-20261011-2141-packages`; lane gates **G6** (upstream-first +
   PROVENANCE.md) / **G7** (coverage = 100%) added to `docs/BINDINGS-LANE.md`.
+- **SDK100 wave-1 merged + staged (2026-10-11 22:45Z)**: bindings tip `a4066826` merged (no
+  conflicts; 224 files, +94k) -- six new shader-toolchain packages (spirv-tools/cross/reflect/
+  glslang/slang 0.1.0 + dxc 0.3.0; oracle-counted 100% coverage, PROVENANCE.md) + the full Vulkan
+  SDK 1.4.350 surface on xiom.vulkan (845 cmds + consts + struct-meta; stays **0.5.0** -- publish
+  skips it until its own owner-coordinated bump). Validate **529/0** post-merge; guard 511/494/17/0
+  unchanged. Five new names need registry scopes (`REL-20261011-2234-packages` filed with ops:
+  check/stage) + allowlist append at wrap; dxc already allowlisted. **x2 runs deferred to the
+  v0.64.4 pin** (verified == publish-build integrity, same rule as jolt) and run with the gate.
+  Bus acks: `REL-20261011-2231-bindings` (batch), `REL-20261011-2155-bindings` (vulkan fold).
 
 **STATE AT 2026-10-11 18:45Z (CLEAN HANDOFF -- batches 38-61 ALL delivered; one gate left; supersedes the 11:10Z block below):**
 - **Batch lane drained.** Every bindings item from today is delivered end-to-end (merge -> validate
