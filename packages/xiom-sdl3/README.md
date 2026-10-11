@@ -10,7 +10,9 @@ is not installed.
 > (playback/recording device enumeration + device names + current audio
 > driver; joystick enumeration + name-for-id; `SDL_PIXELFORMAT_ABGR8888`
 > exported with the 8888 naming note -- engine ask `REL-20261011-1321-engine`).
-> Suite **48/48 x2** with the official SDL 3.4.8 DLL + absent 4/4 x2.
+> Native **48/48 x2** with the official SDL 3.4.8 DLL + absent **4/4 x2**
+> (v0.64.3; wasapi 9 playback / 4 recording devices here). 0.9.0 shipped in
+> `eco-v0.1.145`; 0.10.0 published in `eco-v0.1.146` (sha256 `6c465084...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
