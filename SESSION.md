@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (updated 11:50Z -- batches 38-42 delivered; gate (1) CLEARED; three native fixes; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-11 11:10Z (updated 12:00Z -- batches 38-42 + the btree 0.1.1 re-extract delivered; gate (1) CLEARED; supersedes the 11:00Z block below):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -48,11 +48,19 @@ running). Check `git log -1 --format=%h %s` before starting.
   (`SDL_SetEventFilter`/`SDL_AddEventWatch` over fixed dispatchers + handler registries);
   native **27/27 x2** + absent **4/4 x2**; `eco-v0.1.140` sha256 `a350dd46...` @11:46:56Z;
   bus item fixed. (B-14/B-15 findings filed by bindings.)
+- **`xiom.btree` 0.1.1 PUBLISHED** (orbitdb item `REL-20261010-1550-orbitdb-9`, unblocked by the
+  upstream order-3 fix): verbatim re-carve of the B-TREE region at ORBITDB `c017165` (feat
+  `5be4adeb`; brings the M1.1 `NodeStore` + Option-guarded predecessor/successor +
+  `fill_child` keyless pass-through); suite re-expanded to **23/23 x2** (new order-3
+  regression check) + churn matrix re-expanded to **orders 3/4/5/6 x 20k@4096** (the former
+  reproducer `-Order 3 -Ops 2000 -N 16 -Seed 777` now GREEN; order-3 remaining=1353/1022 by
+  seed); `eco-v0.1.141` sha256 `ba4b1782...` @11:56:33Z; SPEC 2.3 rewritten (defect fixed),
+  README/ROADMAP synced; item fixed -- ORBITDB's two-way consumer probe is their follow-up.
 - Compliance noted from the ops hygiene broadcast (`REL-20261011-1134-ops`, to all): shared
   toolchain homes stay read-only for this lane; suites run from package-local scratch; PATH
   filtering for absent shapes is non-destructive.
-- Validate **524/0**; guard **511/494/17/0**. Session tally: **56 eco releases**
-  (`eco-v0.1.86` -> `eco-v0.1.140`).
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **57 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.141`).
 - **PENDING GATE (only one left):** **m258 archive** -- none yet (`gh release list -R
   xiom-lang/xiom`: v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never
   publish it unverified. (PULSE SQL-migrations design `REL-20261011-1137-pulse` acked for the
