@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-11T15:08:37Z",
+    "updated":  "2026-10-11T15:18:16Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -178,10 +178,10 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.ann",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "ANN index surface: AnnIndexKind/AnnParams with stable on-disk codes, the exact flat-scan oracle, and a multi-layer HNSW graph over flat parallel arrays",
+                         "description":  "ANN index surface: AnnIndexKind/AnnParams with stable on-disk codes, the exact flat-scan oracle, and a multi-layer HNSW graph over flat parallel arrays (P-a generous level 0, codec v3)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
@@ -192,7 +192,7 @@
                                                   "name":  "xiom.vectors"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ann/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ann/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "ann.xi",
                                               "hnsw.xi",
