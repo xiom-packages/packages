@@ -85,6 +85,11 @@ slots (finding B-11 family avoidance); no malloc/free from XIOM. There is
 no SKIP path -- the vendored sources always compile in, so the suite runs
 real imports on every platform.
 
+The consumer-facing interface for the engine asset pipeline is summarized
+as a stability contract in `CONTRACT.md` (import/release semantics with the
+4-slot registry and reusable handles, accessor behavior, deterministic
+error surface, single-threaded guarantee, and the frozen subset).
+
 ## 4. Test contract
 
 Suite: `tests/test_conformance.xi` -- 16 checks: version pin (major 6),
