@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.3` -- generated 2026-10-11T17:51:57Z.
+Toolchain pin: `v0.64.3` -- generated 2026-10-11T17:59:17Z.
 
 ## Summary
 
@@ -333,7 +333,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.blas | xiom-blas | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.bolt | xiom-bolt | incubating | tests/test_conformance.xi | pass 18/18 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.boosting | xiom-boosting | incubating | tests/test_conformance.xi | pass 20/20 | a3696e55 | False | publish pending: next scope delta |
-| xiom.box2d | xiom-box2d | incubating | tests/test_conformance.xi | pass 5/5 | ef856577 | False | published in eco-v0.1.123 (2026-10-09) |
+| xiom.box2d | xiom-box2d | incubating | tests/test_conformance.xi | pass 7/7 | 0e4604f7 | False | publish pending: bindings batch 59 (eco-v0.1.157) |
 | xiom.btree | xiom-btree | incubating | tests/test_conformance.xi | pass 23/23 | 5be4adeb | False | published in eco-v0.1.141 (2026-10-11; 0.1.0 in eco-v0.1.121) |
 | xiom.bullet | xiom-bullet | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.cache | xiom-cache | incubating | tests/test_conformance.xi | pass 26/26 | 23b01b82 | False | publish pending: next scope delta |
@@ -409,7 +409,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.i2p | xiom-i2p | incubating | tests/test_conformance.xi | pass 24/24 | 76e49956 | False | publish pending: next scope delta |
 | xiom.image | xiom-image | incubating | tests/test_conformance.xi | pass 24/24 | 6f07e57b | False | publish pending: next scope delta |
 | xiom.imaging | xiom-imaging | incubating | tests/test_conformance.xi | pass 22/22 | 2d7a1b4c | False | publish pending: next scope delta |
-| xiom.imgui | xiom-imgui | incubating | tests/test_conformance.xi | pass 7/7 | 05c30982 | False | publish pending: bindings batch 58 (eco-v0.1.156) |
+| xiom.imgui | xiom-imgui | incubating | tests/test_conformance.xi | pass 7/7 | 05c30982 | False | published in eco-v0.1.156 (2026-10-11; 0.2.0 in eco-v0.1.123) |
 | xiom.inference | xiom-inference | incubating | tests/test_conformance.xi | pass 28/28 | 27a0a7ee | False | publish pending: next scope delta |
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb2 | False | publish pending: next scope delta |
@@ -475,7 +475,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.openssl | xiom-openssl | incubating | tests/test_conformance.xi | pass 4/4 | ec7a7e2e | False | publish pending: bindings batch 20 (eco-v0.1.119) |
 | xiom.optimizer-fw | xiom-optimizer-fw | incubating | tests/test_conformance.xi | pass 25/25 | ecf76d12 | False | publish pending: next scope delta |
 | xiom.oracle | xiom-oracle | incubating | tests/test_conformance.xi | pass 22/22 | f487102b | False | publish pending: owner scope decision (parallel-lane implementation) |
-| xiom.ozz | xiom-ozz | incubating | tests/test_conformance.xi | pass 5/5 | 1b1389e2 | False | publish pending: bindings batch 57 (eco-v0.1.156) |
+| xiom.ozz | xiom-ozz | incubating | tests/test_conformance.xi | pass 5/5 | 1b1389e2 | False | published in eco-v0.1.156 (2026-10-11; 0.2.0 in eco-v0.1.109) |
 | xiom.pandas | xiom-pandas | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.parquet | xiom-parquet | incubating | tests/test_conformance.xi | pass 20/20 | 4ff075bf | False | publish pending: next scope delta |
 | xiom.parser-fw | xiom-parser-fw | incubating | tests/test_conformance.xi | pass 27/27 | 1f0dff6d | False | category harmonization patch bump (registry metadata) |
