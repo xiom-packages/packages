@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-12T18:57:44Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-12T19:26:48Z.
 
 ## Summary
 
-- packages tracked: 532
-- incubating: 251
+- packages tracked: 533
+- incubating: 252
 - ported: 1
 - stable: 280
 - publish enabled: 0
@@ -371,6 +371,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.docker | xiom-docker | incubating | tests/test_conformance.xi | pass 26/26 | ee890e25 | False | publish pending: next scope delta |
 | xiom.docx | xiom-docx | incubating | tests/test_conformance.xi | pass 27/27 | f0f7743d | False | category harmonization patch bump (registry metadata) |
 | xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | pass 152/152 | 88b51d96 | False | port done 2026-10-09 (WAL reconciled to xiom.wal); not on the publish scope |
+| xiom.dx12 | xiom-dx12 | incubating | tests/test_conformance.xi | pass 5/5 | b8354f82 | False |  |
 | xiom.dxc | xiom-dxc | incubating | tests/test_conformance.xi | pass 20/20 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12) |
 | xiom.dynamo | xiom-dynamo | incubating | tests/test_conformance.xi | pass 21/21 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.eigen | xiom-eigen | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -515,7 +516,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.shaderc | xiom-shaderc | incubating | tests/test_conformance.xi | pass 17/17 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.slang | xiom-slang | incubating | tests/test_conformance.xi | pass 20/20 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.smartcontract | xiom-smartcontract | incubating | tests/test_conformance.xi | pass 22/22 | 5f469ee5 | False | publish pending: next scope delta |
-| xiom.spirv.headers | xiom-spirv-headers | incubating | tests/test_conformance.xi | pass 10/10 | 674dea9d | False | not allowlisted: SDK100 program slice B4; coordinator merge + allowlist pending |
+| xiom.spirv.headers | xiom-spirv-headers | incubating | tests/test_conformance.xi | pass 10/10 | 674dea9d | False | published in eco-v0.1.165 (2026-10-12) |
 | xiom.spirv-cross | xiom-spirv-cross | incubating | tests/test_conformance.xi | pass 20/20 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.spirv-reflect | xiom-spirv-reflect | incubating | tests/test_conformance.xi | pass 40/40 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.spirv-tools | xiom-spirv-tools | incubating | tests/test_conformance.xi | pass 39/39 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
