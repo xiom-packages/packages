@@ -9,7 +9,9 @@ unblocked (4/4 x2) and live in `eco-v0.1.161` with vma 0.3.0 + dxc 0.3.0;
 SDK100 publishes live through `eco-v0.1.162` (eight names + sdl3 0.17.0;
 spirv-headers held); compiler reply filed (`f8fe214`); **glfw 0.6.0
 direct-handoff lift BLOCKED -- new defect B-22 (`REL-20261012-1630-bindings`),
-glfw reverted to 0.5.0** -- CHECKPOINT HANDOFF 2026-10-12 16:28Z** (this session ran 17:19Z-18:45Z and shipped
+glfw reverted to 0.5.0**; **OpenGL 0.4.0 shipped (656/656 core-4.6, x2);
+DX12 groundwork started (DirectX-Headers pinned)** -- CHECKPOINT HANDOFF
+2026-10-12 17:50Z** (this session ran 17:19Z-18:45Z and shipped
 batches 56-61: meshopt 0.2.0 vendored, ozz 0.3.0 clip pipeline, imgui 0.3.0
 context handles, box2d 0.3.0 joint motors, meshopt 0.3.0 owned-buffer
 wrappers, meshopt 0.4.0 codec families, plus the assimp consumer
@@ -124,6 +126,24 @@ positions). **glfw reverted to 0.5.0 unchanged** (lift edits + version
 bump rolled back; the worktree is clean). The lift re-runs when the
 unwrap fix ships; sdl3 shape widening stays open (item 0b). Note for
 `-1348-engine`/-1417: unchanged otherwise.
+
+**UPDATE 2026-10-12 17:50Z (graphics sweep -- user directive: Vulkan/DX12/
+OpenGL 100%)**: Vulkan = 100% + working + published (0.6.0,
+`eco-v0.1.163`; engine GPU tier green on it: probe_rhi_vulkan 8 checks +
+demo_vk). OpenGL = **0.4.0 SHIPPED** (`bd402f55`, record `c2a7884f`): full
+generated core-profile 4.6 surface -- 656 commands + 1358 enums from
+`KhronosGroup/OpenGL-Registry` @ `6af574a1` (PROVENANCE + docs/COVERAGE +
+tools/gen_gl.py); live session resolver (`opengl_session_open`);
+suite **21/21 x2** (`surface: 656 core commands resolved (unresolved=0)`,
+buffer roundtrip, shader compile on GL 4.6.0 NVIDIA 616.92); publish
+requested (`REL-20261012-1750-bindings`). Extension commands documented
+out of scope for 0.4.0. DX12 = STARTED: `microsoft/DirectX-Headers` cloned
++ pinned (`461ef513`; stable-tag reference `v1.619.5`; `include/directx/
+d3d12.h` 1,692,148 B, SHA256 `AFA193D3...`); CLEANUP row added; next batch
+= `xiom.dx12` skeleton (COM/vtable core, D3D12CreateDevice/DXGI probe,
+SKIP-when-absent) + generator/coverage plan. Engine items answered
+(`REL-20261012-1750-bindings-2`: 0.6.0 live + mini-RHI interop direction:
+caller surface accepted, picked-physdev accessor added).
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
@@ -778,6 +798,18 @@ reply is filed; the WORKAROUND LIFT is the next batch).
    covered). The 0.17.0 bump has wrapped. Same B-22 caveat if it needs
    param values crossing to C. Suites: the 59-check conformance + the
    full surface under tests/.
+   (c) **DX12 (graphics drive)**: `microsoft/DirectX-Headers` is cloned +
+   pinned (`461ef513`; stable-tag ref `v1.619.5`; `include/directx/d3d12.h`
+   SHA256 `AFA193D3...`). Build `xiom.dx12` 0.1.0: D3D12 core interfaces
+   via COM/vtable (dxc 0.3.0 precedent: vtable-offset calls or a small C
+   bridge), free functions (D3D12CreateDevice/D3D12SerializeRootSignature/
+   D3D12GetDebugInterface, loaded from d3d12.dll/dxgi.dll at runtime,
+   SKIP-when-absent), DXGI factory/swapchain path, enums/structs; probe =
+   device creation (GPU or WARP) on this box; coverage manifest from the
+   headers. Agility runtime only as an optional pinned test-runtime. Then
+   GLES/EGL via ANGLE (libGLESv2/libEGL + eglGetProcAddress) as the
+   follow-on wave; WGL extension wrappers next for opengl. Keep the
+   upstream-first pins + PROVENANCE + coverage manifest per package.
 
 1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
    BINDINGS-SESSION.md (STATUS + RESUME HERE). Then check the relay FIRST:
