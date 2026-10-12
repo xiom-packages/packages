@@ -38,6 +38,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   38294446110 green 3m48s; live sha256 `a77f364a` @19:01:29Z). All eight new names + sdl3 0.17.0 +
   vma 0.3.0 + dxc 0.3.0 + jolt 0.2.0 + vulkan 0.6.0 are now live. Bus: `-1855-ops` fixed, `-2305`
   (wave-2) fixed. Tally: **81 eco releases**.
+- **Batch 68 staged: `xiom.dx12` 0.1.0 (NEW name; DirectX-12 foundation)** -- merge `b8354f82` (tip
+  `c4bd0df0`); validate 533/0; port x2 on v0.64.4 (5/5: D3D12CreateDevice `node_count=1` +
+  command-allocator out-param roundtrip on the RTX 3070 Ti); record `18cd040e`. **Publish HELD on
+  the ops scope** (`REL-20261012-1916-packages`; new name): on confirmation -> allowlist append +
+  wrap + eco tag + publish. Upstream-first: DirectX-Headers pinned `461ef513`; full ID3D12 surface
+  is the 0.2.0 wave (roadmap).
 - **Ops clobber incident (`REL-20261012-1852-ops`, to-all, high)**: installer/extract wipes non-archive
   dirs in the target home; rules now = lane-local dirs for installs/extracts, `tools/home-snapshot.ps1`
   before risky windows, restore-from-snapshot after a clobber. Packages ran no install/extract today;
