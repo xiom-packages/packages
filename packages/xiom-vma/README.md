@@ -6,8 +6,8 @@ test binary with `--c-source`; the Vulkan loader (`vulkan-1.dll`) is loaded
 at runtime. No SDK, no import library.
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
-> v0.64.2; 5/5 x2, live RTX 3070 Ti probe). Published in `eco-v0.1.124`
-> (sha256 `d12f5a5c...`). **Lane:** bindings
+> v0.64.4; 5/5 x2, live RTX 3070 Ti probe). 0.2.0 published in `eco-v0.1.124`;
+> **0.3.0 published in `eco-v0.1.161`** (sha256 `a1cc09e2...`). **Lane:** bindings
 > (`keywords: ["binding"]`).
 
 ## Quick start
