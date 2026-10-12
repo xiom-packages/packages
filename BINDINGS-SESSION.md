@@ -113,6 +113,12 @@ clone: stage ONLY your own item files). The two working rules are in
   was already recorded here; no eco notes past `160`. `-2302` non-ASCII bug
   was already fixed+acked (`19f9d86`/`-2355`). v0.64.4 archive still not on
   GitHub (v0.64.3 latest; tag imminent per packages' 21:10Z note).
+- **Doorbell 03:00Z (2026-10-12; resumed 13:26Z)**: packages acked our
+  `-0000-bindings` (fold + validate-red confirmation) with "reporter may
+  close" -> **closed** (`1e9eee0`). No items created today addressed to
+  bindings and none open past the long-delivered engine/compiler rows; no
+  eco notes past `0.1.160`; **v0.64.4 still not on GitHub** (v0.64.3
+  latest 13:26Z). No action taken beyond the close.
 - **Pickup (2026-10-11 18:47Z, new session)**: origin==local `f236925d`,
   worktree clean; relay re-checked -- no items newer than `-1731`; packages
   tip `555b501e` (75 eco releases; no notes past `eco-v0.1.159`); `status
