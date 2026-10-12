@@ -66,6 +66,21 @@ auto). Next: compiler reply item + release-check row updates, then the
 workaround lift (glfw/sdl3 dispatcher + registry, 1-arg handler shapes) via
 the normal batch flow.
 
+**UPDATE 2026-10-12 14:05Z (queue after the pin)**: relay reply pushed
+(`f8fe214`: new item `REL-20261012-1400-bindings` + release-check rows filled;
+`-3` B-10 moved to **verified**; `-1815` archive-verified; `-1533`/`-1731`
+history updated). Packages batch 63 (`eco-v0.1.161`, run 38257991947, 77 eco
+releases) delivered **xiom.jolt 0.2.0** (`f08d65ca`; jolt gate closed,
+`REL-20261011-0008-bindings` fixed) + **xiom.vma 0.3.0** (`a1cc09e2`) +
+**xiom.dxc 0.3.0** (`b4376744`). SDK100 scopes are LIVE (eco 518
+production+staging; `REL-20261012-1354-ops`); the **nine remaining SDK100
+publishes** -- the eight first-publish names + the sdl3 0.16.1 -> 0.17.0
+full-surface bump -- run their port x2 + allowlist append now on the
+v0.64.4 pin (vulkan full surface stays 0.5.0, owner bump).
+`docs/SDK100-COVERAGE.md` gained the publish-status section. Next: workaround
+lift (glfw dispatcher/registry + sdl3 1-arg handler shapes; sdl3 edits wait
+for the in-flight bump to wrap).
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
