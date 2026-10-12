@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-12T23:02:10Z",
+    "updated":  "2026-10-13T00:03:22Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1956,23 +1956,32 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.dx12",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Direct3D 12 bindings for XIOM (runtime d3d12.dll; COM/vtable ABI pinned from microsoft/DirectX-Headers; full d3d12.h core surface: 90 interfaces / 355 generated method wrappers / 1162 enum consts / 9 free functions; probe + SKIP semantics; DXGI next)",
+                         "description":  "Direct3D 12 bindings for XIOM (runtime d3d12.dll + dxgi.dll; COM/vtable ABI pinned from microsoft/DirectX-Headers; d3d12: 358 method wrappers + 9 free functions; DXGI: 43 interfaces / 163 wrappers / 6 free functions; d3d12video: 30 interfaces / 190 wrappers; struct metadata: 434 shapes / 2238 size+offset consts; live device/WARP/swapchain/video chains; probe + SKIP semantics)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dx12/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dx12/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "consts_1.xi",
                                               "consts_2.xi",
                                               "consts_3.xi",
                                               "consts_4.xi",
                                               "consts_5.xi",
+                                              "dxgi.xi",
+                                              "dxgi_consts_1.xi",
+                                              "dxgi_functions.xi",
+                                              "dxgi_iface_01.xi",
+                                              "dxgi_iface_02.xi",
+                                              "dxgi_iface_03.xi",
+                                              "dxgi_iface_04.xi",
+                                              "dxgi_iface_05.xi",
+                                              "dxgi_iface_06.xi",
                                               "functions.xi",
                                               "iface_01.xi",
                                               "iface_02.xi",
@@ -1986,6 +1995,21 @@
                                               "iface_10.xi",
                                               "iface_11.xi",
                                               "iface_12.xi",
+                                              "structs.xi",
+                                              "struct_meta_1.xi",
+                                              "struct_meta_2.xi",
+                                              "struct_meta_3.xi",
+                                              "struct_meta_4.xi",
+                                              "struct_meta_5.xi",
+                                              "video.xi",
+                                              "video_consts_1.xi",
+                                              "video_consts_2.xi",
+                                              "video_consts_3.xi",
+                                              "video_iface_01.xi",
+                                              "video_iface_02.xi",
+                                              "video_iface_03.xi",
+                                              "video_iface_04.xi",
+                                              "video_structs.xi",
                                               "dx12.xi",
                                               "package.xi"
                                           ]
