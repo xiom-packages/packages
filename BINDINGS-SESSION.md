@@ -168,6 +168,19 @@ byte-identical to the official archive -- bindings note filed on
 windows pass (sdl3 blocked while `-1403-packages` is open). DX12 wave
 started (foundation build next).
 
+**UPDATE 2026-10-12 19:30Z (DX12 foundation shipped)**: `xiom.dx12` 0.1.0
+(`b353ed9c`, record `716b375f`): runtime `d3d12.dll` + hand-rolled COM
+bridge; ABI pinned from `microsoft/DirectX-Headers` @ `461ef513`
+(`IID_ID3D12Device`, vtable slots 7/9; PROVENANCE + SPEC); probe =
+D3D12CreateDevice + GetNodeCount + CreateCommandAllocator out-param
+roundtrip + Release; suite **5/5 x2** on the RTX 3070 Ti (node_count=1);
+SKIP-when-absent / no-adapter; ABI failures never silent. Publish requested
+(`REL-20261012-1930-bindings`; NEW name -> ops registry scope needed).
+**DX12 status: the foundation is live-working; the 100% surface is the
+0.2.0 wave** (generator from the pinned headers: all `ID3D12*` vtables +
+free functions + enum/struct metadata, DXGI factory/adapters/swapchain +
+WARP fallback, `docs/COVERAGE.md`) -- per the package ROADMAP.
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
@@ -821,18 +834,19 @@ reply is filed; the WORKAROUND LIFT is the next batch).
    covered). The 0.17.0 bump has wrapped. Same B-22 caveat if it needs
    param values crossing to C. Suites: the 59-check conformance + the
    full surface under tests/.
-   (c) **DX12 (graphics drive)**: `microsoft/DirectX-Headers` is cloned +
-   pinned (`461ef513`; stable-tag ref `v1.619.5`; `include/directx/d3d12.h`
-   SHA256 `AFA193D3...`). Build `xiom.dx12` 0.1.0: D3D12 core interfaces
-   via COM/vtable (dxc 0.3.0 precedent: vtable-offset calls or a small C
-   bridge), free functions (D3D12CreateDevice/D3D12SerializeRootSignature/
-   D3D12GetDebugInterface, loaded from d3d12.dll/dxgi.dll at runtime,
-   SKIP-when-absent), DXGI factory/swapchain path, enums/structs; probe =
-   device creation (GPU or WARP) on this box; coverage manifest from the
-   headers. Agility runtime only as an optional pinned test-runtime. Then
-   GLES/EGL via ANGLE (libGLESv2/libEGL + eglGetProcAddress) as the
-   follow-on wave; WGL extension wrappers next for opengl. Keep the
-   upstream-first pins + PROVENANCE + coverage manifest per package.
+   (c) **DX12 (graphics drive)**: 0.1.0 foundation DONE (`b353ed9c`:
+   runtime d3d12.dll + COM/vtable ABI from the pinned DirectX-Headers
+   `461ef513`; device + allocator roundtrip; 5/5 x2; publish requested
+   `REL-20261012-1930-bindings`). NEXT = **0.2.0 wave** per the package
+   ROADMAP: generator `tools/gen_dx12.py` from the pinned headers (all
+   `ID3D12*` interfaces -> vtable-slot wrappers; free functions incl.
+   D3D12SerializeRootSignature/D3D12GetDebugInterface; enum/struct
+   metadata like the vulkan struct-meta), DXGI (CreateDXGIFactory2,
+   adapters, WARP fallback, BGRA8/FIFO swapchain), coverage manifest
+   (oracle == bound == resolved). Then GLES/EGL via ANGLE
+   (libGLESv2/libEGL + eglGetProcAddress) as the follow-on wave; WGL
+   extension wrappers next for opengl. Keep the upstream-first pins +
+   PROVENANCE + coverage manifest per package.
 
 1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
    BINDINGS-SESSION.md (STATUS + RESUME HERE). Then check the relay FIRST:
