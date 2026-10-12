@@ -1,0 +1,60 @@
+{
+ "command_skips": [],
+ "const_skips": [],
+ "core_command_count": 656,
+ "core_enum_count": 1363,
+ "emitted_commands": 656,
+ "emitted_consts": 1358,
+ "features": [
+  "GL_VERSION_1_0",
+  "GL_VERSION_1_1",
+  "GL_VERSION_1_2",
+  "GL_VERSION_1_3",
+  "GL_VERSION_1_4",
+  "GL_VERSION_1_5",
+  "GL_VERSION_2_0",
+  "GL_VERSION_2_1",
+  "GL_VERSION_3_0",
+  "GL_VERSION_3_1",
+  "GL_VERSION_3_2",
+  "GL_VERSION_3_3",
+  "GL_VERSION_4_0",
+  "GL_VERSION_4_1",
+  "GL_VERSION_4_2",
+  "GL_VERSION_4_3",
+  "GL_VERSION_4_4",
+  "GL_VERSION_4_5",
+  "GL_VERSION_4_6"
+ ],
+ "groups": [
+  {
+   "count": 100,
+   "file": "cmds_01.xi"
+  },
+  {
+   "count": 100,
+   "file": "cmds_02.xi"
+  },
+  {
+   "count": 100,
+   "file": "cmds_03.xi"
+  },
+  {
+   "count": 100,
+   "file": "cmds_04.xi"
+  },
+  {
+   "count": 100,
+   "file": "cmds_05.xi"
+  },
+  {
+   "count": 100,
+   "file": "cmds_06.xi"
+  },
+  {
+   "count": 56,
+   "file": "cmds_07.xi"
+  }
+ ],
+ "oracle": "E:\\repos\\OpenGL-Registry\\xml\\gl.xml"
+}

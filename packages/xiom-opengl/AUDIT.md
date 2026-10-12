@@ -1,21 +1,25 @@
 # AUDIT: xiom.opengl
 
-## Status (2026-10-08)
+## Status (2026-10-12)
 
-Loader/probe implementation at 0.2.0. The pre-pilot static-extern wrapper set
+**0.4.0**: full generated core-profile 4.6 surface (656 commands + 1358
+enums from the pinned Khronos registry; `PROVENANCE.md` / `docs/COVERAGE.md`)
+driven by the live-session resolver (`opengl_session_open` + `src/gl_api.xi`);
+suite **21/21 x2** (656/656 core commands resolved, buffer + shader
+roundtrips). Loader/probe implementation at 0.2.0. The pre-pilot static-extern wrapper set
 (`glCreateShader` etc. as `extern "C"`) could not link -- those functions are
 not exported by `opengl32.dll`; it was replaced by the runtime probe and is
 preserved in git history only as reference.
 
 | Item | State |
 |------|-------|
-| Compiler | v0.64.1 |
+| Compiler | v0.64.4 |
 | Pin | soname `opengl32.dll` + symbol set + PFD layout + core-context attribs (`SPEC.md` §2) |
 | Link model | none for OpenGL; the bridge (`src/gl_probe.c`) links only kernel32 and resolves everything via `LoadLibraryA`/`GetProcAddress` (plus `wglGetProcAddress` for context-scoped entry points) |
 | Build | `port.args.json`: `--c-source ${PACKAGE_DIR}/src/gl_probe.c` (no `--link`) |
-| FFI confinement | all `unsafe`/`extern` in the root module `xiom.opengl` (G5); the bridge is plain C with no XIOM unsafe |
+| FFI confinement | hand-written `unsafe`/`extern` in the root module `xiom.opengl` (G5); the generated wrapper modules (`src/cmds_*.xi`) carry only the mechanical resolve + cast call; the bridge is plain C with no XIOM unsafe |
 | Suite | `tests/test_conformance.xi` |
-| Runs | **PASS 13/13 x2** via `scripts/port.ps1` on an NVIDIA RTX 3070 Ti (classic 4.6, 3.3 core, 404 extensions), plus deterministic SKIP-classification per run |
+| Runs | **PASS 21/21 x2** via `scripts/port.ps1` on an NVIDIA RTX 3070 Ti (classic 4.6, 3.3 core, 404 extensions, 656/656 core commands resolved, buffer + shader roundtrips), plus deterministic SKIP-classification per run |
 
 ## Design notes
 
@@ -36,9 +40,10 @@ preserved in git history only as reference.
 ## Known limitations
 
 - Windows only (soname `opengl32.dll` hard-coded; POSIX/EGL is Phase 2).
-- Probes are atomic (load -> context -> query -> unload); a session-based
-  API that keeps a context alive so consumers can call modern GL entry
-  points through resolved addresses is the next step (`ROADMAP.md`).
+- The full surface covers the **core profile**; extension commands are not
+  wrapped (driver-conditional). The extension scan reports the live list.
+- Probes remain atomic (load -> context -> query -> unload); the 0.4.0
+  session path keeps a context current for the generated wrappers.
 - Classic contexts request RGBA 32-bit color, 24-bit depth, 8-bit stencil,
   double-buffered; no attribute negotiation beyond the core version.
 - The no-context SKIP path is code-reviewed and shares the classification

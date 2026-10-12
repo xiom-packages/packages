@@ -89,3 +89,38 @@ local-first routing remain green.
    dispatchers were unaffected); and bare `return;` inside an explicitly
    `-> Unit` fn is a type error. The SDL3 0.5.0 filter/watch dispatchers work
    around both (1-arg handler shapes + structured ifs).
+
+## B-22 (v0.64.4, glfw 0.6.0 lift attempt): fn-typed PARAM at a CAST-CALL argument position marshals wrong
+
+The v0.64.4 archive re-verify made the previously-broken shapes work at
+extern-declared callees (probe2 `relay=42`, probe4 42/42/42, probe5
+42/42/42 -- B-13 fixed), which unblocked the glfw 0.5.0 dispatcher+registry
+lift (0.6.0 direct handoff). The lift FAILED and was reverted: the unwrap
+does NOT fire at a CAST-CALL (fn-pointer) argument position.
+
+probe9 (`probe9_castcall_param.xi`): each helper resolves
+`xt_cb_int_fn_export` via dl_sym and cast-calls it (the glfw setter shape);
+only the callback ARGUMENT varies (`fp(cb, 21)`; C does `f(21)`):
+
+| Callback argument | Result |
+|-------------------|--------|
+| BARE top-level name | **42** (correct) |
+| local bound from a bare name | **42** (correct) |
+| fn-typed PARAM | **0** (broken -- the value is not the raw C entry) |
+
+Live end-to-end evidence (xiom.glfw, v0.64.4, scratch probe inside the
+package while attempting the lift): a fn-typed param handed via
+`handler as Int` reaches C as a closure-style entry that consumes C's
+FIRST argument as a hidden env -- the 5-arg GLFW key callback delivered
+`(win=65, key=30, sc=1, act=0, mods=<garbage>)` instead of
+`(win=<ptr>, key=65, sc=30, act=1, mods=0)`, and the 1-arg close callback
+delivered `win=0`. Bare-name and local-of-name handoffs delivered every
+argument exactly. The natural signature shape (param handed to a cast-call
+NESTED fn-typed param) marshals to 0 -- the callback never fires -- with
+the same `unknown type 'Unit) -> *UInt8' -- defaulting to i64` warning
+family as REL-20261012-1403-packages.
+
+Consequences: the glfw dispatcher+registry design STAYS (0.5.0 unchanged);
+direct `fn(...)`-taking setters cannot ship until the env->code-address
+unwrap also fires for cast-call argument positions (and nested fn types
+parse). Filed as **B-22** (`REL-20261012-1645-bindings`).

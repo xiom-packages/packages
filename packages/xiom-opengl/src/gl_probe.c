@@ -20,11 +20,19 @@
  *   const char* xgl_extension_head(void)      first up to 4 names, comma-joined
  *   int  xgl_has_extension(const char* name)  1=present, 0=absent, -1=failure
  *   const char* xgl_vendor/renderer/version/glsl(void)
- *   void xgl_unload(void)
+ *   int  xgl_session_open(int major, int minor, int flags)
+ *                                            0=ok; keeps a core context
+ *                                            current for the session
+ *   int  xgl_session_active(void)            1 while the session lives
+ *   long long xgl_get_proc(const char* name) session resolver (wglGetProcAddress
+ *                                            first, then opengl32 exports)
+ *   void xgl_session_close(void)             release context/window
+ *   void xgl_unload(void)                    (closes a live session first)
  */
 
 #include <windows.h>
 #include <string.h>
+#include <stdint.h>
 
 typedef const char* (WINAPI *PFN_glGetString)(unsigned int);
 typedef const char* (WINAPI *PFN_glGetStringi)(unsigned int, unsigned int);
@@ -324,6 +332,38 @@ int __cdecl xgl_has_extension(const char* name) {
   return found;
 }
 
+/* -- session (context held open for the generated full-surface wrappers) -- */
+
+static HWND s_hwnd = 0;
+static HDC s_hdc = 0;
+static HGLRC s_rc = 0;
+static int s_active = 0;
+
+int __cdecl xgl_session_open(int major, int minor, int flags) {
+  if (s_active) return 0;
+  if (!p_glGetString || !p_wglCreateContext || !p_CreateWindowExA) return 2;
+  if (major <= 0) { set_err("session major version must be positive"); return 2; }
+  HWND hwnd = 0; HDC hdc = 0; HGLRC rc = 0;
+  int r = make_context(major, minor, flags, &hwnd, &hdc, &rc);
+  if (r != 0) return (r == 1) ? 1 : 2;
+  s_hwnd = hwnd; s_hdc = hdc; s_rc = rc; s_active = 1;
+  query_strings();
+  return 0;
+}
+
+int __cdecl xgl_session_active(void) { return s_active; }
+
+long long __cdecl xgl_get_proc(const char* name) {
+  if (!s_active || !name || !name[0]) return 0;
+  return (long long)(intptr_t)resolve_proc(name);
+}
+
+void __cdecl xgl_session_close(void) {
+  if (!s_active) return;
+  release_context(s_hwnd, s_hdc, s_rc);
+  s_hwnd = 0; s_hdc = 0; s_rc = 0; s_active = 0;
+}
+
 /* -- accessors + teardown ------------------------------------------------- */
 
 const char* __cdecl xgl_vendor(void) { return s_vendor; }
@@ -332,6 +372,7 @@ const char* __cdecl xgl_version(void) { return s_version; }
 const char* __cdecl xgl_glsl(void) { return s_glsl; }
 
 void __cdecl xgl_unload(void) {
+  if (s_active) xgl_session_close();
   if (m_gdi32) FreeLibrary(m_gdi32);
   if (m_user32) FreeLibrary(m_user32);
   if (m_gl) FreeLibrary(m_gl);

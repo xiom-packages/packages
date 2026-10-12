@@ -44,6 +44,30 @@ declared-but-unexported names explicitly listed as SDK shipping facts).
 - `REL-20261011-2140-bindings` -- B-21 (`&mut` of a struct-return temp
   crashes codegen; repro committed).
 
+## Published on v0.64.4 (2026-10-12)
+
+- **Batch 63 (`eco-v0.1.161`, run 38257991947, packages lane)**: `xiom.dxc`
+  0.3.0 (`b4376744...`), `xiom.vma` 0.3.0 (`a1cc09e2...`) and `xiom.jolt`
+  0.2.0 (`f08d65ca...`) -- vma 0.3.0 = SDK100 slice #11 live; dxc 0.3.0 =
+  slice #8 live. Tally: 77 eco releases (`eco-v0.1.86` -> `eco-v0.1.161`).
+- **Batch 64 (`eco-v0.1.162`, run 38260596476, packages lane)**: the eight
+  first-publish names are LIVE -- `xiom.spirv-tools` 0.1.0 (`24012686...`),
+  `xiom.spirv-cross` 0.1.0 (`a08d2d4a...`), `xiom.spirv-reflect` 0.1.0
+  (`97f96c62...`), `xiom.glslang` 0.1.0 (`33898cf6...`), `xiom.slang` 0.1.0
+  (`0dd5548d...`), `xiom.sdl2` 0.1.0 (`a5bdb037...`), `xiom.shaderc` 0.1.0
+  (`9759ab7a...`) -- plus `xiom.sdl3` **0.17.0** (`2f162d32...`; full surface
+  1270/1270). All nine x2-verified on v0.64.4 before tagging. Tally: 78 eco
+  releases (`eco-v0.1.86` -> `eco-v0.1.162`).
+- **HELD**: `xiom.spirv.headers` -- the staged scope is the dash name
+  (`xiom.spirv-headers`), the manifest name is dotted; correction
+  `REL-20261012-1405-packages` filed; publishes alone (or with the next
+  batch) once the dotted scope is live + the allowlist re-append.
+- **`xiom.vulkan` full surface** is merged and validated but stays **0.5.0**
+  -- publish skips pending the owner-coordinated bump; engine's version note
+  (`REL-20261012-1348-engine`) prefers SDK100 as its own bump first (0.6.0,
+  additive surface) with the mini-RHI wave renumbered after (0.7.0+); the
+  bindings ack is filed (`REL-20261012-1500-bindings`).
+
 ## Documented exclusions (non-API; full list in the plan + package docs)
 
 - CLI tools (vulkaninfo/vkcube/glslc/spirv-* exes/vkconfig/gfxrecon/dxc/slangc/

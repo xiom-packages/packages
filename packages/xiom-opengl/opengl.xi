@@ -27,6 +27,15 @@
 // resolved symbol set + PIXELFORMATDESCRIPTOR layout; local runtime sample
 // recorded in SPEC.md §2 as reference, not as the pin.
 
+// 0.4.0 adds the full-surface session path: `opengl_session_open` keeps a
+// core-profile context current; the GENERATED wrappers in `src/cmds_*.xi`
+// (modules `xiom.opengl.cmds_<grp>`, from the pinned Khronos
+// OpenGL-Registry gl.xml; see PROVENANCE.md) resolve each command per call
+// through `src/gl_api.xi` and this module's `opengl_get_proc`
+// (wglGetProcAddress, then the opengl32 export table).  All hand-written
+// `unsafe`/`extern` stay here; the generated modules carry only the
+// mechanical resolve + cast call (AUDIT.md, G5 note).
+
 module xiom.opengl
 
 extern "C" {
@@ -45,6 +54,10 @@ extern "C" {
   fn xgl_renderer() -> *UInt8;
   fn xgl_version() -> *UInt8;
   fn xgl_glsl() -> *UInt8;
+  fn xgl_session_open(major: Int32, minor: Int32, flags: Int32) -> Int32;
+  fn xgl_session_active() -> Int32;
+  fn xgl_get_proc(name: *UInt8) -> Int;
+  fn xgl_session_close();
   fn xgl_unload();
 }
 
@@ -254,6 +267,76 @@ pub fn opengl_has_extension(name: Str) -> Result[Bool, GlProbeError]
 /// is loaded.
 /// Complexity: O(1).
 pub fn opengl_unload()
+  requires: true
+{
+  unsafe { xgl_unload(); }
+}
+
+// =========================================================================
+// Session API (0.4.0): a live core-profile context for the generated
+// full-surface wrappers (src/cmds_*.xi, src/gl_api.xi).
+// =========================================================================
+
+pub const OPENGL_SESSION_MAJOR: Int = 4;
+pub const OPENGL_SESSION_MINOR: Int = 6;
+
+/// A live OpenGL session: window + pixel format + current core context.
+pub type GlSession = {
+  major: Int;
+  minor: Int;
+}
+
+/// Open the default runtime (`opengl32.dll`) with a core-profile context of
+/// the requested version and keep it current for the session.  The generated
+/// `cmds_*` wrappers resolve their entry points through it.  Close with
+/// `opengl_session_close` (or `opengl_unload`, which closes it first).
+/// Complexity: O(load + 2 contexts).
+pub fn opengl_session_open(major: Int, minor: Int) -> Result[GlSession, GlProbeError]
+  requires: major >= 3
+  requires: minor >= 0
+{
+  let rc = unsafe { xgl_load() as Int };
+  if rc != 0 {
+    let msg = unsafe { Str::from_c_str(xgl_error()) };
+    if rc == 1 {
+      return Err(GlProbeError{ kind: OPENGL_LOAD_ABSENT; message: msg });
+    }
+    return Err(GlProbeError{ kind: OPENGL_LOAD_ABI; message: msg });
+  }
+  let q = unsafe { xgl_session_open(major as Int32, minor as Int32, 0 as Int32) as Int };
+  if q != 0 {
+    let msg = unsafe { Str::from_c_str(xgl_error()) };
+    unsafe { xgl_unload(); }
+    if q == 2 {
+      return Err(GlProbeError{ kind: OPENGL_LOAD_ABI; message: msg });
+    }
+    return Err(GlProbeError{ kind: OPENGL_LOAD_NO_CONTEXT; message: msg });
+  }
+  return Ok(GlSession{ major: major, minor: minor });
+}
+
+/// True while a session context is current.
+/// Complexity: O(1).
+pub fn opengl_session_is_active() -> Bool
+  requires: true
+{
+  unsafe { return (xgl_session_active() as Int) != 0; }
+}
+
+/// Resolve a GL command through the live session: `wglGetProcAddress` first,
+/// then the `opengl32` export table.  Returns 0 when unresolved or when no
+/// session is live.  This is the resolver the generated wrappers use.
+/// Complexity: O(1).
+pub fn opengl_get_proc(name: *UInt8) -> Int
+  requires: true
+{
+  unsafe { return xgl_get_proc(name); }
+}
+
+/// Close the session (context/window/DC) and unload the runtime libraries.
+/// Safe when no session is open.
+/// Complexity: O(teardown).
+pub fn opengl_session_close()
   requires: true
 {
   unsafe { xgl_unload(); }
