@@ -1608,16 +1608,34 @@ int32_t __cdecl xd12c_ID3D12StateObjectDatabase_SetApplicationDesc(void* obj, vo
   return fn(obj, pApplicationDesc);
 }
 
+int32_t __cdecl xd12c_ID3D12StateObjectDatabase_GetApplicationDesc(void* obj, void* CallbackFunc, void* pContext) {
+  typedef int32_t (WINAPI *FN)(void*, void*, void*);
+  FN fn = (FN)((*(void***)obj)[4]);
+  return fn(obj, CallbackFunc, pContext);
+}
+
 int32_t __cdecl xd12c_ID3D12StateObjectDatabase_StorePipelineStateDesc(void* obj, void* pKey, uint32_t KeySize, uint32_t Version, void* pDesc) {
   typedef int32_t (WINAPI *FN)(void*, void*, uint32_t, uint32_t, void*);
   FN fn = (FN)((*(void***)obj)[5]);
   return fn(obj, pKey, KeySize, Version, pDesc);
 }
 
+int32_t __cdecl xd12c_ID3D12StateObjectDatabase_FindPipelineStateDesc(void* obj, void* pKey, uint32_t KeySize, void* CallbackFunc, void* pContext) {
+  typedef int32_t (WINAPI *FN)(void*, void*, uint32_t, void*, void*);
+  FN fn = (FN)((*(void***)obj)[6]);
+  return fn(obj, pKey, KeySize, CallbackFunc, pContext);
+}
+
 int32_t __cdecl xd12c_ID3D12StateObjectDatabase_StoreStateObjectDesc(void* obj, void* pKey, uint32_t KeySize, uint32_t Version, void* pDesc, void* pStateObjectToGrowFromKey, uint32_t StateObjectToGrowFromKeySize) {
   typedef int32_t (WINAPI *FN)(void*, void*, uint32_t, uint32_t, void*, void*, uint32_t);
   FN fn = (FN)((*(void***)obj)[7]);
   return fn(obj, pKey, KeySize, Version, pDesc, pStateObjectToGrowFromKey, StateObjectToGrowFromKeySize);
+}
+
+int32_t __cdecl xd12c_ID3D12StateObjectDatabase_FindStateObjectDesc(void* obj, void* pKey, uint32_t KeySize, void* CallbackFunc, void* pContext) {
+  typedef int32_t (WINAPI *FN)(void*, void*, uint32_t, void*, void*);
+  FN fn = (FN)((*(void***)obj)[8]);
+  return fn(obj, pKey, KeySize, CallbackFunc, pContext);
 }
 
 int32_t __cdecl xd12c_ID3D12StateObjectDatabase_FindObjectVersion(void* obj, void* pKey, uint32_t KeySize, void* pVersion) {

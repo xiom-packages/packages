@@ -3,17 +3,19 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: GRAPHICS DRIVE COMPLETE THROUGH DX12 0.2.0 + SDK100 WAVE
-COMPLETE -- Vulkan 0.6.0 live (engine-green); OpenGL 0.4.0 LIVE
-(`eco-v0.1.164`; 656/656 core-4.6, x2); DX12 0.1.0 LIVE
-(`eco-v0.1.166`) + 0.2.0 SHIPPED locally (`f8992491`; 355 wrappers/1162
-consts/9 free fns, 12/12 x2; 0.2.0 publish request open with packages);
-SDK100 all slices live through `eco-v0.1.165` (81 releases); v0.64.4 pin
-wave done (archive verified, repin 532, release-check rows `b235493`);
-**B-22 open -- glfw 0.6.0 lift parked**; ops clobber rules in force --
-SESSION HANDOFF 2026-10-12 19:31Z** (this session: archive wave + relay
-replies + OpenGL full surface + DX12 foundation and surface; NEXT = DX12
-0.3.0: DXGI + struct metadata + d3d12video).
+**STATUS: GRAPHICS DRIVE COMPLETE THROUGH DX12 0.3.0 -- Vulkan 0.6.0 live
+(engine-green); OpenGL 0.4.0 LIVE (`eco-v0.1.164`; 656/656 core-4.6, x2);
+DX12 0.1.0 LIVE (`eco-v0.1.166`) + **0.3.0 SHIPPED locally** (`fd82f394` +
+`55c26a8f` + `a7f988d9`; struct metadata + full d3d12.h + DXGI + video;
+suites 18/18 -> 28/28 -> **31/31 x2**); SDK100 all slices live through
+`eco-v0.1.165` (81 releases); v0.64.4 pin wave done (archive verified,
+repin 532, release-check rows `b235493`); **B-22 open -- glfw 0.6.0 lift
+parked**; **B-23/B-24 filed with repros** (null literal -> C; ffi out-slot
+reads; relay `REL-20261012-2051-bindings-2`); ops clobber rules in force --
+SESSION HANDOFF 2026-10-12 20:55Z** (this session: DX12 publish confirm +
+the whole 0.3.0 wave -- struct metadata, DXGI, video -- plus the B-23/B-24
+findings and the relay batch; NEXT = publish 0.3.0 + settle + promotion
+readiness, then the ordered follow-ons).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -206,6 +208,40 @@ This session starts the **DX12 0.3.0 wave** per the package ROADMAP:
 (a) struct metadata + typed shims for the 22 skipped shapes, (b) DXGI
 (factory/adapters/WARP/swapchain), (c) `d3d12video.h`, then promotion.
 Doorbell re-armed for this session.
+
+**UPDATE 2026-10-12 20:55Z (DX12 0.3.0 wave COMPLETE -- all three slices
+green)**: The whole 0.3.0 wave landed in this session, each slice with its
+own feat commit + x2 record (all pushed on `bindings`):
+- **(a) struct metadata** `fd82f394` (+ record `665804ae`): 19 typed shims
+  for the sret/by-value shapes (member-return ABI pinned: RCX=this,
+  RDX=hidden out for x64 member returns), the 3 callback-param methods
+  bound (358 wrappers, 0 unmapped), clang `sizeof`/`offsetof` oracle at
+  `docs/struct_dump.txt`; **18/18 x2**.
+- **(b) DXGI** `55c26a8f` (+ record): dxgi.dll surface 43 interfaces / 163
+  wrappers / 246 consts / 6 free fns; factory (CreateDXGIFactory2) + 3
+  adapters + WARP adapter + `D3D12CreateDevice(WARP)` + hidden-window
+  BGRA8/FIFO swapchain (create/GetBuffer/GetDesc1/Present all hr=0);
+  **28/28 x2**.
+- **(c) video** `a7f988d9` (+ record): d3d12video.h 30 interfaces / 190
+  wrappers / 661 consts / 10 typed shims; `ID3D12VideoDevice` QI +
+  VIDEO_DECODE command-list chain + generated `Close` hr=0; **31/31 x2**.
+- Struct meta now 434 sizes + 1804 offsets = 2238 consts
+  (`struct_meta_1..5`); 97 unparsed shapes documented.
+- **B-23 FILED** (null literal crosses to C as garbage; workaround
+  `xd12_null_ptr()`; repro `docs/repro/bindings-pilot/null-literal/`) and
+  **B-24 FILED** (ffi out-slot reads after a C write unreliable --
+  `ffi_bad=2 byte_bad=0 of 400`; suite now uses byte-indexed reads only;
+  repro `docs/repro/bindings-pilot/ptr-read-stale/`).
+- **Relay**: `REL-20261012-2051-bindings` (0.3.0 publish request --
+  supersedes the 0.2.0 ask), `-2` (B-23/B-24 to compiler), `-3` (engine
+  queue ack: vkCmdPushConstants routed to the Vulkan lane; mini-RHI
+  extended tier + imgui noted), `-4` (packages ack: PULSE SQL driver
+  accepted into xiom.sqlite 0.4.0). Relay commit `6f27f1b`, validate 378
+  items green.
+- Next: confirm the 0.3.0 publish in packages SESSION.md (record the eco
+  version), then promotion readiness (policy sec. 7: contracts pass / G6
+  workaround rows for B-23/B-24 / API review) after the settle window;
+  `-1403-packages` could not block anything seen this session.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
@@ -846,45 +882,46 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-12 19:31Z;
-graphics drive on track; the next build batch is the DX12 0.3.0 wave).
+Bindings lane continuation -- seamless pickup (2026-10-12 20:55Z;
+the DX12 0.3.0 wave is COMPLETE locally; publish confirm + promotion next).
 
-0. STATE (the 19:31Z block + STATUS above carry the evidence):
+0. STATE (the 20:55Z UPDATE block + STATUS above carry the evidence):
    - v0.64.4 pin DONE (archive `44a41aea` verified; slot byte-identical
      556/556; repin 532; validate 532/0). Archive wave + compiler reply
      filed (`f8fe214` + release-check rows `b235493`). **B-22 is the one
-     blocker**: fn-typed PARAM values do not cross to C at cast-call
-     positions (glfw 0.6.0 lift parked; witness
-     `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`);
-     re-attempt when a pin ships the unwrap fix.
-   - SDK100 COMPLETE: all twelve slices live through `eco-v0.1.165`
-     (81 releases). sdl3 0.17.0 / opengl 0.4.0 / vulkan 0.6.0 / jolt
-     0.2.0 / vma 0.3.0 / dxc 0.3.0 all LIVE.
+     open compiler blocker**: fn-typed PARAM values do not cross to C at
+     cast-call positions (glfw 0.6.0 lift parked; witness
+     `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`).
+   - **DX12 0.3.0 COMPLETE locally** (struct metadata `fd82f394`, DXGI
+     `55c26a8f`, video `a7f988d9`, all pushed): 90+43+30 interfaces ->
+     358+163+190 wrappers, 19+10 typed shims, 1162+246+661 consts, 15
+     free fns; struct meta 434 sizes + 1804 offsets (2238 consts);
+     suites **18/18 -> 28/28 -> 31/31 x2**. DX12 0.1.0 LIVE
+     (`eco-v0.1.166`); **0.3.0 publish requested**
+     (`REL-20261012-2051-bindings`; supersedes the 0.2.0 ask).
+   - **B-23/B-24 FILED with repros** (`REL-20261012-2051-bindings-2`):
+     B-23 = `null` literal crosses to C as garbage (use
+     `dx12_null_ptr()`); B-24 = ffi out-slot reads after a C extern write
+     are unreliable (`ffi_bad=2 byte_bad=0 of 400`; byte-indexed reads
+     only; pointer-edged flows through C return values). Repros under
+     `docs/repro/bindings-pilot/null-literal/` and `ptr-read-stale/`.
    - Graphics drive: Vulkan 0.6.0 live + engine-green (GPU window + scene
-     tiers). OpenGL 0.4.0 LIVE (`eco-v0.1.164`; full generated core-4.6:
-     656 cmds + 1358 consts; 656/656 resolved, x2). DX12: 0.1.0 + 0.2.0
-     SHIPPED (`b353ed9c`/`f8992491`; full d3d12.h surface 355 wrappers +
-     1162 consts + 9 free fns; 12/12 x2); publish requested at 0.2.0
-     (`REL-20261012-1930-bindings`; new name -> ops scope).
+     tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
+     the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
 
-0b. FIRST ACTION: confirm the DX12 0.2.0 publish in packages SESSION.md
-    (record the eco version here); then run the **DX12 0.3.0 wave** per
-    the package ROADMAP (normal batch flow: feat -> x2 -> record -> relay
-    -> ledger):
-    (a) struct metadata: bind the 22 skipped shapes (sret > 8B returns +
-       by-value params; offsets table like the vulkan struct-meta);
-       `docs/gen_manifest.json` lists them exactly;
-    (b) DXGI (`dxgi.dll`): CreateDXGIFactory2, adapter enumeration
-       (EnumAdapters/EnumWarpAdapter), WARP device fallback, BGRA8/FIFO
-       swapchain behind the same loader + SKIP rules; extend
-       `tools/gen_dx12.py` to parse `dxgi.h`/`dxgi1*.h` from the pinned
-       clone; IIDs via the generated `d3d12_iids.inc` pattern;
-    (c) `d3d12video.h` slice; then promotion (policy sec. 7) when the
-       settle window passes and `-1403-packages` does not block it.
-    Witness style: prefer C-side TYPED probes for struct-heavy flows (see
-    `xd12_root_signature_probe`) -- XIOM-side byte-built structs to D3D12
-    are fragile (learned 2026-10-12); generated wrappers stay for the
-    scalars/pointers paths (device/queue/release already proven).
+0b. FIRST ACTION: confirm the DX12 **0.3.0** publish in packages SESSION.md
+    (record the eco version here). Then the **promotion readiness pass**
+    (policy sec. 7) -- do not promote before the publish + settle window:
+    (a) G1 fresh x2 (already 31/31 x2 at `a7f988d9`) + trap-14 byte-level
+       grep clean (all angle shapes, parameter/local/FIELD positions);
+    (b) G4 contracts pass on the public entry points (`dx12.xi`,
+       `src/dxgi.xi`, `src/video.xi`) + `xiom-verify` where pure enough,
+       SPEC lists solver-unproven clauses;
+    (c) G6 MAINTENANCE.md workaround rows for B-23/B-24 (accept with
+       reason + expiry = next compiler pin) and retire any stale ones;
+    (d) G2/G3: SPEC error catalog + README Status sync + API review notes;
+    (e) G7 dependents check (none published depend on xiom.dx12 as of this
+       session). Watch `-1403-packages` for any block.
 
 1. RELAY: E:\xiom-lang\xiom-relays -- `git fetch origin` + compare (do
    NOT pull: "Cannot fast-forward to multiple branches"); `python
@@ -914,32 +951,50 @@ graphics drive on track; the next build batch is the DX12 0.3.0 wave).
    - Package traps: assimp `-TimeoutSec 600`; glfw needs `--link user32`
      when run manually; meshopt `-TimeoutSec 900`; opengl/dx12 suites
      compile their C bridges via port.args.json; heavy full-surface
-     suites live at each package's tests/test_full_surface.xi.
+     suites live at each package's tests/test_full_surface.xi. dx12 now
+     needs `--link user32` plus five --c-source bridges (dx12_probe,
+     d3d12_calls, d3d12_structs, dxgi_probe, dxgi_calls, video_probe,
+     video_calls, video_structs -- eight files); suite slot reads are
+     byte-indexed only; nullable C args use `dx12_null_ptr()` (B-23).
+   - The shared `E:\xiom-lang\stdlib` is actively updated by another
+     lane: module counts drift between runs and mid-wave commits can
+     transiently break catalog builds (`mem.zeroed` signature mismatch
+     seen 20:20Z). Retry minutes later; do not chase it as a package bug.
    - Upstream-first policy (POLICY block below): clone at pin +
      PROVENANCE.md per package; license whitelist; 100% export coverage
      is the standard; clones in E:\repos\CLEANUP.md (OpenGL-Registry
-     `6af574a1`, DirectX-Headers `461ef513` active).
+     `6af574a1`, DirectX-Headers `461ef513` active; DXGI oracle = Windows
+     SDK 10.0.26100.0 shared headers, hashes in PROVENANCE.md).
 
-4. ORDERED TASKS after DX12: (i) glfw 0.6.0 lift re-attempt + probe9 when
-   B-22 ships; (ii) sdl3 handler-shape widening (B-22 caveat if it needs
-   param values crossing to C); (iii) GLES/EGL via ANGLE
+4. ORDERED TASKS after DX12: (i) promotion readiness (item 0b);
+   (ii) glfw 0.6.0 lift re-attempt + probe9 when B-22 ships;
+   (iii) sdl3 handler-shape widening (B-22 caveat if it needs
+   param values crossing to C); (iv) GLES/EGL via ANGLE
    (libGLESv2/libEGL + eglGetProcAddress) + WGL extension wrappers as
-   graphics follow-ons; (iv) optional Phase-3 items only on consumer ask
-   (meshopt cluster pipeline, box2d broad-phase + contact events, imgui
-   widget wrappers); ffmpeg stays blocked on a shared+dev build.
+   graphics follow-ons; (v) optional Phase-3 items only on consumer ask:
+   imgui renderer backends now ASKED (`REL-20261012-2012-engine-4`;
+   still blocked on a shared+dev imgui build), meshopt cluster pipeline,
+   box2d broad-phase + contact events; ffmpeg stays blocked on a
+   shared+dev build; (vi) **PULSE SQL driver accepted into xiom.sqlite
+   0.4.0** (`REL-20261012-2032-packages`; queued behind graphics).
    Vulkan mini-RHI is the OWNER session's lane (0.7.0-0.13.0 ladder;
    READ docs/checklists/vulkan-sdk-100.md before any Vulkan work;
    coordinate, do not duplicate; interop decision filed
-   `REL-20261012-1800-bindings`).
+   `REL-20261012-1800-bindings`; engine items -1948/-2012-2/-2012-4
+   routed there).
 
-Respect: B-11..B-22 discipline (byte-indexed slot writes; packed returns;
+Respect: B-11..B-24 discipline (byte-indexed slot writes; packed returns;
 structured ifs; NO pointer arithmetic -- one owned slot per out-param;
 never read through foreign pointers, have C copy into an owned slot
 (B-20); B-21 = never take &mut of a struct-return/Result-payload temp;
-B-22 = fn-typed PARAM values do not cross to C via cast-call positions).
+B-22 = fn-typed PARAM values do not cross to C via cast-call positions;
+B-23 = the `null` literal crosses to C as garbage (use `dx12_null_ptr()`);
+B-24 = ffi out-slot reads after a C extern write are unreliable -- read
+owned slots byte-indexed, keep pointer-edged flows on C return values).
 Deliver batches as: feat -> x2 green -> record via scripts/status.ps1 ->
 relay item to packages -> ledger update, all pushed; leave the worktree
-clean. TODO NOW: item 0b (DX12 publish confirm + the 0.3.0 wave).
+clean. TODO NOW: item 0b (DX12 0.3.0 publish confirm + the promotion
+readiness pass).
 
 ```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);

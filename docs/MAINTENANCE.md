@@ -148,6 +148,8 @@ it, and whether the fix has landed on the pin.
 | No enum payload mutation through match bindings (silent drop) | COMPILER-FINDINGS row (`json`) | `json`; enum-heavy packages | rebuild payload + `*obj = ...` | OPEN (silent no-op) |
 | No `derive[Clone]` on aggregate-payload types (clone corrupts; crash) | COMPILER-FINDINGS row (`json`, `0xC000001D`) | `json`; any aggregate type | explicit deep-clone functions (`json_clone`) | OPEN (memory-unsafe crash) |
 | Contract verification is review-only for record-heavy packages | `xiom-verify --check` output + isolation probes | `json`, `control`, `sensor` promotion candidates | single `&&` requires; solver-unproven documented in SPEC | OPEN (tooling encoding gaps) |
+| `null` literal to C extern params (B-23) | `docs/repro/bindings-pilot/null-literal` (`direct`/`via_fn` garbage, `from_c`/`via_var` = 0) | `xiom.dx12` (nullable pointers) | OPEN on v0.64.4 -- use the bridge null (`xd12_null_ptr()`); expiry = next compiler pin carrying the fix |
+| ffi out-slot reads after a C extern write (B-24) | `docs/repro/bindings-pilot/ptr-read-stale` (`ffi_bad=2 byte_bad=0 of 400`) | `xiom.dx12` (COM out-pointers, sret blobs) | OPEN on v0.64.4 -- read owned slots byte-indexed; pointer-edged flows via C return values; expiry = next compiler pin carrying the fix |
 
 ## Cadence rules
 
