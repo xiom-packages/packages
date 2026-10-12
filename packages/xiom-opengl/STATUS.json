@@ -6,11 +6,11 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  13,
+                  "passed":  21,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "2fe32b41",
-                  "checked":  "2026-10-08T13:25:58Z"
+                  "commit":  "8f8a238b",
+                  "checked":  "2026-10-12T18:34:00Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: bindings batch 7 (eco-v0.1.98)"

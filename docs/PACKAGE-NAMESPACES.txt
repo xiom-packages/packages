@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-12T19:14:43+03:00
-# packages: 532  modules: 848
+# generated: 2026-10-12T21:34:25+03:00
+# packages: 532  modules: 863
 
 ## package names
 xiom.acpi
@@ -898,6 +898,21 @@ xiom.opencv.features
 xiom.opencv.filters
 xiom.opencv.io
 xiom.opencv.types
+xiom.opengl.cmds_01
+xiom.opengl.cmds_02
+xiom.opengl.cmds_03
+xiom.opengl.cmds_04
+xiom.opengl.cmds_05
+xiom.opengl.cmds_06
+xiom.opengl.cmds_07
+xiom.opengl.consts_1
+xiom.opengl.consts_2
+xiom.opengl.consts_3
+xiom.opengl.consts_4
+xiom.opengl.consts_5
+xiom.opengl.consts_6
+xiom.opengl.glapi
+xiom.opengl.names
 xiom.optimizer
 xiom.optimizer_fw
 xiom.option
