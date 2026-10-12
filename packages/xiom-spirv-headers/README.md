@@ -7,7 +7,8 @@ no DLL, no FFI, no runtime loader, nothing to resolve: the conformance suite
 is pure XIOM and always runs (never a SKIP state).
 
 > **Status:** `incubating` -- **0.1.0**. Suite **10/10 x2** on compiler
-> v0.64.3 (spot checks + emitted-count vs manifest). **Lane:** bindings
+> v0.64.4 (spot checks + emitted-count vs manifest). **0.1.0 published in
+> `eco-v0.1.165` (sha256 `a77f364a...`)**. **Lane:** bindings
 > (`keywords: ["binding"]`); Vulkan SDK 100% program, slice B4.
 
 ## Coverage
