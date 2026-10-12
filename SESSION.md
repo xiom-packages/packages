@@ -37,9 +37,10 @@ running). Check `git log -1 --format=%h %s` before starting.
   B-13..B-20 verdicts filed by bindings (`REL-20261012-1400-bindings`; B-16/B-17 still red as
   expected). Ledger: `release-checks/compiler-compiler-v0.64.3.md` packages block
   (`e4a858f`/`4b2e1dc` in relays); items moved on the bus.
-- **Next**: re-verify wave (rows `REL-20261010-1549-packages-4/-5/-6/-7` + `-2100` and B-13..B-20
-  witnesses on the v0.64.4 pin; B-16/B-17 expected red, do not bounce); spirv.headers publish on the
-  ops confirmation; promotion policy active (`docs/UPSTREAM-FIRST.md` section 7).
+- **Next**: `xiom.spirv.headers` publish on the ops scope-name correction
+  (`REL-20261012-1405-packages`; x2-verified, allowlist re-append at that wrap); SDK100 promotion
+  candidates after a settle cycle (sdl3 first in line once `REL-20261012-1403-packages` clears);
+  clones ledger sweep review 2026-12-01 (`E:\repos\CLEANUP.md`).
 
 **STATE AT 2026-10-12 13:52Z (v0.64.4 GATE CLEARED -- repin + batch 63 delivered; this block is the live handoff):**
 - **v0.64.4 RELEASED (13:36:58Z, run 38256358845)**; archive SHA256 `44a41aea...` verified; canonical
