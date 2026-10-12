@@ -38,6 +38,14 @@ running). Check `git log -1 --format=%h %s` before starting.
   38294446110 green 3m48s; live sha256 `a77f364a` @19:01:29Z). All eight new names + sdl3 0.17.0 +
   vma 0.3.0 + dxc 0.3.0 + jolt 0.2.0 + vulkan 0.6.0 are now live. Bus: `-1855-ops` fixed, `-2305`
   (wave-2) fixed. Tally: **81 eco releases**.
+- **Batch 70: `xiom.dx12` 0.3.0 PUBLISHED**: struct-metadata wave (434 shapes / 2238 size+offset
+  consts) + DXGI (43 ifaces / 163 wrappers / 246 consts / 6 fns) + d3d12video (30 ifaces / 190
+  wrappers / 661 consts / 10 shims). Merge `4970096a` (tip `aab68680`; conflicts resolved to theirs
+  + published history restored); bump `3fcb92aa` (0.2.0->0.3.0); validate 533/0; port x2 on v0.64.4
+  (**31/31**: struct sret roundtrips + oracle sizeof cross-check, DXGI 3 adapters/WARP/640x480
+  swapchain, video QI + VIDEO_DECODE chain); eco-v0.1.168 (run 38308256176; live sha256 `14ce3e67`
+  @21:05:31Z); README/STATUS synced; item `-2051` fixed. Tally: **84 eco releases**. B-23/B-24
+  (out-slot reads) are with compiler; promotion readiness next per the package ROADMAP.
 - **PROTOCOL RESTATED + TIGHTENED (owner 2026-10-12 20:36Z): upstream-first + clone-repo workflow +
   100% coverage applies to EVERY package, new AND pre-existing.** Per-touch rule: any package merged
   / fixed / verified / published gets a `PROVENANCE.md` (upstream pin + license OR an explicit
