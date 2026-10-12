@@ -149,6 +149,25 @@ Engine scene tier green on the raw seam (`-1754-engine`: depth + lit
 pipeline + indexed draws; mini-RHI no longer a hard gate) -- its ordering
 highlights are folded into the batch inputs.
 
+**UPDATE 2026-10-12 19:10Z (relay check + publishes)**: batch 66 =
+**`xiom.opengl 0.4.0` PUBLISHED** (`eco-v0.1.164`, run 38291839545; live
+sha256 `328674f1` @18:37:31Z; x2 21/21 on v0.64.4; merge tip `bb1ec3b7`;
+`REL-20261012-1750-bindings` fixed). Batch 67 = **`xiom.spirv.headers`
+0.1.0 PUBLISHED** (ops corrected the scope to the dotted name; live 18:55Z;
+`eco-v0.1.165`, sha `a77f364a` @19:01:29Z) -- **SDK100 WAVE COMPLETE**: the
+eight new names + sdl3 0.17.0 + vma 0.3.0 + dxc 0.3.0 + jolt 0.2.0 + vulkan
+0.6.0 all live; tally 81 eco releases. Ops clobber incident
+(`-1852-ops`, high): the toolchain installer/extract wipes non-archive dirs
+in its target home (shared defaults included); new rules = lane-local
+install dirs + `tools/home-snapshot.ps1` before risky windows, restore from
+snapshot after a clobber; any lane that installed today reports. **Bindings
+ran no installs/extracts today** and hash-verified the 13:35:22Z slot swap
+byte-identical to the official archive -- bindings note filed on
+`-1852-ops`; pin evidence stands. Promotion queue (policy sec. 7): vulkan
+0.6.0 / sdl3 0.17.0 / opengl 0.4.0 / SDK100 names are candidates as settle
+windows pass (sdl3 blocked while `-1403-packages` is open). DX12 wave
+started (foundation build next).
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**

@@ -58,15 +58,22 @@ declared-but-unexported names explicitly listed as SDK shipping facts).
   (`9759ab7a...`) -- plus `xiom.sdl3` **0.17.0** (`2f162d32...`; full surface
   1270/1270). All nine x2-verified on v0.64.4 before tagging. Tally: 78 eco
   releases (`eco-v0.1.86` -> `eco-v0.1.162`).
-- **HELD**: `xiom.spirv.headers` -- the staged scope is the dash name
-  (`xiom.spirv-headers`), the manifest name is dotted; correction
-  `REL-20261012-1405-packages` filed; publishes alone (or with the next
-  batch) once the dotted scope is live + the allowlist re-append.
-- **`xiom.vulkan` full surface** is merged and validated but stays **0.5.0**
-  -- publish skips pending the owner-coordinated bump; engine's version note
-  (`REL-20261012-1348-engine`) prefers SDK100 as its own bump first (0.6.0,
-  additive surface) with the mini-RHI wave renumbered after (0.7.0+); the
-  bindings ack is filed (`REL-20261012-1500-bindings`).
+- **Batch 67 (`eco-v0.1.165`)**: `xiom.spirv.headers` 0.1.0 LIVE (ops
+  corrected the scope to the dotted name; allowlist 519; run 38294446110,
+  live sha256 `a77f364a` @19:01:29Z). With it the **SDK100 wave is
+  COMPLETE -- all twelve slices published and live**: the eight new names
+  + `xiom.sdl3` 0.17.0 + `xiom.vma` 0.3.0 + `xiom.dxc` 0.3.0 + the
+  standing `xiom.vulkan` 0.6.0 + `xiom.jolt` 0.2.0. Tally: 81 eco
+  releases (`eco-v0.1.86` -> `eco-v0.1.165`).
+- **Batch 66 (`eco-v0.1.164`)**: `xiom.opengl` **0.4.0** live (full
+  generated core-4.6 surface; live sha256 `328674f1`) -- the graphics
+  drive's OpenGL leg is published.
+- **`xiom.vulkan` 0.6.0 LIVE** (`eco-v0.1.163`, live sha256 `a8053f05`;
+  owner-approved SDK100 bump): additive full surface (845 cmds + 5,983
+  consts + 8,243 struct-meta; loadability 766/766; RHI 22/22 x2). The
+  engine adopted it the same day (`probe_rhi_vulkan` + `demo_vk` green;
+  scene tier too). Mini-RHI renumbers after it (0.7.0-0.13.0 ladder,
+  owner session: `REL-20261012-1800-bindings`).
 
 ## Documented exclusions (non-API; full list in the plan + package docs)
 
