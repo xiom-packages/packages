@@ -19,6 +19,18 @@ vma 0.3.0, sdl3 additive full surface; publish gated on ops scope staging +
 the v0.64.4 pin). Compiler v0.64.4 release pin commit `df493530` is on
 origin/main; GitHub archive pending (watch `wku_12d5ced75001IgfN8Gx3fuV98t`,
 00:17Z). Relay validate green (322 items); no new bindings items at 00:00Z.
+
+**UPDATE 2026-10-12 13:40Z (context-limit handoff)**: **v0.64.4 IS
+PUBLISHED** -- https://github.com/xiom-lang/xiom/releases/tag/v0.64.4
+(13:36:58Z; assets include `xiom-0.64.4-windows-x64.zip` + `SHA256SUMS`).
+The **archive wave is the NEXT ACTION** (pin + re-verify per the checklist
+below; expected: B-13/14/15/1904/B-18 green, B-16/B-17 still red by design,
+B-19 fixed package-side). The **SDK100 program is COMPLETE on the bindings
+side** (12/12 slices, oracle==bound==resolved evidence,
+`docs/SDK100-COVERAGE.md`); the **eleven packages are staged** by packages
+and their publish is unblocked by this pin (also unblocks the jolt re-pin).
+This session hits its context limit; the NEXT-SESSION PASTE PROMPT below is
+rebuilt (archive wave = item 0).
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
@@ -620,76 +632,90 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- clean handoff pickup (2026-10-11 18:45Z,
-context-limit handoff; prompt refreshed after batch 61).
+Bindings lane continuation -- clean handoff pickup (2026-10-12 13:40Z,
+context-limit handoff; prompt refreshed after the SDK100 program completed
+and v0.64.4 was published).
+
+0. FIRST ACTION (critical path): run the v0.64.4 archive wave. The archive
+   IS LIVE: https://github.com/xiom-lang/xiom/releases/tag/v0.64.4
+   (published 2026-10-12 13:36:58Z; assets: xiom-0.64.4-windows-x64.zip +
+   SHA256SUMS). Pin + re-verify per the "Archive re-run checklist" below:
+   download + sha256-verify + install the slot + bump COMPILER_VERSION +
+   `scripts/status.ps1 -Action repin` + validate (524 pkgs). Then re-run on
+   the new pin: (a) the v0.64.3 release-check bindings rows B-11/B-10/B-07/
+   B-05/B-02 + the jolt re-verdict via -1815; (b) probes under
+   docs/repro/bindings-pilot/: cb-abi (B-13/14/15/1904 + probe8 B-18),
+   ptr-slot-write (B-16 fresh), ptr-arith (B-17), foreign-ptr-read (B-20),
+   sdl3-init-arg (B-19); (c) suites: sdl3 (59 checks; B-19 post witness =
+   the `SDL_WasInit(TIMER|EVENTS) reflects the flags` line) + glfw 37/37
+   (`--link user32`); jolt port x2 with `--cxx-standard 17` (re-verdict
+   REL-20261010-1815). EXPECTED: B-13/14/15/1904/B-18 green (m263-m274),
+   B-16/B-17 still red (NOT in the wave -- do not bounce), B-19 fixed
+   package-side (sdl3 0.16.1 live). Reply to compiler with row verdicts
+   (new bindings item; refs REL-20261011-1731), then LIFT the workarounds
+   the fixes cover (glfw/sdl3 dispatcher + registry callbacks, 1-arg
+   handler shapes) with suite evidence, version bumps via the normal batch
+   flow. This wave also unblocks: the jolt re-pin/publish (packages+ops
+   waiting: REL-20261011-1928/1940) and the ELEVEN staged SDK100 packages
+   (confirm publish in packages SESSION.md; then update
+   docs/SDK100-COVERAGE.md + this ledger).
 
 1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
-   BINDINGS-SESSION.md (STATUS + RESUME HERE: CURRENT state, ordered next
-   actions, gotchas, this prompt). Then check relay FIRST: in
-   E:\xiom-lang\xiom-relays use `git fetch origin` + compare (do NOT
-   `git pull`: "Cannot fast-forward to multiple branches"); run
-   `python tools/relay.py view --lane bindings`; process items addressed
-   to bindings (only the REPORTING lane moves its own items -- reply with
-   new bindings items; commit+push ONLY this lane's item files).
+   BINDINGS-SESSION.md (STATUS + RESUME HERE). Then check the relay FIRST:
+   E:\xiom-lang\xiom-relays -- `git fetch origin` + compare (do NOT pull:
+   "Cannot fast-forward to multiple branches"); `python tools/relay.py
+   view --lane bindings`; process items addressed to bindings (only the
+   REPORTING lane moves its own items; reply with new bindings items;
+   stage ONLY this lane's files). Relay items must be PURE ASCII
+   (`relay.py validate` is repo-wide; -2302 was that class, fixed).
 
 2. Re-arm the session doorbell: `cron_create` schedule `0 */3 * * *`,
-   prompt = "Bindings-lane doorbell. 1) In E:\xiom-lang\xiom-relays run
-   git fetch origin (not pull) + python tools/relay.py view --lane
-   bindings; process new items (reply via new items; stage only this
-   lane's files). 2) Check E:\xiom-packages\packages\SESSION.md for new
-   eco publish notes and record confirmed eco versions in
-   BINDINGS-SESSION.md (commit+push if changed). 3) If nothing new, no
-   action." Then check relay once now; also check the packages publish
-   queue (at handoff: EMPTY -- everything through meshopt 0.4.0 live in
-   eco-v0.1.153-159; jolt parked).
+   prompt = "Bindings-lane doorbell. 1) E:\xiom-lang\xiom-relays: git
+   fetch origin (not pull) + python tools/relay.py view --lane bindings;
+   process new items (reply via new items; stage only this lane's files).
+   2) Check E:\xiom-packages\packages\SESSION.md for new eco publish
+   notes and record confirmed eco versions in BINDINGS-SESSION.md
+   (commit+push if changed). 3) If nothing new, no action." Check relay
+   once now; check the packages queue (the eleven SDK100 packages staged
+   2026-10-11 23:02Z -- publish unblocked by the v0.64.4 pin; sdl3 0.16.1
+   live in eco-v0.1.160, 76 releases).
 
-3. Continue the ordered tasks. Priority: (a) compiler v0.64.4 -- check
-   `gh release list -R xiom-lang/xiom`; the wave is staged with the pin
-   pending the stdlib tag; when it lands, pin it, re-run the bindings
-   probe rows from REL-20261011-1731 (six batches m254-m273; B-13/14/15
-   already green on the staged build per -1801; B-16 needs a fresh
-   probe), reply to compiler with evidence, then lift the workarounds
-   the fixes cover (glfw/sdl3 dispatcher + registry callbacks, 1-arg
-   handler shapes);    (b) VULKAN -- the mini-RHI ask is ACKED (REL-20261011-2015; owner items
-   -2048-3 / -2100; engine acked 21:03Z) and the parallel OWNER SESSION
-   drives the Vulkan SDK 100 program in this worktree: READ
-   `docs/checklists/vulkan-sdk-100.md` + the `730e926b` plan BEFORE any
-   Vulkan work; `sdk100-*` agent worktrees exist (dxc/glslang/shaderc/
-   slang/spirv-tools/spirv-cross/spirv-reflect) -- coordinate, do not
-   duplicate owner-session work; the mini-RHI batches are planned
-   0.6.0-0.12.0 (sync/recording; buffers + upload; SPIR-V pipelines stride
-   48/96; texture + sampler; depth; SDL3 surface swapchain; acquire/present
-   FIFO+IMMEDIATE) with SKIP-when-absent and the slot-recycle constraint
-   (packed/scalar + owned slots until the pin proves the fixes); acceptance
-   = engine P3/P4 demo via RhiCmdList at 640x480 uncapped;
-   (c) optional package-local Phase 3 items, pick only on consumer ask:
-   meshopt cluster pipeline, box2d broad-phase queries + contact events,
-   imgui widget wrappers; (d) SDL3 continuance: only the POSIX soname
-   remains (deferred -- no Linux CI target); (e) watch for engine replies
-   to the assimp contract (REL-20261011-1828).
+3. SDK100 program: COMPLETE on the bindings side (12/12 slices with
+   oracle==bound==resolved evidence; docs/SDK100-COVERAGE.md +
+   packages/xiom-vulkan/docs/COVERAGE.md). All batches relayed (vulkan
+   -2155; wave-1 -2231; wave-2 -2305; findings -2140/-2230/-2320,
+   including the HIGH Vec.with_len heap-buffer-overflow). The `sdk100-*`
+   agent worktrees are idle-complete -- do not re-run their work. Owner
+   session side: Vulkan mini-RHI batches 0.6.0+ (READ
+   docs/checklists/vulkan-sdk-100.md before any Vulkan work; coordinate,
+   do not duplicate). Engine ask -2015 acked; orders gated on the
+   slot-recycle fix (B-11 -- still red by design until the FFI pointer
+   batch lands).
 
-   Respect: B-11..B-17/B-20 discipline (byte-indexed slot writes, packed
-   returns, dispatcher+registry callbacks, 1-arg handler shapes,
-   structured ifs, **no pointer arithmetic -- one owned slot per
-   out-param; never read through foreign pointers, have C copy into an
-   owned slot (B-20)**); vendored trees stay byte-pinned (`vendor/** -text`,
-   per-file SHA256 in SPEC.md, object-store extraction for LF fidelity --
-   `git archive` does NOT avoid autocrlf); codec semantics pinned by the
-   probes (triangle-list AND meshlet coders rotate corners -- compare
-   rotation-invariant; index-sequence + vertex coders are byte-exact;
-   Box2D revolute GetAngle wraps to [-pi,pi]); the 100%-coverage owner
-   directive; the upstream-first policy (POLICY block above: clone the
-   upstream SOURCE at pin + record PROVENANCE.md per package from the next
-   touch; clones registered in E:\repos\CLEANUP.md); the "stage only your
-   own relay items" rule; git fetch + git
-   log before every commit (parallel owner session). Package traps:
-   xiom.assimp needs `-TimeoutSec 600` (125 TUs, ~4-5 min/build) and
-   keeps its `.obj` fixture via a scoped .gitignore negation; xiom.glfw
-   needs `--link user32` (port.args.json) when run manually; meshopt
-   builds 21 TUs in ~25 s (`--timeout 900`). Deliver batches as: feat ->
-   x2 green (present + absent where applicable) via scripts/port.ps1 ->
-   record via scripts/status.ps1 -> relay item to packages -> ledger
-   update, all pushed; leave the worktree clean.
+4. Continue the ordered tasks: optional Phase-3 items only on consumer
+   ask (meshopt cluster pipeline, box2d broad-phase queries + contact
+   events, imgui widget wrappers); SDL3 POSIX soname deferred (no Linux
+   CI target); watch engine replies to the assimp contract (-1828); engine
+   -1321/-1411-2/-1539 remain delivered/replied (their lane moves them).
+
+Respect: B-11..B-21 discipline (byte-indexed slot writes; packed returns;
+structured ifs; NO pointer arithmetic -- one owned slot per out-param;
+never read through foreign pointers, have C copy into an owned slot
+(B-20); B-21 = never take &mut of a struct-return/Result-payload temp --
+repro docs/repro/bindings-pilot/mut-of-struct-return/); the upstream-first
+policy (POLICY block: clone upstream at pin + PROVENANCE.md per package;
+license whitelist; 100% export coverage is the standard; clones in
+E:\repos\CLEANUP.md); vendored trees byte-pinned (`vendor/** -text`,
+per-file SHA256 in SPEC.md); the "stage only this lane's relay items"
+rule; `git fetch` + `git log` before every commit (parallel owner
+session). Package traps: assimp `-TimeoutSec 600`; glfw needs
+`--link user32` when run manually; meshopt builds fine with `-TimeoutSec
+900`; heavy suites (slang/dxc/glslang/vma-bridge/sdl3-full) exist under
+their packages' tests/test_full_surface.xi. Deliver batches as: feat ->
+x2 green -> record via scripts/status.ps1 -> relay item to packages ->
+ledger update, all pushed; leave the worktree clean. TODO NOW: THE
+ARCHIVE WAVE FIRST (item 0), then the rest.
+
 ```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
    source clone at `E:\repos\FFmpeg` for headers/pins. On assets: dynamic
