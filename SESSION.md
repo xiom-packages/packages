@@ -33,6 +33,20 @@ running). Check `git log -1 --format=%h %s` before starting.
   live GL 4.6 session, 656/656 resolved, buffer+shader roundtrips). Merge tip `bb1ec3b7` (clean,
   auto-resolved 564-file repin mirror; critical files verified: vulkan 0.6.0 + records intact).
   Bus `REL-20261012-1750-bindings` fixed. Tally: **80 eco releases**.
+- **Batch 67: `xiom.spirv.headers` 0.1.0 PUBLISHED -- SDK100 WAVE COMPLETE**: ops corrected the
+  scope to the dotted name (live 18:55Z); allowlist 519; guard 519/503/0; eco-v0.1.165 (run
+  38294446110 green 3m48s; live sha256 `a77f364a` @19:01:29Z). All eight new names + sdl3 0.17.0 +
+  vma 0.3.0 + dxc 0.3.0 + jolt 0.2.0 + vulkan 0.6.0 are now live. Bus: `-1855-ops` fixed, `-2305`
+  (wave-2) fixed. Tally: **81 eco releases**.
+- **Ops clobber incident (`REL-20261012-1852-ops`, to-all, high)**: installer/extract wipes non-archive
+  dirs in the target home; rules now = lane-local dirs for installs/extracts, `tools/home-snapshot.ps1`
+  before risky windows, restore-from-snapshot after a clobber. Packages ran no install/extract today;
+  timeline observation filed (`REL-20261012-1904-packages`: canonical swap was 13:35:22Z by a non-
+  packages actor). Apply lane-local dirs + snapshot for future pin work.
+- **Promotion queue (policy §7: full surface published + settle + no open defects)**: vulkan 0.6.0,
+  sdl3 0.17.0, opengl 0.4.0 and the SDK100 names become candidates as their settle windows pass
+  (sdl3 blocked while `REL-20261012-1403-packages` is open; check open items per package at
+  promotion time).
 - **`xiom.vulkan` 0.6.0 PUBLISHED (owner-approved SDK100 bump)**: eco-v0.1.163 (run
   38276087674 green 4m22s; live sha256 `a8053f05` @16:19:51Z, 2.9 MB signed). Additive full surface
   (845 cmds + 5983 consts + 8243 struct-meta; loadability 766/766); x2 green on v0.64.4 (22/22 RHI
@@ -50,10 +64,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   B-13..B-20 verdicts filed by bindings (`REL-20261012-1400-bindings`; B-16/B-17 still red as
   expected). Ledger: `release-checks/compiler-compiler-v0.64.3.md` packages block
   (`e4a858f`/`4b2e1dc` in relays); items moved on the bus.
-- **Next**: `xiom.spirv.headers` publish on the ops scope-name correction
-  (`REL-20261012-1405-packages`; x2-verified, allowlist re-append at that wrap); SDK100 promotion
-  candidates after a settle cycle (sdl3 first in line once `REL-20261012-1403-packages` clears);
-  clones ledger sweep review 2026-12-01 (`E:\repos\CLEANUP.md`).
+- **Next**: promotions per §7 as settle windows pass (flip `stage` to `stable` at the next touch,
+  noting the reason); clones ledger sweep review 2026-12-01 (`E:\repos\CLEANUP.md`); adopt
+  lane-local toolchain dirs + home snapshots per the ops hygiene rules when next repinning.
 
 **STATE AT 2026-10-12 13:52Z (v0.64.4 GATE CLEARED -- repin + batch 63 delivered; this block is the live handoff):**
 - **v0.64.4 RELEASED (13:36:58Z, run 38256358845)**; archive SHA256 `44a41aea...` verified; canonical
