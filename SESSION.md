@@ -27,6 +27,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   six), -2305-bindings stays acked (spirv-headers pending).
 - **New compiler finding filed**: nested fn types in fn casts warn `unknown type ... defaulting to i64`
   on v0.64.4 (sdl3.xi:1599/1628/1640; 6x; suite green) -- `REL-20261012-1403-packages`.
+- **Batch 66: `xiom.opengl` 0.4.0 PUBLISHED**: eco-v0.1.164 (run 38291839545 green 4m9s; live
+  sha256 `328674f1` @18:37:31Z). Full generated core-profile 4.6 surface (656 cmds + 1358 consts;
+  upstream-first: Khronos OpenGL-Registry pinned `6af574a1`, PROVENANCE.md); x2 on v0.64.4 (21/21;
+  live GL 4.6 session, 656/656 resolved, buffer+shader roundtrips). Merge tip `bb1ec3b7` (clean,
+  auto-resolved 564-file repin mirror; critical files verified: vulkan 0.6.0 + records intact).
+  Bus `REL-20261012-1750-bindings` fixed. Tally: **80 eco releases**.
 - **`xiom.vulkan` 0.6.0 PUBLISHED (owner-approved SDK100 bump)**: eco-v0.1.163 (run
   38276087674 green 4m22s; live sha256 `a8053f05` @16:19:51Z, 2.9 MB signed). Additive full surface
   (845 cmds + 5983 consts + 8243 struct-meta; loadability 766/766); x2 green on v0.64.4 (22/22 RHI
