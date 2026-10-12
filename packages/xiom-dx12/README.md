@@ -28,7 +28,8 @@ but broken exports -> **FAIL**. CI stays green without a GPU.
 > `ID3D12VideoDevice` QI + VIDEO_DECODE command list + generated `Close`,
 > plus probe/SKIP classification on all three runtimes. 0.1.0 published in
 > `eco-v0.1.166` (sha256 `5ff65bed...`); 0.2.0 in `eco-v0.1.167` (sha256
-> `7cfae765...`). Promotion readiness is next (`ROADMAP.md`); B-24 (out-slot
+> `7cfae765...`); **0.3.0 in `eco-v0.1.168` (sha256 `14ce3e67...`)**.
+> Promotion readiness is next (`ROADMAP.md`); B-24 (out-slot
 > reads, see `docs/repro/bindings-pilot/ptr-read-stale/`) is filed with a repro.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
