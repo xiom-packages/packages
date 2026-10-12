@@ -143,7 +143,11 @@ d3d12.h` 1,692,148 B, SHA256 `AFA193D3...`); CLEANUP row added; next batch
 = `xiom.dx12` skeleton (COM/vtable core, D3D12CreateDevice/DXGI probe,
 SKIP-when-absent) + generator/coverage plan. Engine items answered
 (`REL-20261012-1750-bindings-2`: 0.6.0 live + mini-RHI interop direction:
-caller surface accepted, picked-physdev accessor added).
+caller surface accepted, picked-physdev accessor added). Mini-RHI renumbers
+to **0.7.0+** (packages SESSION; endorsed `-1348-engine`/`-1500-bindings`).
+Engine scene tier green on the raw seam (`-1754-engine`: depth + lit
+pipeline + indexed draws; mini-RHI no longer a hard gate) -- its ordering
+highlights are folded into the batch inputs.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
