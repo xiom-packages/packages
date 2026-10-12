@@ -181,6 +181,21 @@ SKIP-when-absent / no-adapter; ABI failures never silent. Publish requested
 free functions + enum/struct metadata, DXGI factory/adapters/swapchain +
 WARP fallback, `docs/COVERAGE.md`) -- per the package ROADMAP.
 
+**UPDATE 2026-10-12 19:30Z (DX12 0.2.0 -- full d3d12.h surface)**: same-day
+follow-on (`f8992491`, records `c8dd1876`/`be22717d`): `tools/gen_dx12.py`
+generated the full `d3d12.h` core surface from the pinned
+DirectX-Headers -- 90 interfaces / **355 own-method wrappers** (absolute
+vtable slots; `src/iface_01..12.xi` + `src/d3d12_calls.c`), **1162 enum
+consts** (`consts_1..5.xi`), **9 free functions** (`functions.xi`); 22
+struct-by-value shapes documented as skips in `docs/gen_manifest.json`
+(struct-metadata wave). Suite **12/12 x2** on the RTX 3070 Ti: live device
+pointer + GetNodeCount, CreateCommandQueue hr=0 + Release refcount 0,
+D3D12SerializeRootSignature wrapper hr=0 + typed probe (88-byte blob).
+`docs/COVERAGE.md` carries oracle==emitted==witness; publish request
+updated to 0.2.0 (`REL-20261012-1930-bindings`). DX12 remaining: DXGI
+factory/adapters/WARP/swapchain + struct metadata + `d3d12video.h`
+(0.3.0 wave, per the package ROADMAP).
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
