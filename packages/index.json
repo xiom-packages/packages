@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-13T00:03:22Z",
+    "updated":  "2026-10-13T00:04:13Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
