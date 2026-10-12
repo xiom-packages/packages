@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-12T21:57:38Z",
+    "updated":  "2026-10-12T22:26:43Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1952,6 +1952,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-duration/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "duration.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.dx12",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Direct3D 12 foundation bindings for XIOM (runtime d3d12.dll; COM/vtable ABI pinned from microsoft/DirectX-Headers; device + command-allocator probe with SKIP semantics; full generated surface on the 0.2.0 roadmap)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dx12/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "dx12.xi",
                                               "package.xi"
                                           ]
                      },
