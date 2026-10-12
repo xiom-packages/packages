@@ -32,6 +32,17 @@ extern "C" {
   fn xd12_device_probe() -> Int32;
   fn xd12_device_node_count() -> Int32;
   fn xd12_allocator_ok() -> Int32;
+  fn xd12_device_ptr() -> Int;
+  fn xd12_resolve(name: *UInt8) -> *UInt8;
+  fn xd12_iid(which: Int32, dst16: *UInt8) -> Int32;
+  fn xd12_blob_size(blob: *UInt8) -> Int32;
+  fn xd12_blob_size64(blob: *UInt8) -> Int64;
+  fn xd12_blob_head64(blob: *UInt8) -> Int64;
+  fn xd12_root_signature_probe() -> Int32;
+  fn xd12_root_signature_size() -> Int32;
+  fn xd12_root_signature_magic() -> Int64;
+  fn xd12_poke_u32(dst: *UInt8, off: Int32, v: UInt32);
+  fn xd12_poke_u64(dst: *UInt8, off: Int32, v: UInt64);
   fn xd12_unload();
 }
 
@@ -112,6 +123,35 @@ pub fn dx12_probe() -> Result[Dx12DeviceInfo, Dx12ProbeError]
   return dx12_probe_named(DX12_SONAME);
 }
 
+/// Load the runtime + create the device and KEEP it live so the generated
+/// `iface_*` wrappers can drive it (`dx12_device_ptr`).  Close with
+/// `dx12_unload`.  Same classification as `dx12_probe`.
+/// Complexity: O(load + device + allocator).
+pub fn dx12_open_device() -> Result[Dx12DeviceInfo, Dx12ProbeError]
+  requires: true
+{
+  let rc = unsafe { xd12_load() as Int };
+  if rc != 0 {
+    let msg = unsafe { Str::from_c_str(xd12_error()) };
+    if rc == 1 {
+      return Err(Dx12ProbeError{ kind: DX12_LOAD_ABSENT; message: msg });
+    }
+    return Err(Dx12ProbeError{ kind: DX12_LOAD_ABI; message: msg });
+  }
+  let q = unsafe { xd12_device_probe() as Int };
+  if q != 0 {
+    let msg = unsafe { Str::from_c_str(xd12_error()) };
+    unsafe { xd12_unload(); }
+    if q == 2 {
+      return Err(Dx12ProbeError{ kind: DX12_LOAD_ABI; message: msg });
+    }
+    return Err(Dx12ProbeError{ kind: DX12_LOAD_NO_DEVICE; message: msg });
+  }
+  let nodes = unsafe { xd12_device_node_count() as Int };
+  let alloc_ok = (unsafe { xd12_allocator_ok() as Int }) == 1;
+  return Ok(Dx12DeviceInfo{ node_count: nodes, allocator_ok: alloc_ok });
+}
+
 /// Release any runtime handles held by the probe.  Safe when nothing is
 /// loaded.
 /// Complexity: O(1).
@@ -119,4 +159,102 @@ pub fn dx12_unload()
   requires: true
 {
   unsafe { xd12_unload(); }
+}
+
+// =========================================================================
+// Generated-surface helpers (0.2.0): the `src/iface_*.xi` wrappers drive
+// COM objects through these.
+// =========================================================================
+
+/// The live `ID3D12Device*` created by the probe (0 when none).
+/// Complexity: O(1).
+pub fn dx12_device_ptr() -> Int
+  requires: true
+{
+  unsafe { return xd12_device_ptr(); }
+}
+
+/// Lazy free-function resolver on the loaded `d3d12.dll` (0 when absent).
+/// Complexity: O(1).
+pub fn dx12_resolve(name: *UInt8) -> *UInt8
+  requires: true
+{
+  unsafe { return xd12_resolve(name); }
+}
+
+/// Copy one of the pinned core IID byte images into `dst16` (16 bytes).
+/// 0 ID3D12Device, 1 ID3D12CommandAllocator, 2 ID3D12CommandQueue,
+/// 3 ID3D12CommandList, 4 ID3D12GraphicsCommandList, 5 ID3D12Resource,
+/// 6 ID3D12Fence, 7 ID3D12DescriptorHeap, 8 ID3D12RootSignature,
+/// 9 ID3D12PipelineState, 10 ID3D12Heap, 11 ID3D12QueryHeap.
+/// Complexity: O(1).
+pub fn dx12_iid(which: Int, dst16: *UInt8) -> Int
+  requires: true
+{
+  unsafe { return xd12_iid(which as Int32, dst16) as Int; }
+}
+
+/// `ID3DBlob::GetBufferSize` (vtable slot 4).  -1 when blob is 0.
+/// Complexity: O(1).
+pub fn dx12_blob_size(blob: *UInt8) -> Int
+  requires: true
+{
+  unsafe { return xd12_blob_size(blob) as Int; }
+}
+
+/// Full 64-bit `GetBufferSize` (diagnostic).
+/// Complexity: O(1).
+pub fn dx12_blob_size64(blob: *UInt8) -> Int
+  requires: true
+{
+  unsafe { return xd12_blob_size64(blob) as Int; }
+}
+
+/// First 8 bytes of the blob payload (diagnostic; `RTS0` magic witness).
+/// Complexity: O(1).
+pub fn dx12_blob_head64(blob: *UInt8) -> Int
+  requires: true
+{
+  unsafe { return xd12_blob_head64(blob) as Int; }
+}
+
+/// Typed root-signature serialize probe (bridge-side struct building):
+/// 0=ok, 1=serialize failed, 2=no runtime/export.
+/// Complexity: O(serialize).
+pub fn dx12_root_signature_probe() -> Int
+  requires: true
+{
+  unsafe { return xd12_root_signature_probe() as Int; }
+}
+
+/// Size of the blob produced by `dx12_root_signature_probe` (-1 = failed).
+/// Complexity: O(1).
+pub fn dx12_root_signature_size() -> Int
+  requires: true
+{
+  unsafe { return xd12_root_signature_size() as Int; }
+}
+
+/// First 8 payload bytes from the probe blob (RTS0 magic witness).
+/// Complexity: O(1).
+pub fn dx12_root_signature_magic() -> Int
+  requires: true
+{
+  unsafe { return xd12_root_signature_magic() as Int; }
+}
+
+/// Little-endian u32 store at `dst + off` (struct building in tests).
+/// Complexity: O(1).
+pub fn dx12_poke_u32(dst: *UInt8, off: Int, v: UInt32)
+  requires: true
+{
+  unsafe { xd12_poke_u32(dst, off as Int32, v); }
+}
+
+/// Little-endian u64 store at `dst + off` (struct building in tests).
+/// Complexity: O(1).
+pub fn dx12_poke_u64(dst: *UInt8, off: Int, v: UInt64)
+  requires: true
+{
+  unsafe { xd12_poke_u64(dst, off as Int32, v); }
 }

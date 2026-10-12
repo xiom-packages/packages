@@ -3,19 +3,17 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: V0.64.4 ARCHIVE WAVE COMPLETE -- all claimed fixes verified
-(B-13/14/15/18/1904/12), B-19 green package-side, B-10 newly green; jolt
-unblocked (4/4 x2) and live in `eco-v0.1.161` with vma 0.3.0 + dxc 0.3.0;
-SDK100 publishes live through `eco-v0.1.162` (eight names + sdl3 0.17.0;
-spirv-headers held); compiler reply filed (`f8fe214`); **glfw 0.6.0
-direct-handoff lift BLOCKED -- new defect B-22 (`REL-20261012-1630-bindings`),
-glfw reverted to 0.5.0**; **OpenGL 0.4.0 shipped (656/656 core-4.6, x2);
-DX12 groundwork started (DirectX-Headers pinned)** -- CHECKPOINT HANDOFF
-2026-10-12 17:50Z** (this session ran 17:19Z-18:45Z and shipped
-batches 56-61: meshopt 0.2.0 vendored, ozz 0.3.0 clip pipeline, imgui 0.3.0
-context handles, box2d 0.3.0 joint motors, meshopt 0.3.0 owned-buffer
-wrappers, meshopt 0.4.0 codec families, plus the assimp consumer
-mini-contract; the parallel owner session re-verified the staged build).
+**STATUS: GRAPHICS DRIVE COMPLETE THROUGH DX12 0.2.0 + SDK100 WAVE
+COMPLETE -- Vulkan 0.6.0 live (engine-green); OpenGL 0.4.0 LIVE
+(`eco-v0.1.164`; 656/656 core-4.6, x2); DX12 0.1.0 LIVE
+(`eco-v0.1.166`) + 0.2.0 SHIPPED locally (`f8992491`; 355 wrappers/1162
+consts/9 free fns, 12/12 x2; 0.2.0 publish request open with packages);
+SDK100 all slices live through `eco-v0.1.165` (81 releases); v0.64.4 pin
+wave done (archive verified, repin 532, release-check rows `b235493`);
+**B-22 open -- glfw 0.6.0 lift parked**; ops clobber rules in force --
+SESSION HANDOFF 2026-10-12 19:31Z** (this session: archive wave + relay
+replies + OpenGL full surface + DX12 foundation and surface; NEXT = DX12
+0.3.0: DXGI + struct metadata + d3d12video).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -181,6 +179,34 @@ SKIP-when-absent / no-adapter; ABI failures never silent. Publish requested
 free functions + enum/struct metadata, DXGI factory/adapters/swapchain +
 WARP fallback, `docs/COVERAGE.md`) -- per the package ROADMAP.
 
+**UPDATE 2026-10-12 19:30Z (DX12 0.2.0 -- full d3d12.h surface)**: same-day
+follow-on (`f8992491`, records `c8dd1876`/`be22717d`): `tools/gen_dx12.py`
+generated the full `d3d12.h` core surface from the pinned
+DirectX-Headers -- 90 interfaces / **355 own-method wrappers** (absolute
+vtable slots; `src/iface_01..12.xi` + `src/d3d12_calls.c`), **1162 enum
+consts** (`consts_1..5.xi`), **9 free functions** (`functions.xi`); 22
+struct-by-value shapes documented as skips in `docs/gen_manifest.json`
+(struct-metadata wave). Suite **12/12 x2** on the RTX 3070 Ti: live device
+pointer + GetNodeCount, CreateCommandQueue hr=0 + Release refcount 0,
+D3D12SerializeRootSignature wrapper hr=0 + typed probe (88-byte blob).
+`docs/COVERAGE.md` carries oracle==emitted==witness; publish request
+updated to 0.2.0 (`REL-20261012-1930-bindings`). DX12 remaining: DXGI
+factory/adapters/WARP/swapchain + struct metadata + `d3d12video.h`
+(0.3.0 wave, per the package ROADMAP).
+
+**UPDATE 2026-10-12 19:35Z (DX12 publish confirmed -- 0.3.0 wave STARTED)**:
+**`xiom.dx12` 0.1.0 PUBLISHED**: `eco-v0.1.166` (batch 68, run 38297712793
+green 3m50s; live sha256 `5ff65bed` @19:28:19Z, signed; ops scope live
+eco 519 -> allowlist 520; merge `b8354f82`, record `18cd040e`; validate
+533/0; port x2 5/5 on v0.64.4). Relay item `REL-20261012-1930-bindings`
+moved to **fixed** by packages (relay tip `01de8fb`); packages note says
+"0.2.0 (full ID3D12 surface + DXGI) is the next wave" -- **0.2.0 publish
+still pending** (supersede note is on the same item; no new ask needed).
+This session starts the **DX12 0.3.0 wave** per the package ROADMAP:
+(a) struct metadata + typed shims for the 22 skipped shapes, (b) DXGI
+(factory/adapters/WARP/swapchain), (c) `d3d12video.h`, then promotion.
+Doorbell re-armed for this session.
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
@@ -255,7 +281,26 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-12 14:15Z)**: **v0.64.4 ARCHIVE WAVE COMPLETE** (this
+- **CURRENT (2026-10-12 19:31Z)**: **GRAPHICS DRIVE**: Vulkan 0.6.0 LIVE
+  (`eco-v0.1.163`; engine window + scene tiers green); **OpenGL 0.4.0
+  LIVE** (`eco-v0.1.164`; full generated core-4.6: 656 cmds + 1358 consts;
+  656/656 resolved x2); **DX12 0.1.0 + 0.2.0 SHIPPED**
+  (`b353ed9c`/`f8992491`, records `c8dd1876`/`be22717d`): runtime
+  `d3d12.dll` + COM/vtable ABI from the pinned DirectX-Headers `461ef513`;
+  generated full `d3d12.h` surface (90 interfaces / 355 method wrappers /
+  1162 consts / 9 free fns; 22 struct-value skips documented in
+  `docs/gen_manifest.json`), suite 12/12 x2 (device, queue+release,
+  root-signature serialize 88B); publish requested **0.2.0**
+  (`REL-20261012-1930-bindings`; new name -> ops scope). **SDK100
+  COMPLETE**: spirv.headers live (`eco-v0.1.165`; 81 releases). **v0.64.4
+  pin**: `44a41aea` verified + slot byte-identical (556/556); repin 532 +
+  validate 532/0 (`1f850919`); archive wave + compiler reply (`f8fe214`;
+  release-check `b235493`); B-10 newly green; B-16/B-17/B-20/B-11/B-05/
+  B-07/B-21 red by design. **B-22 OPEN** (glfw lift parked; witness
+  `probe9_castcall_param.xi`). Ops clobber rules in force (bindings filed
+  the no-install data point on `-1852-ops`). Worktree clean; relay tip
+  `d439ee8`; next = DX12 0.3.0 wave.
+- **Earlier state (2026-10-12 14:15Z)**: **v0.64.4 ARCHIVE WAVE COMPLETE** (this
   session): pin `44a41aea...` sha256-verified + slot byte-identical
   (556/556); `COMPILER_VERSION` + repin 532 + validate 532/0 (`1f850919`);
   all fixes VERIFIED (B-13/B-14/B-15/B-18/1904/B-12; B-19 package-side
@@ -801,61 +846,55 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- clean handoff pickup (2026-10-12 14:15Z,
-checkpoint handoff; the v0.64.4 archive wave is COMPLETE and the compiler
-reply is filed; the WORKAROUND LIFT is the next batch).
+Bindings lane continuation -- seamless pickup (2026-10-12 19:31Z;
+graphics drive on track; the next build batch is the DX12 0.3.0 wave).
 
-0. FIRST ACTION: item 0(b) -- sdl3 handler-shape widening. The glfw
-   direct-handoff lift was ATTEMPTED and is BLOCKED by a new compiler
-   defect (B-22, `REL-20261012-1630-bindings`): a fn-typed PARAM at a
-   CAST-CALL argument position marshals to 0 -- not the raw C entry -- so
-   user callback VALUES cannot cross to C correctly (glfw reverted to
-   0.5.0 unchanged; minimal witness
-   `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`). Re-run
-   the glfw lift only when the unwrap fix ships in a pin + probe9 is
-   re-verified. SDK100 publishes are resolved (batch 64 live; only
-   spirv-headers held). The v0.64.4 archive wave is DONE (13:57Z/14:05Z
-   updates above): all claimed fixes verified (B-13/B-14/B-15/B-18/
-   1904/B-12; B-19 green package-side; B-10 newly green), not-in-wave
-   rows red by design (B-16/B-17/B-20/B-11/B-05/B-07), B-02 re-verified
-   16/16, jolt 4/4 x2. Compiler reply: `REL-20261012-1400-bindings` +
-   release-check rows (`f8fe214`; bindings rows filled in
-   release-checks/compiler-compiler-v0.64.4 `b235493`). Batches 63/64
-   (`eco-v0.1.161/162`) = jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 + the eight
-   SDK100 first-publishes + sdl3 0.17.0 all LIVE; `xiom.spirv.headers`
-   HELD (dotted vs dash scope; `REL-20261012-1405-packages`). Then the
-   lift (normal batch flow: feat -> x2 -> record -> relay -> ledger):
-   (a) **xiom.glfw 0.5.0 -> 0.6.0: ATTEMPTED, BLOCKED, REVERTED** -- see
-   the B-22 paragraph above; the patch shape is proven (flat Int-typed
-   cast + `handler as Int`; bare-name/local-of-name handoffs are exact);
-   re-attempt + re-run probe9 when the compiler fix ships.
-   (b) **xiom.sdl3**: widen the filter/watch dispatcher handler shapes
-   (drop the 1-arg flattening + structured-ifs workarounds that B-14/B-15
-   covered). The 0.17.0 bump has wrapped. Same B-22 caveat if it needs
-   param values crossing to C. Suites: the 59-check conformance + the
-   full surface under tests/.
-   (c) **DX12 (graphics drive)**: 0.1.0 foundation DONE (`b353ed9c`:
-   runtime d3d12.dll + COM/vtable ABI from the pinned DirectX-Headers
-   `461ef513`; device + allocator roundtrip; 5/5 x2; publish requested
-   `REL-20261012-1930-bindings`). NEXT = **0.2.0 wave** per the package
-   ROADMAP: generator `tools/gen_dx12.py` from the pinned headers (all
-   `ID3D12*` interfaces -> vtable-slot wrappers; free functions incl.
-   D3D12SerializeRootSignature/D3D12GetDebugInterface; enum/struct
-   metadata like the vulkan struct-meta), DXGI (CreateDXGIFactory2,
-   adapters, WARP fallback, BGRA8/FIFO swapchain), coverage manifest
-   (oracle == bound == resolved). Then GLES/EGL via ANGLE
-   (libGLESv2/libEGL + eglGetProcAddress) as the follow-on wave; WGL
-   extension wrappers next for opengl. Keep the upstream-first pins +
-   PROVENANCE + coverage manifest per package.
+0. STATE (the 19:31Z block + STATUS above carry the evidence):
+   - v0.64.4 pin DONE (archive `44a41aea` verified; slot byte-identical
+     556/556; repin 532; validate 532/0). Archive wave + compiler reply
+     filed (`f8fe214` + release-check rows `b235493`). **B-22 is the one
+     blocker**: fn-typed PARAM values do not cross to C at cast-call
+     positions (glfw 0.6.0 lift parked; witness
+     `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`);
+     re-attempt when a pin ships the unwrap fix.
+   - SDK100 COMPLETE: all twelve slices live through `eco-v0.1.165`
+     (81 releases). sdl3 0.17.0 / opengl 0.4.0 / vulkan 0.6.0 / jolt
+     0.2.0 / vma 0.3.0 / dxc 0.3.0 all LIVE.
+   - Graphics drive: Vulkan 0.6.0 live + engine-green (GPU window + scene
+     tiers). OpenGL 0.4.0 LIVE (`eco-v0.1.164`; full generated core-4.6:
+     656 cmds + 1358 consts; 656/656 resolved, x2). DX12: 0.1.0 + 0.2.0
+     SHIPPED (`b353ed9c`/`f8992491`; full d3d12.h surface 355 wrappers +
+     1162 consts + 9 free fns; 12/12 x2); publish requested at 0.2.0
+     (`REL-20261012-1930-bindings`; new name -> ops scope).
 
-1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
-   BINDINGS-SESSION.md (STATUS + RESUME HERE). Then check the relay FIRST:
-   E:\xiom-lang\xiom-relays -- `git fetch origin` + compare (do NOT pull:
-   "Cannot fast-forward to multiple branches"); `python tools/relay.py
-   view --lane bindings`; process items addressed to bindings (only the
-   REPORTING lane moves its own items; reply with new bindings items;
-   stage ONLY this lane's files). Relay items must be PURE ASCII
-   (`relay.py validate` is repo-wide; -2302 was that class, fixed).
+0b. FIRST ACTION: confirm the DX12 0.2.0 publish in packages SESSION.md
+    (record the eco version here); then run the **DX12 0.3.0 wave** per
+    the package ROADMAP (normal batch flow: feat -> x2 -> record -> relay
+    -> ledger):
+    (a) struct metadata: bind the 22 skipped shapes (sret > 8B returns +
+       by-value params; offsets table like the vulkan struct-meta);
+       `docs/gen_manifest.json` lists them exactly;
+    (b) DXGI (`dxgi.dll`): CreateDXGIFactory2, adapter enumeration
+       (EnumAdapters/EnumWarpAdapter), WARP device fallback, BGRA8/FIFO
+       swapchain behind the same loader + SKIP rules; extend
+       `tools/gen_dx12.py` to parse `dxgi.h`/`dxgi1*.h` from the pinned
+       clone; IIDs via the generated `d3d12_iids.inc` pattern;
+    (c) `d3d12video.h` slice; then promotion (policy sec. 7) when the
+       settle window passes and `-1403-packages` does not block it.
+    Witness style: prefer C-side TYPED probes for struct-heavy flows (see
+    `xd12_root_signature_probe`) -- XIOM-side byte-built structs to D3D12
+    are fragile (learned 2026-10-12); generated wrappers stay for the
+    scalars/pointers paths (device/queue/release already proven).
+
+1. RELAY: E:\xiom-lang\xiom-relays -- `git fetch origin` + compare (do
+   NOT pull: "Cannot fast-forward to multiple branches"); `python
+   tools/relay.py view --lane bindings`; process items addressed to
+   bindings (only the REPORTING lane moves its own items; reply via new
+   bindings items; stage ONLY this lane's files). Relay items must be
+   PURE ASCII (`relay.py validate` is repo-wide). The parallel owner
+   session works in this same worktree: `git fetch` + `git log` before
+   every commit; if `.git/index.lock` exists another git op is running --
+   wait, do not delete the lock.
 
 2. Re-arm the session doorbell: `cron_create` schedule `0 */3 * * *`,
    prompt = "Bindings-lane doorbell. 1) E:\xiom-lang\xiom-relays: git
@@ -863,48 +902,44 @@ reply is filed; the WORKAROUND LIFT is the next batch).
    process new items (reply via new items; stage only this lane's files).
    2) Check E:\xiom-packages\packages\SESSION.md for new eco publish
    notes and record confirmed eco versions in BINDINGS-SESSION.md
-   (commit+push if changed). 3) If nothing new, no action." Check relay
-    once now; check the packages queue (nine SDK100 pours in flight -- eight
-    new names + the sdl3 0.17.0 full-surface bump; batch 63 already live:
-    jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 in eco-v0.1.161, 77 releases; record
-    new eco versions when the pours land).
+   (commit+push if changed). 3) If nothing new, no action."
 
-3. SDK100 program: COMPLETE on the bindings side (12/12 slices with
-   oracle==bound==resolved evidence; docs/SDK100-COVERAGE.md +
-   packages/xiom-vulkan/docs/COVERAGE.md). All batches relayed (vulkan
-   -2155; wave-1 -2231; wave-2 -2305; findings -2140/-2230/-2320,
-   including the HIGH Vec.with_len heap-buffer-overflow). The `sdk100-*`
-   agent worktrees are idle-complete -- do not re-run their work. Publish
-   status: batch 63 live (jolt/vma/dxc); the nine SDK100 pours are in
-   flight (item 0). Owner session side: Vulkan mini-RHI batches 0.6.0+ (READ
-   docs/checklists/vulkan-sdk-100.md before any Vulkan work; coordinate,
-   do not duplicate). Engine ask -2015 acked; orders gated on the
-   slot-recycle fix (B-11 -- still red by design until the FFI pointer
-   batch lands).
+3. TRAPS / TOOLCHAIN:
+   - Toolchain: `XIOM_COMPILER=%LOCALAPPDATA%\xiom.new\bin\xiom.exe`
+     (read-only consumer). NEVER install/extract into the shared homes
+     (`%LOCALAPPDATA%\xiom`, `xiom.new`, WSL `~/.local/share/xiom`) --
+     the installer WIPES non-archive dirs there (ops `-1852-ops`); use
+     lane-local dirs + `tools/home-snapshot.ps1`; restore from snapshot
+     after a clobber.
+   - Package traps: assimp `-TimeoutSec 600`; glfw needs `--link user32`
+     when run manually; meshopt `-TimeoutSec 900`; opengl/dx12 suites
+     compile their C bridges via port.args.json; heavy full-surface
+     suites live at each package's tests/test_full_surface.xi.
+   - Upstream-first policy (POLICY block below): clone at pin +
+     PROVENANCE.md per package; license whitelist; 100% export coverage
+     is the standard; clones in E:\repos\CLEANUP.md (OpenGL-Registry
+     `6af574a1`, DirectX-Headers `461ef513` active).
 
-4. Continue the ordered tasks: optional Phase-3 items only on consumer
-   ask (meshopt cluster pipeline, box2d broad-phase queries + contact
-   events, imgui widget wrappers); SDL3 POSIX soname deferred (no Linux
-   CI target); watch engine replies to the assimp contract (-1828); engine
-   -1321/-1411-2/-1539 remain delivered/replied (their lane moves them).
+4. ORDERED TASKS after DX12: (i) glfw 0.6.0 lift re-attempt + probe9 when
+   B-22 ships; (ii) sdl3 handler-shape widening (B-22 caveat if it needs
+   param values crossing to C); (iii) GLES/EGL via ANGLE
+   (libGLESv2/libEGL + eglGetProcAddress) + WGL extension wrappers as
+   graphics follow-ons; (iv) optional Phase-3 items only on consumer ask
+   (meshopt cluster pipeline, box2d broad-phase + contact events, imgui
+   widget wrappers); ffmpeg stays blocked on a shared+dev build.
+   Vulkan mini-RHI is the OWNER session's lane (0.7.0-0.13.0 ladder;
+   READ docs/checklists/vulkan-sdk-100.md before any Vulkan work;
+   coordinate, do not duplicate; interop decision filed
+   `REL-20261012-1800-bindings`).
 
-Respect: B-11..B-21 discipline (byte-indexed slot writes; packed returns;
+Respect: B-11..B-22 discipline (byte-indexed slot writes; packed returns;
 structured ifs; NO pointer arithmetic -- one owned slot per out-param;
 never read through foreign pointers, have C copy into an owned slot
-(B-20); B-21 = never take &mut of a struct-return/Result-payload temp --
-repro docs/repro/bindings-pilot/mut-of-struct-return/); the upstream-first
-policy (POLICY block: clone upstream at pin + PROVENANCE.md per package;
-license whitelist; 100% export coverage is the standard; clones in
-E:\repos\CLEANUP.md); vendored trees byte-pinned (`vendor/** -text`,
-per-file SHA256 in SPEC.md); the "stage only this lane's relay items"
-rule; `git fetch` + `git log` before every commit (parallel owner
-session). Package traps: assimp `-TimeoutSec 600`; glfw needs
-`--link user32` when run manually; meshopt builds fine with `-TimeoutSec
-900`; heavy suites (slang/dxc/glslang/vma-bridge/sdl3-full) exist under
-their packages' tests/test_full_surface.xi. Deliver batches as: feat ->
-x2 green -> record via scripts/status.ps1 -> relay item to packages ->
-ledger update, all pushed; leave the worktree clean. TODO NOW: item 0
-(publish confirm), then the workaround lift (items 0a/0b).
+(B-20); B-21 = never take &mut of a struct-return/Result-payload temp;
+B-22 = fn-typed PARAM values do not cross to C via cast-call positions).
+Deliver batches as: feat -> x2 green -> record via scripts/status.ps1 ->
+relay item to packages -> ledger update, all pushed; leave the worktree
+clean. TODO NOW: item 0b (DX12 publish confirm + the 0.3.0 wave).
 
 ```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);

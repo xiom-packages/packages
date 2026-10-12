@@ -1,7 +1,7 @@
 package xiom_dx12 {
   name: "xiom.dx12";
-  version: "0.1.0";
-  description: "Direct3D 12 foundation bindings for XIOM (runtime d3d12.dll; COM/vtable ABI pinned from microsoft/DirectX-Headers; device + command-allocator probe with SKIP semantics; full generated surface on the 0.2.0 roadmap)";
+  version: "0.2.0";
+  description: "Direct3D 12 bindings for XIOM (runtime d3d12.dll; COM/vtable ABI pinned from microsoft/DirectX-Headers; full d3d12.h core surface: 90 interfaces / 355 generated method wrappers / 1162 enum consts / 9 free functions; probe + SKIP semantics; DXGI next)";
   categories: ["graphics"];
   keywords: ["d3d12", "directx", "dx12", "gpu", "rendering", "binding"];
   license: "MIT OR Apache-2.0";

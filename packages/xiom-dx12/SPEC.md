@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.dx12` |
-| Version | 0.1.0 |
+| Version | 0.2.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream (declaration oracle) | `microsoft/DirectX-Headers` @ `461ef513` (nearest stable tag `v1.619.5`); `include/directx/d3d12.h` SHA256 `AFA193D3BBA5C26EC5C96E0971C6A6EC491C973A06F8CEB0572FBF0F9F9C5441` |
 | Runtime | OS `d3d12.dll`, resolved at runtime (no link dependency); Agility SDK NOT required or vendored |
@@ -43,15 +43,16 @@
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.dx12` | **PASS 5/5 x2** -- constants, SKIP classification (bogus soname -> ABSENT), device (node_count=1), CreateCommandAllocator roundtrip + release, unload |
+| Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.dx12` | **PASS 12/12 x2** -- constants + SKIP classification, device (node_count=1), allocator roundtrip, generated-surface: GetNodeCount, CreateCommandQueue + Release, D3D12SerializeRootSignature wrapper (hr=0) + typed RS probe (88-byte blob), unload |
 | No runtime / no adapter | deterministic SKIP classification via the bogus-soname path; `NO_DEVICE` maps to the same SKIP markers | covered by the classification checks |
 
 ## 5. Scope
 
-0.1.0 is the foundation: runtime loading + the COM/vtable ABI + a working
-device and allocator path. The **0.2.0 wave** adds the full generated
-surface: all `ID3D12*` interfaces (vtable wrappers), free functions
-(`D3D12SerializeRootSignature`, `D3D12GetDebugInterface`, ...), enum/struct
-metadata parsed from the pinned headers, DXGI (`dxgi.dll`:
-factory/adapter/swapchain) and a `docs/COVERAGE.md` with
-oracle == bound == resolved counts.
+0.2.0 ships the full generated `d3d12.h` core surface (slice 1): 90
+interfaces -> 355 own-method wrappers with absolute vtable slots
+(`src/iface_01..12.xi` + `src/d3d12_calls.c`), 1162 enum consts
+(`src/consts_1..5.xi`) and the 9 free functions (`src/functions.xi`);
+counts + the 22 struct-by-value skips are in `docs/COVERAGE.md` and
+`docs/gen_manifest.json`. Still next: struct metadata (sret/by-value
+normal forms), DXGI (`dxgi.dll`: factory/adapter/WARP/swapchain),
+`d3d12video.h`, then promotion.
