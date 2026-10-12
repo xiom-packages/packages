@@ -243,6 +243,16 @@ own feat commit + x2 record (all pushed on `bindings`):
   workaround rows for B-23/B-24 / API review) after the settle window;
   `-1403-packages` could not block anything seen this session.
 
+**UPDATE 2026-10-12 21:05Z (doorbell)**: batch 69 = **`xiom.dx12` 0.2.0
+PUBLISHED** (`eco-v0.1.167`, run 38301605558; live sha256 `7cfae765`);
+0.1.0 (batch 68, `eco-v0.1.166`) remains live too -- the 0.3.0 request
+supersedes both. Batch 70: packages **acked the 0.3.0 publish request**
+(`REL-20261012-2051-bindings` open->acked 21:00Z; merge + validate + port
+x2 + publish next; the name scope is already cleared since 0.1.0 is live).
+No new bindings-addressed items beyond the owner-handled sets
+(`-2051-bindings-2/-3/-4`); relay validate 378 green. Nothing else
+actionable this tick.
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
