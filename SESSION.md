@@ -67,6 +67,16 @@ running). Check `git log -1 --format=%h %s` before starting.
   no packages blocker (KTX2/Basis-class codecs at the cook gate later). **Compiler m277 (`29e35ef8`)
   FIXED our `-1403`** (nested fn types; depth-aware split) -- re-run the sdl3 compile at the next
   archive to confirm 0 warnings (row appended to the next-batch table).
+- **Batch 70: `xiom.dx12` 0.3.0 PUBLISHED (struct metadata 434 shapes + DXGI + d3d12video)**: bump
+  `3fcb92aa`; x2 on v0.64.4 (31/31 both: struct sret roundtrips + oracle sizeof cross-check, DXGI 3
+  adapters/WARP/640x480 swapchain, video QI + VIDEO_DECODE chain); eco-v0.1.168 (run 38308256176
+  green 4m39s; live sha256 `14ce3e67` @21:05:31Z, signed); README/STATUS synced; item `-2051` fixed.
+  Tally: **84 eco releases**. Promotion readiness is the next step (bindings' ROADMAP note).
+- **DUAL-SESSION WARNING (2026-10-12 21:10Z)**: TWO packages-lane processes ran against this worktree
+  tonight (evidence: parallel merge `4970096a` + wrap `113af041` vs this session's `6e9a95de` +
+  `65d0703c`; both ran the dx12 x2 sweeps). Interleaving was loss-free (one worktree serializes
+  commits; watch the relay `index.lock` races) but **close one window** -- doorbells otherwise
+  double-execute. If you are reading this after a handoff, confirm a single live packages session.
 - **ORBITDB P2 answered (20:40Z)**: `docs/OFFLINE-INSTALL-DESIGN.md` (`474e081e`) -- flows: A online
   pinned (usable today; interim guidance), B offline mirror (`xiom pkg fetch` + `file://` registry,
   same verification), C vendored-in-repo (`--local`); platform-matrix deliverable
