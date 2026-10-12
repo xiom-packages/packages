@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-12T22:26:43Z",
+    "updated":  "2026-10-12T23:02:10Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1956,18 +1956,36 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.dx12",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Direct3D 12 foundation bindings for XIOM (runtime d3d12.dll; COM/vtable ABI pinned from microsoft/DirectX-Headers; device + command-allocator probe with SKIP semantics; full generated surface on the 0.2.0 roadmap)",
+                         "description":  "Direct3D 12 bindings for XIOM (runtime d3d12.dll; COM/vtable ABI pinned from microsoft/DirectX-Headers; full d3d12.h core surface: 90 interfaces / 355 generated method wrappers / 1162 enum consts / 9 free functions; probe + SKIP semantics; DXGI next)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dx12/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dx12/v0.2.0/package.tar.gz",
                          "source_files":  [
+                                              "consts_1.xi",
+                                              "consts_2.xi",
+                                              "consts_3.xi",
+                                              "consts_4.xi",
+                                              "consts_5.xi",
+                                              "functions.xi",
+                                              "iface_01.xi",
+                                              "iface_02.xi",
+                                              "iface_03.xi",
+                                              "iface_04.xi",
+                                              "iface_05.xi",
+                                              "iface_06.xi",
+                                              "iface_07.xi",
+                                              "iface_08.xi",
+                                              "iface_09.xi",
+                                              "iface_10.xi",
+                                              "iface_11.xi",
+                                              "iface_12.xi",
                                               "dx12.xi",
                                               "package.xi"
                                           ]
