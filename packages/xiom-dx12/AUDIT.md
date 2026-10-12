@@ -1,0 +1,39 @@
+# AUDIT: xiom.dx12
+
+## Status (2026-10-12)
+
+Foundation probe at 0.1.0 (compiler v0.64.4): runtime `d3d12.dll`,
+hand-rolled COM/vtable ABI pinned from `microsoft/DirectX-Headers` @
+`461ef513` (`PROVENANCE.md`), device + allocator roundtrip,
+SKIP-when-absent.
+
+| Item | State |
+|------|-------|
+| Compiler | v0.64.4 |
+| Pin | DirectX-Headers @ `461ef513` (`d3d12.h` SHA256 `AFA193D3...`); IIDs + vtable slots in `SPEC.md` sec. 2 |
+| Link model | none; the bridge resolves `d3d12.dll` via `LoadLibraryA`/`GetProcAddress` |
+| Build | `port.args.json`: `--c-source ${PACKAGE_DIR}/src/dx12_probe.c` |
+| FFI confinement | all `unsafe`/`extern` in `dx12.xi` (G5); the bridge is plain C with no XIOM unsafe |
+| Suite | `tests/test_conformance.xi` |
+| Runs | **PASS 5/5 x2** on an NVIDIA RTX 3070 Ti (node_count=1), plus deterministic SKIP classification |
+
+## Design notes
+
+- The COM ABI is hand-declared in C (no `d3d12.h` include), following the
+  `xiom.dxc` precedent: GUIDs, vtable slot indices and the
+  `D3D12CreateDevice` signature are pinned in `SPEC.md` sec. 2 and verified
+  against the pinned DirectX-Headers clone.
+- `xd12_unload` releases the device and the library handle; the suite runs
+  probe -> unload without residue.
+- The Agility SDK is deliberately NOT a build or runtime dependency: the OS
+  runtime is the target; a newer Agility runtime is a pinned test-runtime
+  option only (never the declaration source).
+
+## Known limitations
+
+- Windows only; the OS runtime may predate newer D3D12 features (the
+  Agility test-runtime option is documented in `PROVENANCE.md`).
+- 0.1.0 has no DXGI, no swapchain and no command recording -- those are the
+  0.2.0 generated-surface wave.
+- WARP fallback for adapter-less hosts is not wired yet (`NO_DEVICE` ->
+  SKIP); the 0.2.0 DXGI work adds it.
