@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-12T16:14:43Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-12T18:34:25Z.
 
 ## Summary
 
@@ -472,7 +472,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.openal | xiom-openal | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.openblas | xiom-openblas | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.opencv | xiom-opencv | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.opengl | xiom-opengl | incubating | tests/test_conformance.xi | pass 13/13 | 2fe32b41 | False | publish pending: bindings batch 7 (eco-v0.1.98) |
+| xiom.opengl | xiom-opengl | incubating | tests/test_conformance.xi | pass 21/21 | 8f8a238b | False | publish pending: bindings batch 7 (eco-v0.1.98) |
 | xiom.openssl | xiom-openssl | incubating | tests/test_conformance.xi | pass 4/4 | ec7a7e2e | False | publish pending: bindings batch 20 (eco-v0.1.119) |
 | xiom.optimizer-fw | xiom-optimizer-fw | incubating | tests/test_conformance.xi | pass 25/25 | ecf76d12 | False | publish pending: next scope delta |
 | xiom.oracle | xiom-oracle | incubating | tests/test_conformance.xi | pass 22/22 | f487102b | False | publish pending: owner scope decision (parallel-lane implementation) |
@@ -545,7 +545,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.vectors | xiom-vectors | incubating | tests/test_conformance.xi | pass 37/37 | b8911083 | False | published in eco-v0.1.131 (2026-10-10) |
 | xiom.video | xiom-video | incubating | tests/test_conformance.xi | pass 24/24 | e23f8e3a | False | publish pending: next scope delta |
 | xiom.vma | xiom-vma | incubating | tests/test_full_surface.xi | pass 5/5 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12; 0.2.0 in eco-v0.1.124) |
-| xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 22/22 | 1aa5be5b | False | published in eco-v0.1.138 (2026-10-11; 0.4.0 in eco-v0.1.135) |
+| xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 22/22 | 1aa5be5b | False | published in eco-v0.1.163 (2026-10-12; 0.5.0 in eco-v0.1.138; 0.4.0 in eco-v0.1.135) |
 | xiom.wal | xiom-wal | incubating | tests/test_conformance.xi | pass 21/21 | 137a8200 | False | published in eco-v0.1.121 (2026-10-09) |
 | xiom.wallet | xiom-wallet | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.wasmtime | xiom-wasmtime | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
