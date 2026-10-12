@@ -13,9 +13,11 @@ bridge and reports a staged capability probe:
 Missing runtime -> **SKIP**; no display/context -> **SKIP**; present but
 broken exports -> **FAIL**. CI stays green without a GPU.
 
-> **Status:** `incubating` -- suite green x2 on the pin (v0.64.1):
-> 13/13 on an NVIDIA RTX 3070 Ti (classic 4.6 + 3.3 core probe, 404
-> extensions), plus a deterministic SKIP-path test.
+> **Status:** `incubating` -- **0.4.0 full core surface**: 21/21 x2 on the
+> pin (v0.64.4) on an NVIDIA RTX 3070 Ti: 656/656 generated core-4.6
+> commands resolved under a live session (unresolved=0), buffer + shader
+> roundtrips, plus the classic/core probes (4.6 classic + 3.3 core, 404
+> extensions) and the deterministic SKIP-path test.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -38,11 +40,36 @@ fn main() {
 }
 ```
 
+## Full surface (0.4.0)
+
+```xiom
+use xiom.opengl;
+use xiom.opengl.glapi;
+use xiom.opengl.cmds_01;   // ... cmds_07; consts_1..6 carry the enums
+
+fn main() {
+  let so = opengl_session_open(4, 6);
+  if !so.is_ok { /* ABSENT/NO_CONTEXT -> skip cleanly */ return; }
+  let api = gl_api_new();
+  // let err = gl_get_error(&api);
+  // vao/buffer/shader calls: gl_gen_vertex_arrays, gl_buffer_data, ...
+  opengl_session_close();
+}
+```
+
+The generated wrappers resolve every command per call through
+`wglGetProcAddress` (then the `opengl32` exports) against the session
+context. Enums live in `xiom.opengl.consts_1..6` (`pub const GL_*: Int`);
+the command name table is `xiom.opengl.names` (`gl_cmd_names()`,
+`GL_CMD_COUNT`). Target + counts: `docs/COVERAGE.md`, `PROVENANCE.md`.
+
 ## API
 
 | Area | Functions |
 |------|-----------|
 | Probe | `opengl_probe`, `opengl_probe_named(soname)`, `opengl_unload` |
+| Session (0.4.0) | `opengl_session_open(major, minor)`, `opengl_session_is_active`, `opengl_get_proc(name)`, `opengl_session_close` |
+| Surface (0.4.0) | generated `gl_*` wrappers in `xiom.opengl.cmds_01..07` (656 core-4.6 commands); enums in `xiom.opengl.consts_1..6`; name table `xiom.opengl.names` |
 | Core probe | `opengl_probe_core(major, minor)`, `opengl_probe_core_named(soname, major, minor)` |
 | Extensions | `opengl_has_extension(name)`, `opengl_has_extension_named(soname, name)` |
 | Types | `GlInfo` (vendor/renderer/version/glsl/contextless_len), `GlCoreInfo` (strings + major/minor/extension_count/extension_head), `GlProbeError` (kind/message) |
@@ -68,6 +95,7 @@ xiom --run tests/test_conformance.xi --c-source <abs>\src\gl_probe.c
 scripts/port.ps1 -Package xiom.opengl
 ```
 
-Expected: 13 `[PASS]`, exit 0, on a desktop session (classic context,
-3.3 core probe with extension count/scan). See `SPEC.md` §4 for the
+Expected: 21 `[PASS]`, exit 0, on a desktop session (classic 4.6 + 3.3 core
+probe with 404 extensions; 656/656 core commands resolved; buffer + shader
+roundtrips). See `SPEC.md` §4 for the
 recorded matrix and `SPEC.md` §2 for the G2 pin.

@@ -5,13 +5,13 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.opengl` |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | OpenGL (Khronos API); Windows implementation `opengl32.dll` |
 | Upstream license | none vendored -- the API is a specification; the bridge is our code |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (system component `opengl32.dll`; soname hard-coded for now) |
-| Compiler pin | v0.64.1 |
+| Compiler pin | v0.64.4 |
 
 ## 2. G2 pin: soname + symbol set + PFD layout
 
@@ -104,6 +104,7 @@ PFD_DOUBLEBUFFER(0x1)` = 0x25; `iPixelType = PFD_TYPE_RGBA(0)`;
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.opengl` | **PASS 13/13 x2** -- constants, SKIP classification (bogus soname -> ABSENT), classic context strings, contextless NULL, 3.3 core negotiation, extension count (404) + head, bogus extension absent, well-known extension (driver-dependent), unload |
+| Full core surface (0.4.0, v0.64.4, 2026-10-12) | same | **PASS 21/21 x2** -- adds the live 4.6-core session: 656/656 core commands resolved (unresolved=0), generated consts, buffer roundtrip (size=64 err=0), shader compile (status=1), session close |
 | SKIP classification | deterministic on every host via `opengl_probe_named("xiom-absent-gl-probe-xyz.dll")` | **PASS** in both recorded runs |
 | No-context SKIP path | code-reviewed; force-testing requires breaking window creation (covered by the same kind mapping as the ABSENT branch) | not exercised locally |
 
@@ -112,12 +113,12 @@ soname), so CI without a GPU still exercises the classification logic.
 
 ## 5. Scope
 
-0.3.0 covers capability probing: symbol resolution, contextless safety, one
-classic context with VENDOR/RENDERER/VERSION/GLSL, and a core-profile probe
-(version negotiation + extension count/scan). A **session-based function
-table** (keeping a context alive so consumers can call modern GL entry
-points through resolved addresses) is the next step, along with the
-`opengl32sw.dll` fallback and the POSIX/EGL path (`ROADMAP.md`). The old
-static-extern wrapper set (pre-0.2.0 `opengl.xi`) could not link
-(`glCreateShader` etc. are not exported by `opengl32.dll`) and is preserved
-in git history only as reference.
+0.4.0 ships the **full generated core-profile 4.6 surface**: 656 command
+wrappers + 1358 enums from the pinned Khronos registry (`PROVENANCE.md`,
+`docs/COVERAGE.md`), driven by the live-session resolver
+(`opengl_session_open` keeps a core context current; each generated wrapper
+resolves its entry point per call through `wglGetProcAddress`, then the
+`opengl32` export table). Still next: the `opengl32sw.dll` fallback and the
+POSIX/EGL path (`ROADMAP.md`). The old static-extern wrapper set (pre-0.2.0
+`opengl.xi`) could not link (`glCreateShader` etc. are not exported by
+`opengl32.dll`) and is preserved in git history only as reference.

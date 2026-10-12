@@ -1,6 +1,6 @@
 # xiom.opengl -- Roadmap
 
-**Version**: v0.3.0 | **Compiler**: xiom v0.64.1 | **Last updated**: 2026-10-08
+**Version**: v0.4.0 | **Compiler**: xiom v0.64.4 | **Last updated**: 2026-10-12
 
 ## Current state
 
@@ -12,7 +12,8 @@
 | Contextless safety check | Done |
 | Core-profile probe (version negotiation) | Done -- 0.3.0 (`wglCreateContextAttribsARB`) |
 | Extension loading (`wglGetProcAddress`) + scan | Done -- 0.3.0 (`glGetStringi`, exact-match) |
-| Session-based modern function table | Next |
+| Full core-4.6 surface (generated) | Done -- 0.4.0 (656 commands + 1358 consts from the pinned registry; 656/656 resolved live) |
+| Session-based modern function table | Done -- 0.4.0 (`opengl_session_open`; wrappers resolve per call) |
 | `opengl32sw.dll` (Mesa) fallback | Phase 2 |
 | POSIX / EGL path | Phase 2 |
 

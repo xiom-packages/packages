@@ -17,7 +17,23 @@ module opengl_conformance
 use xiom.io;
 use xiom.convert;
 use xiom.test;
+use xiom.ffi;
 use xiom.opengl;
+use xiom.opengl.glapi;
+use xiom.opengl.names;
+use xiom.opengl.cmds_01;
+use xiom.opengl.cmds_02;
+use xiom.opengl.cmds_03;
+use xiom.opengl.cmds_04;
+use xiom.opengl.cmds_05;
+use xiom.opengl.cmds_06;
+use xiom.opengl.cmds_07;
+use xiom.opengl.consts_1;
+use xiom.opengl.consts_2;
+use xiom.opengl.consts_3;
+use xiom.opengl.consts_4;
+use xiom.opengl.consts_5;
+use xiom.opengl.consts_6;
 
 fn report(ok: Bool, name: Str) -> Int {
   if ok {
@@ -120,6 +136,90 @@ fn main() -> Int {
       } else {
         failed = failed + report(false, "core: probe failed -- " + core.error.message);
       }
+    }
+  }
+
+  // 0.4.0: full-surface session -- the generated core-4.6 wrappers
+  // (Khronos OpenGL-Registry gl.xml; PROVENANCE.md).  Resolution check:
+  // every core command in the registry-derived name table must resolve.
+  if p.is_ok {
+    let so = opengl_session_open(OPENGL_SESSION_MAJOR, OPENGL_SESSION_MINOR);
+    if so.is_ok {
+      let api = gl_api_new();
+      failed = failed + report(opengl_session_is_active(), "surface: session context active (4.6 core)");
+
+      let cnames = gl_cmd_names();
+      var unresolved: Int = 0;
+      var i = 0;
+      while i < cnames.len() {
+        if gl_api_resolve(&api, cnames[i].c_str()) == 0 {
+          unresolved = unresolved + 1;
+        }
+        i = i + 1;
+      }
+      failed = failed + report(cnames.len() == GL_CMD_COUNT && unresolved == 0,
+        "surface: " + to_string(GL_CMD_COUNT) + " core commands resolved (unresolved=" + to_string(unresolved) + ")");
+      failed = failed + report(gl_api_resolve(&api, "glXiomNotACommand".c_str()) == 0,
+        "surface: bogus command resolves to 0");
+
+      failed = failed + report(GL_MAJOR_VERSION == 0x821B && GL_ARRAY_BUFFER == 0x8892
+          && GL_COMPILE_STATUS == 0x8B81 && GL_VERTEX_SHADER == 0x8B31,
+        "surface: generated consts (GL_MAJOR_VERSION/ARRAY_BUFFER/COMPILE_STATUS/VERTEX_SHADER)");
+
+      let _ = gl_get_error(&api);
+      var majs: Vec[Int32] = Vec[Int32].new();
+      majs.push(0);
+      gl_get_integerv(&api, GL_MAJOR_VERSION as UInt32, majs.as_mut_ptr());
+      failed = failed + report(majs[0] >= 4,
+        "surface: glGetIntegerv(GL_MAJOR_VERSION) = " + to_string(majs[0] as Int));
+
+      var ids: Vec[UInt32] = Vec[UInt32].new();
+      ids.push(0);
+      gl_gen_buffers(&api, 1, ids.as_mut_ptr());
+      if ids[0] != 0 {
+        gl_bind_buffer(&api, GL_ARRAY_BUFFER as UInt32, ids[0]);
+        var bytes: Vec[UInt8] = Vec[UInt8].new();
+        var b = 0;
+        while b < 64 { bytes.push((b & 0xFF) as UInt8); b = b + 1; }
+        gl_buffer_data(&api, GL_ARRAY_BUFFER as UInt32, 64, bytes.as_mut_ptr(), GL_STATIC_DRAW as UInt32);
+        var sz: Vec[Int32] = Vec[Int32].new();
+        sz.push(0);
+        gl_get_buffer_parameteriv(&api, GL_ARRAY_BUFFER as UInt32, GL_BUFFER_SIZE as UInt32, sz.as_mut_ptr());
+        let buferr = gl_get_error(&api);
+        failed = failed + report(sz[0] == 64 && buferr == 0,
+          "surface: buffer roundtrip (size=" + to_string(sz[0] as Int) + " err=" + to_string(buferr as Int) + ")");
+        gl_bind_buffer(&api, GL_ARRAY_BUFFER as UInt32, 0);
+        gl_delete_buffers(&api, 1, ids.as_mut_ptr());
+      } else {
+        failed = failed + report(false, "surface: glGenBuffers returned 0");
+      }
+
+      let sh = gl_create_shader(&api, GL_VERTEX_SHADER as UInt32);
+      if sh != 0 {
+        let srctext: Str = "#version 330 core\nvoid main() { gl_Position = vec4(0.0, 0.0, 0.0, 1.0); }\n";
+        var ptrs: Vec[UInt8] = Vec[UInt8].new();
+        var k = 0;
+        while k < 8 { ptrs.push(0 as UInt8); k = k + 1; }
+        unsafe {
+          ffi.ptr_write_u64_le(ptrs.as_mut_ptr(), srctext.c_str() as Int);
+        }
+        gl_shader_source(&api, sh, 1, ptrs.as_mut_ptr(), 0 as *Int32);
+        gl_compile_shader(&api, sh);
+        var st: Vec[Int32] = Vec[Int32].new();
+        st.push(0);
+        gl_get_shaderiv(&api, sh, GL_COMPILE_STATUS as UInt32, st.as_mut_ptr());
+        failed = failed + report(st[0] == 1, "surface: shader compile status=" + to_string(st[0] as Int));
+        gl_delete_shader(&api, sh);
+      } else {
+        failed = failed + report(false, "surface: glCreateShader returned 0");
+      }
+
+      opengl_session_close();
+      failed = failed + report(!opengl_session_is_active(), "surface: session closed");
+    } else if so.error.kind == OPENGL_LOAD_ABSENT || so.error.kind == OPENGL_LOAD_NO_CONTEXT {
+      failed = failed + report(true, "surface: SKIP -- session unavailable (" + so.error.message + ")");
+    } else {
+      failed = failed + report(false, "surface: session open failed -- " + so.error.message);
     }
   }
 
