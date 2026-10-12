@@ -38,6 +38,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   38294446110 green 3m48s; live sha256 `a77f364a` @19:01:29Z). All eight new names + sdl3 0.17.0 +
   vma 0.3.0 + dxc 0.3.0 + jolt 0.2.0 + vulkan 0.6.0 are now live. Bus: `-1855-ops` fixed, `-2305`
   (wave-2) fixed. Tally: **81 eco releases**.
+- **PROTOCOL RESTATED + TIGHTENED (owner 2026-10-12 20:36Z): upstream-first + clone-repo workflow +
+  100% coverage applies to EVERY package, new AND pre-existing.** Per-touch rule: any package merged
+  / fixed / verified / published gets a `PROVENANCE.md` (upstream pin + license OR an explicit
+  **independent** declaration) and carries 100% of its declared surface; retrofit at touch; new
+  packages must land with it. Audit tool: `scripts/provenance-audit.ps1`; generated report:
+  `docs/PROVENANCE-COMPLIANCE.md` (backlog now: **14 compliant / 519 to retrofit**). Doctrine updated
+  (`docs/UPSTREAM-FIRST.md` -- scope + two-mode provenance); paste prompt carries the per-touch line.
 - **Production asks triaged (2026-10-12 20:20Z)**: `-1946-pulse-2` acked -- **SQL driver queued** (top
   ask: DSN + execute/query/transaction + transactional-DDL capability flag per PULSE's
   `DESIGN-SQL-MIGRATIONS.md`; immediate path = `xiom.sqlite` 0.3.0 + the README consumer recipe until
@@ -445,7 +452,12 @@ memory. Clone the authoritative upstream at a pinned commit into E:\repos\<name>
 packages/<pkg>/PROVENANCE.md (upstream, commit, license, derived vs independent,
 imported vectors, re-carve steps); license whitelist MIT/Apache-2.0/BSD/ISC/zlib/
 PD/Unicode/RFC-first (MPL/LGPL reference-only; never GPL/AGPL/SSPL/Elastic);
-verification = upstream vectors/parity. Bindings: same clone-at-pin rule + 100%
+verification = upstream vectors/parity. Per-touch (owner 2026-10-12): EVERY
+package touched -- new or pre-existing -- states its provenance (upstream pin
+OR an explicit independent declaration) and carries 100% of its declared
+surface; retrofit at touch. Audit: scripts/provenance-audit.ps1 (report
+docs/PROVENANCE-COMPLIANCE.md; backlog 2026-10-12: 14 compliant / 519 to
+retrofit). Bindings: same clone-at-pin rule + 100%
 export coverage (complete surface, not partial). Canonical doc:
 docs/UPSTREAM-FIRST.md. Register clones in E:\repos\CLEANUP.md with a review-after
 date; sweep only at quiet moments, only when ship+verify is done and no lane
