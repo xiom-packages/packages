@@ -372,7 +372,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.docker | xiom-docker | incubating | tests/test_conformance.xi | pass 26/26 | ee890e25 | False | publish pending: next scope delta |
 | xiom.docx | xiom-docx | incubating | tests/test_conformance.xi | pass 27/27 | f0f7743d | False | category harmonization patch bump (registry metadata) |
 | xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | pass 152/152 | 88b51d96 | False | port done 2026-10-09 (WAL reconciled to xiom.wal); not on the publish scope |
-| xiom.dx12 | xiom-dx12 | incubating | tests/test_conformance.xi | pass 5/5 | b8354f82 | False |  |
+| xiom.dx12 | xiom-dx12 | incubating | tests/test_conformance.xi | pass 12/12 | fce153c9 | False | published in eco-v0.1.166 (2026-10-12) |
 | xiom.dxc | xiom-dxc | incubating | tests/test_conformance.xi | pass 20/20 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12) |
 | xiom.dynamo | xiom-dynamo | incubating | tests/test_conformance.xi | pass 21/21 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.eigen | xiom-eigen | incubating | tests/test_conformance.xi | unknown |  | False |  |
