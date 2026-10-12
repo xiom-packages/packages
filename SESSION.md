@@ -30,8 +30,9 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **`xiom.vulkan` 0.6.0 PUBLISHED (owner-approved SDK100 bump)**: eco-v0.1.163 (run
   38276087674 green 4m22s; live sha256 `a8053f05` @16:19:51Z, 2.9 MB signed). Additive full surface
   (845 cmds + 5983 consts + 8243 struct-meta; loadability 766/766); x2 green on v0.64.4 (22/22 RHI
-  probe, RTX 3070 Ti + skip-paths); README/STATUS synced; engine notified
-  (`REL-20261012-1622-packages`; `-1509` interop Qs stay with bindings). Mini-RHI renumbers to
+  probe, RTX 3070 Ti + skip-paths); README/STATUS synced; engine notified and **adopted same day**
+  (`REL-20261012-1622-packages` acked: pinned 0.6.0, `probe_vulkan` 14 -> 18 checks, CI 31 batteries
+  x2 green; `-1509` interop Qs stay with bindings). Mini-RHI renumbers to
   0.7.0+ after (engine+bindings endorsed: `-1348-engine`/`-1500-bindings`). Tally: **79 eco releases**.
 - **v0.64.4 re-verify wave DONE (14:35Z)**: `REL-20261010-1549-packages-4` VERIFIED (both phantom
   probes now fail with exactly one clean `19:5: unresolved import 'xiom.core.error'`; item verified);
