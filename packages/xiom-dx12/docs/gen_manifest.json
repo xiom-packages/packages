@@ -1,0 +1,251 @@
+{
+ "consts_emitted": 1162,
+ "free_functions_emitted": 9,
+ "groups": [
+  {
+   "file": "iface_01.xi",
+   "interfaces": [
+    "ID3D12Object",
+    "ID3D12DeviceChild",
+    "ID3D12RootSignature1",
+    "ID3D12RootSignatureDeserializer",
+    "ID3D12VersionedRootSignatureDeserializer",
+    "ID3D12Resource",
+    "ID3D12CommandAllocator",
+    "ID3D12Fence"
+   ]
+  },
+  {
+   "file": "iface_02.xi",
+   "interfaces": [
+    "ID3D12Fence1",
+    "ID3D12PipelineState",
+    "ID3D12PipelineState1",
+    "ID3D12DescriptorHeap",
+    "ID3D12CommandList",
+    "ID3D12GraphicsCommandList",
+    "ID3D12GraphicsCommandList1",
+    "ID3D12GraphicsCommandList2"
+   ]
+  },
+  {
+   "file": "iface_03.xi",
+   "interfaces": [
+    "ID3D12CommandQueue",
+    "ID3D12CommandQueue1",
+    "ID3D12Device",
+    "ID3D12PipelineLibrary",
+    "ID3D12PipelineLibrary1",
+    "ID3D12Device1",
+    "ID3D12Device2",
+    "ID3D12Device3"
+   ]
+  },
+  {
+   "file": "iface_04.xi",
+   "interfaces": [
+    "ID3D12ProtectedSession",
+    "ID3D12Device4",
+    "ID3D12LifetimeOwner",
+    "ID3D12SwapChainAssistant",
+    "ID3D12LifetimeTracker",
+    "ID3D12StateObjectProperties",
+    "ID3D12StateObjectProperties2",
+    "ID3D12WorkGraphProperties"
+   ]
+  },
+  {
+   "file": "iface_05.xi",
+   "interfaces": [
+    "ID3D12Device5",
+    "ID3D12DeviceRemovedExtendedDataSettings",
+    "ID3D12DeviceRemovedExtendedDataSettings1",
+    "ID3D12DeviceRemovedExtendedDataSettings2",
+    "ID3D12DeviceRemovedExtendedData",
+    "ID3D12DeviceRemovedExtendedData1",
+    "ID3D12DeviceRemovedExtendedData2",
+    "ID3D12Device6"
+   ]
+  },
+  {
+   "file": "iface_06.xi",
+   "interfaces": [
+    "ID3D12Device7",
+    "ID3D12Device8",
+    "ID3D12Resource1",
+    "ID3D12Heap1",
+    "ID3D12GraphicsCommandList3",
+    "ID3D12MetaCommand",
+    "ID3D12GraphicsCommandList4",
+    "ID3D12ShaderCacheSession"
+   ]
+  },
+  {
+   "file": "iface_07.xi",
+   "interfaces": [
+    "ID3D12Device9",
+    "ID3D12Device10",
+    "ID3D12Device11",
+    "ID3D12Device13",
+    "ID3D12Device14",
+    "ID3D12Device15",
+    "ID3D12StateObjectDatabase",
+    "ID3D12VirtualizationGuestDevice"
+   ]
+  },
+  {
+   "file": "iface_08.xi",
+   "interfaces": [
+    "ID3D12Tools",
+    "ID3D12Tools1",
+    "ID3D12Tools2",
+    "ID3D12RuntimeValidationControl",
+    "ID3D12PageableTools",
+    "ID3D12DeviceTools",
+    "ID3D12DeviceTools1",
+    "ID3D12SDKConfiguration"
+   ]
+  },
+  {
+   "file": "iface_09.xi",
+   "interfaces": [
+    "ID3D12SDKConfiguration1",
+    "ID3D12DeviceFactory",
+    "ID3D12DeviceConfiguration",
+    "ID3D12DeviceConfiguration1",
+    "ID3D12StateObjectDatabaseFactory",
+    "ID3D12ApplicationIdentity",
+    "ID3D12GraphicsCommandList5",
+    "ID3D12GraphicsCommandList6"
+   ]
+  },
+  {
+   "file": "iface_10.xi",
+   "interfaces": [
+    "ID3D12GraphicsCommandList7",
+    "ID3D12GraphicsCommandList8",
+    "ID3D12GraphicsCommandList9",
+    "ID3D12GraphicsCommandList10",
+    "ID3D12DSRDeviceFactory",
+    "ID3D12GBVDiagnostics",
+    "ID3D12DeviceStatistics"
+   ]
+  }
+ ],
+ "interfaces": 90,
+ "oracle": "E:\\repos\\DirectX-Headers\\include\\directx\\d3d12.h",
+ "own_methods_emitted": 355,
+ "skips": [
+  {
+   "iface": "ID3D12Heap",
+   "method": "GetDesc",
+   "reason": "struct-by-value D3D12_HEAP_DESC"
+  },
+  {
+   "iface": "ID3D12Resource",
+   "method": "GetDesc",
+   "reason": "struct-by-value D3D12_RESOURCE_DESC"
+  },
+  {
+   "iface": "ID3D12DescriptorHeap",
+   "method": "GetDesc",
+   "reason": "struct-by-value D3D12_DESCRIPTOR_HEAP_DESC"
+  },
+  {
+   "iface": "ID3D12CommandQueue",
+   "method": "GetDesc",
+   "reason": "struct-by-value D3D12_COMMAND_QUEUE_DESC"
+  },
+  {
+   "iface": "ID3D12Device",
+   "method": "GetResourceAllocationInfo",
+   "reason": "struct-by-value D3D12_RESOURCE_ALLOCATION_INFO"
+  },
+  {
+   "iface": "ID3D12Device",
+   "method": "GetCustomHeapProperties",
+   "reason": "struct-by-value D3D12_HEAP_PROPERTIES"
+  },
+  {
+   "iface": "ID3D12ProtectedResourceSession",
+   "method": "GetDesc",
+   "reason": "struct-by-value D3D12_PROTECTED_RESOURCE_SESSION_DESC"
+  },
+  {
+   "iface": "ID3D12Device4",
+   "method": "GetResourceAllocationInfo1",
+   "reason": "struct-by-value D3D12_RESOURCE_ALLOCATION_INFO"
+  },
+  {
+   "iface": "ID3D12StateObjectProperties1",
+   "method": "GetProgramIdentifier",
+   "reason": "struct-by-value D3D12_PROGRAM_IDENTIFIER"
+  },
+  {
+   "iface": "ID3D12WorkGraphProperties",
+   "method": "GetNodeID",
+   "reason": "struct-by-value D3D12_NODE_ID"
+  },
+  {
+   "iface": "ID3D12WorkGraphProperties",
+   "method": "GetNodeIndex",
+   "reason": "param struct-by-value D3D12_NODE_ID (NodeID)"
+  },
+  {
+   "iface": "ID3D12WorkGraphProperties",
+   "method": "GetEntrypointID",
+   "reason": "struct-by-value D3D12_NODE_ID"
+  },
+  {
+   "iface": "ID3D12WorkGraphProperties",
+   "method": "GetEntrypointIndex",
+   "reason": "param struct-by-value D3D12_NODE_ID (NodeID)"
+  },
+  {
+   "iface": "ID3D12ProtectedResourceSession1",
+   "method": "GetDesc1",
+   "reason": "struct-by-value D3D12_PROTECTED_RESOURCE_SESSION_DESC1"
+  },
+  {
+   "iface": "ID3D12Device8",
+   "method": "GetResourceAllocationInfo2",
+   "reason": "struct-by-value D3D12_RESOURCE_ALLOCATION_INFO"
+  },
+  {
+   "iface": "ID3D12Resource2",
+   "method": "GetDesc1",
+   "reason": "struct-by-value D3D12_RESOURCE_DESC1"
+  },
+  {
+   "iface": "ID3D12ShaderCacheSession",
+   "method": "GetDesc",
+   "reason": "struct-by-value D3D12_SHADER_CACHE_SESSION_DESC"
+  },
+  {
+   "iface": "ID3D12Device12",
+   "method": "GetResourceAllocationInfo3",
+   "reason": "struct-by-value D3D12_RESOURCE_ALLOCATION_INFO"
+  },
+  {
+   "iface": "ID3D12StateObjectDatabase",
+   "method": "GetApplicationDesc",
+   "reason": "param unmapped base 'D3D12ApplicationDescFunc' (CallbackFunc)"
+  },
+  {
+   "iface": "ID3D12StateObjectDatabase",
+   "method": "FindPipelineStateDesc",
+   "reason": "param unmapped base 'D3D12PipelineStateFunc' (CallbackFunc)"
+  },
+  {
+   "iface": "ID3D12StateObjectDatabase",
+   "method": "FindStateObjectDesc",
+   "reason": "param unmapped base 'D3D12StateObjectFunc' (CallbackFunc)"
+  },
+  {
+   "iface": "ID3D12DeviceConfiguration",
+   "method": "GetDesc",
+   "reason": "struct-by-value D3D12_DEVICE_CONFIGURATION_DESC"
+  }
+ ],
+ "vtbl_rows": 2476
+}

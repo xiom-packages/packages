@@ -25,12 +25,18 @@
  *   int         xd12_device_probe(void)  0=ok, 1=no device, 2=internal
  *   int         xd12_device_node_count(void)
  *   int         xd12_allocator_ok(void)  1 when the allocator roundtrip ran
+ *   long long   xd12_device_ptr(void)    the live ID3D12Device* (0 = none)
+ *   void*       xd12_resolve(const char* name)  lazy free-function resolver
+ *   int         xd12_iid(int which, unsigned char* dst16)  core IID bytes
+ *   int         xd12_blob_size(void* blob)  ID3DBlob::GetBufferSize (slot 4)
  *   void        xd12_unload(void)        releases the device if held
  */
 
 #include <windows.h>
 #include <stdint.h>
 #include <string.h>
+
+#include "d3d12_iids.inc"
 
 typedef struct Xd12Guid {
   uint32_t d1;
@@ -129,6 +135,107 @@ int __cdecl xd12_device_probe(void) {
 
 int __cdecl xd12_device_node_count(void) { return s_node_count; }
 int __cdecl xd12_allocator_ok(void) { return s_allocator_ok; }
+
+/* -- generated-surface helpers ------------------------------------------- */
+
+void* __cdecl xd12_resolve(const char* name) {
+  if (!m_d3d12 || !name || !name[0]) return 0;
+  return (void*)GetProcAddress(m_d3d12, name);
+}
+
+long long __cdecl xd12_device_ptr(void) {
+  return (long long)(intptr_t)s_device;
+}
+
+int __cdecl xd12_iid(int which, unsigned char* dst16) {
+  if (!dst16 || which < 0 || which >= g_xd12_iid_count) return -1;
+  memcpy(dst16, g_xd12_iids[which], 16);
+  return 0;
+}
+
+int __cdecl xd12_blob_size(void* blob) {
+  typedef uint32_t (WINAPI *FN)(void*);
+  if (!blob) return -1;
+  void** vtbl = *(void***)blob;
+  FN f = (FN)vtbl[4]; /* ID3D10Blob::GetBufferSize */
+  return (int)f(blob);
+}
+
+long long __cdecl xd12_blob_size64(void* blob) {
+  typedef uintptr_t (WINAPI *FN)(void*);
+  if (!blob) return -1;
+  void** vtbl = *(void***)blob;
+  FN f = (FN)vtbl[4];
+  return (long long)f(blob);
+}
+
+long long __cdecl xd12_blob_head64(void* blob) {
+  typedef void* (WINAPI *FN)(void*);
+  if (!blob) return 0;
+  void** vtbl = *(void***)blob;
+  FN fp = (FN)vtbl[3]; /* GetBufferPointer */
+  unsigned char* p = (unsigned char*)fp(blob);
+  unsigned long long v = 0;
+  if (!p) return -1;
+  memcpy(&v, p, 8);
+  return (long long)v;
+}
+
+/* Typed root-signature serialize probe: builds a 1-root-constant
+ * D3D12_ROOT_SIGNATURE_DESC locally (byte-accurate x64 layout), serializes
+ * via D3D12SerializeRootSignature, reads the blob size through the
+ * ID3D10Blob vtable, releases everything.  Witness: s_rs_size > 0. */
+static int s_rs_size = -1;
+static unsigned long long s_rs_magic = 0;
+
+int __cdecl xd12_root_signature_probe(void) {
+  typedef int32_t (WINAPI *FSer)(const void*, int32_t, void**, void**);
+  typedef uintptr_t (WINAPI *FSize)(void*);
+  typedef void* (WINAPI *FPtr)(void*);
+  if (!m_d3d12) return 2;
+  FSer ser = (FSer)GetProcAddress(m_d3d12, "D3D12SerializeRootSignature");
+  if (!ser) return 2;
+
+  struct { uint32_t NumParameters; void* pParameters; uint32_t NumStaticSamplers;
+           void* pStaticSamplers; int32_t Flags; } desc;
+  memset(&desc, 0, sizeof(desc));
+  struct { int32_t Type; unsigned char uni[16]; int32_t Vis; unsigned char pad[4]; } param;
+  memset(&param, 0, sizeof(param));
+  param.Type = 0; /* D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS */
+  *(uint32_t*)(param.uni + 8) = 1; /* Constants.Num32BitValues (ShaderRegister@0, RegisterSpace@4) */
+  desc.NumParameters = 1;
+  desc.pParameters = &param;
+
+  void* blob = 0;
+  void* err = 0;
+  int32_t hr = ser(&desc, 1 /* D3D_ROOT_SIGNATURE_VERSION_1 */, &blob, &err);
+  if (hr != 0 || !blob) {
+    s_rs_size = -1;
+    if (err) release_object(err);
+    return 1;
+  }
+  void** vtbl = *(void***)blob;
+  s_rs_size = (int)(((FSize)vtbl[4])(blob) & 0x7FFFFFFF);
+  unsigned char* data = (unsigned char*)((FPtr)vtbl[3])(blob);
+  if (data) memcpy(&s_rs_magic, data, 8);
+  release_object(blob);
+  if (err) release_object(err);
+  return 0;
+}
+
+int __cdecl xd12_root_signature_size(void) { return s_rs_size; }
+
+long long __cdecl xd12_root_signature_magic(void) { return (long long)s_rs_magic; }
+
+void __cdecl xd12_poke_u32(unsigned char* dst, int off, unsigned int v) {
+  if (!dst || off < 0) return;
+  memcpy(dst + off, &v, 4);
+}
+
+void __cdecl xd12_poke_u64(unsigned char* dst, int off, unsigned long long v) {
+  if (!dst || off < 0) return;
+  memcpy(dst + off, &v, 8);
+}
 
 void __cdecl xd12_unload(void) {
   if (s_device) { release_object(s_device); s_device = 0; }
