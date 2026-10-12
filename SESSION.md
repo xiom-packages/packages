@@ -41,7 +41,12 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **Production asks triaged (2026-10-12 20:20Z)**: `-1946-pulse-2` acked -- **SQL driver queued** (top
   ask: DSN + execute/query/transaction + transactional-DDL capability flag per PULSE's
   `DESIGN-SQL-MIGRATIONS.md`; immediate path = `xiom.sqlite` 0.3.0 + the README consumer recipe until
-  the build-hook lands) and **HTML/escaping answered via live packages**: `xiom.escape` 0.1.2 /
+  the build-hook lands). **Driver requirements drafted** (`docs/requirements/pulse-sql-driver.md`,
+  `8b930eec`; recommended shape = **driver module in `xiom.sqlite` 0.4.0**: `SqlDriver.open_from_dsn/
+  execute/query/query_one/transaction_*/capabilities/last_error` as pure XIOM over the existing FFI;
+  options B/C (new `xiom.sql` package / stdlib) deferred to the second engine class).
+  **Implementation proposal filed to bindings** (`REL-20261012-2032-packages`) since they own the
+  package; **HTML/escaping answered via live packages**: `xiom.escape` 0.1.2 /
   `xiom.template` 0.1.2 / `xiom.html` 0.1.3; `-1945-orbitdb-3` acked -- btree order-3 stays in the
   acceptance matrix permanently, offline/vendored install design note queued; engine `-2012` relay:
   no packages blocker (KTX2/Basis-class codecs at the cook gate later). **Compiler m277 (`29e35ef8`)
