@@ -27,6 +27,16 @@ running). Check `git log -1 --format=%h %s` before starting.
   six), -2305-bindings stays acked (spirv-headers pending).
 - **New compiler finding filed**: nested fn types in fn casts warn `unknown type ... defaulting to i64`
   on v0.64.4 (sdl3.xi:1599/1628/1640; 6x; suite green) -- `REL-20261012-1403-packages`.
+- **v0.64.4 re-verify wave DONE (14:35Z)**: `REL-20261010-1549-packages-4` VERIFIED (both phantom
+  probes now fail with exactly one clean `19:5: unresolved import 'xiom.core.error'`; item verified);
+  `-6` VERIFIED (jolt 4/4 x2 with `--cxx-standard 17`; item verified); `-5` BOUNCED still red
+  (consumer build does not apply the dep's port.args.json -- exact spec resolves, link fails
+  `undefined symbol: sqlite3_libversion`); `-7` BOUNCED still red (local fallback silent no-op --
+  reports btree 0.1.1, lands nothing; range specs unresolved); `-2100` VERIFIED on WSL (relative
+  XIOM_HOME refused exit 1 + no dir; absolute installs under the home; no C:Userslefte mangling).
+  B-13..B-20 verdicts filed by bindings (`REL-20261012-1400-bindings`; B-16/B-17 still red as
+  expected). Ledger: `release-checks/compiler-compiler-v0.64.3.md` packages block
+  (`e4a858f`/`4b2e1dc` in relays); items moved on the bus.
 - **Next**: re-verify wave (rows `REL-20261010-1549-packages-4/-5/-6/-7` + `-2100` and B-13..B-20
   witnesses on the v0.64.4 pin; B-16/B-17 expected red, do not bounce); spirv.headers publish on the
   ops confirmation; promotion policy active (`docs/UPSTREAM-FIRST.md` section 7).
