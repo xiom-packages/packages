@@ -5,8 +5,9 @@ below records evidence and open asks.
 
 **STATUS: GRAPHICS DRIVE COMPLETE THROUGH DX12 0.2.0 + SDK100 WAVE
 COMPLETE -- Vulkan 0.6.0 live (engine-green); OpenGL 0.4.0 LIVE
-(`eco-v0.1.164`; 656/656 core-4.6, x2); DX12 0.1.0+0.2.0 SHIPPED
-(`b353ed9c`/`f8992491`; 355 wrappers/1162 consts/9 free fns, 12/12 x2);
+(`eco-v0.1.164`; 656/656 core-4.6, x2); DX12 0.1.0 LIVE
+(`eco-v0.1.166`) + 0.2.0 SHIPPED locally (`f8992491`; 355 wrappers/1162
+consts/9 free fns, 12/12 x2; 0.2.0 publish request open with packages);
 SDK100 all slices live through `eco-v0.1.165` (81 releases); v0.64.4 pin
 wave done (archive verified, repin 532, release-check rows `b235493`);
 **B-22 open -- glfw 0.6.0 lift parked**; ops clobber rules in force --
@@ -192,6 +193,19 @@ D3D12SerializeRootSignature wrapper hr=0 + typed probe (88-byte blob).
 updated to 0.2.0 (`REL-20261012-1930-bindings`). DX12 remaining: DXGI
 factory/adapters/WARP/swapchain + struct metadata + `d3d12video.h`
 (0.3.0 wave, per the package ROADMAP).
+
+**UPDATE 2026-10-12 19:35Z (DX12 publish confirmed -- 0.3.0 wave STARTED)**:
+**`xiom.dx12` 0.1.0 PUBLISHED**: `eco-v0.1.166` (batch 68, run 38297712793
+green 3m50s; live sha256 `5ff65bed` @19:28:19Z, signed; ops scope live
+eco 519 -> allowlist 520; merge `b8354f82`, record `18cd040e`; validate
+533/0; port x2 5/5 on v0.64.4). Relay item `REL-20261012-1930-bindings`
+moved to **fixed** by packages (relay tip `01de8fb`); packages note says
+"0.2.0 (full ID3D12 surface + DXGI) is the next wave" -- **0.2.0 publish
+still pending** (supersede note is on the same item; no new ask needed).
+This session starts the **DX12 0.3.0 wave** per the package ROADMAP:
+(a) struct metadata + typed shims for the 22 skipped shapes, (b) DXGI
+(factory/adapters/WARP/swapchain), (c) `d3d12video.h`, then promotion.
+Doorbell re-armed for this session.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
