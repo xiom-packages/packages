@@ -5,9 +5,10 @@ DirectX Shader Compiler **100% COM binding** for XIOM: 27 `IDxc*` interfaces /
 loader (`dxcompiler.dll` resolved with `LoadLibraryA` + `GetProcAddress`; no
 `dxcapi.h`, no import library, no build-time SDK dependency).
 
-> **Status:** `incubating` -- suite green x2 on the pin (v0.64.3): 20/20 with
+> **Status:** `incubating` -- suite green x2 on the pin (v0.64.4): 20/20 with
 > `bound=128/128`, DXC 1.9.0.5347 (Vulkan SDK 1.4.350.0); SKIP when the DLL is
-> absent. **Lane:** bindings (`keywords: ["binding"]`).
+> absent. 0.3.0 published in `eco-v0.1.161` (sha256 `b4376744...`). **Lane:**
+> bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
