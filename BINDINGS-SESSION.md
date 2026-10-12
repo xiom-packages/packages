@@ -3,9 +3,11 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: MESHOPT 0.4.0 PUBLISHED (eco-v0.1.159) -- batches 31-61 relayed;
-pool sweep fully published; assimp mini-contract routed -- CONTEXT-LIMIT
-HANDOFF 2026-10-11 18:45Z** (this session ran 17:19Z-18:45Z and shipped
+**STATUS: V0.64.4 ARCHIVE WAVE COMPLETE -- all claimed fixes verified
+(B-13/14/15/18/1904/12), B-19 green package-side, B-10 newly green; jolt
+unblocked (4/4 x2) and live in `eco-v0.1.161` with vma 0.3.0 + dxc 0.3.0;
+nine SDK100 pours in flight; compiler reply filed (`f8fe214`) -- CHECKPOINT
+HANDOFF 2026-10-12 14:15Z** (this session ran 17:19Z-18:45Z and shipped
 batches 56-61: meshopt 0.2.0 vendored, ozz 0.3.0 clip pipeline, imgui 0.3.0
 context handles, box2d 0.3.0 joint motors, meshopt 0.3.0 owned-buffer
 wrappers, meshopt 0.4.0 codec families, plus the assimp consumer
@@ -155,7 +157,22 @@ clone: stage ONLY your own item files). The two working rules are in
 `docs/BINDINGS-LANE.md` section 12.
 
 ### State
-- **CURRENT (2026-10-11 21:05Z, doorbell tick)**: batches 31-61 + the owner
+- **CURRENT (2026-10-12 14:15Z)**: **v0.64.4 ARCHIVE WAVE COMPLETE** (this
+  session): pin `44a41aea...` sha256-verified + slot byte-identical
+  (556/556); `COMPILER_VERSION` + repin 532 + validate 532/0 (`1f850919`);
+  all fixes VERIFIED (B-13/B-14/B-15/B-18/1904/B-12; B-19 package-side
+  green; B-10 newly green -- odbc `alloc` control spins on v0.64.3,
+  5/5 green on v0.64.4); not-in-wave rows stay red by design
+  (B-16/B-17/B-20/B-11/B-05/B-07); B-02 re-verified 16/16; jolt 4/4 x2
+  (m258 native `--cxx-standard 17`). Suites: sdl3 59/59 + glfw 37/37.
+  Compiler reply `f8fe214` (`REL-20261012-1400-bindings`; release-check
+  rows filled; `-3` B-10 moved to verified; `-1815` archive-verified).
+  Batch 63 = jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 live in `eco-v0.1.161`
+  (77 releases); nine SDK100 pours in flight (scopes LIVE, packages lane).
+  Session ledger updates 13:57Z/14:05Z above; the paste prompt below is
+  refreshed. NEXT: item 0 (publish confirm + workaround lift). Worktree
+  clean; relay tip `f8fe214`.
+- **Earlier state (2026-10-11 21:05Z, doorbell tick)**: batches 31-61 + the owner
   session's 62 (sdl3 0.16.1 B-19 fix) relayed; **ALL PUBLISHED through
   `eco-v0.1.159`** (meshopt 0.4.0 live 18:36:32Z); **publish queue EMPTY**
   (jolt m258-parked only). Pool sweep complete + published; meshopt
@@ -682,33 +699,39 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- clean handoff pickup (2026-10-12 13:40Z,
-context-limit handoff; prompt refreshed after the SDK100 program completed
-and v0.64.4 was published).
+Bindings lane continuation -- clean handoff pickup (2026-10-12 14:15Z,
+checkpoint handoff; the v0.64.4 archive wave is COMPLETE and the compiler
+reply is filed; the WORKAROUND LIFT is the next batch).
 
-0. FIRST ACTION (critical path): run the v0.64.4 archive wave. The archive
-   IS LIVE: https://github.com/xiom-lang/xiom/releases/tag/v0.64.4
-   (published 2026-10-12 13:36:58Z; assets: xiom-0.64.4-windows-x64.zip +
-   SHA256SUMS). Pin + re-verify per the "Archive re-run checklist" below:
-   download + sha256-verify + install the slot + bump COMPILER_VERSION +
-   `scripts/status.ps1 -Action repin` + validate (524 pkgs). Then re-run on
-   the new pin: (a) the v0.64.3 release-check bindings rows B-11/B-10/B-07/
-   B-05/B-02 + the jolt re-verdict via -1815; (b) probes under
-   docs/repro/bindings-pilot/: cb-abi (B-13/14/15/1904 + probe8 B-18),
-   ptr-slot-write (B-16 fresh), ptr-arith (B-17), foreign-ptr-read (B-20),
-   sdl3-init-arg (B-19); (c) suites: sdl3 (59 checks; B-19 post witness =
-   the `SDL_WasInit(TIMER|EVENTS) reflects the flags` line) + glfw 37/37
-   (`--link user32`); jolt port x2 with `--cxx-standard 17` (re-verdict
-   REL-20261010-1815). EXPECTED: B-13/14/15/1904/B-18 green (m263-m274),
-   B-16/B-17 still red (NOT in the wave -- do not bounce), B-19 fixed
-   package-side (sdl3 0.16.1 live). Reply to compiler with row verdicts
-   (new bindings item; refs REL-20261011-1731), then LIFT the workarounds
-   the fixes cover (glfw/sdl3 dispatcher + registry callbacks, 1-arg
-   handler shapes) with suite evidence, version bumps via the normal batch
-   flow. This wave also unblocks: the jolt re-pin/publish (packages+ops
-   waiting: REL-20261011-1928/1940) and the ELEVEN staged SDK100 packages
-   (confirm publish in packages SESSION.md; then update
-   docs/SDK100-COVERAGE.md + this ledger).
+0. FIRST ACTION: confirm the nine SDK100 publishes, then run the WORKAROUND
+   LIFT. The v0.64.4 archive wave is DONE (13:57Z/14:05Z updates above):
+   all claimed fixes verified (B-13/B-14/B-15/B-18/1904/B-12; B-19 green
+   package-side; B-10 newly green), not-in-wave rows red by design
+   (B-16/B-17/B-20/B-11/B-05/B-07), B-02 re-verified 16/16, jolt 4/4 x2.
+   Compiler reply: relay item `REL-20261012-1400-bindings` + release-check
+   rows (`f8fe214`). Already delivered by packages: batch 63
+   (`eco-v0.1.161`, 77 releases) = jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0.
+   In flight: the eight first-publish SDK100 names (spirv-tools/cross/
+   reflect, glslang, slang, sdl2, spirv-headers, shaderc) + the sdl3
+   0.16.1 -> 0.17.0 full-surface bump -- port x2 + allowlist append on the
+   v0.64.4 pin (scopes LIVE per `REL-20261012-1354-ops`). Confirm in
+   packages SESSION.md when wrapped; record eco versions, then update
+   docs/SDK100-COVERAGE.md + this ledger. Then the LIFT (normal batch
+   flow: feat -> x2 -> record -> relay -> ledger):
+   (a) **xiom.glfw 0.5.0 -> 0.6.0**: the fixed-dispatcher + fn-registry
+   ABI exists ONLY to dodge B-13 (see glfw.xi ~2564-2575; SPEC/AUDIT
+   "Known compiler issues dodged by design (v0.64.3)"). With B-13/B-18
+   verified at v0.64.4, hand user `fn(...)` values straight to the
+   glfwSetXCallback params (20 setters + 20 dispatchers + registry +
+   suite/SPEC/AUDIT/README updates). Clause: XIOM fn values crossing to C
+   hand over the CODE address only -- direct handoff moves handler
+   state/multi-window routing to the user (document it), or keep a thin
+   registry where that matters; make the call explicitly and record it.
+   Suite 37/37 x2 (DLL dir on PATH; `--link user32` auto).
+   (b) **xiom.sdl3**: widen the filter/watch dispatcher handler shapes
+   (drop the 1-arg flattening + structured-ifs workarounds that B-14/B-15
+   covered). WAIT for the 0.17.0 bump to wrap first (in flight). Suites:
+   the 59-check conformance + the full surface under tests/.
 
 1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
    BINDINGS-SESSION.md (STATUS + RESUME HERE). Then check the relay FIRST:
@@ -726,17 +749,19 @@ and v0.64.4 was published).
    2) Check E:\xiom-packages\packages\SESSION.md for new eco publish
    notes and record confirmed eco versions in BINDINGS-SESSION.md
    (commit+push if changed). 3) If nothing new, no action." Check relay
-   once now; check the packages queue (the eleven SDK100 packages staged
-   2026-10-11 23:02Z -- publish unblocked by the v0.64.4 pin; sdl3 0.16.1
-   live in eco-v0.1.160, 76 releases).
+    once now; check the packages queue (nine SDK100 pours in flight -- eight
+    new names + the sdl3 0.17.0 full-surface bump; batch 63 already live:
+    jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 in eco-v0.1.161, 77 releases; record
+    new eco versions when the pours land).
 
 3. SDK100 program: COMPLETE on the bindings side (12/12 slices with
    oracle==bound==resolved evidence; docs/SDK100-COVERAGE.md +
    packages/xiom-vulkan/docs/COVERAGE.md). All batches relayed (vulkan
    -2155; wave-1 -2231; wave-2 -2305; findings -2140/-2230/-2320,
    including the HIGH Vec.with_len heap-buffer-overflow). The `sdk100-*`
-   agent worktrees are idle-complete -- do not re-run their work. Owner
-   session side: Vulkan mini-RHI batches 0.6.0+ (READ
+   agent worktrees are idle-complete -- do not re-run their work. Publish
+   status: batch 63 live (jolt/vma/dxc); the nine SDK100 pours are in
+   flight (item 0). Owner session side: Vulkan mini-RHI batches 0.6.0+ (READ
    docs/checklists/vulkan-sdk-100.md before any Vulkan work; coordinate,
    do not duplicate). Engine ask -2015 acked; orders gated on the
    slot-recycle fix (B-11 -- still red by design until the FFI pointer
@@ -763,8 +788,8 @@ session). Package traps: assimp `-TimeoutSec 600`; glfw needs
 900`; heavy suites (slang/dxc/glslang/vma-bridge/sdl3-full) exist under
 their packages' tests/test_full_surface.xi. Deliver batches as: feat ->
 x2 green -> record via scripts/status.ps1 -> relay item to packages ->
-ledger update, all pushed; leave the worktree clean. TODO NOW: THE
-ARCHIVE WAVE FIRST (item 0), then the rest.
+ledger update, all pushed; leave the worktree clean. TODO NOW: item 0
+(publish confirm), then the workaround lift (items 0a/0b).
 
 ```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
