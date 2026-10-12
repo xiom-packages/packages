@@ -7,7 +7,8 @@ requires C++17, so the build needs a compiler carrying **m258**
 (`--cxx-standard`, thread via `port.args.json`).
 
 > **Status:** `incubating` -- suite **4/4 x2** on the m258 build (drop
-> settles at 479 milli asleep; impulse vx=4995). **Lane:** bindings
+> settles at 479 milli asleep; impulse vx=4995). Published in `eco-v0.1.161`
+> (sha256 `f08d65ca...`; verified on the official v0.64.4 pin). **Lane:** bindings
 > (`keywords: ["binding"]`).
 
 ## Quick start
