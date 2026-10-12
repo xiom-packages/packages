@@ -83,20 +83,6 @@ v0.64.4 pin (vulkan full surface stays 0.5.0, owner bump).
 lift (glfw dispatcher/registry + sdl3 1-arg handler shapes; sdl3 edits wait
 for the in-flight bump to wrap).
 
-**UPDATE 2026-10-12 15:00Z (doorbell)**: **Batch 64 = `eco-v0.1.162`** (run
-38260596476 green 3m49s): eight first-publish SDK100 names + the sdl3
-**0.17.0** full-surface bump (1270/1270) published + live-verified
-(spirv-tools `24012686`, spirv-cross `a08d2d4a`, spirv-reflect `97f96c62`,
-glslang `33898cf6`, slang `0dd5548d`, sdl2 `a5bdb037`, shaderc `9759ab7a`,
-sdl3 `2f162d32`); **tally 78 eco releases** (`eco-v0.1.86`..`162`). All nine
-SDK100 x2-verified on v0.64.4 pre-tag. HELD: `xiom.spirv.headers` (dash vs
-dotted manifest name; publishes once the dotted scope is live). Also acked +
-answered two new asks: `-1348-engine` (Vulkan allocation: mini-RHI line stays
-0.5.0; the SDK100 full surface lands as its own additive bump after the wave)
-and `-1417-xvector` (accelerator mirror: no package/timeline yet; recommended
-ABI = per-call ptr/count + caller-owned out buffers, B-12/B-17/B-20
-discipline); notes committed `266253f`.
-
 **UPDATE 2026-10-12 15:00Z (doorbell)**: batch 64 = `eco-v0.1.162` (run
 38260596476, 78 releases) published the eight SDK100 first-publishes +
 **sdl3 0.17.0** (full surface 1270/1270): spirv-tools/spirv-cross/
