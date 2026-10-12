@@ -98,8 +98,11 @@ bindings agrees, bump to be cut with the owner session, mini-RHI 0.7.0+
 after) and xvector `-1417` (accelerator mirror gate met; reply note -- no
 batch surface exists in `xiom.vectors` today; accelerators stay
 mirror-only + owner-gated). `docs/SDK100-COVERAGE.md` publish section
-updated. Next: workaround lift (glfw 0.6.0 decision; sdl3 shapes now
-unblocked -- 0.17.0 is live).
+updated. v0.64.4 release-check bindings rows filled at the archive
+(`b235493`; B-13/14/15/18/1904 verified fixed, B-19 verified,
+B-11/B-05/B-07/B-16/B-17/B-21 red, -2230/-2320/-0304 not addressed).
+Next: workaround lift (glfw 0.6.0 decision; sdl3 shapes now unblocked --
+0.17.0 is live).
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
