@@ -561,11 +561,12 @@ xiom.vectors
 # XVECTOR extraction follow-on (ann HNSW) + vendored stb codecs; ops scope confirmed LIVE 2026-10-11 (eco 510).
 xiom.ann
 xiom.stb
-# SDK100 wave (owner program, 2026-10-12): shader/input packages; ops scopes confirmed LIVE 2026-10-12 (eco 518 both); oracle-counted full surfaces, packages-lane x2 green on v0.64.4. xiom.spirv.headers HELD: the staged scope used the dash form, correcting to the dotted manifest name (REL-20261012-1405-packages); it joins the next batch.
+# SDK100 wave (owner program, 2026-10-12): shader/input packages; ops scopes confirmed LIVE 2026-10-12 (eco 518 both; dotted-name correction live 18:55Z); oracle-counted full surfaces, packages-lane x2 green on v0.64.4.
 xiom.spirv-tools
 xiom.spirv-cross
 xiom.spirv-reflect
 xiom.glslang
 xiom.slang
 xiom.sdl2
+xiom.spirv.headers
 xiom.shaderc
