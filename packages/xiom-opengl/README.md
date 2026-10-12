@@ -17,7 +17,8 @@ broken exports -> **FAIL**. CI stays green without a GPU.
 > pin (v0.64.4) on an NVIDIA RTX 3070 Ti: 656/656 generated core-4.6
 > commands resolved under a live session (unresolved=0), buffer + shader
 > roundtrips, plus the classic/core probes (4.6 classic + 3.3 core, 404
-> extensions) and the deterministic SKIP-path test.
+> extensions) and the deterministic SKIP-path test. **0.4.0 published in
+> `eco-v0.1.164` (sha256 `328674f1...`).**
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
