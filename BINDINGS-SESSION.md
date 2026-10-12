@@ -31,6 +31,41 @@ side** (12/12 slices, oracle==bound==resolved evidence,
 and their publish is unblocked by this pin (also unblocks the jolt re-pin).
 This session hits its context limit; the NEXT-SESSION PASTE PROMPT below is
 rebuilt (archive wave = item 0).
+
+**UPDATE 2026-10-12 13:57Z (v0.64.4 archive wave -- COMPLETE)**: Pin landed --
+archive `44a41aea...` sha256-verified; the canonical slot
+`%LOCALAPPDATA%\xiom.new` is byte-identical to the release zip (556/556 files;
+exe `DB8A2EF0...`); `COMPILER_VERSION` bumped + `status.ps1 repin` **532
+records** + validate **532/0**; commit `1f850919` pushed. Wave verdicts on the
+v0.64.4 slot (`XIOM_COMPILER=%LOCALAPPDATA%\xiom.new\bin\xiom.exe`): **B-13
+FIXED** (probe2 `local=42 relay=42`; probe4 `param_to_fnparam=42
+local_to_fnparam=42 cast_fnparam=42`; probe5 `42/42/42`), **B-14/B-15 FIXED**
+(probe7 now compiles -- r=1/exit 1, element call true + early(0)), **B-18
+FIXED** (probe3 `fnparam=42`; probe6 `reg_double=42 reg_triple=63`; probe8
+full output `after=42 / callee-after=42 / main-after r=7`), **1904/B-12
+FIXED** (glfw probes: `advance_ms=304`, `after_set99_ms=99000`,
+`opacity_x1000=1000`, `gettime_ms=5`, `vs_len=43`); probe control column
+intact (`control=42 direct=42 stored=20`; `calls=1 key=65 sc=33 action=1
+mods=5`; `close_win=4242`). **B-19 green package-side** (`elapsed=100 init=1
+w_all=16384`). **B-10 NEWLY GREEN (not claimed by the wave)**: odbc
+`alloc`-name scratch control -- v0.64.3-compiled exe spins+leaks (25 s cap;
+338 MB / 41.7 CPU-s) vs v0.64.4-compiled exe **5/5 green**; the name-keyed
+guard redirect is gone (row -3 can close at this pin; likely covered by the
+batch-1 module-local precedence work). Still red / not in the wave: **B-16**
+(`ptr_write_sum=11`, `byte_index_sum=66`), **B-17** (wild `d0=-16336..
+d100=52208`; Int-typed `d12=12` exact), **B-20** (XIOM `0/0` vs C-side
+`1065353216/1073741824`), **B-11** (`inside: a=3 b=0 c=1 rc=0`), **B-05**
+(alloc-guard-spin still spins: 15 s cap, ~24 CPU-s, flat 4.5 MB), **B-07**
+(2x T001 `c_strlen`). **B-02 re-verified**: scratch reconstruction (29 const
+arms in `error_name` + `rc != SQLITE_OK` in the confined blocks) compiles +
+suite **16/16**. **Jolt unblocked**: port **4/4 x2** with native
+`--cxx-standard 17` (m258; threaded in `port.args.json`) -- `-1815`
+satisfied; jolt re-pin/publish free. Suites: **sdl3 59/59** (B-19 witness
+line PASS), **glfw 37/37** (no SKIP; callbacks 20/20; `--link user32`
+auto). Next: compiler reply item + release-check row updates, then the
+workaround lift (glfw/sdl3 dispatcher + registry, 1-arg handler shapes) via
+the normal batch flow.
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
