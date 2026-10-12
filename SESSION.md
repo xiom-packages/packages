@@ -14,6 +14,22 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-12 13:52Z (v0.64.4 GATE CLEARED -- repin + batch 63 delivered; this block is the live handoff):**
+- **v0.64.4 RELEASED (13:36:58Z, run 38256358845)**; archive SHA256 `44a41aea...` verified; canonical
+  install byte-identical to the archive (556/556 files); `COMPILER_VERSION` bumped; **532 records
+  repinned** (commit `f2e6523d`). Wrap reason: the m258 `--cxx-standard` flag now works.
+- **Batch 63 = `eco-v0.1.161` (run 38257991947 green 3m44s)**, three packages x2-verified on the new
+  pin -> live-verified, README/STATUS synced, bus `REL-20261011-0008-bindings` fixed:
+  **`xiom.jolt` 0.2.0** (`f08d65ca...`; 4/4 x2 -- gate delivered) + **`xiom.vma` 0.3.0**
+  (`a1cc09e2...`; 5/5 x2) + **`xiom.dxc` 0.3.0** (`b4376744...`; 20/20 x2, real DXIL). Tally:
+  **77 eco releases** (`eco-v0.1.86` -> `eco-v0.1.161`). Guard 511/495 ready/16 grandfathered/0.
+- **Remaining queue (next work)**: (a) re-verify rows `REL-20261010-1549-packages-4/-5/-6/-7` +
+  `REL-20261010-2100-packages` and the B-13..B-20 witnesses on the v0.64.4 pin (verdict wave; B-16/
+  B-17 expected still red, do not bounce); (b) SDK100 eight new names (wave-1 five + sdl2/
+  spirv-headers/shaderc) -- ops scopes `REL-20261011-2234-packages`/`-2301-packages` pending, then
+  x2 + allowlist append + wrap; (c) sdl3 full surface bump 0.16.1->0.17.0 at its wrap; (d) vulkan
+  full surface its own owner-coordinated bump (stays 0.5.0). Watches: 2h doorbell.
+
 **STATE AT 2026-10-11 21:10Z (batch 62 delivered -- sdl3 0.16.1 PUBLISHED; this block is the live handoff):**
 - **`xiom.sdl3` 0.16.1 PUBLISHED (batch 62, merge `2fdf01f8`; B-19 package-side fix)**: `SDL_WasInit`
   cast `fn(Int) -> UInt8` -> `UInt32` at `sdl3.xi:664` (`SDL_InitFlags` is Uint32; the old cast
