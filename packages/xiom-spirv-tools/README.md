@@ -22,7 +22,8 @@ export table (committed dump in `tools/`). Counts at the current pin
 
 > **Status:** `incubating` -- 0.1.0 initial generated binding. Suite
 > **39/39 x2** with the SDK DLL on PATH + **3/3 x2** with the SDK `Bin`
-> filtered out of PATH (SKIP-green). **Lane:** bindings
+> filtered out of PATH (SKIP-green). 0.1.0 published in `eco-v0.1.162`
+> (sha256 `24012686...`). **Lane:** bindings
 > (`keywords: ["binding"]`). See `docs/COVERAGE.md` for the evidence trail.
 
 ## Quick start

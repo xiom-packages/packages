@@ -13,5 +13,5 @@
                   "checked":  "2026-10-12T13:58:53Z"
               },
     "publish":  false,
-    "excluded_reason":  "incubating: port complete 2026-10-11 (spirv-cross C API 169/169); not on the publish scope"
+    "excluded_reason":  "published in eco-v0.1.162 (2026-10-12)"
 }

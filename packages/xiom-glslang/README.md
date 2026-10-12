@@ -9,6 +9,9 @@ glslang at build time.  `glslang_load()` resolves `glslang.dll` through
 conformance suite reports SKIP and stays green.  Verified against the
 glslang **16.3.0** build shipped with Vulkan SDK 1.4.350.0.
 
+> **Status:** `incubating` -- 29/29 x2 on v0.64.4 (resolved=61/61);
+> 0.1.0 published in `eco-v0.1.162` (sha256 `33898cf6...`).
+
 ## What is bound
 
 - **C interface** (`Include/glslang_c_interface.h`, 41 entry points): the

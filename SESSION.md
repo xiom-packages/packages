@@ -14,6 +14,23 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-12 14:20Z (batch 64 -- SDK100 wave on v0.64.4; one held name; this block is the live handoff):**
+- **Batch 64 = `eco-v0.1.162` (run 38260596476 green 3m49s)**: eight packages published + live-verified
+  -- spirv-tools 0.1.0 (`24012686`), spirv-cross 0.1.0 (`a08d2d4a`), spirv-reflect 0.1.0 (`97f96c62`),
+  glslang 0.1.0 (`33898cf6`), slang 0.1.0 (`0dd5548d`), sdl2 0.1.0 (`a5bdb037`), shaderc 0.1.0
+  (`9759ab7a`), **sdl3 0.17.0** (`2f162d32`; full surface 1270/1270). All nine SDK100 x2-verified on
+  v0.64.4 before tagging (spirv-headers 10/10 x2 included). Tally: **78 eco releases**.
+- **HELD: `xiom.spirv.headers`** -- ops staged the dash name (`xiom.spirv-headers`) for the 0.1.0 scope;
+  the manifest name is dotted. Correction `REL-20261012-1405-packages` filed; it publishes alone (or
+  with the next batch) once the dotted scope is live -- allowlist re-append then. READMEs/STATUS synced
+  for the eight; bus: -1354-ops fixed (8/9 + hold note), -2231-bindings fixed (wave-1 complete: all
+  six), -2305-bindings stays acked (spirv-headers pending).
+- **New compiler finding filed**: nested fn types in fn casts warn `unknown type ... defaulting to i64`
+  on v0.64.4 (sdl3.xi:1599/1628/1640; 6x; suite green) -- `REL-20261012-1403-packages`.
+- **Next**: re-verify wave (rows `REL-20261010-1549-packages-4/-5/-6/-7` + `-2100` and B-13..B-20
+  witnesses on the v0.64.4 pin; B-16/B-17 expected red, do not bounce); spirv.headers publish on the
+  ops confirmation; promotion policy active (`docs/UPSTREAM-FIRST.md` section 7).
+
 **STATE AT 2026-10-12 13:52Z (v0.64.4 GATE CLEARED -- repin + batch 63 delivered; this block is the live handoff):**
 - **v0.64.4 RELEASED (13:36:58Z, run 38256358845)**; archive SHA256 `44a41aea...` verified; canonical
   install byte-identical to the archive (556/556 files); `COMPILER_VERSION` bumped; **532 records
