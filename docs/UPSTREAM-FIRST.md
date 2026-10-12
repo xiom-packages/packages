@@ -76,3 +76,21 @@ review date.
   4. the owning lane confirms (E:\repos is shared).
 - On delete: remove the whole clone directory and update the ledger. If still needed,
   set a new review-after date with a one-line reason.
+
+## 7. Stage promotion (owner policy, 2026-10-12)
+
+Bindings packages start (and publish) at `incubating`; the stage is a maturity marker,
+not a coverage marker -- publishing works at `incubating` + tests=pass, and coverage is
+evidenced separately (records, `docs/COVERAGE.md` oracles, `PROVENANCE.md`).
+
+Promotion to `stable` is per package and requires BOTH:
+
+1. the package's **full declared surface is published** (its SDK100/full-surface version
+   is live on the registry -- e.g. vulkan, sdl3, and the wave packages only after their
+   eco batches), and
+2. **no open/known defects** reference it (no open relay item, audit finding, or failing
+   consumer), with at least one settle cycle since the full-surface publish.
+
+Promotions happen at the package's next touch (stage flip + reason in the same commit)
+and are listed in SESSION.md as they occur. Names not yet promoted stay `incubating`
+with no shipping downside.
