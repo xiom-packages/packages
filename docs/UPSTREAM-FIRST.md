@@ -7,6 +7,14 @@ format, protocol, or external API is built against its authoritative source: the
 project cloned at a pinned commit, or the governing spec when one exists (RFC + published
 test vectors). This applies to BOTH lanes -- native ports and FFI bindings.
 
+**Scope: every package, new AND pre-existing** (owner restated 2026-10-12). Any package
+you merge, fix, verify, or publish gets the protocol applied as part of that touch: at
+minimum a `PROVENANCE.md` that either pins its upstream (clone + commit/tag + license) or
+explicitly declares the package **independent** (original work, no upstream). The
+full-surface 100% target and re-carve discipline apply to new work and to retrofits as
+packages are touched. Audit: `scripts/provenance-audit.ps1` (report:
+`docs/PROVENANCE-COMPLIANCE.md`; backlog at 2026-10-12: 14 compliant / 519 to retrofit).
+
 ## 1. Clone workflow (both lanes)
 
 1. Pick the authoritative upstream (the reference implementation, or the spec + its
@@ -36,7 +44,8 @@ Port/derive only from permissive sources:
 
 `packages/<pkg>/PROVENANCE.md`:
 
-- upstream repo + pinned commit/tag, license;
+- upstream repo + pinned commit/tag, license; OR an explicit **independent** declaration
+  (original implementation, no upstream) with the basis (spec/notes) it was built from;
 - files/parts studied; what was derived vs independently implemented;
 - test vectors / golden data imported from upstream, and where they live;
 - re-carve procedure (how to refresh if upstream moves).
