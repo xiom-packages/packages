@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-12T23:02:14+03:00
-# packages: 533  modules: 881
+# generated: 2026-10-13T00:03:46+03:00
+# packages: 533  modules: 905
 
 ## package names
 xiom.acpi
@@ -687,6 +687,15 @@ xiom.dx12.consts_2
 xiom.dx12.consts_3
 xiom.dx12.consts_4
 xiom.dx12.consts_5
+xiom.dx12.dxgi
+xiom.dx12.dxgi_consts_1
+xiom.dx12.dxgi_functions
+xiom.dx12.dxgi_iface_01
+xiom.dx12.dxgi_iface_02
+xiom.dx12.dxgi_iface_03
+xiom.dx12.dxgi_iface_04
+xiom.dx12.dxgi_iface_05
+xiom.dx12.dxgi_iface_06
 xiom.dx12.functions
 xiom.dx12.iface_01
 xiom.dx12.iface_02
@@ -700,6 +709,21 @@ xiom.dx12.iface_09
 xiom.dx12.iface_10
 xiom.dx12.iface_11
 xiom.dx12.iface_12
+xiom.dx12.struct_meta_1
+xiom.dx12.struct_meta_2
+xiom.dx12.struct_meta_3
+xiom.dx12.struct_meta_4
+xiom.dx12.struct_meta_5
+xiom.dx12.structs
+xiom.dx12.video
+xiom.dx12.video_consts_1
+xiom.dx12.video_consts_2
+xiom.dx12.video_consts_3
+xiom.dx12.video_iface_01
+xiom.dx12.video_iface_02
+xiom.dx12.video_iface_03
+xiom.dx12.video_iface_04
+xiom.dx12.video_structs
 xiom.dxc.gen_blob
 xiom.dxc.gen_compiler3
 xiom.dxc.gen_container
