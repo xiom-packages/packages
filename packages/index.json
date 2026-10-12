@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-12T00:04:07Z",
+    "updated":  "2026-10-12T16:45:14Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1956,18 +1956,31 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.dxc",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "DirectX Shader Compiler capability probe for XIOM (runtime dxcompiler.dll, no dxcapi.h, SKIP when absent)",
+                         "description":  "DirectX Shader Compiler 100% COM binding for XIOM (27 interfaces / 128 methods, generated bridge, runtime dxcompiler.dll, no dxcapi.h, SKIP when absent)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dxc/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dxc/v0.3.0/package.tar.gz",
                          "source_files":  [
+                                              "dxc_gen_blob.xi",
+                                              "dxc_gen_compiler3.xi",
+                                              "dxc_gen_container.xi",
+                                              "dxc_gen_handler.xi",
+                                              "dxc_gen_legacy.xi",
+                                              "dxc_gen_optimizer.xi",
+                                              "dxc_gen_pdb.xi",
+                                              "dxc_gen_pdb2.xi",
+                                              "dxc_gen_result.xi",
+                                              "dxc_gen_runtime.xi",
+                                              "dxc_gen_support.xi",
+                                              "dxc_gen_utils.xi",
+                                              "dxc_gen_validator.xi",
                                               "dxc.xi",
                                               "package.xi"
                                           ]
@@ -2893,6 +2906,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glfw/v0.5.0/package.tar.gz",
                          "source_files":  [
                                               "glfw.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.glslang",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "glslang (Khronos GLSL/ESSL/HLSL compiler) bindings for XIOM -- dynamic loader over glslang.dll (57 C entry points: the glslang_c_interface compile API + the legacy Sh* surface) and glslang-default-resource-limits.dll (4 C resource-limit helpers); typed wrappers, owned-slot out-params, source-generated constant tables (244 values) and a GLSL-\u003eSPIR-V compile path with owned-buffer copy-out",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glslang/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "glslang.xi",
                                               "package.xi"
                                           ]
                      },
@@ -6938,6 +6968,91 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.sdl2",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SDL2 (Simple DirectMedia Layer 2) bindings for XIOM -- 100% of the exported public C API surface (844 functions) from the shipped SDL2 2.32.10 headers: generated family-split dynamic loader (no link-time dependency; runtime SKIP when SDL2.dll is absent), typed per-function wrappers over owned slots, symbol resolvers, and 1385 generated constant tables (enums/macros)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl2/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "assert_f1.xi",
+                                              "atomic_f1.xi",
+                                              "audio_f1.xi",
+                                              "blendmode_f1.xi",
+                                              "clipboard_f1.xi",
+                                              "config.xi",
+                                              "cpuinfo_f1.xi",
+                                              "endian.xi",
+                                              "error_f1.xi",
+                                              "events_f1.xi",
+                                              "filesystem_f1.xi",
+                                              "gamecontroller_c.xi",
+                                              "gamecontroller_f1.xi",
+                                              "gamecontroller_f2.xi",
+                                              "gesture_f1.xi",
+                                              "guid_f1.xi",
+                                              "haptic_f1.xi",
+                                              "hidapi_f1.xi",
+                                              "hints_f1.xi",
+                                              "init_f1.xi",
+                                              "joystick_c.xi",
+                                              "joystick_f1.xi",
+                                              "joystick_f2.xi",
+                                              "keyboard_f1.xi",
+                                              "keycode.xi",
+                                              "loadso_f1.xi",
+                                              "locale_f1.xi",
+                                              "log_f1.xi",
+                                              "main_f1.xi",
+                                              "messagebox_f1.xi",
+                                              "metal_f1.xi",
+                                              "misc_f1.xi",
+                                              "mouse_f1.xi",
+                                              "mutex_f1.xi",
+                                              "names.xi",
+                                              "names_1.xi",
+                                              "names_2.xi",
+                                              "names_3.xi",
+                                              "pixels_f1.xi",
+                                              "platform_f1.xi",
+                                              "power_f1.xi",
+                                              "rect_f1.xi",
+                                              "render_c.xi",
+                                              "render_f1.xi",
+                                              "render_f2.xi",
+                                              "render_f3.xi",
+                                              "revision.xi",
+                                              "rwops_f1.xi",
+                                              "scancode.xi",
+                                              "sensor_f1.xi",
+                                              "shape_f1.xi",
+                                              "stdinc_c.xi",
+                                              "stdinc_f1.xi",
+                                              "stdinc_f2.xi",
+                                              "stdinc_f3.xi",
+                                              "stdinc_f4.xi",
+                                              "surface_f1.xi",
+                                              "system_f1.xi",
+                                              "syswm_f1.xi",
+                                              "thread_f1.xi",
+                                              "timer_f1.xi",
+                                              "touch_f1.xi",
+                                              "version_f1.xi",
+                                              "video_c.xi",
+                                              "video_f1.xi",
+                                              "video_f2.xi",
+                                              "video_f3.xi",
+                                              "vulkan_f1.xi",
+                                              "package.xi",
+                                              "sdl2.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.16.1",
                          "name":  "xiom.sdl3",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -6950,6 +7065,75 @@
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.16.1/package.tar.gz",
                          "source_files":  [
+                                              "sdl3_full_assert.xi",
+                                              "sdl3_full_asyncio.xi",
+                                              "sdl3_full_atomic.xi",
+                                              "sdl3_full_audio.xi",
+                                              "sdl3_full_begin_code.xi",
+                                              "sdl3_full_blendmode.xi",
+                                              "sdl3_full_camera.xi",
+                                              "sdl3_full_clipboard.xi",
+                                              "sdl3_full_cpuinfo.xi",
+                                              "sdl3_full_dialog.xi",
+                                              "sdl3_full_dlopennote.xi",
+                                              "sdl3_full_endian.xi",
+                                              "sdl3_full_error.xi",
+                                              "sdl3_full_events.xi",
+                                              "sdl3_full_filesystem.xi",
+                                              "sdl3_full_gamepad.xi",
+                                              "sdl3_full_gamepad_2.xi",
+                                              "sdl3_full_gpu.xi",
+                                              "sdl3_full_gpu_2.xi",
+                                              "sdl3_full_guid.xi",
+                                              "sdl3_full_haptic.xi",
+                                              "sdl3_full_hidapi.xi",
+                                              "sdl3_full_hints.xi",
+                                              "sdl3_full_init.xi",
+                                              "sdl3_full_intrin.xi",
+                                              "sdl3_full_iostream.xi",
+                                              "sdl3_full_joystick.xi",
+                                              "sdl3_full_keyboard.xi",
+                                              "sdl3_full_keycode.xi",
+                                              "sdl3_full_loadso.xi",
+                                              "sdl3_full_locale.xi",
+                                              "sdl3_full_log.xi",
+                                              "sdl3_full_main.xi",
+                                              "sdl3_full_messagebox.xi",
+                                              "sdl3_full_metal.xi",
+                                              "sdl3_full_misc.xi",
+                                              "sdl3_full_mouse.xi",
+                                              "sdl3_full_mutex.xi",
+                                              "sdl3_full_names.xi",
+                                              "sdl3_full_pen.xi",
+                                              "sdl3_full_pixels.xi",
+                                              "sdl3_full_platform.xi",
+                                              "sdl3_full_platform_defines.xi",
+                                              "sdl3_full_power.xi",
+                                              "sdl3_full_process.xi",
+                                              "sdl3_full_properties.xi",
+                                              "sdl3_full_rect.xi",
+                                              "sdl3_full_registry.xi",
+                                              "sdl3_full_render.xi",
+                                              "sdl3_full_render_2.xi",
+                                              "sdl3_full_revision.xi",
+                                              "sdl3_full_scancode.xi",
+                                              "sdl3_full_sensor.xi",
+                                              "sdl3_full_stdinc.xi",
+                                              "sdl3_full_stdinc_2.xi",
+                                              "sdl3_full_stdinc_3.xi",
+                                              "sdl3_full_storage.xi",
+                                              "sdl3_full_surface.xi",
+                                              "sdl3_full_surface_2.xi",
+                                              "sdl3_full_system.xi",
+                                              "sdl3_full_thread.xi",
+                                              "sdl3_full_time.xi",
+                                              "sdl3_full_timer.xi",
+                                              "sdl3_full_touch.xi",
+                                              "sdl3_full_tray.xi",
+                                              "sdl3_full_version.xi",
+                                              "sdl3_full_video.xi",
+                                              "sdl3_full_video_2.xi",
+                                              "sdl3_full_vulkan.xi",
                                               "package.xi",
                                               "sdl3.xi"
                                           ]
@@ -7131,6 +7315,25 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.shaderc",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "shaderc bindings for XIOM via dynamic loader (shaderc_shared.dll at runtime, SKIP when absent); generated 100% coverage of the public C API (45/45 entry points): GLSL/HLSL -\u003e SPIR-V compilation, assembly round trip, preprocessing, full compile-options surface, result queries, SPIR-V version/profile parsing",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-shaderc/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "shaderc_constants.xi",
+                                              "shaderc_symbols.xi",
+                                              "package.xi",
+                                              "shaderc.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.2",
                          "name":  "xiom.signal",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -7145,6 +7348,50 @@
                          "source_files":  [
                                               "signal.xi",
                                               "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.slang",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Slang shader compiler C API bindings for XIOM -- generated dynamic-loader facade over slang.dll (Vulkan SDK): every exported C entry point (slang_* + legacy sp* API, 277 functions) resolved by name with typed wrappers, family-split modules, enum/macro constants, and a conformance suite (resolved=N/N + session/compile/diagnostics functional probe; SKIP-green when the DLL is absent)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-slang/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "gen_const_1.xi",
+                                              "gen_syms.xi",
+                                              "gen_types.xi",
+                                              "res_legacy_top_p1.xi",
+                                              "res_legacy_top_p2.xi",
+                                              "res_legacy_top_p3.xi",
+                                              "res_refl_decl.xi",
+                                              "res_refl_func.xi",
+                                              "res_refl_generic.xi",
+                                              "res_refl_misc.xi",
+                                              "res_refl_type.xi",
+                                              "res_refl_typelayout_p1.xi",
+                                              "res_refl_typelayout_p2.xi",
+                                              "res_slangapi.xi",
+                                              "res_sp_request.xi",
+                                              "wrap_legacy_top_p1.xi",
+                                              "wrap_legacy_top_p2.xi",
+                                              "wrap_legacy_top_p3.xi",
+                                              "wrap_refl_decl.xi",
+                                              "wrap_refl_func.xi",
+                                              "wrap_refl_generic.xi",
+                                              "wrap_refl_misc.xi",
+                                              "wrap_refl_type.xi",
+                                              "wrap_refl_typelayout_p1.xi",
+                                              "wrap_refl_typelayout_p2.xi",
+                                              "wrap_slangapi.xi",
+                                              "wrap_sp_request.xi",
+                                              "package.xi",
+                                              "slang.xi"
                                           ]
                      },
                      {
@@ -7366,6 +7613,94 @@
                          "source_files":  [
                                               "spi.xi",
                                               "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.spirv.headers",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SPIR-V header constants for XIOM -- every Spv* enum value and macro from the shipped SPIR-V headers (SPIRV-Headers vulkan-sdk-1.4.350.0): 74 enum types / 2378 enumerators / 2385 constants across family-split generated modules (core, image, fp, decorations, controls, capabilities, opcodes by numeric range). No runtime library: pure constants, source-generated, oracle-verified.",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spirv-headers/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "spv_consts_capabilities.xi",
+                                              "spv_consts_controls.xi",
+                                              "spv_consts_core.xi",
+                                              "spv_consts_decorations.xi",
+                                              "spv_consts_fp.xi",
+                                              "spv_consts_image.xi",
+                                              "spv_consts_ops_4000.xi",
+                                              "spv_consts_ops_5000.xi",
+                                              "spv_consts_ops_6000.xi",
+                                              "spv_consts_ops_core.xi",
+                                              "package.xi",
+                                              "spirv_headers.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.spirv-cross",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SPIRV-Cross bindings for XIOM: dynamic loader + generated typed wrappers for the complete C API (169/169 spvc_* functions in spirv_cross_c.h, SPVC_C_API_VERSION 0.68.0) -- context/compiler/resources/type/constant/buffer/glsl/hlsl/msl/reflect families, every enum member + macro as constants, functional GLSL cross-compile probe over an embedded SPIR-V fixture, SKIP-green when spirv-cross-c-shared.dll is absent",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spirv-cross/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "package.xi",
+                                              "spirv_cross.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.spirv-reflect",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SPIRV-Reflect bindings for XIOM (SPIR-V shader reflection: descriptor bindings, interface variables, push constants)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spirv-reflect/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "package.xi",
+                                              "spirvreflect.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.spirv-tools",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SPIRV-Tools C API bindings for XIOM via dynamic loader (SPIRV-Tools-shared.dll at runtime, no link-time SDK dependency, SKIP when absent); generated bindings for the full header-declared extern \\",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spirv-tools/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "st_codec.xi",
+                                              "st_constants.xi",
+                                              "st_core.xi",
+                                              "st_operand.xi",
+                                              "st_optimizer.xi",
+                                              "st_readout.xi",
+                                              "st_reducer_fuzzer.xi",
+                                              "st_resolve.xi",
+                                              "st_symbols.xi",
+                                              "st_validator.xi",
+                                              "package.xi",
+                                              "spirv_tools.xi"
                                           ]
                      },
                      {
@@ -8572,18 +8907,30 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.vma",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Vulkan Memory Allocator (VMA) bindings for XIOM (vendored v3.4.0 header + pinned Vulkan-Headers core; runtime loader)",
+                         "description":  "Vulkan Memory Allocator (VMA) bindings for XIOM -- 100% of the top-level vma* API surface (SDK 1.4.350.0 oracle, vendored v3.4.0 header + pinned Vulkan-Headers core + volk; runtime loader)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vma/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vma/v0.3.0/package.tar.gz",
                          "source_files":  [
+                                              "vma_full_allocation.xi",
+                                              "vma_full_allocator.xi",
+                                              "vma_full_binding.xi",
+                                              "vma_full_buffer.xi",
+                                              "vma_full_defrag.xi",
+                                              "vma_full_ffi.xi",
+                                              "vma_full_image.xi",
+                                              "vma_full_memtype.xi",
+                                              "vma_full_pool.xi",
+                                              "vma_full_rhi.xi",
+                                              "vma_full_stats.xi",
+                                              "vma_full_virtual.xi",
                                               "vma_safe.xi",
                                               "package.xi",
                                               "vma.xi"
@@ -8619,6 +8966,49 @@
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vulkan/v0.5.0/package.tar.gz",
                          "source_files":  [
+                                              "api.xi",
+                                              "cmds_01.xi",
+                                              "cmds_02.xi",
+                                              "cmds_03.xi",
+                                              "cmds_04.xi",
+                                              "cmds_05.xi",
+                                              "cmds_06.xi",
+                                              "cmds_07.xi",
+                                              "cmds_08.xi",
+                                              "consts_1.xi",
+                                              "consts_10.xi",
+                                              "consts_11.xi",
+                                              "consts_12.xi",
+                                              "consts_2.xi",
+                                              "consts_3.xi",
+                                              "consts_4.xi",
+                                              "consts_5.xi",
+                                              "consts_6.xi",
+                                              "consts_7.xi",
+                                              "consts_8.xi",
+                                              "consts_9.xi",
+                                              "consts_float.xi",
+                                              "consts_str.xi",
+                                              "names.xi",
+                                              "struct_meta_1.xi",
+                                              "struct_meta_10.xi",
+                                              "struct_meta_11.xi",
+                                              "struct_meta_12.xi",
+                                              "struct_meta_13.xi",
+                                              "struct_meta_14.xi",
+                                              "struct_meta_15.xi",
+                                              "struct_meta_16.xi",
+                                              "struct_meta_17.xi",
+                                              "struct_meta_18.xi",
+                                              "struct_meta_19.xi",
+                                              "struct_meta_2.xi",
+                                              "struct_meta_3.xi",
+                                              "struct_meta_4.xi",
+                                              "struct_meta_5.xi",
+                                              "struct_meta_6.xi",
+                                              "struct_meta_7.xi",
+                                              "struct_meta_8.xi",
+                                              "struct_meta_9.xi",
                                               "package.xi",
                                               "vulkan.xi"
                                           ]
