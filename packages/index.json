@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-12T19:14:40Z",
+    "updated":  "2026-10-12T21:34:21Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -5266,18 +5266,33 @@
                                           ]
                      },
                      {
-                         "version":  "0.3.0",
+                         "version":  "0.4.0",
                          "name":  "xiom.opengl",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "OpenGL loader/probe bindings for XIOM (runtime opengl32.dll; classic + core-profile probes, extension scanning, SKIP semantics)",
+                         "description":  "OpenGL bindings for XIOM (runtime opengl32.dll + wglGetProcAddress; generated core-profile 4.6 surface: 656 commands + 1358 enums from the pinned Khronos registry, live-session resolver, plus the classic/core probes with SKIP semantics)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-opengl/v0.3.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-opengl/v0.4.0/package.tar.gz",
                          "source_files":  [
+                                              "cmds_01.xi",
+                                              "cmds_02.xi",
+                                              "cmds_03.xi",
+                                              "cmds_04.xi",
+                                              "cmds_05.xi",
+                                              "cmds_06.xi",
+                                              "cmds_07.xi",
+                                              "consts_1.xi",
+                                              "consts_2.xi",
+                                              "consts_3.xi",
+                                              "consts_4.xi",
+                                              "consts_5.xi",
+                                              "consts_6.xi",
+                                              "gl_api.xi",
+                                              "names.xi",
                                               "opengl.xi",
                                               "package.xi"
                                           ]
