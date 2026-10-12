@@ -105,6 +105,14 @@ clone: stage ONLY your own item files). The two working rules are in
   `engine/rhi/vulkan.xi` on delivery); **owner session drives the Vulkan SDK
   100 program** (checklist + `sdk100-*` agent worktrees). `-1113-bindings`
   closed. Relay: `-1553`..`-2100` items sent.
+- **Doorbell 00:00Z (2026-10-12)**: relay re-checked -- processed the two
+  open policy asks: **`-2131` ACKED** (upstream-first adopted; 100% coverage
+  target; G6/G7) and **`-2141` FIXED** (fold `fbb773fd`; first applied
+  instance `packages/xiom-vulkan/PROVENANCE.md`); relay commit `bf2fea1`.
+  `eco-v0.1.160` (batch 62, sdl3 0.16.1, live `f2d99b9e...` @21:08:25Z)
+  was already recorded here; no eco notes past `160`. `-2302` non-ASCII bug
+  was already fixed+acked (`19f9d86`/`-2355`). v0.64.4 archive still not on
+  GitHub (v0.64.3 latest; tag imminent per packages' 21:10Z note).
 - **Pickup (2026-10-11 18:47Z, new session)**: origin==local `f236925d`,
   worktree clean; relay re-checked -- no items newer than `-1731`; packages
   tip `555b501e` (75 eco releases; no notes past `eco-v0.1.159`); `status
