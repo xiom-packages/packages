@@ -13,6 +13,9 @@ sources, and drive the full compile-options surface -- no SDK at build time,
 - **License:** MIT OR Apache-2.0 (bindings only; upstream is Apache-2.0 and
   nothing is vendored).
 
+> **Status:** `incubating` -- 17/17 x2 on v0.64.4 (45/45 resolved);
+> 0.1.0 published in `eco-v0.1.162` (sha256 `9759ab7a...`).
+
 ## Usage
 
 ```xiom

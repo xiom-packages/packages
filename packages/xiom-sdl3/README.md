@@ -6,14 +6,13 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.16.1 drag-drop payload decode + runtime;
-> SDL_WasInit return-width fix (B-19: `SDL_InitFlags` is `Uint32`, the old
-> `UInt8` cast truncated the mask to its low byte on m263+)**. Suite
-> **59/59 x2** with the official SDL 3.4.8 DLL + absent **5/5 x2** (decode
-> arms run without the DLL). 0.15.0 shipped in `eco-v0.1.151`; 0.16.0
-> published in `eco-v0.1.152`; 0.16.1 published in `eco-v0.1.160` (sha256
-> `f2d99b9e...`). **Lane:** bindings
-> (`keywords: ["binding"]`).
+> **Status:** `incubating` -- **0.17.0 full exported surface (SDK3-100:
+> 1270/1270 resolved) + drag-drop payload decode + runtime; SDL_WasInit
+> return-width fix (B-19)**. Suite **59/59 x2** on v0.64.4 with the
+> official SDL 3.4.8 DLL + absent **5/5 x2**. 0.15.0 shipped in
+> `eco-v0.1.151`; 0.16.0 in `eco-v0.1.152`; 0.16.1 in `eco-v0.1.160`
+> (sha256 `f2d99b9e...`); **0.17.0 published in `eco-v0.1.162` (sha256
+> `2f162d32...`)**. **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
