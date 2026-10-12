@@ -13,13 +13,12 @@ bridge and reports a staged capability probe:
 Missing runtime -> **SKIP**; no display/context -> **SKIP**; present but
 broken exports -> **FAIL**. CI stays green without a GPU.
 
-> **Status:** `incubating` -- **0.5.0 full core + WGL surface**: 28/28 x2 on
-> the pin (v0.64.4) on an NVIDIA RTX 3070 Ti: 656/656 generated core-4.6
-> commands resolved under a live session (unresolved=0), the full WGL surface
-> (146 commands / 298 enums; 24/24 resolvable core-1.0 commands resolved,
-> extensions string, swap-interval roundtrip, `wglChoosePixelFormatARB`),
-> buffer + shader roundtrips, plus the classic/core probes (4.6 classic +
-> 3.3 core, 404 extensions) and the deterministic SKIP-path test.
+> **Status:** `incubating` -- **0.4.0 full core surface**: 21/21 x2 on the
+> pin (v0.64.4) on an NVIDIA RTX 3070 Ti: 656/656 generated core-4.6
+> commands resolved under a live session (unresolved=0), buffer + shader
+> roundtrips, plus the classic/core probes (4.6 classic + 3.3 core, 404
+> extensions) and the deterministic SKIP-path test. **0.4.0 published in
+> `eco-v0.1.164` (sha256 `328674f1...`).**
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -65,41 +64,13 @@ context. Enums live in `xiom.opengl.consts_1..6` (`pub const GL_*: Int`);
 the command name table is `xiom.opengl.names` (`gl_cmd_names()`,
 `GL_CMD_COUNT`). Target + counts: `docs/COVERAGE.md`, `PROVENANCE.md`.
 
-## WGL surface (0.5.0)
-
-```xiom
-use xiom.opengl;
-use xiom.opengl.glapi;
-use xiom.opengl.wgl_cmds_01;   // ... wgl_cmds_02
-use xiom.opengl.wgl_consts_1;  // ... wgl_consts_2
-
-fn main() {
-  let so = opengl_session_open(4, 6);
-  if !so.is_ok { return; }
-  let api = gl_api_new();
-  let dc = opengl_session_dc();
-  // wgl_create_context_attribs_arb(&api, dc, 0, attribs.as_mut_ptr());
-  // let _ = wgl_swap_interval_ext(&api, 1);
-  opengl_session_close();
-}
-```
-
-Every command in the pinned `wgl.xml` (WGL_VERSION_1_0 + all 57 WGL
-extensions -> 146 wrappers `wgl_<name>`) resolves through the session
-(`wglGetProcAddress` -> `opengl32` -> `gdi32` exports); enums live in
-`xiom.opengl.wgl_consts_1..2`, name tables in `xiom.opengl.wgl_names`.
-WGL functions are context-scoped: call them while a session is open, with
-`opengl_session_dc()`/`opengl_session_hglrc()` supplying the handles
-(`Int`).
-
 ## API
 
 | Area | Functions |
 |------|-----------|
 | Probe | `opengl_probe`, `opengl_probe_named(soname)`, `opengl_unload` |
-| Session (0.4.0) | `opengl_session_open(major, minor)`, `opengl_session_is_active`, `opengl_session_dc`, `opengl_session_hglrc`, `opengl_get_proc(name)`, `opengl_session_close` |
+| Session (0.4.0) | `opengl_session_open(major, minor)`, `opengl_session_is_active`, `opengl_get_proc(name)`, `opengl_session_close` |
 | Surface (0.4.0) | generated `gl_*` wrappers in `xiom.opengl.cmds_01..07` (656 core-4.6 commands); enums in `xiom.opengl.consts_1..6`; name table `xiom.opengl.names` |
-| WGL (0.5.0) | generated `wgl_*` wrappers in `xiom.opengl.wgl_cmds_01..02` (146 commands from wgl.xml); enums in `xiom.opengl.wgl_consts_1..2` (298); names in `xiom.opengl.wgl_names` |
 | Core probe | `opengl_probe_core(major, minor)`, `opengl_probe_core_named(soname, major, minor)` |
 | Extensions | `opengl_has_extension(name)`, `opengl_has_extension_named(soname, name)` |
 | Types | `GlInfo` (vendor/renderer/version/glsl/contextless_len), `GlCoreInfo` (strings + major/minor/extension_count/extension_head), `GlProbeError` (kind/message) |
@@ -125,8 +96,7 @@ xiom --run tests/test_conformance.xi --c-source <abs>\src\gl_probe.c
 scripts/port.ps1 -Package xiom.opengl
 ```
 
-Expected: 28 `[PASS]`, exit 0, on a desktop session (classic 4.6 + 3.3 core
-probe with 404 extensions; 656/656 core commands resolved; 24/24 resolvable
-core-1.0 WGL commands + the WGL surface checks; buffer + shader
+Expected: 21 `[PASS]`, exit 0, on a desktop session (classic 4.6 + 3.3 core
+probe with 404 extensions; 656/656 core commands resolved; buffer + shader
 roundtrips). See `SPEC.md` §4 for the
 recorded matrix and `SPEC.md` §2 for the G2 pin.
