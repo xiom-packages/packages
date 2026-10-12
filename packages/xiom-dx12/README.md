@@ -16,7 +16,8 @@ but broken exports -> **FAIL**. CI stays green without a GPU.
 
 > **Status:** `incubating` -- suite green **5/5 x2** on the pin (v0.64.4):
 > D3D12 device created on an NVIDIA RTX 3070 Ti (node_count=1), allocator
-> roundtrip + release, plus a deterministic SKIP-path test. **The full
+> roundtrip + release, plus a deterministic SKIP-path test. **0.1.0 published
+> in `eco-v0.1.166` (sha256 `5ff65bed...`).** **The full
 > generated surface (all `ID3D12*` interfaces + free functions + enums/struct
 > metadata from the pinned headers, plus DXGI) is the 0.2.0 wave.**
 > **Lane:** bindings (`keywords: ["binding"]`).
