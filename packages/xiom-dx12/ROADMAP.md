@@ -12,9 +12,10 @@
 | SKIP classification (absent / no adapter / ABI) | Done |
 | Full `d3d12.h` surface (interfaces + free fns + enums) | Done -- 0.2.0 (358 wrappers + 1162 consts + 9 free fns) |
 | Coverage manifest (oracle == bound == resolved) | Done -- `docs/COVERAGE.md` |
-| Struct metadata (sret/by-value normal forms + offsets) | Done -- 0.3.0 (19 typed shims + 1308 meta consts; 57 documented shapes) |
+| Struct metadata (sret/by-value normal forms + offsets) | Done -- 0.3.0 (29 typed shims + 2238 meta consts; 97 documented shapes) |
 | DXGI factory/adapter/swapchain | Done -- 0.3.0 (43 interfaces / 163 wrappers / 6 free fns / 246 consts; live factory + 3 adapters + 640x480 BGRA8/FIFO swapchain) |
 | WARP fallback adapter | Done -- 0.3.0 (`EnumWarpAdapter` + `D3D12CreateDevice(WARP)` ok) |
+| `d3d12video.h` slice | Done -- 0.3.0 (30 interfaces / 190 wrappers / 661 consts / 10 typed shims; QI + VIDEO_DECODE chain live) |
 | Command recording (queue/list/allocator + fences) | 0.4.0 |
 
 ## Phase 3 (0.3.0 goals)
@@ -33,4 +34,7 @@
 3. WARP device fallback so adapter-less CI hosts reach a real device stage.
    **DONE** -- `dxgi_warp_device_probe()` creates + releases a D3D12 device
    on the WARP adapter (live-verified).
-4. `d3d12video.h` slice; then promotion (policy sec. 7).
+4. `d3d12video.h` slice; then promotion (policy sec. 7).  **DONE** --
+   `src/video_probe.c` + module `xiom.dx12.video`, 30 interfaces / 190
+   wrappers / 661 consts / 10 typed shims; QI + VIDEO_DECODE command-list
+   chain live.  Promotion readiness is the remaining 0.3.0 item.

@@ -59,6 +59,7 @@ DXGI_HEADERS = [
     os.path.join(SDK_SHARED, "dxgicommon.h"),
     os.path.join(SDK_SHARED, "dxgiformat.h"),
 ]
+VIDEO_H = os.path.join(DX_HEADERS, "d3d12video.h")
 IFACES_PER_FILE = 8
 CONSTS_PER_FILE = 250
 
@@ -654,7 +655,8 @@ def dxgi_normalize(name):
 
 
 def emit_typed_shims(cfile, xfile, module, typed, structs, enums, typedefs,
-                     manifest, probe_exclude=None, types_header="d3d12_types.gen.h"):
+                     manifest, probe_exclude=None, types_header="d3d12_types.gen.h",
+                     counter_key="typed_shims"):
     """C typed shims + XIOM wrappers for struct-by-value methods.
 
     Normal forms:
@@ -696,6 +698,18 @@ def emit_typed_shims(cfile, xfile, module, typed, structs, enums, typedefs,
             base_clean = norm(pbase.replace("*", " "))
             ct, xt = c_and_xiom_type(base_clean, stars, enums, structs, typedefs)
             if ct is not None and ct in structs:
+                if structs[ct] is None:
+                    # By-value param of a struct whose layout we do not parse
+                    # (anonymous union / bitfield member).  x64 MS ABI: an
+                    # aggregate arg larger than 8 bytes is passed BY REFERENCE,
+                    # so a `const void*` slot pointer is ABI-identical.  All
+                    # such shapes in d3d12video.h are `{UINT; void*}` pairs
+                    # (>=16 bytes; sizes recorded in docs/struct_dump.txt).
+                    c_params.append(("const void*", pname + "_slot"))
+                    fn_params.append("const void*")
+                    x_params.append((pname + "_slot", "*UInt8"))
+                    call_args.append(pname + "_slot")
+                    continue
                 # by-value struct param: slot pointer on the public edge
                 c_params.append(("const void*", pname + "_slot"))
                 fn_params.append(ct)
@@ -772,7 +786,7 @@ def emit_typed_shims(cfile, xfile, module, typed, structs, enums, typedefs,
         emitted.append({"iface": iface, "method": method, "shim": cfn,
                         "xiom": base_name, "slot": slot,
                         "kind": "sret" if ret_struct else "byval-param"})
-        manifest["typed_shims"] += 1
+        manifest[counter_key] += 1
     # sizeof probes: oracle (clang dump) vs the build compiler, cross-checked
     # by the suite against D3D12_SIZEOF_* / DXGI_SIZEOF_* constants.
     roots = set()
@@ -857,6 +871,12 @@ def main():
                 dump_structs.setdefault(k, v)
             includes.extend(["<dxgi.h>", "<dxgi1_2.h>", "<dxgi1_3.h>",
                              "<dxgi1_4.h>", "<dxgi1_5.h>", "<dxgi1_6.h>"])
+        if os.path.exists(VIDEO_H):
+            _, _, _, _, _, _, _, vh = load_header([VIDEO_H])
+            v_structs, v_skips = parse_struct_defs(vh)
+            for k, v in v_structs.items():
+                dump_structs.setdefault(k, v)
+            includes.append('"d3d12video.h"')
         path = emit_struct_dump(
             {"includes": includes, "structs": dump_structs},
             os.path.join(ROOT, "tools", "struct_dump.cpp"))
@@ -886,6 +906,13 @@ def main():
         "dxgi_typed_shims": 0,
         "dxgi_skips": [],
         "dxgi_groups": [],
+        "video_interfaces": 0,
+        "video_vtbl_rows": 0,
+        "video_own_methods": 0,
+        "video_consts": 0,
+        "video_typed_shims": 0,
+        "video_skips": [],
+        "video_groups": [],
     }
 
     # ---- plan own methods with absolute slots (shared helper) ----
@@ -1235,13 +1262,121 @@ def main():
                                        "xiom.dx12.dxgi_structs", dtyped,
                                        d_structs, d_enum_names, d_typedefs,
                                        manifest, probe_exclude=set(core_closure),
-                                       types_header="dxgi_types.gen.h")
-            manifest["dxgi_typed_shims"] = len(emitted)
+                                       types_header="dxgi_types.gen.h",
+                                       counter_key="dxgi_typed_shims")
+            _ = emitted
         else:
             manifest["dxgi_typed_shims"] = 0
 
         with open(os.path.join(SRC, "dxgi_calls.c"), "w", encoding="ascii", newline="\n") as fh:
             fh.write("\n".join(d_c_lines).rstrip() + "\n")
+
+    # ---- d3d12video.h slice (video decode/process/encode command lists) ----
+    if os.path.exists(VIDEO_H):
+        v_enum_names, v_struct_names, v_typedefs, v_vtbl, v_bases, v_iids, v_freefns, vh = load_header([VIDEO_H])
+        # resolution sets see d3d12.h too (video methods use core enums such as
+        # D3D12_COMMAND_LIST_TYPE / D3D12_QUERY_TYPE / D3D12_PREDICATION_OP)
+        c_enum_names, c_struct_names, c_typedefs, _cv, _cb, _ci, _cf, ch = load_header([D3D12_H, VIDEO_H])
+        v_enum_names_c = c_enum_names
+        v_typedefs_c = c_typedefs
+        v_enums = load_enums(vh)
+        v_structs, v_struct_skips = parse_struct_defs(vh)
+        for k, val in v_structs.items():
+            dxgi_structs.setdefault(k, val)
+        v_structs_c = OrderedDict(structs)
+        for k, val in v_structs.items():
+            v_structs_c.setdefault(k, val)
+        manifest["struct_skips"].extend(v_struct_skips)
+        manifest["structs_parsed"] += sum(1 for val in v_structs.values() if val is not None)
+        manifest["video_interfaces"] = len(v_vtbl)
+        manifest["video_vtbl_rows"] = sum(len(val) for val in v_vtbl.values())
+
+        v_plan, v_typed = plan_surface(v_vtbl, v_bases, v_enum_names_c, v_typedefs_c,
+                                       v_structs_c, "video_skips", manifest)
+        v_c_lines = [
+            "/* GENERATED by tools/gen_dx12.py from the pinned d3d12video.h -- do not edit.",
+            " * Normalized COM/vtable call shims over ID3D12Video* interfaces. */",
+            '#include <windows.h>',
+            '#include <stdint.h>',
+            "",
+        ]
+        emit_iface_files(v_plan, v_c_lines, "video_iface", "xiom.dx12.video_iface",
+                         manifest, "video_groups", "video_own_methods")
+
+        vnames = sorted(v_enums["values"].keys())
+        vchunks = [vnames[i:i + CONSTS_PER_FILE] for i in range(0, len(vnames), CONSTS_PER_FILE)]
+        for ci, chunk in enumerate(vchunks, 1):
+            lines = [
+                "// GENERATED by tools/gen_dx12.py from d3d12video.h -- do not edit.",
+                "module xiom.dx12.video_consts_%d" % ci,
+                "",
+            ]
+            for n in chunk:
+                val = v_enums["values"][n]
+                lines.append("pub const %s: Int = %s;" % (n, ("0x%X" % val) if val >= 0 else str(val)))
+                manifest["video_consts"] += 1
+            with open(os.path.join(SRC, "video_consts_%d.xi" % ci), "w", encoding="ascii", newline="\n") as fh:
+                fh.write("\n".join(lines).rstrip() + "\n")
+
+        VIDEO_IIDS = [
+            "ID3D12VideoDevice", "ID3D12VideoDevice1", "ID3D12VideoDevice2",
+            "ID3D12VideoDevice3", "ID3D12VideoDevice4",
+            "ID3D12VideoDecodeCommandList", "ID3D12VideoProcessCommandList",
+            "ID3D12VideoEncodeCommandList", "ID3D12VideoDecoder",
+            "ID3D12VideoDecoderHeap", "ID3D12VideoProcessor",
+            "ID3D12VideoMotionEstimator", "ID3D12VideoMotionVectorHeap",
+        ]
+        vinc = [
+            "/* GENERATED by tools/gen_dx12.py -- video IIDs for xd12_video_iid(). */",
+            "static const unsigned char g_xd12_video_iids[][16] = {",
+        ]
+        vorder = []
+        for iname in VIDEO_IIDS:
+            gval = v_iids.get(iname)
+            if not gval:
+                continue
+            parts = [p.strip() for p in gval.split(",")]
+            if len(parts) != 11:
+                continue
+            d1 = int(parts[0], 16) if parts[0].lower().startswith("0x") else int(parts[0])
+            d2 = int(parts[1], 16) if parts[1].lower().startswith("0x") else int(parts[1])
+            d3 = int(parts[2], 16) if parts[2].lower().startswith("0x") else int(parts[2])
+            bb = [int(p, 16) if p.lower().startswith("0x") else int(p) for p in parts[3:]]
+            bs = [d1 & 0xFF, (d1 >> 8) & 0xFF, (d1 >> 16) & 0xFF, (d1 >> 24) & 0xFF,
+                  d2 & 0xFF, (d2 >> 8) & 0xFF, d3 & 0xFF, (d3 >> 8) & 0xFF] + bb
+            vinc.append("  { /* %s */ %s }," % (iname, ", ".join("0x%02X" % x for x in bs)))
+            vorder.append(iname)
+        vinc.append("};")
+        vinc.append("static const int g_xd12_video_iid_count = %d;" % len(vorder))
+        with open(os.path.join(SRC, "video_iids.inc"), "w", encoding="ascii", newline="\n") as fh:
+            fh.write("\n".join(vinc) + "\n")
+
+        if v_typed:
+            vroots = set()
+            for t in v_typed:
+                if t.get("ret_struct"):
+                    vroots.add(t["ret_struct"])
+                if t.get("byval_struct"):
+                    vroots.add(t["byval_struct"])
+                for pbase, _pn in t["params"]:
+                    pc = norm(pbase.replace("*", " "))
+                    if pc in v_structs and v_structs[pc] is not None:
+                        vroots.add(pc)
+            vclosure = struct_closure(sorted(vroots), v_structs)
+            emit_types_header("video_types.gen.h", vclosure, v_structs,
+                              v_enum_names, v_typedefs, "XD12_VIDEO_TYPES_GEN_H")
+            emitted = emit_typed_shims("video_structs.c", "video_structs.xi",
+                                       "xiom.dx12.video_structs", v_typed,
+                                       v_structs_c, v_enum_names_c, v_typedefs_c,
+                                       manifest, probe_exclude=set(core_closure),
+                                       types_header="video_types.gen.h",
+                                       counter_key="video_typed_shims")
+            _ = emitted
+        else:
+            manifest["video_typed_shims"] = 0
+
+        with open(os.path.join(SRC, "video_calls.c"), "w", encoding="ascii", newline="\n") as fh:
+            fh.write("\n".join(v_c_lines).rstrip() + "\n")
 
     os.makedirs(DOCS, exist_ok=True)
     with open(os.path.join(DOCS, "gen_manifest.json"), "w", encoding="ascii", newline="\n") as fh:
@@ -1261,6 +1396,13 @@ def main():
           % (manifest["dxgi_interfaces"], manifest["dxgi_vtbl_rows"],
              manifest["dxgi_own_methods"], manifest["dxgi_free_functions"],
              manifest["dxgi_consts"], len(manifest["dxgi_skips"])))
+    print("video: %d interfaces / %d vtbl rows / %d wrappers / %d consts / %d typed (skips %d)"
+          % (manifest["video_interfaces"], manifest["video_vtbl_rows"],
+             manifest["video_own_methods"], manifest["video_consts"],
+             manifest["video_typed_shims"], len(manifest["video_skips"])))
+    for sk in manifest["video_skips"][:10]:
+        key = sk.get("iface") or sk.get("func") or sk.get("name")
+        print("  video skip: %s -- %s" % (key, sk["reason"]))
     for sk in manifest["dxgi_skips"][:10]:
         key = sk.get("iface") or sk.get("func") or sk.get("name")
         print("  dxgi skip: %s -- %s" % (key, sk["reason"]))

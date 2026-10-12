@@ -1,13 +1,14 @@
-# COVERAGE -- xiom.dx12 (slice 3: struct metadata + full D3D12 core + DXGI)
+# COVERAGE -- xiom.dx12 (slice 4: struct metadata + full D3D12 core + DXGI + video)
 
 Oracles: `microsoft/DirectX-Headers` @ `461ef513` --
-`include/directx/d3d12.h` (SHA256 `AFA193D3...`), with `dxgicommon.h` /
-`dxgiformat.h` for member types; DXGI from the Windows SDK 10.0.26100.0
-shared headers (per-file SHA256 in `PROVENANCE.md`).  Generators:
-`tools/gen_dx12.py` (surfaces + typed shims; deterministic, Python stdlib
-only) and `tools/gen_dx12_struct_meta.py` (+ `tools/struct_dump.cpp`
-compiled with clang against the pinned headers -> `docs/struct_dump.txt`;
-the dump needs `-I <clone>\include\directx -I <SDK>\shared`).
+`include/directx/d3d12.h` (SHA256 `AFA193D3...`), `d3d12video.h`
+(`9CCD140C...`), with `dxgicommon.h` / `dxgiformat.h` for member types;
+DXGI from the Windows SDK 10.0.26100.0 shared headers (per-file SHA256 in
+`PROVENANCE.md`).  Generators: `tools/gen_dx12.py` (surfaces + typed shims;
+deterministic, Python stdlib only) and `tools/gen_dx12_struct_meta.py` (+
+`tools/struct_dump.cpp` compiled with clang against the pinned headers ->
+`docs/struct_dump.txt`; the dump needs
+`-I <clone>\include\directx -I <SDK>\shared`).
 
 ## d3d12.h surface
 
@@ -20,17 +21,21 @@ the dump needs `-I <clone>\include\directx -I <SDK>\shared`).
 | Enums | 1162 values | **1162 consts** | sanity-checked (`D3D12_FILL_MODE_SOLID`, `D3D12_HEAP_TYPE_*`, `D3D12_RESOURCE_STATE_COMMON`) | expression-evaluated |
 | Free functions | 9 | **9 wrappers** | serialized a 1-root-constant signature | lazy resolve via `xd12_resolve` |
 
-## dxgi surface + structs
+## dxgi + video surfaces + structs
 
 | Set | Oracle | Emitted | Witness | Notes |
 |-----|--------|---------|---------|-------|
-| Interfaces | 43 | 43 | factory/adapter/WARP/swapchain driven live | DXGI SDK headers; own methods = vtbl diff vs the base |
-| Vtable rows (incl. inherited) | 816 | -- | -- | absolute slots in `dxgi_calls.c` |
-| Own methods | 163 | **163 wrappers** | object/adapters/swapchain paths live | **0 unmapped** |
-| Enums | 246 values | **246 consts** | `DXGI_FORMAT_B8G8R8A8_UNORM` etc. checked | `dxgi_consts_1` |
-| Free functions | 6 | **6 wrappers** | `CreateDXGIFactory2` via the bridge; generated wrappers resolve lazily | `xd12_resolve_dxgi` |
-| Struct sizes | 272 (D3D12+DXGI) | **272 consts** | 16-struct oracle-vs-build sizeof cross-check | `D3D12_SIZEOF_*` / `DXGI_SIZEOF_*` |
-| Struct member offsets | 1036 | **1036 consts** | live field reads through `D3D12_OFF_*`/`DXGI_OFF_*` | 1308 consts total in `struct_meta_1..3` |
+| DXGI interfaces | 43 | 43 | factory/adapter/WARP/swapchain driven live | DXGI SDK headers; own methods = vtbl diff vs the base |
+| DXGI vtbl rows (incl. inherited) | 816 | -- | -- | absolute slots in `dxgi_calls.c` |
+| DXGI own methods | 163 | **163 wrappers** | object/adapters/swapchain paths live | **0 unmapped** |
+| DXGI enums | 246 values | **246 consts** | `DXGI_FORMAT_B8G8R8A8_UNORM` etc. checked | `dxgi_consts_1` |
+| DXGI free functions | 6 | **6 wrappers** | `CreateDXGIFactory2` via the bridge; generated wrappers resolve lazily | `xd12_resolve_dxgi` |
+| Video interfaces | 30 | 30 | `ID3D12VideoDevice` QI + video decode command list live | `d3d12video.h` @ the clone |
+| Video vtbl rows (incl. inherited) | 550 | -- | -- | absolute slots in `video_calls.c` |
+| Video own methods | 200 | **190 wrappers + 10 typed shims** | VIDEO_DECODE chain + generated `Close` live | **0 unmapped** |
+| Video enums | 661 values | **661 consts** | generated | `video_consts_1..3` |
+| Struct sizes | 434 (D3D12+DXGI+video) | **434 consts** | 16-struct oracle-vs-build sizeof cross-check | `D3D12_SIZEOF_*` / `DXGI_SIZEOF_*` |
+| Struct member offsets | 1804 | **1804 consts** | live field reads through `D3D12_OFF_*`/`DXGI_OFF_*` | 2238 consts total in `struct_meta_1..5` |
 
 Live witness (2026-10-12, x2 on the RTX 3070 Ti, v0.64.4):
 
@@ -53,14 +58,21 @@ Live witness (2026-10-12, x2 on the RTX 3070 Ti, v0.64.4):
 [PASS] dxgi: WARP vendor=5140 (expect 5140 == 0x1414)
 [PASS] dxgi: D3D12CreateDevice(WARP) ok (warp_status=0)
 [PASS] dxgi: BGRA8/FIFO swapchain (swap=0 buffer=0 present=0 640x480)
+[PASS] video: ID3D12VideoDevice QI ok
+[PASS] video: CreateCommandList(VIDEO_DECODE) hr=0
+[PASS] video: VideoDecodeCommandList::Close hr=0
 ```
 
-Skip ledger: 57 unparsed struct shapes (anonymous unions / bitfields /
+Skip ledger: 97 unparsed struct shapes (anonymous unions / bitfields /
 function-pointer members) are documented in
 `docs/struct_meta_manifest.json::struct_skips`; all method skips are bound
-(19 typed + 3 callback-param + 0 DXGI).  The by-value `D3D12_NODE_ID`
-marshaling (`GetNodeIndex`/`GetEntrypointIndex`) is emitted but not
-live-witnessed (needs a work-graph state object); layout is
-oracle-verified.
+(19 + 3 + 0 + 10).  The by-value `D3D12_NODE_ID` marshaling
+(`GetNodeIndex`/`GetEntrypointIndex`) is emitted but not live-witnessed
+(needs a work-graph state object); layout is oracle-verified.
 
-Next slices: `d3d12video.h`, then promotion (policy sec. 7).
+Pointer-edged flows run through C return values or bridge-owned state
+(B-24: XIOM out-slot reads after a C write are not reliable -- use
+byte-indexed reads; repro in `docs/repro/bindings-pilot/ptr-read-stale/`).
+B-23: the `null` literal crosses to C as garbage; use `dx12_null_ptr()`.
+
+Next: promotion readiness (policy sec. 7).

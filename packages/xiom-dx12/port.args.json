@@ -9,6 +9,12 @@
   "${PACKAGE_DIR}/src/dxgi_probe.c",
   "--c-source",
   "${PACKAGE_DIR}/src/dxgi_calls.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/video_probe.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/video_calls.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/video_structs.c",
   "--link",
   "user32"
 ]

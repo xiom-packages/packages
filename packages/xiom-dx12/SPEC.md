@@ -42,6 +42,20 @@
   0x10DE NVIDIA + 0x1414 Basic Render Driver), WARP vendor 0x1414, WARP
   D3D12 device OK, 640x480 BGRA8 (`0x57`) FLIP_DISCARD/FIFO swapchain
   create+GetBuffer+GetDesc1+Present all hr=0.
+- **Video pin (0.3.0)**: `ID3D12VideoDevice` QI'd from the live device
+  (live ok); `D3D12_COMMAND_LIST_TYPE_VIDEO_DECODE` = 4; the video decode
+  command list is created from the core device
+  (`CreateCommandList(0, 4, allocator(type 4), NULL, IID_ID3D12VideoDecodeCommandList)`)
+  and `Close()` returns 0 (live).  The chain's pointer delivery goes through
+  C return values, not XIOM out-slot reads (B-24).
+- **B-24 (compiler finding, filed with repro)**: out-slot writes performed
+  by a C extern call are intermittently not observed by a subsequent
+  `ffi.ptr_read_u64_le` on the same owned slot (stale zero; pointer-shaped
+  garbage when the slot holds a pointer).  Byte-indexed reads are reliable;
+  the suite uses them exclusively.  Repro:
+  `docs/repro/bindings-pilot/ptr-read-stale/` (ffi_bad=2, byte_bad=0 of
+  400).  **B-23**: the `null` literal crosses to C extern params as garbage;
+  use the bridge's `xd12_null_ptr()`.
 
 ## 3. Design: vendored C bridge + staged probe
 
@@ -55,18 +69,23 @@
   CreateWindowEx -> CreateSwapChainForHwnd -> GetBuffer -> GetDesc1 ->
   Present -> DestroyWindow).  Needs `--link user32`; `dxgi.dll` handling is
   separate state with its own `dxgi_unload`.
-- `src/d3d12_calls.c` + `src/d3d12_structs.c` + `src/dxgi_calls.c`
-  (generated): normalized slot shims for pointer/scalar paths and typed
-  shims for the struct-by-value normal forms; `src/d3d12_types.gen.h`
-  carries the C struct closure used by the typed shims;
-  `src/struct_meta_1..3.xi` carry the oracle-dumped sizes/offsets
-  (`D3D12_*` + `DXGI_*`).
-- The XIOM modules (`dx12.xi`, `src/dxgi.xi`): thin safe wrappers; all
-  `unsafe`/`extern` live in `xiom.dx12` and `xiom.dx12.dxgi` plus the
-  generated interface modules.  Public API adds `dxgi_probe`,
-  `dxgi_open_factory`, `dxgi_enum_adapter`, `dxgi_warp_adapter`,
-  `dxgi_warp_device_probe`, `dxgi_swapchain_probe` + getters, `dxgi_iid`,
-  `dxgi_unload`, `DxgiFactoryInfo`, `DxgiProbeError`, plus
+- `src/video_probe.c` (0.3.0): pinned video IIDs (`video_iids.inc`), the
+  `ID3D12VideoDevice` QI classification, and the C-side video decode
+  command-list chain (type-4 allocator -> CreateCommandList with the video
+  IID); the list pointer is returned by value so the generated video
+  wrappers can drive it.
+- `src/d3d12_calls.c` + `src/d3d12_structs.c` + `src/dxgi_calls.c` +
+  `src/video_calls.c` + `src/video_structs.c` (generated): normalized slot
+  shims for pointer/scalar paths and typed shims for the struct-by-value
+  normal forms; `src/d3d12_types.gen.h` / `src/video_types.gen.h` carry the
+  C struct closures; `src/struct_meta_1..5.xi` carry the oracle-dumped
+  sizes/offsets (`D3D12_*` + `DXGI_*`, 2238 consts).
+- The XIOM modules (`dx12.xi`, `src/dxgi.xi`, `src/video.xi`): thin safe
+  wrappers; all `unsafe`/`extern` live in `xiom.dx12`,
+  `xiom.dx12.dxgi` and `xiom.dx12.video` plus the generated interface
+  modules.  Public API adds `dxgi_*` (see README) and
+  `dx12_video_probe`, `dx12_video_iid`, `dx12_video_cmdlist_create`/
+  `_hr`/`_alloc`/`_cleanup`, `DxgiFactoryInfo`, `DxgiProbeError`, plus
   `dx12_poke_u32/u64` and `dx12_null_ptr` (bridge-provided NULL; the XIOM
   `null` literal marshals garbage to C extern params on v0.64.4 -- B-23).
 - **Build:** `port.args.json` compiles the bridges: `--c-source
@@ -83,16 +102,18 @@
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.dx12` | **PASS 28/28 x2** -- constants + SKIP classification (both runtimes), device (node_count=1), allocator roundtrip, generated surface (GetNodeCount, CreateCommandQueue + Release, D3D12SerializeRootSignature + typed RS probe 88-byte blob), struct metadata (queue GetDesc sret, committed-buffer Resource::GetDesc, GetResourceAllocationInfo 65536/65536, GetCustomHeapProperties, oracle-vs-build sizeof cross-check 16 structs), DXGI (factory live, 3 adapters, Adapter1::GetDesc1, WARP adapter + desc, WARP D3D12 device, BGRA8/FIFO 640x480 swapchain + GetBuffer + GetDesc1 + Present), unload paths |
+| Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.dx12` | **PASS 31/31 x2** -- constants + SKIP classification (three runtimes), device (node_count=1), allocator roundtrip, generated surface (GetNodeCount, CreateCommandQueue + Release, D3D12SerializeRootSignature + typed RS probe 88-byte blob), struct metadata (queue GetDesc sret, committed-buffer Resource::GetDesc, GetResourceAllocationInfo 65536/65536, GetCustomHeapProperties, oracle-vs-build sizeof cross-check), DXGI (factory live, 3 adapters, Adapter1::GetDesc1, WARP adapter + desc, WARP D3D12 device, BGRA8/FIFO 640x480 swapchain + GetBuffer + GetDesc1 + Present), video (`ID3D12VideoDevice` QI, VIDEO_DECODE command list created C-side + generated `Close` = 0), unload paths |
 | No runtime / no adapter | deterministic SKIP classification via the bogus-soname paths; `NO_DEVICE` maps to the same SKIP markers | covered by the classification checks |
 
 ## 5. Scope
 
-0.3.0 ships the **full D3D12 + DXGI surface**: 90 D3D12 interfaces -> 358
-method wrappers (355 + 3 callback-param; the 19 struct-by-value methods are
-typed shims), 1162 enum consts, 9 free functions; 43 DXGI interfaces -> 163
-wrappers, 246 consts, 6 free functions; 272 struct sizes + 1036 member
-offsets; factory/adapter/WARP/swapchain live. The 57 unparsed struct shapes
+0.3.0 ships the **full D3D12 + DXGI + video surface**: 90 D3D12 interfaces
+-> 358 method wrappers (355 + 3 callback-param; the 19 struct-by-value
+methods are typed shims), 1162 enum consts, 9 free functions; 43 DXGI
+interfaces -> 163 wrappers, 246 consts, 6 free functions; 30 video
+interfaces -> 190 wrappers, 661 consts, 10 typed shims; 434 struct sizes +
+1804 member offsets (2238 consts); factory/adapter/WARP/swapchain and the
+video QI + command-list chain live.  The 97 unparsed struct shapes
 (anonymous unions/bitfields/function-pointer members) are listed in
-`docs/struct_meta_manifest.json`. Still next: `d3d12video.h`, then
-promotion.
+`docs/struct_meta_manifest.json`.  Still next: promotion readiness (policy
+sec. 7).

@@ -42,6 +42,17 @@ use xiom.dx12.structs;
 use xiom.dx12.struct_meta_1;
 use xiom.dx12.struct_meta_2;
 use xiom.dx12.struct_meta_3;
+use xiom.dx12.struct_meta_4;
+use xiom.dx12.struct_meta_5;
+use xiom.dx12.video;
+use xiom.dx12.video_structs;
+use xiom.dx12.video_consts_1;
+use xiom.dx12.video_consts_2;
+use xiom.dx12.video_consts_3;
+use xiom.dx12.video_iface_01;
+use xiom.dx12.video_iface_02;
+use xiom.dx12.video_iface_03;
+use xiom.dx12.video_iface_04;
 use xiom.dx12.dxgi;
 use xiom.dx12.dxgi_functions;
 use xiom.dx12.dxgi_consts_1;
@@ -199,7 +210,7 @@ fn main() -> Int {
       let ir = dx12_iid(2, iid.as_mut_ptr()); // 2 = ID3D12CommandQueue
       var outq = zeroed(8);
       let hr = d3d12_device_create_command_queue(dev, desc.as_mut_ptr(), iid.as_mut_ptr(), outq.as_mut_ptr());
-      let q = unsafe { ffi.ptr_read_u64_le(outq.as_mut_ptr()) };
+      let q = le64(outq, 0);
       failed = failed + report(ir == 0 && hr == 0 && q != 0,
         "surface: CreateCommandQueue hr=" + to_string(hr as Int) + " (queue live)");
       if q != 0 {
@@ -233,7 +244,7 @@ fn main() -> Int {
       let nullp = dx12_null_ptr();
       let chrr = d3d12_device_create_committed_resource(dev, hprops.as_mut_ptr(), 0,
         rdesc.as_mut_ptr(), 0, nullp, riid.as_mut_ptr(), res.as_mut_ptr());
-      let resp = unsafe { ffi.ptr_read_u64_le(res.as_mut_ptr()) };
+      let resp = le64(res, 0);
       failed = failed + report(ir2 == 0 && chrr == 0 && resp != 0,
         "struct: CreateCommittedResource(buffer 256B) hr=" + to_string(chrr as Int));
       if resp != 0 {
@@ -281,8 +292,8 @@ fn main() -> Int {
     k = 0;
     while k < 8 { blob.push(0 as UInt8); err.push(0 as UInt8); k = k + 1; }
     let hr2 = d3d12_serialize_root_signature(rsdesc.as_mut_ptr(), 1, blob.as_mut_ptr(), err.as_mut_ptr());
-    let blobp = unsafe { ffi.ptr_read_u64_le(blob.as_mut_ptr()) };
-    let errp = unsafe { ffi.ptr_read_u64_le(err.as_mut_ptr()) };
+    let blobp = le64(blob, 0);
+    let errp = le64(err, 0);
     failed = failed + report(hr2 == 0 && blobp != 0,
       "surface: D3D12SerializeRootSignature wrapper hr=" + to_string(hr2 as Int));
     if blobp != 0 {
@@ -373,6 +384,33 @@ fn main() -> Int {
     failed = failed + report(false, "dxgi: failed -- " + df.error.message);
   }
   dxgi_unload();
+
+  // 0.3.0 (c): d3d12video.h slice -- ID3D12VideoDevice QI + a real
+  // VIDEO_DECODE command list through the core device + generated wrappers.
+  let vp = dx12_video_probe();
+  if vp == DX12_VIDEO_OK {
+    failed = failed + report(true, "video: ID3D12VideoDevice QI ok");
+    // The chain (type-4 allocator -> CreateCommandList with the video IID)
+    // is created C-side; the pointer comes back as a RETURN value (reliable)
+    // and the generated video wrappers drive it (B-24: out-pointer reads are
+    // not reliable on the XIOM side).
+    let vlist = dx12_video_cmdlist_create();
+    let vhr = dx12_video_cmdlist_hr();
+    failed = failed + report(vhr == 0 && vlist != 0,
+      "video: CreateCommandList(VIDEO_DECODE) hr=" + to_string(vhr));
+    if vlist != 0 {
+      let vclose = d3d12_video_decode_command_list_close(vlist);
+      failed = failed + report(vclose == 0,
+        "video: VideoDecodeCommandList::Close hr=" + to_string(vclose as Int));
+      let _vr = d3d12_object_release(vlist);
+    }
+    dx12_video_cmdlist_cleanup();
+  } else if vp == DX12_VIDEO_NO_DEVICE {
+    failed = failed + report(true, "video: SKIP -- no D3D12 device");
+  } else {
+    failed = failed + report(false, "video: QI failed status=" + to_string(vp));
+  }
+  dx12_unload();
 
   // Unload must be safe even after a failed probe.
   dx12_unload();

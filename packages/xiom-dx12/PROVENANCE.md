@@ -8,6 +8,9 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   stable tag `v1.619.5`).  Oracle file: `include/directx/d3d12.h`
   (1,692,148 bytes, SHA256
   `AFA193D3BBA5C26EC5C96E0971C6A6EC491C973A06F8CEB0572FBF0F9F9C5441`).
+- **Video declaration oracle (0.3.0):** same clone,
+  `include/directx/d3d12video.h` (459,032 bytes, SHA256
+  `9CCD140CEDFB962696E05604F42207697D4E1802D1AA639CE16511F62616BBFD`).
 - **DXGI declaration oracle (0.3.0):** the Windows SDK
   **10.0.26100.0** shared headers (`dxgi.h`, `dxgi1_2..1_6.h`,
   `dxgitype.h`, `dxgicommon.h`, `dxgiformat.h`).  DXGI interface headers
