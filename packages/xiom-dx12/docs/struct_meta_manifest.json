@@ -1,7 +1,7 @@
 {
-  "structs_dumped": 240,
-  "member_offsets": 863,
-  "constants": 1103,
+  "structs_dumped": 272,
+  "member_offsets": 1036,
+  "constants": 1308,
   "files": 3,
   "module_names": [
     "struct_meta_1",
@@ -230,6 +230,14 @@
     {
       "reason": "member grammar",
       "struct": "D3D12_EXISTING_COLLECTION_BY_KEY_DESC"
+    },
+    {
+      "reason": "member grammar",
+      "struct": "DXGI_DISPLAY_COLOR_SPACE"
+    },
+    {
+      "reason": "member grammar",
+      "struct": "DXGI_PRESENT_PARAMETERS"
     }
   ]
 }

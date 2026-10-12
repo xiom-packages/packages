@@ -42,6 +42,15 @@ use xiom.dx12.structs;
 use xiom.dx12.struct_meta_1;
 use xiom.dx12.struct_meta_2;
 use xiom.dx12.struct_meta_3;
+use xiom.dx12.dxgi;
+use xiom.dx12.dxgi_functions;
+use xiom.dx12.dxgi_consts_1;
+use xiom.dx12.dxgi_iface_01;
+use xiom.dx12.dxgi_iface_02;
+use xiom.dx12.dxgi_iface_03;
+use xiom.dx12.dxgi_iface_04;
+use xiom.dx12.dxgi_iface_05;
+use xiom.dx12.dxgi_iface_06;
 
 // Byte-indexed slot readers (B-16/B-17 discipline: no pointer arithmetic,
 // no ptr_read at base+N; Vec indexing over the owned buffer only).
@@ -119,6 +128,16 @@ fn t_struct_meta_sizes() -> Bool {
   if dx12_sizeof_d3d12_device_configuration_desc() != D3D12_SIZEOF_DEVICE_CONFIGURATION_DESC { ok = false; }
   if dx12_sizeof_d3d12_mip_region() != D3D12_SIZEOF_MIP_REGION { ok = false; }
   if dx12_sizeof_dxgi_sample_desc() != DXGI_SIZEOF_SAMPLE_DESC { ok = false; }
+  return ok;
+}
+
+fn t_dxgi_consts() -> Bool {
+  var ok = true;
+  if DXGI_FORMAT_B8G8R8A8_UNORM != 0x57 { ok = false; }
+  if DXGI_FORMAT_R8G8B8A8_UNORM != 0x1C { ok = false; } // generated const module
+  if DXGI_SWAP_EFFECT_FLIP_DISCARD != 4 { ok = false; }
+  if DXGI_USAGE_RENDER_TARGET_OUTPUT != 0x20 { ok = false; }
+  if DXGI_SONAME != "dxgi.dll" { ok = false; }
   return ok;
 }
 
@@ -286,6 +305,74 @@ fn main() -> Int {
   } else {
     failed = failed + report(false, "surface: open failed -- " + od.error.message);
   }
+
+  // 0.3.0 (b): DXGI -- factory/adapter/WARP/swapchain on dxgi.dll.
+  failed = failed + report(t_dxgi_consts(),
+    "dxgi: consts (BGRA8/FLIP_DISCARD/soname)");
+  let dmissing = dxgi_probe_named("xiom-absent-dxgi-probe-xyz.dll");
+  if dmissing.is_ok {
+    failed = failed + report(false, "dxgi skip-path: bogus soname unexpectedly produced a factory");
+  } else {
+    failed = failed + report(dmissing.error.kind == DXGI_LOAD_ABSENT,
+      "dxgi skip-path: absent runtime classified as DXGI_LOAD_ABSENT (SKIP)");
+  }
+  let df = dxgi_open_factory();
+  if df.is_ok {
+    let finfo: DxgiFactoryInfo = df.value;
+    failed = failed + report(dxgi_factory_ptr() != 0,
+      "dxgi: live IDXGIFactory2 pointer");
+    failed = failed + report(finfo.adapter_count >= 1,
+      "dxgi: EnumAdapters1 count=" + to_string(finfo.adapter_count));
+    // adapter 0: generated wrapper (pointer-form GetDesc1) + struct meta read
+    let a0 = dxgi_enum_adapter(0);
+    failed = failed + report(a0 != 0, "dxgi: EnumAdapters1(0) adapter live");
+    if a0 != 0 {
+      var adesc = zeroed(DXGI_SIZEOF_ADAPTER_DESC1);
+      let dhr = dxgi_adapter1_get_desc1(a0, adesc.as_mut_ptr());
+      let vendor = le32(adesc, DXGI_OFF_ADAPTER_DESC1_VENDOR_ID);
+      failed = failed + report(dhr == 0 && vendor != 0,
+        "dxgi: Adapter1::GetDesc1 vendor=" + to_string(vendor) + " (decimal)");
+      let _ra = dxgi_object_release(a0);
+    }
+    // WARP adapter (IDXGIFactory4) + a real D3D12 device on it
+    let warp = dxgi_warp_adapter();
+    failed = failed + report(finfo.warp && warp != 0, "dxgi: EnumWarpAdapter live");
+    if warp != 0 {
+      var wdesc = zeroed(DXGI_SIZEOF_ADAPTER_DESC1);
+      let whr = dxgi_adapter1_get_desc1(warp, wdesc.as_mut_ptr());
+      let wvendor = le32(wdesc, DXGI_OFF_ADAPTER_DESC1_VENDOR_ID);
+      // 0x1414 (Microsoft) == 5140 decimal; keep the message decimal.
+      failed = failed + report(whr == 0 && wvendor == 5140,
+        "dxgi: WARP vendor=" + to_string(wvendor) + " (expect 5140 == 0x1414)");
+      let _rw = dxgi_object_release(warp);
+    }
+    let wdev = dxgi_warp_device_probe();
+    failed = failed + report(wdev == 0,
+      "dxgi: D3D12CreateDevice(WARP) ok (warp_status=" + to_string(wdev) + ")");
+    // hidden-window BGRA8/FIFO swapchain + GetBuffer + GetDesc1 + Present
+    let scst = dxgi_swapchain_probe(640, 480);
+    if scst == DXGI_SWAPCHAIN_OK {
+      let shr = dxgi_swapchain_hr();
+      let bhr = dxgi_swapchain_buffer_hr();
+      let phr = dxgi_swapchain_present_hr();
+      let dw = dxgi_swapchain_desc_width();
+      let dh = dxgi_swapchain_desc_height();
+      let dform = dxgi_swapchain_desc_format();
+      let present_ok = phr == 0 || phr == 0x087A0001; // OCCLUDED is fine (hidden)
+      failed = failed + report(shr == 0 && bhr == 0 && present_ok && dw == 640 && dh == 480 && dform == 0x57,
+        "dxgi: BGRA8/FIFO swapchain (swap=" + to_string(shr) + " buffer=" + to_string(bhr)
+        + " present=" + to_string(phr) + " " + to_string(dw) + "x" + to_string(dh) + ")");
+    } else if scst == DXGI_SWAPCHAIN_NO_DEVICE {
+      failed = failed + report(true, "dxgi swapchain: SKIP -- no D3D12 device");
+    } else {
+      failed = failed + report(false, "dxgi swapchain: failed status=" + to_string(scst));
+    }
+  } else if df.error.kind == DXGI_LOAD_ABSENT {
+    failed = failed + report(true, "dxgi: SKIP -- dxgi runtime not present (" + df.error.message + ")");
+  } else {
+    failed = failed + report(false, "dxgi: failed -- " + df.error.message);
+  }
+  dxgi_unload();
 
   // Unload must be safe even after a failed probe.
   dx12_unload();

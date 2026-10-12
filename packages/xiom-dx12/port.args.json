@@ -4,5 +4,11 @@
   "--c-source",
   "${PACKAGE_DIR}/src/d3d12_calls.c",
   "--c-source",
-  "${PACKAGE_DIR}/src/d3d12_structs.c"
+  "${PACKAGE_DIR}/src/d3d12_structs.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/dxgi_probe.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/dxgi_calls.c",
+  "--link",
+  "user32"
 ]

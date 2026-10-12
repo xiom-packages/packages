@@ -1,5 +1,87 @@
 {
  "consts_emitted": 1162,
+ "dxgi_consts": 246,
+ "dxgi_free_functions": 6,
+ "dxgi_groups": [
+  {
+   "file": "dxgi_iface_01.xi",
+   "interfaces": [
+    "IDXGIObject",
+    "IDXGIDeviceSubObject",
+    "IDXGIResource",
+    "IDXGIKeyedMutex",
+    "IDXGISurface",
+    "IDXGISurface1",
+    "IDXGIAdapter",
+    "IDXGIOutput"
+   ]
+  },
+  {
+   "file": "dxgi_iface_02.xi",
+   "interfaces": [
+    "IDXGISwapChain",
+    "IDXGIFactory",
+    "IDXGIDevice",
+    "IDXGIFactory1",
+    "IDXGIAdapter1",
+    "IDXGIDevice1",
+    "IDXGIDisplayControl",
+    "IDXGIOutputDuplication"
+   ]
+  },
+  {
+   "file": "dxgi_iface_03.xi",
+   "interfaces": [
+    "IDXGISurface2",
+    "IDXGIResource1",
+    "IDXGIDevice2",
+    "IDXGISwapChain1",
+    "IDXGIFactory2",
+    "IDXGIAdapter2",
+    "IDXGIOutput1",
+    "IDXGIDevice3"
+   ]
+  },
+  {
+   "file": "dxgi_iface_04.xi",
+   "interfaces": [
+    "IDXGISwapChain2",
+    "IDXGIOutput2",
+    "IDXGIFactory3",
+    "IDXGIDecodeSwapChain",
+    "IDXGIFactoryMedia",
+    "IDXGISwapChainMedia",
+    "IDXGIOutput3",
+    "IDXGISwapChain3"
+   ]
+  },
+  {
+   "file": "dxgi_iface_05.xi",
+   "interfaces": [
+    "IDXGIOutput4",
+    "IDXGIFactory4",
+    "IDXGIAdapter3",
+    "IDXGIOutput5",
+    "IDXGISwapChain4",
+    "IDXGIDevice4",
+    "IDXGIFactory5",
+    "IDXGIAdapter4"
+   ]
+  },
+  {
+   "file": "dxgi_iface_06.xi",
+   "interfaces": [
+    "IDXGIOutput6",
+    "IDXGIFactory6",
+    "IDXGIFactory7"
+   ]
+  }
+ ],
+ "dxgi_interfaces": 43,
+ "dxgi_own_methods": 163,
+ "dxgi_skips": [],
+ "dxgi_typed_shims": 0,
+ "dxgi_vtbl_rows": 816,
  "free_functions_emitted": 9,
  "groups": [
   {
@@ -453,9 +535,17 @@
   {
    "reason": "member grammar",
    "struct": "D3D12_EXISTING_COLLECTION_BY_KEY_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "DXGI_DISPLAY_COLOR_SPACE"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "DXGI_PRESENT_PARAMETERS"
   }
  ],
- "structs_parsed": 240,
+ "structs_parsed": 274,
  "typed_shims": 19,
  "typed_skips": [],
  "vtbl_rows": 2476

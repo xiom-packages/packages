@@ -7,8 +7,8 @@
 | Package | `xiom.dx12` |
 | Version | 0.3.0 |
 | Kind | binding (`keywords: ["binding"]`) |
-| Upstream (declaration oracle) | `microsoft/DirectX-Headers` @ `461ef513` (nearest stable tag `v1.619.5`); `include/directx/d3d12.h` SHA256 `AFA193D3BBA5C26EC5C96E0971C6A6EC491C973A06F8CEB0572FBF0F9F9C5441` |
-| Runtime | OS `d3d12.dll`, resolved at runtime (no link dependency); Agility SDK NOT required or vendored |
+| Upstream (declaration oracle) | `microsoft/DirectX-Headers` @ `461ef513` (nearest stable tag `v1.619.5`); `include/directx/d3d12.h` SHA256 `AFA193D3...`; DXGI: Windows SDK **10.0.26100.0** shared headers (`dxgi.h`/`dxgi1_2..6.h`/`dxgitype.h`/`dxgicommon.h`/`dxgiformat.h`; per-file SHA256 in `PROVENANCE.md`) |
+| Runtime | OS `d3d12.dll` + `dxgi.dll`, resolved at runtime (no link dependency; `user32` linked only for the swapchain's hidden window); Agility SDK NOT required or vendored |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 |
 | Compiler pin | v0.64.4 |
@@ -34,6 +34,14 @@
 - **Buffers**: `D3D12_RESOURCE_DESC.Layout` must be `ROW_MAJOR` (1) for
   buffers (live-verified: `UNKNOWN` -> allocation info `UINT64_MAX`/65536
   and `CreateCommittedResource` -> `E_INVALIDARG`).
+- **DXGI pin (0.3.0)**: `CreateDXGIFactory2(flags, riid, ppFactory)`; factory
+  slots 12 EnumAdapters1 / 15 CreateSwapChainForHwnd / 27 EnumWarpAdapter
+  (Factory4 via QI); swapchain slots 8 Present / 9 GetBuffer / 18 GetDesc1;
+  `DXGI_ERROR_NOT_FOUND`=0x887A0002; WARP via
+  `EnumWarpAdapter(IID_IDXGIAdapter1)`; live witnesses: 3 adapters (vendor
+  0x10DE NVIDIA + 0x1414 Basic Render Driver), WARP vendor 0x1414, WARP
+  D3D12 device OK, 640x480 BGRA8 (`0x57`) FLIP_DISCARD/FIFO swapchain
+  create+GetBuffer+GetDesc1+Present all hr=0.
 
 ## 3. Design: vendored C bridge + staged probe
 
@@ -41,40 +49,50 @@
   include) following the `xiom.dxc` precedent; resolves `d3d12.dll` via
   `LoadLibraryA`/`GetProcAddress`; drives objects through raw vtable slots;
   `xd12_unload` releases the device + library (no residue across runs).
-- `src/d3d12_calls.c` + `src/d3d12_structs.c` (generated): normalized slot
-  shims for pointer/scalar paths and typed shims for the struct-by-value
-  normal forms; `src/d3d12_types.gen.h` carries the C struct closure used
-  by the typed shims; `src/struct_meta_1..3.xi` carry the oracle-dumped
-  sizes/offsets.
-- The XIOM module (`dx12.xi`, module `xiom.dx12`) is a thin safe wrapper:
-  all `unsafe`/`extern` are confined to this single module (G5). Public API:
-  `dx12_probe`, `dx12_probe_named`, `dx12_unload`, `Dx12DeviceInfo`,
-  `Dx12ProbeError`, the pinned constants, `dx12_poke_u32/u64` and
-  `dx12_null_ptr` (bridge-provided NULL; the XIOM `null` literal marshals
-  garbage to C extern params on v0.64.4 -- B-23).
-- **Build:** `port.args.json` compiles the bridge: `--c-source
-  ${PACKAGE_DIR}/src/dx12_probe.c` + `d3d12_calls.c` + `d3d12_structs.c`
-  (no `--link` flags needed).
+- `src/dxgi_probe.c` (0.3.0): the same discipline for `dxgi.dll` --
+  factory creation, adapter enumeration, WARP adapter + WARP D3D12 device,
+  and a hidden-window BGRA8/FIFO swapchain probe (RegisterClassEx/
+  CreateWindowEx -> CreateSwapChainForHwnd -> GetBuffer -> GetDesc1 ->
+  Present -> DestroyWindow).  Needs `--link user32`; `dxgi.dll` handling is
+  separate state with its own `dxgi_unload`.
+- `src/d3d12_calls.c` + `src/d3d12_structs.c` + `src/dxgi_calls.c`
+  (generated): normalized slot shims for pointer/scalar paths and typed
+  shims for the struct-by-value normal forms; `src/d3d12_types.gen.h`
+  carries the C struct closure used by the typed shims;
+  `src/struct_meta_1..3.xi` carry the oracle-dumped sizes/offsets
+  (`D3D12_*` + `DXGI_*`).
+- The XIOM modules (`dx12.xi`, `src/dxgi.xi`): thin safe wrappers; all
+  `unsafe`/`extern` live in `xiom.dx12` and `xiom.dx12.dxgi` plus the
+  generated interface modules.  Public API adds `dxgi_probe`,
+  `dxgi_open_factory`, `dxgi_enum_adapter`, `dxgi_warp_adapter`,
+  `dxgi_warp_device_probe`, `dxgi_swapchain_probe` + getters, `dxgi_iid`,
+  `dxgi_unload`, `DxgiFactoryInfo`, `DxgiProbeError`, plus
+  `dx12_poke_u32/u64` and `dx12_null_ptr` (bridge-provided NULL; the XIOM
+  `null` literal marshals garbage to C extern params on v0.64.4 -- B-23).
+- **Build:** `port.args.json` compiles the bridges: `--c-source
+  ${PACKAGE_DIR}/src/dx12_probe.c` + `d3d12_calls.c` + `d3d12_structs.c` +
+  `dxgi_probe.c` + `dxgi_calls.c`, `--link user32`.
 - **Classification** (the suite maps it to markers):
-  - `DX12_LOAD_ABSENT` -> SKIP (runtime missing; CI stays green)
+  - `DX12_LOAD_ABSENT` / `DXGI_LOAD_ABSENT` -> SKIP (runtime missing; CI
+    stays green)
   - `DX12_LOAD_NO_DEVICE` -> SKIP (no D3D12-capable adapter on this host)
-  - `DX12_LOAD_ABI` -> FAIL (present but exports missing; never silent)
+  - `DXGI_LOAD_FACTORY` / `DXGI_LOAD_ABI` -> FAIL (never silent)
+  - `DXGI_SWAPCHAIN_NO_DEVICE` -> SKIP (swapchain stage only)
 
 ## 4. Test matrix (recorded 2026-10-12, compiler v0.64.4)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.dx12` | **PASS 18/18 x2** -- constants + SKIP classification, device (node_count=1), allocator roundtrip, generated-surface (GetNodeCount, CreateCommandQueue + Release, D3D12SerializeRootSignature wrapper + typed RS probe 88-byte blob), struct metadata (queue GetDesc sret, committed-buffer CreateCommittedResource + Resource::GetDesc, GetResourceAllocationInfo 65536/65536, GetCustomHeapProperties, oracle-vs-build sizeof cross-check 16 structs), unload |
-| No runtime / no adapter | deterministic SKIP classification via the bogus-soname path; `NO_DEVICE` maps to the same SKIP markers | covered by the classification checks |
+| Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.dx12` | **PASS 28/28 x2** -- constants + SKIP classification (both runtimes), device (node_count=1), allocator roundtrip, generated surface (GetNodeCount, CreateCommandQueue + Release, D3D12SerializeRootSignature + typed RS probe 88-byte blob), struct metadata (queue GetDesc sret, committed-buffer Resource::GetDesc, GetResourceAllocationInfo 65536/65536, GetCustomHeapProperties, oracle-vs-build sizeof cross-check 16 structs), DXGI (factory live, 3 adapters, Adapter1::GetDesc1, WARP adapter + desc, WARP D3D12 device, BGRA8/FIFO 640x480 swapchain + GetBuffer + GetDesc1 + Present), unload paths |
+| No runtime / no adapter | deterministic SKIP classification via the bogus-soname paths; `NO_DEVICE` maps to the same SKIP markers | covered by the classification checks |
 
 ## 5. Scope
 
-0.3.0 ships the **struct-metadata wave** on top of the full generated
-`d3d12.h` core surface (90 interfaces -> 358 method wrappers: 355 + 3
-callback-param; the 19 struct-by-value methods are typed shims), 1162 enum
-consts, 9 free functions, **240 struct sizes + 863 member offsets** as
-`struct_meta_1..3` constants, and the typed-shim closure with oracle-vs-build
-sizeof probes. The 55 unparsed struct shapes (anonymous unions/bitfields/
-function-pointer members) are listed in `docs/struct_meta_manifest.json`.
-Still next: DXGI (`dxgi.dll`: factory/adapter/WARP/swapchain),
-`d3d12video.h`, then promotion.
+0.3.0 ships the **full D3D12 + DXGI surface**: 90 D3D12 interfaces -> 358
+method wrappers (355 + 3 callback-param; the 19 struct-by-value methods are
+typed shims), 1162 enum consts, 9 free functions; 43 DXGI interfaces -> 163
+wrappers, 246 consts, 6 free functions; 272 struct sizes + 1036 member
+offsets; factory/adapter/WARP/swapchain live. The 57 unparsed struct shapes
+(anonymous unions/bitfields/function-pointer members) are listed in
+`docs/struct_meta_manifest.json`. Still next: `d3d12video.h`, then
+promotion.

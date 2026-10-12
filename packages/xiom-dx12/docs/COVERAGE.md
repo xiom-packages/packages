@@ -1,11 +1,15 @@
-# COVERAGE -- xiom.dx12 (slice 2: struct metadata + full `d3d12.h` core surface)
+# COVERAGE -- xiom.dx12 (slice 3: struct metadata + full D3D12 core + DXGI)
 
-Oracle: `microsoft/DirectX-Headers` @ `461ef513` --
+Oracles: `microsoft/DirectX-Headers` @ `461ef513` --
 `include/directx/d3d12.h` (SHA256 `AFA193D3...`), with `dxgicommon.h` /
-`dxgiformat.h` for member types.  Generators: `tools/gen_dx12.py` (surface +
-typed shims; deterministic, Python stdlib only) and
-`tools/gen_dx12_struct_meta.py` (+ `tools/struct_dump.cpp` compiled with
-clang against the pinned headers -> `docs/struct_dump.txt`).
+`dxgiformat.h` for member types; DXGI from the Windows SDK 10.0.26100.0
+shared headers (per-file SHA256 in `PROVENANCE.md`).  Generators:
+`tools/gen_dx12.py` (surfaces + typed shims; deterministic, Python stdlib
+only) and `tools/gen_dx12_struct_meta.py` (+ `tools/struct_dump.cpp`
+compiled with clang against the pinned headers -> `docs/struct_dump.txt`;
+the dump needs `-I <clone>\include\directx -I <SDK>\shared`).
+
+## d3d12.h surface
 
 | Set | Oracle | Emitted | Witness | Notes |
 |-----|--------|---------|---------|-------|
@@ -15,8 +19,18 @@ clang against the pinned headers -> `docs/struct_dump.txt`).
 | Typed shims (struct-by-value normal forms) | 19 | **19 shims** | queue/resource `GetDesc` sret, `GetResourceAllocationInfo`, `GetCustomHeapProperties` live | sret via caller-owned slot; by-value `D3D12_NODE_ID` params via owned slot pointer |
 | Enums | 1162 values | **1162 consts** | sanity-checked (`D3D12_FILL_MODE_SOLID`, `D3D12_HEAP_TYPE_*`, `D3D12_RESOURCE_STATE_COMMON`) | expression-evaluated |
 | Free functions | 9 | **9 wrappers** | serialized a 1-root-constant signature | lazy resolve via `xd12_resolve` |
-| Struct sizes | 240 | **240 consts** | 16-struct oracle-vs-build sizeof cross-check | `D3D12_SIZEOF_*` in `struct_meta_1..3` |
-| Struct member offsets | 863 | **863 consts** | live field reads through `D3D12_OFF_*` (width/mips/layout/priority/...) | `struct_meta_1..3`; 1103 consts total |
+
+## dxgi surface + structs
+
+| Set | Oracle | Emitted | Witness | Notes |
+|-----|--------|---------|---------|-------|
+| Interfaces | 43 | 43 | factory/adapter/WARP/swapchain driven live | DXGI SDK headers; own methods = vtbl diff vs the base |
+| Vtable rows (incl. inherited) | 816 | -- | -- | absolute slots in `dxgi_calls.c` |
+| Own methods | 163 | **163 wrappers** | object/adapters/swapchain paths live | **0 unmapped** |
+| Enums | 246 values | **246 consts** | `DXGI_FORMAT_B8G8R8A8_UNORM` etc. checked | `dxgi_consts_1` |
+| Free functions | 6 | **6 wrappers** | `CreateDXGIFactory2` via the bridge; generated wrappers resolve lazily | `xd12_resolve_dxgi` |
+| Struct sizes | 272 (D3D12+DXGI) | **272 consts** | 16-struct oracle-vs-build sizeof cross-check | `D3D12_SIZEOF_*` / `DXGI_SIZEOF_*` |
+| Struct member offsets | 1036 | **1036 consts** | live field reads through `D3D12_OFF_*`/`DXGI_OFF_*` | 1308 consts total in `struct_meta_1..3` |
 
 Live witness (2026-10-12, x2 on the RTX 3070 Ti, v0.64.4):
 
@@ -32,15 +46,21 @@ Live witness (2026-10-12, x2 on the RTX 3070 Ti, v0.64.4):
 [PASS] struct: oracle-vs-build sizeof cross-check (16 closure structs)
 [PASS] surface: D3D12SerializeRootSignature wrapper hr=0
 [PASS] surface: root signature serialized (size=88 magic=0x1403377099057813572)
+[PASS] dxgi: live IDXGIFactory2 pointer
+[PASS] dxgi: EnumAdapters1 count=3
+[PASS] dxgi: Adapter1::GetDesc1 vendor=4318 (decimal; 0x10DE NVIDIA)
+[PASS] dxgi: EnumWarpAdapter live
+[PASS] dxgi: WARP vendor=5140 (expect 5140 == 0x1414)
+[PASS] dxgi: D3D12CreateDevice(WARP) ok (warp_status=0)
+[PASS] dxgi: BGRA8/FIFO swapchain (swap=0 buffer=0 present=0 640x480)
 ```
 
-Skip ledger: 55 unparsed struct shapes (anonymous unions / bitfields /
+Skip ledger: 57 unparsed struct shapes (anonymous unions / bitfields /
 function-pointer members) are documented in
-`docs/struct_meta_manifest.json::struct_skips`; the 22 struct/callback
-method skips of 0.2.0 are all bound (19 typed + 3 callback-param).  The
-by-value `D3D12_NODE_ID` marshaling (`GetNodeIndex`/`GetEntrypointIndex`)
-is emitted but not live-witnessed (needs a work-graph state object);
-layout is oracle-verified.
+`docs/struct_meta_manifest.json::struct_skips`; all method skips are bound
+(19 typed + 3 callback-param + 0 DXGI).  The by-value `D3D12_NODE_ID`
+marshaling (`GetNodeIndex`/`GetEntrypointIndex`) is emitted but not
+live-witnessed (needs a work-graph state object); layout is
+oracle-verified.
 
-Next slices: DXGI (`dxgi.dll`: factory/adapters/WARP/swapchain),
-`d3d12video.h`, then promotion (policy sec. 7).
+Next slices: `d3d12video.h`, then promotion (policy sec. 7).
