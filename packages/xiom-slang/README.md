@@ -14,6 +14,9 @@ wrappers. No link-time dependency, no vendored code.
 - **SKIP-green**: with no `slang.dll` on the machine the suite reports
   SKIP and exits 0; a present-but-incomplete DLL is a hard failure.
 
+> **Status:** `incubating` -- 20/20 x2 on v0.64.4 (resolved=277/277);
+> 0.1.0 published in `eco-v0.1.162` (sha256 `0dd5548d...`).
+
 ## Quick start
 
 ```xiom

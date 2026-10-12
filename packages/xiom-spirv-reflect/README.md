@@ -8,7 +8,8 @@ vendored into `vendor/` (Apache-2.0) and compiled with the suite via
 dependency.
 
 > **Status:** `incubating` -- vendored runtime path green on the pin
-> (xiom v0.64.3; 40/40 x2, resolved=45/45). **Lane:** bindings.
+> (xiom v0.64.4; 40/40 x2, resolved=45/45). 0.1.0 published in
+> `eco-v0.1.162` (sha256 `97f96c62...`). **Lane:** bindings.
 
 ## Quick start
 

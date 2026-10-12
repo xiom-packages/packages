@@ -10,6 +10,9 @@ opens `SDL2.dll` via `xiom.ffi.dl` and every call goes through fn-pointer
 casts inside the generated modules.  When the DLL is absent the suite
 reports SKIP and CI stays green.
 
+> **Status:** `incubating` -- 16/16 x2 on v0.64.4 (844/844 resolved);
+> 0.1.0 published in `eco-v0.1.162` (sha256 `a5bdb037...`).
+
 ## Quick start
 
 ```xiom
