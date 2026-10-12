@@ -6,11 +6,11 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  18,
+                  "passed":  28,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "fd82f394",
-                  "checked":  "2026-10-12T20:03:25Z"
+                  "commit":  "HEAD",
+                  "checked":  "2026-10-12T20:29:41Z"
               },
     "publish":  false,
     "excluded_reason":  null
