@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  5,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "b353ed9c",
-                  "checked":  "2026-10-12T19:09:25Z"
+                  "run_by":  "native-session",
+                  "commit":  "b8354f82",
+                  "checked":  "2026-10-12T19:16:56Z"
               },
     "publish":  false,
     "excluded_reason":  null
