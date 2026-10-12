@@ -83,6 +83,38 @@ v0.64.4 pin (vulkan full surface stays 0.5.0, owner bump).
 lift (glfw dispatcher/registry + sdl3 1-arg handler shapes; sdl3 edits wait
 for the in-flight bump to wrap).
 
+**UPDATE 2026-10-12 15:00Z (doorbell)**: **Batch 64 = `eco-v0.1.162`** (run
+38260596476 green 3m49s): eight first-publish SDK100 names + the sdl3
+**0.17.0** full-surface bump (1270/1270) published + live-verified
+(spirv-tools `24012686`, spirv-cross `a08d2d4a`, spirv-reflect `97f96c62`,
+glslang `33898cf6`, slang `0dd5548d`, sdl2 `a5bdb037`, shaderc `9759ab7a`,
+sdl3 `2f162d32`); **tally 78 eco releases** (`eco-v0.1.86`..`162`). All nine
+SDK100 x2-verified on v0.64.4 pre-tag. HELD: `xiom.spirv.headers` (dash vs
+dotted manifest name; publishes once the dotted scope is live). Also acked +
+answered two new asks: `-1348-engine` (Vulkan allocation: mini-RHI line stays
+0.5.0; the SDK100 full surface lands as its own additive bump after the wave)
+and `-1417-xvector` (accelerator mirror: no package/timeline yet; recommended
+ABI = per-call ptr/count + caller-owned out buffers, B-12/B-17/B-20
+discipline); notes committed `266253f`.
+
+**UPDATE 2026-10-12 15:00Z (doorbell)**: batch 64 = `eco-v0.1.162` (run
+38260596476, 78 releases) published the eight SDK100 first-publishes +
+**sdl3 0.17.0** (full surface 1270/1270): spirv-tools/spirv-cross/
+spirv-reflect/glslang/slang/sdl2/shaderc 0.1.0 all live (x2 on v0.64.4
+before tagging). **`xiom.spirv.headers` HELD** -- the staged scope is the
+dash name, the manifest is dotted; correction `REL-20261012-1405-packages`;
+it publishes alone once the dotted scope is live. Packages also filed
+`REL-20261012-1403-packages`: nested fn types in fn casts warn `unknown
+type ... defaulting to i64` on v0.64.4 (sdl3.xi:1599/1628/1640; 6x; suite
+green) -- the same warning class we flagged in cb-abi probe4. New relay
+asks answered: engine `-1348` (SDK100-0.6.0-first version allocation;
+bindings agrees, bump to be cut with the owner session, mini-RHI 0.7.0+
+after) and xvector `-1417` (accelerator mirror gate met; reply note -- no
+batch surface exists in `xiom.vectors` today; accelerators stay
+mirror-only + owner-gated). `docs/SDK100-COVERAGE.md` publish section
+updated. Next: workaround lift (glfw 0.6.0 decision; sdl3 shapes now
+unblocked -- 0.17.0 is live).
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
@@ -167,11 +199,15 @@ clone: stage ONLY your own item files). The two working rules are in
   (m258 native `--cxx-standard 17`). Suites: sdl3 59/59 + glfw 37/37.
   Compiler reply `f8fe214` (`REL-20261012-1400-bindings`; release-check
   rows filled; `-3` B-10 moved to verified; `-1815` archive-verified).
-  Batch 63 = jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 live in `eco-v0.1.161`
-  (77 releases); nine SDK100 pours in flight (scopes LIVE, packages lane).
-  Session ledger updates 13:57Z/14:05Z above; the paste prompt below is
-  refreshed. NEXT: item 0 (publish confirm + workaround lift). Worktree
-  clean; relay tip `f8fe214`.
+  Batch 63 = jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 live in `eco-v0.1.161`;
+  **batch 64 = `eco-v0.1.162` (15:00Z doorbell)**: the eight SDK100
+  first-publishes + sdl3 0.17.0 LIVE; only `xiom.spirv.headers` held
+  (dotted vs dash scope; `REL-20261012-1405-packages`). Engine `-1348`
+  (vulkan version allocation) + xvector `-1417` (accelerator mirror)
+  answered (`REL-20261012-1500-bindings(-2)`).
+  Session ledger updates 13:57Z/14:05Z/15:00Z above; the paste prompt
+  below is refreshed. NEXT: workaround lift. Worktree clean; relay tip
+  `f8fe214` + this doorbell's reply commit.
 - **Earlier state (2026-10-11 21:05Z, doorbell tick)**: batches 31-61 + the owner
   session's 62 (sdl3 0.16.1 B-19 fix) relayed; **ALL PUBLISHED through
   `eco-v0.1.159`** (meshopt 0.4.0 live 18:36:32Z); **publish queue EMPTY**
@@ -703,20 +739,19 @@ Bindings lane continuation -- clean handoff pickup (2026-10-12 14:15Z,
 checkpoint handoff; the v0.64.4 archive wave is COMPLETE and the compiler
 reply is filed; the WORKAROUND LIFT is the next batch).
 
-0. FIRST ACTION: confirm the nine SDK100 publishes, then run the WORKAROUND
-   LIFT. The v0.64.4 archive wave is DONE (13:57Z/14:05Z updates above):
+0. FIRST ACTION: run the WORKAROUND LIFT (SDK100 publishes resolved:
+   batch 64 live, only spirv-headers held). The v0.64.4 archive wave is DONE (13:57Z/14:05Z updates above):
    all claimed fixes verified (B-13/B-14/B-15/B-18/1904/B-12; B-19 green
    package-side; B-10 newly green), not-in-wave rows red by design
    (B-16/B-17/B-20/B-11/B-05/B-07), B-02 re-verified 16/16, jolt 4/4 x2.
    Compiler reply: relay item `REL-20261012-1400-bindings` + release-check
    rows (`f8fe214`). Already delivered by packages: batch 63
    (`eco-v0.1.161`, 77 releases) = jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0.
-   In flight: the eight first-publish SDK100 names (spirv-tools/cross/
-   reflect, glslang, slang, sdl2, spirv-headers, shaderc) + the sdl3
-   0.16.1 -> 0.17.0 full-surface bump -- port x2 + allowlist append on the
-   v0.64.4 pin (scopes LIVE per `REL-20261012-1354-ops`). Confirm in
-   packages SESSION.md when wrapped; record eco versions, then update
-   docs/SDK100-COVERAGE.md + this ledger. Then the LIFT (normal batch
+   RESOLVED since the checkpoint: batch 64 (`eco-v0.1.162`, 78 releases)
+   published the eight first-publish names + the sdl3 0.17.0 full-surface
+   bump (all x2 on v0.64.4 before tagging); only `xiom.spirv.headers` is
+   HELD (dotted manifest vs dash scope; `REL-20261012-1405-packages`).
+   Keep recording eco versions, then the LIFT (normal batch
    flow: feat -> x2 -> record -> relay -> ledger):
    (a) **xiom.glfw 0.5.0 -> 0.6.0**: the fixed-dispatcher + fn-registry
    ABI exists ONLY to dodge B-13 (see glfw.xi ~2564-2575; SPEC/AUDIT
