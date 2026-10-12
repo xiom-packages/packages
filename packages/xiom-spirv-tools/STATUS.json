@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  39,
                   "failed":  0,
-                  "run_by":  "task:sdk100-spirv-tools",
-                  "commit":  "8b8c214a",
-                  "checked":  "2026-10-11T21:22:11Z"
+                  "run_by":  "native-session",
+                  "commit":  "674dea9d",
+                  "checked":  "2026-10-12T13:58:05Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: SDK-100 bindings batch (xiom.spirv-tools 0.1.0)"
