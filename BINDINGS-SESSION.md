@@ -6,8 +6,10 @@ below records evidence and open asks.
 **STATUS: V0.64.4 ARCHIVE WAVE COMPLETE -- all claimed fixes verified
 (B-13/14/15/18/1904/12), B-19 green package-side, B-10 newly green; jolt
 unblocked (4/4 x2) and live in `eco-v0.1.161` with vma 0.3.0 + dxc 0.3.0;
-nine SDK100 pours in flight; compiler reply filed (`f8fe214`) -- CHECKPOINT
-HANDOFF 2026-10-12 14:15Z** (this session ran 17:19Z-18:45Z and shipped
+SDK100 publishes live through `eco-v0.1.162` (eight names + sdl3 0.17.0;
+spirv-headers held); compiler reply filed (`f8fe214`); **glfw 0.6.0
+direct-handoff lift BLOCKED -- new defect B-22 (`REL-20261012-1630-bindings`),
+glfw reverted to 0.5.0** -- CHECKPOINT HANDOFF 2026-10-12 16:28Z** (this session ran 17:19Z-18:45Z and shipped
 batches 56-61: meshopt 0.2.0 vendored, ozz 0.3.0 clip pipeline, imgui 0.3.0
 context handles, box2d 0.3.0 joint motors, meshopt 0.3.0 owned-buffer
 wrappers, meshopt 0.4.0 codec families, plus the assimp consumer
@@ -103,6 +105,25 @@ updated. v0.64.4 release-check bindings rows filled at the archive
 B-11/B-05/B-07/B-16/B-17/B-21 red, -2230/-2320/-0304 not addressed).
 Next: workaround lift (glfw 0.6.0 decision; sdl3 shapes now unblocked --
 0.17.0 is live).
+
+**UPDATE 2026-10-12 16:28Z (glfw lift attempt -- BLOCKED)**: started the
+workaround lift (item 0a). Deleted the 18 dispatchers + 18 registries and
+rewired the setters to direct handoff, then validated live on the
+archive: BOTH handoff shapes fail on v0.64.4 --
+- `handler as Int` through a flat cast-call: the callback fires but args
+  are shifted (C's first arg eaten as a hidden env): key got `win=65
+  key=30 sc=1 act=0 mods=<garbage>`, close got `win=0`; bare-name and
+  local-of-name handoffs are exact.
+- `handler` handed as a nested fn-typed cast-call param: marshals to 0
+  (never fires; the `unknown type 'Unit) -> *UInt8'` warning family).
+Minimal committed witness: `docs/repro/bindings-pilot/cb-abi/
+probe9_castcall_param.xi` (`via_bare_arg=42`, `via_local_arg=42`,
+`via_param_arg=0`). Filed **B-22** (`REL-20261012-1630-bindings`, high,
+to compiler: fire the env->code-address unwrap at cast-call argument
+positions). **glfw reverted to 0.5.0 unchanged** (lift edits + version
+bump rolled back; the worktree is clean). The lift re-runs when the
+unwrap fix ships; sdl3 shape widening stays open (item 0b). Note for
+`-1348-engine`/-1417: unchanged otherwise.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
@@ -728,34 +749,35 @@ Bindings lane continuation -- clean handoff pickup (2026-10-12 14:15Z,
 checkpoint handoff; the v0.64.4 archive wave is COMPLETE and the compiler
 reply is filed; the WORKAROUND LIFT is the next batch).
 
-0. FIRST ACTION: run the WORKAROUND LIFT (SDK100 publishes resolved:
-   batch 64 live, only spirv-headers held). The v0.64.4 archive wave is DONE (13:57Z/14:05Z updates above):
-   all claimed fixes verified (B-13/B-14/B-15/B-18/1904/B-12; B-19 green
-   package-side; B-10 newly green), not-in-wave rows red by design
-   (B-16/B-17/B-20/B-11/B-05/B-07), B-02 re-verified 16/16, jolt 4/4 x2.
-   Compiler reply: relay item `REL-20261012-1400-bindings` + release-check
-   rows (`f8fe214`). Already delivered by packages: batch 63
-   (`eco-v0.1.161`, 77 releases) = jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0.
-   RESOLVED since the checkpoint: batch 64 (`eco-v0.1.162`, 78 releases)
-   published the eight first-publish names + the sdl3 0.17.0 full-surface
-   bump (all x2 on v0.64.4 before tagging); only `xiom.spirv.headers` is
-   HELD (dotted manifest vs dash scope; `REL-20261012-1405-packages`).
-   Keep recording eco versions, then the LIFT (normal batch
-   flow: feat -> x2 -> record -> relay -> ledger):
-   (a) **xiom.glfw 0.5.0 -> 0.6.0**: the fixed-dispatcher + fn-registry
-   ABI exists ONLY to dodge B-13 (see glfw.xi ~2564-2575; SPEC/AUDIT
-   "Known compiler issues dodged by design (v0.64.3)"). With B-13/B-18
-   verified at v0.64.4, hand user `fn(...)` values straight to the
-   glfwSetXCallback params (20 setters + 20 dispatchers + registry +
-   suite/SPEC/AUDIT/README updates). Clause: XIOM fn values crossing to C
-   hand over the CODE address only -- direct handoff moves handler
-   state/multi-window routing to the user (document it), or keep a thin
-   registry where that matters; make the call explicitly and record it.
-   Suite 37/37 x2 (DLL dir on PATH; `--link user32` auto).
+0. FIRST ACTION: item 0(b) -- sdl3 handler-shape widening. The glfw
+   direct-handoff lift was ATTEMPTED and is BLOCKED by a new compiler
+   defect (B-22, `REL-20261012-1630-bindings`): a fn-typed PARAM at a
+   CAST-CALL argument position marshals to 0 -- not the raw C entry -- so
+   user callback VALUES cannot cross to C correctly (glfw reverted to
+   0.5.0 unchanged; minimal witness
+   `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`). Re-run
+   the glfw lift only when the unwrap fix ships in a pin + probe9 is
+   re-verified. SDK100 publishes are resolved (batch 64 live; only
+   spirv-headers held). The v0.64.4 archive wave is DONE (13:57Z/14:05Z
+   updates above): all claimed fixes verified (B-13/B-14/B-15/B-18/
+   1904/B-12; B-19 green package-side; B-10 newly green), not-in-wave
+   rows red by design (B-16/B-17/B-20/B-11/B-05/B-07), B-02 re-verified
+   16/16, jolt 4/4 x2. Compiler reply: `REL-20261012-1400-bindings` +
+   release-check rows (`f8fe214`; bindings rows filled in
+   release-checks/compiler-compiler-v0.64.4 `b235493`). Batches 63/64
+   (`eco-v0.1.161/162`) = jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 + the eight
+   SDK100 first-publishes + sdl3 0.17.0 all LIVE; `xiom.spirv.headers`
+   HELD (dotted vs dash scope; `REL-20261012-1405-packages`). Then the
+   lift (normal batch flow: feat -> x2 -> record -> relay -> ledger):
+   (a) **xiom.glfw 0.5.0 -> 0.6.0: ATTEMPTED, BLOCKED, REVERTED** -- see
+   the B-22 paragraph above; the patch shape is proven (flat Int-typed
+   cast + `handler as Int`; bare-name/local-of-name handoffs are exact);
+   re-attempt + re-run probe9 when the compiler fix ships.
    (b) **xiom.sdl3**: widen the filter/watch dispatcher handler shapes
    (drop the 1-arg flattening + structured-ifs workarounds that B-14/B-15
-   covered). WAIT for the 0.17.0 bump to wrap first (in flight). Suites:
-   the 59-check conformance + the full surface under tests/.
+   covered). The 0.17.0 bump has wrapped. Same B-22 caveat if it needs
+   param values crossing to C. Suites: the 59-check conformance + the
+   full surface under tests/.
 
 1. In E:\xiom-packages\bindings (branch `bindings`) read the top of
    BINDINGS-SESSION.md (STATUS + RESUME HERE). Then check the relay FIRST:
