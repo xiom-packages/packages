@@ -38,6 +38,15 @@ running). Check `git log -1 --format=%h %s` before starting.
   38294446110 green 3m48s; live sha256 `a77f364a` @19:01:29Z). All eight new names + sdl3 0.17.0 +
   vma 0.3.0 + dxc 0.3.0 + jolt 0.2.0 + vulkan 0.6.0 are now live. Bus: `-1855-ops` fixed, `-2305`
   (wave-2) fixed. Tally: **81 eco releases**.
+- **Production asks triaged (2026-10-12 20:20Z)**: `-1946-pulse-2` acked -- **SQL driver queued** (top
+  ask: DSN + execute/query/transaction + transactional-DDL capability flag per PULSE's
+  `DESIGN-SQL-MIGRATIONS.md`; immediate path = `xiom.sqlite` 0.3.0 + the README consumer recipe until
+  the build-hook lands) and **HTML/escaping answered via live packages**: `xiom.escape` 0.1.2 /
+  `xiom.template` 0.1.2 / `xiom.html` 0.1.3; `-1945-orbitdb-3` acked -- btree order-3 stays in the
+  acceptance matrix permanently, offline/vendored install design note queued; engine `-2012` relay:
+  no packages blocker (KTX2/Basis-class codecs at the cook gate later). **Compiler m277 (`29e35ef8`)
+  FIXED our `-1403`** (nested fn types; depth-aware split) -- re-run the sdl3 compile at the next
+  archive to confirm 0 warnings (row appended to the next-batch table).
 - **Batch 69: `xiom.dx12` 0.2.0 PUBLISHED (supersedes 0.1.0)**: full `d3d12.h` core surface (90
   interfaces / 355 method wrappers / 1162 enum consts / 9 free fns; 22 struct-by-value shapes as
   documented skips). Merge `fce153c9` (tip `b8a3b903`; README/STATUS conflicts resolved to theirs +
