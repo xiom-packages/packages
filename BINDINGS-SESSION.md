@@ -10,6 +10,15 @@ batches 56-61: meshopt 0.2.0 vendored, ozz 0.3.0 clip pipeline, imgui 0.3.0
 context handles, box2d 0.3.0 joint motors, meshopt 0.3.0 owned-buffer
 wrappers, meshopt 0.4.0 codec families, plus the assimp consumer
 mini-contract; the parallel owner session re-verified the staged build).
+
+**UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
+SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
+eco releases**, `eco-v0.1.86`..`160`). SDK100 waves 1+2 **merged + staged**
+by packages (eleven packages: six wave-1 + sdl2/spirv-headers/shaderc new,
+vma 0.3.0, sdl3 additive full surface; publish gated on ops scope staging +
+the v0.64.4 pin). Compiler v0.64.4 release pin commit `df493530` is on
+origin/main; GitHub archive pending (watch `wku_12d5ced75001IgfN8Gx3fuV98t`,
+00:17Z). Relay validate green (322 items); no new bindings items at 00:00Z.
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
