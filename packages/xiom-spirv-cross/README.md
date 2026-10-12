@@ -19,7 +19,7 @@ when the DLL is absent the conformance suite stays green and reports SKIP.
 | DLL-exported but undeclared | 0 |
 | Constants | 242 enum members + 19 macros + 17 struct sizes |
 | Suite | `tests/test_conformance.xi` -- 20/20 PASS with the DLL, SKIP-green without |
-| Stage | incubating (not published) |
+| Stage | incubating -- 0.1.0 published in `eco-v0.1.162` |
 
 ## Quick start
 
