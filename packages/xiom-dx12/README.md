@@ -20,7 +20,8 @@ but broken exports -> **FAIL**. CI stays green without a GPU.
 > 9 free functions -- driven live on an NVIDIA RTX 3070 Ti: device +
 > node count, command-queue creation + release, root-signature
 > serialization (88-byte blob), plus the 0.1.0 probe + SKIP classification.
-> 0.1.0 published in `eco-v0.1.166` (sha256 `5ff65bed...`). DXGI
+> **0.2.0 published in `eco-v0.1.167` (sha256 `7cfae765...`)**; 0.1.0 in
+> `eco-v0.1.166` (sha256 `5ff65bed...`). DXGI
 > (factory/adapters/WARP/swapchain) and struct metadata are the next
 > waves (`ROADMAP.md`).
 > **Lane:** bindings (`keywords: ["binding"]`).
