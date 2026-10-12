@@ -237,6 +237,13 @@ void __cdecl xd12_poke_u64(unsigned char* dst, int off, unsigned long long v) {
   memcpy(dst + off, &v, 8);
 }
 
+/* Bridge-provided NULL pointer.  The XIOM `null` literal marshals to a
+ * garbage address when passed directly to a C extern param on v0.64.4
+ * (B-23, documented in docs/repro/bindings-pilot/null-literal); a zero
+ * value that ORIGINATES from C converts correctly.  Callers pass this
+ * handle wherever a nullable out/option pointer is required. */
+void* __cdecl xd12_null_ptr(void) { return 0; }
+
 void __cdecl xd12_unload(void) {
   if (s_device) { release_object(s_device); s_device = 0; }
   if (m_d3d12) { FreeLibrary(m_d3d12); m_d3d12 = 0; }

@@ -134,7 +134,8 @@
  ],
  "interfaces": 90,
  "oracle": "E:\\repos\\DirectX-Headers\\include\\directx\\d3d12.h",
- "own_methods_emitted": 355,
+ "own_methods_emitted": 358,
+ "size_probes": 16,
  "skips": [
   {
    "iface": "ID3D12Heap",
@@ -227,25 +228,235 @@
    "reason": "struct-by-value D3D12_RESOURCE_ALLOCATION_INFO"
   },
   {
-   "iface": "ID3D12StateObjectDatabase",
-   "method": "GetApplicationDesc",
-   "reason": "param unmapped base 'D3D12ApplicationDescFunc' (CallbackFunc)"
-  },
-  {
-   "iface": "ID3D12StateObjectDatabase",
-   "method": "FindPipelineStateDesc",
-   "reason": "param unmapped base 'D3D12PipelineStateFunc' (CallbackFunc)"
-  },
-  {
-   "iface": "ID3D12StateObjectDatabase",
-   "method": "FindStateObjectDesc",
-   "reason": "param unmapped base 'D3D12StateObjectFunc' (CallbackFunc)"
-  },
-  {
    "iface": "ID3D12DeviceConfiguration",
    "method": "GetDesc",
    "reason": "struct-by-value D3D12_DEVICE_CONFIGURATION_DESC"
   }
  ],
+ "struct_skips": [
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_SHADER_BYTECODE"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_STREAM_OUTPUT_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_INPUT_LAYOUT_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_CACHED_PIPELINE_STATE"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_SERIALIZED_ROOT_SIGNATURE_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_PIPELINE_STATE_STREAM_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_FEATURE_DATA_FEATURE_LEVELS"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_FEATURE_DATA_QUERY_META_COMMAND"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_CLEAR_VALUE"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_RESOURCE_BARRIER"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_TEXTURE_COPY_LOCATION"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_VIEW_INSTANCING_DESC"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_SHADER_RESOURCE_VIEW_DESC"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_SAMPLER_DESC2"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_UNORDERED_ACCESS_VIEW_DESC"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_RENDER_TARGET_VIEW_DESC"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_DEPTH_STENCIL_VIEW_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_ROOT_DESCRIPTOR_TABLE"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_ROOT_PARAMETER"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_ROOT_SIGNATURE_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_ROOT_DESCRIPTOR_TABLE1"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_ROOT_PARAMETER1"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_ROOT_SIGNATURE_DESC1"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_ROOT_SIGNATURE_DESC2"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_VERSIONED_ROOT_SIGNATURE_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_DISCARD_REGION"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_INDIRECT_ARGUMENT_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_COMMAND_SIGNATURE_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_DXIL_LIBRARY_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_EXISTING_COLLECTION_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_DXIL_SUBOBJECT_TO_EXPORTS_ASSOCIATION"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_BROADCASTING_LAUNCH_OVERRIDES"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_COALESCING_LAUNCH_OVERRIDES"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_THREAD_LAUNCH_OVERRIDES"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_COMMON_COMPUTE_NODE_OVERRIDES"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_SHADER_NODE"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_NODE"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_WORK_GRAPH_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_GENERIC_PROGRAM_DESC"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_STATE_OBJECT_DESC"
+  },
+  {
+   "reason": "bitfield",
+   "struct": "D3D12_RAYTRACING_OPACITY_MICROMAP_DESC"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_SERIALIZATION_DESC"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_SERIALIZED_RAYTRACING_ACCELERATION_STRUCTURE_HEADER1"
+  },
+  {
+   "reason": "bitfield",
+   "struct": "D3D12_RAYTRACING_INSTANCE_DESC"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_RAYTRACING_GEOMETRY_DESC"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_VERSIONED_DEVICE_REMOVED_EXTENDED_DATA"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_RENDER_PASS_BEGINNING_ACCESS"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_RENDER_PASS_ENDING_ACCESS_RESOLVE_PARAMETERS"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_RENDER_PASS_ENDING_ACCESS"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_SET_PROGRAM_DESC"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_DISPATCH_GRAPH_DESC"
+  },
+  {
+   "reason": "nested aggregate",
+   "struct": "D3D12_BARRIER_GROUP"
+  },
+  {
+   "reason": "member grammar",
+   "struct": "D3D12_EXISTING_COLLECTION_BY_KEY_DESC"
+  }
+ ],
+ "structs_parsed": 240,
+ "typed_shims": 19,
+ "typed_skips": [],
  "vtbl_rows": 2476
 }

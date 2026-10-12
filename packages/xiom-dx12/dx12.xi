@@ -43,6 +43,7 @@ extern "C" {
   fn xd12_root_signature_magic() -> Int64;
   fn xd12_poke_u32(dst: *UInt8, off: Int32, v: UInt32);
   fn xd12_poke_u64(dst: *UInt8, off: Int32, v: UInt64);
+  fn xd12_null_ptr() -> *UInt8;
   fn xd12_unload();
 }
 
@@ -257,4 +258,15 @@ pub fn dx12_poke_u64(dst: *UInt8, off: Int, v: UInt64)
   requires: true
 {
   unsafe { xd12_poke_u64(dst, off as Int32, v); }
+}
+
+/// A NULL pointer that ORIGINATED in C (returns 0).  On v0.64.4 the XIOM
+/// `null` literal marshals to a garbage address when passed to a C extern
+/// param (B-23); use this handle for nullable pointer arguments until the
+/// compiler fix ships.
+/// Complexity: O(1).
+pub fn dx12_null_ptr() -> *UInt8
+  requires: true
+{
+  unsafe { return xd12_null_ptr(); }
 }

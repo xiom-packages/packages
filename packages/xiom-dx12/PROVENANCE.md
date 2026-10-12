@@ -30,10 +30,18 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   **derived** (extracts of the MIT-licensed header); the C bridge
   (`src/dx12_probe.c`, hand-rolled COM -- no d3d12.h include) and all XIOM
   code are original to this package.
-- **Coverage plan:** 0.1.0 ships the foundation probe; the **full generated
-  surface** (all `ID3D12*` interfaces + free functions + enums/struct
-  metadata, parsed from the pinned headers) is the 0.2.0 wave with a
-  `docs/COVERAGE.md` oracle==bound==resolved manifest.
+- **Struct metadata oracle (0.3.0):** `tools/struct_dump.cpp` is generated
+  by `tools/gen_dx12.py --emit-dump` and compiled with **clang** (LLVM,
+  MSVC x64 target via `vcvars64`) against the pinned clone headers
+  (`-I E:\repos\DirectX-Headers\include\directx`).  Its `sizeof`/`offsetof`
+  output is captured to `docs/struct_dump.txt` and turned into
+  `src/struct_meta_1..3.xi` by `tools/gen_dx12_struct_meta.py`.  The suite
+  cross-checks 16 C `sizeof` values (build compiler) against the dump
+  (clang oracle) at runtime.
+- **Coverage plan:** the full generated surface (all `ID3D12*` interfaces +
+  free functions + enums/struct metadata, parsed from the pinned headers) is
+  the 0.2.0/0.3.0 waves with a `docs/COVERAGE.md` oracle==bound==resolved
+  manifest.
 - **Clone ledger:** `E:\repos\CLEANUP.md` row `DirectX-Headers` (bindings;
   review after 2026-12-01).
 - **License:** header-derived material MIT (notice retained here); package

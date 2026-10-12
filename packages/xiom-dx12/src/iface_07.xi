@@ -232,6 +232,15 @@ pub fn d3d12_state_object_database_set_application_desc(obj: Int, pApplicationDe
 }
 
 extern "C" {
+  fn xd12c_ID3D12StateObjectDatabase_GetApplicationDesc(obj: Int, CallbackFunc: Int, pContext: *UInt8) -> Int32;
+}
+pub fn d3d12_state_object_database_get_application_desc(obj: Int, CallbackFunc: Int, pContext: *UInt8) -> Int32
+  requires: obj != 0
+{
+  unsafe { return xd12c_ID3D12StateObjectDatabase_GetApplicationDesc(obj, CallbackFunc, pContext); }
+}
+
+extern "C" {
   fn xd12c_ID3D12StateObjectDatabase_StorePipelineStateDesc(obj: Int, pKey: *UInt8, KeySize: UInt32, Version: UInt32, pDesc: *UInt8) -> Int32;
 }
 pub fn d3d12_state_object_database_store_pipeline_state_desc(obj: Int, pKey: *UInt8, KeySize: UInt32, Version: UInt32, pDesc: *UInt8) -> Int32
@@ -241,12 +250,30 @@ pub fn d3d12_state_object_database_store_pipeline_state_desc(obj: Int, pKey: *UI
 }
 
 extern "C" {
+  fn xd12c_ID3D12StateObjectDatabase_FindPipelineStateDesc(obj: Int, pKey: *UInt8, KeySize: UInt32, CallbackFunc: Int, pContext: *UInt8) -> Int32;
+}
+pub fn d3d12_state_object_database_find_pipeline_state_desc(obj: Int, pKey: *UInt8, KeySize: UInt32, CallbackFunc: Int, pContext: *UInt8) -> Int32
+  requires: obj != 0
+{
+  unsafe { return xd12c_ID3D12StateObjectDatabase_FindPipelineStateDesc(obj, pKey, KeySize, CallbackFunc, pContext); }
+}
+
+extern "C" {
   fn xd12c_ID3D12StateObjectDatabase_StoreStateObjectDesc(obj: Int, pKey: *UInt8, KeySize: UInt32, Version: UInt32, pDesc: *UInt8, pStateObjectToGrowFromKey: *UInt8, StateObjectToGrowFromKeySize: UInt32) -> Int32;
 }
 pub fn d3d12_state_object_database_store_state_object_desc(obj: Int, pKey: *UInt8, KeySize: UInt32, Version: UInt32, pDesc: *UInt8, pStateObjectToGrowFromKey: *UInt8, StateObjectToGrowFromKeySize: UInt32) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12StateObjectDatabase_StoreStateObjectDesc(obj, pKey, KeySize, Version, pDesc, pStateObjectToGrowFromKey, StateObjectToGrowFromKeySize); }
+}
+
+extern "C" {
+  fn xd12c_ID3D12StateObjectDatabase_FindStateObjectDesc(obj: Int, pKey: *UInt8, KeySize: UInt32, CallbackFunc: Int, pContext: *UInt8) -> Int32;
+}
+pub fn d3d12_state_object_database_find_state_object_desc(obj: Int, pKey: *UInt8, KeySize: UInt32, CallbackFunc: Int, pContext: *UInt8) -> Int32
+  requires: obj != 0
+{
+  unsafe { return xd12c_ID3D12StateObjectDatabase_FindStateObjectDesc(obj, pKey, KeySize, CallbackFunc, pContext); }
 }
 
 extern "C" {

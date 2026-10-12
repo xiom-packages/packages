@@ -2,5 +2,7 @@
   "--c-source",
   "${PACKAGE_DIR}/src/dx12_probe.c",
   "--c-source",
-  "${PACKAGE_DIR}/src/d3d12_calls.c"
+  "${PACKAGE_DIR}/src/d3d12_calls.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/d3d12_structs.c"
 ]
