@@ -715,6 +715,22 @@ context-limit handoff; prompt refreshed after batch 61).
 10. **Vulkan phase 4** (when the engine asks): compute pipeline + storage
     buffers, descriptors + textures, depth/stencil, frames-in-flight.
 
+### Upstream-first policy (owner, 2026-10-11; folded per REL-20261011-2141-packages)
+
+POLICY (owner, 2026-10-11): upstream-first for ALL bindings work -- no code from
+memory. For every library: clone the upstream SOURCE at a pinned commit into
+E:\repos\<name> (shared, disposable) alongside the SDK/headers, study it, and
+record packages/<pkg>/PROVENANCE.md (upstream, pin, license, derived vs
+independent, vectors). License whitelist for anything copied: MIT/Apache-2.0/BSD/
+ISC/zlib/PD/X11/Unicode/RFC-first; MPL/LGPL reference-only (no code/structure
+copying); never GPL/AGPL/SSPL/Elastic (FFmpeg reference-only / system-lib
+SKIP-only). COVERAGE TARGET = 100% of the target public API surface -- complete
+export coverage, not partial (glfw 124/124 is the standard); SKIP-when-absent
+stays a classified platform state, not a coverage gap. Register clones in
+E:\repos\CLEANUP.md with a review-after date; delete only at quiet moments,
+after ship+verify, with no open references and the owning lane's confirmation.
+Canonical doc: docs/UPSTREAM-FIRST.md (lane gates G6/G7 in docs/BINDINGS-LANE.md).
+
 ### Gotchas (learned this session)
 - **Driver-heavy FFI**: return packed/scalar values; out-param slots can be
   recycled (B-11). Keep that ABI for new CUDA/Vulkan-style probes.
