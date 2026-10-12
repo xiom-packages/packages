@@ -1,5 +1,14 @@
 # Vulkan SDK 100% bindings -- program plan (owner directive 2026-10-11)
 
+> **STATUS (2026-10-11 23:20Z): PROGRAM COMPLETE on the bindings side.**
+> All 12 matrix slices are at 100% with runtime evidence (see
+> `docs/SDK100-COVERAGE.md` for the per-component oracle/bound/resolved
+> ledger); every package is integrated into the `bindings` branch, has
+> PROVENANCE + COVERAGE docs, and is relayed to the packages lane
+> (`-2155`/`-2231`/`-2305`; findings `-2140`/`-2230`/`-2320`). Remaining:
+> packages-side wrap/publish (their cadence) and the interleaved v0.64.4
+> archive wave.
+
 **Directive (owner, verbatim intent):** 100% bindings coverage of
 `C:\VulkanSDK\1.4.350.0` -- *everything*. No stopping below 100%. Use
 agents in parallel. This file is the plan AND the shared brief for agent

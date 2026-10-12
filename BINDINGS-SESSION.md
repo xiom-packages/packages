@@ -10,6 +10,15 @@ batches 56-61: meshopt 0.2.0 vendored, ozz 0.3.0 clip pipeline, imgui 0.3.0
 context handles, box2d 0.3.0 joint motors, meshopt 0.3.0 owned-buffer
 wrappers, meshopt 0.4.0 codec families, plus the assimp consumer
 mini-contract; the parallel owner session re-verified the staged build).
+
+**UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
+SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
+eco releases**, `eco-v0.1.86`..`160`). SDK100 waves 1+2 **merged + staged**
+by packages (eleven packages: six wave-1 + sdl2/spirv-headers/shaderc new,
+vma 0.3.0, sdl3 additive full surface; publish gated on ops scope staging +
+the v0.64.4 pin). Compiler v0.64.4 release pin commit `df493530` is on
+origin/main; GitHub archive pending (watch `wku_12d5ced75001IgfN8Gx3fuV98t`,
+00:17Z). Relay validate green (322 items); no new bindings items at 00:00Z.
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
@@ -96,6 +105,20 @@ clone: stage ONLY your own item files). The two working rules are in
   `engine/rhi/vulkan.xi` on delivery); **owner session drives the Vulkan SDK
   100 program** (checklist + `sdk100-*` agent worktrees). `-1113-bindings`
   closed. Relay: `-1553`..`-2100` items sent.
+- **Doorbell 00:00Z (2026-10-12)**: relay re-checked -- processed the two
+  open policy asks: **`-2131` ACKED** (upstream-first adopted; 100% coverage
+  target; G6/G7) and **`-2141` FIXED** (fold `fbb773fd`; first applied
+  instance `packages/xiom-vulkan/PROVENANCE.md`); relay commit `bf2fea1`.
+  `eco-v0.1.160` (batch 62, sdl3 0.16.1, live `f2d99b9e...` @21:08:25Z)
+  was already recorded here; no eco notes past `160`. `-2302` non-ASCII bug
+  was already fixed+acked (`19f9d86`/`-2355`). v0.64.4 archive still not on
+  GitHub (v0.64.3 latest; tag imminent per packages' 21:10Z note).
+- **Doorbell 03:00Z (2026-10-12; resumed 13:26Z)**: packages acked our
+  `-0000-bindings` (fold + validate-red confirmation) with "reporter may
+  close" -> **closed** (`1e9eee0`). No items created today addressed to
+  bindings and none open past the long-delivered engine/compiler rows; no
+  eco notes past `0.1.160`; **v0.64.4 still not on GitHub** (v0.64.3
+  latest 13:26Z). No action taken beyond the close.
 - **Pickup (2026-10-11 18:47Z, new session)**: origin==local `f236925d`,
   worktree clean; relay re-checked -- no items newer than `-1731`; packages
   tip `555b501e` (75 eco releases; no notes past `eco-v0.1.159`); `status
@@ -705,6 +728,22 @@ context-limit handoff; prompt refreshed after batch 61).
    sources now); generate/vendor + probe per the assimp pattern.
 10. **Vulkan phase 4** (when the engine asks): compute pipeline + storage
     buffers, descriptors + textures, depth/stencil, frames-in-flight.
+
+### Upstream-first policy (owner, 2026-10-11; folded per REL-20261011-2141-packages)
+
+POLICY (owner, 2026-10-11): upstream-first for ALL bindings work -- no code from
+memory. For every library: clone the upstream SOURCE at a pinned commit into
+E:\repos\<name> (shared, disposable) alongside the SDK/headers, study it, and
+record packages/<pkg>/PROVENANCE.md (upstream, pin, license, derived vs
+independent, vectors). License whitelist for anything copied: MIT/Apache-2.0/BSD/
+ISC/zlib/PD/X11/Unicode/RFC-first; MPL/LGPL reference-only (no code/structure
+copying); never GPL/AGPL/SSPL/Elastic (FFmpeg reference-only / system-lib
+SKIP-only). COVERAGE TARGET = 100% of the target public API surface -- complete
+export coverage, not partial (glfw 124/124 is the standard); SKIP-when-absent
+stays a classified platform state, not a coverage gap. Register clones in
+E:\repos\CLEANUP.md with a review-after date; delete only at quiet moments,
+after ship+verify, with no open references and the owning lane's confirmation.
+Canonical doc: docs/UPSTREAM-FIRST.md (lane gates G6/G7 in docs/BINDINGS-LANE.md).
 
 ### Gotchas (learned this session)
 - **Driver-heavy FFI**: return packed/scalar values; out-param slots can be
