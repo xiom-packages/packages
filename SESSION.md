@@ -38,6 +38,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   38294446110 green 3m48s; live sha256 `a77f364a` @19:01:29Z). All eight new names + sdl3 0.17.0 +
   vma 0.3.0 + dxc 0.3.0 + jolt 0.2.0 + vulkan 0.6.0 are now live. Bus: `-1855-ops` fixed, `-2305`
   (wave-2) fixed. Tally: **81 eco releases**.
+- **Batch 69: `xiom.dx12` 0.2.0 PUBLISHED (supersedes 0.1.0)**: full `d3d12.h` core surface (90
+  interfaces / 355 method wrappers / 1162 enum consts / 9 free fns; 22 struct-by-value shapes as
+  documented skips). Merge `fce153c9` (tip `b8a3b903`; README/STATUS conflicts resolved to theirs +
+  the 0.1.0 published note restored); validate 533/0; port x2 on v0.64.4 (12/12 both: live device,
+  queue create/release refcount 0, root-signature 88-byte blob); eco-v0.1.167 (run 38301605558 green
+  3m52s; live sha256 `7cfae765` @20:03:47Z); README/STATUS synced; item `-1930` noted. DXGI +
+  struct-meta are the 0.3.0 wave. Tally: **83 eco releases**.
 - **Batch 68: `xiom.dx12` 0.1.0 PUBLISHED (new name; DirectX-12 foundation)** -- ops scope live (eco
   519; `REL-20261012-1925-ops`) -> allowlist 520 -> **eco-v0.1.166** (run 38297712793 green 3m50s;
   live sha256 `5ff65bed` @19:28:19Z, signed). Merge `b8354f82`; validate 533/0; port x2 on v0.64.4
