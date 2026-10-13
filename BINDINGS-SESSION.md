@@ -634,6 +634,30 @@ witness)**: localized the nested-payload corruption for the compiler.
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
 
+**UPDATE 2026-10-13 20:15Z (CODEC WAVE A COMPLETE -- all 5 agent
+deliveries integrated; publish requests filed)**: every agent worktree
+landed and merged to `bindings` (tip `8a33a448`).
+- **xiom.jolt 0.3.0** (18/18 x2 @ `2ea26693`) -- solver world/body
+  surface (engine `-1903`); publish `-2000-bindings`.
+- **xiom.zstd 0.3.0** (24/24 x2 @ `55e12c14`) -- ZSTC container framing;
+  publish `-2000-bindings-2`.
+- **xiom.meshopt 0.5.0** (43/43 x2 @ `4799b7a0`) -- cooked container
+  XMC1 + decoder surface; publish `-2005-bindings`.
+- **xiom.ffmpeg 0.3.0** (12/12 x2 present-path @ `f9f0e2e1`; GIMP
+  FFmpeg 6.1.1 + libdav1d 1.4.1, 3 real AV1 frames 64x48 yuv420p;
+  3/3 SKIP x2 on the default PATH) -- AV1 decode surface; publish
+  `-2005-bindings-2`.
+- **Wave B prep** (`c49ecaa6`) -- 8 clones + CLEANUP rows + prep doc;
+  INFO `-2000-bindings-3`.  Engine INFO `-2000-bindings-4`.
+- Integration notes: all agent branches were cut from main ->
+  cherry-picked onto `bindings`; every record re-pointed to the
+  integrated feat sha and **platform rows re-added each time** (5th-8th
+  occurrence of the branch-tooling drop; packages' merge on main brings
+  the fixed script).  Relay tip `f054e1a`, validate 432 items.
+- **Next**: packages publishes wave A (4 packages); record the eco
+  versions here; wave B build-outs per packages sequencing; parked:
+  v0.64.5 archive wave (m277-m283), sdl3 widening, glfw 0.6.0 lift.
+
 **UPDATE 2026-10-13 20:05Z (wave A integration: jolt 0.3.0 + zstd 0.3.0
 + wave B prep MERGED to `bindings`; meshopt/ffmpeg imminent)**:
 - **xiom.jolt 0.3.0** -- caller-usable world/body surface (engine
