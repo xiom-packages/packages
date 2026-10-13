@@ -634,6 +634,31 @@ witness)**: localized the nested-payload corruption for the compiler.
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
 
+**UPDATE 2026-10-13 20:25Z (FULL BUILD-OUT WAVE -- 8 agent sessions; no
+more staging)**: owner directive: cover all requested packages now.
+- Status answers: **wave A surfaces = 100% delivered** (jolt/zstd/
+  meshopt/ffmpeg; x2 each, published-requested); **wave B = prep 100%
+  but NOT bound** (8 clones pinned + CLEANUP rows + licenses verified);
+  clone protocol per UPSTREAM-FIRST sec. 6 enforced (FFmpeg reference-
+  only).  Building wave B to 100% now.
+- Sessions (request `am-1791922388300-mcddk4`, worktrees, one branch
+  each): `feat/opus-bindings` (xiom.opus 100% + xiom.ogg libogg layer),
+  `feat/harfbuzz-bindings`, `feat/spz-lz4` (xiom.spz + xiom.lz4),
+  `feat/ktx2-bindings`, `feat/basisu-bindings`, `feat/vdb-reader`
+  (xiom.vdb minimal own reader; independent declaration),
+  `feat/phonon-full` (steam-audio full surface), `feat/ffmpeg-demux`
+  (0.4.0 avformat demux).
+- All briefs: header-generated 100% declared surfaces + coverage tables
+  (declared/bound/skips=0), v0.64.4 B-20..B-26 discipline, x2 + record.
+  On completion THIS session integrates (cherry-pick to `bindings`),
+  re-records with platform rows, files publish requests, and produces
+  the consolidated **TEST REPORT** (`docs/CODEC-WAVE-REPORT.md`).
+- Engine `PACKAGE-ASKS.md` B01-B10 note: B01-B03/B09 = owner-Vulkan/
+  XR-decision; B10 filed but blocked (shared+dev imgui build); B04/B05/
+  B07/B08 = surface tiers awaiting engine ask-time/new items.
+- Parked unchanged: v0.64.5 archive wave (m277-m283); sdl3 widening;
+  glfw 0.6.0 lift.
+
 **UPDATE 2026-10-13 20:15Z (CODEC WAVE A COMPLETE -- all 5 agent
 deliveries integrated; publish requests filed)**: every agent worktree
 landed and merged to `bindings` (tip `8a33a448`).
