@@ -14,7 +14,8 @@ Vulkan 0.6.0 live (engine-green, OWNER lane); OpenGL 0.4.0 LIVE
 (`eco-v0.1.166`/`167`/`168`); SDK100 all slices live; v0.64.4 pin wave
 done. **NEXT = next compiler archive (v0.64.5+) carrying the m277-m281
 fix batch** (m277 B-22; m279 B-16/B-17; m280 `-2230` +
-`-1549-packages-3`; m281 B-23/B-24/B-20/B-11 addendum/`-1548`) -- then
+`-1549-packages-3`; m281 B-23/B-24/B-20/B-11 addendum/`-1548`; B-05
+alloc-guard-spin fix ready stdlib-side, `-1445-compiler`) -- then
 the re-verify wave + glfw 0.6.0 lift + sdl3 widening + workaround
 retirement; **glfw 0.6.0 lift parked until then** (fixes staged on
 compiler main, no archive ships them yet); ops clobber rules in force;
@@ -498,6 +499,20 @@ publishes live; compiler m281 fix batch seen)**: item 0b closed.
   probe9, sdl3 handler widening, workaround retirement, per-item
   release-check rows + compiler reply.  Worktree clean; doorbell
   re-armed (`0 */3 * * *`).
+
+**UPDATE 2026-10-13 15:00Z (doorbell)**: relay sweep clean -- no new
+bindings-addressed items; v0.64.4 still latest on GitHub (no v0.64.5);
+packages tally unchanged (89 eco releases through `eco-v0.1.173`).
+- Compiler main moved: **m282 `d6690868`** (thread/spawn env-cast fix;
+  release-check rows appended; its stdlib half is `-1423-compiler`,
+  pending) and an allocator batch that **root-caused B-05
+  (alloc-guard-spin)**: `ffi.alloc` routes to the guard arena but
+  `ffi.free` hit libc -> heap spin; fix (arena-aware `xiom_guard_free` +
+  `ffi.free` route) verified in a scratch tree and handed to stdlib as
+  **`REL-20261013-1445-compiler`** (open; acceptance = our
+  `alloc-guard-spin` probe under a watchdog; our item `-1548-bindings-5`
+  stays acked).  Stdlib-side, NOT in v0.64.4 -- **B-05 added to the
+  next-archive re-verify wave (watchdog run)**.
 
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
@@ -1233,7 +1248,9 @@ No ungated lane work otherwise -- relay-driven only).
      -- null-literal (4 paths = 0), ptr-read-stale (ffi_bad=0/400),
      foreign-ptr-read (C-matching 1065353216/1073741824), ptr-slot-write +
      ptr-arith (exact), cb-abi probe9 (42/42/42), sdl3 synthetic-event
-     raw-pointer readback variant, vulkan-slot-recycle (RTX host).  Then:
+     raw-pointer readback variant, vulkan-slot-recycle (RTX host),
+     **B-05 alloc-guard-spin (watchdog! -- needs the stdlib fix
+     `REL-20261013-1445-compiler` in the runtime)**.  Then:
      **glfw 0.6.0 lift** (18 dispatchers + registries removed -> direct
      handoff), **sdl3 handler widening**, workaround retirement (B-24
      byte-indexed reads relax where re-verified; `dx12_null_ptr` stays as
