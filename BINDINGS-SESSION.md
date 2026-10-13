@@ -3,23 +3,28 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: ALL CONFIRMED + sdl3 0.18.0 SHIPPED (publish requested) -- B-11
-ADDENDUM RETIRED on v0.64.4** -- dx12 0.4.0 LIVE (`eco-v0.1.172`) + 0.3.1
-stable (`eco-v0.1.169`); opengl 0.5.0 LIVE (`eco-v0.1.170`); gles 0.1.0
-LIVE (`eco-v0.1.171`); **sdl3 0.18.0** (foreign-written event readback;
-61/61 x2 on `5a26dee8`; `REL-20261013-1338-bindings-2` open) -- the B-11
-addendum (`-0304`) re-tested **FIXED** on the pin (INFO to compiler;
-general B-11 driver shape stays open); **B-25 recorded + fixed
-in-surface** (`Int as *UInt8` not value-preserving); Vulkan 0.6.0 live
-(engine-green); OpenGL 0.4.0 LIVE (`eco-v0.1.164`; 656/656 core-4.6);
-DX12 0.1.0/0.2.0/0.3.0 live (`eco-v0.1.166`/`167`/`168`); SDK100 all
-slices live; v0.64.4 pin wave done; **B-22 open -- glfw 0.6.0 lift
-parked** (fix on compiler main `29e35ef8`, no archive yet);
-**B-23/B-24/B-25 accepted** (expiry = next compiler pin); ops clobber
-rules in force; per-touch PROVENANCE rule in effect (dx12/opengl/gles/
-sdl3 compliant) -- SESSION HANDOFF 2026-10-13 13:40Z** (NEXT = confirm
-the sdl3 0.18.0 publish; then the B-22-gated lifts; paste prompt rebuilt
-below).
+**STATUS: ALL PUBLISHES CONFIRMED LIVE -- last item sdl3 0.18.0 landed
+as `eco-v0.1.173`** -- LIVE this window: dx12 0.3.1 stable
+(`eco-v0.1.169`) + dx12 0.4.0 command recording (`eco-v0.1.172`; B-25
+fixed in-surface), opengl 0.5.0 WGL surface (`eco-v0.1.170`), gles 0.1.0
+new ANGLE package (`eco-v0.1.171`), sdl3 0.18.0 (foreign-written event
+readback; 61/61 x2 on `5a26dee8`; `REL-20261013-1338-bindings-2` fixed);
+Vulkan 0.6.0 live (engine-green, OWNER lane); OpenGL 0.4.0 LIVE
+(`eco-v0.1.164`; 656/656 core-4.6); DX12 0.1.0/0.2.0/0.3.0 live
+(`eco-v0.1.166`/`167`/`168`); SDK100 all slices live; v0.64.4 pin wave
+done. **NEXT = next compiler archive (v0.64.5+) carrying the m277-m281
+fix batch** (m277 B-22; m279 B-16/B-17; m280 `-2230` +
+`-1549-packages-3`; m281 B-23/B-24/B-20/B-11 addendum/`-1548`; B-05
+alloc-guard-spin fix ready stdlib-side, `-1445-compiler`) -- then
+the re-verify wave + glfw 0.6.0 lift + sdl3 widening + workaround
+retirement; **glfw 0.6.0 lift parked until then** (fixes staged on
+compiler main, no archive ships them yet); **`xiom.sqlite` 0.4.0 (PULSE
+SQL driver) publish-requested** (`REL-20261013-1524-bindings`; x2 21/21
+on `4ba13167`; B-26 nested-payload filed with repro); ops clobber rules
+in force; per-touch PROVENANCE rule in effect (dx12/opengl/gles/sdl3
+compliant) -- UPDATE 2026-10-13 15:35Z (origin/bindings tip `a075059a`)**
+(NEXT = sqlite 0.4.0 publish confirm + v0.64.5+; the paste prompt below
+carries the wave).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -443,6 +448,105 @@ readback; B-11 ADDENDUM RETIRED on v0.64.4)**: the deferred readback item
   `7992cbd`; validate 391 items).  Merge note: main carries the published
   0.17.0 full-surface bump -- keep package.xi at 0.18.0.
 - **NEXT**: confirm the sdl3 0.18.0 publish; then the B-22-gated lifts.
+
+**UPDATE 2026-10-13 13:50Z (CONTEXT-LIMIT HANDOFF -- session trail)**:
+this session's deliverables, all pushed (`origin/bindings` tip
+`b85fa038`; relay tip `7992cbd`):
+1. **dx12 0.3.1 stable promotion confirmed live** (`eco-v0.1.169`; first
+   sec.7 gate promotion; relay `-1207` fixed).
+2. **opengl 0.5.0 WGL surface confirmed live** (`eco-v0.1.170`; relay
+   `-1222` fixed).
+3. **gles 0.1.0 (new package) confirmed live** (`eco-v0.1.171`; scope
+   `f8e284b`, allowlist 520 -> 521).
+4. **dx12 0.4.0 command recording built + published** (`eco-v0.1.172`);
+   **B-25 found/recorded/fixed in-surface** (`Int as *UInt8` not
+   value-preserving -- B-20 family; repro
+   `docs/repro/bindings-pilot/ptr-cast/`; findings + MAINTENANCE rows;
+   INFO `-1309`; COM object params now typed `Int`).
+5. **sdl3 0.18.0 shipped, publish requested**: B-11 addendum (`-0304`)
+   re-tested **FIXED on v0.64.4** (foreign-written event readback exact;
+   61/61 x2; SPEC/ROADMAP/AUDIT/README/MAINTENANCE synced; INFO
+   `-1338-bindings` **acked**; request `-1338-bindings-2` open).
+6. Ledger + `PACKAGE_STATUS.md` kept current; paste prompt rebuilt below;
+   doorbell armed (`0 */3 * * *`).
+- **NEXT**: confirm the sdl3 0.18.0 publish (item 0b); then the ordered
+  tasks in the paste prompt.
+
+**UPDATE 2026-10-13 14:10Z (sdl3 0.18.0 PUBLISH CONFIRMED -- all
+publishes live; compiler m281 fix batch seen)**: item 0b closed.
+- **`xiom.sdl3` 0.18.0 PUBLISHED**: `eco-v0.1.173` (run 38408548028
+  green; registry sha256 `544c59b8...` @13:55:09Z; wrap `f70f02ae`;
+  record `05d5feda`; README/STATUS synced `5000800a`); item
+  `REL-20261013-1338-bindings-2` **fixed**.  The 6 known `-1403`
+  unknown-type warnings persist on v0.64.4 -- the 0-warning re-check
+  rides the next archive (m277).  Packages tally: 89 eco releases
+  through `eco-v0.1.173`; nothing open addressed to packages from this
+  lane.
+- **Relay sweep**: no new bindings-addressed items (newest stays
+  `REL-20261012-2032-packages`, acked).  Compiler lane updated OUR items
+  in the m281 `77827766` batch (relay commit `438b714`): B-23 + B-24
+  **fixed** (`-2051-bindings-2`), B-11 addendum + B-20 family **fixed**
+  (`-0304`), `-1548-bindings-2` codegen **fixed** (RTX re-run pending);
+  m279 `1a8141fb` had already fixed B-16 + B-17; m280 `e1207485` fixed
+  `-2230` + re-probed `-1549-packages-3` green.  **No archive ships the
+  batch yet** (v0.64.4 latest; rows appended to
+  `release-checks/compiler-compiler-v0.64.4.md`).  Our INFO items
+  `-1338-bindings` / `-1309-bindings` stay open on the compiler side
+  (their sweep).
+- **NEXT-ARCHIVE RE-VERIFY WAVE (prepared; item 0b)**: re-run the
+  `docs/repro/bindings-pilot/` bundles -- null-literal (4 paths = 0),
+  ptr-read-stale (ffi_bad=0/400), foreign-ptr-read (matching C
+  1065353216/1073741824), ptr-slot-write + ptr-arith (exact),
+  cb-abi probe9 (42/42/42), sdl3 synthetic-event raw-pointer readback
+  variant, vulkan-slot-recycle (RTX host) -- then glfw 0.6.0 lift +
+  probe9, sdl3 handler widening, workaround retirement, per-item
+  release-check rows + compiler reply.  Worktree clean; doorbell
+  re-armed (`0 */3 * * *`).
+
+**UPDATE 2026-10-13 15:00Z (doorbell)**: relay sweep clean -- no new
+bindings-addressed items; v0.64.4 still latest on GitHub (no v0.64.5);
+packages tally unchanged (89 eco releases through `eco-v0.1.173`).
+- Compiler main moved: **m282 `d6690868`** (thread/spawn env-cast fix;
+  release-check rows appended; its stdlib half is `-1423-compiler`,
+  pending) and an allocator batch that **root-caused B-05
+  (alloc-guard-spin)**: `ffi.alloc` routes to the guard arena but
+  `ffi.free` hit libc -> heap spin; fix (arena-aware `xiom_guard_free` +
+  `ffi.free` route) verified in a scratch tree and handed to stdlib as
+  **`REL-20261013-1445-compiler`** (open; acceptance = our
+  `alloc-guard-spin` probe under a watchdog; our item `-1548-bindings-5`
+  stays acked).  Stdlib-side, NOT in v0.64.4 -- **B-05 added to the
+  next-archive re-verify wave (watchdog run)**.
+
+**UPDATE 2026-10-13 15:35Z (xiom.sqlite 0.4.0 -- PULSE SQL DRIVER
+SHIPPED; publish requested)**: the queue-behind-graphics item (paste task
+vi) landed.
+- **`xiom.sqlite` 0.4.0** (feat `4ba13167`, record `a075059a`): NEW
+  `xiom.sqlite.driver` module (option A of
+  `docs/requirements/pulse-sql-driver.md`): `SqlDsn.parse` (schemes
+  `sqlite:`/`sqlite3:`/`sqlite://`; `busy_timeout` default 5000;
+  `journal_mode` delete|truncate|persist|memory|wal|off; fail-closed),
+  `open_from_dsn` (applies options, reads the effective journal mode
+  back), `execute` (rows-affected + last rowid), `query`/`query_one`,
+  explicit `transaction_begin/commit/rollback` + `in_transaction`
+  (`sqlite3_get_autocommit` wrapper), `caps` + `transactional_ddl`,
+  `last_error`; `rows.query_one` + by-name access
+  (`SqliteResult.column_index`/`value_by_name`) + `RowOutcome`.
+- Suite 16 -> 21; **x2 21/21 on `4ba13167` (v0.64.4)**; validate 534/0;
+  trap-14 clean; docs synced (SPEC 3.1 driver section; ROADMAP; README
+  driver section; AUDIT; STATUS record `a075059a`).
+- **B-26 FOUND + filed with a minimal pure-XIOM repro**: nested enum
+  payloads (`Result[Option[T]]`) corrupt struct-with-Vec values
+  (`items.len=9` vs 2; flat + single-level controls green; silent
+  corruption + AV when used).  Repro
+  `docs/repro/bindings-pilot/nested-payload/`; rows added to
+  `docs/BINDINGS-COMPILER-FINDINGS.md` + MAINTENANCE; INFO to compiler
+  `REL-20261013-1524-bindings-2`.  Shipped workaround: flat `RowOutcome`.
+- Relay: publish request `REL-20261013-1524-bindings` (to packages; PULSE
+  co-verify per the requirements doc) + INFO `-3` to pulse (frozen
+  co-verify surface).  Relay tip `51268ec`; validate 398 items.
+- **NEXT**: packages verify x2 + publish 0.4.0 (their queue item 1); on
+  live, record the eco version here.  Still parked: v0.64.5+ wave (B-22
+  glfw lift, sdl3 widening).
 
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
@@ -1156,20 +1260,37 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-13 13:30Z;
-**all four publishes LIVE** -- dx12 0.3.1 stable (`eco-v0.1.169`),
-opengl 0.5.0 (`eco-v0.1.170`), gles 0.1.0 (`eco-v0.1.171`), dx12 0.4.0
-(`eco-v0.1.172`); nothing in flight; first action = relay sweep, then the
-B-22-gated lifts when an archive ships / imgui when the shared+dev build
-lands).
+Bindings lane continuation -- seamless pickup (2026-10-13 15:35Z;
+sdl3 0.18.0 live (`eco-v0.1.173`); **xiom.sqlite 0.4.0 (PULSE SQL
+driver) publish-requested** (`REL-20261013-1524-bindings`).
+First action = confirm the sqlite 0.4.0 publish (record the live eco
+version + sha256 here), then check for the next compiler archive
+(v0.64.5+) carrying the m277-m281 fix batch; when it ships, run the
+re-verify wave + lifts).
 
-0. STATE (the 12:10Z UPDATE block + STATUS above carry the evidence):
-   - v0.64.4 pin DONE (archive `44a41aea` verified; slot byte-identical
-     556/556; repin 532; validate 532/0). Archive wave + compiler reply
-     filed (`f8fe214` + release-check rows `b235493`). **B-22 is the one
-     open compiler blocker**: fn-typed PARAM values do not cross to C at
-     cast-call positions (glfw 0.6.0 lift parked; witness
-     `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`).
+0. STATE (the 13:50Z handoff UPDATE block + STATUS above carry the
+   evidence):
+   - v0.64.4 pin DONE (archive `44a41aea` verified; repin 532; validate
+     532/0).  **Fix batch staged on compiler main, NO archive yet**
+     (check `gh release list -R xiom-lang/xiom` + relay `release-checks/`):
+     m277 `29e35ef8` fixes **B-22** (+ `-1403`; probe9 42/42/42); m279
+     `1a8141fb` fixes **B-16 + B-17** (exact ptr-arith deltas;
+     ptr_write_sum=66); m280 `e1207485` fixes `-2230` + re-probes
+     `-1549-packages-3` green; m281 `77827766` fixes **B-23 + B-24**
+     (null -> `inttoptr 0`; raw `p[i]` typed load) + **B-20 + B-11
+     addendum (`-0304`)** + `-1548-bindings-2` codegen (RTX re-run
+     pending).  Release-check rows for all ride the next archive.
+   - **RE-VERIFY WAVE at v0.64.5+ (prepared)**: `docs/repro/bindings-pilot/`
+     -- null-literal (4 paths = 0), ptr-read-stale (ffi_bad=0/400),
+     foreign-ptr-read (C-matching 1065353216/1073741824), ptr-slot-write +
+     ptr-arith (exact), cb-abi probe9 (42/42/42), sdl3 synthetic-event
+     raw-pointer readback variant, vulkan-slot-recycle (RTX host),
+     **B-05 alloc-guard-spin (watchdog! -- needs the stdlib fix
+     `REL-20261013-1445-compiler` in the runtime)**.  Then:
+     **glfw 0.6.0 lift** (18 dispatchers + registries removed -> direct
+     handoff), **sdl3 handler widening**, workaround retirement (B-24
+     byte-indexed reads relax where re-verified; `dx12_null_ptr` stays as
+     the documented API).
    - **DX12 0.3.1 STABLE PUBLISHED -- FIRST sec.7 GATE PROMOTION**
      (`eco-v0.1.169`, sha256 `355ecc6d...` @12:26:45Z; merge `46b45e76`,
      record `261ba5f8`, wrap `1fd17353`; native x2 35/35; relay
@@ -1186,12 +1307,13 @@ lands).
      are typed `Int` (C `void*`, exact); repro
      `docs/repro/bindings-pilot/ptr-cast/`; INFO to compiler
      `-1309-bindings`.  Never cast handles to pointers.
-   - **B-23/B-24 FILED with repros** (`REL-20261012-2051-bindings-2`):
-     B-23 = `null` literal crosses to C as garbage (use
-     `dx12_null_ptr()`); B-24 = ffi out-slot reads after a C extern write
-     are unreliable (`ffi_bad=2 byte_bad=0 of 400`; byte-indexed reads
-     only; pointer-edged flows through C return values). Repros under
-     `docs/repro/bindings-pilot/null-literal/` and `ptr-read-stale/`.
+   - **B-23/B-24 FILED -> FIXED at m281 `77827766`**
+     (`REL-20261012-2051-bindings-2`; re-verify at v0.64.5+): B-23 =
+     `null` literal crossed to C as garbage (workaround `dx12_null_ptr()`
+     -- stays as the documented API); B-24 = ffi out-slot reads after a C
+     extern write were unreliable (`ffi_bad=2 byte_bad=0 of 400`;
+     byte-indexed reads meanwhile).  Repros
+     `docs/repro/bindings-pilot/null-literal/` + `ptr-read-stale/`.
    - **opengl 0.5.0 WGL SURFACE PUBLISHED**: generated from the same
      pinned registry (`6af574a1`), oracle `xml/wgl.xml` -- 146 commands /
      298 enums, 0 skips; core-1.0 24/24 resolvable;
@@ -1210,36 +1332,48 @@ lands).
      **`eco-v0.1.171`** (sha256 `017b7664...` @13:06:06Z; scope `f8e284b`,
      wrap `c106c10d`, README/STATUS `ed6bc4da`; scope + allowlist
      520 -> 521).
-   - **sdl3 0.18.0 SHIPPED, PUBLISH REQUESTED (B-11 addendum RETIRED on
+   - **sdl3 0.18.0 PUBLISHED -- ALL LIVE (B-11 addendum RETIRED on
      v0.64.4)**: foreign-written event readback -- poll into an owned
      buffer and decode exactly (user-event type=32768 + KEY_DOWN
      decode); suite 59 -> 61, **x2 61/61 on `5a26dee8`** (feat
-     `75d8c339` + fix `5a26dee8`, record `37d8856d`); request
-     `REL-20261013-1338-bindings-2` (relay `7992cbd`); INFO to compiler:
-     addendum `-0304` FIXED on v0.64.4 (can close; the general B-11
-     driver shape stays open).  Merge note: keep package.xi at 0.18.0
-     (main carries the published 0.17.0 full-surface bump).
+     `75d8c339` + fix `5a26dee8`); LIVE as **`eco-v0.1.173`** (record
+     `05d5feda`, wrap `f70f02ae`, sha256 `544c59b8...` @13:55:09Z;
+     `REL-20261013-1338-bindings-2` **fixed**; README/STATUS
+     `5000800a`).  Merge note: keep package.xi at 0.18.0.  INFO items
+     `-1338-bindings` / `-1309-bindings` still open compiler-side (their
+     sweep).
+   - **xiom.sqlite 0.4.0 SHIPPED, PUBLISH-REQUESTED (PULSE SQL driver)**:
+     NEW `xiom.sqlite.driver` (DSN parse/open, execute/query/query_one,
+     explicit transactions + `in_transaction`, caps, `last_error`);
+     suite 16 -> 21, **x2 21/21 on `4ba13167`** (record `a075059a`);
+     request `REL-20261013-1524-bindings` (to packages); INFO `-3` to
+     pulse (co-verify surface).  **B-26 filed**: nested enum payloads
+     (`Result[Option[T]]`) corrupt struct-with-Vec values -- flat
+     `RowOutcome` workaround; repro
+     `docs/repro/bindings-pilot/nested-payload/`; INFO
+     `-1524-bindings-2` to compiler.
    - Graphics drive: Vulkan 0.6.0 live + engine-green (GPU window + scene
      tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
      the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
 
-0b. FIRST ACTION: confirm the **xiom.sdl3 0.18.0 publish**
-    (`REL-20261013-1338-bindings-2`; 61/61 x2 on `5a26dee8`) -- the only
-    item in flight.  Check the relay item state + packages SESSION/batch
-    notes; when it publishes, record the live eco version + sha256 here
-    (commit+push).  If packages bounces, keep package.xi at 0.18.0 and
-    STATUS with the 61/61 record; the sdl3 SPEC carries the evidence.
-    Then do a relay sweep (`git fetch origin` + `relay.py view --lane
-    bindings`) and process anything new (replies via new items; stage
-    only this lane's files).  Then pick the next lane work in this order:
-    (a) **glfw 0.6.0 lift + probe9 when an archive carrying the B-22 fix
-    ships** (fix on compiler main `29e35ef8`; check `release-checks/` +
-    the relay for a new compiler release first); (b) sdl3 handler-shape
-    widening once B-22 is pinned; (c) imgui SDL3+Vulkan P6 backends once
-    the shared+dev build lands (`-2012-engine-4` acked); else
-    relay-driven items.
-    `-1403-packages` is already fixed compiler-side (m277 `29e35ef8`),
-    so there is no block there.
+0b. FIRST ACTION: (1) confirm the **xiom.sqlite 0.4.0 publish**
+    (`REL-20261013-1524-bindings`; x2 21/21 on `4ba13167`) -- record the
+    live eco version + sha256 here (commit+push); (2) check for the
+    **next compiler archive (v0.64.5+)** --
+    `gh release list -R xiom-lang/xiom` + relay `release-checks/`.
+    If shipped: repin is the packages lane's queue item 3; THIS lane then
+    runs the RE-VERIFY WAVE (see 0.) and on green executes the lifts:
+    (a) **glfw 0.6.0 lift re-attempt + probe9** (B-22 fixed m277; delete
+    the 18 dispatchers + registries, direct handoff); (b) **sdl3
+    handler-shape widening** (multi-arg shapes once B-22 is pinned);
+    (c) workaround retirement the wave clears; record per-item
+    release-check rows + reply to compiler with evidence.
+    If NOT shipped: relay sweep (`git fetch origin` + `python
+    tools/relay.py view --lane bindings`) + packages SESSION.md check
+    only -- every other lane item is gated (glfw/sdl3 on the archive;
+    imgui P6 on the shared+dev build `-2012-engine-4` acked; PULSE
+    driver queued behind graphics on the packages side).
+    `-1403-packages` is fixed compiler-side (m277 `29e35ef8`).
 
 1. RELAY: E:\xiom-lang\xiom-relays -- `git fetch origin` + compare (do
    NOT pull: "Cannot fast-forward to multiple branches"); `python
@@ -1275,8 +1409,22 @@ lands).
      suites live at each package's tests/test_full_surface.xi. dx12 now
      needs `--link user32` plus eight --c-source files (dx12_probe,
      d3d12_calls, d3d12_structs, dxgi_probe, dxgi_calls, video_probe,
-     video_calls, video_structs); suite slot reads are
-     byte-indexed only; nullable C args use `dx12_null_ptr()` (B-23).
+      video_calls, video_structs); suite slot reads are
+      byte-indexed only; nullable C args use `dx12_null_ptr()` (B-23).
+   - **B-25 discipline (v0.64.4)**: NEVER cast handles to pointers --
+     `x as *UInt8` is NOT value-preserving (heap-shifted address at the C
+     boundary; B-20 family).  COM object params are typed `Int` (C
+     `void*`, exact; the dx12 generator emits `Int` for single-star
+     `ID*` params) or int64 C-helper args.  Repro
+     `docs/repro/bindings-pilot/ptr-cast/`.
+   - sdl3 readback reproducers: SDL leaves `SDL_EVENT_POLL_SENTINEL`
+     (0x7F00) ahead of pushed events -- do a bounded drain (poll(NULL))
+     first, then the readback; live SDL3 comes from
+     `C:\VulkanSDK\1.4.350.0\Bin` on PATH.
+   - gles live runs: ANGLE pair (`libEGL.dll` + `libGLESv2.dll`) from an
+     Electron payload on PATH (VS Code app dir works); without it the
+     suite collapses to SKIP.  New clone row: `EGL-Registry` (`db3425b8`)
+     in `E:\repos\CLEANUP.md`.
    - The shared `E:\xiom-lang\stdlib` is actively updated by another
      lane: module counts drift between runs and mid-wave commits can
      transiently break catalog builds (`mem.zeroed` signature mismatch
@@ -1294,12 +1442,13 @@ lands).
      (report `docs/PROVENANCE-COMPLIANCE.md`; xiom.dx12 already
      compliant).
 
-4. ORDERED TASKS after DX12: (i) confirm the in-flight publish
-   (item 0b: sdl3 0.18.0); all others confirmed live this session;
-   (ii) glfw 0.6.0 lift re-attempt + probe9 when B-22 ships;
-   (iii) sdl3 handler-shape widening (B-22 caveat if it needs
-   param values crossing to C) -- the sdl3 readback item (Phase-2 #3)
-   is DONE in 0.18.0 (B-11 addendum retired); (iv) **DONE -- GLES/EGL
+4. ORDERED TASKS after DX12: (i) **watch v0.64.5+** -- on ship run the
+   RE-VERIFY WAVE (item 0.) + record the release-check rows; all
+   publishes are confirmed live (last: sdl3 0.18.0);
+   (ii) glfw 0.6.0 lift re-attempt + probe9 (B-22 fixed m277; run the
+   wave first); (iii) sdl3 handler-shape widening (B-22-gated) -- the
+   sdl3 readback item (Phase-2 #3) is DONE in 0.18.0 (B-11 addendum
+   retired); (iv) **DONE -- GLES/EGL
    via ANGLE** (`xiom.gles` 0.1.0 shipped) + **WGL half DONE as opengl
    0.5.0**; dx12 0.4.0 command recording DONE (next candidates: barrier
    helpers/bundles/command signatures on ask);
@@ -1307,26 +1456,32 @@ lands).
    imgui renderer backends now ASKED (`REL-20261012-2012-engine-4`;
    still blocked on a shared+dev imgui build), meshopt cluster pipeline,
    box2d broad-phase + contact events; ffmpeg stays blocked on a
-   shared+dev build; (vi) **PULSE SQL driver accepted into xiom.sqlite
-   0.4.0** (`REL-20261012-2032-packages`; queued behind graphics).
+   shared+dev build; (vi) **DONE -- PULSE SQL driver SHIPPED as
+   `xiom.sqlite` 0.4.0** (feat `4ba13167`, x2 21/21 on v0.64.4;
+   publish requested `REL-20261013-1524-bindings`; PULSE INFO `-3`;
+   B-26 nested-payload filed with repro -- flat `RowOutcome` workaround).
    Vulkan mini-RHI is the OWNER session's lane (0.7.0-0.13.0 ladder;
    READ docs/checklists/vulkan-sdk-100.md before any Vulkan work;
    coordinate, do not duplicate; interop decision filed
    `REL-20261012-1800-bindings`; engine items -1948/-2012-2/-2012-4
    routed there).
 
-Respect: B-11..B-24 discipline (byte-indexed slot writes; packed returns;
+Respect: B-11..B-25 discipline (byte-indexed slot writes; packed returns;
 structured ifs; NO pointer arithmetic -- one owned slot per out-param;
 never read through foreign pointers, have C copy into an owned slot
 (B-20); B-21 = never take &mut of a struct-return/Result-payload temp;
 B-22 = fn-typed PARAM values do not cross to C via cast-call positions;
 B-23 = the `null` literal crosses to C as garbage (use `dx12_null_ptr()`);
 B-24 = ffi out-slot reads after a C extern write are unreliable -- read
-owned slots byte-indexed, keep pointer-edged flows on C return values).
+owned slots byte-indexed, keep pointer-edged flows on C return values;
+B-25 = `Int as *UInt8` is not value-preserving -- never cast handles to
+pointers; object params cross as `Int` / int64 C-helper args; B-26 = nested
+enum payloads (`Result[Option[T]]`) corrupt struct-with-Vec values -- return
+flat outcome structs, never Result-of-Option).
 Deliver batches as: feat -> x2 green -> record via scripts/status.ps1 ->
 relay item to packages -> ledger update, all pushed; leave the worktree
-clean. TODO NOW: item 0b (confirm + record the xiom.sdl3 0.18.0 publish --
-`REL-20261013-1338-bindings-2`), then the glfw/sdl3 lifts when B-22 ships.
+   clean. TODO NOW: item 0b (watch v0.64.5+; on ship run the RE-VERIFY
+   WAVE + the glfw/sdl3 lifts; else relay-driven only).
 
 ```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);

@@ -25,6 +25,17 @@ pub type SqliteRow = {
   columns: Vec[SqliteValue];
 }
 
+// Outcome of a single-row query.  Flat by design: `Result[Option[SqliteRow]]`
+// (an enum payload nested in another enum payload) corrupts struct-with-Vec
+// values on the current pin -- the extracted row's `columns` length reads as
+// a pointer (see docs/repro/bindings-pilot/nested-payload/ and compiler
+// finding B-26).  `has_row == false` means the result set was empty and
+// `row` is an empty placeholder.
+pub type RowOutcome = {
+  has_row: Bool;
+  row: SqliteRow;
+}
+
 pub type SqliteResult = {
   rows: Vec[SqliteRow];
   column_names: Vec[Str];

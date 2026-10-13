@@ -14,5 +14,7 @@ Thumbs.db
 deps/
 *.lock
 *.db
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3

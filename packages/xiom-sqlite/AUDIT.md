@@ -1,6 +1,6 @@
 # AUDIT: xiom.sqlite
 
-## Status (2026-10-09)
+## Status (2026-10-13)
 
 Real vendored implementation -- the previous "FFI bridge not linked" stubs are
 gone (`src/connection.xi` and `src/demo.xi` deleted). The package compiles and
@@ -8,12 +8,12 @@ its conformance suite is green on the pinned compiler.
 
 | Item | State |
 |------|-------|
-| Compiler | xiom v0.64.2 |
+| Compiler | xiom v0.64.4 |
 | Upstream | SQLite 3.53.4 amalgamation, vendored (public domain) |
 | Link model | `--c-source vendor/sqlite3.c` (static, no soname) |
 | FFI confinement | all `unsafe`/`extern` in `src/ffi.xi` only |
-| Suite | `tests/test_conformance.xi`, 16 checks |
-| Runs | 16/16 PASS x6 consecutive build+run cycles + pin matrix x1 with the restored enum model (v0.64.2, 2026-10-09) |
+| Suite | `tests/test_conformance.xi`, 21 checks |
+| Runs | **21/21 PASS x2 on v0.64.4 (2026-10-13, 0.4.0 driver wave)**; 16/16 PASS x6 consecutive build+run cycles + pin matrix x1 with the restored enum model (v0.64.2, 2026-10-09) |
 
 ## Provenance
 
@@ -35,6 +35,11 @@ its conformance suite is green on the pinned compiler.
 - `src/ffi.xi` uses numeric literals inside confined functions and in
   `error_name`; the exported `SQLITE_*` consts are literal values. Both avoid
   the const-resolution recursion on this pin.
+- 0.4.0 adds `xiom.sqlite.driver` (PULSE contract): DSN parse/open,
+  execute/query/query_one, explicit transactions with `in_transaction`, and
+  capability flags. `query_one` returns a flat `RowOutcome` because the
+  nested `Result[Option[SqliteRow]]` payload corrupts struct-with-Vec values
+  on this pin (B-26; repro `docs/repro/bindings-pilot/nested-payload/`).
 
 ## Known limitations
 
@@ -43,5 +48,5 @@ its conformance suite is green on the pinned compiler.
 - `xiom.sqlite.query` WHERE helpers build literal SQL (parameter binding is
   available through prepared statements; the builder is convenience-only and
   not injection-safe for untrusted input).
-- File-backed tests leave a gitignored `sqlite_conformance_tmp.db` in the
-  package working directory.
+- File-backed tests leave gitignored `sqlite_conformance_tmp.db` /
+  `sqlite_driver_tmp.db` in the package working directory.
