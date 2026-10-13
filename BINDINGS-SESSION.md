@@ -634,6 +634,30 @@ witness)**: localized the nested-payload corruption for the compiler.
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
 
+**UPDATE 2026-10-13 21:25Z (path-tracer/lighting wave + merge->engine
+relay wiring; owner asks)**:
+- **ENGINE RELAY protocol**: filed to packages `REL-20261013-2125-bindings`
+  -- after each wave publishes, packages relays availability to the
+  engine (eco versions) so the engine's adoption ledger stays current;
+  same ask for all future waves (owner directive).
+- **Path-tracer GPU open-source coverage launched** (request
+  `am-1791926678679-46wing`):
+  - `feat/rtxdi-rtxgi` -- xiom.rtxgi (DDGI volumes) + xiom.rtxdi
+    (reSTIR DI) [NVIDIA, MIT, vendored C++ + shaders].
+  - `feat/rpr-bindings` -- xiom.rpr, AMD Radeon ProRender SDK
+    (Apache-2.0; full GPU path tracer C API; tests render a tiny frame).
+  - `feat/openpgl-bindings` -- xiom.openpgl, Intel Open Path Guiding
+    Library (Apache-2.0; pairs with xiom.oidn).
+  - Backlog (not yet launched, on request): LuxCore (Apache-2.0,
+    OpenCL GPU), MoonRay (Apache-2.0, production path tracer), Mitsuba 3
+    (BSD-3, differentiable, CUDA/OptiX via Dr.Jit -- C++-only API),
+    Embree (CPU ray kernels), PBRT-v4 (BSD, research).
+- In flight totals: wave-B (opus, lz4, ktx2, vdb, phonon), upscaler
+  (fidelityfx, dlss+nis, xess, nrd, oidn), path-tracer (rtxdi+rtxgi,
+  rpr, openpgl); integrated/requested: harfbuzz, basisu, ffmpeg-demux,
+  spz, jolt, zstd, meshopt, sqlite 0.4.1.  Relay tip `ceac487`,
+  validate 446 items.
+
 **UPDATE 2026-10-13 21:15Z (wave-B first results integrated + UPSCALER/
 SAMPLER WAVE launched; owner ask "cover DLSS/FSR/XeSS-class")**: yes --
 split by license class.
