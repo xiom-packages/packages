@@ -1,0 +1,6 @@
+# .gitattributes -- xiom.dlss
+#
+# This package vendors NOTHING (CLOSED-SDK pattern): there is no vendor tree.
+# Generated files (src/surface.xi) are committed as LF-normalized text so the
+# generator's --check diff is stable across checkouts.
+src/surface.xi text eol=lf
