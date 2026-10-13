@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T21:58:29Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T22:10:59Z.
 
 ## Summary
 
@@ -329,7 +329,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.azure | xiom-azure | incubating | tests/test_conformance.xi | pass 24/24 | c361abf1 | False | publish pending: next scope delta |
 | xiom.badger | xiom-badger | incubating | tests/test_conformance.xi | pass 21/21 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.barrier | xiom-barrier | incubating | tests/test_conformance.xi | pass 24/24 | 23b01b82 | False | publish pending: next scope delta |
-| xiom.basisu | xiom-basisu | incubating | tests/test_conformance.xi | pass 31/31 | ccb62224 | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.basisu | xiom-basisu | incubating | tests/test_conformance.xi | pass 31/31 | ccb62224 | False | published in eco-v0.1.177 (2026-10-13, 0.1.0 -- new package; KTX2 transcode) |
 | xiom.biology | xiom-biology | incubating | tests/test_conformance.xi | pass 18/18 | fb04b916 | False | publish pending: next scope delta |
 | xiom.bitcoin | xiom-bitcoin | incubating | tests/test_conformance.xi | pass 20/20 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.blas | xiom-blas | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -405,7 +405,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.gpio | xiom-gpio | incubating | tests/test_conformance.xi | pass 21/21 | 9dde8219 | False | category harmonization patch bump (registry metadata) |
 | xiom.graphql | xiom-graphql | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.grpc | xiom-grpc | incubating | tests/test_conformance.xi | pass 36/36 | 82fac130 | False | publish pending: official v0.64.1 repin (eco-v0.1.95) |
-| xiom.harfbuzz | xiom-harfbuzz | incubating | tests/test_conformance.xi | pass 27/27 | ccb62224 | False | new package; not yet allowlisted |
+| xiom.harfbuzz | xiom-harfbuzz | incubating | tests/test_conformance.xi | pass 27/27 | ccb62224 | False | published in eco-v0.1.177 (2026-10-13, 0.1.0 -- new package; 571/571 declared surface) |
 | xiom.hashchain | xiom-hashchain | incubating | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: next scope delta |
 | xiom.hello | xiom-hello | incubating | tests/test_hello.xi | pass 4/4 | fd38977f | False |  |
 | xiom.helm | xiom-helm | incubating | tests/test_conformance.xi | pass 23/23 | c1709e9b | False | publish pending: next scope delta |
@@ -523,7 +523,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.spirv-cross | xiom-spirv-cross | incubating | tests/test_conformance.xi | pass 20/20 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.spirv-reflect | xiom-spirv-reflect | incubating | tests/test_conformance.xi | pass 40/40 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.spirv-tools | xiom-spirv-tools | incubating | tests/test_conformance.xi | pass 39/39 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
-| xiom.spz | xiom-spz | incubating | tests/test_conformance.xi | pass 74/74 | ccb62224 | False | publish pending: new package batch (bindings lane) |
+| xiom.spz | xiom-spz | incubating | tests/test_conformance.xi | pass 74/74 | ccb62224 | False | published in eco-v0.1.177 (2026-10-13, 0.1.0 -- new package; splat compression) |
 | xiom.sql | xiom-sql | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: stub body |
 | xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | pass 21/21 | 88a45273 | False | published in eco-v0.1.175 (2026-10-13, 0.4.1 modules-list fix; 0.4.0 PULSE SQL driver in eco-v0.1.174; 0.3.0 in eco-v0.1.122) |
 | xiom.ssh2 | xiom-ssh2 | incubating | tests/test_conformance.xi | pass 24/24 | 0da2fa55 | False | publish pending: eco-v0.1.37 (v0.62.3 result-payload fix) |

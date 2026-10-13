@@ -11,6 +11,7 @@ ASTC/XUBC7 via the upstream `bu_*` C API). The upstream sources are vendored int
 > **Lane:** bindings.
 > **Surface:** 81/81 functions of the pinned public C API (68 `bt_*` transcoder +
 > 13 `bu_*` encoder), all constants, 100% declared.
+> **Published:** `0.1.0` in `eco-v0.1.177` (sha256 `17226cc9...`).
 
 ## Quick start
 

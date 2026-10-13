@@ -8,6 +8,7 @@ library, no runtime DLL, no network at build time.
 > **Status:** `incubating` -- suite green x2 on the pin (v0.64.4): 74/74
 > (`scripts/port.ps1 -Package xiom.spz -TimeoutSec 900`).
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published:** `0.1.0` in `eco-v0.1.177` (sha256 `26ab52a6...`).
 
 ## Quick start
 
