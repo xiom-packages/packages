@@ -67,6 +67,10 @@ running). Check `git log -1 --format=%h %s` before starting.
   no packages blocker (KTX2/Basis-class codecs at the cook gate later). **Compiler m277 (`29e35ef8`)
   FIXED our `-1403`** (nested fn types; depth-aware split) -- re-run the sdl3 compile at the next
   archive to confirm 0 warnings (row appended to the next-batch table).
+- **Duplicate doorbell deliveries (2026-10-13 01:00Z, seen x2)**: the same cron task was delivered
+  twice; the second pass repeated the seven-item re-verify (idempotent -- probes + churn green again,
+  notes appended `ca63fbe`). Before acting on a doorbell, check the newest commits/SESSION to detect
+  an already-done cycle; if repeated, skip to the report.
 - **Stdlib durability re-verify DONE (2026-10-13 01:0xZ)**: all seven `fixed` items VERIFIED in-lane
   on v0.64.4 with `XIOM_STDLIB + XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime`: `p_wave115_shapes`
   (io.fsync family, append_file_bytes parity, sync_io.read_exact) + `p_wave117_shapes`
