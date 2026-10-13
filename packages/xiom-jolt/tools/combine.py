@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 """Generate the xiom.jolt vendor tree from an upstream JoltPhysics checkout.
 
-STATUS: STAGED, BLOCKED -- Jolt needs real C++17 (`std::string_view`,
-`std::align_val_t`).  v0.64.3 still defaults to C++14 and has no
---cxx-standard; the release-check "if constexpr probe green" verdict was a
-FALSE POSITIVE (clang accepts constexpr if as a C++14 extension), corrected
-via bus item REL-20261010-1815-bindings.  Validated under `-std=c++17`: the
-25 generated TUs and the bridge in src/ compile, and the conformance suite
-is ready.  Regenerate + run once the standard flag (or a gnu++17 default)
-lands; see SPEC.md / AUDIT.md.
+STATUS: LIVE -- unblocked by the official v0.64.4 pin, which carries the
+`--cxx-standard` passthrough (m258; bus item REL-20261010-1815-bindings
+corrected the false-positive release-check verdict).  The 25 generated TUs
+and the bridge in src/ compile and the conformance suite is x2 green on
+v0.64.4; re-run per SPEC.md / AUDIT.md when re-pinning.
 
 Usage:
   python tools/combine.py <upstream-root> <vendor-dir>
