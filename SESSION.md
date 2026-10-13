@@ -41,7 +41,7 @@ running). Check `git log -1 --format=%h %s` before starting.
   arrive; (3) **next compiler archive (v0.64.5+)**: repin + re-verify sdl3 compile 0 warnings
   (m277 fixed our `-1403`), B-22, rows `-1549-packages-5/-7`, plus the compiler next-batch rows;
   (4) promotions per policy sec. 7 (vulkan 0.6.0, sdl3 0.17.0 [blocked while `-1403`
-  open], opengl (0.5.0 live; promote at next touch), the SDK100 names -- dx12 0.3.1 promoted 2026-10-13); (5) provenance retrofits at touch (14/519; audit
+  open], opengl (0.5.0 live; promote at next touch), the SDK100 names -- dx12 0.3.1 promoted 2026-10-13); (5) provenance retrofits at touch (15/519; audit
   `scripts/provenance-audit.ps1`); engine codecs at the cook gate later.
 - **Platform matrix v1 LANDED (2026-10-13, ORBITDB P2 follow-up)**: `docs/PLATFORM-MATRIX.md` +
   generator `scripts/platform-matrix.ps1` (regenerate with `-WriteReport`; declared rows from
@@ -573,7 +573,7 @@ WORK QUEUE (in priority order as items land):
    verified/published gets a PROVENANCE.md (upstream pin + license OR an
    explicit independent declaration); new packages must land with it; audit
    `scripts/provenance-audit.ps1` (report docs/PROVENANCE-COMPLIANCE.md;
-   backlog 14/519); same touch rule for the platform matrix (`platforms` +
+   backlog 15/519); same touch rule for the platform matrix (`platforms` +
    `runtime_deps` in STATUS.json; schema in docs/PLATFORM-MATRIX.md; 36
    native names on the backlog). Upstream-first + clone-repo workflow + 100%
    of declared surface on every package; clones into E:\repos\<name>,
