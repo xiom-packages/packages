@@ -636,6 +636,38 @@ witness)**: localized the nested-payload corruption for the compiler.
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
 
+**UPDATE 2026-10-13 17:30Z (PULSE co-verify blocker: sqlite artifact not
+consumable -- 0.4.1 modules fix; systemic 67-package scan; B-05 overlay
+attempt)**: caught from the relay right after the m283 sweep.
+- **PULSE `REL-20261013-1715`** (to packages): the published xiom.sqlite
+  0.4.0 artifact has NO `modules:` in package.xi -> `use xiom.sqlite;`
+  unresolved for external consumers (v0.64.3 + v0.64.4; control xiom.kv
+  has `modules: ["xiom.kv"]`).  PULSE co-verify continues on an in-tree
+  copy meanwhile.
+- **FIX SHIPPED IN-LANE**: `xiom.sqlite` 0.4.1 (`c239b90e`) -- modules
+  list restored (root + ffi/types/rows/query/schema/migration/driver);
+  suite x2 21/21 (the port namespace check now reports the 8 modules);
+  record `e2beb84e`; platform row restored `70e71a1d` (the branch's
+  older `status.ps1` drops the matrix fields on record rewrite -- keep
+  re-adding until main's tooling is merged); validate 534/0.  Republish
+  requested `REL-20261013-1721-bindings`.
+- **SYSTEMIC**: `modules:` is absent from **67 of 534** packages (full
+  list in `-1721-bindings-2`) -- all native/binding packages incl.
+  dx12/opengl/gles/sdl3/glfw/imgui; rollout ask filed to packages (fleet
+  wave vs per-lane; bindings can execute its ~20 on request) + the
+  registry-artifact consumer smoke for the publish gate.  PULSE reply
+  `-1721-bindings-3`.  Relay tip `d6c9f0e`, validate 411.
+- **B-05 overlay attempt (negative evidence, 17:26Z)**: with
+  `XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime` (wave 124, `252ec2d`)
+  on v0.64.4 the alloc-guard-spin probe STILL spins (`before` then hang;
+  watchdog killed `a.exe`).  The guard_free fix is in the stdlib tree,
+  but the compiler-side call-site lowering is not on the installed pin --
+  B-05 stays red until v0.64.5+ (wave re-run; keep the watchdog).
+- Also seen: compiler m285 `77dfc786` (stdlib `-1549-stdlib-5`
+  container-arg erasure); stdlib durable-IO bundle closed; registry 3.0
+  pilot gate items (`-1707-registry`/`-2`) are pulse/orbitdb asks, not
+  ours.
+
 **UPDATE 2026-10-13 16:15Z (compiler m283 `3ef4d6a9`: B-26 FIXED; B-25
 re-probe GREEN -- wave extended)**: the compiler lane closed our two open
 findings on main (no archive yet).
@@ -1406,8 +1438,10 @@ No ungated lane work otherwise -- relay-driven only).
      restore sqlite `Result[Option[SqliteRow]]` + retire `RowOutcome`)**,
      **ptr-cast (expect `true_ptr == int_param == cast_ptr`; then revisit
      the `Int`-typed dx12 COM params + close `-1309`)**, **B-05
-     alloc-guard-spin (watchdog! -- needs the stdlib fix
-     `REL-20261013-1445-compiler` in the runtime)**.  Then:
+     alloc-guard-spin (watchdog! -- stdlib guard_free fix is in wave 124;
+     still red on v0.64.4 even with `XIOM_RUNTIME_DIR`
+     `E:\xiom-lang\stdlib\runtime` -- needs the compiler-side lowering in
+     the pin)**.  Then:
      **glfw 0.6.0 lift** (18 dispatchers + registries removed -> direct
      handoff), **sdl3 handler widening**, workaround retirement (B-24
      byte-indexed reads relax where re-verified; `dx12_null_ptr` stays as
