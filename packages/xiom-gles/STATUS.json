@@ -8,10 +8,17 @@
                   "status":  "pass",
                   "passed":  18,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "ee741d77",
-                  "checked":  "2026-10-13T12:31:05Z"
+                  "run_by":  "native-session",
+                  "commit":  "779ac140",
+                  "checked":  "2026-10-13T12:36:05Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package; 0.1.0 publish requested (REL-20261013-1231-bindings; registry scope needed)"
+    "excluded_reason":  "new package; 0.1.0 publish requested (REL-20261013-1231-bindings; registry scope needed)",
+    "platforms":  [
+                      "windows-x64"
+                  ],
+    "runtime_deps":  [
+                         "libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent)",
+                         "libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent)"
+                     ]
 }
