@@ -13,7 +13,7 @@
                   "checked":  "2026-10-13T15:28:02Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.122 (2026-10-09)",
+    "excluded_reason":  "published in eco-v0.1.174 (2026-10-13, 0.4.0 PULSE SQL driver; 0.3.0 in eco-v0.1.122; published since eco-v0.1.89)",
     "platforms":  [
                       "windows-x64"
                   ]
