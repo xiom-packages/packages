@@ -253,6 +253,18 @@ No new bindings-addressed items beyond the owner-handled sets
 (`-2051-bindings-2/-3/-4`); relay validate 378 green. Nothing else
 actionable this tick.
 
+**UPDATE 2026-10-13 00:00Z (doorbell)**: batch 70 = **`xiom.dx12` 0.3.0
+PUBLISHED** (`eco-v0.1.168`, run 38308256176; live sha256 `14ce3e67`;
+merge tip + bump `3fcb92aa` 0.2.0->0.3.0; validate 533/0; port x2 on
+v0.64.4). The full DX12 0.3.0 surface -- struct metadata (434 shapes /
+2238 size+offset consts), DXGI (43 ifaces / 163 wrappers + factory/
+adapters/WARP + BGRA8/FIFO swapchain), video slice (30 ifaces / 190
+wrappers) -- is now LIVE (packages fixed `REL-20261012-2051-bindings`,
+`b3a2fc4`). No open bindings-addressed relay items at 00:00Z; relay
+validate green. Promotion readiness (policy sec. 7) is the next DX12 step
+after the settle window; B-23/B-24 remain the compiler-side workarounds to
+retire when a pin ships.
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
