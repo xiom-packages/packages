@@ -18,6 +18,20 @@
 //     hardware-only decoder, AVERROR(ENOSYS) on the first packet -> SKIP
 //     (the pinned 6.x-8.x lineage is hwaccel-only on that path).
 //
+// 0.4.0 adds the container demux surface (libavformat).  With a loaded
+// generation and the fixture present:
+//   * the same IVF fixture is opened through avformat_open_input +
+//     avformat_find_stream_info (stream enumeration: count, codec id/type,
+//     time base, geometry; best-stream selection);
+//   * the packet loop is checked against the IVF framing (count, sizes,
+//     payload byte equality, stream_index/pts against the container header,
+//     clean EOF) and the demuxed packets are fed to a fresh AV1 decoder
+//     (demux -> decode integration);
+//   * seek(0, BACKWARD) then re-read is checked;
+//   * a bogus path is classified FFMPEG_DEMUX_FAILED (typed error);
+//   * fixture absent -> SKIP; no usable decoder -> the demux->decode feed
+//     check is SKIP while the container checks still run.
+//
 // Build+run (the bridge C source from port.args.json; pure dynamic loading --
 // no FFmpeg link):
 //   scripts/port.ps1 -Package xiom.ffmpeg
@@ -27,6 +41,7 @@ module ffmpeg_conformance
 use xiom.io;
 use xiom.test;
 use xiom.ffmpeg;
+use xiom.string;
 
 fn report(ok: Bool, name: Str) -> Int {
   if ok {
@@ -226,6 +241,249 @@ fn run_decode_checks(dec: &FfDecoder, failed: Int) -> Int {
   return out;
 }
 
+// ---- Container demux (0.4.0) -----------------------------------------------
+
+fn u64_le(b: &Vec[UInt8], off: Int) -> Int
+  requires: b.len() >= off + 8
+{
+  return u32_le(b, off) | (u32_le(b, off + 4) << 32);
+}
+
+/// Fixture path for avformat (same candidates as load_fixture; the suite
+/// runs with the package dir as cwd).
+fn fixture_path() -> Str {
+  let p1 = "tests/fixtures/av1_64x48.ivf";
+  let r1 = io.read_file_bytes(p1);
+  if r1.is_ok { return p1; }
+  return "packages/xiom-ffmpeg/tests/fixtures/av1_64x48.ivf";
+}
+
+fn same_bytes(a: &Vec[UInt8], b: &Vec[UInt8], b_off: Int, n: Int) -> Bool
+  requires: a.len() >= n
+  requires: b.len() >= b_off + n
+{
+  var i = 0;
+  while i < n {
+    if (a[i] as Int) != (b[b_off + i] as Int) { return false; }
+    i = i + 1;
+  }
+  return true;
+}
+
+/// 0.4.0 demux checks: open the IVF fixture through libavformat, enumerate
+/// streams, select the best video stream, run the packet loop (sizes/bytes
+/// against the container framing), feed the demuxed packets to a fresh AV1
+/// decoder, seek back and re-read.  All Str comparisons use str_compare.
+fn run_demux_section(lib: &FfmpegLibrary, failed: Int) -> Int {
+  let fx = load_fixture();
+  if fx.len() < 32 {
+    return failed + report(true, "demux: SKIP -- tests/fixtures/av1_64x48.ivf not found");
+  }
+  let path = fixture_path();
+  var out = failed;
+
+  let iw = u16_le(&fx, 12);
+  let ih = u16_le(&fx, 14);
+  let nframes = u32_le(&fx, 24);
+
+  // Typed error path: an absent container path is FFMPEG_DEMUX_FAILED.
+  let bad = ffmpeg_demux_open(lib, "tests/fixtures/xiom-absent-container-xyz.ivf");
+  if bad.is_ok {
+    out = out + report(false, "demux: absent path unexpectedly opened");
+  } else {
+    out = out + report(bad.error.kind == FFMPEG_DEMUX_FAILED && bad.error.message.len() > 0,
+      "demux: absent path -> " + bad.error.message);
+  }
+
+  let r = ffmpeg_demux_open(lib, path);
+  if !r.is_ok {
+    if r.error.kind == FFMPEG_LOAD_ABI {
+      return out + report(false, "demux: entry points missing -- " + r.error.message);
+    }
+    return out + report(false, "demux: open failed -- " + r.error.message);
+  }
+  let demux: FfDemuxer = r.value;
+
+  var count = -1;
+  let sc = ffmpeg_demux_stream_count(&demux);
+  if sc.is_ok { count = sc.value; }
+  out = out + report(sc.is_ok && count == 1,
+    "demux: opened " + path + " (streams=" + i2s(count) + ")");
+
+  let si = ffmpeg_demux_stream_info(&demux, 0);
+  var cname = "";
+  if si.ok && si.codec_id >= 0 { cname = ffmpeg_codec_name(lib, si.codec_id); }
+  out = out + report(si.ok && si.codec_id == FFMPEG_CODEC_ID_AV1 && si.codec_type == FFMPEG_MEDIA_TYPE_VIDEO
+      && str_compare(cname, "av1") == 0 && si.time_base_num == 1 && si.time_base_den == 4,
+    "demux: stream 0 codec=" + cname + " id=" + i2s(si.codec_id) + " type=" + i2s(si.codec_type)
+      + " time_base=" + i2s(si.time_base_num) + "/" + i2s(si.time_base_den));
+  out = out + report(si.ok && si.width == iw && si.height == ih,
+    "demux: stream 0 geometry " + i2s(si.width) + "x" + i2s(si.height) + " matches IVF header");
+
+  let bv = ffmpeg_demux_best_stream(&demux, FFMPEG_MEDIA_TYPE_VIDEO);
+  let ba = ffmpeg_demux_best_stream(&demux, FFMPEG_MEDIA_TYPE_AUDIO);
+  var astr = "none";
+  if ba.ok { astr = "index " + i2s(ba.index); }
+  out = out + report(bv.ok && bv.index == 0 && !ba.ok,
+    "demux: best video stream=" + i2s(bv.index) + "; best audio " + astr);
+
+  // Fresh decoder for the demux -> decode feed (independent of the decode
+  // section above; SKIP when no usable AV1 decoder is present).
+  let dres = ffmpeg_av1_decoder_open(lib);
+  var have_dec = dres.is_ok;
+  var dec: FfDecoder = FfDecoder{ ctx: 0; codec: 0; codec_name: ""; h_codec: 0; h_util: 0; p_send_packet: 0; p_receive_frame: 0; p_free_context: 0; p_packet_alloc: 0; p_packet_free: 0; p_packet_unref: 0; p_frame_alloc: 0; p_frame_free: 0; p_frame_unref: 0; p_pix_fmt_name: 0 };
+  if have_dec { dec = dres.value; }
+  var frames = 0;
+  var send_err = 0;
+  var drain_err = 0;
+  var resends = 0;
+  var fw = 0;
+  var fh = 0;
+  var fp = "";
+
+  var packets = 0;
+  var frames_seen = 0;
+  var sizes_ok = true;
+  var bytes_ok = true;
+  var meta_ok = true;
+  var first_flags = -1;
+  var off = 32;
+  var i = 0;
+  while i < nframes {
+    let pr = ffmpeg_demux_read_packet(&demux);
+    if !pr.ok {
+      i = nframes;
+      meta_ok = false;
+    } else {
+      packets = packets + 1;
+      let esz = u32_le(&fx, off);
+      let ets = u64_le(&fx, off + 4);
+      if pr.size != esz { sizes_ok = false; }
+      if pr.stream_index != 0 { meta_ok = false; }
+      if pr.pts != ets { meta_ok = false; }
+      if frames_seen == 0 { first_flags = pr.flags; }
+      let pb = ffmpeg_demux_packet_bytes(&demux, pr.packet, pr.size);
+      if !pb.is_ok {
+        bytes_ok = false;
+      } else {
+        let pbv: Vec[UInt8] = pb.value;
+        if !same_bytes(&pbv, &fx, off + 12, pr.size) { bytes_ok = false; }
+      }
+      if have_dec {
+        var snd = ffmpeg_decoder_send(&dec, pr.packet);
+        if snd == FFMPEG_ERR_EAGAIN {
+          var more = true;
+          var dguard = 0;
+          while more && dguard < 16 {
+            let fr0 = ffmpeg_decoder_receive(&dec);
+            if fr0.kind == FFMPEG_DECODE_FRAME {
+              frames = frames + 1;
+              if fw == 0 { fw = fr0.width; fh = fr0.height; fp = fr0.pix_fmt_name; }
+              ffmpeg_frame_unref(&dec, fr0.frame);
+              var igf0 = ffmpeg_frame_free(&dec, fr0.frame);
+            } else {
+              if fr0.kind == FFMPEG_DECODE_ERROR { drain_err = drain_err + 1; }
+              more = false;
+            }
+            dguard = dguard + 1;
+          }
+          resends = resends + 1;
+          snd = ffmpeg_decoder_send(&dec, pr.packet);
+        }
+        if snd == FFMPEG_ERR_ENOSYS {
+          // Native hwaccel-only decoder -> the feed check becomes SKIP.
+          have_dec = false;
+        } elif snd != 0 {
+          send_err = send_err + 1;
+        }
+      }
+      off = off + 12 + esz;
+      frames_seen = frames_seen + 1;
+      ffmpeg_demux_packet_unref(&demux, pr.packet);
+      var igf = ffmpeg_demux_packet_free(&demux, pr.packet);
+      i = i + 1;
+    }
+  }
+  let eofpr = ffmpeg_demux_read_packet(&demux);
+  let saw_eof = eofpr.eof && !eofpr.ok;
+
+  out = out + report(packets == nframes && sizes_ok && frames_seen == nframes && saw_eof,
+    "demux: packet loop " + i2s(packets) + "/" + i2s(nframes) + " sizes match IVF framing (eof="
+      + b2s(saw_eof) + ")");
+  out = out + report(bytes_ok && first_flags >= 0,
+    "demux: packet bytes match container payload (first flags=" + i2s(first_flags) + ")");
+  out = out + report(meta_ok, "demux: packet stream_index/pts match IVF header");
+
+  if have_dec {
+    var flush_rc = -1;
+    var saw_dec_eof = false;
+    var phase = 0;
+    while phase < 2 {
+      var terminal = false;
+      var guard = 0;
+      while !terminal && guard < 64 {
+        let fr = ffmpeg_decoder_receive(&dec);
+        if fr.kind == FFMPEG_DECODE_FRAME {
+          frames = frames + 1;
+          if fw == 0 { fw = fr.width; fh = fr.height; fp = fr.pix_fmt_name; }
+          ffmpeg_frame_unref(&dec, fr.frame);
+          var igf2 = ffmpeg_frame_free(&dec, fr.frame);
+        } elif fr.kind == FFMPEG_DECODE_AGAIN {
+          terminal = true;
+        } elif fr.kind == FFMPEG_DECODE_EOF {
+          terminal = true;
+          saw_dec_eof = true;
+        } else {
+          drain_err = drain_err + 1;
+          terminal = true;
+        }
+        guard = guard + 1;
+      }
+      if phase == 0 { flush_rc = ffmpeg_decoder_flush(&dec); }
+      phase = phase + 1;
+    }
+    let cld = ffmpeg_decoder_close(&dec);
+    out = out + report(frames == nframes && fw == iw && fh == ih && flush_rc == 0
+        && send_err == 0 && drain_err == 0 && saw_dec_eof && cld.is_ok,
+      "demux->decode: " + i2s(frames) + " frame(s) " + i2s(fw) + "x" + i2s(fh) + " " + fp
+        + " from demuxed packets (flush rc=" + i2s(flush_rc) + ", send errors=" + i2s(send_err)
+        + ", resends=" + i2s(resends) + ")");
+  } else {
+    if dres.is_ok {
+      // A decoder was opened but is hardware-accelerated-only (ENOSYS on
+      // the first demuxed packet): release it, the feed check is SKIP.
+      var hcl = ffmpeg_decoder_close(&dec);
+    }
+    out = out + report(true, "demux->decode: SKIP -- no usable AV1 decoder for the demux feed check");
+  }
+
+  let sk = ffmpeg_demux_seek(&demux, 0, 0, FFMPEG_SEEK_BACKWARD);
+  var rp = 0;
+  var rpts0 = -1;
+  var rguard = 0;
+  if sk.ok {
+    while rguard < 8 {
+      let pr2 = ffmpeg_demux_read_packet(&demux);
+      if !pr2.ok {
+        rguard = 8;
+      } else {
+        if rp == 0 { rpts0 = pr2.pts; }
+        rp = rp + 1;
+        ffmpeg_demux_packet_unref(&demux, pr2.packet);
+        var igf3 = ffmpeg_demux_packet_free(&demux, pr2.packet);
+        rguard = rguard + 1;
+      }
+    }
+  }
+  out = out + report(sk.ok && rp == nframes && rpts0 == 0,
+    "demux: seek(0, BACKWARD) rc=" + i2s(sk.rc) + " re-read " + i2s(rp) + "/" + i2s(nframes)
+      + " packet(s), first pts=" + i2s(rpts0));
+
+  let dc = ffmpeg_demux_close(&demux);
+  out = out + report(dc.is_ok, "demux: demuxer closed");
+  return out;
+}
+
 fn main() -> Int {
   io.println("=== xiom.ffmpeg conformance tests (dynamic loader) ===");
   io.flush_stdout();
@@ -252,7 +510,7 @@ fn main() -> Int {
       failed = failed + report(false, "probe: failed -- " + l.error.message);
       return failed;
     }
-    failed = failed + report(true, "decode: SKIP -- no FFmpeg shared-library generation present");
+    failed = failed + report(true, "decode+demux: SKIP -- no FFmpeg shared-library generation present");
   } else {
     let lib: FfmpegLibrary = l.value;
     let p = ffmpeg_probe(&lib);
@@ -288,6 +546,9 @@ fn main() -> Int {
       let cl = ffmpeg_decoder_close(&dec);
       failed = failed + report(cl.is_ok, "decode: decoder closed");
     }
+
+    // Container demux surface (0.4.0; SKIP-classified per check).
+    failed = run_demux_section(&lib, failed);
 
     let lc = ffmpeg_close(&lib);
     failed = failed + report(lc.is_ok, "loader: library generation closed");

@@ -1,0 +1,6 @@
+# Vendored upstream sources must stay byte-identical to the SHA256 pins in
+# SPEC.md section 2. Disable end-of-line conversion for the whole vendor tree.
+vendor/** -text
+# The tiny.ttf fixture is binary and checked in byte-exact; the generator
+# tools/fixtures scripts stay text.
+tests/fixtures/tiny.ttf -text

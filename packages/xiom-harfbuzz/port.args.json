@@ -1,0 +1,12 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/hb_bridge.cpp",
+  "--c-source",
+  "${PACKAGE_DIR}/src/hb_symbols_gen.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/harfbuzz/src/harfbuzz-subset.cc",
+  "--cxx-standard",
+  "17",
+  "--timeout",
+  "900"
+]

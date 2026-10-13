@@ -6,14 +6,14 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  12,
+                  "passed":  23,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "11a58915",
-                  "checked":  "2026-10-13T21:11:53Z"
+                  "run_by":  "bindings-session",
+                  "commit":  "c1065a50",
+                  "checked":  "2026-10-13T21:03:22Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.176 (2026-10-13, 0.3.0 AV1 decode; 0.2.0 in eco-v0.1.122)",
+    "excluded_reason":  "published in eco-v0.1.176 (2026-10-13, 0.3.0 AV1 decode; 0.2.0 in eco-v0.1.122); 0.4.0 demux publish requested",
     "platforms":  [
                       "windows-x64"
                   ],
