@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-14T00:11:53Z",
+    "updated":  "2026-10-14T00:59:14Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -615,6 +615,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-base58/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "base58.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.basisu",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "basis_universal v2_50 bindings for XIOM (KTX2 supercompressed texture transcode + encode; vendored, no system library)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-basisu/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "basisu.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2436,17 +2453,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.3.0",
+                         "version":  "0.4.0",
                          "name":  "xiom.ffmpeg",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "FFmpeg (libavcodec/libavformat/libavutil/libswresample) bindings for XIOM via dynamic loader (system-library SKIP path; LGPL-safe probe; AV1-class decode surface -- decoder discovery, codec-context open, packet/frame lifecycle, frame width/height/pixel-format)",
+                         "description":  "FFmpeg (libavcodec/libavformat/libavutil/libswresample) bindings for XIOM via dynamic loader (system-library SKIP path; LGPL-safe probe; AV1-class decode surface; container demux -- avformat open/close, stream enumeration, best-stream selection, packet read loop, seek)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ffmpeg/v0.3.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ffmpeg/v0.4.0/package.tar.gz",
                          "source_files":  [
                                               "ffmpeg.xi",
                                               "package.xi"
@@ -3135,6 +3152,56 @@
                                               "server.xi",
                                               "types.xi",
                                               "grpc.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.harfbuzz",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "harfbuzz 14.6.0 bindings for XIOM (vendored amalgam; full declared surface: 582 functions across hb.h + hb-ot.h + hb-subset.h + hb-version.h; shaping, subsetting, OT layout/introspection)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-harfbuzz/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "blob.xi",
+                                              "buffer.xi",
+                                              "common.xi",
+                                              "deprecated.xi",
+                                              "draw.xi",
+                                              "face.xi",
+                                              "font.xi",
+                                              "harfbuzz.xi",
+                                              "hb.xi",
+                                              "map.xi",
+                                              "ot.xi",
+                                              "ot_color.xi",
+                                              "ot_deprecated.xi",
+                                              "ot_fetch.xi",
+                                              "ot_font.xi",
+                                              "ot_layout.xi",
+                                              "ot_math.xi",
+                                              "ot_meta.xi",
+                                              "ot_metrics.xi",
+                                              "ot_name.xi",
+                                              "ot_shape.xi",
+                                              "ot_var.xi",
+                                              "paint.xi",
+                                              "script_list.xi",
+                                              "set.xi",
+                                              "shape.xi",
+                                              "shape_plan.xi",
+                                              "style.xi",
+                                              "subset.xi",
+                                              "subset_depend.xi",
+                                              "subset_serialize.xi",
+                                              "surface.xi",
+                                              "unicode.xi",
+                                              "version.xi",
                                               "package.xi"
                                           ]
                      },
@@ -7817,6 +7884,25 @@
                                               "st_validator.xi",
                                               "package.xi",
                                               "spirv_tools.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.spz",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "nianticlabs/spz v3.0.0 Gaussian-splat compression bindings (NGSP v4 zstd + legacy v1-3 gzip; vendored C++ + zlib + zstd)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spz/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "spz.xi",
+                                              "spz_ffi.xi",
+                                              "spz_math.xi",
+                                              "package.xi"
                                           ]
                      },
                      {
