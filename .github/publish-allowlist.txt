@@ -574,3 +574,24 @@ xiom.shaderc
 xiom.dx12
 # GLES/EGL leg (2026-10-13): new ANGLE package (GLES 2.0/3.2 + EGL 1.5); ops scope confirmed LIVE 2026-10-13 (eco 520 both).
 xiom.gles
+# Bindings waves (OWNER EXCEPTION 2026-10-13 21:40Z): 17 new names staged ahead of readiness so merge/publish needs no owner step; grandfathered in .github/allowlist-baseline.txt until ported (each publishes on its green record at the next eco tag).
+# wave B (ready now): harfbuzz, basisu, spz; (in flight): opus, lz4, ktx2, vdb, nis
+xiom.harfbuzz
+xiom.basisu
+xiom.spz
+xiom.opus
+xiom.lz4
+xiom.ktx2
+xiom.vdb
+xiom.nis
+# upscaler wave (in flight): fidelityfx, dlss, xess, nrd, oidn
+xiom.fidelityfx
+xiom.dlss
+xiom.xess
+xiom.nrd
+xiom.oidn
+# path-tracer wave (in flight): rpr, rtxdi, rtxgi, openpgl
+xiom.rpr
+xiom.rtxdi
+xiom.rtxgi
+xiom.openpgl

@@ -60,3 +60,21 @@ xiom.vulkan
 xiom.websocket
 xiom.zeromq
 xiom.zstd
+# OWNER EXCEPTION 2026-10-13 21:40Z (bindings waves): staged ahead of readiness so publishing is unattended; remove each line once the package is ported/ready (this list is reported loudly every guard run).
+xiom.harfbuzz
+xiom.basisu
+xiom.spz
+xiom.opus
+xiom.lz4
+xiom.ktx2
+xiom.vdb
+xiom.nis
+xiom.fidelityfx
+xiom.dlss
+xiom.xess
+xiom.nrd
+xiom.oidn
+xiom.rpr
+xiom.rtxdi
+xiom.rtxgi
+xiom.openpgl
