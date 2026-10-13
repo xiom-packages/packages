@@ -6,12 +6,15 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  22,
+                  "passed":  34,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.64.0",
-                  "commit":  "d9035079",
-                  "checked":  "2026-10-05T19:14:46Z"
+                  "run_by":  "bindings-session",
+                  "commit":  "19fb73fe",
+                  "checked":  "2026-10-13T22:10:55Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist",
+    "platforms":  [
+                      "windows-x64"
+                  ]
 }
