@@ -251,7 +251,7 @@ value-initializes `m_uncomp_data_level_index` to 0 instead of -1; the bridge cal
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Vendored C API path (transcoder + encoder + zstd) | `scripts/port.ps1 -Package xiom.basisu -TimeoutSec 1500` | **PASS 30/30 x2** -- versions 250/250, allocator round trip, full format-helper surface, UASTC LDR 4x4 encode (1,696-byte KTX2, 6 mips), metadata + per-level info, BC1 level 0/1 (512/128 bytes), ETC1 (512), ASTC 4x4 (1,024), RGBA32 (4,096, mean abs err 1,745 milli vs source, opaque alpha), corrupt/identifier-only/truncated payloads typed-rejected, ETC1S encode (797 bytes) -> BC1, zstd-supercompressed UASTC (1,115 bytes) -> BC1 (zstd decode path) |
+| Vendored C API path (transcoder + encoder + zstd) | `scripts/port.ps1 -Package xiom.basisu -TimeoutSec 1500` | **PASS 31/31 x2** -- versions 250/250, allocator round trip, full format-helper surface, encoder helper coverage (float RGBA upload + `comp_params_clear`), UASTC LDR 4x4 encode (1,696-byte KTX2, 6 mips), metadata + per-level info, BC1 level 0/1 (512/128 bytes), ETC1 (512), ASTC 4x4 (1,024), RGBA32 (4,096, mean abs err 1,745 milli vs source, opaque alpha), corrupt/identifier-only/truncated payloads typed-rejected, ETC1S encode (797 bytes) -> BC1, zstd-supercompressed UASTC (1,115 bytes) -> BC1 (zstd decode path) |
 
 No SKIP path exists (the library is compiled in). `port.args.json` passes 35
 `--c-source` TUs plus `--cxx-standard 17`; the packages runner resolves

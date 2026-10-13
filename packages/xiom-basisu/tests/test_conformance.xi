@@ -92,6 +92,16 @@ fn main() -> Int {
   failed = failed + report(fr.basis_xuastc_8x5 && fr.basis_astc_4x4 && fr.basis_hdr_6x6 && fr.basis_ldr_uastc && fr.basis_xubc7 && fr.basis_block_w_xuastc_8x5 == 8 && fr.basis_block_h_xuastc_8x5 == 5,
     "basis_tex_format predicates + XUASTC 8x5 block dims");
 
+  // -- Encoder helper coverage: float RGBA upload + comp_params clear.
+  var float_img = zeros(256);
+  let fh = basisu_encoder_float_probe(&mut float_img, 4, 4);
+  if !fh.is_ok {
+    failed = failed + report(false, "encoder helper probe failed -- " + fh.error);
+  } else {
+    let fv = fh.value;
+    failed = failed + report(fv.float_image_ok && fv.clear_ok, "encoder helpers: float RGBA upload + comp_params clear");
+  }
+
   // -- Source image (32x32 RGBA = 4096 bytes).
   var src = build_source_rgba(32, 32);
   failed = failed + report(src.len() == 4096, "source image bytes = " + to_string(src.len()));

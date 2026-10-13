@@ -380,4 +380,36 @@ int32_t xbu_open_probe(const uint8_t* data, uint32_t len)
 	return 1;
 }
 
+/* Encoder helper coverage: float RGBA upload + comp_params clear (the two
+ * remaining bu_* functions not touched by the encode probe). */
+int32_t xbu_float_image_probe(const uint8_t* float_img, uint32_t w, uint32_t h,
+	uint8_t* o_set_ok, uint8_t* o_clear_ok)
+{
+	put_u32(o_set_ok, 0);
+	put_u32(o_clear_ok, 0);
+
+	if (!float_img || !w || !h)
+		return 6;
+
+	bu_init();
+
+	const uint32_t pitch = w * 16u;
+	if (pitch / 16u != w)
+		return 6;
+
+	uint64_t params = bu_new_comp_params();
+	if (!params)
+		return 1;
+
+	uint32_t set_ok = bu_comp_params_set_image_float_rgba(params, 0, wasm_ofs(float_img), w, h, pitch) ? 1u : 0u;
+	uint32_t clear_ok = bu_comp_params_clear(params) ? 1u : 0u;
+
+	bu_delete_comp_params(params);
+
+	put_u32(o_set_ok, set_ok);
+	put_u32(o_clear_ok, clear_ok);
+
+	return 0;
+}
+
 } // extern "C"

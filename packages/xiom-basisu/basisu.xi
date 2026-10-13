@@ -294,6 +294,7 @@ extern "C" {
   fn xbu_level_probe(ktx2: *UInt8, len: Int32, level: Int32, slots: *UInt8, slots_bytes: Int32) -> Int32;
   fn xbu_transcode_probe(ktx2: *UInt8, len: Int32, level: Int32, fmt: Int32, out: *UInt8, out_cap: Int32, o_size: *UInt8, o_flags: *UInt8) -> Int32;
   fn xbu_open_probe(data: *UInt8, len: Int32) -> Int32;
+  fn xbu_float_image_probe(float_img: *UInt8, w: Int32, h: Int32, o_set_ok: *UInt8, o_clear_ok: *UInt8) -> Int32;
 }
 
 // =========================================================================
@@ -462,6 +463,11 @@ pub type BasisuTranscodeResult = {
   transcoded: Bool;
 }
 
+pub type BasisuEncoderHelpers = {
+  float_image_ok: Bool;
+  clear_ok: Bool;
+}
+
 // =========================================================================
 // Safe API
 // =========================================================================
@@ -506,6 +512,27 @@ pub fn basisu_alloc_probe() -> BasisuAllocProbe
       transcoder_ok: basisu_read_u32(&ft, 0) != 0,
       encoder_ok: basisu_read_u32(&fe, 0) != 0
     };
+  }
+}
+
+/// Coverage for the two encoder helpers outside the encode probe:
+/// bu_comp_params_set_image_float_rgba (caller-owned f32 RGBA image,
+/// w*h*16 bytes) followed by bu_comp_params_clear. Complexity: O(pixels).
+pub fn basisu_encoder_float_probe(float_img: &mut Vec[UInt8], w: Int, h: Int) -> Result[BasisuEncoderHelpers, Str]
+  requires: w > 0
+  requires: h > 0
+  requires: float_img.len() >= w * h * 16
+{
+  unsafe {
+    var fs = basisu_slot4();
+    var fc = basisu_slot4();
+    let rc = xbu_float_image_probe(float_img.as_mut_ptr(), w as Int32, h as Int32, fs.as_mut_ptr(), fc.as_mut_ptr()) as Int;
+    if rc != 0 { return Err("basisu: float image bridge rc=" + basisu_i2s(rc)); }
+    let set_ok = basisu_read_u32(&fs, 0) != 0;
+    let clear_ok = basisu_read_u32(&fc, 0) != 0;
+    if !set_ok { return Err("basisu: bu_comp_params_set_image_float_rgba rejected the image"); }
+    if !clear_ok { return Err("basisu: bu_comp_params_clear failed"); }
+    return Ok(BasisuEncoderHelpers{ float_image_ok: set_ok, clear_ok: clear_ok });
   }
 }
 
