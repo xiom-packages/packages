@@ -3,23 +3,24 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: CONTEXT-LIMIT HANDOFF -- everything but sdl3 0.18.0 is LIVE;
-sdl3 0.18.0 publish requested (open)** -- LIVE this session: dx12 0.3.1
-stable (`eco-v0.1.169`) + dx12 0.4.0 command recording (`eco-v0.1.172`;
-B-25 fixed in-surface), opengl 0.5.0 WGL surface (`eco-v0.1.170`), gles
-0.1.0 new ANGLE package (`eco-v0.1.171`); **sdl3 0.18.0** (foreign-written
-event readback; B-11 addendum re-tested **FIXED** on v0.64.4; 61/61 x2 on
-`5a26dee8`; `REL-20261013-1338-bindings-2` open, INFO `-1338-bindings`
-**acked** by compiler); Vulkan 0.6.0 live (engine-green, OWNER lane);
-OpenGL 0.4.0 LIVE (`eco-v0.1.164`; 656/656 core-4.6); DX12
-0.1.0/0.2.0/0.3.0 live (`eco-v0.1.166`/`167`/`168`); SDK100 all slices
-live; v0.64.4 pin wave done; **B-22 open -- glfw 0.6.0 lift parked**
-(fix on compiler main `29e35ef8`, no archive yet); **B-23/B-24/B-25
-accepted** (expiry = next compiler pin); ops clobber rules in force;
+**STATUS: ALL PUBLISHES CONFIRMED LIVE -- last item sdl3 0.18.0 landed
+as `eco-v0.1.173`** -- LIVE this window: dx12 0.3.1 stable
+(`eco-v0.1.169`) + dx12 0.4.0 command recording (`eco-v0.1.172`; B-25
+fixed in-surface), opengl 0.5.0 WGL surface (`eco-v0.1.170`), gles 0.1.0
+new ANGLE package (`eco-v0.1.171`), sdl3 0.18.0 (foreign-written event
+readback; 61/61 x2 on `5a26dee8`; `REL-20261013-1338-bindings-2` fixed);
+Vulkan 0.6.0 live (engine-green, OWNER lane); OpenGL 0.4.0 LIVE
+(`eco-v0.1.164`; 656/656 core-4.6); DX12 0.1.0/0.2.0/0.3.0 live
+(`eco-v0.1.166`/`167`/`168`); SDK100 all slices live; v0.64.4 pin wave
+done. **NEXT = next compiler archive (v0.64.5+) carrying the m277-m281
+fix batch** (m277 B-22; m279 B-16/B-17; m280 `-2230` +
+`-1549-packages-3`; m281 B-23/B-24/B-20/B-11 addendum/`-1548`) -- then
+the re-verify wave + glfw 0.6.0 lift + sdl3 widening + workaround
+retirement; **glfw 0.6.0 lift parked until then** (fixes staged on
+compiler main, no archive ships them yet); ops clobber rules in force;
 per-touch PROVENANCE rule in effect (dx12/opengl/gles/sdl3 compliant) --
-SESSION HANDOFF 2026-10-13 13:50Z (origin/bindings tip `b85fa038`)**
-(NEXT = confirm the sdl3 0.18.0 publish; the rebuilt paste prompt is
-below).
+UPDATE 2026-10-13 14:10Z (origin/bindings tip `d7e9c75d`)** (NEXT = watch
+for v0.64.5+; the paste prompt below carries the wave).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -466,6 +467,37 @@ this session's deliverables, all pushed (`origin/bindings` tip
    doorbell armed (`0 */3 * * *`).
 - **NEXT**: confirm the sdl3 0.18.0 publish (item 0b); then the ordered
   tasks in the paste prompt.
+
+**UPDATE 2026-10-13 14:10Z (sdl3 0.18.0 PUBLISH CONFIRMED -- all
+publishes live; compiler m281 fix batch seen)**: item 0b closed.
+- **`xiom.sdl3` 0.18.0 PUBLISHED**: `eco-v0.1.173` (run 38408548028
+  green; registry sha256 `544c59b8...` @13:55:09Z; wrap `f70f02ae`;
+  record `05d5feda`; README/STATUS synced `5000800a`); item
+  `REL-20261013-1338-bindings-2` **fixed**.  The 6 known `-1403`
+  unknown-type warnings persist on v0.64.4 -- the 0-warning re-check
+  rides the next archive (m277).  Packages tally: 89 eco releases
+  through `eco-v0.1.173`; nothing open addressed to packages from this
+  lane.
+- **Relay sweep**: no new bindings-addressed items (newest stays
+  `REL-20261012-2032-packages`, acked).  Compiler lane updated OUR items
+  in the m281 `77827766` batch (relay commit `438b714`): B-23 + B-24
+  **fixed** (`-2051-bindings-2`), B-11 addendum + B-20 family **fixed**
+  (`-0304`), `-1548-bindings-2` codegen **fixed** (RTX re-run pending);
+  m279 `1a8141fb` had already fixed B-16 + B-17; m280 `e1207485` fixed
+  `-2230` + re-probed `-1549-packages-3` green.  **No archive ships the
+  batch yet** (v0.64.4 latest; rows appended to
+  `release-checks/compiler-compiler-v0.64.4.md`).  Our INFO items
+  `-1338-bindings` / `-1309-bindings` stay open on the compiler side
+  (their sweep).
+- **NEXT-ARCHIVE RE-VERIFY WAVE (prepared; item 0b)**: re-run the
+  `docs/repro/bindings-pilot/` bundles -- null-literal (4 paths = 0),
+  ptr-read-stale (ffi_bad=0/400), foreign-ptr-read (matching C
+  1065353216/1073741824), ptr-slot-write + ptr-arith (exact),
+  cb-abi probe9 (42/42/42), sdl3 synthetic-event raw-pointer readback
+  variant, vulkan-slot-recycle (RTX host) -- then glfw 0.6.0 lift +
+  probe9, sdl3 handler widening, workaround retirement, per-item
+  release-check rows + compiler reply.  Worktree clean; doorbell
+  re-armed (`0 */3 * * *`).
 
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
@@ -1179,19 +1211,33 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-13 13:50Z;
-CONTEXT-LIMIT HANDOFF.  Everything this session shipped is LIVE except
-sdl3 0.18.0, which is publish-requested and in flight.  First action =
-confirm the sdl3 0.18.0 publish + relay sweep, then the ordered tasks).
+Bindings lane continuation -- seamless pickup (2026-10-13 14:10Z;
+ALL PUBLISHES CONFIRMED LIVE -- sdl3 0.18.0 landed as `eco-v0.1.173`.
+First action = check for the next compiler archive (v0.64.5+) carrying
+the m277-m281 fix batch; when it ships, run the re-verify wave + lifts.
+No ungated lane work otherwise -- relay-driven only).
 
 0. STATE (the 13:50Z handoff UPDATE block + STATUS above carry the
    evidence):
    - v0.64.4 pin DONE (archive `44a41aea` verified; repin 532; validate
-     532/0).  **B-22 is the one open compiler blocker**: fn-typed PARAM
-     values do not cross to C at cast-call positions (glfw 0.6.0 lift
-     parked; witness `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`);
-     the fix is on compiler main `29e35ef8` (probe9 42/42/42) but **no
-     archive ships it yet** -- check `release-checks/` for v0.64.5+.
+     532/0).  **Fix batch staged on compiler main, NO archive yet**
+     (check `gh release list -R xiom-lang/xiom` + relay `release-checks/`):
+     m277 `29e35ef8` fixes **B-22** (+ `-1403`; probe9 42/42/42); m279
+     `1a8141fb` fixes **B-16 + B-17** (exact ptr-arith deltas;
+     ptr_write_sum=66); m280 `e1207485` fixes `-2230` + re-probes
+     `-1549-packages-3` green; m281 `77827766` fixes **B-23 + B-24**
+     (null -> `inttoptr 0`; raw `p[i]` typed load) + **B-20 + B-11
+     addendum (`-0304`)** + `-1548-bindings-2` codegen (RTX re-run
+     pending).  Release-check rows for all ride the next archive.
+   - **RE-VERIFY WAVE at v0.64.5+ (prepared)**: `docs/repro/bindings-pilot/`
+     -- null-literal (4 paths = 0), ptr-read-stale (ffi_bad=0/400),
+     foreign-ptr-read (C-matching 1065353216/1073741824), ptr-slot-write +
+     ptr-arith (exact), cb-abi probe9 (42/42/42), sdl3 synthetic-event
+     raw-pointer readback variant, vulkan-slot-recycle (RTX host).  Then:
+     **glfw 0.6.0 lift** (18 dispatchers + registries removed -> direct
+     handoff), **sdl3 handler widening**, workaround retirement (B-24
+     byte-indexed reads relax where re-verified; `dx12_null_ptr` stays as
+     the documented API).
    - **DX12 0.3.1 STABLE PUBLISHED -- FIRST sec.7 GATE PROMOTION**
      (`eco-v0.1.169`, sha256 `355ecc6d...` @12:26:45Z; merge `46b45e76`,
      record `261ba5f8`, wrap `1fd17353`; native x2 35/35; relay
@@ -1208,12 +1254,13 @@ confirm the sdl3 0.18.0 publish + relay sweep, then the ordered tasks).
      are typed `Int` (C `void*`, exact); repro
      `docs/repro/bindings-pilot/ptr-cast/`; INFO to compiler
      `-1309-bindings`.  Never cast handles to pointers.
-   - **B-23/B-24 FILED with repros** (`REL-20261012-2051-bindings-2`):
-     B-23 = `null` literal crosses to C as garbage (use
-     `dx12_null_ptr()`); B-24 = ffi out-slot reads after a C extern write
-     are unreliable (`ffi_bad=2 byte_bad=0 of 400`; byte-indexed reads
-     only; pointer-edged flows through C return values). Repros under
-     `docs/repro/bindings-pilot/null-literal/` and `ptr-read-stale/`.
+   - **B-23/B-24 FILED -> FIXED at m281 `77827766`**
+     (`REL-20261012-2051-bindings-2`; re-verify at v0.64.5+): B-23 =
+     `null` literal crossed to C as garbage (workaround `dx12_null_ptr()`
+     -- stays as the documented API); B-24 = ffi out-slot reads after a C
+     extern write were unreliable (`ffi_bad=2 byte_bad=0 of 400`;
+     byte-indexed reads meanwhile).  Repros
+     `docs/repro/bindings-pilot/null-literal/` + `ptr-read-stale/`.
    - **opengl 0.5.0 WGL SURFACE PUBLISHED**: generated from the same
      pinned registry (`6af574a1`), oracle `xml/wgl.xml` -- 146 commands /
      298 enums, 0 skips; core-1.0 24/24 resolvable;
@@ -1232,37 +1279,35 @@ confirm the sdl3 0.18.0 publish + relay sweep, then the ordered tasks).
      **`eco-v0.1.171`** (sha256 `017b7664...` @13:06:06Z; scope `f8e284b`,
      wrap `c106c10d`, README/STATUS `ed6bc4da`; scope + allowlist
      520 -> 521).
-   - **sdl3 0.18.0 SHIPPED, PUBLISH REQUESTED (B-11 addendum RETIRED on
+   - **sdl3 0.18.0 PUBLISHED -- ALL LIVE (B-11 addendum RETIRED on
      v0.64.4)**: foreign-written event readback -- poll into an owned
      buffer and decode exactly (user-event type=32768 + KEY_DOWN
      decode); suite 59 -> 61, **x2 61/61 on `5a26dee8`** (feat
-     `75d8c339` + fix `5a26dee8`, record `37d8856d`); request
-     `REL-20261013-1338-bindings-2` (relay `7992cbd`); INFO to compiler:
-     addendum `-0304` FIXED on v0.64.4 (can close; the general B-11
-     driver shape stays open).  Merge note: keep package.xi at 0.18.0
-     (main carries the published 0.17.0 full-surface bump).  INFO item
-     `-1338-bindings` is **acked** (compiler will close `-0304`).
+     `75d8c339` + fix `5a26dee8`); LIVE as **`eco-v0.1.173`** (record
+     `05d5feda`, wrap `f70f02ae`, sha256 `544c59b8...` @13:55:09Z;
+     `REL-20261013-1338-bindings-2` **fixed**; README/STATUS
+     `5000800a`).  Merge note: keep package.xi at 0.18.0.  INFO items
+     `-1338-bindings` / `-1309-bindings` still open compiler-side (their
+     sweep).
    - Graphics drive: Vulkan 0.6.0 live + engine-green (GPU window + scene
      tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
      the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
 
-0b. FIRST ACTION: confirm the **xiom.sdl3 0.18.0 publish**
-    (`REL-20261013-1338-bindings-2`; 61/61 x2 on `5a26dee8`) -- the only
-    item in flight.  Check the relay item state + packages SESSION/batch
-    notes; when it publishes, record the live eco version + sha256 here
-    (commit+push).  If packages bounces, keep package.xi at 0.18.0 and
-    STATUS with the 61/61 record; the sdl3 SPEC carries the evidence.
-    Then do a relay sweep (`git fetch origin` + `relay.py view --lane
-    bindings`) and process anything new (replies via new items; stage
-    only this lane's files).  Then pick the next lane work in this order:
-    (a) **glfw 0.6.0 lift + probe9 when an archive carrying the B-22 fix
-    ships** (fix on compiler main `29e35ef8`; check `release-checks/` +
-    the relay for a new compiler release first); (b) sdl3 handler-shape
-    widening once B-22 is pinned; (c) imgui SDL3+Vulkan P6 backends once
-    the shared+dev build lands (`-2012-engine-4` acked); else
-    relay-driven items.
-    `-1403-packages` is already fixed compiler-side (m277 `29e35ef8`),
-    so there is no block there.
+0b. FIRST ACTION: check for the **next compiler archive (v0.64.5+)** --
+    `gh release list -R xiom-lang/xiom` + relay `release-checks/`.
+    If shipped: repin is the packages lane's queue item 3; THIS lane then
+    runs the RE-VERIFY WAVE (see 0.) and on green executes the lifts:
+    (a) **glfw 0.6.0 lift re-attempt + probe9** (B-22 fixed m277; delete
+    the 18 dispatchers + registries, direct handoff); (b) **sdl3
+    handler-shape widening** (multi-arg shapes once B-22 is pinned);
+    (c) workaround retirement the wave clears; record per-item
+    release-check rows + reply to compiler with evidence.
+    If NOT shipped: relay sweep (`git fetch origin` + `python
+    tools/relay.py view --lane bindings`) + packages SESSION.md check
+    only -- every other lane item is gated (glfw/sdl3 on the archive;
+    imgui P6 on the shared+dev build `-2012-engine-4` acked; PULSE
+    driver queued behind graphics on the packages side).
+    `-1403-packages` is fixed compiler-side (m277 `29e35ef8`).
 
 1. RELAY: E:\xiom-lang\xiom-relays -- `git fetch origin` + compare (do
    NOT pull: "Cannot fast-forward to multiple branches"); `python
@@ -1331,12 +1376,13 @@ confirm the sdl3 0.18.0 publish + relay sweep, then the ordered tasks).
      (report `docs/PROVENANCE-COMPLIANCE.md`; xiom.dx12 already
      compliant).
 
-4. ORDERED TASKS after DX12: (i) confirm the in-flight publish
-   (item 0b: sdl3 0.18.0); all others confirmed live this session;
-   (ii) glfw 0.6.0 lift re-attempt + probe9 when B-22 ships;
-   (iii) sdl3 handler-shape widening (B-22 caveat if it needs
-   param values crossing to C) -- the sdl3 readback item (Phase-2 #3)
-   is DONE in 0.18.0 (B-11 addendum retired); (iv) **DONE -- GLES/EGL
+4. ORDERED TASKS after DX12: (i) **watch v0.64.5+** -- on ship run the
+   RE-VERIFY WAVE (item 0.) + record the release-check rows; all
+   publishes are confirmed live (last: sdl3 0.18.0);
+   (ii) glfw 0.6.0 lift re-attempt + probe9 (B-22 fixed m277; run the
+   wave first); (iii) sdl3 handler-shape widening (B-22-gated) -- the
+   sdl3 readback item (Phase-2 #3) is DONE in 0.18.0 (B-11 addendum
+   retired); (iv) **DONE -- GLES/EGL
    via ANGLE** (`xiom.gles` 0.1.0 shipped) + **WGL half DONE as opengl
    0.5.0**; dx12 0.4.0 command recording DONE (next candidates: barrier
    helpers/bundles/command signatures on ask);
@@ -1364,8 +1410,8 @@ B-25 = `Int as *UInt8` is not value-preserving -- never cast handles to
 pointers; object params cross as `Int` / int64 C-helper args).
 Deliver batches as: feat -> x2 green -> record via scripts/status.ps1 ->
 relay item to packages -> ledger update, all pushed; leave the worktree
-clean. TODO NOW: item 0b (confirm + record the xiom.sdl3 0.18.0 publish --
-`REL-20261013-1338-bindings-2`), then the glfw/sdl3 lifts when B-22 ships.
+   clean. TODO NOW: item 0b (watch v0.64.5+; on ship run the RE-VERIFY
+   WAVE + the glfw/sdl3 lifts; else relay-driven only).
 
 ```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
