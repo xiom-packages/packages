@@ -24,8 +24,11 @@
  *                                            0=ok; keeps a core context
  *                                            current for the session
  *   int  xgl_session_active(void)            1 while the session lives
+ *   long long xgl_session_dc(void)           raw HDC of the live session
+ *   long long xgl_session_hglrc(void)        raw HGLRC of the live session
  *   long long xgl_get_proc(const char* name) session resolver (wglGetProcAddress
- *                                            first, then opengl32 exports)
+ *                                            first, then opengl32/gdi32
+ *                                            exports)
  *   void xgl_session_close(void)             release context/window
  *   void xgl_unload(void)                    (closes a live session first)
  */
@@ -163,6 +166,7 @@ static PROC resolve_proc(const char* name) {
   PROC p = 0;
   if (p_wglGetProcAddress) p = p_wglGetProcAddress(name);
   if (!p && m_gl) p = GetProcAddress(m_gl, name);
+  if (!p && m_gdi32) p = GetProcAddress(m_gdi32, name); /* WGL 1.0 pixel-format set */
   return p;
 }
 
@@ -352,6 +356,11 @@ int __cdecl xgl_session_open(int major, int minor, int flags) {
 }
 
 int __cdecl xgl_session_active(void) { return s_active; }
+
+/* Raw session handles for the WGL surface (wgl* calls take HDC/HGLRC as
+ * Int).  Both are 0 when no session is live. */
+long long __cdecl xgl_session_dc(void) { return (long long)(intptr_t)s_hdc; }
+long long __cdecl xgl_session_hglrc(void) { return (long long)(intptr_t)s_rc; }
 
 long long __cdecl xgl_get_proc(const char* name) {
   if (!s_active || !name || !name[0]) return 0;

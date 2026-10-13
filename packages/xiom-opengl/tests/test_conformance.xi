@@ -34,6 +34,11 @@ use xiom.opengl.consts_3;
 use xiom.opengl.consts_4;
 use xiom.opengl.consts_5;
 use xiom.opengl.consts_6;
+use xiom.opengl.wgl_names;
+use xiom.opengl.wgl_cmds_01;
+use xiom.opengl.wgl_cmds_02;
+use xiom.opengl.wgl_consts_1;
+use xiom.opengl.wgl_consts_2;
 
 fn report(ok: Bool, name: Str) -> Int {
   if ok {
@@ -213,6 +218,80 @@ fn main() -> Int {
       } else {
         failed = failed + report(false, "surface: glCreateShader returned 0");
       }
+
+      // 0.5.0: WGL surface (Khronos wgl.xml) through the same session.
+      let sdc = opengl_session_dc();
+      let shglrc = opengl_session_hglrc();
+      failed = failed + report(sdc != 0 && shglrc != 0,
+        "wgl: session handles live (dc+context)");
+
+      // Every resolvable WGL_VERSION_1_0 command must resolve (opengl32/gdi32
+      // exports; the 2 wingdi.h macro aliases are excluded, see wgl_names).
+      let wcore = wgl_core_names();
+      var wunresolved: Int = 0;
+      var wc = 0;
+      while wc < wcore.len() {
+        if gl_api_resolve(&api, wcore[wc].c_str()) == 0 {
+          wunresolved = wunresolved + 1;
+        }
+        wc = wc + 1;
+      }
+      failed = failed + report(wcore.len() == WGL_CORE_RESOLVABLE_COUNT && wunresolved == 0,
+        "wgl: " + to_string(WGL_CORE_RESOLVABLE_COUNT) + " core-1.0 commands resolved (unresolved=" + to_string(wunresolved) + ")");
+
+      // The full oracle set must cover the registry (emitted count check).
+      failed = failed + report(wgl_cmd_names().len() == WGL_CMD_COUNT && WGL_CORE_COUNT == 26,
+        "wgl: oracle surface " + to_string(WGL_CMD_COUNT) + " commands (core " + to_string(WGL_CORE_COUNT) + ")");
+      failed = failed + report(WGL_DRAW_TO_WINDOW_ARB == 0x2001 && WGL_CONTEXT_MAJOR_VERSION_ARB == 0x2091
+          && WGL_TYPE_RGBA_ARB == 0x202B && WGL_SWAP_MAIN_PLANE == 0x1,
+        "wgl: generated consts (DRAW_TO_WINDOW/CONTEXT_MAJOR/TYPE_RGBA/SWAP_MAIN)");
+
+      // Extension string through the generated wrapper (ARB, EXT fallback).
+      let xarb = gl_api_resolve(&api, "wglGetExtensionsStringARB".c_str());
+      let xext = gl_api_resolve(&api, "wglGetExtensionsStringEXT".c_str());
+      var xlen: Int = 0;
+      if xarb != 0 {
+        let xs = unsafe { Str::from_c_str(wgl_get_extensions_string_arb(&api, sdc)) };
+        xlen = xs.len();
+      } else if xext != 0 {
+        let xs2 = unsafe { Str::from_c_str(wgl_get_extensions_string_ext(&api)) };
+        xlen = xs2.len();
+      }
+      failed = failed + report(xlen > 0, "wgl: extensions string (" + to_string(xlen) + " chars)");
+
+      // Swap-interval roundtrip (WGL_EXT_swap_control; driver-dependent).
+      let sip = gl_api_resolve(&api, "wglSwapIntervalEXT".c_str());
+      if sip != 0 {
+        let s1 = wgl_swap_interval_ext(&api, 1);
+        let g1 = wgl_get_swap_interval_ext(&api);
+        let s0 = wgl_swap_interval_ext(&api, 0);
+        let g0 = wgl_get_swap_interval_ext(&api);
+        failed = failed + report(s1 != 0 && g1 == 1 && g0 == 0,
+          "wgl: swap interval roundtrip (1 -> " + to_string(g1 as Int) + ", 0 -> " + to_string(g0 as Int) + ")");
+      } else {
+        failed = failed + report(true, "wgl: swap interval SKIP -- WGL_EXT_swap_control absent");
+      }
+
+      // ChoosePixelFormatARB through the generated consts + wrapper
+      // (out-params into owned Vec slots; B-16/B-17 discipline).
+      var wattribs: Vec[Int32] = Vec[Int32].new();
+      wattribs.push(WGL_DRAW_TO_WINDOW_ARB as Int32);
+      wattribs.push(1 as Int32);
+      wattribs.push(WGL_SUPPORT_OPENGL_ARB as Int32);
+      wattribs.push(1 as Int32);
+      wattribs.push(WGL_DOUBLE_BUFFER_ARB as Int32);
+      wattribs.push(1 as Int32);
+      wattribs.push(WGL_PIXEL_TYPE_ARB as Int32);
+      wattribs.push(WGL_TYPE_RGBA_ARB as Int32);
+      wattribs.push(0 as Int32);
+      var wformats: Vec[Int32] = Vec[Int32].new();
+      wformats.push(0);
+      var wcount: Vec[UInt32] = Vec[UInt32].new();
+      wcount.push(0);
+      let car = wgl_choose_pixel_format_arb(&api, sdc, wattribs.as_mut_ptr(), 0 as *Float32,
+        1 as UInt32, wformats.as_mut_ptr(), wcount.as_mut_ptr());
+      failed = failed + report(car != 0 && wcount[0] >= 1 && wformats[0] != 0,
+        "wgl: ChoosePixelFormatARB -> " + to_string(wcount[0] as Int) + " format(s) pf=" + to_string(wformats[0] as Int));
 
       opengl_session_close();
       failed = failed + report(!opengl_session_is_active(), "surface: session closed");

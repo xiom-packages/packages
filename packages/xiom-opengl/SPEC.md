@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.opengl` |
-| Version | 0.4.0 |
+| Version | 0.5.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | OpenGL (Khronos API); Windows implementation `opengl32.dll` |
 | Upstream license | none vendored -- the API is a specification; the bridge is our code |
@@ -27,6 +27,7 @@ vendored bridge -- there is no link-time dependency on OpenGL.
 | `user32.dll` | `CreateWindowExA`, `DestroyWindow`, `GetDC`, `ReleaseDC` |
 | `gdi32.dll` | `ChoosePixelFormat`, `SetPixelFormat` |
 | via `wglGetProcAddress` (context-scoped) | `wglCreateContextAttribsARB`, `glGetIntegerv`, `glGetStringi` |
+| generated surface resolver (0.4.0/0.5.0) | any GL/WGL name: `wglGetProcAddress` -> `opengl32` exports -> `gdi32` exports (the WGL 1.0 pixel-format set) |
 
 **Core-context attribs pinned** (used by `xgl_query_core`):
 `WGL_CONTEXT_MAJOR_VERSION_ARB=0x2091`, `MINOR=0x2092`, `FLAGS=0x2094`,
@@ -43,6 +44,18 @@ PFD_DOUBLEBUFFER(0x1)` = 0x25; `iPixelType = PFD_TYPE_RGBA(0)`;
 **GL enums pinned:** `GL_VENDOR=0x1F00`, `GL_RENDERER=0x1F01`,
 `GL_VERSION=0x1F02`, `GL_EXTENSIONS=0x1F03`,
 `GL_SHADING_LANGUAGE_VERSION=0x8B8C`.
+
+**WGL surface pin (0.5.0):** the generated WGL wrappers come from the SAME
+pinned registry clone, oracle `xml/wgl.xml` (106,344 bytes, SHA256
+`6401072FBD5B2D992149BB619FA9731C0311256510EE5E688E995D4DD93C59C0`):
+`WGL_VERSION_1_0` = 26 commands (24 resolvable -- the two `wingdi.h` macro
+aliases `wglUseFontBitmaps`/`wglUseFontOutlines` have no exported symbol;
+their A/W variants do), 57 declared extensions -> 119 extension commands,
+146 commands total -> 146 wrappers; 298 enums -> 298 consts.  Generated
+`src/wgl_cmds_01..02.xi`, `src/wgl_consts_1..2.xi`, `src/wgl_names.xi`;
+`docs/gen_wgl_manifest.json` carries oracle==emitted and the alias ledger.
+The session exposes its raw `HDC`/`HGLRC` (`opengl_session_dc` /
+`opengl_session_hglrc`); the WGL wrappers take handles as `Int`.
 
 **Local runtime sample (reference, NOT the pin -- driver-dependent):**
 
@@ -98,6 +111,15 @@ PFD_DOUBLEBUFFER(0x1)` = 0x25; `iPixelType = PFD_TYPE_RGBA(0)`;
   first extension names; `opengl_has_extension(name)` scans the extension
   list with `glGetStringi` (exact match). Both are atomic
   (load -> context -> query -> unload) like the classic probe.
+- **0.5.0 (WGL surface).** `tools/gen_wgl.py` emits every command in the
+  pinned `wgl.xml` as a `wgl_<name>` wrapper (modules
+  `xiom.opengl.wgl_cmds_<grp>`, typed from the registry like the GL
+  surface) resolved through the same live session (`gl_api_resolve`); the
+  resolver gained the `gdi32` fallback for the WGL 1.0 pixel-format
+  exports.  The suite checks the resolvable core set (24/24), the oracle
+  counts (146 commands / 298 consts), the extensions string
+  (`wglGetExtensionsStringARB`, EXT fallback), a swap-interval roundtrip
+  (`WGL_EXT_swap_control`) and `wglChoosePixelFormatARB`.
 
 ## 4. Test matrix (recorded 2026-10-08, compiler v0.64.1)
 
@@ -105,6 +127,7 @@ PFD_DOUBLEBUFFER(0x1)` = 0x25; `iPixelType = PFD_TYPE_RGBA(0)`;
 |---------------|---------|--------|
 | Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.opengl` | **PASS 13/13 x2** -- constants, SKIP classification (bogus soname -> ABSENT), classic context strings, contextless NULL, 3.3 core negotiation, extension count (404) + head, bogus extension absent, well-known extension (driver-dependent), unload |
 | Full core surface (0.4.0, v0.64.4, 2026-10-12) | same | **PASS 21/21 x2** -- adds the live 4.6-core session: 656/656 core commands resolved (unresolved=0), generated consts, buffer roundtrip (size=64 err=0), shader compile (status=1), session close |
+| Full WGL surface (0.5.0, v0.64.4, 2026-10-13) | same | **PASS 28/28 x2** -- adds: session handles live (dc+context), 24/24 resolvable core-1.0 commands resolved, oracle surface 146 commands (core 26), WGL generated consts, extensions string (809 chars), swap-interval roundtrip (1 -> 1, 0 -> 0), `wglChoosePixelFormatARB` (1 format, pf=9) |
 | SKIP classification | deterministic on every host via `opengl_probe_named("xiom-absent-gl-probe-xyz.dll")` | **PASS** in both recorded runs |
 | No-context SKIP path | code-reviewed; force-testing requires breaking window creation (covered by the same kind mapping as the ABSENT branch) | not exercised locally |
 
@@ -118,7 +141,13 @@ wrappers + 1358 enums from the pinned Khronos registry (`PROVENANCE.md`,
 `docs/COVERAGE.md`), driven by the live-session resolver
 (`opengl_session_open` keeps a core context current; each generated wrapper
 resolves its entry point per call through `wglGetProcAddress`, then the
-`opengl32` export table). Still next: the `opengl32sw.dll` fallback and the
-POSIX/EGL path (`ROADMAP.md`). The old static-extern wrapper set (pre-0.2.0
-`opengl.xi`) could not link (`glCreateShader` etc. are not exported by
-`opengl32.dll`) and is preserved in git history only as reference.
+`opengl32` export table).
+
+0.5.0 adds the **full WGL surface**: 146 command wrappers + 298 enums from
+the same pinned registry (`xml/wgl.xml`), resolved through the same
+session; `opengl_session_dc`/`opengl_session_hglrc` expose the session
+handles.  Still next: the `opengl32sw.dll` fallback and the GLES/EGL
+(ANGLE `libGLESv2`/`libEGL` + `eglGetProcAddress`) path (`ROADMAP.md`).
+The old static-extern wrapper set (pre-0.2.0 `opengl.xi`) could not link
+(`glCreateShader` etc. are not exported by `opengl32.dll`) and is
+preserved in git history only as reference.
