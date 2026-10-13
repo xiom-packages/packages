@@ -144,6 +144,17 @@ running). Check `git log -1 --format=%h %s` before starting.
   licensed + review-after 2026-12-01; `docs/prep/codec-wave-b.md`); `xiom.harfbuzz` 0.1.0 and
   `xiom.basisu` 0.1.0 already prepped by bindings (their bring-up publishes will arrive as items;
   new names -> ops scope asks before publish).
+- **Wave-B bring-up merged + engine relay flow (tick 21:00-21:30Z)**: bindings tip `41566a65` merged
+  (`ccb62224`; ffmpeg README/STATUS conflicts resolved theirs + restored published refs; validate
+  **537/0** -- harfbuzz/basisu/spz registered). Wave-A items all fixed (four packages live in
+  `eco-v0.1.176`, run 38468818666 green; registry sha256s jolt `3ac3df4e`, zstd `6288ac84`, meshopt
+  `521dab9e`, ffmpeg `24a5c522` @21:14-21:17Z; sync `f48acb15`). **Wave-B publish queued**: ffmpeg
+  0.4.0 demux + new names harfbuzz 0.1.0 / basisu 0.1.0 / spz 0.1.0 -- registry scopes with ops
+  (`REL-20261013-2122-packages`; tag on scope-live). **x2 status for wave B: harfbuzz 27/27 x2 DONE;
+  basisu/spz/ffmpeg-0.4.0 x2 + records still to run before the wrap.** Owner directive `-2125`
+  implemented: engine availability relay sent (`REL-20261013-2128-packages`; standing flow = relay
+  to engine after every publish). Clone protocol VERIFIED at the ledger (8 wave-B clones +
+  steam-audio refresh; pinned + licensed + review-after 2026-12-01).
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
