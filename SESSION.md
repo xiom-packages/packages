@@ -84,6 +84,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   green; **gles 0.1.0** -- bridge recipe `--c-source <installed>\...\gles_probe.c` -> live ANGLE
   2.1 run (EGL 1.5 | ES 3.0.0 | D3D11). opengl/dx12 installs are clean (same bridge-recipe
   family; the `-5` gap still requires the manual `--c-source` until the consumer build hook lands).
+- **Fleet install sweep (2026-10-13)**: `xiom pkg install` verified across the whole published
+  fleet -- **505/505 clean** (468 pure + 37 native; log `%TEMP%\kilo\install-sweep-pure.log`;
+  scratch home kept for reuse). Registry-vs-repo drift audit: **zero version mismatches** across
+  505; registry 507 = our 505 + `xiom-std` + `xiom.staging-e2e-probe`. Only the 16 grandfathered
+  names remain unpublished (never shipped); 2 extra home dirs are resolver-pulled pinned deps
+  (e.g. `xiom-http-0.1.0` beside latest).
 - **Ops hygiene (clobber incident `-1852-ops`)**: installs/extracts to lane-local dirs only;
   `tools/home-snapshot.ps1` before risky windows; restore-from-snapshot after a clobber. Packages ran
   no install/extract; timeline observation filed (`REL-20261012-1904-packages`).
