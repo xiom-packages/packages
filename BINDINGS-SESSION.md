@@ -3,19 +3,21 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: GRAPHICS DRIVE COMPLETE THROUGH DX12 0.3.0 -- Vulkan 0.6.0 live
-(engine-green); OpenGL 0.4.0 LIVE (`eco-v0.1.164`; 656/656 core-4.6, x2);
-DX12 0.1.0 LIVE (`eco-v0.1.166`) + **0.3.0 SHIPPED locally** (`fd82f394` +
-`55c26a8f` + `a7f988d9`; struct metadata + full d3d12.h + DXGI + video;
-suites 18/18 -> 28/28 -> **31/31 x2**); SDK100 all slices live through
-`eco-v0.1.165` (81 releases); v0.64.4 pin wave done (archive verified,
-repin 532, release-check rows `b235493`); **B-22 open -- glfw 0.6.0 lift
-parked**; **B-23/B-24 filed with repros** (null literal -> C; ffi out-slot
-reads; relay `REL-20261012-2051-bindings-2`); ops clobber rules in force --
-SESSION HANDOFF 2026-10-12 20:55Z** (this session: DX12 publish confirm +
-the whole 0.3.0 wave -- struct metadata, DXGI, video -- plus the B-23/B-24
-findings and the relay batch; NEXT = publish 0.3.0 + settle + promotion
-readiness, then the ordered follow-ons).
+**STATUS: DX12 PROMOTION GATE GREEN -- `xiom.dx12` **0.3.1 `stable`**
+(publish requested `REL-20261013-1207-bindings`; suite **35/35 x2** on
+`1a392b91`, trap-14 clean, contracts 1175/0, verify 0/0/33 unknown;
+commits `1a392b91` + `1f5473e7`) -- Vulkan 0.6.0 live (engine-green);
+OpenGL 0.4.0 LIVE (`eco-v0.1.164`; 656/656 core-4.6, x2); DX12
+**0.1.0/0.2.0/0.3.0 ALL LIVE** (0.1.0 `eco-v0.1.166`, 0.2.0
+`eco-v0.1.167`, **0.3.0 `eco-v0.1.168`** sha256 `14ce3e67` @21:05:31Z --
+struct metadata + full d3d12.h + DXGI + video); SDK100 all slices live;
+v0.64.4 pin wave done (archive verified, repin 532, release-check rows
+`b235493`); **B-22 open -- glfw 0.6.0 lift parked**; **B-23/B-24 accepted
+for the dx12 promotion** (expiry = next compiler pin carrying the fixes;
+relay `-2051-bindings-2`); ops clobber rules in force; per-touch
+PROVENANCE rule in effect (dx12 compliant) -- SESSION HANDOFF 2026-10-13
+12:10Z** (NEXT = confirm the 0.3.1 promotion publish + record the eco
+version; the rebuilt paste prompt is below).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -243,6 +245,92 @@ own feat commit + x2 record (all pushed on `bindings`):
   workaround rows for B-23/B-24 / API review) after the settle window;
   `-1403-packages` could not block anything seen this session.
 
+**UPDATE 2026-10-13 11:55Z (CONTEXT-LIMIT HANDOFF -- this session's
+outcomes)**: The main session (19:34Z-20:55Z) completed the **entire DX12
+0.3.0 wave** and its publish; four doorbell ticks (00:00/03:00/06:00/09:00Z)
+found nothing new after the publish record.
+- 0.1.0 publish confirm: `eco-v0.1.166` (relay `-1930` fixed).
+- **0.3.0 wave, all three slices, feat + x2 record pushed**: (a) struct
+  metadata `fd82f394` -- 19 typed shims (member-sret ABI: RCX=this,
+  RDX=hidden out), 3 callback methods bound, 358 wrappers/0 unmapped,
+  clang oracle dump; 18/18 x2. (b) DXGI `55c26a8f` -- 43 ifaces/163
+  wrappers/246 consts/6 fns + factory/3 adapters/WARP/WARP device/
+  BGRA8-FIFO swapchain; 28/28 x2. (c) video `a7f988d9` -- 30 ifaces/190
+  wrappers/661 consts/10 typed shims + QI/VIDEO_DECODE chain; 31/31 x2.
+  Struct meta 434 sizes + 1804 offsets (2238 consts).
+- **B-23** (null literal -> C garbage; `xd12_null_ptr()` workaround) and
+  **B-24** (ffi out-slot reads after a C write unreliable; byte-indexed
+  reads only, pointer-edged flows via C return values) filed with repros
+  under `docs/repro/bindings-pilot/`; MAINTENANCE.md rows added;
+  relay `-2051-bindings-2` to compiler.
+- **Relay batch** (`6f27f1b`): `-2051-bindings` 0.3.0 publish request ->
+  **fixed** (batch 70, `eco-v0.1.168` sha256 `14ce3e67` @21:05:31Z);
+  `-3` engine ack (vkCmdPushConstants routed to the owner Vulkan lane;
+  mini-RHI tier + imgui noted); `-4` packages ack (PULSE SQL driver
+  accepted into xiom.sqlite 0.4.0, queued behind graphics).
+- Ledger/paste-prompt commits: `665804ae`/`55c26a8f`-record/`aab68680`/
+  `3da3258d` (+ parallel-session doorbell commits). Worktree clean;
+  `BINDINGS-SESSION.md` tip on `bindings`.
+- **NEXT (paste prompt item 0b)**: promotion readiness per policy sec. 7
+  (G1-G7: trap-14 byte-level grep, contracts pass on `dx12.xi`/`dxgi.xi`/
+  `video.xi`, G6 rows already added, SPEC error catalog + API review,
+  dependents check, `-1403-packages` watch) -- after the settle window;
+  0.3.0 went live 21:05Z 2026-10-12.
+
+**UPDATE 2026-10-13 12:10Z (DX12 PROMOTION GATE GREEN -- stable 0.3.1
+publish requested)**: ran the policy sec.-7 promotion readiness pass for
+xiom.dx12; all gates green -> **`incubating` -> `stable` at 0.3.1** (patch
+bump over the published 0.3.0; same verified surface; versions are
+immutable). Publish request: `REL-20261013-1207-bindings` (relay
+`a9223a1`, validate 380 items green).
+- **G1**: fresh `port.ps1 -Package xiom.dx12` x2 on `1a392b91` --
+  **35/35 both runs, exit 0**; trap-14 byte-level grep over the package's
+  45 `.xi` files = **0 hits** (`Vec<`/`Result<`/`Option<`/`&Vec<`/`<]`/
+  `>]`; byte-level, never from Read output).
+- **G5 hardening**: +4 deterministic error-path checks (NULL blob handle
+  guard -> -1; queue priority=1 rejected; buffer Layout=UNKNOWN rejected;
+  `EnumAdapters1(9999)` -> 0) -- suite **31 -> 35**.
+- **G4**: contracts inventoried -- **1175 `requires:` / 0 `ensures:`
+  across 44 files** (generated wrappers carry `obj != 0`); `xiom-verify
+  --check` on dx12.xi/dxgi.xi/video.xi = **0 proven / 0 violated / 33
+  unknown** (364 SMT emitter errors) -> solver-unproven, review-only; FFI
+  pointer domains documented unasserted with reason (SPEC sec. 7).
+- **G2/G3**: SPEC error catalog (sec. 6) + promotion notes (sec. 7);
+  README Status -> stable (35/35) + stale struct-meta counts fixed
+  (1308 -> 2238; 272/57 -> 434/97 shapes; `struct_meta_1..5`);
+  ROADMAP/AUDIT refreshed; API review noted; no placeholders.
+- **G6**: B-23/B-24 accepted rows stand (expiry = next compiler pin
+  carrying the fixes; neither fix is in v0.64.4); B-22 raw-handler
+  callback note stands; no stale rows. **G7**: no dependents (no
+  `package.xi` declares `xiom.dx12` in `deps:`).
+- **Commits**: prep `1a392b91` (7 files), record + stage flip `1f5473e7`
+  (`status.ps1 -Action update ... -Commit 1a392b91 -Stage stable`;
+  validate **533/0**); both pushed to origin/bindings.
+- `-1403-packages` check: **fixed compiler-side** (m277 `29e35ef8`, same
+  commit as the B-22 work) -- no promotion block.
+- **NEXT**: watch `REL-20261013-1207-bindings` -> fixed (0.3.1 live
+  sha256) in the packages batch/SESSION; record the eco version here.
+
+**UPDATE 2026-10-13 00:05Z (doorbell -- DX12 0.3.0 PUBLISHED)**: packages
+**Batch 70: `xiom.dx12` 0.3.0 PUBLISHED** -- `eco-v0.1.168` (run
+38308256176; live sha256 `14ce3e67` @21:05:31Z, signed); merge `4970096a`
+(tip `aab68680`), bump `3fcb92aa` (0.2.0->0.3.0), wrap `113af041`,
+validate 533/0, port x2 31/31 on v0.64.4 (struct sret + oracle sizeof
+cross-check, DXGI 3 adapters/WARP/640x480 swapchain, video QI +
+VIDEO_DECODE chain); README/STATUS synced by packages; relay item
+`REL-20261012-2051-bindings` -> **fixed**. Also noted: **0.2.0 DID publish
+first** (`eco-v0.1.167`, sha256 `7cfae765`, batch 69) before the 0.3.0
+request landed -- 0.3.0 supersedes cleanly; tally **84 eco releases**.
+Two packages-side protocol notes relevant to this lane: (1) **per-touch
+PROVENANCE rule tightened** -- upstream-first + clone-repo + 100% coverage
+for EVERY package, new AND pre-existing; any touched package gets
+`PROVENANCE.md` at touch (audit `scripts/provenance-audit.ps1`, report
+`docs/PROVENANCE-COMPLIANCE.md`; 14 compliant / 519 to retrofit) --
+xiom.dx12 already carries PROVENANCE.md; (2) engine `-2012-2`/`-2012-4`
+and packages `-2032` are now `acked` on their side (my acks dispatched).
+Relay tip `f86adc1` (xvector/stdlib waves); no new bindings items. Doorbell
+re-armed. Next action: promotion readiness (paste prompt item 0b).
+
 **UPDATE 2026-10-12 21:05Z (doorbell)**: batch 69 = **`xiom.dx12` 0.2.0
 PUBLISHED** (`eco-v0.1.167`, run 38301605558; live sha256 `7cfae765`);
 0.1.0 (batch 68, `eco-v0.1.166`) remains live too -- the 0.3.0 request
@@ -252,6 +340,18 @@ x2 + publish next; the name scope is already cleared since 0.1.0 is live).
 No new bindings-addressed items beyond the owner-handled sets
 (`-2051-bindings-2/-3/-4`); relay validate 378 green. Nothing else
 actionable this tick.
+
+**UPDATE 2026-10-13 00:00Z (doorbell)**: batch 70 = **`xiom.dx12` 0.3.0
+PUBLISHED** (`eco-v0.1.168`, run 38308256176; live sha256 `14ce3e67`;
+merge tip + bump `3fcb92aa` 0.2.0->0.3.0; validate 533/0; port x2 on
+v0.64.4). The full DX12 0.3.0 surface -- struct metadata (434 shapes /
+2238 size+offset consts), DXGI (43 ifaces / 163 wrappers + factory/
+adapters/WARP + BGRA8/FIFO swapchain), video slice (30 ifaces / 190
+wrappers) -- is now LIVE (packages fixed `REL-20261012-2051-bindings`,
+`b3a2fc4`). No open bindings-addressed relay items at 00:00Z; relay
+validate green. Promotion readiness (policy sec. 7) is the next DX12 step
+after the settle window; B-23/B-24 remain the compiler-side workarounds to
+retire when a pin ships.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
@@ -892,23 +992,27 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-12 20:55Z;
-the DX12 0.3.0 wave is COMPLETE locally; publish confirm + promotion next).
+Bindings lane continuation -- seamless pickup (2026-10-13 12:10Z;
+the DX12 promotion gate is GREEN and stable 0.3.1 is PUBLISH REQUESTED;
+first action = confirm that publish + record the eco version).
 
-0. STATE (the 20:55Z UPDATE block + STATUS above carry the evidence):
+0. STATE (the 12:10Z UPDATE block + STATUS above carry the evidence):
    - v0.64.4 pin DONE (archive `44a41aea` verified; slot byte-identical
      556/556; repin 532; validate 532/0). Archive wave + compiler reply
      filed (`f8fe214` + release-check rows `b235493`). **B-22 is the one
      open compiler blocker**: fn-typed PARAM values do not cross to C at
      cast-call positions (glfw 0.6.0 lift parked; witness
      `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`).
-   - **DX12 0.3.0 COMPLETE locally** (struct metadata `fd82f394`, DXGI
-     `55c26a8f`, video `a7f988d9`, all pushed): 90+43+30 interfaces ->
-     358+163+190 wrappers, 19+10 typed shims, 1162+246+661 consts, 15
-     free fns; struct meta 434 sizes + 1804 offsets (2238 consts);
-     suites **18/18 -> 28/28 -> 31/31 x2**. DX12 0.1.0 LIVE
-     (`eco-v0.1.166`); **0.3.0 publish requested**
-     (`REL-20261012-2051-bindings`; supersedes the 0.2.0 ask).
+   - **DX12 0.3.0 PUBLISHED** (`eco-v0.1.168`, sha256 `14ce3e67`
+     @2026-10-12T21:05:31Z; 0.1.0/0.2.0/0.3.0 all live; struct metadata +
+     full d3d12.h + DXGI + video; relay `-2051` fixed). **PROMOTION GATE
+     GREEN -> stable 0.3.1 requested**: prep `1a392b91` (suite 35/35,
+     error paths, SPEC sec. 6/7), record + stage flip `1f5473e7` (pushed
+     to origin/bindings), trap-14 45 files / 0 hits, contracts 1175/0,
+     verify 0/0/33 unknown, G6 B-23/B-24 accepted, G7 none; request
+     `REL-20261013-1207-bindings` (relay `a9223a1`). Keep package.xi at
+     0.3.1 + STATUS stage=stable through the merge. Ledger tip: this docs
+     commit (clean).
    - **B-23/B-24 FILED with repros** (`REL-20261012-2051-bindings-2`):
      B-23 = `null` literal crosses to C as garbage (use
      `dx12_null_ptr()`); B-24 = ffi out-slot reads after a C extern write
@@ -919,19 +1023,16 @@ the DX12 0.3.0 wave is COMPLETE locally; publish confirm + promotion next).
      tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
      the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
 
-0b. FIRST ACTION: confirm the DX12 **0.3.0** publish in packages SESSION.md
-    (record the eco version here). Then the **promotion readiness pass**
-    (policy sec. 7) -- do not promote before the publish + settle window:
-    (a) G1 fresh x2 (already 31/31 x2 at `a7f988d9`) + trap-14 byte-level
-       grep clean (all angle shapes, parameter/local/FIELD positions);
-    (b) G4 contracts pass on the public entry points (`dx12.xi`,
-       `src/dxgi.xi`, `src/video.xi`) + `xiom-verify` where pure enough,
-       SPEC lists solver-unproven clauses;
-    (c) G6 MAINTENANCE.md workaround rows for B-23/B-24 (accept with
-       reason + expiry = next compiler pin) and retire any stale ones;
-    (d) G2/G3: SPEC error catalog + README Status sync + API review notes;
-    (e) G7 dependents check (none published depend on xiom.dx12 as of this
-       session). Watch `-1403-packages` for any block.
+0b. FIRST ACTION: confirm the **xiom.dx12 stable 0.3.1 promotion publish**
+    (`REL-20261013-1207-bindings`; gate green on `1a392b91`/`1f5473e7`).
+    Check the relay item state + packages SESSION/batch notes; when
+    packages publishes, record the live eco version + sha256 here
+    (commit+push). If packages bounces (merge conflict, version/stage
+    revert, or a gate question), resolve from this lane: keep package.xi
+    at 0.3.1, keep STATUS.json stage=stable + the 35/35 record, keep the
+    README stable text; the G1-G7 evidence is in `SPEC.md` sec. 7.
+    `-1403-packages` is already fixed compiler-side (m277 `29e35ef8`),
+    so there is no block there.
 
 1. RELAY: E:\xiom-lang\xiom-relays -- `git fetch origin` + compare (do
    NOT pull: "Cannot fast-forward to multiple branches"); `python
@@ -943,13 +1044,16 @@ the DX12 0.3.0 wave is COMPLETE locally; publish confirm + promotion next).
    every commit; if `.git/index.lock` exists another git op is running --
    wait, do not delete the lock.
 
-2. Re-arm the session doorbell: `cron_create` schedule `0 */3 * * *`,
+2. Re-arm the session doorbell (the recurring task usually survives; if
+   the session is new): `cron_create` schedule `0 */3 * * *`,
    prompt = "Bindings-lane doorbell. 1) E:\xiom-lang\xiom-relays: git
    fetch origin (not pull) + python tools/relay.py view --lane bindings;
    process new items (reply via new items; stage only this lane's files).
    2) Check E:\xiom-packages\packages\SESSION.md for new eco publish
    notes and record confirmed eco versions in BINDINGS-SESSION.md
    (commit+push if changed). 3) If nothing new, no action."
+   Check-before-act (packages rule, 2026-10-13): if a doorbell prompt
+   arrives twice for the same tick, verify state before acting again.
 
 3. TRAPS / TOOLCHAIN:
    - Toolchain: `XIOM_COMPILER=%LOCALAPPDATA%\xiom.new\bin\xiom.exe`
@@ -962,9 +1066,9 @@ the DX12 0.3.0 wave is COMPLETE locally; publish confirm + promotion next).
      when run manually; meshopt `-TimeoutSec 900`; opengl/dx12 suites
      compile their C bridges via port.args.json; heavy full-surface
      suites live at each package's tests/test_full_surface.xi. dx12 now
-     needs `--link user32` plus five --c-source bridges (dx12_probe,
+     needs `--link user32` plus eight --c-source files (dx12_probe,
      d3d12_calls, d3d12_structs, dxgi_probe, dxgi_calls, video_probe,
-     video_calls, video_structs -- eight files); suite slot reads are
+     video_calls, video_structs); suite slot reads are
      byte-indexed only; nullable C args use `dx12_null_ptr()` (B-23).
    - The shared `E:\xiom-lang\stdlib` is actively updated by another
      lane: module counts drift between runs and mid-wave commits can
@@ -975,8 +1079,16 @@ the DX12 0.3.0 wave is COMPLETE locally; publish confirm + promotion next).
      is the standard; clones in E:\repos\CLEANUP.md (OpenGL-Registry
      `6af574a1`, DirectX-Headers `461ef513` active; DXGI oracle = Windows
      SDK 10.0.26100.0 shared headers, hashes in PROVENANCE.md).
+     **Per-touch PROVENANCE rule (packages, 2026-10-12 20:36Z)**: it
+     applies to EVERY package, new AND pre-existing -- any package
+     merged/fixed/verified/published gets a `PROVENANCE.md` (upstream pin
+     + license OR an explicit independent declaration) and carries 100%
+     of its declared surface; audit via `scripts/provenance-audit.ps1`
+     (report `docs/PROVENANCE-COMPLIANCE.md`; xiom.dx12 already
+     compliant).
 
-4. ORDERED TASKS after DX12: (i) promotion readiness (item 0b);
+4. ORDERED TASKS after DX12: (i) 0.3.1 promotion publish confirm
+   (item 0b);
    (ii) glfw 0.6.0 lift re-attempt + probe9 when B-22 ships;
    (iii) sdl3 handler-shape widening (B-22 caveat if it needs
    param values crossing to C); (iv) GLES/EGL via ANGLE
@@ -1003,8 +1115,8 @@ B-24 = ffi out-slot reads after a C extern write are unreliable -- read
 owned slots byte-indexed, keep pointer-edged flows on C return values).
 Deliver batches as: feat -> x2 green -> record via scripts/status.ps1 ->
 relay item to packages -> ledger update, all pushed; leave the worktree
-clean. TODO NOW: item 0b (DX12 0.3.0 publish confirm + the promotion
-readiness pass).
+clean. TODO NOW: item 0b (confirm + record the xiom.dx12 stable 0.3.1
+promotion publish; `REL-20261013-1207-bindings`).
 
 ```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
@@ -1215,6 +1327,17 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS PUBLISH CONFIRM (graphics wave, 2026-10-12): xiom.vulkan 0.6.0
+(SDK100 full surface, owner-approved bump) live in eco-v0.1.163;
+xiom.opengl 0.4.0 (full generated core-4.6, 656/656 x2) live in
+eco-v0.1.164; xiom.dx12 0.2.0 in eco-v0.1.167 and 0.3.0 (video slice,
+31/31 x2) in eco-v0.1.168 -- allowlist through 520. Compiler findings
+B-22 (fn-typed param at cast-call argument position marshals to 0; glfw
+stays 0.5.0) and B-24 (ffi out-slot reads unreliable; dx12 repro) filed;
+push-constant zero-read diagnosis delivered to the engine on -1948.
+```
 
 ```
 BINDINGS PUBLISH CONFIRM (batches 38-41 window): xiom.glfw 0.4.0 live in

@@ -1,11 +1,12 @@
-# SPEC: xiom.dx12 -- Direct3D 12 foundation bindings (0.3.0)
+# SPEC: xiom.dx12 -- Direct3D 12 foundation bindings (0.3.1)
 
 ## 1. Identity
 
 | Field | Value |
 |-------|-------|
 | Package | `xiom.dx12` |
-| Version | 0.3.0 |
+| Version | 0.3.1 |
+| Stage | `stable` (promoted 2026-10-13; gate evidence in sec. 7) |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream (declaration oracle) | `microsoft/DirectX-Headers` @ `461ef513` (nearest stable tag `v1.619.5`); `include/directx/d3d12.h` SHA256 `AFA193D3...`; DXGI: Windows SDK **10.0.26100.0** shared headers (`dxgi.h`/`dxgi1_2..6.h`/`dxgitype.h`/`dxgicommon.h`/`dxgiformat.h`; per-file SHA256 in `PROVENANCE.md`) |
 | Runtime | OS `d3d12.dll` + `dxgi.dll`, resolved at runtime (no link dependency; `user32` linked only for the swapchain's hidden window); Agility SDK NOT required or vendored |
@@ -98,11 +99,11 @@
   - `DXGI_LOAD_FACTORY` / `DXGI_LOAD_ABI` -> FAIL (never silent)
   - `DXGI_SWAPCHAIN_NO_DEVICE` -> SKIP (swapchain stage only)
 
-## 4. Test matrix (recorded 2026-10-12, compiler v0.64.4)
+## 4. Test matrix (recorded 2026-10-13, compiler v0.64.4)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.dx12` | **PASS 31/31 x2** -- constants + SKIP classification (three runtimes), device (node_count=1), allocator roundtrip, generated surface (GetNodeCount, CreateCommandQueue + Release, D3D12SerializeRootSignature + typed RS probe 88-byte blob), struct metadata (queue GetDesc sret, committed-buffer Resource::GetDesc, GetResourceAllocationInfo 65536/65536, GetCustomHeapProperties, oracle-vs-build sizeof cross-check), DXGI (factory live, 3 adapters, Adapter1::GetDesc1, WARP adapter + desc, WARP D3D12 device, BGRA8/FIFO 640x480 swapchain + GetBuffer + GetDesc1 + Present), video (`ID3D12VideoDevice` QI, VIDEO_DECODE command list created C-side + generated `Close` = 0), unload paths |
+| Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.dx12` | **PASS 35/35 x2** -- constants + SKIP classification (three runtimes), device (node_count=1), allocator roundtrip, generated surface (GetNodeCount, CreateCommandQueue + Release, D3D12SerializeRootSignature + typed RS probe 88-byte blob), struct metadata (queue GetDesc sret, committed-buffer Resource::GetDesc, GetResourceAllocationInfo 65536/65536, GetCustomHeapProperties, oracle-vs-build sizeof cross-check), DXGI (factory live, 3 adapters, Adapter1::GetDesc1, WARP adapter + desc, WARP D3D12 device, BGRA8/FIFO 640x480 swapchain + GetBuffer + GetDesc1 + Present), video (`ID3D12VideoDevice` QI, VIDEO_DECODE command list created C-side + generated `Close` = 0), unload paths, and **error paths** (NULL blob guard, invalid queue priority rejected, invalid buffer layout rejected, out-of-range adapter index -> 0) |
 | No runtime / no adapter | deterministic SKIP classification via the bogus-soname paths; `NO_DEVICE` maps to the same SKIP markers | covered by the classification checks |
 
 ## 5. Scope
@@ -115,5 +116,81 @@ interfaces -> 190 wrappers, 661 consts, 10 typed shims; 434 struct sizes +
 1804 member offsets (2238 consts); factory/adapter/WARP/swapchain and the
 video QI + command-list chain live.  The 97 unparsed struct shapes
 (anonymous unions/bitfields/function-pointer members) are listed in
-`docs/struct_meta_manifest.json`.  Still next: promotion readiness (policy
-sec. 7).
+`docs/struct_meta_manifest.json`.  0.3.1 is the promotion republication of
+this same verified surface (patch bump; published versions are
+immutable).  Still next: command recording (queue/list/allocator +
+fences) is the 0.4.0 wave.
+
+## 6. Error catalog (0.3.1)
+
+Every failure mode is classified; nothing fails silently:
+
+| Surface | Condition | Observable |
+|---------|-----------|------------|
+| `dx12_probe*` / `dx12_open_device` | runtime missing | `Err(kind=DX12_LOAD_ABSENT)` -> SKIP |
+| " | no D3D12-capable adapter | `Err(kind=DX12_LOAD_NO_DEVICE)` -> SKIP |
+| " | exports missing/broken | `Err(kind=DX12_LOAD_ABI)` -> FAIL |
+| `dxgi_probe*` / `dxgi_open_factory` | runtime missing | `Err(kind=DXGI_LOAD_ABSENT)` |
+| " | exports missing | `Err(kind=DXGI_LOAD_ABI)` |
+| " | factory creation failed | `Err(kind=DXGI_LOAD_FACTORY)` |
+| `dxgi_swapchain_probe` | no device / stage failure / ABI | `DXGI_SWAPCHAIN_NO_DEVICE` / `_FAILED` / `_ABI` |
+| `dx12_video_probe` | no device / QI failed | `DX12_VIDEO_NO_DEVICE` / `DX12_VIDEO_QI_FAILED` |
+| generated wrappers | COM failure | raw HRESULT returned (0 = success); e.g. queue priority `1` -> `E_INVALIDARG` (0x80070057), buffer `Layout=UNKNOWN` -> `E_INVALIDARG`; never masked |
+| `dxgi_enum_adapter` | out of range (`DXGI_ERROR_NOT_FOUND`) | returns 0 (never a stray pointer) |
+| `dx12_blob_size*` | NULL handle | `-1` |
+| `dx12_video_cmdlist_create` | chain failure | 0 + `dx12_video_cmdlist_hr()` carries the HRESULT |
+| any probe | success | `Ok` + typed info; `*_unload` safe when nothing is loaded |
+
+Pointer-shaped out-parameters follow B-24: owned slots are read
+byte-indexed only; pointer edges cross via C return values.  Nullable C
+arguments use the bridge null (`dx12_null_ptr()`; B-23).
+
+## 7. Contracts and promotion notes (2026-10-13, v0.3.1)
+
+Promoted `incubating` -> `stable` per `docs/PROMOTION.md` (the gate) and
+`docs/UPSTREAM-FIRST.md` sec. 7 (full declared surface published + settle
++ no open defects).  The published full surface is 0.3.0
+(`eco-v0.1.168`, live sha256 `14ce3e67` @ 2026-10-12T21:05:31Z); the
+promotion republishes as **0.3.1** (patch; versions are immutable).
+
+- **G1**: `port.ps1 -Package xiom.dx12` x2 on the promotion commit --
+  **35/35 both runs** (31 surface/struct checks + 4 error-path checks);
+  trap-14 byte-level grep over the package's 45 `.xi` files: **0 hits**
+  (all angle shapes, parameter/local/FIELD; never audited from Read
+  output).
+- **G2**: this SPEC documents the full 0.3.1 surface with the error
+  catalog (sec. 6); README `Status` block synced to `stable`; ROADMAP +
+  AUDIT refreshed; no PLACEHOLDER/PENDING text anywhere.
+- **G3**: API review -- public surface is namespaced (`xiom.dx12`,
+  `xiom.dx12.dxgi`, `xiom.dx12.video` plus the generated
+  `iface_*`/`consts_*`/`structs`/`struct_meta_*`/`functions` modules);
+  wrapper naming `<api>_<iface>_<method>`; `unsafe`/`extern` confined to
+  the three safe modules + the generated wrappers; error behavior
+  documented (sec. 6); deterministic (x2, fixed witnesses).
+- **G4**: contracts -- **1175 `requires:` clauses across 44 files** (0
+  `ensures:`): the generated wrappers carry `obj != 0` receiver guards;
+  the hand-written probes carry input-domain guards (`soname.len() > 0`,
+  `index >= 0`, `width > 0 && height > 0`).  `xiom-verify --check` over
+  the three safe modules: **0 proven / 0 violated / 33 unknown** (12
+  dx12.xi + 15 dxgi.xi + 6 video.xi) with 364 SMT emitter errors --
+  solver-unproven, review-only (FFI bodies are not modelable and the
+  tooling cannot encode these clauses; see `docs/COMPILER-FINDINGS.md`).
+  **Unasserted** (documented, not checkable today): every FFI pass-through
+  entry point's foreign pointer/handle domain (nullability, alignment,
+  lifetime, COM identity), HRESULT interpretation, and handler crossing
+  (B-22).  Reason: the contract tooling cannot express foreign-pointer
+  domains; safety is enforced by the bridge guards + the byte-indexed
+  slot discipline (B-16/B-17/B-24) and witnessed by the error-path checks.
+- **G5**: 35 deterministic checks with explicit error-path coverage:
+  bogus runtime classification (bad input), out-of-range adapter index
+  (bounds), invalid queue priority + invalid buffer layout (runtime
+  rejection, HRESULT surfaced), NULL blob handle guard; x2 green.
+- **G6**: workarounds -- B-23 (`null` literal -> C garbage; use
+  `dx12_null_ptr()`) and B-24 (out-slot reads byte-indexed; pointer-edged
+  flows via C return values) stand as accepted rows in
+  `docs/MAINTENANCE.md` with expiry = the next compiler pin carrying the
+  fixes (neither fix is in v0.64.4).  The 3 callback-param methods take a
+  raw handler address (B-22: XIOM handler functions cannot cross to C
+  yet), documented in README; no stale rows remain for this package.
+- **G7**: dependents -- none.  No package manifest declares `xiom.dx12`
+  in `deps:` (scan of all `package.xi`); nothing to re-check.

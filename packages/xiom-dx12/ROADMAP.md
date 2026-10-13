@@ -1,6 +1,6 @@
 # xiom.dx12 -- Roadmap
 
-**Version**: v0.3.0 | **Compiler**: xiom v0.64.4 | **Last updated**: 2026-10-12
+**Version**: v0.3.1 | **Compiler**: xiom v0.64.4 | **Last updated**: 2026-10-13
 
 ## Current state
 
@@ -16,6 +16,7 @@
 | DXGI factory/adapter/swapchain | Done -- 0.3.0 (43 interfaces / 163 wrappers / 6 free fns / 246 consts; live factory + 3 adapters + 640x480 BGRA8/FIFO swapchain) |
 | WARP fallback adapter | Done -- 0.3.0 (`EnumWarpAdapter` + `D3D12CreateDevice(WARP)` ok) |
 | `d3d12video.h` slice | Done -- 0.3.0 (30 interfaces / 190 wrappers / 661 consts / 10 typed shims; QI + VIDEO_DECODE chain live) |
+| Promotion to `stable` | Done -- 0.3.1 (2026-10-13; `SPEC.md` sec. 7 G1-G7 gate; publish rides the standard batch) |
 | Command recording (queue/list/allocator + fences) | 0.4.0 |
 
 ## Phase 3 (0.3.0 goals)
@@ -37,4 +38,6 @@
 4. `d3d12video.h` slice; then promotion (policy sec. 7).  **DONE** --
    `src/video_probe.c` + module `xiom.dx12.video`, 30 interfaces / 190
    wrappers / 661 consts / 10 typed shims; QI + VIDEO_DECODE command-list
-   chain live.  Promotion readiness is the remaining 0.3.0 item.
+   chain live.  Promotion **DONE** at 0.3.1 (2026-10-13): G1-G7 gate
+   green (35/35 x2, trap-14 clean, contracts inventoried, workarounds
+   accepted with expiry; no dependents).

@@ -1,4 +1,4 @@
-// XIOM -- xiom.dx12: Direct3D 12 foundation bindings (0.1.0).
+// XIOM -- xiom.dx12: Direct3D 12 foundation bindings (0.3.1).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -21,7 +21,9 @@
 //
 // The Agility SDK runtime is NOT required or vendored (see PROVENANCE.md).
 // The full generated surface (all ID3D12* interfaces + free functions +
-// enums/struct metadata from the pinned headers) is the 0.2.0 wave.
+// enums/struct metadata from the pinned headers) lives in the generated
+// modules; the struct-metadata + DXGI + d3d12video slices are complete as
+// of 0.3.0 (stable at 0.3.1).
 
 module xiom.dx12
 

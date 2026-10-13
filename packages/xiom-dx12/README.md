@@ -14,24 +14,27 @@ no `d3d12.h` include; the ABI is pinned from `microsoft/DirectX-Headers` in
 Missing runtime -> **SKIP**; no D3D12-capable adapter -> **SKIP**; present
 but broken exports -> **FAIL**. CI stays green without a GPU.
 
-> **Status:** `incubating` -- **0.3.0 complete: struct metadata + full core +
-> DXGI + video slice**: suite green **31/31 x2** on the pin (v0.64.4). The
-> surface: 90 D3D12 interfaces -> 358 method wrappers + 19 typed shims, 1162
-> enum consts, 9 free functions; 43 DXGI interfaces -> 163 wrappers, 246
-> consts, 6 free functions; 30 video (d3d12video.h) interfaces -> 190
-> wrappers, 661 consts, 10 typed shims; 434 struct sizes + 1804 member
-> offsets (2238 meta consts). Live on an NVIDIA RTX 3070 Ti: device + node
-> count, queue `GetDesc` sret roundtrips, committed-buffer `GetDesc`,
-> allocation info (65536/65536), custom-heap properties, root-signature
-> serialization, DXGI factory (3 adapters) + adapter/WARP descs + WARP D3D12
-> device + 640x480 BGRA8/FIFO swapchain (buffer/desc/present), video
-> `ID3D12VideoDevice` QI + VIDEO_DECODE command list + generated `Close`,
+> **Status:** `stable` -- promoted 2026-10-13 (**0.3.1**: republish of the
+> 0.3.0 full surface; gate evidence in `SPEC.md` sec. 7).  **Surface: struct
+> metadata + full core + DXGI + video slice**: suite green **35/35 x2** on
+> the pin (v0.64.4). The surface: 90 D3D12 interfaces -> 358 method
+> wrappers + 19 typed shims, 1162 enum consts, 9 free functions; 43 DXGI
+> interfaces -> 163 wrappers, 246 consts, 6 free functions; 30 video
+> (d3d12video.h) interfaces -> 190 wrappers, 661 consts, 10 typed shims;
+> 434 struct sizes + 1804 member offsets (2238 meta consts). Live on an
+> NVIDIA RTX 3070 Ti: device + node count, queue `GetDesc` sret roundtrips,
+> committed-buffer `GetDesc`, allocation info (65536/65536), custom-heap
+> properties, root-signature serialization, DXGI factory (3 adapters) +
+> adapter/WARP descs + WARP D3D12 device + 640x480 BGRA8/FIFO swapchain
+> (buffer/desc/present), video `ID3D12VideoDevice` QI + VIDEO_DECODE
+> command list + generated `Close`, error paths (NULL blob guard, invalid
+> queue priority / buffer layout rejected, out-of-range adapter index),
 > plus probe/SKIP classification on all three runtimes. 0.1.0 published in
 > `eco-v0.1.166` (sha256 `5ff65bed...`); 0.2.0 in `eco-v0.1.167` (sha256
 > `7cfae765...`); **0.3.0 in `eco-v0.1.168` (sha256 `14ce3e67...`)**.
-> Promotion readiness is next (`ROADMAP.md`); B-24 (out-slot
-> reads, see `docs/repro/bindings-pilot/ptr-read-stale/`) is filed with a repro.
-> **Lane:** bindings (`keywords: ["binding"]`).
+> B-23/B-24 workarounds are accepted with expiry = next compiler pin (see
+> `docs/repro/bindings-pilot/`); callback-param methods take a raw handler
+> address (B-22).  **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -64,7 +67,7 @@ headers (PROVENANCE.md) and emits both surfaces into `src/`:
 | D3D12 enum consts | 1162 | `consts_1..5` |
 | D3D12 free functions | 9 | `functions` |
 | Typed shims (sret / by-value normal forms) + sizeof probes | 19 + 16 | `structs` (+ `src/d3d12_structs.c`) |
-| Struct sizes + member offsets (D3D12 + DXGI) | 1308 | `struct_meta_1..3` |
+| Struct sizes + member offsets (D3D12 + DXGI + video) | 2238 | `struct_meta_1..5` |
 | DXGI method wrappers | 163 | `dxgi_iface_01..06` |
 | DXGI enum consts | 246 | `dxgi_consts_1` |
 | DXGI free functions | 6 | `dxgi_functions` |
@@ -87,11 +90,11 @@ bridge owning the ABI: sret methods write through a caller-owned slot
 (`d3d12_resource_get_desc(obj, out_slot)`), by-value struct params arrive as
 owned slot pointers, and the 3 callback-param methods (`D3D12*Func`) take a
 raw handler address (`Int`; XIOM handler functions cannot cross to C yet --
-B-22/B-23). Sizes + member offsets for 272 structs (D3D12 + DXGI) are
-emitted as `D3D12_SIZEOF_*`/`DXGI_OFF_*`-family constants (the 57 skipped
-shapes -- anonymous unions/bitfields/function-pointer members -- are listed
-in `docs/struct_meta_manifest.json`). See `docs/COVERAGE.md` for counts and
-the live witnesses.
+B-22/B-23). Sizes + member offsets for 434 shapes (D3D12 + DXGI + video)
+are emitted as `D3D12_SIZEOF_*`/`DXGI_OFF_*`-family constants (the 97
+skipped shapes -- anonymous unions/bitfields/function-pointer members -- are
+listed in `docs/struct_meta_manifest.json`). See `docs/COVERAGE.md` for
+counts and the live witnesses.
 
 **DXGI (0.3.0):** `dxgi.xi` (module `xiom.dx12.dxgi`) wraps the vendored
 `src/dxgi_probe.c`: runtime `dxgi.dll` classification, factory creation
@@ -105,7 +108,7 @@ fallback), and a hidden-window BGRA8/FIFO swapchain probe
 | Area | Functions |
 |------|-----------|
 | Probe | `dx12_probe`, `dx12_probe_named(soname)`, `dx12_open_device`, `dx12_unload` |
-| Surface | generated `d3d12_<iface>_<method>` wrappers in `xiom.dx12.iface_01..12` (358); consts in `xiom.dx12.consts_1..5` (1162); free fns in `xiom.dx12.functions` (9); typed struct methods + `dx12_sizeof_*` probes in `xiom.dx12.structs`; `D3D12_SIZEOF_*`/`D3D12_OFF_*`/`DXGI_*` in `xiom.dx12.struct_meta_1..3` |
+| Surface | generated `d3d12_<iface>_<method>` wrappers in `xiom.dx12.iface_01..12` (358); consts in `xiom.dx12.consts_1..5` (1162); free fns in `xiom.dx12.functions` (9); typed struct methods + `dx12_sizeof_*` probes in `xiom.dx12.structs`; `D3D12_SIZEOF_*`/`D3D12_OFF_*`/`DXGI_*` in `xiom.dx12.struct_meta_1..5` |
 | DXGI | `dxgi_probe`, `dxgi_probe_named`, `dxgi_open_factory`, `dxgi_factory_ptr`, `dxgi_enum_adapter`, `dxgi_warp_adapter`, `dxgi_warp_device_probe`, `dxgi_swapchain_probe` + getters, `dxgi_iid`, `dxgi_unload` (module `xiom.dx12.dxgi`); generated wrappers in `xiom.dx12.dxgi_iface_01..06` (163); consts in `xiom.dx12.dxgi_consts_1` (246); free fns in `xiom.dx12.dxgi_functions` (6) |
 | Video | `dx12_video_probe`, `dx12_video_iid`, `dx12_video_cmdlist_create`/`_hr`/`_alloc`/`_cleanup` (module `xiom.dx12.video`); generated wrappers in `xiom.dx12.video_iface_01..04` (190); consts in `xiom.dx12.video_consts_1..3` (661); typed shims in `xiom.dx12.video_structs` (10) |
 | Types | `Dx12DeviceInfo` (node_count/allocator_ok), `Dx12ProbeError` (kind/message), `DxgiFactoryInfo` (adapter_count/warp), `DxgiProbeError` |
@@ -135,7 +138,8 @@ xiom --run tests/test_conformance.xi --c-source <abs>\src\dx12_probe.c \
 scripts/port.ps1 -Package xiom.dx12
 ```
 
-Expected: 31 `[PASS]`, exit 0, on a D3D12-capable desktop (probe stages +
+Expected: 35 `[PASS]`, exit 0, on a D3D12-capable desktop (probe stages +
 device/queue/root-signature + struct-metadata + DXGI factory/adapter/WARP/
-swapchain + video QI/command-list witnesses); absent hosts collapse to SKIP
-markers. See `SPEC.md` for the pins and `PROVENANCE.md` for the ABI sources.
+swapchain + video QI/command-list witnesses + error paths); absent hosts
+collapse to SKIP markers. See `SPEC.md` for the pins and `PROVENANCE.md`
+for the ABI sources.
