@@ -103,6 +103,16 @@ running). Check `git log -1 --format=%h %s` before starting.
   unpublished manifests lack `modules:` -- retrofit at touch/templates). PULSE item fixed with the
   nuance (their re-run pending); **`xiom --run` consumer flow is unaffected** (all today's consumer
   tests used it). Consumer smoke gate proposal (PULSE sec.4 note) tracked for the publish flow.
+- **Tick 19:00Z processing (5 items)**: `-1718-pulse` acked (driver surface GREEN 24/24 in-tree;
+  0.4.1-live note + compiler caveat for their artifact rerun; doc note landed: README
+  `execute.rows_affected` = `sqlite3_changes`, last statement only, `c3e542d9`); `-1715-pulse`
+  closed by PULSE; `-1721-bindings` fixed (0.4.1 race -- already live; their tip
+  `c239b90e`/`70e71a1d` content-identical, resolve to main's published state at next merge);
+  `-1721-bindings-2` fixed (**decision: NO mass modules wave** -- field not the operative
+  discovery input per the kv-controlled repro; at-touch rollout continues; consumer-import smoke
+  gate deferred until compiler semantics settle); `-1800-bindings` fixed (at-touch split confirmed).
+  Compiler acked `-1731-packages` 18:00Z (consumer-build batch); bindings `-1721-bindings-3` in
+  flight (uncommitted working-tree file in relays -- not ours to touch). Archive still v0.64.4.
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
