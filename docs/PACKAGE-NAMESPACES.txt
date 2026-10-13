@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-13T15:24:33+03:00
-# packages: 533  modules: 905
+# generated: 2026-10-13T15:36:44+03:00
+# packages: 534  modules: 928
 
 ## package names
 xiom.acpi
@@ -173,6 +173,7 @@ xiom.geom3d
 xiom.gguf
 xiom.gif
 xiom.git2
+xiom.gles
 xiom.glfw
 xiom.glslang
 xiom.golden
@@ -793,6 +794,24 @@ xiom.geom3d
 xiom.gguf
 xiom.gif
 xiom.git2
+xiom.gles.egl_api
+xiom.gles.egl_cmds_01
+xiom.gles.egl_cmds_02
+xiom.gles.egl_consts_1
+xiom.gles.egl_consts_2
+xiom.gles.egl_consts_3
+xiom.gles.egl_names
+xiom.gles.gles_api
+xiom.gles.gles_cmds_01
+xiom.gles.gles_cmds_02
+xiom.gles.gles_cmds_03
+xiom.gles.gles_cmds_04
+xiom.gles.gles_consts_1
+xiom.gles.gles_consts_2
+xiom.gles.gles_consts_3
+xiom.gles.gles_consts_4
+xiom.gles.gles_consts_5
+xiom.gles.gles_names
 xiom.golden
 xiom.gpio
 xiom.gpt
@@ -956,6 +975,11 @@ xiom.opengl.consts_5
 xiom.opengl.consts_6
 xiom.opengl.glapi
 xiom.opengl.names
+xiom.opengl.wgl_cmds_01
+xiom.opengl.wgl_cmds_02
+xiom.opengl.wgl_consts_1
+xiom.opengl.wgl_consts_2
+xiom.opengl.wgl_names
 xiom.optimizer
 xiom.optimizer_fw
 xiom.option

@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-13T15:24:34Z",
+    "updated":  "2026-10-13T15:36:44Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -2952,6 +2952,41 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.gles",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "OpenGL ES 2.0/3.2 + EGL 1.5 bindings for XIOM via ANGLE (runtime libEGL.dll/libGLESv2.dll + eglGetProcAddress; generated GLES surface from the pinned Khronos registry + full EGL surface from the pinned EGL-Registry; probe/session with SKIP semantics)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gles/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "egl_api.xi",
+                                              "egl_cmds_01.xi",
+                                              "egl_cmds_02.xi",
+                                              "egl_consts_1.xi",
+                                              "egl_consts_2.xi",
+                                              "egl_consts_3.xi",
+                                              "egl_names.xi",
+                                              "gles_api.xi",
+                                              "gles_cmds_01.xi",
+                                              "gles_cmds_02.xi",
+                                              "gles_cmds_03.xi",
+                                              "gles_cmds_04.xi",
+                                              "gles_consts_1.xi",
+                                              "gles_consts_2.xi",
+                                              "gles_consts_3.xi",
+                                              "gles_consts_4.xi",
+                                              "gles_consts_5.xi",
+                                              "gles_names.xi",
+                                              "gles.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.5.0",
                          "name":  "xiom.glfw",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -5325,17 +5360,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.4.0",
+                         "version":  "0.5.0",
                          "name":  "xiom.opengl",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "OpenGL bindings for XIOM (runtime opengl32.dll + wglGetProcAddress; generated core-profile 4.6 surface: 656 commands + 1358 enums from the pinned Khronos registry, live-session resolver, plus the classic/core probes with SKIP semantics)",
+                         "description":  "OpenGL + WGL bindings for XIOM (runtime opengl32.dll + wglGetProcAddress; generated core-profile 4.6 surface: 656 commands + 1358 enums, plus the full WGL surface: 146 commands + 298 enums from the pinned Khronos registry; live-session resolver, session handles, probes with SKIP semantics)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-opengl/v0.4.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-opengl/v0.5.0/package.tar.gz",
                          "source_files":  [
                                               "cmds_01.xi",
                                               "cmds_02.xi",
@@ -5352,6 +5387,11 @@
                                               "consts_6.xi",
                                               "gl_api.xi",
                                               "names.xi",
+                                              "wgl_cmds_01.xi",
+                                              "wgl_cmds_02.xi",
+                                              "wgl_consts_1.xi",
+                                              "wgl_consts_2.xi",
+                                              "wgl_names.xi",
                                               "opengl.xi",
                                               "package.xi"
                                           ]
