@@ -13,6 +13,7 @@ subsetting, vendored and statically linked (no DLL, no system harfbuzz).
 - **Discipline**: pointers/handles cross as `Int` (B-25), C writes into
   XIOM-owned slots (B-20/B-24), flat outcome structs (B-26). See
   `SPEC.md` section 5.
+- **Published**: `0.1.0` in `eco-v0.1.177` (sha256 `a768c46a...`).
 
 ## Usage
 
