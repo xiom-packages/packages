@@ -159,6 +159,12 @@ fn main() -> Int {
 
   failed = failed + report(t_constants(), "constants: feature levels + command list types + soname");
 
+  // Error path: the bridge guards NULL handles -- ID3DBlob::GetBufferSize on
+  // NULL is -1.  Also exercises the B-23 C-origin NULL handle
+  // (`dx12_null_ptr()`; the XIOM `null` literal marshals garbage to C).
+  failed = failed + report(dx12_blob_size(dx12_null_ptr()) == -1,
+    "error: blob_size(NULL) -> -1 (guarded)");
+
   // SKIP-path classification, deterministic on every host (bogus soname).
   let missing = dx12_probe_named("xiom-absent-dx12-probe-xyz.dll");
   if missing.is_ok {
@@ -223,6 +229,19 @@ fn main() -> Int {
           "struct: CommandQueue::GetDesc sret (type=" + to_string(qtype) + " priority=" + to_string(qprio) + ")");
         let rc = d3d12_object_release(q);
         failed = failed + report(rc == 0, "surface: queue Release -> refcount 0");
+
+        // Error path: D3D12_COMMAND_QUEUE_PRIORITY=1 is not a valid enum
+        // value (only 0/100/10000 are accepted) -- the runtime rejects it
+        // (E_INVALIDARG), no queue is produced and the HRESULT is never
+        // swallowed (SPEC sec. 2/6).
+        var baddesc = zeroed(16);
+        dx12_poke_u32(baddesc.as_mut_ptr(), 0, 0 as UInt32); // Type = DIRECT
+        dx12_poke_u32(baddesc.as_mut_ptr(), 4, 1 as UInt32); // Priority = invalid
+        var badout = zeroed(8);
+        let badhr = d3d12_device_create_command_queue(dev, baddesc.as_mut_ptr(), iid.as_mut_ptr(), badout.as_mut_ptr());
+        let badq = le64(badout, 0);
+        failed = failed + report(badhr != 0 && badq == 0,
+          "error: CreateCommandQueue priority=1 rejected (hr!=0)");
       }
 
       // 0.3.0: committed buffer resource + ID3D12Resource::GetDesc roundtrip.
@@ -259,6 +278,22 @@ fn main() -> Int {
           + " mips=" + to_string(mips) + ")");
         let _rr = d3d12_object_release(resp);
       }
+
+      // Error path: a buffer whose Layout stays UNKNOWN (0) is rejected by
+      // CreateCommittedResource (E_INVALIDARG; SPEC sec. 2/6) -- no resource
+      // is produced and the HRESULT is surfaced, never swallowed.
+      var badrd = zeroed(D3D12_SIZEOF_RESOURCE_DESC);
+      dx12_poke_u32(badrd.as_mut_ptr(), D3D12_OFF_RESOURCE_DESC_DIMENSION, 1 as UInt32);
+      dx12_poke_u64(badrd.as_mut_ptr(), D3D12_OFF_RESOURCE_DESC_WIDTH, 256 as UInt64);
+      dx12_poke_u32(badrd.as_mut_ptr(), D3D12_OFF_RESOURCE_DESC_HEIGHT, 1 as UInt32);
+      dx12_poke_u32(badrd.as_mut_ptr(), D3D12_OFF_RESOURCE_DESC_DEPTH_OR_ARRAY_SIZE, 0x00010001 as UInt32);
+      dx12_poke_u32(badrd.as_mut_ptr(), D3D12_OFF_RESOURCE_DESC_SAMPLE_DESC, 1 as UInt32);
+      var badres = zeroed(8);
+      let badchr = d3d12_device_create_committed_resource(dev, hprops.as_mut_ptr(), 0,
+        badrd.as_mut_ptr(), 0, nullp, riid.as_mut_ptr(), badres.as_mut_ptr());
+      let badresp = le64(badres, 0);
+      failed = failed + report(badchr != 0 && badresp == 0,
+        "error: CreateCommittedResource UNKNOWN layout rejected (hr!=0)");
 
       // 0.3.0: GetResourceAllocationInfo sret + by-pointer desc param.
       var aout = zeroed(D3D12_SIZEOF_RESOURCE_ALLOCATION_INFO);
@@ -337,6 +372,10 @@ fn main() -> Int {
     // adapter 0: generated wrapper (pointer-form GetDesc1) + struct meta read
     let a0 = dxgi_enum_adapter(0);
     failed = failed + report(a0 != 0, "dxgi: EnumAdapters1(0) adapter live");
+    // Error path: an out-of-range index yields 0 (DXGI_ERROR_NOT_FOUND is
+    // mapped to a null adapter -- never a stray pointer; SPEC sec. 6).
+    let oob = dxgi_enum_adapter(9999);
+    failed = failed + report(oob == 0, "error: EnumAdapters1(9999) out of range -> 0");
     if a0 != 0 {
       var adesc = zeroed(DXGI_SIZEOF_ADAPTER_DESC1);
       let dhr = dxgi_adapter1_get_desc1(a0, adesc.as_mut_ptr());
