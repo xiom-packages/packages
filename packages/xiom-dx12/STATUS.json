@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  42,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "fd9f2a4d",
-                  "checked":  "2026-10-13T13:13:27Z"
+                  "run_by":  "native-session",
+                  "commit":  "fd90ebf3",
+                  "checked":  "2026-10-13T13:23:22Z"
               },
     "publish":  false,
     "excluded_reason":  "stable; 0.4.0 publish requested (REL-20261013-1313-bindings; command recording + B-25 Int object params)",
