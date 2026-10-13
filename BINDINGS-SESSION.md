@@ -3,21 +3,23 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: THREE PUBLISHES IN FLIGHT -- `xiom.dx12` **0.3.1 `stable`**
-(acked by packages; `REL-20261013-1207-bindings`), `xiom.opengl` **0.5.0
-WGL surface** (`REL-20261013-1222-bindings`; 28/28 x2 on `468b73d1`), and
+**STATUS: DX12 0.3.1 STABLE PROMOTION LIVE (`eco-v0.1.169`) -- TWO
+PUBLISHES STILL IN FLIGHT -- `xiom.opengl` **0.5.0 WGL surface**
+(`REL-20261013-1222-bindings`; 28/28 x2 on `468b73d1`; **acked**) and
 **NEW PACKAGE `xiom.gles` 0.1.0** (GLES 2.0-3.2 + EGL 1.5 via ANGLE;
-18/18 x2 on `ee741d77`; `REL-20261013-1231-bindings`; registry scope
-needed) -- Vulkan 0.6.0 live (engine-green); OpenGL 0.4.0 LIVE
-(`eco-v0.1.164`; 656/656 core-4.6, x2); DX12 **0.1.0/0.2.0/0.3.0 ALL
-LIVE** (0.1.0 `eco-v0.1.166`, 0.2.0 `eco-v0.1.167`, **0.3.0
-`eco-v0.1.168`** sha256 `14ce3e67` @21:05:31Z); SDK100 all slices live;
-v0.64.4 pin wave done; **B-22 open -- glfw 0.6.0 lift parked**;
-**B-23/B-24 accepted for the dx12 promotion** (expiry = next compiler
-pin; relay `-2051-bindings-2`); ops clobber rules in force; per-touch
-PROVENANCE rule in effect (dx12/opengl/gles compliant) -- SESSION
-HANDOFF 2026-10-13 12:35Z** (NEXT = confirm the three publishes + record
-the eco versions; paste prompt rebuilt below).
+18/18 x2 on `ee741d77`; `REL-20261013-1231-bindings`; **acked**; registry
+scope needed) -- the dx12 promotion (first sec.7 gate) is live: merge
+`46b45e76` (prep tip `4afec760`), native x2 35/35, record `261ba5f8`,
+wrap `1fd17353`, live sha256 `355ecc6d...` @12:26:45Z; relay
+`-1207-bindings` fixed; Vulkan 0.6.0 live (engine-green); OpenGL 0.4.0
+LIVE (`eco-v0.1.164`; 656/656 core-4.6, x2); DX12 0.1.0/0.2.0/0.3.0 all
+live (`eco-v0.1.166`/`167`/`168`) + **0.3.1 stable (`eco-v0.1.169`)**;
+SDK100 all slices live; v0.64.4 pin wave done; **B-22 open -- glfw 0.6.0
+lift parked**; **B-23/B-24 accepted** (expiry = next compiler pin);
+ops clobber rules in force; per-touch PROVENANCE rule in effect
+(dx12/opengl/gles compliant) -- SESSION HANDOFF 2026-10-13 12:55Z**
+(NEXT = confirm the opengl 0.5.0 + gles 0.1.0 publishes + record the eco
+versions; paste prompt rebuilt below).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -368,6 +370,23 @@ package.
   opengl 0.5.0, gles 0.1.0) + record the eco versions; then the lane
   follow-ons: glfw 0.6.0 lift when B-22 ships, sdl3 handler widening,
   and the Phase-2 lists in each package ROADMAP.
+
+**UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
+`eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
+- Merge `46b45e76` (prep tip `4afec760`; conflicts resolved to theirs +
+  published-history README lines restored); validate 533/0; native x2
+  **35/35** on v0.64.4 (both runs, RTX 3070 Ti); record `261ba5f8`; wrap
+  `1fd17353`; **`eco-v0.1.169`** (run 38397132232 green 12:30:20Z); live
+  registry sha256 `355ecc6d...` @12:26:45Z stage **stable**;
+  README/STATUS synced (`b2ddfe3c`); bus `REL-20261013-1207-bindings`
+  **fixed**; G6 B-23/B-24 accepted rows (expiry = next pin carrying the
+  fixes).  First declared platform-matrix row (windows-x64 +
+  d3d12/dxgi deps) landed with it.
+- **Still in flight**: opengl 0.5.0 (acked) and gles 0.1.0 (acked;
+  registry scope step).  Watch the relay + packages batch notes; record
+  the eco versions here when they land.
+- **NEXT**: opengl/gles publish confirms; then the lane follow-ons
+  (glfw lift when B-22 ships; sdl3 widening; Phase-2 items on ask).
 
 **UPDATE 2026-10-13 00:05Z (doorbell -- DX12 0.3.0 PUBLISHED)**: packages
 **Batch 70: `xiom.dx12` 0.3.0 PUBLISHED** -- `eco-v0.1.168` (run
@@ -1050,10 +1069,10 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-13 12:35Z;
-THREE publishes are in flight -- dx12 0.3.1 stable (acked), opengl 0.5.0
-WGL surface, xiom.gles 0.1.0 (NEW package); first action = confirm all
-three + record the eco versions).
+Bindings lane continuation -- seamless pickup (2026-10-13 12:55Z;
+dx12 0.3.1 stable promotion is LIVE (`eco-v0.1.169`); TWO publishes still
+in flight -- opengl 0.5.0 WGL surface + xiom.gles 0.1.0 (NEW package);
+first action = confirm those two + record the eco versions).
 
 0. STATE (the 12:10Z UPDATE block + STATUS above carry the evidence):
    - v0.64.4 pin DONE (archive `44a41aea` verified; slot byte-identical
@@ -1062,16 +1081,13 @@ three + record the eco versions).
      open compiler blocker**: fn-typed PARAM values do not cross to C at
      cast-call positions (glfw 0.6.0 lift parked; witness
      `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`).
-   - **DX12 0.3.0 PUBLISHED** (`eco-v0.1.168`, sha256 `14ce3e67`
-     @2026-10-12T21:05:31Z; 0.1.0/0.2.0/0.3.0 all live; struct metadata +
-     full d3d12.h + DXGI + video; relay `-2051` fixed). **PROMOTION GATE
-     GREEN -> stable 0.3.1 requested**: prep `1a392b91` (suite 35/35,
-     error paths, SPEC sec. 6/7), record + stage flip `1f5473e7` (pushed
-     to origin/bindings), trap-14 45 files / 0 hits, contracts 1175/0,
-     verify 0/0/33 unknown, G6 B-23/B-24 accepted, G7 none; request
-     `REL-20261013-1207-bindings` (relay `a9223a1`). Keep package.xi at
-     0.3.1 + STATUS stage=stable through the merge. Ledger tip: this docs
-     commit (clean).
+   - **DX12 0.3.1 STABLE PUBLISHED -- FIRST sec.7 GATE PROMOTION**
+     (`eco-v0.1.169`, sha256 `355ecc6d...` @12:26:45Z; merge `46b45e76`,
+     record `261ba5f8`, wrap `1fd17353`; native x2 35/35; relay
+     `-1207-bindings` fixed). 0.1.0/0.2.0/0.3.0 remain live
+     (`eco-v0.1.166`/`167`/`168`). The promotion gate evidence is in
+     `SPEC.md` sec. 7 (35/35 x2 on `1a392b91`, trap-14 clean, contracts
+     1175/0, verify 0/0/33 unknown, G6 B-23/B-24 accepted, G7 none).
    - **B-23/B-24 FILED with repros** (`REL-20261012-2051-bindings-2`):
      B-23 = `null` literal crosses to C as garbage (use
      `dx12_null_ptr()`); B-24 = ffi out-slot reads after a C extern write
@@ -1099,21 +1115,20 @@ three + record the eco versions).
      tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
      the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
 
-0b. FIRST ACTION: confirm the **three in-flight publishes** and record
-    them: (1) `REL-20261013-1207-bindings` -- xiom.dx12 stable 0.3.1
-    (gate green on `1a392b91`/`1f5473e7`; packages **acked**); (2)
-    `REL-20261013-1222-bindings` -- xiom.opengl 0.5.0 WGL surface
-    (28/28 x2 on `468b73d1`); (3) `REL-20261013-1231-bindings` --
-    xiom.gles 0.1.0 (NEW package; 18/18 x2 on `ee741d77`; registry scope
-    step needed).  Check the relay item states + packages SESSION/batch
-    notes; when each publishes, record the live eco version + sha256 here
-    (commit+push).  If packages bounces (merge conflict, version/stage
-    revert, scope question, or a gate question), resolve from this lane:
-    keep package.xi versions (dx12 0.3.1 / opengl 0.5.0 / gles 0.1.0),
-    keep STATUS.json records, keep the README text; gate evidence is in
-    `SPEC.md` sec. 7 (dx12) / the opengl SPEC sec. 2-5 / the gles SPEC
-    sec. 2-4.  `-1403-packages` is already fixed compiler-side (m277
-    `29e35ef8`), so there is no block there.
+0b. FIRST ACTION: confirm the **two in-flight publishes** and record
+    them: (1) `REL-20261013-1222-bindings` -- xiom.opengl 0.5.0 WGL
+    surface (28/28 x2 on `468b73d1`; **acked**); (2) 
+    `REL-20261013-1231-bindings` -- xiom.gles 0.1.0 (NEW package;
+    18/18 x2 on `ee741d77`; **acked**; registry scope step needed).
+    (dx12 0.3.1 stable is DONE -- `eco-v0.1.169`.)
+    Check the relay item states + packages SESSION/batch notes; when each
+    publishes, record the live eco version + sha256 here (commit+push).
+    If packages bounces (merge conflict, version/stage revert, scope
+    question, or a gate question), resolve from this lane: keep
+    package.xi versions (opengl 0.5.0 / gles 0.1.0), keep STATUS.json
+    records, keep the README text; gate evidence is in the opengl SPEC
+    sec. 2-5 / the gles SPEC sec. 2-4.  `-1403-packages` is already
+    fixed compiler-side (m277 `29e35ef8`), so there is no block there.
 
 1. RELAY: E:\xiom-lang\xiom-relays -- `git fetch origin` + compare (do
    NOT pull: "Cannot fast-forward to multiple branches"); `python
@@ -1197,10 +1212,10 @@ B-24 = ffi out-slot reads after a C extern write are unreliable -- read
 owned slots byte-indexed, keep pointer-edged flows on C return values).
 Deliver batches as: feat -> x2 green -> record via scripts/status.ps1 ->
 relay item to packages -> ledger update, all pushed; leave the worktree
-clean. TODO NOW: item 0b (confirm + record the xiom.dx12 stable 0.3.1,
-xiom.opengl 0.5.0, and xiom.gles 0.1.0 publishes;
-`REL-20261013-1207-bindings` / `REL-20261013-1222-bindings` /
-`REL-20261013-1231-bindings`), then the glfw/sdl3 lifts when B-22 ships.
+clean. TODO NOW: item 0b (confirm + record the xiom.opengl 0.5.0 and
+xiom.gles 0.1.0 publishes; `REL-20261013-1222-bindings` /
+`REL-20261013-1231-bindings`; dx12 0.3.1 stable is DONE --
+`eco-v0.1.169`), then the glfw/sdl3 lifts when B-22 ships.
 
 ```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
