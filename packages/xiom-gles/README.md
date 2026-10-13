@@ -18,7 +18,8 @@ broken exports -> **FAIL**. CI stays green without ANGLE.
 > 3070 Ti (D3D11 backend): 358/358 ES core commands resolved, 44/44 EGL
 > core commands resolved (158 EGL wrappers incl. extensions), buffer
 > roundtrip, wrapper-level `glGetString`/`eglQueryString`, deterministic
-> SKIP-path test.  **Lane:** bindings (`keywords: ["binding"]`).
+> SKIP-path test. **0.1.0 published in `eco-v0.1.171` (sha256
+> `017b7664...`).**  **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
