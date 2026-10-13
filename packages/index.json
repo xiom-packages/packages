@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-13T20:21:03Z",
+    "updated":  "2026-10-14T00:11:53Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -2436,17 +2436,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.ffmpeg",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "FFmpeg (libavcodec/libavformat/libavutil/libswresample) bindings for XIOM via dynamic loader (system-library SKIP path; LGPL-safe probe)",
+                         "description":  "FFmpeg (libavcodec/libavformat/libavutil/libswresample) bindings for XIOM via dynamic loader (system-library SKIP path; LGPL-safe probe; AV1-class decode surface -- decoder discovery, codec-context open, packet/frame lifecycle, frame width/height/pixel-format)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ffmpeg/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ffmpeg/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "ffmpeg.xi",
                                               "package.xi"
@@ -3645,17 +3645,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.jolt",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; scalar-return physics probes)",
+                         "description":  "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; probes + caller-usable world/body surface)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jolt/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jolt/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "jolt.xi",
                                               "package.xi"
@@ -4552,7 +4552,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.4.0",
+                         "version":  "0.5.0",
                          "name":  "xiom.meshopt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "meshoptimizer bindings for XIOM (mesh simplification, compression, optimization)",
@@ -4562,8 +4562,9 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-meshopt/v0.4.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-meshopt/v0.5.0/package.tar.gz",
                          "source_files":  [
+                                              "meshopt_cooked.xi",
                                               "meshopt_safe.xi",
                                               "meshopt.xi",
                                               "package.xi"
@@ -9564,17 +9565,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.zstd",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Zstandard bindings for XIOM (vendored 1.5.7 single-file amalgamation, no system library)",
+                         "description":  "Zstandard bindings for XIOM (vendored 1.5.7 single-file amalgamation, no system library) + ZSTC container framing with a random-access frame index (writer, reader, seek, append+finalize builder)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zstd/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zstd/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "package.xi",
                                               "zstd.xi"
