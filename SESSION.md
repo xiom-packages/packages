@@ -41,7 +41,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   bindings** (PULSE top ask; requirements `docs/requirements/pulse-sql-driver.md`; PULSE co-verifies)
   -- verify x2 + publish under the normal flow when their item lands; (2) binding batches as they
   arrive; (3) **next compiler archive (v0.64.5+)**: repin + re-verify sdl3 compile 0 warnings
-  (m277 fixed our `-1403`), B-22, rows `-1549-packages-5/-7`, plus the compiler next-batch rows;
+  (m277 fixed our `-1403`), B-22, rows `-1549-packages-5/-7`, plus the compiler next-batch rows
+  (m275-m282 staged incl. m281 = B-23/B-24/B-20 fixes -- retire those workarounds at the wave
+  when the pin carries them, per G6; pre-repin home snapshot `20261013-172928` taken);
   (4) promotions per policy sec. 7 (vulkan 0.6.0, sdl3 0.17.0 [blocked while `-1403`
   open], opengl (0.5.0 live; promote at next touch), the SDK100 names -- dx12 0.3.1 promoted 2026-10-13); (5) provenance retrofits at touch (15/519; audit
   `scripts/provenance-audit.ps1`); engine codecs at the cook gate later.
@@ -575,8 +577,10 @@ WORK QUEUE (in priority order as items land):
    repin (SHA256-verify + swap + `status.ps1 -Action repin`) then re-verify the
    rows: sdl3 compile 0 warnings (m277 fixed nested fn types = our -1403), B-22,
    rows -1549-packages-5/-7 (bounced red on v0.64.4), plus the compiler's
-   next-batch rows. Repin hygiene: installs/extracts to lane-local dirs only;
-   tools/home-snapshot.ps1 before risky windows.
+   next-batch rows. m275-m282 staged; m281 carries the B-23/B-24/B-20 fixes --
+   retire those workarounds at the wave when the pin carries them (G6). Repin
+   hygiene: installs/extracts to lane-local dirs only; tools/home-snapshot.ps1
+   before risky windows (pre-repin snapshot 20261013-172928 taken).
 4. Promotions (policy sec. 7, docs/UPSTREAM-FIRST.md): flip stage to stable at
    the next touch once a package's full surface is published + a settle cycle +
    no open defects (candidates: vulkan 0.6.0, sdl3 0.17.0 [blocked while -1403
