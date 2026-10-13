@@ -386,7 +386,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.expat | xiom-expat | incubating | tests/test_conformance.xi | pass 25/25 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.feature | xiom-feature | incubating | tests/test_conformance.xi | pass 22/22 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.ffi | xiom-ffi | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: no source in this repo (stdlib owns the module) |
-| xiom.ffmpeg | xiom-ffmpeg | incubating | tests/test_conformance.xi | pass 4/4 | 1435ac01 | False | published in eco-v0.1.122 (2026-10-09) |
+| xiom.ffmpeg | xiom-ffmpeg | incubating | tests/test_conformance.xi | pass 12/12 | 11a58915 | False | published in eco-v0.1.122 (2026-10-09); 0.3.0 publish requested (2026-10-13) |
 | xiom.firebird | xiom-firebird | incubating | tests/test_conformance.xi | pass 22/22 | 11412185 | False | publish pending: owner scope decision (parallel-lane implementation) |
 | xiom.flags | xiom-flags | incubating | tests/test_conformance.xi | pass 18/18 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.flash | xiom-flash | incubating | tests/test_conformance.xi | pass 20/20 | ca969acd | False | category harmonization patch bump (registry metadata) |
@@ -418,7 +418,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb2 | False | publish pending: next scope delta |
 | xiom.jit-fw | xiom-jit-fw | incubating | tests/test_conformance.xi | pass 25/25 | c1e35d4f | False | category harmonization patch bump (registry metadata) |
-| xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 4/4 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12; batch 35, m258 gate cleared on v0.64.4) |
+| xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 18/18 | 11a58915 | False | published in eco-v0.1.161 (2026-10-12; batch 35, m258 gate cleared on v0.64.4) |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.ktx2 | xiom-ktx2 | incubating | tests/test_conformance.xi | pass 41/41 | 82e75e16 | False | not allowlisted: new package (0.1.0), awaiting publish-scope decision |
@@ -451,7 +451,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.mechanics | xiom-mechanics | incubating | tests/test_conformance.xi | pass 24/24 | f0933894 | False | publish pending: next scope delta |
 | xiom.memcached | xiom-memcached | incubating | tests/test_conformance.xi | pass 22/22 | ef1c057a | False | category harmonization patch bump (registry metadata) |
 | xiom.merkle | xiom-merkle | incubating | tests/test_conformance.xi | pass 22/22 | 425d4cb2 | False | publish pending: next scope delta |
-| xiom.meshopt | xiom-meshopt | incubating | tests/test_conformance.xi | pass 38/38 | bd059406 | False | published in eco-v0.1.159 (2026-10-11; 0.3.0 in eco-v0.1.158) |
+| xiom.meshopt | xiom-meshopt | incubating | tests/test_conformance.xi | pass 43/43 | 11a58915 | False | published in eco-v0.1.159 (2026-10-11; 0.3.0 in eco-v0.1.158); 0.5.0 publish requested (2026-10-13) |
 | xiom.messaging | xiom-messaging | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.metadata | xiom-metadata | incubating | tests/test_conformance.xi | pass 28/28 | b7c0bfbf | False | publish pending: next scope delta |
 | xiom.micro | xiom-micro | incubating | tests/test_conformance.xi | pass 10/10 | 57cdac5b | False | publish pending: eco-v0.1.42 |

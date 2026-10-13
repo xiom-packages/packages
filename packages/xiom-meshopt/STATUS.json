@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  43,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "4799b7a0",
-                  "checked":  "2026-10-13T20:04:32Z"
+                  "run_by":  "native-session",
+                  "commit":  "11a58915",
+                  "checked":  "2026-10-13T21:11:27Z"
               },
     "publish":  false,
     "excluded_reason":  "published in eco-v0.1.159 (2026-10-11; 0.3.0 in eco-v0.1.158); 0.5.0 publish requested (2026-10-13)"
