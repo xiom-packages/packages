@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-13T00:04:13Z",
+    "updated":  "2026-10-13T15:24:34Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1956,17 +1956,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.3.0",
+                         "version":  "0.3.1",
                          "name":  "xiom.dx12",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Direct3D 12 bindings for XIOM (runtime d3d12.dll + dxgi.dll; COM/vtable ABI pinned from microsoft/DirectX-Headers; d3d12: 358 method wrappers + 9 free functions; DXGI: 43 interfaces / 163 wrappers / 6 free functions; d3d12video: 30 interfaces / 190 wrappers; struct metadata: 434 shapes / 2238 size+offset consts; live device/WARP/swapchain/video chains; probe + SKIP semantics)",
+                         "description":  "Direct3D 12 bindings for XIOM (runtime d3d12.dll + dxgi.dll; COM/vtable ABI pinned from microsoft/DirectX-Headers; d3d12: 358 method wrappers + 9 free functions; DXGI: 43 interfaces / 163 wrappers / 6 free functions; d3d12video: 30 interfaces / 190 wrappers; struct metadata: 434 shapes / 2238 size+offset consts; live device/WARP/swapchain/video chains; probe + SKIP semantics; stable)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dx12/v0.3.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dx12/v0.3.1/package.tar.gz",
                          "source_files":  [
                                               "consts_1.xi",
                                               "consts_2.xi",
