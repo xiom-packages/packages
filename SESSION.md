@@ -78,6 +78,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   wrap `f70f02ae`; **`eco-v0.1.173`**, run 38408548028 green; registry sha256 `544c59b8...`
   @13:55:09Z; README/STATUS synced `5000800a`; item `-1338-bindings-2` fixed. The 6 known `-1403`
   unknown-type warnings persist on v0.64.4 -- the 0-warning re-check rides the next archive (m277).
+- **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
+  cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
+  consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
+  green; **gles 0.1.0** -- bridge recipe `--c-source <installed>\...\gles_probe.c` -> live ANGLE
+  2.1 run (EGL 1.5 | ES 3.0.0 | D3D11). opengl/dx12 installs are clean (same bridge-recipe
+  family; the `-5` gap still requires the manual `--c-source` until the consumer build hook lands).
 - **Ops hygiene (clobber incident `-1852-ops`)**: installs/extracts to lane-local dirs only;
   `tools/home-snapshot.ps1` before risky windows; restore-from-snapshot after a clobber. Packages ran
   no install/extract; timeline observation filed (`REL-20261012-1904-packages`).
