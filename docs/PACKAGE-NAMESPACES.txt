@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-14T00:11:53+03:00
-# packages: 534  modules: 935
+# generated: 2026-10-14T00:59:14+03:00
+# packages: 537  modules: 973
 
 ## package names
 xiom.acpi
@@ -41,6 +41,7 @@ xiom.badger
 xiom.barrier
 xiom.base32
 xiom.base58
+xiom.basisu
 xiom.bech32
 xiom.bencode
 xiom.bibtex
@@ -182,6 +183,7 @@ xiom.gpt
 xiom.gpx
 xiom.graphql
 xiom.grpc
+xiom.harfbuzz
 xiom.hashchain
 xiom.hcl
 xiom.hello
@@ -442,6 +444,7 @@ xiom.spirv.headers
 xiom.spirv-cross
 xiom.spirv-reflect
 xiom.spirv-tools
+xiom.spz
 xiom.sql
 xiom.sqlite
 xiom.srt
@@ -588,6 +591,7 @@ xiom.badger
 xiom.barrier
 xiom.base32
 xiom.base58
+xiom.basisu
 xiom.bech32
 xiom.bencode
 xiom.bibtex
@@ -821,6 +825,40 @@ xiom.gpx
 xiom.grpc.client
 xiom.grpc.server
 xiom.grpc.types
+xiom.harfbuzz
+xiom.harfbuzz.gen.blob
+xiom.harfbuzz.gen.buffer
+xiom.harfbuzz.gen.common
+xiom.harfbuzz.gen.deprecated
+xiom.harfbuzz.gen.draw
+xiom.harfbuzz.gen.face
+xiom.harfbuzz.gen.font
+xiom.harfbuzz.gen.hb
+xiom.harfbuzz.gen.map
+xiom.harfbuzz.gen.ot
+xiom.harfbuzz.gen.ot_color
+xiom.harfbuzz.gen.ot_deprecated
+xiom.harfbuzz.gen.ot_fetch
+xiom.harfbuzz.gen.ot_font
+xiom.harfbuzz.gen.ot_layout
+xiom.harfbuzz.gen.ot_math
+xiom.harfbuzz.gen.ot_meta
+xiom.harfbuzz.gen.ot_metrics
+xiom.harfbuzz.gen.ot_name
+xiom.harfbuzz.gen.ot_shape
+xiom.harfbuzz.gen.ot_var
+xiom.harfbuzz.gen.paint
+xiom.harfbuzz.gen.script_list
+xiom.harfbuzz.gen.set
+xiom.harfbuzz.gen.shape
+xiom.harfbuzz.gen.shape_plan
+xiom.harfbuzz.gen.style
+xiom.harfbuzz.gen.subset
+xiom.harfbuzz.gen.subset_depend
+xiom.harfbuzz.gen.subset_serialize
+xiom.harfbuzz.gen.surface
+xiom.harfbuzz.gen.unicode
+xiom.harfbuzz.gen.version
 xiom.hashchain
 xiom.hcl
 xiom.hello
@@ -1293,6 +1331,9 @@ xiom.spirv_tools.reducer_fuzzer
 xiom.spirv_tools.resolve
 xiom.spirv_tools.symbols
 xiom.spirv_tools.validator
+xiom.spz
+xiom.spz.ffi
+xiom.spz.math
 xiom.sqlite
 xiom.sqlite.driver
 xiom.sqlite.ffi
