@@ -6,14 +6,14 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  12,
+                  "passed":  23,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "f9f0e2e1",
-                  "checked":  "2026-10-13T20:04:32Z"
+                  "commit":  "3a95ea78",
+                  "checked":  "2026-10-13T20:30:24Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.122 (2026-10-09); 0.3.0 publish requested (2026-10-13)",
+    "excluded_reason":  "published in eco-v0.1.122 (2026-10-09)",
     "platforms":  [
                       "windows-x64"
                   ],
