@@ -13,5 +13,11 @@
                   "checked":  "2026-10-13T21:11:53Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.176 (2026-10-13, 0.3.0 AV1 decode; 0.2.0 in eco-v0.1.122); 0.4.1 demux publish requested (0.4.0 was held by REL-20261013-2142-packages: codec-id gate fixed to a runtime generation-resolved AV1 id)"
+    "excluded_reason":  "published in eco-v0.1.176 (2026-10-13, 0.3.0 AV1 decode; 0.2.0 in eco-v0.1.122)",
+    "platforms":  [
+                      "windows-x64"
+                  ],
+    "runtime_deps":  [
+                         "avcodec/avformat/avutil/swresample shared libraries (multi-soname runtime loader; SKIP when absent)"
+                     ]
 }
