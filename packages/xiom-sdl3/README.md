@@ -14,8 +14,9 @@ is not installed.
 > m263+).  Suite **61/61 x2** with the official SDL 3.4.8 DLL + absent
 > **5/5 x2** (decode arms run without the DLL).  0.15.0 shipped in
 > `eco-v0.1.151`; 0.16.0 in `eco-v0.1.152`; 0.16.1 in `eco-v0.1.160`
-> (sha256 `f2d99b9e...`); **0.17.0 published in `eco-v0.1.162` (sha256
-> `2f162d32...`)**.  **Lane:** bindings (`keywords: ["binding"]`).
+> (sha256 `f2d99b9e...`); 0.17.0 published in `eco-v0.1.162` (sha256
+> `2f162d32...`); **0.18.0 in `eco-v0.1.173` (sha256 `544c59b8...`)**.
+> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 

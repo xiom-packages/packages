@@ -13,5 +13,5 @@
                   "checked":  "2026-10-13T13:51:52Z"
               },
     "publish":  false,
-    "excluded_reason":  "0.18.0 publish requested (REL-20261013-1338-bindings; readback wave; B-11 addendum retired)"
+    "excluded_reason":  "published in eco-v0.1.173 (2026-10-13, 0.18.0 readback wave; 0.17.0 in eco-v0.1.162; 0.16.1 in eco-v0.1.160; 0.16.0 in eco-v0.1.152; 0.15.0 in eco-v0.1.151)"
 }
