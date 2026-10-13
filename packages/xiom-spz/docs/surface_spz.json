@@ -1,0 +1,421 @@
+{
+  "counts": {
+    "bridged": 29,
+    "model": 21,
+    "non_goal": 3,
+    "total": 53
+  },
+  "headers": [
+    "load-spz.h",
+    "splat-c-types.h",
+    "splat-types.h"
+  ],
+  "package": "xiom.spz",
+  "pin": "v3.0.0 = 5bf2945de1a003cee07133b1e495fe9c6ffdc7e7",
+  "problems": [],
+  "rows": [
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "const",
+      "name": "SH_MAX_DEGREE",
+      "where": "xiom.spz SPZ_SH_MAX_DEGREE"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "const",
+      "name": "SH_MAX_COEFFS",
+      "where": "xiom.spz SPZ_SH_MAX_COEFFS"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "const",
+      "name": "DEFAULT_SH1_BITS",
+      "where": "xiom.spz SPZ_DEFAULT_SH1_BITS"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "const",
+      "name": "DEFAULT_SH_REST_BITS",
+      "where": "xiom.spz SPZ_DEFAULT_SH_REST_BITS"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "const",
+      "name": "LATEST_SPZ_HEADER_VERSION",
+      "where": "xiom.spz SPZ_LATEST_HEADER_VERSION"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "const",
+      "name": "MIN_ZSTD_SPZ_HEADER_VERSION",
+      "where": "xiom.spz SPZ_MIN_ZSTD_HEADER_VERSION"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "const",
+      "name": "MIN_SMALLEST_THREE_QUATERNIONS_VERSION",
+      "where": "xiom.spz SPZ_MIN_SMALLEST_THREE_VERSION"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "const",
+      "name": "NGSP_MAGIC",
+      "where": "xiom.spz SPZ_NGSP_MAGIC (+ bridge xspz_constants)"
+    },
+    {
+      "cov": "non-goal",
+      "header": "load-spz.h",
+      "kind": "function",
+      "name": "SpzLog",
+      "why": "header-local static logging template (printf wrapper); no library symbol"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "struct",
+      "name": "UnpackedGaussian",
+      "where": "SpzUnpackedGaussian (86-float flat record, SPZ_UNPACKED_OFF_*)"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "struct",
+      "name": "PackedGaussian",
+      "where": "SpzPackedGaussian (92-byte raw record, SPZ_PACKED_OFF_*)"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "struct",
+      "name": "PackedGaussians",
+      "where": "SpzMeta + the packed accessors"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "struct",
+      "name": "PackOptions",
+      "where": "spz_pack parameters (version/from/sh1Bits/shRestBits)"
+    },
+    {
+      "cov": "model",
+      "header": "load-spz.h",
+      "kind": "struct",
+      "name": "UnpackOptions",
+      "where": "spz_unpack to_coord parameter"
+    },
+    {
+      "cov": "non-goal",
+      "header": "load-spz.h",
+      "kind": "struct",
+      "name": "PlyExtraElement",
+      "why": "declared struct; used only inside load-spz.cc's PLY reader and never exposed by a public function (grepped at pin)"
+    },
+    {
+      "bridge": "xspz_pack / xspz_save_file",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "function",
+      "name": "saveSpz",
+      "xiom": "spz_pack / spz_save_file"
+    },
+    {
+      "bridge": "xspz_unpack / xspz_load_file",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "function",
+      "name": "loadSpz",
+      "xiom": "spz_unpack / spz_load_file"
+    },
+    {
+      "bridge": "xspz_load_packed / xspz_load_file",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "function",
+      "name": "loadSpzPacked",
+      "xiom": "spz_load_packed"
+    },
+    {
+      "bridge": "xspz_save_ply",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "function",
+      "name": "saveSplatToPly",
+      "xiom": "spz_save_ply"
+    },
+    {
+      "bridge": "xspz_load_ply",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "function",
+      "name": "loadSplatFromPly",
+      "xiom": "spz_load_ply"
+    },
+    {
+      "bridge": "xspz_serialize_packed",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "function",
+      "name": "serializePackedGaussians",
+      "xiom": "spz_serialize_packed"
+    },
+    {
+      "bridge": "xspz_compress_gzipped",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "function",
+      "name": "compressGzipped",
+      "xiom": "spz_compress_gzipped"
+    },
+    {
+      "bridge": "xspz_has_extension_support",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "function",
+      "name": "hasExtensionSupport",
+      "xiom": "spz_has_extension_support"
+    },
+    {
+      "cov": "model",
+      "header": "splat-types.h",
+      "kind": "enum",
+      "name": "CoordinateSystem",
+      "where": "SPZ_COORD_* (bridge xspz_coordinate_values validates 0..8)"
+    },
+    {
+      "cov": "model",
+      "header": "splat-types.h",
+      "kind": "struct",
+      "name": "CoordinateConverter",
+      "where": "30-float flat result of spz_coordinate_converter"
+    },
+    {
+      "bridge": "xspz_axes_match",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "axesMatch",
+      "xiom": "spz_axes_match"
+    },
+    {
+      "bridge": "xspz_coordinate_converter",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "coordinateConverter",
+      "xiom": "spz_coordinate_converter"
+    },
+    {
+      "cov": "model",
+      "header": "splat-types.h",
+      "kind": "struct",
+      "name": "GaussianCloud",
+      "where": "SpzCloud (flat float workspace, SPZ_STREAM_*)"
+    },
+    {
+      "cov": "model",
+      "header": "splat-types.h",
+      "kind": "using",
+      "name": "Vec3f",
+      "where": "3-float flat values in the math wrappers"
+    },
+    {
+      "cov": "model",
+      "header": "splat-types.h",
+      "kind": "using",
+      "name": "Quat4f",
+      "where": "4-float w-first flat values in the math wrappers"
+    },
+    {
+      "cov": "model",
+      "header": "splat-types.h",
+      "kind": "using",
+      "name": "Half",
+      "where": "Int bit pattern (0..65535)"
+    },
+    {
+      "bridge": "xspz_math_half_to_float",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "halfToFloat",
+      "xiom": "spz_half_to_float (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_float_to_half",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "floatToHalf",
+      "xiom": "spz_float_to_half (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_normalized3 / xspz_math_normalized4",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "normalized",
+      "xiom": "spz_normalized3 / spz_normalized4 (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_norm3 / xspz_math_norm4",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "norm",
+      "xiom": "spz_norm3 / spz_norm4 (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_axis_angle_quat",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "axisAngleQuat",
+      "xiom": "spz_axis_angle_quat (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_vec3f",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "vec3f",
+      "xiom": "spz_vec3f (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_dot3",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "dot",
+      "xiom": "spz_dot3 (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_squared_norm3",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "squaredNorm",
+      "xiom": "spz_squared_norm3 (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_quat4f",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "quat4f",
+      "xiom": "spz_quat4f (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_times_qv / _qq / _qs / _vs / _vv",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "times",
+      "xiom": "spz_times_qv/_qq/_qs/_vs/_vv (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_plus_qq / xspz_math_plus_vv",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "plus",
+      "xiom": "spz_plus_qq / spz_plus_vv (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_math_copy_float_buffer",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "function",
+      "name": "copyFloatBuffer",
+      "xiom": "spz_copy_float_buffer (xiom.spz.math)"
+    },
+    {
+      "bridge": "xspz_cloud_data",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "method",
+      "name": "data()",
+      "xiom": "spz_cloud_data"
+    },
+    {
+      "bridge": "xspz_cloud_convert",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "method",
+      "name": "convertCoordinates",
+      "xiom": "spz_cloud_convert"
+    },
+    {
+      "bridge": "xspz_cloud_rotate180",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "method",
+      "name": "rotate180DegAboutX",
+      "xiom": "spz_cloud_rotate180"
+    },
+    {
+      "bridge": "xspz_median_volume",
+      "cov": "bridge",
+      "header": "splat-types.h",
+      "kind": "method",
+      "name": "medianVolume",
+      "xiom": "spz_median_volume"
+    },
+    {
+      "bridge": "xspz_packed_gaussian_unpack",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "method",
+      "match": "unpack",
+      "name": "unpack(bool, bool, int32_t, const CoordinateConverter &)",
+      "xiom": "spz_packed_gaussian_unpack"
+    },
+    {
+      "bridge": "xspz_load_packed (meta slot bit 6)",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "method",
+      "name": "usesFloat16",
+      "xiom": "spz_load_packed"
+    },
+    {
+      "bridge": "xspz_packed_gaussian",
+      "cov": "bridge",
+      "header": "load-spz.h",
+      "kind": "method",
+      "match": "at",
+      "name": "at(int32_t)",
+      "xiom": "spz_packed_gaussian"
+    },
+    {
+      "cov": "model",
+      "header": "splat-c-types.h",
+      "kind": "typedef",
+      "name": "SpzFloatBuffer",
+      "where": "count + owned float stream (SpzCloud workspaces)"
+    },
+    {
+      "cov": "model",
+      "header": "splat-c-types.h",
+      "kind": "typedef",
+      "name": "GaussianCloudData",
+      "where": "the six SpzFloatBuffers; produced by spz_cloud_data"
+    },
+    {
+      "cov": "non-goal",
+      "header": "splat-c-types.h",
+      "kind": "typedef",
+      "name": "SpzExtensionNode",
+      "why": "extension chain pointer type; SPZ_BUILD_EXTENSIONS is off in the pinned build (no splat-extensions.h vendored)"
+    }
+  ],
+  "upstream": "github.com/nianticlabs/spz"
+}
