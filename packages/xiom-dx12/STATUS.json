@@ -13,7 +13,7 @@
                   "checked":  "2026-10-13T12:24:00Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.168 (2026-10-12; 0.2.0 in eco-v0.1.167; 0.1.0 in eco-v0.1.166)",
+    "excluded_reason":  "published in eco-v0.1.169 (2026-10-13, stable 0.3.1; 0.3.0 in eco-v0.1.168; 0.2.0 in eco-v0.1.167; 0.1.0 in eco-v0.1.166)",
     "platforms":  [
                       "windows-x64"
                   ],
