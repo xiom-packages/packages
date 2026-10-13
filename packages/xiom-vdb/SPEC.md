@@ -72,8 +72,8 @@ A chunk under ZIP/BLOSC is an i64 size prefix followed by payload bytes:
 - prefix `> 0`: that many bytes of the compressed/encoded stream (ZIP: zlib
   stream; BLOSC: opaque);
 - prefix `<= 0`: `-prefix` raw fallback bytes (both ZIP and BLOSC define
-  this). The reader accepts both forms and verifies the raw fallback length
-  against the expected value count.
+  this). The reader accepts both forms; when values are decoded, the raw
+  fallback length is verified against the expected value count.
 
 ## 3. MetaMap (file-level and grid-level)
 
