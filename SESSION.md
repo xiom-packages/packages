@@ -41,6 +41,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   (4) promotions per policy sec. 7 (vulkan 0.6.0, sdl3 0.17.0 [blocked while `-1403` open], opengl
   0.4.0, dx12 0.3.0 [B-24 open], SDK100 names); (5) provenance retrofits at touch (14/519; audit
   `scripts/provenance-audit.ps1`); engine codecs at the cook gate later.
+- **Platform matrix v1 LANDED (2026-10-13, ORBITDB P2 follow-up)**: `docs/PLATFORM-MATRIX.md` +
+  generator `scripts/platform-matrix.ps1` (regenerate with `-WriteReport`; declared rows from
+  optional STATUS `platforms`/`runtime_deps` -- validated + preserved by `status.ps1`
+  repin/update; derived classes compile 13 / compile+runtime-load 9 / runtime-load 14 / pure
+  497; **36 native packages on the declaration backlog**, retrofit at each touch). Bus:
+  `REL-20261012-1945-orbitdb-3` acked -> fixed (P2 delivered; P1 tracked on `-1550-orbitdb-9`).
 - **Ops hygiene (clobber incident `-1852-ops`)**: installs/extracts to lane-local dirs only;
   `tools/home-snapshot.ps1` before risky windows; restore-from-snapshot after a clobber. Packages ran
   no install/extract; timeline observation filed (`REL-20261012-1904-packages`).
@@ -550,9 +556,11 @@ WORK QUEUE (in priority order as items land):
    verified/published gets a PROVENANCE.md (upstream pin + license OR an
    explicit independent declaration); new packages must land with it; audit
    `scripts/provenance-audit.ps1` (report docs/PROVENANCE-COMPLIANCE.md;
-   backlog 14/519). Upstream-first + clone-repo workflow + 100% of declared
-   surface on every package; clones into E:\repos\<name>, registered in
-   E:\repos\CLEANUP.md with a review-after date.
+   backlog 14/519); same touch rule for the platform matrix (`platforms` +
+   `runtime_deps` in STATUS.json; schema in docs/PLATFORM-MATRIX.md; 36
+   native names on the backlog). Upstream-first + clone-repo workflow + 100%
+   of declared surface on every package; clones into E:\repos\<name>,
+   registered in E:\repos\CLEANUP.md with a review-after date.
 
 CARRIES: eco batch = wrap commit -> push -> tag `eco-v0.1.NNN` -> approve the
 pending deployment (environment_ids:[22424011031]; integer -F for the array) ->
