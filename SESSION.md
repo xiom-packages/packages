@@ -122,6 +122,15 @@ running). Check `git log -1 --format=%h %s` before starting.
   (meshoptimizer/steam-audio rows present; FFmpeg row reference-only LGPL/GPL -> keep dynamic-loader
   model; zstd + new candidates need clones at prep). Engine asks tracked: `-1819-engine` (compiler),
   `-1819-engine-2` + `-1903-engine` (bindings), `-1914-engine` acked with sequencing.
+- **Consumer-path isolation (2026-10-13 19:30-19:45Z)**: minimal negative baselines for the `-1731`
+  blocker: kv WITH A REAL CALL passes; minimal 2-module dep passes; + extern-bearing module passes;
+  + submodule-to-submodule import passes; + cross-module type in a Result signature passes (probes:
+  `%TEMP%\kilo\minrepo` + `consumer-minprobe` + `consumer-kv-call`; logs `minprobe-*.log`). Failure is
+  scale/generated-specific (sqlite 8 modules / sdl3 80+). Refinement filed to compiler
+  (`REL-20261013-1941-packages`, info; ASCII fixed, validate green). Secondary: `xiom pkg install`
+  local fallback writes a dot-named dir in flat layout -- project discovery ignores it until
+  normalized to the registry layout (`xiom-minprobe-0.1.0/<pkg>/src`). Ops: no scope ask needed for
+  Wave A (existing names); Wave B scope asks deferred until bindings names the upstreams.
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
