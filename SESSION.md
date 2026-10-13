@@ -14,10 +14,10 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 90 eco releases; this block is the live handoff):**
+**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 91 eco releases; this block is the live handoff):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified; canonical install byte-identical
   556/556; 532 records repinned). Validate **534/0**; guard **521 allowlisted / 505 ready / 16
-  grandfathered / 0 failures**. Tally: **90 eco releases** (`eco-v0.1.86` -> `eco-v0.1.174`).
+  grandfathered / 0 failures**. Tally: **91 eco releases** (`eco-v0.1.86` -> `eco-v0.1.175`).
 - **Published since the 18:45Z block**: batch 62 sdl3 0.16.1; **v0.64.4 gate** (repin + batch 63 jolt
   0.2.0 / vma 0.3.0 / dxc 0.3.0, `eco-v0.1.161`); **SDK100 wave complete** (batches 64-67:
   spirv-tools/cross/reflect + glslang + slang + sdl2 + shaderc + spirv.headers 0.1.0, sdl3 0.17.0,
@@ -28,7 +28,8 @@ running). Check `git log -1 --format=%h %s` before starting.
   **opengl 0.5.0** (`eco-v0.1.170`; WGL wave, 28/28 x2); **gles 0.1.0** (`eco-v0.1.171`; ANGLE, 18/18 x2);
   **dx12 0.4.0** (`eco-v0.1.172`; command recording + B-25, 42/42 x2);
   **sdl3 0.18.0** (`eco-v0.1.173`; event readback, 61/61 x2);
-  **sqlite 0.4.0** (`eco-v0.1.174`; PULSE SQL driver, 21/21 x2).
+  **sqlite 0.4.0** (`eco-v0.1.174`; PULSE SQL driver, 21/21 x2);
+  **sqlite 0.4.1** (`eco-v0.1.175`; modules list, 21/21 x2).
 - **v0.64.4 re-verify wave DONE**: `-1549-packages-4` VERIFIED (phantom probes -> one clean
   `19:5 unresolved import`); `-6` VERIFIED (jolt `--cxx-standard 17`); `-5`/`-7` BOUNCED still red
   (consumer link `undefined symbol: sqlite3_libversion`; local fallback silent no-op + ranges
@@ -39,8 +40,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   `XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime`; btree order-3 churn GREEN; wave118 locking probe
   green). Caveat: the new runtime symbols reach consumers at the next compiler pin.
 - **Queue (nothing open addressed to packages)**: (1) **DONE 2026-10-13: `xiom.sqlite` 0.4.0 PULSE
-  SQL driver live in `eco-v0.1.174`** (sha256 `1e142acc...`; PULSE co-verify pending on
-  `REL-20261013-1540-packages`); (2) binding batches as they
+  SQL driver live in `eco-v0.1.174`** (sha256 `1e142acc...`) **+ 0.4.1 modules-list fix in
+  `eco-v0.1.175`** (sha256 `21c1f673...`; PULSE re-run pending -- consumer project-build blocker
+  filed to compiler, `REL-20261013-1731-packages`; `--run` fallback works); (2) binding batches as they
   arrive; (3) **next compiler archive (v0.64.5+)**: repin + re-verify sdl3 compile 0 warnings
   (m277 fixed our `-1403`), B-22, rows `-1549-packages-5/-7`, plus the compiler next-batch rows
   (m275-m282 staged incl. m281 = B-23/B-24/B-20 fixes -- retire those workarounds at the wave
@@ -89,6 +91,18 @@ running). Check `git log -1 --format=%h %s` before starting.
   B-26 workaround = flat `RowOutcome` return of query_one. Per-touch retrofits merged
   (`5bd95448`, tip `80a06b6b`): PROVENANCE.md (upstream pin + 25/25 declared surface) + platform row;
   validator accepts explicit-none ([]); artifact unchanged (no republish).
+- **`xiom.sqlite` 0.4.1 (modules-list fix) PUBLISHED + CONSUMER-PATH BLOCKER found (2026-10-13)**:
+  PULSE filed `-1715-pulse` (0.4.0 not consumable: installed package.xi lacked `modules:`); we
+  shipped the requested fix (modules list + 0.4.1; record `46bccdae`, wrap `d94b9d1b`;
+  **`eco-v0.1.175`**, run 38437966256 green, live sha256 `21c1f673...`; sync `89d6b178`) and then
+  reproduced with a kv-controlled A/B in a clean `xiom.toml` project harness: **kv (single-module)
+  builds; sqlite 0.4.0/0.4.1 AND sdl3 0.18.0 fail with T001 cascades inside dependency sources;
+  a bogus `modules:` list does not change kv's result -- project-build discovery ignores the field**.
+  Filed: `REL-20261013-1731-packages` (compiler, high: full repro dirs `%TEMP%\kilo\consumer-*` +
+  build41.log) and `REL-20261013-1731-packages-2` (bindings, fleet note: 41 published + 26
+  unpublished manifests lack `modules:` -- retrofit at touch/templates). PULSE item fixed with the
+  nuance (their re-run pending); **`xiom --run` consumer flow is unaffected** (all today's consumer
+  tests used it). Consumer smoke gate proposal (PULSE sec.4 note) tracked for the publish flow.
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
@@ -592,17 +606,19 @@ if the target item is already in its target state, skip it and report.
 
 STATE: pin v0.64.4 (official archive, SHA256 44a41aea verified; canonical install
 byte-identical 556/556; 532 records repinned). Validate 534/0; guard 521
-allowlisted / 505 ready / 16 grandfathered / 0 failures. Tally: 90 eco releases
-(eco-v0.1.86 -> eco-v0.1.174) -- SDK100 wave complete + vulkan 0.6.0 + opengl
-0.5.0 + dx12 0.4.0 (stable) + sdl3 0.18.0 + sqlite 0.4.0 (PULSE SQL driver) +
-gles 0.1.0 + jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 all live. Nothing open addressed
-to packages.
+allowlisted / 505 ready / 16 grandfathered / 0 failures. Tally: 91 eco releases
+(eco-v0.1.86 -> eco-v0.1.175) -- SDK100 wave complete + vulkan 0.6.0 + opengl
+0.5.0 + dx12 0.4.0 (stable) + sdl3 0.18.0 + sqlite 0.4.1 (PULSE driver +
+modules fix) + gles 0.1.0 + jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 all live.
+Consumer project-build blocker open with compiler (-1731-packages). Nothing
+else open addressed to packages.
 
 WORK QUEUE (in priority order as items land):
-1. [DONE 2026-10-13] xiom.sqlite 0.4.0 SQL driver live in `eco-v0.1.174`
-   (sha256 1e142acc...); PULSE co-verify pending on REL-20261013-1540-packages
-   (requirements: docs/requirements/pulse-sql-driver.md). Promotion optional at
-   the next touch with the sec.7 gate pack.
+1. [DONE 2026-10-13] xiom.sqlite 0.4.0 SQL driver + 0.4.1 modules-list fix live
+   (`eco-v0.1.174`/`175`, sha256 1e142acc.../21c1f673...). PULSE re-run pending;
+   consumer project-build blocker filed to compiler (`REL-20261013-1731-packages`;
+   kv-controlled repro; `xiom --run` fallback works). Promotion optional at the
+   next touch with the sec.7 gate pack.
 2. Bindings batches as items arrive: merge ONLY the newest tip (same-package
    items supersede; different packages stack into one eco batch); resolve
    package STATUS/README conflicts to THEIR side but RESTORE earlier shipped/
