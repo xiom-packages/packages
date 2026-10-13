@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T19:45:50Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T21:53:01Z.
 
 ## Summary
 
-- packages tracked: 534
-- incubating: 252
+- packages tracked: 535
+- incubating: 253
 - ported: 1
 - stable: 281
 - publish enabled: 0
@@ -420,6 +420,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 4/4 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12; batch 35, m258 gate cleared on v0.64.4) |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
+| xiom.ktx2 | xiom-ktx2 | incubating | tests/test_conformance.xi | pass 41/41 | 82e75e16 | False | not allowlisted: new package (0.1.0), awaiting publish-scope decision |
 | xiom.kv | xiom-kv | incubating | tests/test_conformance.xi | pass 30/30 | 603f87ef | False | tests-only touch 2026-10-09 (rides the next source version bump) |
 | xiom.l10n-address | xiom-l10n-address | incubating | tests/test_conformance.xi | pass 22/22 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.l10n-currency | xiom-l10n-currency | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
@@ -562,5 +563,5 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.zigbee | xiom-zigbee | incubating | tests/test_conformance.xi | pass 26/26 | 2c6a7b88 | False | category harmonization patch bump (registry metadata) |
 | xiom.zkp | xiom-zkp | incubating | tests/test_conformance.xi | pass 20/20 | e295e6fc | False | publish pending: next scope delta |
 | xiom.zookeeper | xiom-zookeeper | incubating | tests/test_conformance.xi | pass 24/24 | 0535dc8e | False | publish pending: next scope delta |
-| xiom.zstd | xiom-zstd | incubating | tests/test_conformance.xi | pass 24/24 | 0482c055 | False | publish pending: bindings batch 12 (eco-v0.1.106) |
+| xiom.zstd | xiom-zstd | incubating | tests/test_conformance.xi | pass 8/8 | ba754abf | False | publish pending: bindings batch 12 (eco-v0.1.106) |
 

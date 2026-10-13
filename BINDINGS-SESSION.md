@@ -3,8 +3,11 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED TODAY IS LIVE -- last: sqlite
-0.4.1 in `eco-v0.1.175`** -- LIVE: dx12 0.3.1 stable (`eco-v0.1.169`) +
+**STATUS: EVERYTHING THIS LANE SHIPPED TODAY IS LIVE -- last: wave B
+first in `eco-v0.1.177`** -- LIVE: codec wave A (`eco-v0.1.176`: jolt
+0.3.0 / zstd 0.3.0 / meshopt 0.5.0 / ffmpeg 0.3.0) + wave B first
+(`eco-v0.1.177`: harfbuzz 0.1.0 / basisu 0.1.0 / spz 0.1.0); dx12 0.3.1
+stable (`eco-v0.1.169`) +
 dx12 0.4.0 (`eco-v0.1.172`), opengl 0.5.0 (`eco-v0.1.170`), gles 0.1.0
 (`eco-v0.1.171`), sdl3 0.18.0 (`eco-v0.1.173`), sqlite 0.4.0
 (`eco-v0.1.174`) + 0.4.1 modules fix (`eco-v0.1.175`; sha256
@@ -952,6 +955,20 @@ wrappers) -- is now LIVE (packages fixed `REL-20261012-2051-bindings`,
 validate green. Promotion readiness (policy sec. 7) is the next DX12 step
 after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
+
+**UPDATE 2026-10-14 12:05Z (doorbell -- wave A/B eco versions recorded)**:
+- **Codec wave A LIVE as `eco-v0.1.176`** (run 38468818666): `xiom.jolt`
+  0.3.0 (sha `3ac3df4e`), `xiom.zstd` 0.3.0 (`6288ac84`), `xiom.meshopt`
+  0.5.0 (`521dab9e`), `xiom.ffmpeg` 0.3.0 (`24a5c522`); live 21:14-21:17Z
+  on 2026-10-13; all x2 green.
+- **Wave B first LIVE as `eco-v0.1.177`** (2026-10-13 22:00Z; ops
+  bulk-confirmed the 17-name allowlist): `xiom.harfbuzz` 0.1.0 +
+  `xiom.basisu` 0.1.0 + `xiom.spz` 0.1.0 (x2 green). `xiom.ffmpeg` 0.4.0
+  demux stays HELD (`REL-20261013-2142-packages`: stream-info ok=false on
+  FFmpeg 7.1.1).
+- Tally **93 eco releases** (`eco-v0.1.86` -> `eco-v0.1.177`); validate
+  **537/0**; guard **538 allowlisted / 508 ready / 30 grandfathered / 0
+  failures**. No open relay items addressed to bindings at 12:00Z.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
