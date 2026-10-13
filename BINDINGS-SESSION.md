@@ -634,6 +634,19 @@ witness)**: localized the nested-payload corruption for the compiler.
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
 
+**UPDATE 2026-10-13 21:45Z (unattended merge/publish wiring -- owner
+directive)**:
+- **OPS allowlist request filed** `REL-20261013-2143-bindings`: append
+  **17 new names** (harfbuzz, basisu, spz, opus, lz4, ktx2, vdb, nis,
+  fidelityfx, dlss, xess, nrd, oidn, rpr, rtxdi, rtxgi, openpgl) so
+  packages can merge + publish without the owner present; existing-name
+  updates (jolt/zstd/meshopt/ffmpeg/ogg/phonon) need no append.
+- **Entire-suite manifest filed to packages** `-2143-bindings-2`:
+  ready (7 filed requests) + in flight (wave B + upscaler +
+  path-tracer), standing rules (newest tip per package; relay to engine
+  after each publish per `-2125-bindings`).
+- 13 agent sessions in flight; relay tip `4983164`, validate 452 items.
+
 **UPDATE 2026-10-13 21:25Z (path-tracer/lighting wave + merge->engine
 relay wiring; owner asks)**:
 - **ENGINE RELAY protocol**: filed to packages `REL-20261013-2125-bindings`
