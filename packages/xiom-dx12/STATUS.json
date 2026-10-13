@@ -13,7 +13,7 @@
                   "checked":  "2026-10-13T13:23:22Z"
               },
     "publish":  false,
-    "excluded_reason":  "stable; 0.4.0 publish requested (REL-20261013-1313-bindings; command recording + B-25 Int object params)",
+    "excluded_reason":  "published in eco-v0.1.172 (2026-10-13, stable 0.4.0 command recording; 0.3.1 in eco-v0.1.169; 0.3.0 in eco-v0.1.168; 0.2.0 in eco-v0.1.167; 0.1.0 in eco-v0.1.166)",
     "platforms":  [
                       "windows-x64"
                   ],
