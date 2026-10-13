@@ -1,16 +1,16 @@
 {
     "package":  "xiom.dx12",
-    "stage":  "incubating",
+    "stage":  "stable",
     "compiler":  "v0.64.4",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  31,
+                  "passed":  35,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "HEAD",
-                  "checked":  "2026-10-12T20:50:44Z"
+                  "commit":  "1a392b91",
+                  "checked":  "2026-10-13T12:07:14Z"
               },
     "publish":  false,
     "excluded_reason":  null
