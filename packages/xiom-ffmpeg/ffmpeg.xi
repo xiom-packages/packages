@@ -32,8 +32,19 @@
 // surface -- decoder discovery by name ("av1" native first, then the
 // "libdav1d"/"libaom-av1" wrappers), codec-context open, a packet/frame
 // lifecycle (alloc/unref/free + send/receive/flush) and frame
-// width/height/AVPixelFormat read-out.  Container demux (avformat) stays
-// out of scope for this wave (ROADMAP Phase 3).
+// width/height/AVPixelFormat read-out.
+//
+// 0.4.0 (wave A3 second half): container demux surface -- avformat
+// open/close from a file path, stream enumeration (count; per-stream index,
+// codec id/type, time base and geometry), best-stream selection, a packet
+// read loop whose packets (bytes/PTS/DTS/flags) feed the existing AV1 decode
+// loop directly, and seek.  ABI note: the bridge encodes the
+// AVFormatContext / AVStream / AVCodecParameters / AVPacket head layouts
+// read from the pinned oracle (PROVENANCE.md); the two generation-dependent
+// prefix values (AVStream.av_class since lavf 60; the AVCodecParameters
+// width/height shift at lavc 61 when coded_side_data was inserted before
+// `format`) are selected from the loaded generation's packed versions and
+// verified by the suite against the fixture's known header.
 //
 // Decode FFI discipline (v0.64.4 findings B-20/B-24/B-25/B-17/B-23):
 //   * handles cross as `Int` params in the fn-pointer casts (B-25: never
@@ -654,6 +665,395 @@ pub fn ffmpeg_decoder_close(dec: &FfDecoder) -> Result[Unit, Str]
 }
 
 // =========================================================================
+// Container demux surface (0.4.0, wave A3 second half)
+// =========================================================================
+
+/// A container/stream operation failed (open/find/read/seek) -> FAIL.
+pub const FFMPEG_DEMUX_FAILED: Int = 4;
+
+/// AV_CODEC_ID_AV1 (libavcodec/codec_id.h video-enum position; verified at
+/// runtime via avcodec_get_name -> "av1").  Complexity: O(1).
+pub const FFMPEG_CODEC_ID_AV1: Int = 226;
+
+/// AVMediaType values used by `ffmpeg_demux_best_stream`
+/// (libavutil/avutil.h).  Complexity: O(1).
+pub const FFMPEG_MEDIA_TYPE_VIDEO: Int = 0;
+pub const FFMPEG_MEDIA_TYPE_AUDIO: Int = 1;
+
+/// AVSEEK_FLAG_BACKWARD (libavformat/avformat.h).  Complexity: O(1).
+pub const FFMPEG_SEEK_BACKWARD: Int = 1;
+
+/// An open demuxer: the AVFormatContext plus the resolved libavformat /
+/// libavcodec entry points this surface needs, and the generation-dependent
+/// ABI prefix values used by the bridge copy-outs.  Owned by the caller;
+/// release with `ffmpeg_demux_close`.  The owning `FfmpegLibrary` must
+/// outlive it.
+pub type FfDemuxer = {
+  ctx: Int;
+  path: Str;
+  h_format: Int;
+  h_codec: Int;
+  h_util: Int;
+  stream_base: Int;       // AVStream prefix: 8 when lavf >= 60, else 0
+  codecpar_wh_off: Int;   // codecpar width offset: 72 when lavc >= 61, else 56
+  p_close_input: Int;
+  p_find_best: Int;
+  p_read_frame: Int;
+  p_seek_frame: Int;
+  p_packet_alloc: Int;
+  p_packet_unref: Int;
+  p_packet_free: Int;
+  p_strerror: Int;
+}
+
+/// Flat per-stream info (B-26); `ok` false carries the bridge rc in
+/// `message`.  codec_type is an AVMediaType, codec_id an AVCodecID.
+pub type FfStreamInfo = {
+  ok: Bool;
+  index: Int;
+  codec_type: Int;
+  codec_id: Int;
+  width: Int;
+  height: Int;
+  time_base_num: Int;
+  time_base_den: Int;
+  message: Str;
+}
+
+/// Flat best-stream outcome: on success `index` is the chosen stream.
+pub type FfBestStream = {
+  ok: Bool;
+  index: Int;
+  message: Str;
+}
+
+/// Flat packet-read outcome: on success the caller owns `packet` (release
+/// with `ffmpeg_demux_packet_unref` + `ffmpeg_demux_packet_free`); `eof`
+/// marks a clean end of stream.  Timestamps are in the stream's time base
+/// (AV_NOPTS_VALUE stays i64 minimum).
+pub type FfPacketRead = {
+  ok: Bool;
+  eof: Bool;
+  packet: Int;
+  stream_index: Int;
+  pts: Int;
+  dts: Int;
+  flags: Int;
+  size: Int;
+  pos: Int;
+  message: Str;
+}
+
+/// Flat seek outcome.
+pub type FfSeekOutcome = {
+  ok: Bool;
+  rc: Int;
+  message: Str;
+}
+
+/// Open a container from a file path (avformat_open_input +
+/// avformat_find_stream_info) and prepare the demux surface.  An absent or
+/// unreadable path is typed FFMPEG_DEMUX_FAILED with the AVERROR rc and the
+/// av_strerror text; missing entry points are FFMPEG_LOAD_ABI.
+/// Complexity: O(symbols + header parse).
+pub fn ffmpeg_demux_open(lib: &FfmpegLibrary, path: Str) -> Result[FfDemuxer, FfLoadError]
+  requires: lib.h_codec != 0
+  requires: path.len() > 0
+{
+  let api = ffmpeg_resolve_demux_api(lib);
+  if !api.is_ok {
+    return Err(api.error);
+  }
+  let api_v: FfDemuxApi = api.value;
+
+  // Generation-dependent ABI prefixes (see the bridge header):
+  // AVStream.av_class exists from lavf 60 (FFmpeg 6.0);
+  // AVCodecParameters gained coded_side_data in lavc 60.30, but it was
+  // appended at the struct end until lavc 61 (FFmpeg 7.0) inserted it
+  // before `format`, which shifts width/height from 56 to 72.
+  let avformat_v = ffmpeg_packed_version(lib.p_format_version);
+  let avcodec_v = ffmpeg_packed_version(lib.p_codec_version);
+  var stream_base = 0;
+  if (avformat_v >> 16) >= 60 { stream_base = 8; }
+  var wh_off = 56;
+  if (avcodec_v >> 16) >= 61 { wh_off = 72; }
+
+  // avformat_open_input takes AVFormatContext**: the handle is written by C
+  // into ONE owned 8-byte slot and read back byte-indexed (B-17/B-25).
+  var slot: Vec[UInt8] = Vec[UInt8].new();
+  var k = 0;
+  while k < 8 {
+    slot.push(0 as UInt8);
+    k = k + 1;
+  }
+  var rc: Int = 0;
+  unsafe {
+    // fmt NULL, options NULL -- Int 0 (never the bare `null` literal, B-23).
+    let f_open = api_v.p_open_input as fn(*UInt8, *UInt8, Int, Int) -> Int32;
+    rc = f_open(slot.as_mut_ptr(), path.c_str(), 0, 0) as Int;
+  }
+  if rc < 0 {
+    return Err(FfLoadError{
+      kind: FFMPEG_DEMUX_FAILED;
+      message: "avformat_open_input(" + path + ") rc=" + ffmpeg_rc_str(rc)
+        + ": " + ffmpeg_error_text(api_v.p_strerror, rc),
+    });
+  }
+  let ctx = ffmpeg_slot_u64(&slot, 0);
+  if ctx == 0 {
+    return Err(FfLoadError{ kind: FFMPEG_DEMUX_FAILED; message: "avformat_open_input returned a null context" });
+  }
+
+  var si_rc: Int = 0;
+  unsafe {
+    let f_fsi = api_v.p_find_stream_info as fn(Int, Int) -> Int32;
+    si_rc = f_fsi(ctx, 0) as Int;
+  }
+  if si_rc < 0 {
+    ffmpeg_free_ptr(api_v.p_close_input, ctx);
+    return Err(FfLoadError{
+      kind: FFMPEG_DEMUX_FAILED;
+      message: "avformat_find_stream_info rc=" + ffmpeg_rc_str(si_rc)
+        + ": " + ffmpeg_error_text(api_v.p_strerror, si_rc),
+    });
+  }
+
+  return Ok(FfDemuxer{
+    ctx: ctx;
+    path: path;
+    h_format: api_v.h_format;
+    h_codec: api_v.h_codec;
+    h_util: api_v.h_util;
+    stream_base: stream_base;
+    codecpar_wh_off: wh_off;
+    p_close_input: api_v.p_close_input;
+    p_find_best: api_v.p_find_best;
+    p_read_frame: api_v.p_read_frame;
+    p_seek_frame: api_v.p_seek_frame;
+    p_packet_alloc: api_v.p_packet_alloc;
+    p_packet_unref: api_v.p_packet_unref;
+    p_packet_free: api_v.p_packet_free;
+    p_strerror: api_v.p_strerror;
+  });
+}
+
+/// Close a demuxer: frees the AVFormatContext and everything it owns
+/// (avformat_close_input).  Call once; the value is not reusable afterwards.
+/// Complexity: O(1).
+pub fn ffmpeg_demux_close(demux: &FfDemuxer) -> Result[Unit, Str]
+  requires: demux.ctx != 0
+{
+  ffmpeg_free_ptr(demux.p_close_input, demux.ctx);
+  return Ok(());
+}
+
+/// Stream count (AVFormatContext.nb_streams via the bridge).
+/// Complexity: O(1).
+pub fn ffmpeg_demux_stream_count(demux: &FfDemuxer) -> Result[Int, Str]
+  requires: demux.ctx != 0
+{
+  var slot: Vec[UInt8] = Vec[UInt8].new();
+  var k = 0;
+  while k < 4 {
+    slot.push(0 as UInt8);
+    k = k + 1;
+  }
+  let rc = unsafe { ffmpeg_bridge_format_info(demux.ctx, slot.as_mut_ptr()) as Int };
+  if rc != 0 {
+    return Err("format_info bridge rc=" + ffmpeg_rc_str(rc));
+  }
+  return Ok(ffmpeg_slot_i32(&slot, 0));
+}
+
+/// Per-stream info: index, media type, codec id, geometry and the stream
+/// time base (codecpar + AVStream, copied out by the bridge).
+/// Complexity: O(1).
+pub fn ffmpeg_demux_stream_info(demux: &FfDemuxer, index: Int) -> FfStreamInfo
+  requires: demux.ctx != 0
+  requires: index >= 0
+{
+  var slot: Vec[UInt8] = Vec[UInt8].new();
+  var k = 0;
+  while k < 28 {
+    slot.push(0 as UInt8);
+    k = k + 1;
+  }
+  let rc = unsafe {
+    ffmpeg_bridge_stream_info(demux.ctx, index, demux.stream_base, demux.codecpar_wh_off, slot.as_mut_ptr()) as Int
+  };
+  if rc != 0 {
+    return FfStreamInfo{
+      ok: false;
+      index: index;
+      codec_type: -1;
+      codec_id: -1;
+      width: 0;
+      height: 0;
+      time_base_num: 0;
+      time_base_den: 0;
+      message: "stream_info bridge rc=" + ffmpeg_rc_str(rc),
+    };
+  }
+  return FfStreamInfo{
+    ok: true;
+    index: ffmpeg_slot_i32(&slot, 24);
+    codec_type: ffmpeg_slot_i32(&slot, 0);
+    codec_id: ffmpeg_slot_i32(&slot, 4);
+    width: ffmpeg_slot_i32(&slot, 8);
+    height: ffmpeg_slot_i32(&slot, 12);
+    time_base_num: ffmpeg_slot_i32(&slot, 16);
+    time_base_den: ffmpeg_slot_i32(&slot, 20);
+    message: "";
+  };
+}
+
+/// Best stream of one media type (av_find_best_stream); `ok` false when no
+/// stream of that type exists (rc is AVERROR_STREAM_NOT_FOUND).
+/// Complexity: O(streams).
+pub fn ffmpeg_demux_best_stream(demux: &FfDemuxer, media_type: Int) -> FfBestStream
+  requires: demux.ctx != 0
+  requires: media_type >= 0
+{
+  var rc: Int = 0;
+  unsafe {
+    // wanted_stream_nb -1, related_stream -1, decoder_ret NULL (Int 0), flags 0.
+    let f_best = demux.p_find_best as fn(Int, Int32, Int32, Int32, Int, Int32) -> Int32;
+    rc = f_best(demux.ctx, media_type as Int32, -1, -1, 0, 0) as Int;
+  }
+  if rc >= 0 {
+    return FfBestStream{ ok: true; index: rc; message: "" };
+  }
+  return FfBestStream{ ok: false; index: -1; message: ffmpeg_error_text(demux.p_strerror, rc) };
+}
+
+/// Read one packet (av_read_frame into a caller-owned AVPacket).  On success
+/// the caller owns `packet`: feed it to `ffmpeg_decoder_send` directly, or
+/// copy the payload out with `ffmpeg_demux_packet_bytes` and rebuild it via
+/// `ffmpeg_packet_from_bytes`; release it afterwards (unref + free).
+/// `eof` marks a clean end of stream.
+/// Complexity: O(packet).
+pub fn ffmpeg_demux_read_packet(demux: &FfDemuxer) -> FfPacketRead
+  requires: demux.ctx != 0
+{
+  let pkt = ffmpeg_alloc_packet(demux.p_packet_alloc);
+  if pkt == 0 {
+    return FfPacketRead{ ok: false; eof: false; packet: 0; stream_index: -1; pts: 0; dts: 0; flags: 0; size: 0; pos: 0; message: "av_packet_alloc returned null" };
+  }
+
+  var rc: Int = 0;
+  unsafe {
+    let f_read = demux.p_read_frame as fn(Int, Int) -> Int32;
+    rc = f_read(demux.ctx, pkt) as Int;
+  }
+  if rc < 0 {
+    ffmpeg_free_ptr(demux.p_packet_free, pkt);
+    if rc == FFMPEG_ERR_EOF {
+      return FfPacketRead{ ok: false; eof: true; packet: 0; stream_index: -1; pts: 0; dts: 0; flags: 0; size: 0; pos: 0; message: "" };
+    }
+    return FfPacketRead{
+      ok: false; eof: false; packet: 0; stream_index: -1; pts: 0; dts: 0; flags: 0; size: 0; pos: 0;
+      message: "av_read_frame rc=" + ffmpeg_rc_str(rc) + ": " + ffmpeg_error_text(demux.p_strerror, rc),
+    };
+  }
+
+  let pi = ffmpeg_packet_info_copy(pkt);
+  if !pi.ok {
+    ffmpeg_free_ptr(demux.p_packet_free, pkt);
+    return FfPacketRead{ ok: false; eof: false; packet: 0; stream_index: -1; pts: 0; dts: 0; flags: 0; size: 0; pos: 0; message: "packet head copy failed (bridge ABI mismatch?)" };
+  }
+  return FfPacketRead{
+    ok: true;
+    eof: false;
+    packet: pkt;
+    stream_index: pi.stream_index;
+    pts: pi.pts;
+    dts: pi.dts;
+    flags: pi.flags;
+    size: pi.size;
+    pos: pi.pos;
+    message: "";
+  };
+}
+
+/// Copy a demuxed packet's payload into owned XIOM bytes (bridge copy-out;
+/// XIOM never reads the packet's data pointer, B-20/B-24).
+/// Complexity: O(size).
+pub fn ffmpeg_demux_packet_bytes(demux: &FfDemuxer, packet: Int, size: Int) -> Result[Vec[UInt8], Str]
+  requires: demux.ctx != 0
+  requires: packet != 0
+  requires: size > 0
+{
+  var buf: Vec[UInt8] = Vec[UInt8].new();
+  var k = 0;
+  while k < size {
+    buf.push(0 as UInt8);
+    k = k + 1;
+  }
+  let rc = unsafe { ffmpeg_bridge_packet_bytes(packet, buf.as_mut_ptr(), size) as Int };
+  if rc != size {
+    return Err("packet_bytes bridge rc=" + ffmpeg_rc_str(rc) + " (requested " + fi_to_str(size) + ")");
+  }
+  return Ok(buf);
+}
+
+/// Release a demuxed packet's payload references (the packet object stays
+/// allocated and reusable).  Complexity: O(1).
+pub fn ffmpeg_demux_packet_unref(demux: &FfDemuxer, packet: Int)
+  requires: demux.p_packet_unref != 0
+  requires: packet != 0
+{
+  unsafe {
+    let f_unref = demux.p_packet_unref as fn(Int);
+    f_unref(packet);
+  }
+}
+
+/// Free a demuxed packet (object + payload).  Complexity: O(1).
+pub fn ffmpeg_demux_packet_free(demux: &FfDemuxer, packet: Int) -> Result[Unit, Str]
+  requires: demux.p_packet_free != 0
+  requires: packet != 0
+{
+  ffmpeg_free_ptr(demux.p_packet_free, packet);
+  return Ok(());
+}
+
+/// Seek to a timestamp expressed in `stream_index`'s time base
+/// (av_seek_frame).  Complexity: O(index).
+pub fn ffmpeg_demux_seek(demux: &FfDemuxer, stream_index: Int, timestamp: Int, flags: Int) -> FfSeekOutcome
+  requires: demux.ctx != 0
+  requires: stream_index >= 0
+{
+  var rc: Int = 0;
+  unsafe {
+    let f_seek = demux.p_seek_frame as fn(Int, Int32, Int, Int32) -> Int32;
+    rc = f_seek(demux.ctx, stream_index as Int32, timestamp, flags as Int32) as Int;
+  }
+  if rc >= 0 {
+    return FfSeekOutcome{ ok: true; rc: rc; message: "" };
+  }
+  return FfSeekOutcome{ ok: false; rc: rc; message: ffmpeg_error_text(demux.p_strerror, rc) };
+}
+
+/// avcodec_get_name for one codec id (display/verification helper); empty
+/// string when the codec module or id is unknown.
+/// Complexity: O(1).
+pub fn ffmpeg_codec_name(lib: &FfmpegLibrary, codec_id: Int) -> Str
+  requires: lib.h_codec != 0
+  requires: codec_id >= 0
+{
+  let s_name = dl.dl_sym(lib.h_codec, "avcodec_get_name");
+  if !s_name.is_ok { return ""; }
+  unsafe {
+    let f_name = s_name.value as fn(Int32) -> *UInt8;
+    let np = f_name(codec_id as Int32);
+    if (np as Int) != 0 {
+      return Str::from_c_str(np);
+    }
+    return "";
+  }
+}
+
+// =========================================================================
 // Decode internals
 // =========================================================================
 
@@ -669,6 +1069,10 @@ type FfFrameInfo = {
 extern "C" {
   fn ffmpeg_bridge_packet_from_bytes(codec_mod: Int, util_mod: Int, src: *UInt8, offset: Int, size: Int) -> Int;
   fn ffmpeg_bridge_frame_info(frame: Int, out_slot: *UInt8) -> Int32;
+  fn ffmpeg_bridge_format_info(fmt_ctx: Int, out_slot: *UInt8) -> Int32;
+  fn ffmpeg_bridge_stream_info(fmt_ctx: Int, index: Int, stream_base: Int, wh_off: Int, out_slot: *UInt8) -> Int32;
+  fn ffmpeg_bridge_packet_info(pkt: Int, out_slot: *UInt8) -> Int32;
+  fn ffmpeg_bridge_packet_bytes(pkt: Int, dst: *UInt8, cap: Int) -> Int32;
 }
 
 /// Resolved decode entry points on a loaded generation (flat, B-26).
@@ -891,8 +1295,169 @@ fn ffmpeg_pix_fmt_name(p_name: Int, fmt: Int) -> Str
 }
 
 // =========================================================================
+// Demux internals
+// =========================================================================
+
+/// The bridge out-slot copy result for one packet head.
+type FfPacketInfo = {
+  ok: Bool;
+  stream_index: Int;
+  flags: Int;
+  size: Int;
+  pts: Int;
+  dts: Int;
+  pos: Int;
+}
+
+/// Resolved demux entry points on a loaded generation (flat, B-26).
+type FfDemuxApi = {
+  h_format: Int;
+  h_codec: Int;
+  h_util: Int;
+  p_open_input: Int;
+  p_close_input: Int;
+  p_find_stream_info: Int;
+  p_find_best: Int;
+  p_read_frame: Int;
+  p_seek_frame: Int;
+  p_packet_alloc: Int;
+  p_packet_unref: Int;
+  p_packet_free: Int;
+  p_strerror: Int;
+}
+
+/// Resolve the 10 demux entry points (a missing one = FFMPEG_LOAD_ABI).
+/// Complexity: O(symbols).
+fn ffmpeg_resolve_demux_api(lib: &FfmpegLibrary) -> Result[FfDemuxApi, FfLoadError]
+  requires: lib.h_codec != 0
+  requires: lib.h_format != 0
+{
+  let s_open = dl.dl_sym(lib.h_format, "avformat_open_input");
+  if !s_open.is_ok { return Err(FfLoadError{ kind: FFMPEG_LOAD_ABI; message: "avformat_open_input: " + s_open.error }); }
+  let s_close = dl.dl_sym(lib.h_format, "avformat_close_input");
+  if !s_close.is_ok { return Err(FfLoadError{ kind: FFMPEG_LOAD_ABI; message: "avformat_close_input: " + s_close.error }); }
+  let s_fsi = dl.dl_sym(lib.h_format, "avformat_find_stream_info");
+  if !s_fsi.is_ok { return Err(FfLoadError{ kind: FFMPEG_LOAD_ABI; message: "avformat_find_stream_info: " + s_fsi.error }); }
+  let s_best = dl.dl_sym(lib.h_format, "av_find_best_stream");
+  if !s_best.is_ok { return Err(FfLoadError{ kind: FFMPEG_LOAD_ABI; message: "av_find_best_stream: " + s_best.error }); }
+  let s_read = dl.dl_sym(lib.h_format, "av_read_frame");
+  if !s_read.is_ok { return Err(FfLoadError{ kind: FFMPEG_LOAD_ABI; message: "av_read_frame: " + s_read.error }); }
+  let s_seek = dl.dl_sym(lib.h_format, "av_seek_frame");
+  if !s_seek.is_ok { return Err(FfLoadError{ kind: FFMPEG_LOAD_ABI; message: "av_seek_frame: " + s_seek.error }); }
+  let s_pkt_alloc = dl.dl_sym(lib.h_codec, "av_packet_alloc");
+  if !s_pkt_alloc.is_ok { return Err(FfLoadError{ kind: FFMPEG_LOAD_ABI; message: "av_packet_alloc: " + s_pkt_alloc.error }); }
+  let s_pkt_unref = dl.dl_sym(lib.h_codec, "av_packet_unref");
+  if !s_pkt_unref.is_ok { return Err(FfLoadError{ kind: FFMPEG_LOAD_ABI; message: "av_packet_unref: " + s_pkt_unref.error }); }
+  let s_pkt_free = dl.dl_sym(lib.h_codec, "av_packet_free");
+  if !s_pkt_free.is_ok { return Err(FfLoadError{ kind: FFMPEG_LOAD_ABI; message: "av_packet_free: " + s_pkt_free.error }); }
+  let s_strerror = dl.dl_sym(lib.h_util, "av_strerror");
+  if !s_strerror.is_ok { return Err(FfLoadError{ kind: FFMPEG_LOAD_ABI; message: "av_strerror: " + s_strerror.error }); }
+
+  return Ok(FfDemuxApi{
+    h_format: lib.h_format;
+    h_codec: lib.h_codec;
+    h_util: lib.h_util;
+    p_open_input: s_open.value;
+    p_close_input: s_close.value;
+    p_find_stream_info: s_fsi.value;
+    p_find_best: s_best.value;
+    p_read_frame: s_read.value;
+    p_seek_frame: s_seek.value;
+    p_packet_alloc: s_pkt_alloc.value;
+    p_packet_unref: s_pkt_unref.value;
+    p_packet_free: s_pkt_free.value;
+    p_strerror: s_strerror.value;
+  });
+}
+
+/// Call one of the resolved packed-version entry points.
+/// Complexity: O(1).
+fn ffmpeg_packed_version(p_version: Int) -> Int
+  requires: p_version != 0
+{
+  unsafe {
+    let f_version = p_version as fn() -> UInt32;
+    return f_version() as Int;
+  }
+}
+
+/// Copy the AVPacket head through the bridge into an owned 48-byte slot and
+/// read it byte-indexed (B-20/B-24: no foreign reads).
+/// Complexity: O(1).
+fn ffmpeg_packet_info_copy(pkt: Int) -> FfPacketInfo
+  requires: pkt != 0
+{
+  var slot: Vec[UInt8] = Vec[UInt8].new();
+  var k = 0;
+  while k < 48 {
+    slot.push(0 as UInt8);
+    k = k + 1;
+  }
+  let rc = unsafe { ffmpeg_bridge_packet_info(pkt, slot.as_mut_ptr()) as Int };
+  if rc != 0 {
+    return FfPacketInfo{ ok: false; stream_index: -1; flags: 0; size: 0; pts: 0; dts: 0; pos: 0 };
+  }
+  return FfPacketInfo{
+    ok: true;
+    stream_index: ffmpeg_slot_i32(&slot, 0);
+    flags: ffmpeg_slot_i32(&slot, 4);
+    size: ffmpeg_slot_u64(&slot, 8);
+    pts: ffmpeg_slot_u64(&slot, 16);
+    dts: ffmpeg_slot_u64(&slot, 24);
+    pos: ffmpeg_slot_u64(&slot, 40);
+  };
+}
+
+// =========================================================================
 // Internals
 // =========================================================================
+
+/// Read a little-endian i32 from an owned bridge slot (B-17).
+/// Complexity: O(1).
+fn ffmpeg_slot_i32(slot: &Vec[UInt8], off: Int) -> Int
+  requires: slot.len() >= off + 4
+{
+  return (slot[off] as Int) | ((slot[off + 1] as Int) << 8) | ((slot[off + 2] as Int) << 16) | ((slot[off + 3] as Int) << 24);
+}
+
+/// Read a little-endian 64-bit value from an owned bridge slot as an Int
+/// (two's-complement bit pattern; B-17).  Complexity: O(1).
+fn ffmpeg_slot_u64(slot: &Vec[UInt8], off: Int) -> Int
+  requires: slot.len() >= off + 8
+{
+  return ffmpeg_slot_i32(slot, off) | (ffmpeg_slot_i32(slot, off + 4) << 32);
+}
+
+/// Signed decimal formatting for AVERROR rcs (fi_to_str is non-negative).
+/// Complexity: O(digits).
+fn ffmpeg_rc_str(n: Int) -> Str
+  requires: true
+{
+  if n < 0 { return "-" + fi_to_str(0 - n); }
+  return fi_to_str(n);
+}
+
+/// av_strerror text for an rc, copied out of our own 128-byte buffer
+/// (NUL-terminated by av_strerror).  Empty when av_strerror fails.
+/// Complexity: O(1).
+fn ffmpeg_error_text(p_strerror: Int, rc: Int) -> Str
+  requires: p_strerror != 0
+{
+  var buf: Vec[UInt8] = Vec[UInt8].new();
+  var k = 0;
+  while k < 128 {
+    buf.push(0 as UInt8);
+    k = k + 1;
+  }
+  unsafe {
+    let f_serr = p_strerror as fn(Int32, *UInt8, Int) -> Int32;
+    let irc = f_serr(rc as Int32, buf.as_mut_ptr(), 128) as Int;
+    if irc == 0 {
+      return Str::from_c_str(buf.as_mut_ptr());
+    }
+    return "";
+  }
+}
 
 fn fi_to_str(n: Int) -> Str
   requires: n >= 0
