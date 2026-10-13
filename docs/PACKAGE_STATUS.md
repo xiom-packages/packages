@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T12:23:24Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T12:32:34Z.
 
 ## Summary
 
-- packages tracked: 533
-- incubating: 251
+- packages tracked: 534
+- incubating: 252
 - ported: 1
 - stable: 281
 - publish enabled: 0
@@ -397,6 +397,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.geology | xiom-geology | incubating | tests/test_conformance.xi | pass 26/26 | fb04b916 | False | publish pending: next scope delta |
 | xiom.geom3d | xiom-geom3d | incubating | tests/test_conformance.xi | pass 27/27 | a3fb80eb | False | publish pending: next scope delta |
 | xiom.git2 | xiom-git2 | incubating | tests/test_conformance.xi | pass 24/24 | fd38977f | False | publish pending: next scope delta |
+| xiom.gles | xiom-gles | incubating | tests/test_conformance.xi | pass 18/18 | ee741d77 | False | new package; 0.1.0 publish requested (REL-20261013-1231-bindings; registry scope needed) |
 | xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | 5a213f30 | False | published in eco-v0.1.137 (2026-10-11; 0.4.0 in eco-v0.1.136) |
 | xiom.glslang | xiom-glslang | incubating | tests/test_conformance.xi | pass 29/29 | 5051955b | False | new binding package (SDK-100 program); relayed to the coordinator for merge/publish |
 | xiom.golden | xiom-golden | incubating | tests/test_conformance.xi | pass 35/35 | fd38977f | False | publish pending: next scope delta |
