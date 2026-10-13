@@ -13,7 +13,7 @@
                   "checked":  "2026-10-13T12:36:05Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.164 (0.4.0); 0.5.0 publish requested (REL-20261013-1222-bindings)",
+    "excluded_reason":  "published in eco-v0.1.170 (2026-10-13, 0.5.0 WGL wave; 0.4.0 in eco-v0.1.164; 0.3.0 earlier)",
     "platforms":  [
                       "windows-x64"
                   ],
