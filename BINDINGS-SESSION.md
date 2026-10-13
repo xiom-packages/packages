@@ -3,22 +3,22 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: ALL CONFIRMED + sdl3 0.18.0 SHIPPED (publish requested) -- B-11
-ADDENDUM RETIRED on v0.64.4** -- dx12 0.4.0 LIVE (`eco-v0.1.172`) + 0.3.1
-stable (`eco-v0.1.169`); opengl 0.5.0 LIVE (`eco-v0.1.170`); gles 0.1.0
-LIVE (`eco-v0.1.171`); **sdl3 0.18.0** (foreign-written event readback;
-61/61 x2 on `5a26dee8`; `REL-20261013-1338-bindings-2` open) -- the B-11
-addendum (`-0304`) re-tested **FIXED** on the pin (INFO to compiler;
-general B-11 driver shape stays open); **B-25 recorded + fixed
-in-surface** (`Int as *UInt8` not value-preserving); Vulkan 0.6.0 live
-(engine-green); OpenGL 0.4.0 LIVE (`eco-v0.1.164`; 656/656 core-4.6);
-DX12 0.1.0/0.2.0/0.3.0 live (`eco-v0.1.166`/`167`/`168`); SDK100 all
-slices live; v0.64.4 pin wave done; **B-22 open -- glfw 0.6.0 lift
-parked** (fix on compiler main `29e35ef8`, no archive yet);
-**B-23/B-24/B-25 accepted** (expiry = next compiler pin); ops clobber
-rules in force; per-touch PROVENANCE rule in effect (dx12/opengl/gles/
-sdl3 compliant) -- SESSION HANDOFF 2026-10-13 13:40Z** (NEXT = confirm
-the sdl3 0.18.0 publish; then the B-22-gated lifts; paste prompt rebuilt
+**STATUS: CONTEXT-LIMIT HANDOFF -- everything but sdl3 0.18.0 is LIVE;
+sdl3 0.18.0 publish requested (open)** -- LIVE this session: dx12 0.3.1
+stable (`eco-v0.1.169`) + dx12 0.4.0 command recording (`eco-v0.1.172`;
+B-25 fixed in-surface), opengl 0.5.0 WGL surface (`eco-v0.1.170`), gles
+0.1.0 new ANGLE package (`eco-v0.1.171`); **sdl3 0.18.0** (foreign-written
+event readback; B-11 addendum re-tested **FIXED** on v0.64.4; 61/61 x2 on
+`5a26dee8`; `REL-20261013-1338-bindings-2` open, INFO `-1338-bindings`
+**acked** by compiler); Vulkan 0.6.0 live (engine-green, OWNER lane);
+OpenGL 0.4.0 LIVE (`eco-v0.1.164`; 656/656 core-4.6); DX12
+0.1.0/0.2.0/0.3.0 live (`eco-v0.1.166`/`167`/`168`); SDK100 all slices
+live; v0.64.4 pin wave done; **B-22 open -- glfw 0.6.0 lift parked**
+(fix on compiler main `29e35ef8`, no archive yet); **B-23/B-24/B-25
+accepted** (expiry = next compiler pin); ops clobber rules in force;
+per-touch PROVENANCE rule in effect (dx12/opengl/gles/sdl3 compliant) --
+SESSION HANDOFF 2026-10-13 13:50Z (origin/bindings tip `b85fa038`)**
+(NEXT = confirm the sdl3 0.18.0 publish; the rebuilt paste prompt is
 below).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
@@ -443,6 +443,29 @@ readback; B-11 ADDENDUM RETIRED on v0.64.4)**: the deferred readback item
   `7992cbd`; validate 391 items).  Merge note: main carries the published
   0.17.0 full-surface bump -- keep package.xi at 0.18.0.
 - **NEXT**: confirm the sdl3 0.18.0 publish; then the B-22-gated lifts.
+
+**UPDATE 2026-10-13 13:50Z (CONTEXT-LIMIT HANDOFF -- session trail)**:
+this session's deliverables, all pushed (`origin/bindings` tip
+`b85fa038`; relay tip `7992cbd`):
+1. **dx12 0.3.1 stable promotion confirmed live** (`eco-v0.1.169`; first
+   sec.7 gate promotion; relay `-1207` fixed).
+2. **opengl 0.5.0 WGL surface confirmed live** (`eco-v0.1.170`; relay
+   `-1222` fixed).
+3. **gles 0.1.0 (new package) confirmed live** (`eco-v0.1.171`; scope
+   `f8e284b`, allowlist 520 -> 521).
+4. **dx12 0.4.0 command recording built + published** (`eco-v0.1.172`);
+   **B-25 found/recorded/fixed in-surface** (`Int as *UInt8` not
+   value-preserving -- B-20 family; repro
+   `docs/repro/bindings-pilot/ptr-cast/`; findings + MAINTENANCE rows;
+   INFO `-1309`; COM object params now typed `Int`).
+5. **sdl3 0.18.0 shipped, publish requested**: B-11 addendum (`-0304`)
+   re-tested **FIXED on v0.64.4** (foreign-written event readback exact;
+   61/61 x2; SPEC/ROADMAP/AUDIT/README/MAINTENANCE synced; INFO
+   `-1338-bindings` **acked**; request `-1338-bindings-2` open).
+6. Ledger + `PACKAGE_STATUS.md` kept current; paste prompt rebuilt below;
+   doorbell armed (`0 */3 * * *`).
+- **NEXT**: confirm the sdl3 0.18.0 publish (item 0b); then the ordered
+  tasks in the paste prompt.
 
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
@@ -1156,20 +1179,19 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-13 13:30Z;
-**all four publishes LIVE** -- dx12 0.3.1 stable (`eco-v0.1.169`),
-opengl 0.5.0 (`eco-v0.1.170`), gles 0.1.0 (`eco-v0.1.171`), dx12 0.4.0
-(`eco-v0.1.172`); nothing in flight; first action = relay sweep, then the
-B-22-gated lifts when an archive ships / imgui when the shared+dev build
-lands).
+Bindings lane continuation -- seamless pickup (2026-10-13 13:50Z;
+CONTEXT-LIMIT HANDOFF.  Everything this session shipped is LIVE except
+sdl3 0.18.0, which is publish-requested and in flight.  First action =
+confirm the sdl3 0.18.0 publish + relay sweep, then the ordered tasks).
 
-0. STATE (the 12:10Z UPDATE block + STATUS above carry the evidence):
-   - v0.64.4 pin DONE (archive `44a41aea` verified; slot byte-identical
-     556/556; repin 532; validate 532/0). Archive wave + compiler reply
-     filed (`f8fe214` + release-check rows `b235493`). **B-22 is the one
-     open compiler blocker**: fn-typed PARAM values do not cross to C at
-     cast-call positions (glfw 0.6.0 lift parked; witness
-     `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`).
+0. STATE (the 13:50Z handoff UPDATE block + STATUS above carry the
+   evidence):
+   - v0.64.4 pin DONE (archive `44a41aea` verified; repin 532; validate
+     532/0).  **B-22 is the one open compiler blocker**: fn-typed PARAM
+     values do not cross to C at cast-call positions (glfw 0.6.0 lift
+     parked; witness `docs/repro/bindings-pilot/cb-abi/probe9_castcall_param.xi`);
+     the fix is on compiler main `29e35ef8` (probe9 42/42/42) but **no
+     archive ships it yet** -- check `release-checks/` for v0.64.5+.
    - **DX12 0.3.1 STABLE PUBLISHED -- FIRST sec.7 GATE PROMOTION**
      (`eco-v0.1.169`, sha256 `355ecc6d...` @12:26:45Z; merge `46b45e76`,
      record `261ba5f8`, wrap `1fd17353`; native x2 35/35; relay
@@ -1218,7 +1240,8 @@ lands).
      `REL-20261013-1338-bindings-2` (relay `7992cbd`); INFO to compiler:
      addendum `-0304` FIXED on v0.64.4 (can close; the general B-11
      driver shape stays open).  Merge note: keep package.xi at 0.18.0
-     (main carries the published 0.17.0 full-surface bump).
+     (main carries the published 0.17.0 full-surface bump).  INFO item
+     `-1338-bindings` is **acked** (compiler will close `-0304`).
    - Graphics drive: Vulkan 0.6.0 live + engine-green (GPU window + scene
      tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
      the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
@@ -1275,8 +1298,22 @@ lands).
      suites live at each package's tests/test_full_surface.xi. dx12 now
      needs `--link user32` plus eight --c-source files (dx12_probe,
      d3d12_calls, d3d12_structs, dxgi_probe, dxgi_calls, video_probe,
-     video_calls, video_structs); suite slot reads are
-     byte-indexed only; nullable C args use `dx12_null_ptr()` (B-23).
+      video_calls, video_structs); suite slot reads are
+      byte-indexed only; nullable C args use `dx12_null_ptr()` (B-23).
+   - **B-25 discipline (v0.64.4)**: NEVER cast handles to pointers --
+     `x as *UInt8` is NOT value-preserving (heap-shifted address at the C
+     boundary; B-20 family).  COM object params are typed `Int` (C
+     `void*`, exact; the dx12 generator emits `Int` for single-star
+     `ID*` params) or int64 C-helper args.  Repro
+     `docs/repro/bindings-pilot/ptr-cast/`.
+   - sdl3 readback reproducers: SDL leaves `SDL_EVENT_POLL_SENTINEL`
+     (0x7F00) ahead of pushed events -- do a bounded drain (poll(NULL))
+     first, then the readback; live SDL3 comes from
+     `C:\VulkanSDK\1.4.350.0\Bin` on PATH.
+   - gles live runs: ANGLE pair (`libEGL.dll` + `libGLESv2.dll`) from an
+     Electron payload on PATH (VS Code app dir works); without it the
+     suite collapses to SKIP.  New clone row: `EGL-Registry` (`db3425b8`)
+     in `E:\repos\CLEANUP.md`.
    - The shared `E:\xiom-lang\stdlib` is actively updated by another
      lane: module counts drift between runs and mid-wave commits can
      transiently break catalog builds (`mem.zeroed` signature mismatch
@@ -1315,14 +1352,16 @@ lands).
    `REL-20261012-1800-bindings`; engine items -1948/-2012-2/-2012-4
    routed there).
 
-Respect: B-11..B-24 discipline (byte-indexed slot writes; packed returns;
+Respect: B-11..B-25 discipline (byte-indexed slot writes; packed returns;
 structured ifs; NO pointer arithmetic -- one owned slot per out-param;
 never read through foreign pointers, have C copy into an owned slot
 (B-20); B-21 = never take &mut of a struct-return/Result-payload temp;
 B-22 = fn-typed PARAM values do not cross to C via cast-call positions;
 B-23 = the `null` literal crosses to C as garbage (use `dx12_null_ptr()`);
 B-24 = ffi out-slot reads after a C extern write are unreliable -- read
-owned slots byte-indexed, keep pointer-edged flows on C return values).
+owned slots byte-indexed, keep pointer-edged flows on C return values;
+B-25 = `Int as *UInt8` is not value-preserving -- never cast handles to
+pointers; object params cross as `Int` / int64 C-helper args).
 Deliver batches as: feat -> x2 green -> record via scripts/status.ps1 ->
 relay item to packages -> ledger update, all pushed; leave the worktree
 clean. TODO NOW: item 0b (confirm + record the xiom.sdl3 0.18.0 publish --
