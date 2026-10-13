@@ -78,6 +78,16 @@ running). Check `git log -1 --format=%h %s` before starting.
   twice; the second pass repeated the seven-item re-verify (idempotent -- probes + churn green again,
   notes appended `ca63fbe`). Before acting on a doorbell, check the newest commits/SESSION to detect
   an already-done cycle; if repeated, skip to the report.
+- **`-1550-packages-6` (file locking) VERIFIED (2026-10-13 01:28Z fixed / 03:0xZ verified)**: stdlib
+  wave 118 (`a0631eb`) landed real advisory locking (`sync_io.file_lock/file_unlock/file_try_lock`);
+  `p_wave118_shapes.xi` exits 0 in-lane on v0.64.4 with the `XIOM_RUNTIME_DIR` override; item moved
+  `fixed -> verified` (`909351e`/`77c4283`). Contention stays documented-advisory; consumers follow
+  lock -> work -> unlock (never re-lock a held range). Caveat: symbols reach consumers at the next
+  compiler pin.
+- **Duplicate doorbell deliveries (2026-10-13, seen x3)**: the same cron task is being delivered
+  more than once; passes 2..n repeated already-done work (re-verify notes appended, `ca63fbe` /
+  `77c4283`). **Check-before-act, sharpened**: before processing, diff the newest commits/items --
+  if the target item is already in the target state (e.g. `verified`), skip it and go to the report.
 - **Stdlib durability re-verify DONE (2026-10-13 01:0xZ)**: all seven `fixed` items VERIFIED in-lane
   on v0.64.4 with `XIOM_STDLIB + XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime`: `p_wave115_shapes`
   (io.fsync family, append_file_bytes parity, sync_io.read_exact) + `p_wave117_shapes`
