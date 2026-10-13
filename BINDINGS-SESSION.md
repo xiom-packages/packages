@@ -5,17 +5,16 @@ below records evidence and open asks.
 
 **STATUS: GRAPHICS DRIVE COMPLETE THROUGH DX12 0.3.0 -- Vulkan 0.6.0 live
 (engine-green); OpenGL 0.4.0 LIVE (`eco-v0.1.164`; 656/656 core-4.6, x2);
-DX12 0.1.0 LIVE (`eco-v0.1.166`) + **0.3.0 SHIPPED locally** (`fd82f394` +
-`55c26a8f` + `a7f988d9`; struct metadata + full d3d12.h + DXGI + video;
-suites 18/18 -> 28/28 -> **31/31 x2**); SDK100 all slices live through
-`eco-v0.1.165` (81 releases); v0.64.4 pin wave done (archive verified,
-repin 532, release-check rows `b235493`); **B-22 open -- glfw 0.6.0 lift
-parked**; **B-23/B-24 filed with repros** (null literal -> C; ffi out-slot
-reads; relay `REL-20261012-2051-bindings-2`); ops clobber rules in force --
-SESSION HANDOFF 2026-10-12 20:55Z** (this session: DX12 publish confirm +
-the whole 0.3.0 wave -- struct metadata, DXGI, video -- plus the B-23/B-24
-findings and the relay batch; NEXT = publish 0.3.0 + settle + promotion
-readiness, then the ordered follow-ons).
+DX12 **0.1.0/0.2.0/0.3.0 ALL LIVE** (0.1.0 `eco-v0.1.166`, 0.2.0
+`eco-v0.1.167`, **0.3.0 `eco-v0.1.168`** sha256 `14ce3e67` @21:05:31Z --
+struct metadata + full d3d12.h + DXGI + video; suite **31/31 x2**); SDK100
+all slices live; v0.64.4 pin wave done (archive verified, repin 532,
+release-check rows `b235493`); **B-22 open -- glfw 0.6.0 lift parked**;
+**B-23/B-24 filed with repros** (relay `-2051-bindings-2`); ops clobber
+rules in force; **new per-touch PROVENANCE rule in effect** (every touched
+package carries PROVENANCE.md + 100% coverage) -- SESSION HANDOFF
+2026-10-13 00:05Z** (NEXT = promotion readiness per policy sec. 7, then
+the ordered follow-ons).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -242,6 +241,26 @@ own feat commit + x2 record (all pushed on `bindings`):
   version), then promotion readiness (policy sec. 7: contracts pass / G6
   workaround rows for B-23/B-24 / API review) after the settle window;
   `-1403-packages` could not block anything seen this session.
+
+**UPDATE 2026-10-13 00:05Z (doorbell -- DX12 0.3.0 PUBLISHED)**: packages
+**Batch 70: `xiom.dx12` 0.3.0 PUBLISHED** -- `eco-v0.1.168` (run
+38308256176; live sha256 `14ce3e67` @21:05:31Z, signed); merge `4970096a`
+(tip `aab68680`), bump `3fcb92aa` (0.2.0->0.3.0), wrap `113af041`,
+validate 533/0, port x2 31/31 on v0.64.4 (struct sret + oracle sizeof
+cross-check, DXGI 3 adapters/WARP/640x480 swapchain, video QI +
+VIDEO_DECODE chain); README/STATUS synced by packages; relay item
+`REL-20261012-2051-bindings` -> **fixed**. Also noted: **0.2.0 DID publish
+first** (`eco-v0.1.167`, sha256 `7cfae765`, batch 69) before the 0.3.0
+request landed -- 0.3.0 supersedes cleanly; tally **84 eco releases**.
+Two packages-side protocol notes relevant to this lane: (1) **per-touch
+PROVENANCE rule tightened** -- upstream-first + clone-repo + 100% coverage
+for EVERY package, new AND pre-existing; any touched package gets
+`PROVENANCE.md` at touch (audit `scripts/provenance-audit.ps1`, report
+`docs/PROVENANCE-COMPLIANCE.md`; 14 compliant / 519 to retrofit) --
+xiom.dx12 already carries PROVENANCE.md; (2) engine `-2012-2`/`-2012-4`
+and packages `-2032` are now `acked` on their side (my acks dispatched).
+Relay tip `f86adc1` (xvector/stdlib waves); no new bindings items. Doorbell
+re-armed. Next action: promotion readiness (paste prompt item 0b).
 
 **UPDATE 2026-10-12 21:05Z (doorbell)**: batch 69 = **`xiom.dx12` 0.2.0
 PUBLISHED** (`eco-v0.1.167`, run 38301605558; live sha256 `7cfae765`);
@@ -1227,6 +1246,17 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS PUBLISH CONFIRM (graphics wave, 2026-10-12): xiom.vulkan 0.6.0
+(SDK100 full surface, owner-approved bump) live in eco-v0.1.163;
+xiom.opengl 0.4.0 (full generated core-4.6, 656/656 x2) live in
+eco-v0.1.164; xiom.dx12 0.2.0 in eco-v0.1.167 and 0.3.0 (video slice,
+31/31 x2) in eco-v0.1.168 -- allowlist through 520. Compiler findings
+B-22 (fn-typed param at cast-call argument position marshals to 0; glfw
+stays 0.5.0) and B-24 (ffi out-slot reads unreliable; dx12 repro) filed;
+push-constant zero-read diagnosis delivered to the engine on -1948.
+```
 
 ```
 BINDINGS PUBLISH CONFIRM (batches 38-41 window): xiom.glfw 0.4.0 live in
