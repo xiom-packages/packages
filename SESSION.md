@@ -14,17 +14,18 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 85 eco releases; this block is the live handoff):**
+**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 86 eco releases; this block is the live handoff):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified; canonical install byte-identical
   556/556; 532 records repinned). Validate **533/0**; guard **520 allowlisted / 504 ready / 16
-  grandfathered / 0 failures**. Tally: **85 eco releases** (`eco-v0.1.86` -> `eco-v0.1.169`).
+  grandfathered / 0 failures**. Tally: **86 eco releases** (`eco-v0.1.86` -> `eco-v0.1.170`).
 - **Published since the 18:45Z block**: batch 62 sdl3 0.16.1; **v0.64.4 gate** (repin + batch 63 jolt
   0.2.0 / vma 0.3.0 / dxc 0.3.0, `eco-v0.1.161`); **SDK100 wave complete** (batches 64-67:
   spirv-tools/cross/reflect + glslang + slang + sdl2 + shaderc + spirv.headers 0.1.0, sdl3 0.17.0,
   `eco-v0.1.162`/`165`); **vulkan 0.6.0** (owner-approved SDK100 bump, `eco-v0.1.163`); **opengl
   0.4.0** (`eco-v0.1.164`); **dx12 0.1.0/0.2.0/0.3.0** (`eco-v0.1.166`/`167`/`168`; 0.3.0 = struct-meta
   434 shapes/2238 consts + DXGI 43 ifaces/163 wrappers + d3d12video 30/190; 31/31 x2); plus
-  **dx12 0.3.1 stable promotion** (`eco-v0.1.169`; 35/35 x2; first sec.7 gate promotion).
+  **dx12 0.3.1 stable promotion** (`eco-v0.1.169`; 35/35 x2; first sec.7 gate promotion);
+  **opengl 0.5.0** (`eco-v0.1.170`; WGL wave, 28/28 x2).
 - **v0.64.4 re-verify wave DONE**: `-1549-packages-4` VERIFIED (phantom probes -> one clean
   `19:5 unresolved import`); `-6` VERIFIED (jolt `--cxx-standard 17`); `-5`/`-7` BOUNCED still red
   (consumer link `undefined symbol: sqlite3_libversion`; local fallback silent no-op + ranges
@@ -40,7 +41,7 @@ running). Check `git log -1 --format=%h %s` before starting.
   arrive; (3) **next compiler archive (v0.64.5+)**: repin + re-verify sdl3 compile 0 warnings
   (m277 fixed our `-1403`), B-22, rows `-1549-packages-5/-7`, plus the compiler next-batch rows;
   (4) promotions per policy sec. 7 (vulkan 0.6.0, sdl3 0.17.0 [blocked while `-1403`
-  open], opengl 0.4.0, the SDK100 names -- dx12 0.3.1 promoted 2026-10-13); (5) provenance retrofits at touch (14/519; audit
+  open], opengl (0.5.0 live; promote at next touch), the SDK100 names -- dx12 0.3.1 promoted 2026-10-13); (5) provenance retrofits at touch (14/519; audit
   `scripts/provenance-audit.ps1`); engine codecs at the cook gate later.
 - **Platform matrix v1 LANDED (2026-10-13, ORBITDB P2 follow-up)**: `docs/PLATFORM-MATRIX.md` +
   generator `scripts/platform-matrix.ps1` (regenerate with `-WriteReport`; declared rows from
@@ -55,6 +56,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   sha256 `355ecc6d...` @12:26:45Z stage stable; README/STATUS synced (`b2ddfe3c`); bus
   `REL-20261013-1207-bindings` fixed; G6 B-23/B-24 accepted rows (expiry = next pin carrying the
   fixes). First declared platform-matrix row (windows-x64 + d3d12/dxgi deps) landed with it.
+- **`xiom.opengl` 0.5.0 PUBLISHED + `xiom.gles` 0.1.0 STAGED (2026-10-13)**: opengl = full WGL
+  surface (146 cmds + 298 consts; session dc/hglrc; x2 28/28; record `d7714a92`; wrap `ee83ee45`;
+  **`eco-v0.1.170`**, run 38398625056 green; registry sha256 `daeb45a7...` @12:40:11Z; README/STATUS
+  synced `7bd22576`; item `-1222` fixed). gles = new ANGLE package (GLES 2.0/3.2 + EGL 1.5; x2
+  18/18 live) -- **holds for registry scope** (`REL-20261013-1233-packages` open with ops);
+  publishes as `eco-v0.1.171` on confirmation. Platform rows declared for both (windows-x64;
+  matrix declared=3, backlog 34).
 - **Ops hygiene (clobber incident `-1852-ops`)**: installs/extracts to lane-local dirs only;
   `tools/home-snapshot.ps1` before risky windows; restore-from-snapshot after a clobber. Packages ran
   no install/extract; timeline observation filed (`REL-20261012-1904-packages`).
@@ -532,9 +540,10 @@ if the target item is already in its target state, skip it and report.
 
 STATE: pin v0.64.4 (official archive, SHA256 44a41aea verified; canonical install
 byte-identical 556/556; 532 records repinned). Validate 533/0; guard 520
-allowlisted / 504 ready / 16 grandfathered / 0 failures. Tally: 85 eco releases
-(eco-v0.1.86 -> eco-v0.1.169) -- SDK100 wave complete + vulkan 0.6.0 + opengl
-0.4.0 + dx12 0.3.1 (stable) + jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 all live.
+allowlisted / 504 ready / 16 grandfathered / 0 failures. Tally: 86 eco releases
+(eco-v0.1.86 -> eco-v0.1.170) -- SDK100 wave complete + vulkan 0.6.0 + opengl
+0.5.0 + dx12 0.3.1 (stable) + jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 all live; gles
+0.1.0 staged (x2 18/18; scope ask REL-20261013-1233-packages open).
 Nothing open addressed to packages.
 
 WORK QUEUE (in priority order as items land):
