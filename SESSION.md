@@ -46,7 +46,7 @@ running). Check `git log -1 --format=%h %s` before starting.
   (m275-m282 staged incl. m281 = B-23/B-24/B-20 fixes -- retire those workarounds at the wave
   when the pin carries them, per G6; pre-repin home snapshot `20261013-172928` taken);
   (4) promotions per policy sec. 7 (vulkan 0.6.0, sdl3 0.17.0 [blocked while `-1403`
-  open], opengl (0.5.0 live; promote at next touch), the SDK100 names -- dx12 0.3.1 promoted 2026-10-13); (5) provenance retrofits at touch (15/519; audit
+  open], opengl (0.5.0 live; promote at next touch), the SDK100 names -- dx12 0.3.1 promoted 2026-10-13); (5) provenance retrofits at touch (16/518; audit
   `scripts/provenance-audit.ps1`); engine codecs at the cook gate later.
 - **Platform matrix v1 LANDED (2026-10-13, ORBITDB P2 follow-up)**: `docs/PLATFORM-MATRIX.md` +
   generator `scripts/platform-matrix.ps1` (regenerate with `-WriteReport`; declared rows from
@@ -86,7 +86,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   `7786a34c`; **`eco-v0.1.174`**, run 38422417970 green; registry sha256 `1e142acc...` @15:31:42Z;
   README/STATUS synced `2269eb76`; item `-1524` fixed. **PULSE co-verify pending**
   (`REL-20261013-1540-packages` sent); promotion optional at next touch with the sec.7 gate pack.
-  B-26 workaround = flat `RowOutcome` return of query_one.
+  B-26 workaround = flat `RowOutcome` return of query_one. Per-touch retrofits merged
+  (`5bd95448`, tip `80a06b6b`): PROVENANCE.md (upstream pin + 25/25 declared surface) + platform row;
+  validator accepts explicit-none ([]); artifact unchanged (no republish).
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
@@ -611,7 +613,7 @@ WORK QUEUE (in priority order as items land):
    verified/published gets a PROVENANCE.md (upstream pin + license OR an
    explicit independent declaration); new packages must land with it; audit
    `scripts/provenance-audit.ps1` (report docs/PROVENANCE-COMPLIANCE.md;
-   backlog 15/519); same touch rule for the platform matrix (`platforms` +
+   backlog 16/518); same touch rule for the platform matrix (`platforms` +
    `runtime_deps` in STATUS.json; schema in docs/PLATFORM-MATRIX.md; 36
    native names on the backlog). Upstream-first + clone-repo workflow + 100%
    of declared surface on every package; clones into E:\repos\<name>,
