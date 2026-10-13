@@ -9,7 +9,8 @@ library, no DLL, no SDK.
 > codec families and the cooked-mesh container green on the pin (xiom
 > v0.64.4; 43/43 x2 native). Registry carry-over: `v0.1.0` (2026-09-30,
 > pre-eco-train); 0.3.0 shipped in `eco-v0.1.158`; 0.4.0 published in
-> `eco-v0.1.159` (sha256 `0e98c707...`). **Lane:** bindings.
+> `eco-v0.1.159` (sha256 `0e98c707...`); **0.5.0 in `eco-v0.1.176` (sha256
+> `521dab9e...`)**. **Lane:** bindings.
 
 ## Quick start
 
