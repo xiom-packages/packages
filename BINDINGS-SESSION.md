@@ -594,6 +594,22 @@ LIVE; retrofits merged)**: item 0b(1) closed.
   widening + workaround retirement at the archive); relay-driven
   otherwise.
 
+**UPDATE 2026-10-13 15:58Z (B-26 addendum: shape matrix + reliable AV
+witness)**: localized the nested-payload corruption for the compiler.
+- New `docs/repro/bindings-pilot/nested-payload/matrix.xi` (commit
+  `d6fbfc35`): 7 shapes, 3/3 fresh builds -- D/E/B/C/F/A2 GREEN; shape A
+  (`Result[Option[Bag]]` with a leading `Int` tag) **AVs 3/3** (0xC0000005
+  at the second payload extraction / guard); `probe.xi` (same no-scalar
+  nested shape, different module content) stays RED 4/4 (`items.len=9`)
+  -> source/build-sensitive miscompile (B-01 family signature).  README +
+  `docs/BINDINGS-COMPILER-FINDINGS.md` B-26 row refreshed.
+- Addendum INFO to compiler `REL-20261013-1555-bindings` (refs
+  `-1524-bindings-2`; suggests shape A as the primary witness to bisect
+  against the m283 / Vec-churn work).  Relay tip `c1469e2`, validate 402
+  items.
+- **NEXT**: unchanged -- v0.64.5+ watch (m277-m281 batch); B-26 waits on
+  the compiler lane.
+
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
 - Merge `46b45e76` (prep tip `4afec760`; conflicts resolved to theirs +
