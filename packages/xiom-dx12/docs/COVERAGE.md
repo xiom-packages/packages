@@ -1,4 +1,4 @@
-# COVERAGE -- xiom.dx12 (slice 4: struct metadata + full D3D12 core + DXGI + video)
+# COVERAGE -- xiom.dx12 (slice 4: struct metadata + full D3D12 core + DXGI + video + recording)
 
 Oracles: `microsoft/DirectX-Headers` @ `461ef513` --
 `include/directx/d3d12.h` (SHA256 `AFA193D3...`), `d3d12video.h`
@@ -37,13 +37,19 @@ deterministic, Python stdlib only) and `tools/gen_dx12_struct_meta.py` (+
 | Struct sizes | 434 (D3D12+DXGI+video) | **434 consts** | 16-struct oracle-vs-build sizeof cross-check | `D3D12_SIZEOF_*` / `DXGI_SIZEOF_*` |
 | Struct member offsets | 1804 | **1804 consts** | live field reads through `D3D12_OFF_*`/`DXGI_OFF_*` | 2238 consts total in `struct_meta_1..5` |
 
-Live witness (2026-10-12, x2 on the RTX 3070 Ti, v0.64.4):
+Live witness (2026-10-13, x2 on the RTX 3070 Ti, v0.64.4; recording lines from 0.4.0):
 
 ```
+[PASS] recording: handle fidelity (Int params preserve addresses)
+[PASS] recording: command allocator created (hr=0)
+[PASS] recording: allocator Reset (hr=0)
+[PASS] recording: graphics command list created (hr=0)
+[PASS] recording: command list Close (hr=0)
+[PASS] recording: fence created (initial value 0)
+[PASS] recording: queue signal + fence wait (hr=0 wait=0 completed=1)
 [PASS] surface: d3d12_device_get_node_count = 1
 [PASS] surface: CreateCommandQueue hr=0 (queue live)
 [PASS] struct: CommandQueue::GetDesc sret (type=0 priority=100)
-[PASS] surface: queue Release -> refcount 0
 [PASS] struct: CreateCommittedResource(buffer 256B) hr=0
 [PASS] struct: Resource::GetDesc sret (dim=1 width=256 mips=1)
 [PASS] struct: GetResourceAllocationInfo sret (size=65536 align=65536)
@@ -74,5 +80,9 @@ Pointer-edged flows run through C return values or bridge-owned state
 (B-24: XIOM out-slot reads after a C write are not reliable -- use
 byte-indexed reads; repro in `docs/repro/bindings-pilot/ptr-read-stale/`).
 B-23: the `null` literal crosses to C as garbage; use `dx12_null_ptr()`.
+B-25: `Int as *UInt8` is not value-preserving (heap-shifted address at the
+C boundary); COM object params are typed `Int` (exact) -- repro
+`docs/repro/bindings-pilot/ptr-cast/`.
 
-Next: promotion readiness (policy sec. 7).
+Next: recording conveniences (resource-barrier helpers, bundle recording,
+command signatures) on ask; no open coverage gaps on the 0.4.0 surface.

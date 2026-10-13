@@ -20,6 +20,7 @@ use xiom.convert;
 use xiom.test;
 use xiom.ffi;
 use xiom.dx12;
+use xiom.dx12.recording;
 use xiom.dx12.functions;
 use xiom.dx12.iface_01;
 use xiom.dx12.iface_02;
@@ -227,6 +228,65 @@ fn main() -> Int {
         let qprio = le32(qout, D3D12_OFF_COMMAND_QUEUE_DESC_PRIORITY);
         failed = failed + report(qgr == 0 && qtype == 0 && qprio == 100,
           "struct: CommandQueue::GetDesc sret (type=" + to_string(qtype) + " priority=" + to_string(qprio) + ")");
+        // 0.4.0: command recording -- allocator + command list + fence.
+        // Object handles cross as `Int` params (B-25 workaround: on
+        // v0.64.4 `Int as *UInt8` is not value-preserving; the fidelity
+        // check below witnesses the `Int` path).  Submission goes through
+        // the generated surface; the single-entry command-list array is
+        // built in an owned slot (B-24 discipline).
+        var fbuf = zeroed(8);
+        let fp1 = fbuf.as_mut_ptr();
+        let fv1 = dx12_ptr_value(fp1);
+        let fv3 = dx12_ptr_value_i(unsafe { fp1 as Int });
+        failed = failed + report(fv1 == fv3,
+          "recording: handle fidelity (Int params preserve addresses)");
+
+        var aiid = zeroed(16);
+        let ar = dx12_iid(1, aiid.as_mut_ptr()); // 1 = ID3D12CommandAllocator
+        var aslot = zeroed(8);
+        let ahr = d3d12_device_create_command_allocator(dev, 0, aiid.as_mut_ptr(), aslot.as_mut_ptr());
+        let alloc = le64(aslot, 0);
+        failed = failed + report(ar == 0 && ahr == 0 && alloc != 0,
+          "recording: command allocator created (hr=" + to_string(ahr as Int) + ")");
+        if alloc != 0 {
+          let rst = d3d12_command_allocator_reset(alloc);
+          failed = failed + report(rst == 0, "recording: allocator Reset (hr=0)");
+
+          var liid = zeroed(16);
+          let lr = dx12_iid(4, liid.as_mut_ptr()); // 4 = ID3D12GraphicsCommandList
+          var lslot = zeroed(8);
+          let lhr = d3d12_device_create_command_list(dev, 0, 0, alloc, 0, liid.as_mut_ptr(), lslot.as_mut_ptr());
+          let clist = le64(lslot, 0);
+          failed = failed + report(lr == 0 && lhr == 0 && clist != 0,
+            "recording: graphics command list created (hr=" + to_string(lhr as Int) + ")");
+          if clist != 0 {
+            let chr = d3d12_graphics_command_list_close(clist);
+            failed = failed + report(chr == 0, "recording: command list Close (hr=0)");
+
+            // Submit the (empty) list, then fence-signal it and wait.
+            dx12_execute_one(q, clist);
+
+            var fiid = zeroed(16);
+            let fr = dx12_iid(6, fiid.as_mut_ptr()); // 6 = ID3D12Fence
+            var fslot = zeroed(8);
+            let fhr = d3d12_device_create_fence(dev, 0 as UInt64, 0, fiid.as_mut_ptr(), fslot.as_mut_ptr());
+            let fence = le64(fslot, 0);
+            let fv0 = d3d12_fence_get_completed_value(fence);
+            failed = failed + report(fr == 0 && fhr == 0 && fence != 0 && fv0 == 0,
+              "recording: fence created (initial value 0)");
+            if fence != 0 {
+              let shr = d3d12_command_queue_signal(q, fence, 1 as UInt64);
+              let wr = dx12_fence_wait(fence, 1 as UInt64, 5000);
+              let fvc = d3d12_fence_get_completed_value(fence);
+              failed = failed + report(shr == 0 && wr == 0 && fvc >= 1,
+                "recording: queue signal + fence wait (hr=" + to_string(shr as Int) + " wait=" + to_string(wr) + " completed=" + to_string(fvc as Int) + ")");
+              let _ = d3d12_object_release(fence);
+            }
+            let _ = d3d12_object_release(clist);
+          }
+          let _ = d3d12_object_release(alloc);
+        }
+
         let rc = d3d12_object_release(q);
         failed = failed + report(rc == 0, "surface: queue Release -> refcount 0");
 

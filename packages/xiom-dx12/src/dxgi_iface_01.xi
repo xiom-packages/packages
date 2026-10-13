@@ -40,9 +40,9 @@ pub fn dxgi_object_set_private_data(obj: Int, Name: *UInt8, DataSize: UInt32, pD
 }
 
 extern "C" {
-  fn xd12c_IDXGIObject_SetPrivateDataInterface(obj: Int, Name: *UInt8, pUnknown: *UInt8) -> Int32;
+  fn xd12c_IDXGIObject_SetPrivateDataInterface(obj: Int, Name: *UInt8, pUnknown: Int) -> Int32;
 }
-pub fn dxgi_object_set_private_data_interface(obj: Int, Name: *UInt8, pUnknown: *UInt8) -> Int32
+pub fn dxgi_object_set_private_data_interface(obj: Int, Name: *UInt8, pUnknown: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIObject_SetPrivateDataInterface(obj, Name, pUnknown); }
@@ -187,9 +187,9 @@ pub fn dxgi_surface1_release_dc(obj: Int, pDirtyRect: *UInt8) -> Int32
 // ---- IDXGIAdapter ----
 
 extern "C" {
-  fn xd12c_IDXGIAdapter_EnumOutputs(obj: Int, Output: UInt32, ppOutput: *UInt8) -> Int32;
+  fn xd12c_IDXGIAdapter_EnumOutputs(obj: Int, Output: UInt32, ppOutput: Int) -> Int32;
 }
-pub fn dxgi_adapter_enum_outputs(obj: Int, Output: UInt32, ppOutput: *UInt8) -> Int32
+pub fn dxgi_adapter_enum_outputs(obj: Int, Output: UInt32, ppOutput: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIAdapter_EnumOutputs(obj, Output, ppOutput); }
@@ -234,9 +234,9 @@ pub fn dxgi_output_get_display_mode_list(obj: Int, EnumFormat: Int32, Flags: UIn
 }
 
 extern "C" {
-  fn xd12c_IDXGIOutput_FindClosestMatchingMode(obj: Int, pModeToMatch: *UInt8, pClosestMatch: *UInt8, pConcernedDevice: *UInt8) -> Int32;
+  fn xd12c_IDXGIOutput_FindClosestMatchingMode(obj: Int, pModeToMatch: *UInt8, pClosestMatch: *UInt8, pConcernedDevice: Int) -> Int32;
 }
-pub fn dxgi_output_find_closest_matching_mode(obj: Int, pModeToMatch: *UInt8, pClosestMatch: *UInt8, pConcernedDevice: *UInt8) -> Int32
+pub fn dxgi_output_find_closest_matching_mode(obj: Int, pModeToMatch: *UInt8, pClosestMatch: *UInt8, pConcernedDevice: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIOutput_FindClosestMatchingMode(obj, pModeToMatch, pClosestMatch, pConcernedDevice); }
@@ -252,9 +252,9 @@ pub fn dxgi_output_wait_for_v_blank(obj: Int) -> Int32
 }
 
 extern "C" {
-  fn xd12c_IDXGIOutput_TakeOwnership(obj: Int, pDevice: *UInt8, Exclusive: Int32) -> Int32;
+  fn xd12c_IDXGIOutput_TakeOwnership(obj: Int, pDevice: Int, Exclusive: Int32) -> Int32;
 }
-pub fn dxgi_output_take_ownership(obj: Int, pDevice: *UInt8, Exclusive: Int32) -> Int32
+pub fn dxgi_output_take_ownership(obj: Int, pDevice: Int, Exclusive: Int32) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIOutput_TakeOwnership(obj, pDevice, Exclusive); }
@@ -297,18 +297,18 @@ pub fn dxgi_output_get_gamma_control(obj: Int, pArray: *UInt8) -> Int32
 }
 
 extern "C" {
-  fn xd12c_IDXGIOutput_SetDisplaySurface(obj: Int, pScanoutSurface: *UInt8) -> Int32;
+  fn xd12c_IDXGIOutput_SetDisplaySurface(obj: Int, pScanoutSurface: Int) -> Int32;
 }
-pub fn dxgi_output_set_display_surface(obj: Int, pScanoutSurface: *UInt8) -> Int32
+pub fn dxgi_output_set_display_surface(obj: Int, pScanoutSurface: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIOutput_SetDisplaySurface(obj, pScanoutSurface); }
 }
 
 extern "C" {
-  fn xd12c_IDXGIOutput_GetDisplaySurfaceData(obj: Int, pDestination: *UInt8) -> Int32;
+  fn xd12c_IDXGIOutput_GetDisplaySurfaceData(obj: Int, pDestination: Int) -> Int32;
 }
-pub fn dxgi_output_get_display_surface_data(obj: Int, pDestination: *UInt8) -> Int32
+pub fn dxgi_output_get_display_surface_data(obj: Int, pDestination: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIOutput_GetDisplaySurfaceData(obj, pDestination); }

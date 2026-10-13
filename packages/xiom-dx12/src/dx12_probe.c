@@ -29,6 +29,8 @@
  *   void*       xd12_resolve(const char* name)  lazy free-function resolver
  *   int         xd12_iid(int which, unsigned char* dst16)  core IID bytes
  *   int         xd12_blob_size(void* blob)  ID3DBlob::GetBufferSize (slot 4)
+ *   int         xd12_fence_wait(long long fence, uint64_t value, int timeout_ms)
+ *                                          0=signaled 1=timeout >=2 error
  *   void        xd12_unload(void)        releases the device if held
  */
 
@@ -153,6 +155,14 @@ int __cdecl xd12_iid(int which, unsigned char* dst16) {
   return 0;
 }
 
+/* Pointer-fidelity probe: reports the address C actually received for a
+ * `*UInt8` argument (diagnostic for handle round-trips). */
+long long __cdecl xd12_ptr_value(void* p) { return (long long)(intptr_t)p; }
+
+/* Int-param fidelity probe: the value C receives for an Int64 argument
+ * (the marshaling every generated wrapper's `obj: Int` param uses). */
+long long __cdecl xd12_ptr_value_i(long long p) { return p; }
+
 int __cdecl xd12_blob_size(void* blob) {
   typedef uint32_t (WINAPI *FN)(void*);
   if (!blob) return -1;
@@ -243,6 +253,32 @@ void __cdecl xd12_poke_u64(unsigned char* dst, int off, unsigned long long v) {
  * value that ORIGINATES from C converts correctly.  Callers pass this
  * handle wherever a nullable out/option pointer is required. */
 void* __cdecl xd12_null_ptr(void) { return 0; }
+
+/* Fence wait for command-recording flows (0.4.0): blocks until
+ * ID3D12Fence::GetCompletedValue() >= value using SetEventOnCompletion on
+ * a Win32 auto-reset event + WaitForSingleObject.  The fence handle
+ * crosses as int64 and is cast in C (B-25: XIOM Int->pointer casts are
+ * not value-preserving on v0.64.4).  Reuses the generated slot-pinned
+ * calls (ID3D12Fence slots 8/9, compiled in d3d12_calls.c).
+ * Return: 0=signaled, 1=timeout, 2=set-event failed, 3=no fence,
+ * 4=no event, 5=wait failed. */
+extern uint64_t __cdecl xd12c_ID3D12Fence_GetCompletedValue(void* obj);
+extern int32_t __cdecl xd12c_ID3D12Fence_SetEventOnCompletion(void* obj, uint64_t Value, void* hEvent);
+
+int __cdecl xd12_fence_wait(long long fence, unsigned long long value, int timeout_ms) {
+  void* f = (void*)(intptr_t)fence;
+  if (!f) return 3;
+  if (xd12c_ID3D12Fence_GetCompletedValue(f) >= value) return 0;
+  HANDLE ev = CreateEventA(0, FALSE, FALSE, 0);
+  if (!ev) return 4;
+  int32_t hr = xd12c_ID3D12Fence_SetEventOnCompletion(f, value, ev);
+  if (hr != 0) { CloseHandle(ev); return 2; }
+  DWORD w = WaitForSingleObject(ev, (timeout_ms < 0) ? INFINITE : (DWORD)timeout_ms);
+  CloseHandle(ev);
+  if (w == WAIT_OBJECT_0) return 0;
+  if (w == WAIT_TIMEOUT) return 1;
+  return 5;
+}
 
 void __cdecl xd12_unload(void) {
   if (s_device) { release_object(s_device); s_device = 0; }

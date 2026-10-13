@@ -15,9 +15,9 @@ pub fn dxgi_surface2_get_resource(obj: Int, riid: *UInt8, ppParentResource: *UIn
 // ---- IDXGIResource1 ----
 
 extern "C" {
-  fn xd12c_IDXGIResource1_CreateSubresourceSurface(obj: Int, index: UInt32, ppSurface: *UInt8) -> Int32;
+  fn xd12c_IDXGIResource1_CreateSubresourceSurface(obj: Int, index: UInt32, ppSurface: Int) -> Int32;
 }
-pub fn dxgi_resource1_create_subresource_surface(obj: Int, index: UInt32, ppSurface: *UInt8) -> Int32
+pub fn dxgi_resource1_create_subresource_surface(obj: Int, index: UInt32, ppSurface: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIResource1_CreateSubresourceSurface(obj, index, ppSurface); }
@@ -35,18 +35,18 @@ pub fn dxgi_resource1_create_shared_handle(obj: Int, pAttributes: *UInt8, dwAcce
 // ---- IDXGIDevice2 ----
 
 extern "C" {
-  fn xd12c_IDXGIDevice2_OfferResources(obj: Int, NumResources: UInt32, ppResources: *UInt8, Priority: Int32) -> Int32;
+  fn xd12c_IDXGIDevice2_OfferResources(obj: Int, NumResources: UInt32, ppResources: Int, Priority: Int32) -> Int32;
 }
-pub fn dxgi_device2_offer_resources(obj: Int, NumResources: UInt32, ppResources: *UInt8, Priority: Int32) -> Int32
+pub fn dxgi_device2_offer_resources(obj: Int, NumResources: UInt32, ppResources: Int, Priority: Int32) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIDevice2_OfferResources(obj, NumResources, ppResources, Priority); }
 }
 
 extern "C" {
-  fn xd12c_IDXGIDevice2_ReclaimResources(obj: Int, NumResources: UInt32, ppResources: *UInt8, pDiscarded: *UInt8) -> Int32;
+  fn xd12c_IDXGIDevice2_ReclaimResources(obj: Int, NumResources: UInt32, ppResources: Int, pDiscarded: *UInt8) -> Int32;
 }
-pub fn dxgi_device2_reclaim_resources(obj: Int, NumResources: UInt32, ppResources: *UInt8, pDiscarded: *UInt8) -> Int32
+pub fn dxgi_device2_reclaim_resources(obj: Int, NumResources: UInt32, ppResources: Int, pDiscarded: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIDevice2_ReclaimResources(obj, NumResources, ppResources, pDiscarded); }
@@ -118,9 +118,9 @@ pub fn dxgi_swap_chain1_is_temporary_mono_supported(obj: Int) -> Int32
 }
 
 extern "C" {
-  fn xd12c_IDXGISwapChain1_GetRestrictToOutput(obj: Int, ppRestrictToOutput: *UInt8) -> Int32;
+  fn xd12c_IDXGISwapChain1_GetRestrictToOutput(obj: Int, ppRestrictToOutput: Int) -> Int32;
 }
-pub fn dxgi_swap_chain1_get_restrict_to_output(obj: Int, ppRestrictToOutput: *UInt8) -> Int32
+pub fn dxgi_swap_chain1_get_restrict_to_output(obj: Int, ppRestrictToOutput: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGISwapChain1_GetRestrictToOutput(obj, ppRestrictToOutput); }
@@ -174,18 +174,18 @@ pub fn dxgi_factory2_is_windowed_stereo_enabled(obj: Int) -> Int32
 }
 
 extern "C" {
-  fn xd12c_IDXGIFactory2_CreateSwapChainForHwnd(obj: Int, pDevice: *UInt8, hWnd: *UInt8, pDesc: *UInt8, pFullscreenDesc: *UInt8, pRestrictToOutput: *UInt8, ppSwapChain: *UInt8) -> Int32;
+  fn xd12c_IDXGIFactory2_CreateSwapChainForHwnd(obj: Int, pDevice: Int, hWnd: *UInt8, pDesc: *UInt8, pFullscreenDesc: *UInt8, pRestrictToOutput: Int, ppSwapChain: Int) -> Int32;
 }
-pub fn dxgi_factory2_create_swap_chain_for_hwnd(obj: Int, pDevice: *UInt8, hWnd: *UInt8, pDesc: *UInt8, pFullscreenDesc: *UInt8, pRestrictToOutput: *UInt8, ppSwapChain: *UInt8) -> Int32
+pub fn dxgi_factory2_create_swap_chain_for_hwnd(obj: Int, pDevice: Int, hWnd: *UInt8, pDesc: *UInt8, pFullscreenDesc: *UInt8, pRestrictToOutput: Int, ppSwapChain: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIFactory2_CreateSwapChainForHwnd(obj, pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, ppSwapChain); }
 }
 
 extern "C" {
-  fn xd12c_IDXGIFactory2_CreateSwapChainForCoreWindow(obj: Int, pDevice: *UInt8, pWindow: *UInt8, pDesc: *UInt8, pRestrictToOutput: *UInt8, ppSwapChain: *UInt8) -> Int32;
+  fn xd12c_IDXGIFactory2_CreateSwapChainForCoreWindow(obj: Int, pDevice: Int, pWindow: Int, pDesc: *UInt8, pRestrictToOutput: Int, ppSwapChain: Int) -> Int32;
 }
-pub fn dxgi_factory2_create_swap_chain_for_core_window(obj: Int, pDevice: *UInt8, pWindow: *UInt8, pDesc: *UInt8, pRestrictToOutput: *UInt8, ppSwapChain: *UInt8) -> Int32
+pub fn dxgi_factory2_create_swap_chain_for_core_window(obj: Int, pDevice: Int, pWindow: Int, pDesc: *UInt8, pRestrictToOutput: Int, ppSwapChain: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIFactory2_CreateSwapChainForCoreWindow(obj, pDevice, pWindow, pDesc, pRestrictToOutput, ppSwapChain); }
@@ -255,9 +255,9 @@ pub fn dxgi_factory2_unregister_occlusion_status(obj: Int, dwCookie: UInt32)
 }
 
 extern "C" {
-  fn xd12c_IDXGIFactory2_CreateSwapChainForComposition(obj: Int, pDevice: *UInt8, pDesc: *UInt8, pRestrictToOutput: *UInt8, ppSwapChain: *UInt8) -> Int32;
+  fn xd12c_IDXGIFactory2_CreateSwapChainForComposition(obj: Int, pDevice: Int, pDesc: *UInt8, pRestrictToOutput: Int, ppSwapChain: Int) -> Int32;
 }
-pub fn dxgi_factory2_create_swap_chain_for_composition(obj: Int, pDevice: *UInt8, pDesc: *UInt8, pRestrictToOutput: *UInt8, ppSwapChain: *UInt8) -> Int32
+pub fn dxgi_factory2_create_swap_chain_for_composition(obj: Int, pDevice: Int, pDesc: *UInt8, pRestrictToOutput: Int, ppSwapChain: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIFactory2_CreateSwapChainForComposition(obj, pDevice, pDesc, pRestrictToOutput, ppSwapChain); }
@@ -286,27 +286,27 @@ pub fn dxgi_output1_get_display_mode_list1(obj: Int, EnumFormat: Int32, Flags: U
 }
 
 extern "C" {
-  fn xd12c_IDXGIOutput1_FindClosestMatchingMode1(obj: Int, pModeToMatch: *UInt8, pClosestMatch: *UInt8, pConcernedDevice: *UInt8) -> Int32;
+  fn xd12c_IDXGIOutput1_FindClosestMatchingMode1(obj: Int, pModeToMatch: *UInt8, pClosestMatch: *UInt8, pConcernedDevice: Int) -> Int32;
 }
-pub fn dxgi_output1_find_closest_matching_mode1(obj: Int, pModeToMatch: *UInt8, pClosestMatch: *UInt8, pConcernedDevice: *UInt8) -> Int32
+pub fn dxgi_output1_find_closest_matching_mode1(obj: Int, pModeToMatch: *UInt8, pClosestMatch: *UInt8, pConcernedDevice: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIOutput1_FindClosestMatchingMode1(obj, pModeToMatch, pClosestMatch, pConcernedDevice); }
 }
 
 extern "C" {
-  fn xd12c_IDXGIOutput1_GetDisplaySurfaceData1(obj: Int, pDestination: *UInt8) -> Int32;
+  fn xd12c_IDXGIOutput1_GetDisplaySurfaceData1(obj: Int, pDestination: Int) -> Int32;
 }
-pub fn dxgi_output1_get_display_surface_data1(obj: Int, pDestination: *UInt8) -> Int32
+pub fn dxgi_output1_get_display_surface_data1(obj: Int, pDestination: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIOutput1_GetDisplaySurfaceData1(obj, pDestination); }
 }
 
 extern "C" {
-  fn xd12c_IDXGIOutput1_DuplicateOutput(obj: Int, pDevice: *UInt8, ppOutputDuplication: *UInt8) -> Int32;
+  fn xd12c_IDXGIOutput1_DuplicateOutput(obj: Int, pDevice: Int, ppOutputDuplication: Int) -> Int32;
 }
-pub fn dxgi_output1_duplicate_output(obj: Int, pDevice: *UInt8, ppOutputDuplication: *UInt8) -> Int32
+pub fn dxgi_output1_duplicate_output(obj: Int, pDevice: Int, ppOutputDuplication: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIOutput1_DuplicateOutput(obj, pDevice, ppOutputDuplication); }

@@ -4,9 +4,9 @@ module xiom.dx12.iface_06
 // ---- ID3D12Device7 ----
 
 extern "C" {
-  fn xd12c_ID3D12Device7_AddToStateObject(obj: Int, pAddition: *UInt8, pStateObjectToGrowFrom: *UInt8, riid: *UInt8, ppNewStateObject: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device7_AddToStateObject(obj: Int, pAddition: *UInt8, pStateObjectToGrowFrom: Int, riid: *UInt8, ppNewStateObject: *UInt8) -> Int32;
 }
-pub fn d3d12_device7_add_to_state_object(obj: Int, pAddition: *UInt8, pStateObjectToGrowFrom: *UInt8, riid: *UInt8, ppNewStateObject: *UInt8) -> Int32
+pub fn d3d12_device7_add_to_state_object(obj: Int, pAddition: *UInt8, pStateObjectToGrowFrom: Int, riid: *UInt8, ppNewStateObject: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device7_AddToStateObject(obj, pAddition, pStateObjectToGrowFrom, riid, ppNewStateObject); }
@@ -24,27 +24,27 @@ pub fn d3d12_device7_create_protected_resource_session1(obj: Int, pDesc: *UInt8,
 // ---- ID3D12Device8 ----
 
 extern "C" {
-  fn xd12c_ID3D12Device8_CreateCommittedResource2(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialResourceState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: *UInt8, riidResource: *UInt8, ppvResource: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device8_CreateCommittedResource2(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialResourceState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: Int, riidResource: *UInt8, ppvResource: *UInt8) -> Int32;
 }
-pub fn d3d12_device8_create_committed_resource2(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialResourceState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: *UInt8, riidResource: *UInt8, ppvResource: *UInt8) -> Int32
+pub fn d3d12_device8_create_committed_resource2(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialResourceState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: Int, riidResource: *UInt8, ppvResource: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device8_CreateCommittedResource2(obj, pHeapProperties, HeapFlags, pDesc, InitialResourceState, pOptimizedClearValue, pProtectedSession, riidResource, ppvResource); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device8_CreatePlacedResource1(obj: Int, pHeap: *UInt8, HeapOffset: UInt64, pDesc: *UInt8, InitialState: Int32, pOptimizedClearValue: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device8_CreatePlacedResource1(obj: Int, pHeap: Int, HeapOffset: UInt64, pDesc: *UInt8, InitialState: Int32, pOptimizedClearValue: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32;
 }
-pub fn d3d12_device8_create_placed_resource1(obj: Int, pHeap: *UInt8, HeapOffset: UInt64, pDesc: *UInt8, InitialState: Int32, pOptimizedClearValue: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32
+pub fn d3d12_device8_create_placed_resource1(obj: Int, pHeap: Int, HeapOffset: UInt64, pDesc: *UInt8, InitialState: Int32, pOptimizedClearValue: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device8_CreatePlacedResource1(obj, pHeap, HeapOffset, pDesc, InitialState, pOptimizedClearValue, riid, ppvResource); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device8_CreateSamplerFeedbackUnorderedAccessView(obj: Int, pTargetedResource: *UInt8, pFeedbackResource: *UInt8, DestDescriptor: UInt64);
+  fn xd12c_ID3D12Device8_CreateSamplerFeedbackUnorderedAccessView(obj: Int, pTargetedResource: Int, pFeedbackResource: Int, DestDescriptor: UInt64);
 }
-pub fn d3d12_device8_create_sampler_feedback_unordered_access_view(obj: Int, pTargetedResource: *UInt8, pFeedbackResource: *UInt8, DestDescriptor: UInt64)
+pub fn d3d12_device8_create_sampler_feedback_unordered_access_view(obj: Int, pTargetedResource: Int, pFeedbackResource: Int, DestDescriptor: UInt64)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12Device8_CreateSamplerFeedbackUnorderedAccessView(obj, pTargetedResource, pFeedbackResource, DestDescriptor); }
@@ -84,9 +84,9 @@ pub fn d3d12_heap1_get_protected_resource_session(obj: Int, riid: *UInt8, ppProt
 // ---- ID3D12GraphicsCommandList3 ----
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList3_SetProtectedResourceSession(obj: Int, pProtectedResourceSession: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList3_SetProtectedResourceSession(obj: Int, pProtectedResourceSession: Int);
 }
-pub fn d3d12_graphics_command_list3_set_protected_resource_session(obj: Int, pProtectedResourceSession: *UInt8)
+pub fn d3d12_graphics_command_list3_set_protected_resource_session(obj: Int, pProtectedResourceSession: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList3_SetProtectedResourceSession(obj, pProtectedResourceSession); }
@@ -124,18 +124,18 @@ pub fn d3d12_graphics_command_list4_end_render_pass(obj: Int)
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList4_InitializeMetaCommand(obj: Int, pMetaCommand: *UInt8, pInitializationParametersData: *UInt8, InitializationParametersDataSizeInBytes: Int);
+  fn xd12c_ID3D12GraphicsCommandList4_InitializeMetaCommand(obj: Int, pMetaCommand: Int, pInitializationParametersData: *UInt8, InitializationParametersDataSizeInBytes: Int);
 }
-pub fn d3d12_graphics_command_list4_initialize_meta_command(obj: Int, pMetaCommand: *UInt8, pInitializationParametersData: *UInt8, InitializationParametersDataSizeInBytes: Int)
+pub fn d3d12_graphics_command_list4_initialize_meta_command(obj: Int, pMetaCommand: Int, pInitializationParametersData: *UInt8, InitializationParametersDataSizeInBytes: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList4_InitializeMetaCommand(obj, pMetaCommand, pInitializationParametersData, InitializationParametersDataSizeInBytes); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList4_ExecuteMetaCommand(obj: Int, pMetaCommand: *UInt8, pExecutionParametersData: *UInt8, ExecutionParametersDataSizeInBytes: Int);
+  fn xd12c_ID3D12GraphicsCommandList4_ExecuteMetaCommand(obj: Int, pMetaCommand: Int, pExecutionParametersData: *UInt8, ExecutionParametersDataSizeInBytes: Int);
 }
-pub fn d3d12_graphics_command_list4_execute_meta_command(obj: Int, pMetaCommand: *UInt8, pExecutionParametersData: *UInt8, ExecutionParametersDataSizeInBytes: Int)
+pub fn d3d12_graphics_command_list4_execute_meta_command(obj: Int, pMetaCommand: Int, pExecutionParametersData: *UInt8, ExecutionParametersDataSizeInBytes: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList4_ExecuteMetaCommand(obj, pMetaCommand, pExecutionParametersData, ExecutionParametersDataSizeInBytes); }
@@ -169,9 +169,9 @@ pub fn d3d12_graphics_command_list4_copy_raytracing_acceleration_structure(obj: 
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList4_SetPipelineState1(obj: Int, pStateObject: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList4_SetPipelineState1(obj: Int, pStateObject: Int);
 }
-pub fn d3d12_graphics_command_list4_set_pipeline_state1(obj: Int, pStateObject: *UInt8)
+pub fn d3d12_graphics_command_list4_set_pipeline_state1(obj: Int, pStateObject: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList4_SetPipelineState1(obj, pStateObject); }

@@ -93,9 +93,9 @@ pub fn d3d12_dsr_device_factory_release(obj: Int) -> UInt32
 }
 
 extern "C" {
-  fn xd12c_ID3D12DSRDeviceFactory_CreateDSRDevice(obj: Int, pD3D12Device: *UInt8, NodeMask: UInt32, riid: *UInt8, ppvDSRDevice: *UInt8) -> Int32;
+  fn xd12c_ID3D12DSRDeviceFactory_CreateDSRDevice(obj: Int, pD3D12Device: Int, NodeMask: UInt32, riid: *UInt8, ppvDSRDevice: *UInt8) -> Int32;
 }
-pub fn d3d12_dsr_device_factory_create_dsr_device(obj: Int, pD3D12Device: *UInt8, NodeMask: UInt32, riid: *UInt8, ppvDSRDevice: *UInt8) -> Int32
+pub fn d3d12_dsr_device_factory_create_dsr_device(obj: Int, pD3D12Device: Int, NodeMask: UInt32, riid: *UInt8, ppvDSRDevice: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12DSRDeviceFactory_CreateDSRDevice(obj, pD3D12Device, NodeMask, riid, ppvDSRDevice); }
@@ -131,36 +131,36 @@ pub fn d3d12_gbv_diagnostics_release(obj: Int) -> UInt32
 }
 
 extern "C" {
-  fn xd12c_ID3D12GBVDiagnostics_GetGBVEntireSubresourceStatesData(obj: Int, pResource: *UInt8, pData: *UInt8, DataSize: UInt32) -> Int32;
+  fn xd12c_ID3D12GBVDiagnostics_GetGBVEntireSubresourceStatesData(obj: Int, pResource: Int, pData: *UInt8, DataSize: UInt32) -> Int32;
 }
-pub fn d3d12_gbv_diagnostics_get_gbv_entire_subresource_states_data(obj: Int, pResource: *UInt8, pData: *UInt8, DataSize: UInt32) -> Int32
+pub fn d3d12_gbv_diagnostics_get_gbv_entire_subresource_states_data(obj: Int, pResource: Int, pData: *UInt8, DataSize: UInt32) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12GBVDiagnostics_GetGBVEntireSubresourceStatesData(obj, pResource, pData, DataSize); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GBVDiagnostics_GetGBVSubresourceState(obj: Int, pResource: *UInt8, Subresource: UInt32, pData: *UInt8) -> Int32;
+  fn xd12c_ID3D12GBVDiagnostics_GetGBVSubresourceState(obj: Int, pResource: Int, Subresource: UInt32, pData: *UInt8) -> Int32;
 }
-pub fn d3d12_gbv_diagnostics_get_gbv_subresource_state(obj: Int, pResource: *UInt8, Subresource: UInt32, pData: *UInt8) -> Int32
+pub fn d3d12_gbv_diagnostics_get_gbv_subresource_state(obj: Int, pResource: Int, Subresource: UInt32, pData: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12GBVDiagnostics_GetGBVSubresourceState(obj, pResource, Subresource, pData); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GBVDiagnostics_GetGBVResourceUniformState(obj: Int, pResource: *UInt8, pData: *UInt8) -> Int32;
+  fn xd12c_ID3D12GBVDiagnostics_GetGBVResourceUniformState(obj: Int, pResource: Int, pData: *UInt8) -> Int32;
 }
-pub fn d3d12_gbv_diagnostics_get_gbv_resource_uniform_state(obj: Int, pResource: *UInt8, pData: *UInt8) -> Int32
+pub fn d3d12_gbv_diagnostics_get_gbv_resource_uniform_state(obj: Int, pResource: Int, pData: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12GBVDiagnostics_GetGBVResourceUniformState(obj, pResource, pData); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GBVDiagnostics_GetGBVResourceInfo(obj: Int, pResource: *UInt8, pResourceDesc: *UInt8, pResourceHash: *UInt8, pSubresourceStatesByteOffset: *UInt8) -> Int32;
+  fn xd12c_ID3D12GBVDiagnostics_GetGBVResourceInfo(obj: Int, pResource: Int, pResourceDesc: *UInt8, pResourceHash: *UInt8, pSubresourceStatesByteOffset: *UInt8) -> Int32;
 }
-pub fn d3d12_gbv_diagnostics_get_gbv_resource_info(obj: Int, pResource: *UInt8, pResourceDesc: *UInt8, pResourceHash: *UInt8, pSubresourceStatesByteOffset: *UInt8) -> Int32
+pub fn d3d12_gbv_diagnostics_get_gbv_resource_info(obj: Int, pResource: Int, pResourceDesc: *UInt8, pResourceHash: *UInt8, pSubresourceStatesByteOffset: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12GBVDiagnostics_GetGBVResourceInfo(obj, pResource, pResourceDesc, pResourceHash, pSubresourceStatesByteOffset); }

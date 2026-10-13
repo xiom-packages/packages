@@ -24,9 +24,9 @@ pub fn d3d12_video_device3_create_video_encoder_heap(obj: Int, pDesc: *UInt8, ri
 // ---- ID3D12VideoEncodeCommandList2 ----
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList2_EncodeFrame(obj: Int, pEncoder: *UInt8, pHeap: *UInt8, pInputArguments: *UInt8, pOutputArguments: *UInt8);
+  fn xd12c_ID3D12VideoEncodeCommandList2_EncodeFrame(obj: Int, pEncoder: Int, pHeap: Int, pInputArguments: *UInt8, pOutputArguments: *UInt8);
 }
-pub fn d3d12_video_encode_command_list2_encode_frame(obj: Int, pEncoder: *UInt8, pHeap: *UInt8, pInputArguments: *UInt8, pOutputArguments: *UInt8)
+pub fn d3d12_video_encode_command_list2_encode_frame(obj: Int, pEncoder: Int, pHeap: Int, pInputArguments: *UInt8, pOutputArguments: *UInt8)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList2_EncodeFrame(obj, pEncoder, pHeap, pInputArguments, pOutputArguments); }
@@ -77,9 +77,9 @@ pub fn d3d12_video_device4_create_video_encoder_heap1(obj: Int, pDesc: *UInt8, r
 // ---- ID3D12VideoEncodeCommandList4 ----
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList4_EncodeFrame1(obj: Int, pEncoder: *UInt8, pHeap: *UInt8, pInputArguments: *UInt8, pOutputArguments: *UInt8);
+  fn xd12c_ID3D12VideoEncodeCommandList4_EncodeFrame1(obj: Int, pEncoder: Int, pHeap: Int, pInputArguments: *UInt8, pOutputArguments: *UInt8);
 }
-pub fn d3d12_video_encode_command_list4_encode_frame1(obj: Int, pEncoder: *UInt8, pHeap: *UInt8, pInputArguments: *UInt8, pOutputArguments: *UInt8)
+pub fn d3d12_video_encode_command_list4_encode_frame1(obj: Int, pEncoder: Int, pHeap: Int, pInputArguments: *UInt8, pOutputArguments: *UInt8)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList4_EncodeFrame1(obj, pEncoder, pHeap, pInputArguments, pOutputArguments); }

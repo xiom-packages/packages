@@ -42,27 +42,27 @@ pub fn d3d12_device4_create_protected_resource_session(obj: Int, pDesc: *UInt8, 
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device4_CreateCommittedResource1(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialResourceState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: *UInt8, riidResource: *UInt8, ppvResource: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device4_CreateCommittedResource1(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialResourceState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: Int, riidResource: *UInt8, ppvResource: *UInt8) -> Int32;
 }
-pub fn d3d12_device4_create_committed_resource1(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialResourceState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: *UInt8, riidResource: *UInt8, ppvResource: *UInt8) -> Int32
+pub fn d3d12_device4_create_committed_resource1(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialResourceState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: Int, riidResource: *UInt8, ppvResource: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device4_CreateCommittedResource1(obj, pHeapProperties, HeapFlags, pDesc, InitialResourceState, pOptimizedClearValue, pProtectedSession, riidResource, ppvResource); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device4_CreateHeap1(obj: Int, pDesc: *UInt8, pProtectedSession: *UInt8, riid: *UInt8, ppvHeap: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device4_CreateHeap1(obj: Int, pDesc: *UInt8, pProtectedSession: Int, riid: *UInt8, ppvHeap: *UInt8) -> Int32;
 }
-pub fn d3d12_device4_create_heap1(obj: Int, pDesc: *UInt8, pProtectedSession: *UInt8, riid: *UInt8, ppvHeap: *UInt8) -> Int32
+pub fn d3d12_device4_create_heap1(obj: Int, pDesc: *UInt8, pProtectedSession: Int, riid: *UInt8, ppvHeap: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device4_CreateHeap1(obj, pDesc, pProtectedSession, riid, ppvHeap); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device4_CreateReservedResource1(obj: Int, pDesc: *UInt8, InitialState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device4_CreateReservedResource1(obj: Int, pDesc: *UInt8, InitialState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: Int, riid: *UInt8, ppvResource: *UInt8) -> Int32;
 }
-pub fn d3d12_device4_create_reserved_resource1(obj: Int, pDesc: *UInt8, InitialState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32
+pub fn d3d12_device4_create_reserved_resource1(obj: Int, pDesc: *UInt8, InitialState: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: Int, riid: *UInt8, ppvResource: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device4_CreateReservedResource1(obj, pDesc, InitialState, pOptimizedClearValue, pProtectedSession, riid, ppvResource); }
@@ -174,9 +174,9 @@ pub fn d3d12_swap_chain_assistant_insert_implicit_sync(obj: Int) -> Int32
 // ---- ID3D12LifetimeTracker ----
 
 extern "C" {
-  fn xd12c_ID3D12LifetimeTracker_DestroyOwnedObject(obj: Int, pObject: *UInt8) -> Int32;
+  fn xd12c_ID3D12LifetimeTracker_DestroyOwnedObject(obj: Int, pObject: Int) -> Int32;
 }
-pub fn d3d12_lifetime_tracker_destroy_owned_object(obj: Int, pObject: *UInt8) -> Int32
+pub fn d3d12_lifetime_tracker_destroy_owned_object(obj: Int, pObject: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12LifetimeTracker_DestroyOwnedObject(obj, pObject); }

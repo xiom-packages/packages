@@ -49,9 +49,9 @@ pub fn d3d12_object_set_private_data(obj: Int, guid: *UInt8, DataSize: UInt32, p
 }
 
 extern "C" {
-  fn xd12c_ID3D12Object_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32;
+  fn xd12c_ID3D12Object_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: Int) -> Int32;
 }
-pub fn d3d12_object_set_private_data_interface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32
+pub fn d3d12_object_set_private_data_interface(obj: Int, guid: *UInt8, pData: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Object_SetPrivateDataInterface(obj, guid, pData); }

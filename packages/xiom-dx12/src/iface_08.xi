@@ -71,9 +71,9 @@ pub fn d3d12_tools1_clear_reserved_gpuva_ranges_list(obj: Int)
 // ---- ID3D12Tools2 ----
 
 extern "C" {
-  fn xd12c_ID3D12Tools2_SetApplicationSpecificDriverState(obj: Int, pAdapter: *UInt8, pBlob: *UInt8) -> Int32;
+  fn xd12c_ID3D12Tools2_SetApplicationSpecificDriverState(obj: Int, pAdapter: Int, pBlob: Int) -> Int32;
 }
-pub fn d3d12_tools2_set_application_specific_driver_state(obj: Int, pAdapter: *UInt8, pBlob: *UInt8) -> Int32
+pub fn d3d12_tools2_set_application_specific_driver_state(obj: Int, pAdapter: Int, pBlob: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Tools2_SetApplicationSpecificDriverState(obj, pAdapter, pBlob); }
@@ -205,9 +205,9 @@ pub fn d3d12_device_tools_set_next_allocation_address(obj: Int, nextAllocationVi
 // ---- ID3D12DeviceTools1 ----
 
 extern "C" {
-  fn xd12c_ID3D12DeviceTools1_GetApplicationSpecificDriverState(obj: Int, ppBlob: *UInt8) -> Int32;
+  fn xd12c_ID3D12DeviceTools1_GetApplicationSpecificDriverState(obj: Int, ppBlob: Int) -> Int32;
 }
-pub fn d3d12_device_tools1_get_application_specific_driver_state(obj: Int, ppBlob: *UInt8) -> Int32
+pub fn d3d12_device_tools1_get_application_specific_driver_state(obj: Int, ppBlob: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12DeviceTools1_GetApplicationSpecificDriverState(obj, ppBlob); }

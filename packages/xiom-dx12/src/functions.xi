@@ -47,9 +47,9 @@ pub fn d3d12_create_versioned_root_signature_deserializer_from_subobject_in_libr
 }
 
 extern "C" {
-  fn xd12f_D3D12CreateDevice(pAdapter: *UInt8, MinimumFeatureLevel: Int32, riid: *UInt8, ppDevice: *UInt8) -> Int32;
+  fn xd12f_D3D12CreateDevice(pAdapter: Int, MinimumFeatureLevel: Int32, riid: *UInt8, ppDevice: *UInt8) -> Int32;
 }
-pub fn d3d12_create_device(pAdapter: *UInt8, MinimumFeatureLevel: Int32, riid: *UInt8, ppDevice: *UInt8) -> Int32
+pub fn d3d12_create_device(pAdapter: Int, MinimumFeatureLevel: Int32, riid: *UInt8, ppDevice: *UInt8) -> Int32
   requires: true
 {
   unsafe { return xd12f_D3D12CreateDevice(pAdapter, MinimumFeatureLevel, riid, ppDevice); }

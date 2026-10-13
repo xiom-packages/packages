@@ -49,9 +49,9 @@ pub fn d3d12_video_motion_estimator_set_private_data(obj: Int, guid: *UInt8, Dat
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoMotionEstimator_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoMotionEstimator_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: Int) -> Int32;
 }
-pub fn d3d12_video_motion_estimator_set_private_data_interface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32
+pub fn d3d12_video_motion_estimator_set_private_data_interface(obj: Int, guid: *UInt8, pData: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoMotionEstimator_SetPrivateDataInterface(obj, guid, pData); }
@@ -132,9 +132,9 @@ pub fn d3d12_video_motion_vector_heap_set_private_data(obj: Int, guid: *UInt8, D
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoMotionVectorHeap_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoMotionVectorHeap_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: Int) -> Int32;
 }
-pub fn d3d12_video_motion_vector_heap_set_private_data_interface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32
+pub fn d3d12_video_motion_vector_heap_set_private_data_interface(obj: Int, guid: *UInt8, pData: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoMotionVectorHeap_SetPrivateDataInterface(obj, guid, pData); }
@@ -170,18 +170,18 @@ pub fn d3d12_video_motion_vector_heap_get_protected_resource_session(obj: Int, r
 // ---- ID3D12VideoDevice1 ----
 
 extern "C" {
-  fn xd12c_ID3D12VideoDevice1_CreateVideoMotionEstimator(obj: Int, pDesc: *UInt8, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoMotionEstimator: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoDevice1_CreateVideoMotionEstimator(obj: Int, pDesc: *UInt8, pProtectedResourceSession: Int, riid: *UInt8, ppVideoMotionEstimator: *UInt8) -> Int32;
 }
-pub fn d3d12_video_device1_create_video_motion_estimator(obj: Int, pDesc: *UInt8, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoMotionEstimator: *UInt8) -> Int32
+pub fn d3d12_video_device1_create_video_motion_estimator(obj: Int, pDesc: *UInt8, pProtectedResourceSession: Int, riid: *UInt8, ppVideoMotionEstimator: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoDevice1_CreateVideoMotionEstimator(obj, pDesc, pProtectedResourceSession, riid, ppVideoMotionEstimator); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoDevice1_CreateVideoMotionVectorHeap(obj: Int, pDesc: *UInt8, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoMotionVectorHeap: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoDevice1_CreateVideoMotionVectorHeap(obj: Int, pDesc: *UInt8, pProtectedResourceSession: Int, riid: *UInt8, ppVideoMotionVectorHeap: *UInt8) -> Int32;
 }
-pub fn d3d12_video_device1_create_video_motion_vector_heap(obj: Int, pDesc: *UInt8, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoMotionVectorHeap: *UInt8) -> Int32
+pub fn d3d12_video_device1_create_video_motion_vector_heap(obj: Int, pDesc: *UInt8, pProtectedResourceSession: Int, riid: *UInt8, ppVideoMotionVectorHeap: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoDevice1_CreateVideoMotionVectorHeap(obj, pDesc, pProtectedResourceSession, riid, ppVideoMotionVectorHeap); }
@@ -235,9 +235,9 @@ pub fn d3d12_video_encode_command_list_set_private_data(obj: Int, guid: *UInt8, 
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoEncodeCommandList_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: Int) -> Int32;
 }
-pub fn d3d12_video_encode_command_list_set_private_data_interface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32
+pub fn d3d12_video_encode_command_list_set_private_data_interface(obj: Int, guid: *UInt8, pData: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoEncodeCommandList_SetPrivateDataInterface(obj, guid, pData); }
@@ -280,9 +280,9 @@ pub fn d3d12_video_encode_command_list_close(obj: Int) -> Int32
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList_Reset(obj: Int, pAllocator: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoEncodeCommandList_Reset(obj: Int, pAllocator: Int) -> Int32;
 }
-pub fn d3d12_video_encode_command_list_reset(obj: Int, pAllocator: *UInt8) -> Int32
+pub fn d3d12_video_encode_command_list_reset(obj: Int, pAllocator: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoEncodeCommandList_Reset(obj, pAllocator); }
@@ -307,45 +307,45 @@ pub fn d3d12_video_encode_command_list_resource_barrier(obj: Int, NumBarriers: U
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList_DiscardResource(obj: Int, pResource: *UInt8, pRegion: *UInt8);
+  fn xd12c_ID3D12VideoEncodeCommandList_DiscardResource(obj: Int, pResource: Int, pRegion: *UInt8);
 }
-pub fn d3d12_video_encode_command_list_discard_resource(obj: Int, pResource: *UInt8, pRegion: *UInt8)
+pub fn d3d12_video_encode_command_list_discard_resource(obj: Int, pResource: Int, pRegion: *UInt8)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList_DiscardResource(obj, pResource, pRegion); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList_BeginQuery(obj: Int, pQueryHeap: *UInt8, Type: Int32, Index: UInt32);
+  fn xd12c_ID3D12VideoEncodeCommandList_BeginQuery(obj: Int, pQueryHeap: Int, Type: Int32, Index: UInt32);
 }
-pub fn d3d12_video_encode_command_list_begin_query(obj: Int, pQueryHeap: *UInt8, Type: Int32, Index: UInt32)
+pub fn d3d12_video_encode_command_list_begin_query(obj: Int, pQueryHeap: Int, Type: Int32, Index: UInt32)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList_BeginQuery(obj, pQueryHeap, Type, Index); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList_EndQuery(obj: Int, pQueryHeap: *UInt8, Type: Int32, Index: UInt32);
+  fn xd12c_ID3D12VideoEncodeCommandList_EndQuery(obj: Int, pQueryHeap: Int, Type: Int32, Index: UInt32);
 }
-pub fn d3d12_video_encode_command_list_end_query(obj: Int, pQueryHeap: *UInt8, Type: Int32, Index: UInt32)
+pub fn d3d12_video_encode_command_list_end_query(obj: Int, pQueryHeap: Int, Type: Int32, Index: UInt32)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList_EndQuery(obj, pQueryHeap, Type, Index); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList_ResolveQueryData(obj: Int, pQueryHeap: *UInt8, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pDestinationBuffer: *UInt8, AlignedDestinationBufferOffset: UInt64);
+  fn xd12c_ID3D12VideoEncodeCommandList_ResolveQueryData(obj: Int, pQueryHeap: Int, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pDestinationBuffer: Int, AlignedDestinationBufferOffset: UInt64);
 }
-pub fn d3d12_video_encode_command_list_resolve_query_data(obj: Int, pQueryHeap: *UInt8, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pDestinationBuffer: *UInt8, AlignedDestinationBufferOffset: UInt64)
+pub fn d3d12_video_encode_command_list_resolve_query_data(obj: Int, pQueryHeap: Int, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pDestinationBuffer: Int, AlignedDestinationBufferOffset: UInt64)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList_ResolveQueryData(obj, pQueryHeap, Type, StartIndex, NumQueries, pDestinationBuffer, AlignedDestinationBufferOffset); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList_SetPredication(obj: Int, pBuffer: *UInt8, AlignedBufferOffset: UInt64, Operation: Int32);
+  fn xd12c_ID3D12VideoEncodeCommandList_SetPredication(obj: Int, pBuffer: Int, AlignedBufferOffset: UInt64, Operation: Int32);
 }
-pub fn d3d12_video_encode_command_list_set_predication(obj: Int, pBuffer: *UInt8, AlignedBufferOffset: UInt64, Operation: Int32)
+pub fn d3d12_video_encode_command_list_set_predication(obj: Int, pBuffer: Int, AlignedBufferOffset: UInt64, Operation: Int32)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList_SetPredication(obj, pBuffer, AlignedBufferOffset, Operation); }
@@ -379,9 +379,9 @@ pub fn d3d12_video_encode_command_list_end_event(obj: Int)
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList_EstimateMotion(obj: Int, pMotionEstimator: *UInt8, pOutputArguments: *UInt8, pInputArguments: *UInt8);
+  fn xd12c_ID3D12VideoEncodeCommandList_EstimateMotion(obj: Int, pMotionEstimator: Int, pOutputArguments: *UInt8, pInputArguments: *UInt8);
 }
-pub fn d3d12_video_encode_command_list_estimate_motion(obj: Int, pMotionEstimator: *UInt8, pOutputArguments: *UInt8, pInputArguments: *UInt8)
+pub fn d3d12_video_encode_command_list_estimate_motion(obj: Int, pMotionEstimator: Int, pOutputArguments: *UInt8, pInputArguments: *UInt8)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList_EstimateMotion(obj, pMotionEstimator, pOutputArguments, pInputArguments); }
@@ -406,9 +406,9 @@ pub fn d3d12_video_encode_command_list_write_buffer_immediate(obj: Int, Count: U
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList_SetProtectedResourceSession(obj: Int, pProtectedResourceSession: *UInt8);
+  fn xd12c_ID3D12VideoEncodeCommandList_SetProtectedResourceSession(obj: Int, pProtectedResourceSession: Int);
 }
-pub fn d3d12_video_encode_command_list_set_protected_resource_session(obj: Int, pProtectedResourceSession: *UInt8)
+pub fn d3d12_video_encode_command_list_set_protected_resource_session(obj: Int, pProtectedResourceSession: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList_SetProtectedResourceSession(obj, pProtectedResourceSession); }
@@ -495,9 +495,9 @@ pub fn d3d12_video_extension_command_set_private_data(obj: Int, guid: *UInt8, Da
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoExtensionCommand_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoExtensionCommand_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: Int) -> Int32;
 }
-pub fn d3d12_video_extension_command_set_private_data_interface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32
+pub fn d3d12_video_extension_command_set_private_data_interface(obj: Int, guid: *UInt8, pData: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoExtensionCommand_SetPrivateDataInterface(obj, guid, pData); }

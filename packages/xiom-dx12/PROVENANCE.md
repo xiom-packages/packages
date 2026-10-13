@@ -74,6 +74,13 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   free functions + enums/struct metadata, parsed from the pinned headers) is
   the 0.2.0/0.3.0 waves with a `docs/COVERAGE.md` oracle==bound==resolved
   manifest.
+- **0.4.0 (command recording):** no new oracle material -- the same pinned
+  headers.  `tools/gen_dx12.py` now emits single-star COM object parameters
+  as `Int` (C side `void*`); this is the value-preserving handle path
+  (**B-25**: `Int as *UInt8` shifts the address on v0.64.4 -- repro
+  `docs/repro/bindings-pilot/ptr-cast/`).  New bridge symbols
+  (`xd12_fence_wait`, `xd12_ptr_value`, `xd12_ptr_value_i`) and the module
+  `xiom.dx12.recording` are original package code.
 - **Clone ledger:** `E:\repos\CLEANUP.md` row `DirectX-Headers` (bindings;
   review after 2026-12-01).
 - **License:** header-derived material MIT (notice retained here); package
