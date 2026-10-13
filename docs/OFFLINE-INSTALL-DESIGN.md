@@ -2,7 +2,8 @@
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 # Design note: offline / vendored production installs + platform matrix
 
-Status: DESIGN NOTE (2026-10-12, packages lane). Ask: ORBITDB
+Status: DESIGN NOTE (2026-10-12, packages lane); platform matrix v1 landed
+2026-10-13 (section 4). Ask: ORBITDB
 `REL-20261012-1945-orbitdb-3` P2 (reproducible production dependency sets,
 airgapped builds, pinned local mirrors, platform-support matrix). Related:
 PULSE `-1946-pulse-2` dep-set health; registry rows (yank/resolve/publish
@@ -62,15 +63,24 @@ Commit `vendor/xiom-<name>-<version>.tar.gz` + `SHA256SUMS` into the
 consumer repo; `xiom pkg install --local vendor/...` with the same
 verification. Smallest blast radius for single-service deployments.
 
-## 4. Platform-support matrix (deliverable)
+## 4. Platform-support matrix (LANDED v1 -- 2026-10-13)
 
-- Per package, extend STATUS/SPEC with a declared matrix row:
-  `platforms: [windows-x64, linux-x64, macos-x64, macos-arm64]` + runtime
-  deps (system DLL/.so presence, SKIP classes) + required toolchain pin.
-- Generate `docs/PLATFORM-MATRIX.md` from STATUS (script in this repo);
-  the registry can serve the same table later (registry lane).
+- `docs/PLATFORM-MATRIX.md` + generator `scripts/platform-matrix.ps1`
+  (regenerate with `-WriteReport`): every package with version, stage,
+  class (compile / runtime-load / compile+runtime-load / pure), platforms,
+  runtime needs, and the recorded conformance run.
+- Declared rows: optional `platforms` + `runtime_deps` fields in
+  STATUS.json (schema in the matrix doc; validated by `status.ps1 -Action
+  validate`, preserved by `-Action repin`/`-Action update`). Retrofit at
+  each package's next touch; new packages must land with one -- the matrix
+  lists the declaration backlog (36 native packages at v1).
+- Derived rows (no declaration yet) are marked as such: class + runtime
+  sonames / link libs from the shipped sources; `any (derived)` for
+  pure-XIOM packages.
+- The registry can serve the same table later (registry lane).
 - Acceptance: a consumer can answer "does xiom.X@Y run on my target, and
-  what must be present?" from one table.
+  what must be present?" from one table -- declared rows certify; derived
+  rows are advisory until declared.
 
 ## 5. Blockers + owners
 
@@ -84,7 +94,8 @@ verification. Smallest blast radius for single-service deployments.
 ## 6. Interim guidance for ORBITDB deployment docs
 
 Use flow A now (exact pins + key pin + recorded sha256); state the platform
-matrix per package from its STATUS/SKIP classes; mark airgap support as
+matrix per package from `docs/PLATFORM-MATRIX.md` (declared rows certify;
+derived rows stay advisory until declared); mark airgap support as
 "pending flow B" with the `-7` fix as the named prerequisite. No consumer
 change will be required when B/C land -- the same commands gain the
 offline flags.
