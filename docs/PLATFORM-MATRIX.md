@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T15:46:12Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T17:20:58Z.
 
 ## How to read this table
 
@@ -59,7 +59,7 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | xiom.dx12 | 0.4.0 | stable | compile+runtime-load | windows-x64 | d3d12.dll (runtime loader; SKIP when absent); dxgi.dll (runtime loader; SKIP when absent) | pass 42/42 @ fd90ebf3 |
 | xiom.gles | 0.1.0 | incubating | compile+runtime-load | windows-x64 | libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent); libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent) | pass 18/18 @ 779ac140 |
 | xiom.opengl | 0.5.0 | incubating | compile+runtime-load | windows-x64 | opengl32.dll (runtime loader; SKIP when absent; WGL needs a Win32 device context) | pass 28/28 @ 779ac140 |
-| xiom.sqlite | 0.4.0 | incubating | compile | windows-x64 | - | pass 21/21 @ 345c05ba |
+| xiom.sqlite | 0.4.1 | incubating | compile | windows-x64 | - | pass 21/21 @ 88a45273 |
 | xiom.cuda | 0.2.0 | incubating | compile+runtime-load | undeclared | nvcuda.dll (runtime, derived) | pass 5/5 @ 4bb65d14 |
 | xiom.directx11 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d11.dll, dxgi.dll (runtime, derived) | pass 5/5 @ cce33ecb |
 | xiom.directx12 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d12.dll, dxgi.dll (runtime, derived) | pass 5/5 @ 3e0c2384 |
