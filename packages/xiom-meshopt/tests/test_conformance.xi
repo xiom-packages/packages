@@ -18,6 +18,11 @@
 // (byte-exact order preserved), the quat/exp/color filter family, and the
 // meshlet codec (typed 4/3 decode round trip).
 //
+// 0.5.0: adds cooked-mesh container checks -- encode -> "XMC1" container ->
+// decode yields identical vertex bytes and valid indices (triangle multiset
+// preserved), plus the typed-error paths (bad magic, truncated header,
+// unsupported version, size mismatch).
+//
 // Run: scripts/port.ps1 -Package xiom.meshopt (the port.args.json --c-source
 // list compiles the bridge + the 20 vendored TUs).
 
@@ -25,6 +30,7 @@ module meshopt_conformance
 use xiom.io;
 use xiom.test;
 use xiom.meshopt;
+use xiom.meshopt_cooked;
 
 // =========================================================================
 // Helpers
@@ -499,11 +505,168 @@ fn test_codec_meshlet() -> TestResult {
 }
 
 // =========================================================================
+// SECTION 6 -- cooked-mesh container (5 tests)
+// =========================================================================
+
+/// Canonical rotation-invariant triangle key (sorted u32 vertex ids, base
+/// 65) -- mirrors the bridge's triangle_sets_equal semantics: the index
+/// codec may rotate triangle corners, the triangle multiset is the lossless
+/// contract. Complexity: O(1).
+fn cooked_tri_key(a: Int, b: Int, c: Int) -> Int {
+  var lo = a;
+  var mid = b;
+  var hi = c;
+  if lo > mid { let t = lo; lo = mid; mid = t; }
+  if mid > hi { let t = mid; mid = hi; hi = t; }
+  if lo > mid { let t = lo; lo = mid; mid = t; }
+  return lo * 4225 + mid * 65 + hi;
+}
+
+/// Sorted canonical triangle keys of a u32 index buffer (insertion sort).
+/// Complexity: O(triangles^2), probe-sized.
+fn cooked_key_list(indices: &Vec[UInt8], index_count: Int) -> Vec[Int]
+  requires: indices.len() >= index_count * 4
+{
+  var keys: Vec[Int] = Vec[Int].new();
+  var t: Int = 0;
+  while t < index_count / 3 {
+    let a = probe_rd_u32(indices, t * 12 + 0);
+    let b = probe_rd_u32(indices, t * 12 + 4);
+    let c = probe_rd_u32(indices, t * 12 + 8);
+    let v = cooked_tri_key(a, b, c);
+    var j: Int = keys.len();
+    keys.push(v);
+    while j > 0 {
+      if keys[j - 1] > v {
+        keys[j] = keys[j - 1];
+        j = j - 1;
+      } else { break; }
+    }
+    keys[j] = v;
+    t = t + 1;
+  }
+  return keys;
+}
+
+/// Order-insensitive triangle multiset equality over two u32 index buffers.
+/// Complexity: O(triangles^2), probe-sized.
+fn cooked_sets_equal(a: &Vec[UInt8], b: &Vec[UInt8], index_count: Int) -> Bool
+  requires: a.len() >= index_count * 4
+  requires: b.len() >= index_count * 4
+{
+  let ka = cooked_key_list(a, index_count);
+  let kb = cooked_key_list(b, index_count);
+  if ka.len() != kb.len() { return false; }
+  var i: Int = 0;
+  while i < ka.len() {
+    if ka[i] != kb[i] { return false; }
+    i = i + 1;
+  }
+  return true;
+}
+
+/// A valid cooked container of the 8x8 probe grid (empty on fixture failure).
+/// Complexity: O(triangles).
+fn cooked_sample_container() -> Vec[UInt8]
+  requires: true
+{
+  var gpos = probe_slot(64 * 12);
+  var gidx = probe_slot(294 * 4);
+  let filled = meshopt_fill_grid(8, 8, 25000, &mut gpos, &mut gidx);
+  if filled != 294 { return Vec[UInt8].new(); }
+  let enc = meshopt_cooked_encode(&gpos, 64, 12, &gidx, 294);
+  if enc.is_err { return Vec[UInt8].new(); }
+  return enc.value;
+}
+
+fn test_cooked_roundtrip() -> TestResult {
+  var gpos = probe_slot(64 * 12);
+  var gidx = probe_slot(294 * 4);
+  let filled = meshopt_fill_grid(8, 8, 25000, &mut gpos, &mut gidx);
+  var ok = filled == 294;
+  if ok {
+    let enc = meshopt_cooked_encode(&gpos, 64, 12, &gidx, 294);
+    if enc.is_err { return assert(false, "cooked: encode -> container -> decode yields identical vertex bytes and valid indices"); }
+    let container = enc.value;
+    let dec = meshopt_cooked_decode(&container);
+    if dec.is_err { return assert(false, "cooked: encode -> container -> decode yields identical vertex bytes and valid indices"); }
+    let mesh = dec.value;
+    ok = mesh.vertex_count == 64 && mesh.vertex_size == 12 && mesh.index_count == 294
+      && mesh.vertices.len() == 64 * 12 && mesh.indices.len() == 294 * 4;
+    if ok {
+      var i: Int = 0;
+      while i < 64 * 12 {
+        if mesh.vertices[i] != gpos[i] { ok = false; }
+        i = i + 1;
+      }
+      var j: Int = 0;
+      while j < 294 {
+        if probe_rd_u32(&mesh.indices, j * 4) >= 64 { ok = false; }
+        j = j + 1;
+      }
+      ok = ok && cooked_sets_equal(&gidx, &mesh.indices, 294);
+    }
+  }
+  return assert(ok, "cooked: encode -> container -> decode yields identical vertex bytes and valid indices");
+}
+
+fn test_cooked_err_magic() -> TestResult {
+  var container = cooked_sample_container();
+  var ok = false;
+  if container.len() > MESHOPT_COOKED_HEADER_SIZE {
+    container[0] = 0 as UInt8;
+    let dec = meshopt_cooked_decode(&container);
+    if dec.is_err {
+      ok = dec.error.code == MESHOPT_COOKED_ERR_MAGIC;
+    }
+  }
+  return assert(ok, "cooked: corrupt magic -> typed error 11 (MESHOPT_COOKED_ERR_MAGIC)");
+}
+
+fn test_cooked_err_header() -> TestResult {
+  var empty: Vec[UInt8] = Vec[UInt8].new();
+  let r0 = meshopt_cooked_decode(&empty);
+  var short = probe_slot(16);
+  let r1 = meshopt_cooked_decode(&short);
+  var ok = false;
+  if r0.is_err && r1.is_err {
+    ok = r0.error.code == MESHOPT_COOKED_ERR_HEADER && r1.error.code == MESHOPT_COOKED_ERR_HEADER;
+  }
+  return assert(ok, "cooked: truncated header (0 and 16 bytes) -> typed error 10 (MESHOPT_COOKED_ERR_HEADER)");
+}
+
+fn test_cooked_err_version() -> TestResult {
+  var container = cooked_sample_container();
+  var ok = false;
+  if container.len() > MESHOPT_COOKED_HEADER_SIZE {
+    container[4] = 2 as UInt8;
+    let dec = meshopt_cooked_decode(&container);
+    if dec.is_err {
+      ok = dec.error.code == MESHOPT_COOKED_ERR_VERSION;
+    }
+  }
+  return assert(ok, "cooked: unsupported version -> typed error 12 (MESHOPT_COOKED_ERR_VERSION)");
+}
+
+fn test_cooked_err_size() -> TestResult {
+  var container = cooked_sample_container();
+  var ok = false;
+  if container.len() > MESHOPT_COOKED_HEADER_SIZE {
+    probe_wr_u32(&mut container, 28, container.len() - 4);
+    let dec = meshopt_cooked_decode(&container);
+    if dec.is_err {
+      ok = dec.error.code == MESHOPT_COOKED_ERR_SIZE;
+    }
+  }
+  return assert(ok, "cooked: truncated/corrupt size -> typed error 13 (MESHOPT_COOKED_ERR_SIZE)");
+}
+
+// =========================================================================
 // Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {
-  io.println("XIOM meshopt Conformance Suite (0.4.0 vendored)");
+  io.println("XIOM meshopt Conformance Suite (0.5.0 vendored)");
   io.println("==============================================");
   var total: Int = 0;
   var failed: Int = 0;
@@ -565,6 +728,15 @@ pub fn main() -> Int {
   let c2 = test_codec_filter_exp();      total = total + 1; failed = failed + report(c2.passed, c2.name);
   let c3 = test_codec_filter_color();    total = total + 1; failed = failed + report(c3.passed, c3.name);
   let c4 = test_codec_meshlet();         total = total + 1; failed = failed + report(c4.passed, c4.name);
+
+  io.println("");
+  io.println("-- SECTION 6: cooked-mesh container (5) --");
+
+  let k0 = test_cooked_roundtrip();   total = total + 1; failed = failed + report(k0.passed, k0.name);
+  let k1 = test_cooked_err_magic();   total = total + 1; failed = failed + report(k1.passed, k1.name);
+  let k2 = test_cooked_err_header();  total = total + 1; failed = failed + report(k2.passed, k2.name);
+  let k3 = test_cooked_err_version(); total = total + 1; failed = failed + report(k3.passed, k3.name);
+  let k4 = test_cooked_err_size();    total = total + 1; failed = failed + report(k4.passed, k4.name);
 
   io.println("");
   io.println("==============================================");

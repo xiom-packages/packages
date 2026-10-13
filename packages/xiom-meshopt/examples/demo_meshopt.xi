@@ -14,7 +14,7 @@
 module xiom.meshopt.demo
 
 use xiom.meshopt;
-use xiom.meshopt.safe;
+use xiom.meshopt_safe;
 use xiom.io;
 
 fn main() -> Int {

@@ -1,6 +1,6 @@
 # xiom.meshopt -- Roadmap
 
-**Version**: v0.2.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
+**Version**: v0.5.0 | **Compiler**: xiom v0.64.4 | **Last updated**: 2026-10-13
 
 ## Current state
 
@@ -12,7 +12,9 @@
 | XIOM-owned buffer direction (build/optimize/checksum) | Done -- 0.2.0 |
 | Pool-drive re-verify on v0.64.3 (legacy suite, 72/72) | Done -- record `157094bc` |
 | Owned-buffer safe wrappers (remap/optimize/simplify for callers) | Done -- 0.3.0 |
-| Remaining codec families (index sequence, meshlet codec, quat/exp/color filters) | Done -- 0.4.0 (index sequence + meshlet codec + quat/exp/color filters; oct shipped 0.2.0) |
+| Remaining codec families (index sequence, meshlet codec, quat/exp/color filters) | Done -- 0.4.0 |
+| Cooked-mesh container ("XMC1") + decoder integration surface | Done -- 0.5.0 |
+| Pipeline wrapper floor for the sibling modules (B-04 layout) | Done -- 0.5.0 |
 | Cluster pipeline (build -> optimize -> bounds) | Phase 3 |
 | Opacity maps + tangents (experimental upstream) | Phase 3 / on demand |
 | Re-pin to the next upstream tag | backlog |
@@ -28,10 +30,21 @@
    order), the quat/exp/color filter family (max error in micro units), and
    the meshlet codec (typed 4/3 decode; vertex refs exact, triangle corners
    may rotate).
-3. Cluster pipeline: `buildMeshlets` -> `optimizeMeshlet` ->
+3. ~~Cooked file wrapper~~ Done 0.5.0: `meshopt_cooked_encode` /
+   `meshopt_cooked_decode` (module `xiom.meshopt_cooked`) frame the
+   EncodePipeline vertex/index streams with the documented "XMC1" header
+   (SPEC section 4), decode into XIOM-owned buffers and expose the decoded
+   mesh in one call; corrupt containers surface as typed errors 10..15.
+   The `xiom.meshopt_safe` pipeline module now actually compiles: flat
+   sibling module names (a dotted child cannot import its parent on the
+   pin, B-04) plus a thin pub wrapper floor exported by the root module
+   (FFI still confined to `meshopt.xi`, G5). `EncodePipeline.decode_indices`
+   completes the codec surface.
+4. Cluster pipeline: `buildMeshlets` -> `optimizeMeshlet` ->
    `computeMeshletBounds` (struct-by-value stays inside the bridge).
-4. Consumer note: the engine asset pipeline (P4+) consumes `xiom.assimp`
-   meshes; meshopt is the on-demand optimization step -- keep the API stable
-   and publish before engine integration asks.
-5. Re-pin procedure is ready in `SPEC.md` section 2 (object-store extraction
+5. Consumer note: the engine asset pipeline (P4+) consumes `xiom.assimp`
+   meshes; meshopt is the on-demand optimization step and the "XMC1"
+   container is the storage shape -- keep the API stable and publish before
+   engine integration asks.
+6. Re-pin procedure is ready in `SPEC.md` section 2 (object-store extraction
    + per-file hash verification).
