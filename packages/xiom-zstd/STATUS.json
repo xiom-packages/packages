@@ -9,11 +9,11 @@
                   "passed":  24,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "0482c055",
-                  "checked":  "2026-10-13T19:45:17Z"
+                  "commit":  "55e12c14",
+                  "checked":  "2026-10-13T19:58:54Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: bindings batch 12 (eco-v0.1.106)",
+    "excluded_reason":  "published in eco-v0.1.106 (2026-10-10, 0.2.0); 0.3.0 publish requested (2026-10-13)",
     "platforms":  [
                       "windows-x64"
                   ],
