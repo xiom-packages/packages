@@ -10,6 +10,10 @@
 #   package, stage, compiler, stdlib,
 #   tests { suite, status, passed, failed, run_by, commit, checked },
 #   publish, excluded_reason
+# Optional platform-matrix declarations (docs/PLATFORM-MATRIX.md; retrofit at
+# each package's next touch): platforms [] and runtime_deps [] -- both must
+# be non-empty arrays of non-empty strings when present. Every rewrite path
+# preserves them.
 #
 # Rules enforced:
 #   - stage in: incubating | ported | stable | deprecated
@@ -141,6 +145,20 @@ function Get-StatusJson {
     return (Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json)
 }
 
+function Copy-PlatformFields {
+    # Optional platform-matrix declarations survive every rewrite path
+    # (repin/update). Appended after excluded_reason when present.
+    param([System.Collections.IDictionary]$Status, $Source)
+    if ($null -eq $Source) { return }
+    foreach ($f in @("platforms", "runtime_deps")) {
+        $prop = $Source.PSObject.Properties[$f]
+        if ($null -ne $prop -and $null -ne $prop.Value) {
+            $vals = @($prop.Value)
+            if ($vals.Count -gt 0) { $Status[$f] = $vals }
+        }
+    }
+}
+
 function Test-StatusObject {
     # Returns an array of problem strings for one STATUS.json ([] = clean).
     param([string]$PackageDir)
@@ -187,6 +205,17 @@ function Test-StatusObject {
                 if ([string]::IsNullOrWhiteSpace([string]$s.tests.$key)) {
                     $problems += "tests.status=$($s.tests.status) requires tests.$key"
                 }
+            }
+        }
+    }
+
+    foreach ($f in @("platforms", "runtime_deps")) {
+        $prop = $s.PSObject.Properties[$f]
+        if ($null -ne $prop -and $null -ne $prop.Value) {
+            $vals = @($prop.Value)
+            if ($vals.Count -eq 0) { $problems += "'$f' present but empty" }
+            foreach ($v in $vals) {
+                if ([string]::IsNullOrWhiteSpace([string]$v)) { $problems += "'$f' entries must be non-empty strings" }
             }
         }
     }
@@ -292,6 +321,7 @@ switch ($Action) {
                 publish         = [bool]$s.publish
                 excluded_reason = $s.excluded_reason
             }
+            Copy-PlatformFields -Status $status -Source $s
             Write-StatusJson -Path $statusPath -Status $status
             $changed = $changed + 1
         }
@@ -479,6 +509,7 @@ switch ($Action) {
                 publish         = [bool]$s.publish
                 excluded_reason = $s.excluded_reason
             }
+            Copy-PlatformFields -Status $status -Source $s
         }
 
         if ($Stage) {
