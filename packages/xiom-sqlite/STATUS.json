@@ -13,5 +13,9 @@
                   "checked":  "2026-10-13T17:20:30Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.122 (2026-10-09, 0.3.0); 0.4.0 publish requested (2026-10-13)"
+    "excluded_reason":  "published in eco-v0.1.122 (2026-10-09, 0.3.0); 0.4.0 in eco-v0.1.174; 0.4.1 republish requested (modules fix)",
+    "platforms":  [
+                      "windows-x64"
+                  ],
+    "runtime_deps":  []
 }
