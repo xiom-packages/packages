@@ -164,6 +164,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   scope-live; ffmpeg 0.4.0 held for the generation fix `-2142-packages`). No further owner/ops
   per-package steps; engine relay after every publish (standing). Bindings' full suite manifest:
   `REL-20261013-2143-bindings-2` (the working queue); 13 agent sessions in flight.
+- **STAGING REGISTRY POLICY (owner, 2026-10-13 21:53Z -- KEEP IN MIND FROM NOW ON)**: the staging
+  registry is the OWNER's playground (owner tries things there); default scope/registry asks go to
+  **PRODUCTION only** unless the owner explicitly says both. This wave ended up staged on BOTH eco
+  entries (ops 21:52Z, 537 scopes) and the owner approved leaving it as-is ("ok if now we do both,
+  leave it"); eco-tag publishes go to PROD only (staging = explicit dispatch canary only). Future
+  waves: PROD-only asks unless the owner says otherwise. Ops bulk live-confirmation for the 17
+  still pending; batch 79 (harfbuzz/basisu/spz) publishes on it.
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
