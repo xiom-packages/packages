@@ -8,14 +8,13 @@
                   "status":  "pass",
                   "passed":  27,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "3a711548",
-                  "checked":  "2026-10-13T21:03:22Z"
+                  "run_by":  "native-session",
+                  "commit":  "ccb62224",
+                  "checked":  "2026-10-13T21:58:26Z"
               },
     "publish":  false,
     "excluded_reason":  "new package; not yet allowlisted",
     "platforms":  [
                       "windows-x64"
-                  ],
-    "runtime_deps":  []
+                  ]
 }
