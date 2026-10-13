@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T13:31:08Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T13:39:52Z.
 
 ## Summary
 
@@ -509,7 +509,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.saml | xiom-saml | incubating | tests/test_conformance.xi | pass 28/28 | fcadeee8 | False | publish pending: next scope delta |
 | xiom.scipy | xiom-scipy | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.sdl2 | xiom-sdl2 | incubating | tests/test_conformance.xi | pass 16/16 | b7019de1 | False |  |
-| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 59/59 | c2d3330f | False | publish pending: bindings batch 41 (eco-v0.1.138) |
+| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 61/61 | 5a26dee8 | False | 0.18.0 publish requested (REL-20261013-1338-bindings; readback wave; B-11 addendum retired) |
 | xiom.sectest | xiom-sectest | incubating | tests/test_conformance.xi | pass 22/22 | fc1702a9 | False | publish pending: next scope delta |
 | xiom.semaphore | xiom-semaphore | incubating | tests/test_conformance.xi | pass 23/23 | df934ed2 | False | publish pending: next scope delta |
 | xiom.serverless | xiom-serverless | incubating | tests/test_conformance.xi | pass 23/23 | 628a9502 | False | publish pending: next scope delta |
