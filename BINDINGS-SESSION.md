@@ -937,9 +937,9 @@ the DX12 0.3.0 wave is COMPLETE locally; publish confirm + promotion next).
      `55c26a8f`, video `a7f988d9`, all pushed): 90+43+30 interfaces ->
      358+163+190 wrappers, 19+10 typed shims, 1162+246+661 consts, 15
      free fns; struct meta 434 sizes + 1804 offsets (2238 consts);
-     suites **18/18 -> 28/28 -> 31/31 x2**. DX12 0.1.0 LIVE
-     (`eco-v0.1.166`); **0.3.0 publish requested**
-     (`REL-20261012-2051-bindings`; supersedes the 0.2.0 ask).
+     suites **18/18 -> 28/28 -> 31/31 x2**. DX12 0.1.0/0.2.0/0.3.0 LIVE
+     (`eco-v0.1.166`/`167`/**`168`** sha256 `14ce3e67` @21:05:31Z; the
+     0.3.0 publish is CONFIRMED -- batch 70, relay `-2051` fixed).
    - **B-23/B-24 FILED with repros** (`REL-20261012-2051-bindings-2`):
      B-23 = `null` literal crosses to C as garbage (use
      `dx12_null_ptr()`); B-24 = ffi out-slot reads after a C extern write
@@ -950,9 +950,10 @@ the DX12 0.3.0 wave is COMPLETE locally; publish confirm + promotion next).
      tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
      the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
 
-0b. FIRST ACTION: confirm the DX12 **0.3.0** publish in packages SESSION.md
-    (record the eco version here). Then the **promotion readiness pass**
-    (policy sec. 7) -- do not promote before the publish + settle window:
+0b. FIRST ACTION: run the **promotion readiness pass** for xiom.dx12
+    (policy sec. 7; 0.3.0 is PUBLISHED as `eco-v0.1.168` @21:05:31Z,
+    live sha256 `14ce3e67`). Do not promote before the settle window and
+    the `-1403-packages` check:
     (a) G1 fresh x2 (already 31/31 x2 at `a7f988d9`) + trap-14 byte-level
        grep clean (all angle shapes, parameter/local/FIELD positions);
     (b) G4 contracts pass on the public entry points (`dx12.xi`,
