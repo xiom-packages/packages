@@ -637,6 +637,24 @@ witness)**: localized the nested-payload corruption for the compiler.
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
 
+**UPDATE 2026-10-14 12:00Z (doorbell -- eco-v0.1.176/177 publish
+confirmations recorded)**: two wave publishes landed:
+- **`eco-v0.1.176` -- CODEC WAVE A** (run 38468818666 green; live
+  21:14-21:17Z 2026-10-13): **jolt 0.3.0** (`3ac3df4e`; 18/18 x2),
+  **zstd 0.3.0** (`6288ac84`; 24/24 x2), **meshopt 0.5.0** (`521dab9e`;
+  43/43 x2), **ffmpeg 0.3.0** (`24a5c522`; 12/12 x2 present-path via
+  Blender 5.1). Merge `f927952b`/`11a58915`, record `89527eac`, wrap
+  `7caf0e42`, sync `f48acb15`.
+- **`eco-v0.1.177` -- WAVE B FIRST BATCH** (run 38474684402 green; live
+  22:00Z): **harfbuzz 0.1.0** (`a768c46a`; 27/27 x2), **basisu 0.1.0**
+  (`17226cc9`; 31/31 x2), **spz 0.1.0** (`26ab52a6`; 74/74 x2). Record
+  `ef4d32c7`, wrap `d33cc940`, sync `e2c5bca9`; engine relayed
+  (`-2211-packages`).
+- Tally **93 eco releases** (`eco-v0.1.86`..`177`). Unattended publish
+  protocol in force for the 17 wave names (allowlist `f5e4c925`); 14
+  remaining names publish as each goes ready; **ffmpeg 0.4.0 HELD**
+  pending the generation fix `REL-20261013-2142-packages`.
+
 **UPDATE 2026-10-13 21:45Z (unattended merge/publish wiring -- owner
 directive)**:
 - **OPS allowlist request filed** `REL-20261013-2143-bindings`: append
