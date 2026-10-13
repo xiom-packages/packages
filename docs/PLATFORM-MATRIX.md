@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T13:52:00Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T15:28:26Z.
 
 ## How to read this table
 
@@ -41,16 +41,16 @@ preserved by `-Action repin`/`-Action update`:
 ## Summary
 
 - packages: 534
-- declared rows: 3
+- declared rows: 4
 - compile: 13
 - compile+runtime-load: 10
 - pure: 497
 - runtime-load: 14
-- native packages pending declaration: 34
+- native packages pending declaration: 33
 
 ## Declaration backlog (native)
 
-xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xiom.ffmpeg, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.jolt, xiom.libpq, xiom.lzfse, xiom.meshopt, xiom.miniaudio, xiom.odbc, xiom.openssl, xiom.ozz, xiom.phonon, xiom.portaudio, xiom.raylib, xiom.sdl2, xiom.sdl3, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.sqlite, xiom.stb, xiom.vma, xiom.vulkan, xiom.zstd
+xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xiom.ffmpeg, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.jolt, xiom.libpq, xiom.lzfse, xiom.meshopt, xiom.miniaudio, xiom.odbc, xiom.openssl, xiom.ozz, xiom.phonon, xiom.portaudio, xiom.raylib, xiom.sdl2, xiom.sdl3, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.stb, xiom.vma, xiom.vulkan, xiom.zstd
 
 ## Matrix
 
@@ -59,6 +59,7 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | xiom.dx12 | 0.4.0 | stable | compile+runtime-load | windows-x64 | d3d12.dll (runtime loader; SKIP when absent); dxgi.dll (runtime loader; SKIP when absent) | pass 42/42 @ fd90ebf3 |
 | xiom.gles | 0.1.0 | incubating | compile+runtime-load | windows-x64 | libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent); libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent) | pass 18/18 @ 779ac140 |
 | xiom.opengl | 0.5.0 | incubating | compile+runtime-load | windows-x64 | opengl32.dll (runtime loader; SKIP when absent; WGL needs a Win32 device context) | pass 28/28 @ 779ac140 |
+| xiom.sqlite | 0.4.0 | incubating | compile | windows-x64 | - | pass 21/21 @ 345c05ba |
 | xiom.cuda | 0.2.0 | incubating | compile+runtime-load | undeclared | nvcuda.dll (runtime, derived) | pass 5/5 @ 4bb65d14 |
 | xiom.directx11 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d11.dll, dxgi.dll (runtime, derived) | pass 5/5 @ cce33ecb |
 | xiom.directx12 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d12.dll, dxgi.dll (runtime, derived) | pass 5/5 @ 3e0c2384 |
@@ -76,7 +77,6 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | xiom.miniaudio | 0.3.0 | incubating | compile | undeclared | - | pass 6/6 @ ab8dc89e |
 | xiom.ozz | 0.3.0 | incubating | compile | undeclared | - | pass 5/5 @ 1b1389e2 |
 | xiom.spirv-reflect | 0.1.0 | incubating | compile | undeclared | - | pass 40/40 @ 674dea9d |
-| xiom.sqlite | 0.3.0 | incubating | compile | undeclared | - | pass 16/16 @ 1435ac01 |
 | xiom.stb | 0.2.0 | incubating | compile | undeclared | - | pass 5/5 @ 07f5b9da |
 | xiom.zstd | 0.2.0 | incubating | compile | undeclared | - | pass 8/8 @ ba754abf |
 | xiom.ffmpeg | 0.2.0 | incubating | runtime-load | undeclared | avcodec-58.dll, avcodec-59.dll, avcodec-60.dll, avcodec-61.dll, avcodec-62.dll, avformat-58.dll (+13 more; see SPEC) (runtime, derived) | pass 4/4 @ 1435ac01 |
