@@ -101,6 +101,11 @@ running). Check `git log -1 --format=%h %s` before starting.
   505; registry 507 = our 505 + `xiom-std` + `xiom.staging-e2e-probe`. Only the 16 grandfathered
   names remain unpublished (never shipped); 2 extra home dirs are resolver-pulled pinned deps
   (e.g. `xiom-http-0.1.0` beside latest).
+- **SQL driver consumer end-to-end (2026-10-13)**: installed `xiom.sqlite@0.4.0` from the registry
+  (client checksum verified `1e142acc`) + `--c-source <installed>\vendor\sqlite3.c` -->
+  `SqlDriver` DSN (`busy_timeout=5000&journal_mode=wal`) / DDL / transaction / query /
+  `value_by_name` roundtrip green ("hello"); `pulse.db` created (WAL checkpointed on clean
+  close). The PULSE recipe is pre-validated from the installed artifact.
 - **Ops hygiene (clobber incident `-1852-ops`)**: installs/extracts to lane-local dirs only;
   `tools/home-snapshot.ps1` before risky windows; restore-from-snapshot after a clobber. Packages ran
   no install/extract; timeline observation filed (`REL-20261012-1904-packages`).
