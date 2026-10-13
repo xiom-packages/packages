@@ -91,6 +91,10 @@ by design -- the nested `Result[Option[SqliteRow]]` shape corrupts the row
 on the current pin (finding B-26; repro
 `docs/repro/bindings-pilot/nested-payload/`).
 
+`execute`'s `rows_affected` follows `sqlite3_changes` -- the **LAST
+statement only**; multi-statement scripts do not sum changes (PULSE
+co-verify note, 2026-10-13).
+
 ## Registry use (consumer, verified 2026-10-09)
 
 ```
