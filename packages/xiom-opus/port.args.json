@@ -1,0 +1,14 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/opus_bridge.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/opus_vendor_celt.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/opus_vendor_silk.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/opus_vendor_silk_float.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/opus_vendor_src.c",
+  "--timeout",
+  "900"
+]

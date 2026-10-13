@@ -1,0 +1,12 @@
+target/
+*.xi.c
+*.xi.o
+*.o
+*.a
+*.so
+*.dll
+*.dylib
+.DS_Store
+a.exe
+a.exe.ll
+a.out

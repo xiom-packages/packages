@@ -1,0 +1,101 @@
+// xiom.opus -- GENERATED public constants (tools/gen_opus.py); do not edit.
+// Source: libopus v1.6.1 (22244de5a79bd1d6d623c32e72bf1954b56235be) public headers.
+// The bridge extern declarations are generated into the FFI module
+// (xiom.opus.ffi) with the wrappers, because the compiler resolves
+// extern symbols from the CALLING module on v0.64.4.
+module xiom.opus.abi
+
+// Public integer constants (opus_defines.h + header request ids).
+pub const OPUS_ALLOC_FAIL: Int = -7;
+pub const OPUS_APPLICATION_AUDIO: Int = 2049;
+pub const OPUS_APPLICATION_RESTRICTED_CELT: Int = 2053;
+pub const OPUS_APPLICATION_RESTRICTED_LOWDELAY: Int = 2051;
+pub const OPUS_APPLICATION_RESTRICTED_SILK: Int = 2052;
+pub const OPUS_APPLICATION_VOIP: Int = 2048;
+pub const OPUS_AUTO: Int = -1000;
+pub const OPUS_BAD_ARG: Int = -1;
+pub const OPUS_BANDWIDTH_FULLBAND: Int = 1105;
+pub const OPUS_BANDWIDTH_MEDIUMBAND: Int = 1102;
+pub const OPUS_BANDWIDTH_NARROWBAND: Int = 1101;
+pub const OPUS_BANDWIDTH_SUPERWIDEBAND: Int = 1104;
+pub const OPUS_BANDWIDTH_WIDEBAND: Int = 1103;
+pub const OPUS_BITRATE_MAX: Int = -1;
+pub const OPUS_BUFFER_TOO_SMALL: Int = -2;
+pub const OPUS_FRAMESIZE_100_MS: Int = 5008;
+pub const OPUS_FRAMESIZE_10_MS: Int = 5003;
+pub const OPUS_FRAMESIZE_120_MS: Int = 5009;
+pub const OPUS_FRAMESIZE_20_MS: Int = 5004;
+pub const OPUS_FRAMESIZE_2_5_MS: Int = 5001;
+pub const OPUS_FRAMESIZE_40_MS: Int = 5005;
+pub const OPUS_FRAMESIZE_5_MS: Int = 5002;
+pub const OPUS_FRAMESIZE_60_MS: Int = 5006;
+pub const OPUS_FRAMESIZE_80_MS: Int = 5007;
+pub const OPUS_GET_APPLICATION_REQUEST: Int = 4001;
+pub const OPUS_GET_BANDWIDTH_REQUEST: Int = 4009;
+pub const OPUS_GET_BITRATE_REQUEST: Int = 4003;
+pub const OPUS_GET_COMPLEXITY_REQUEST: Int = 4011;
+pub const OPUS_GET_DRED_DURATION_REQUEST: Int = 4051;
+pub const OPUS_GET_DTX_REQUEST: Int = 4017;
+pub const OPUS_GET_EXPERT_FRAME_DURATION_REQUEST: Int = 4041;
+pub const OPUS_GET_FINAL_RANGE_REQUEST: Int = 4031;
+pub const OPUS_GET_FORCE_CHANNELS_REQUEST: Int = 4023;
+pub const OPUS_GET_GAIN_REQUEST: Int = 4045;
+pub const OPUS_GET_IGNORE_EXTENSIONS_REQUEST: Int = 4059;
+pub const OPUS_GET_INBAND_FEC_REQUEST: Int = 4013;
+pub const OPUS_GET_IN_DTX_REQUEST: Int = 4049;
+pub const OPUS_GET_LAST_PACKET_DURATION_REQUEST: Int = 4039;
+pub const OPUS_GET_LOOKAHEAD_REQUEST: Int = 4027;
+pub const OPUS_GET_LSB_DEPTH_REQUEST: Int = 4037;
+pub const OPUS_GET_MAX_BANDWIDTH_REQUEST: Int = 4005;
+pub const OPUS_GET_OSCE_BWE_REQUEST: Int = 4055;
+pub const OPUS_GET_PACKET_LOSS_PERC_REQUEST: Int = 4015;
+pub const OPUS_GET_PHASE_INVERSION_DISABLED_REQUEST: Int = 4047;
+pub const OPUS_GET_PITCH_REQUEST: Int = 4033;
+pub const OPUS_GET_PREDICTION_DISABLED_REQUEST: Int = 4043;
+pub const OPUS_GET_QEXT_REQUEST: Int = 4057;
+pub const OPUS_GET_SAMPLE_RATE_REQUEST: Int = 4029;
+pub const OPUS_GET_SIGNAL_REQUEST: Int = 4025;
+pub const OPUS_GET_VBR_CONSTRAINT_REQUEST: Int = 4021;
+pub const OPUS_GET_VBR_REQUEST: Int = 4007;
+pub const OPUS_INTERNAL_ERROR: Int = -3;
+pub const OPUS_INVALID_PACKET: Int = -4;
+pub const OPUS_INVALID_STATE: Int = -6;
+pub const OPUS_MULTISTREAM_GET_DECODER_STATE_REQUEST: Int = 5122;
+pub const OPUS_MULTISTREAM_GET_ENCODER_STATE_REQUEST: Int = 5120;
+pub const OPUS_OK: Int = 0;
+pub const OPUS_PROJECTION_GET_DEMIXING_MATRIX_GAIN_REQUEST: Int = 6001;
+pub const OPUS_PROJECTION_GET_DEMIXING_MATRIX_REQUEST: Int = 6005;
+pub const OPUS_PROJECTION_GET_DEMIXING_MATRIX_SIZE_REQUEST: Int = 6003;
+pub const OPUS_RESET_STATE: Int = 4028;
+pub const OPUS_SET_APPLICATION_REQUEST: Int = 4000;
+pub const OPUS_SET_BANDWIDTH_REQUEST: Int = 4008;
+pub const OPUS_SET_BITRATE_REQUEST: Int = 4002;
+pub const OPUS_SET_COMPLEXITY_REQUEST: Int = 4010;
+pub const OPUS_SET_DNN_BLOB_REQUEST: Int = 4052;
+pub const OPUS_SET_DRED_DURATION_REQUEST: Int = 4050;
+pub const OPUS_SET_DTX_REQUEST: Int = 4016;
+pub const OPUS_SET_EXPERT_FRAME_DURATION_REQUEST: Int = 4040;
+pub const OPUS_SET_FORCE_CHANNELS_REQUEST: Int = 4022;
+pub const OPUS_SET_GAIN_REQUEST: Int = 4034;
+pub const OPUS_SET_IGNORE_EXTENSIONS_REQUEST: Int = 4058;
+pub const OPUS_SET_INBAND_FEC_REQUEST: Int = 4012;
+pub const OPUS_SET_LSB_DEPTH_REQUEST: Int = 4036;
+pub const OPUS_SET_MAX_BANDWIDTH_REQUEST: Int = 4004;
+pub const OPUS_SET_OSCE_BWE_REQUEST: Int = 4054;
+pub const OPUS_SET_PACKET_LOSS_PERC_REQUEST: Int = 4014;
+pub const OPUS_SET_PHASE_INVERSION_DISABLED_REQUEST: Int = 4046;
+pub const OPUS_SET_PREDICTION_DISABLED_REQUEST: Int = 4042;
+pub const OPUS_SET_QEXT_REQUEST: Int = 4056;
+pub const OPUS_SET_SIGNAL_REQUEST: Int = 4024;
+pub const OPUS_SET_VBR_CONSTRAINT_REQUEST: Int = 4020;
+pub const OPUS_SET_VBR_REQUEST: Int = 4006;
+pub const OPUS_SIGNAL_MUSIC: Int = 3002;
+pub const OPUS_SIGNAL_VOICE: Int = 3001;
+pub const OPUS_UNIMPLEMENTED: Int = -5;
+
+// Coverage ledger (asserted by tests/test_conformance.xi).
+pub const DECLARED_FUNCTIONS: Int = 105;
+pub const BOUND_FUNCTIONS: Int = 105;
+pub const CTL_FUNCTIONS: Int = 9;
+pub const DECLARED_CONSTANTS: Int = 86;
+pub const CTL_MACROS: Int = 48;
