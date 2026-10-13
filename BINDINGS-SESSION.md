@@ -548,6 +548,27 @@ vi) landed.
   live, record the eco version here.  Still parked: v0.64.5+ wave (B-22
   glfw lift, sdl3 widening).
 
+**UPDATE 2026-10-13 15:42Z (sqlite 0.4.0 per-touch retrofits)**: the
+per-touch rules closed out on the touched package.
+- **`xiom.sqlite` PROVENANCE.md added** (commit `223aa239`): upstream
+  SQLite 3.53.4 amalgamation pin (zip SHA256/SHA3-256 + vendored file
+  SHA256s), declaration oracle `vendor/sqlite3.h`, source study clone
+  `E:\repos\sqlite`, derived-vs-independent statement, declared surface =
+  25 C functions bound (24 public wrappers + `sqlite3_db_handle` internal;
+  0 skips), static link model (no runtime DLL), public-domain vendor +
+  MIT/Apache package license.
+- **Platform row declared** (same commit): `platforms: ["windows-x64"]`,
+  `runtime_deps: []` (compile class) in STATUS.json -- retrofits
+  `xiom.sqlite` off the native declaration backlog.  `status.ps1 -Action
+  validate` 534/0 with the new fields; `excluded_reason` refreshed.
+- Relay INFO `REL-20261013-1539-bindings` (to packages: merge the newest
+  tip; the 0.4.0 publish request `-1524-bindings` is unchanged); relay tip
+  `9aff0b9`, validate 399 items.
+- Compiler lane triage seen (relay `b2cae28`): B-26 open, B-25 re-test
+  pending, B-05 fix ready, sqlite 0.4.0 acknowledged; an m283
+  contract-cycle guard is in progress.  The m277-m283 batch still rides
+  the next archive (none shipped yet).
+
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
 - Merge `46b45e76` (prep tip `4afec760`; conflicts resolved to theirs +
