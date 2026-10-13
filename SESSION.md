@@ -49,6 +49,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   (m277 fixed our `-1403`), B-22, rows `-1549-packages-5/-7`, plus the compiler next-batch rows
   (m275-m282 staged incl. m281 = B-23/B-24/B-20 fixes -- retire those workarounds at the wave
   when the pin carries them, per G6; pre-repin home snapshot `20261013-172928` taken);
+  ALSO in the next pin: **m293 `-1549-packages-11`** (Map/Set deep ==; fixed 2914cb15) and
+  **m294 `-1549-packages-9`** (bare reads of &mut/& params; fixed f6690a77) -- both compiler-fixed,
+  re-verify at the wave;
   (4) promotions per policy sec. 7 (vulkan 0.6.0, sdl3 0.17.0 [blocked while `-1403`
   open], opengl (0.5.0 live; promote at next touch), the SDK100 names -- dx12 0.3.1 promoted 2026-10-13); (5) provenance retrofits at touch (16/518; audit
   `scripts/provenance-audit.ps1`); engine codecs at the cook gate later.
