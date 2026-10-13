@@ -16,5 +16,6 @@
     "excluded_reason":  "published in eco-v0.1.174 (2026-10-13, 0.4.0 PULSE SQL driver; 0.3.0 in eco-v0.1.122; published since eco-v0.1.89)",
     "platforms":  [
                       "windows-x64"
-                  ]
+                  ],
+    "runtime_deps":  []
 }
