@@ -14,10 +14,10 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 89 eco releases; this block is the live handoff):**
+**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 90 eco releases; this block is the live handoff):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified; canonical install byte-identical
   556/556; 532 records repinned). Validate **534/0**; guard **521 allowlisted / 505 ready / 16
-  grandfathered / 0 failures**. Tally: **89 eco releases** (`eco-v0.1.86` -> `eco-v0.1.173`).
+  grandfathered / 0 failures**. Tally: **90 eco releases** (`eco-v0.1.86` -> `eco-v0.1.174`).
 - **Published since the 18:45Z block**: batch 62 sdl3 0.16.1; **v0.64.4 gate** (repin + batch 63 jolt
   0.2.0 / vma 0.3.0 / dxc 0.3.0, `eco-v0.1.161`); **SDK100 wave complete** (batches 64-67:
   spirv-tools/cross/reflect + glslang + slang + sdl2 + shaderc + spirv.headers 0.1.0, sdl3 0.17.0,
@@ -27,7 +27,8 @@ running). Check `git log -1 --format=%h %s` before starting.
   **dx12 0.3.1 stable promotion** (`eco-v0.1.169`; 35/35 x2; first sec.7 gate promotion);
   **opengl 0.5.0** (`eco-v0.1.170`; WGL wave, 28/28 x2); **gles 0.1.0** (`eco-v0.1.171`; ANGLE, 18/18 x2);
   **dx12 0.4.0** (`eco-v0.1.172`; command recording + B-25, 42/42 x2);
-  **sdl3 0.18.0** (`eco-v0.1.173`; event readback, 61/61 x2).
+  **sdl3 0.18.0** (`eco-v0.1.173`; event readback, 61/61 x2);
+  **sqlite 0.4.0** (`eco-v0.1.174`; PULSE SQL driver, 21/21 x2).
 - **v0.64.4 re-verify wave DONE**: `-1549-packages-4` VERIFIED (phantom probes -> one clean
   `19:5 unresolved import`); `-6` VERIFIED (jolt `--cxx-standard 17`); `-5`/`-7` BOUNCED still red
   (consumer link `undefined symbol: sqlite3_libversion`; local fallback silent no-op + ranges
@@ -37,9 +38,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   `fixed -> verified` in-lane (wave 115/117/98 + crlf probes exit 0 with `XIOM_STDLIB` +
   `XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime`; btree order-3 churn GREEN; wave118 locking probe
   green). Caveat: the new runtime symbols reach consumers at the next compiler pin.
-- **Queue (nothing open addressed to packages)**: (1) **`xiom.sqlite` 0.4.0 driver accepted by
-  bindings** (PULSE top ask; requirements `docs/requirements/pulse-sql-driver.md`; PULSE co-verifies)
-  -- verify x2 + publish under the normal flow when their item lands; (2) binding batches as they
+- **Queue (nothing open addressed to packages)**: (1) **DONE 2026-10-13: `xiom.sqlite` 0.4.0 PULSE
+  SQL driver live in `eco-v0.1.174`** (sha256 `1e142acc...`; PULSE co-verify pending on
+  `REL-20261013-1540-packages`); (2) binding batches as they
   arrive; (3) **next compiler archive (v0.64.5+)**: repin + re-verify sdl3 compile 0 warnings
   (m277 fixed our `-1403`), B-22, rows `-1549-packages-5/-7`, plus the compiler next-batch rows
   (m275-m282 staged incl. m281 = B-23/B-24/B-20 fixes -- retire those workarounds at the wave
@@ -78,6 +79,14 @@ running). Check `git log -1 --format=%h %s` before starting.
   wrap `f70f02ae`; **`eco-v0.1.173`**, run 38408548028 green; registry sha256 `544c59b8...`
   @13:55:09Z; README/STATUS synced `5000800a`; item `-1338-bindings-2` fixed. The 6 known `-1403`
   unknown-type warnings persist on v0.64.4 -- the 0-warning re-check rides the next archive (m277).
+- **`xiom.sqlite` 0.4.0 PUBLISHED -- PULSE SQL DRIVER DELIVERED (queue item 1 done)**: driver module
+  `xiom.sqlite.driver` (DSN parse/open, execute/query/query_one, explicit txns, caps; pure XIOM over
+  the FFI surface); merge `345c05ba` (clean); validate 534/0; native x2 **21/21** (all 5 driver
+  checks); record `60a0b383` + declared row windows-x64 (matrix **declared=4**, backlog 33); wrap
+  `7786a34c`; **`eco-v0.1.174`**, run 38422417970 green; registry sha256 `1e142acc...` @15:31:42Z;
+  README/STATUS synced `2269eb76`; item `-1524` fixed. **PULSE co-verify pending**
+  (`REL-20261013-1540-packages` sent); promotion optional at next touch with the sec.7 gate pack.
+  B-26 workaround = flat `RowOutcome` return of query_one.
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
@@ -567,16 +576,17 @@ if the target item is already in its target state, skip it and report.
 
 STATE: pin v0.64.4 (official archive, SHA256 44a41aea verified; canonical install
 byte-identical 556/556; 532 records repinned). Validate 534/0; guard 521
-allowlisted / 505 ready / 16 grandfathered / 0 failures. Tally: 89 eco releases
-(eco-v0.1.86 -> eco-v0.1.173) -- SDK100 wave complete + vulkan 0.6.0 + opengl
-0.5.0 + dx12 0.4.0 (stable) + sdl3 0.18.0 + gles 0.1.0 + jolt 0.2.0 + vma 0.3.0
-+ dxc 0.3.0 all live. Nothing open addressed to packages.
+allowlisted / 505 ready / 16 grandfathered / 0 failures. Tally: 90 eco releases
+(eco-v0.1.86 -> eco-v0.1.174) -- SDK100 wave complete + vulkan 0.6.0 + opengl
+0.5.0 + dx12 0.4.0 (stable) + sdl3 0.18.0 + sqlite 0.4.0 (PULSE SQL driver) +
+gles 0.1.0 + jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 all live. Nothing open addressed
+to packages.
 
 WORK QUEUE (in priority order as items land):
-1. `xiom.sqlite` 0.4.0 SQL driver (bindings accepted it; PULSE top production
-   ask): on their batch item -> merge + validate + port x2 + record + wrap +
-   publish + live-verify (requirements + acceptance: docs/requirements/
-   pulse-sql-driver.md; PULSE co-verifies driver+runner before their 0.3 unit).
+1. [DONE 2026-10-13] xiom.sqlite 0.4.0 SQL driver live in `eco-v0.1.174`
+   (sha256 1e142acc...); PULSE co-verify pending on REL-20261013-1540-packages
+   (requirements: docs/requirements/pulse-sql-driver.md). Promotion optional at
+   the next touch with the sec.7 gate pack.
 2. Bindings batches as items arrive: merge ONLY the newest tip (same-package
    items supersede; different packages stack into one eco batch); resolve
    package STATUS/README conflicts to THEIR side but RESTORE earlier shipped/
