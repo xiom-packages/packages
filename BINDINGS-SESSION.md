@@ -974,7 +974,7 @@ the DX12 0.3.0 wave is COMPLETE and PUBLISHED; promotion readiness next).
      0.1.0 `eco-v0.1.166`, 0.2.0 `eco-v0.1.167`, **0.3.0 `eco-v0.1.168`**
      (batch 70: merge `4970096a` tip `aab68680`, bump `3fcb92aa`, wrap
      `113af041`; live sha256 `14ce3e67` @21:05:31Z; relay `-2051` fixed).
-     Worktree tip: `3da3258d` (clean; ledger + paste prompt refreshed).
+     Ledger tip: `d5a2ad54` (clean; this handoff + paste prompt).
    - **B-23/B-24 FILED with repros** (`REL-20261012-2051-bindings-2`):
      B-23 = `null` literal crosses to C as garbage (use
      `dx12_null_ptr()`); B-24 = ffi out-slot reads after a C extern write
@@ -1036,9 +1036,9 @@ the DX12 0.3.0 wave is COMPLETE and PUBLISHED; promotion readiness next).
      when run manually; meshopt `-TimeoutSec 900`; opengl/dx12 suites
      compile their C bridges via port.args.json; heavy full-surface
      suites live at each package's tests/test_full_surface.xi. dx12 now
-     needs `--link user32` plus five --c-source bridges (dx12_probe,
+     needs `--link user32` plus eight --c-source files (dx12_probe,
      d3d12_calls, d3d12_structs, dxgi_probe, dxgi_calls, video_probe,
-     video_calls, video_structs -- eight files); suite slot reads are
+     video_calls, video_structs); suite slot reads are
      byte-indexed only; nullable C args use `dx12_null_ptr()` (B-23).
    - The shared `E:\xiom-lang\stdlib` is actively updated by another
      lane: module counts drift between runs and mid-wave commits can
