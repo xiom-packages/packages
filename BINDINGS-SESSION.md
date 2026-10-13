@@ -634,6 +634,32 @@ witness)**: localized the nested-payload corruption for the compiler.
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
 
+**UPDATE 2026-10-13 20:05Z (wave A integration: jolt 0.3.0 + zstd 0.3.0
++ wave B prep MERGED to `bindings`; meshopt/ffmpeg imminent)**:
+- **xiom.jolt 0.3.0** -- caller-usable world/body surface (engine
+  `-1903-engine`): world create/destroy (gravity + fixed dt + capacity)
+  + body add/remove/count (BOX + SPHERE) + step(w,dt) and step(w,dt,n)
+  + state-by-id position/rotation/velocity/awake (owned values);
+  suite 4 -> **18/18 x2 on `2ea26693`** (re-run on the integrated tree);
+  publish requested `REL-20261013-2000-bindings`.
+- **xiom.zstd 0.3.0** -- ZSTC container framing (own format v1; writer/
+  builder/reader, `frame_at` random access, seek, robustness matrix);
+  suite 8 -> **24/24 x2 on `55e12c14`**; platform row (matrix
+  declared=5); publish requested `-2000-bindings-2`.
+- **Wave B prep** (`c49ecaa6`): `docs/prep/codec-wave-b.md` -- 8 clones
+  pinned + CLEANUP rows (opus/ogg/vorbis/OpenVDB/spz/KTX-Software/
+  basis_universal/harfbuzz; steam-audio row refreshed) with per-library
+  recommendations; INFO to packages `-2000-bindings-3`.
+- Engine INFO `-2000-bindings-4` (jolt surface delivered).
+- Integration notes: agent branches were cut from main -> **cherry-picked
+  onto `bindings`** (records re-pointed: `daba9b11` jolt, `4cfd1254`
+  zstd tip); the branch's older `status.ps1` keeps dropping platform
+  rows on record rewrite -- re-added (4th occurrence; main's tooling
+  fixes this at merge).
+- **In flight**: meshopt 0.5.0 (`b92d7936`; record pending) + ffmpeg
+  0.3.0 (`fe56d9fe`; record pending) -- integrate next, then file their
+  publish requests.  Relay tip `8d0179b`, validate 430 items.
+
 **UPDATE 2026-10-13 19:35Z (codec/container wave + solver bridge -- AGENT
 FAN-OUT)**: owner-prioritized wave accepted and started in 5 isolated
 Agent Manager worktrees.
