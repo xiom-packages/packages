@@ -572,3 +572,5 @@ xiom.spirv.headers
 xiom.shaderc
 # DirectX-12 leg (2026-10-12): foundation 0.1.0 + the 0.2.0 full-surface wave; ops scope confirmed LIVE 2026-10-12 (eco 519 both).
 xiom.dx12
+# GLES/EGL leg (2026-10-13): new ANGLE package (GLES 2.0/3.2 + EGL 1.5); ops scope confirmed LIVE 2026-10-13 (eco 520 both).
+xiom.gles
