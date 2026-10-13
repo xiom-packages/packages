@@ -3,23 +3,21 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: DX12 0.4.0 COMMAND RECORDING SHIPPED (publish requested, open)
--- `xiom.gles` 0.1.0 LIVE (`eco-v0.1.171`)** -- dx12: 0.3.1 stable LIVE
-(`eco-v0.1.169`) + 0.4.0 recorded 42/42 x2 on `fd9f2a4d` (allocator/
-list/execute/fence wait; `REL-20261013-1313-bindings` open); **B-25
-found + recorded** (`Int as *UInt8` not value-preserving; COM object
-params now typed `Int`; INFO to compiler `-1309-bindings`); gles 0.1.0
-**PUBLISHED** (`eco-v0.1.171`, sha256 `017b7664...` @13:06:06Z; scope
-`-1233`/`-1302-ops` + `-1231` fixed; allowlist 520 -> 521); opengl 0.5.0
-WGL surface LIVE (`eco-v0.1.170`); Vulkan 0.6.0 live (engine-green);
-OpenGL 0.4.0 LIVE (`eco-v0.1.164`; 656/656 core-4.6); DX12
-0.1.0/0.2.0/0.3.0 live (`eco-v0.1.166`/`167`/`168`); SDK100 all slices
-live; v0.64.4 pin wave done; **B-22 open -- glfw 0.6.0 lift parked**;
-**B-23/B-24/B-25 accepted** (expiry = next compiler pin); ops clobber
-rules in force; per-touch PROVENANCE rule in effect
-(dx12/opengl/gles compliant) -- SESSION HANDOFF 2026-10-13 13:20Z**
-(NEXT = confirm the dx12 0.4.0 publish; then the B-22-gated lifts; paste
-prompt rebuilt below).
+**STATUS: ALL FOUR PUBLISHES CONFIRMED LIVE -- dx12 0.4.0 (`eco-v0.1.172`)
++ gles 0.1.0 (`eco-v0.1.171`) + opengl 0.5.0 (`eco-v0.1.170`) + dx12 0.3.1
+stable (`eco-v0.1.169`)** -- nothing in flight.  dx12: command recording
+live (42/42 x2; wrap `ef1b8894`); **B-25 recorded + fixed in-surface**
+(COM object params typed `Int`; INFO to compiler `-1309-bindings`); gles:
+ANGLE package live; opengl: WGL surface live; Vulkan 0.6.0 live
+(engine-green); OpenGL 0.4.0 LIVE (`eco-v0.1.164`; 656/656 core-4.6);
+DX12 0.1.0/0.2.0/0.3.0 live (`eco-v0.1.166`/`167`/`168`); SDK100 all
+slices live; v0.64.4 pin wave done; **B-22 open -- glfw 0.6.0 lift
+parked** (fix on compiler main `29e35ef8`, no archive yet); **B-23/B-24/
+B-25 accepted** (expiry = next compiler pin); ops clobber rules in force;
+per-touch PROVENANCE rule in effect (dx12/opengl/gles compliant) --
+SESSION HANDOFF 2026-10-13 13:30Z** (NEXT = the B-22-gated lifts when an
+archive ships; imgui P6 backends after the shared+dev build; paste prompt
+rebuilt below).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -408,6 +406,20 @@ the new ANGLE package is live.
 - **Still in flight**: dx12 0.4.0 (`REL-20261013-1313-bindings`, open
   with packages).
 - **NEXT**: confirm the dx12 0.4.0 publish; then the B-22-gated lifts.
+
+**UPDATE 2026-10-13 13:30Z (dx12 0.4.0 PUBLISHED -- `eco-v0.1.172`;
+ALL PUBLISHES CONFIRMED)**: the command-recording wave is live and the
+publish queue is empty.
+- dx12 0.4.0: record `93120d3f`, wrap `ef1b8894`, **`eco-v0.1.172`**
+  (run 38404632334 green; registry sha256 `38ff6d0b...` @13:25:27Z stage
+  stable; README/STATUS synced `da377c75`; item `-1313-bindings`
+  **fixed**).  B-25 landed in-surface (Int-typed COM object params).
+- Confirmed live this session: dx12 0.3.1 stable (`eco-v0.1.169`),
+  opengl 0.5.0 (`eco-v0.1.170`), gles 0.1.0 (`eco-v0.1.171`), dx12 0.4.0
+  (`eco-v0.1.172`).  **Nothing in flight.**
+- **NEXT**: the B-22-gated lifts when an archive carrying the fix ships
+  (fix on compiler main `29e35ef8`); imgui SDL3+Vulkan P6 backends once
+  the shared+dev build lands; else relay-driven work.
 
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
@@ -1121,11 +1133,12 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-13 13:20Z;
-dx12 0.3.1 stable LIVE + dx12 0.4.0 command recording shipped (publish
-requested, open), opengl 0.5.0 LIVE, **xiom.gles 0.1.0 LIVE
-(`eco-v0.1.171`)**; first action = confirm the dx12 0.4.0 publish + record
-its eco version).
+Bindings lane continuation -- seamless pickup (2026-10-13 13:30Z;
+**all four publishes LIVE** -- dx12 0.3.1 stable (`eco-v0.1.169`),
+opengl 0.5.0 (`eco-v0.1.170`), gles 0.1.0 (`eco-v0.1.171`), dx12 0.4.0
+(`eco-v0.1.172`); nothing in flight; first action = relay sweep, then the
+B-22-gated lifts when an archive ships / imgui when the shared+dev build
+lands).
 
 0. STATE (the 12:10Z UPDATE block + STATUS above carry the evidence):
    - v0.64.4 pin DONE (archive `44a41aea` verified; slot byte-identical
@@ -1141,15 +1154,15 @@ its eco version).
      (`eco-v0.1.166`/`167`/`168`). The promotion gate evidence is in
      `SPEC.md` sec. 7 (35/35 x2 on `1a392b91`, trap-14 clean, contracts
      1175/0, verify 0/0/33 unknown, G6 B-23/B-24 accepted, G7 none).
-   - **DX12 0.4.0 COMMAND RECORDING SHIPPED, PUBLISH REQUESTED**: feat
-     `fd9f2a4d`, record `c6cd5172`; allocator/list lifecycle +
-     `dx12_execute_one` + fence signal/`dx12_fence_wait`; suite **42/42
-     x2**; request `REL-20261013-1313-bindings` (relay `21eebb4`).
-     **B-25 found + fixed in-surface**: `Int as *UInt8` is not
-     value-preserving (B-20 family) -- COM object params are typed
-     `Int` (C `void*`, exact); repro
+   - **DX12 0.4.0 COMMAND RECORDING PUBLISHED**: allocator/list lifecycle
+     + `dx12_execute_one` + fence signal/`dx12_fence_wait`; suite **42/42
+     x2**; feat `fd9f2a4d`; LIVE as **`eco-v0.1.172`** (record
+     `93120d3f`, wrap `ef1b8894`, sha256 `38ff6d0b...` @13:25:27Z;
+     `-1313-bindings` fixed).  **B-25 found + fixed in-surface**: `Int as
+     *UInt8` is not value-preserving (B-20 family) -- COM object params
+     are typed `Int` (C `void*`, exact); repro
      `docs/repro/bindings-pilot/ptr-cast/`; INFO to compiler
-     `-1309-bindings`. Never cast handles to pointers.
+     `-1309-bindings`.  Never cast handles to pointers.
    - **B-23/B-24 FILED with repros** (`REL-20261012-2051-bindings-2`):
      B-23 = `null` literal crosses to C as garbage (use
      `dx12_null_ptr()`); B-24 = ffi out-slot reads after a C extern write
@@ -1178,18 +1191,18 @@ its eco version).
      tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
      the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
 
-0b. FIRST ACTION: confirm the **xiom.dx12 0.4.0 publish**
-    (`REL-20261013-1313-bindings`; command recording; 42/42 x2 on
-    `fd9f2a4d`).  Check the relay item state + packages SESSION/batch
-    notes; when it publishes, record the live eco version + sha256 here
-    (commit+push).  If packages bounces (merge conflict, version/stage
-    revert, or a gate question), resolve from this lane: keep package.xi
-    at 0.4.0 and STATUS stage=stable with the 42/42 record; keep the
-    `Int`-typed COM object params in the generated surface (do NOT
-    regenerate from an older generator); the dx12 SPEC sec. 4/7 carries
-    the evidence.
-    (dx12 0.3.1 stable `eco-v0.1.169`, opengl 0.5.0 `eco-v0.1.170`, and
-    **gles 0.1.0 `eco-v0.1.171`** are DONE.)
+0b. FIRST ACTION: **no publishes in flight** -- all four confirmed live
+    this session (dx12 0.3.1 `eco-v0.1.169`, opengl 0.5.0 `eco-v0.1.170`,
+    gles 0.1.0 `eco-v0.1.171`, dx12 0.4.0 `eco-v0.1.172`).  Do a relay
+    sweep (`git fetch origin` + `relay.py view --lane bindings`) and a
+    packages-SESSION diff; process anything new (replies via new items;
+    stage only this lane's files).  Then pick the next lane work in this
+    order: (a) **glfw 0.6.0 lift + probe9 when an archive carrying the
+    B-22 fix ships** (fix on compiler main `29e35ef8`; check
+    `release-checks/` + the relay for a new compiler release first);
+    (b) sdl3 handler-shape widening once B-22 is pinned; (c) imgui
+    SDL3+Vulkan P6 backends once the shared+dev build lands
+    (`-2012-engine-4` acked); else relay-driven items.
     `-1403-packages` is already fixed compiler-side (m277 `29e35ef8`),
     so there is no block there.
 
@@ -1276,8 +1289,9 @@ B-24 = ffi out-slot reads after a C extern write are unreliable -- read
 owned slots byte-indexed, keep pointer-edged flows on C return values).
 Deliver batches as: feat -> x2 green -> record via scripts/status.ps1 ->
 relay item to packages -> ledger update, all pushed; leave the worktree
-clean. TODO NOW: item 0b (confirm + record the xiom.dx12 0.4.0 publish;
-`REL-20261013-1313-bindings`), then the glfw/sdl3 lifts when B-22 ships.
+clean. TODO NOW: relay sweep (item 0b) -- no publishes in flight; then
+the glfw/sdl3 lifts when an archive carries the B-22 fix, or the imgui
+backends when the shared+dev build lands.
 
 ```
 5. **ffmpeg** (blocked): needs a shared+dev build (`include/` + `av*.dll`);
