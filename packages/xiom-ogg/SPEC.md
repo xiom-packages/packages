@@ -1,11 +1,15 @@
 # xiom.ogg -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.ogg`, version `0.1.0`).
-Module: `src/ogg.xi` (`module xiom.ogg`).
-Depends on `xiom.std` (declared; the module imports nothing from it).
-No FFI: the module declares no `extern "C"` blocks.
+Status: `stable` (0.1.x pure layer long green; 0.2.0 adds the vendored
+libogg packet layer -- 34/34 x2 on compiler v0.64.4, see STATUS.json).
+Manifest: `package.xi` (`xiom.ogg`, version `0.2.0`).
+Modules: `src/ogg.xi` (`module xiom.ogg`, pure page layer, unchanged),
+`src/ogg_ffi.xi` (`xiom.ogg.ffi`, the only `unsafe` module),
+`src/ogg_types.xi` (`xiom.ogg.types`), `src/ogg_mux.xi` (`xiom.ogg.mux`),
+`src/ogg_abi.xi` (generated ledger).
+Depends on `xiom.std` (declared; the pure module imports nothing from it).
+The packet layer vendors libogg v1.3.6 (BSD-3) and compiles it at port
+time; see the 0.2.0 addendum below, PROVENANCE.md and docs/COVERAGE.md.
 
 ## Scope
 
@@ -17,6 +21,10 @@ A pure-XIOM reader for the Ogg container page layer:
 - `ogg_page_crc_ok` verifies one indexed page against its stored checksum;
 - `ogg_page_count` / `ogg_page_offset` / `ogg_page_serial` are infallible
   accessors.
+
+0.2.0 adds the libogg packet layer next to the pure layer (page building,
+packet reassembly, the bitpacker and the mux/demux helpers -- section
+"0.2.0 addendum" at the end of this document).
 
 ## Non-goals
 
@@ -311,3 +319,94 @@ checksum verdict of `ogg_page_crc_ok` are deliberately not asserted
 v0.63.1 shape); granule clamping and the stored-checksum comparison stay
 documented only, because they need bit-level arithmetic and `Str`
 content comparison outside the supported clause grammar.
+
+## 0.2.0 addendum -- vendored libogg packet layer
+
+### Identity and pin
+
+| Field | Value |
+|-------|-------|
+| Upstream | libogg (Ogg reference implementation, BSD-3-Clause) |
+| Pin | tag `v1.3.6` = `be05b13e98b048f0b5a0f5fa8ce514d56db5f822` |
+| Vendored tree | `vendor/ogg/` (5 files + `COPYING`), `vendor/MANIFEST.sha256` |
+| Coverage | **53/53 declared functions bound, 0 skips** (docs/COVERAGE.md) |
+| Companion entries | 7 (owned page/packet/pack struct helpers) |
+
+`src/ogg_bridge.c` exposes one `xo_*` bridge entry point per `extern`
+function of the pinned `include/ogg/ogg.h`; `tools/gen_ogg.py` parses the
+header, generates `src/ogg_abi_protos.h` + the extern block inside
+`src/ogg_ffi.xi` + the ledger/coverage artifacts, and fails on any
+unmapped or under-defined symbol.
+
+### ABI shape (discipline)
+
+* state structs (`ogg_sync_state`, `ogg_stream_state`, `oggpack_buffer`,
+  `ogg_page`, `ogg_packet`) are bridge-allocated; XIOM holds `Int` handles
+  and never casts pointers (B-25);
+* payloads cross as XIOM-owned `Vec[UInt8]`: inputs are read, copy-outs go
+  into owned buffers, metadata into owned slots (page info 16 bytes,
+  packet info 32 bytes; B-11/B-16/B-17/B-20/B-24);
+* `ogg_sync_buffer(oy, size)` folds the upstream buffer/memcpy idiom into
+  `sync_buffer(h, chunk)`; `sync_wrote(h, n)` remains the separate
+  declared function (both bound);
+* `oggpack_readinit` copies the owned input into a bridge-owned buffer so
+  `pack_writeclear`/`pack_free` are always safe (upstream would free
+  foreign memory otherwise);
+* `ogg_packet_clear` never frees XIOM-owned bytes (the bridge nulls the
+  packet pointer before the upstream call);
+* NULL page pointers (`ogg_sync_pageseek`'s unused page out-param) are
+  C-side; no bare `null` crosses from XIOM (B-23);
+* error mapping: negative upstream codes become `Err("ogg: <context>
+  rc=<code>")`; `pack_look`/`pack_read` keep the upstream -1
+  "not enough bits" sentinel as a plain `Int` return (documented).
+
+### Surface groups (all bound)
+
+| Group | Functions | Notes |
+|-------|----------:|-------|
+| sync | 9 | `init/clear/reset/destroy/check/buffer/wrote/pageseek/pageout` |
+| stream | 16 | `init/clear/reset/reset_serialno/destroy/check/eos/pagein/packetout/packetpeek/packetin/iovecin/pageout/pageout_fill/flush/flush_fill` |
+| page | 9 | accessors + `checksum_set` (patches the owned header bytes) |
+| packet | 1 | `ogg_packet_clear` |
+| oggpack | 18 | write/read bitpacker incl. `get_buffer` copy-out and trunc/align/copy |
+
+### Facade (`xiom.ogg.mux`)
+
+* `OggMuxer`: `create` -> `add` / `add_iovec` -> `page` /
+  `page_fill` / `flush` / `next_page_bytes` / `flush_page_bytes` /
+  `eos` / `reset` / `destroy` (packet -> page write path);
+* `OggDemuxer`: `create` -> `feed` -> `next_page` -> `reset` / `destroy`
+  (byte stream -> pages);
+* `demux_all(data, packet_cap)`: whole-buffer demux of one logical
+  bitstream into pages + reassembled packets (`Demuxed` flat outcome).
+
+### Fixture (opus-in-ogg)
+
+`tests/fixtures/tone.ogg` (4341 bytes, 3 pages) is generated once by
+`tools/make_ogg_fixture.xi` + `tools/gen_fixture.ps1`: a 0.5 s 440 Hz tone
+encoded by the sibling `xiom.opus` package, muxed with the OggMuxer
+write path (OpusHead + OpusTags + 25 audio packets), and committed as the
+mux-side evidence. The suite (`t33`, `t34`) demuxes it back to 27 packets,
+checks the OpusHead fields (version 1, mono, pre-skip 312, rate 48000,
+family 0) and validates every fixture page against the independent
+pure-XIOM page walk + CRC-32 oracle.
+
+Upstream behavior pinned by the suite (verified against a pure-C driver):
+
+* the first (BOS) page granule position is forced to 0 by upstream, even
+  when the packet carries a different granulepos;
+* `ogg_stream_pagein` assigns the page granule position only to the packet
+  that ends the page; other packets on the page report -1;
+* `oggpack` counters advance on sentinel (end-of-data) reads.
+
+### Deviations / notes
+
+* the vendored sources carry a four-line include rewrite (`<ogg/ogg.h>`,
+  `<ogg/os_types.h>` -> quoted relative form): the `--c-source` pipeline
+  has no `-I` support and angle includes are not resolved relative to the
+  including file. Both SHA256s are recorded per file in
+  `vendor/MANIFEST.sha256` (see PROVENANCE.md);
+* `oggpack_readinit` copies (upstream references); the copy is invisible
+  except that any pack handle is safe to clear;
+* `ogg_stream_iovecin` binds the two-buffer scatter-gather shape (count 1
+  or 2); iovecs beyond two are out of scope until a consumer needs them.

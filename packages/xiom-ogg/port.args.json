@@ -1,0 +1,10 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/ogg_bridge.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/ogg/bitwise.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/ogg/framing.c",
+  "--timeout",
+  "300"
+]
