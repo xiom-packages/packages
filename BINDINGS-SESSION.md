@@ -628,12 +628,13 @@ witness)**: localized the nested-payload corruption for the compiler.
   `a76bdef4`).
 - `REL-20261011-2131-packages` -- upstream-first OWNER POLICY adopted
   (PROVENANCE per touched package; clone-at-pin; declared surface).
-- Remaining acked (board state for the next session): `-1550-xvector-11`
-  (accelerator mirror; future), `-1600/-1841/-1852` (standing info),
-  `-1834-engine-2`/`-2015`/`-2012-engine-2`/`-1948` (owner Vulkan lane),
-  `-2012-engine-4` (imgui P6 blocked), `-1509/-1702/-1754` (mini-RHI
-  interop info), `-1417-xvector` (replied via `-1500-bindings-2`;
-  xvector verifies).  Relay tips `d3ea9b3` + `7507169`, validate 402.
+- xvector gate pair closed: `-1417` (answered via `-1500-bindings-2`;
+  xvector recorded the seam shape) + `-1550` (gate met: vectors live).
+- Remaining acked (board state for the next session):
+  `-1600/-1841/-1852` (standing info), `-1834-engine-2`/`-2015`/
+  `-2012-engine-2`/`-1948` (owner Vulkan lane), `-2012-engine-4` (imgui
+  P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
+  Relay tips `7507169` + `0556f51`, validate 402.
 
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
