@@ -636,6 +636,31 @@ witness)**: localized the nested-payload corruption for the compiler.
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
 
+**UPDATE 2026-10-13 16:15Z (compiler m283 `3ef4d6a9`: B-26 FIXED; B-25
+re-probe GREEN -- wave extended)**: the compiler lane closed our two open
+findings on main (no archive yet).
+- **B-26 FIXED**: root cause was `llvm_type_for` resolving the nested
+  payload type to the erased base (`Option[Bag]` -> `%struct.Option`)
+  while the concrete monomorph was registered; the boxed arm then loaded
+  box bytes as an inline Option.  Fix: resolve `Option[T]`/`Result[T,E]`
+  to the registered monomorph.  Witness: probe 2/2/2, failures=0, exit 0;
+  CI lock `e2e_m283_nested_payload_read`.  Items: `-1524-bindings-2` ->
+  fixed (we verify at the archive); the `-1555-bindings` addendum is
+  consumed.  **Wave addition**: re-run nested-payload (probe + matrix),
+  then **restore `Result[Option[SqliteRow]]`** in xiom.sqlite and retire
+  the flat `RowOutcome`.
+- **B-25 re-probe GREEN on m283** (`true_ptr == int_param == cast_ptr`,
+  both FIDELITY OK; via the m280/m281 Copy-Out gates + m283):
+  `-1309-bindings` -> fixed.  **Wave addition**: re-run `ptr-cast`, then
+  revisit the `Int`-typed dx12 COM workaround and close the INFO.
+- Compiler also fixed `REL-20261010-1549-packages-8` (contract-cycle
+  guard) and recorded a NEW -O2 contract-pruning finding (constant-folded
+  `requires` eliminated at O2 -- enforcement follow-up; watch suite
+  contract checks under `--opt-level default`).  B-05 stdlib fix still
+  ready (`-1445-compiler`).
+- Relay tip `fbda2a7`; our board: everything delivered moved to fixed;
+  only owner-lane + standing-info items remain acked.
+
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
 - Merge `46b45e76` (prep tip `4afec760`; conflicts resolved to theirs +
@@ -1368,13 +1393,20 @@ No ungated lane work otherwise -- relay-driven only).
      `-1549-packages-3` green; m281 `77827766` fixes **B-23 + B-24**
      (null -> `inttoptr 0`; raw `p[i]` typed load) + **B-20 + B-11
      addendum (`-0304`)** + `-1548-bindings-2` codegen (RTX re-run
-     pending).  Release-check rows for all ride the next archive.
+     pending); m283 `3ef4d6a9` fixes **B-26** (nested payload monomorph
+     resolution) + re-probes **B-25 green** (cast fidelity) +
+     contract-cycle guard.  Release-check rows for all ride the next
+     archive.
    - **RE-VERIFY WAVE at v0.64.5+ (prepared)**: `docs/repro/bindings-pilot/`
      -- null-literal (4 paths = 0), ptr-read-stale (ffi_bad=0/400),
      foreign-ptr-read (C-matching 1065353216/1073741824), ptr-slot-write +
      ptr-arith (exact), cb-abi probe9 (42/42/42), sdl3 synthetic-event
      raw-pointer readback variant, vulkan-slot-recycle (RTX host),
-     **B-05 alloc-guard-spin (watchdog! -- needs the stdlib fix
+     **nested-payload (probe + matrix: expect 2/2/2, failures=0; then
+     restore sqlite `Result[Option[SqliteRow]]` + retire `RowOutcome`)**,
+     **ptr-cast (expect `true_ptr == int_param == cast_ptr`; then revisit
+     the `Int`-typed dx12 COM params + close `-1309`)**, **B-05
+     alloc-guard-spin (watchdog! -- needs the stdlib fix
      `REL-20261013-1445-compiler` in the runtime)**.  Then:
      **glfw 0.6.0 lift** (18 dispatchers + registries removed -> direct
      handoff), **sdl3 handler widening**, workaround retirement (B-24
