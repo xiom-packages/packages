@@ -33,7 +33,8 @@ but broken exports -> **FAIL**. CI stays green without a GPU.
 > index), plus probe/SKIP classification on all three runtimes. 0.1.0
 > published in `eco-v0.1.166` (sha256 `5ff65bed...`); 0.2.0 in `eco-v0.1.167`
 > (sha256 `7cfae765...`); 0.3.0 in `eco-v0.1.168` (sha256 `14ce3e67...`);
-> 0.3.1 in `eco-v0.1.169` (sha256 `355ecc6d...`, stable). B-23/B-24
+> 0.3.1 in `eco-v0.1.169` (sha256 `355ecc6d...`); **0.4.0 in `eco-v0.1.172`
+> (sha256 `38ff6d0b...`, stable)**. B-23/B-24
 > workarounds are accepted with expiry = next compiler pin (see
 > `docs/repro/bindings-pilot/`); B-25 makes COM object params cross as
 > `Int`; callback-param methods take a raw handler address (B-22).
