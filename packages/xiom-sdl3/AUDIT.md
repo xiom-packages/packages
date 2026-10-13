@@ -2,7 +2,7 @@
 
 ## Status (2026-10-11)
 
-Dynamic-loader implementation at **0.16.0** (drag-drop payload decode added).
+Dynamic-loader implementation at **0.18.0** (foreign-written event readback; B-11 addendum retired on v0.64.4).
 The pre-pilot static-extern module (`src/sdl3_safe.xi`) and the
 extern-backed tail of the root module were removed: they could not satisfy
 the SKIP-when-absent gate (link-time symbol requirements). The full
@@ -15,8 +15,8 @@ return over this loader.
 | Upstream pin | SDL 3.4.8 (tag `release-3.4.8`), soname `SDL3.dll` |
 | Link model | none at build time; runtime `LoadLibraryA`/`GetProcAddress` via `xiom.ffi.dl` |
 | FFI confinement | all `unsafe` + fn-pointer casts in the root module `xiom.sdl3` only |
-| Suite | `tests/test_conformance.xi`, 59 checks (5 run without the DLL) |
-| Runs | absent (PATH-filtered): PASS 5/5 x2; present (SDL 3.4.8): PASS 59/59 x2 (+7/7 stability runs); demo probe `examples/demo_sdl3.xi` exit 0 with the blit section green -- all via `scripts/port.ps1`/direct run (v0.64.3, 2026-10-11; refreshed each version) |
+| Suite | `tests/test_conformance.xi`, 61 checks (5 run without the DLL) |
+| Runs | absent (PATH-filtered): PASS 5/5 x2; present (SDL 3.4.8): PASS 61/61 x2 (+7/7 stability runs); demo probe `examples/demo_sdl3.xi` exit 0 with the blit section green -- all via `scripts/port.ps1`/direct run (v0.64.3, 2026-10-11; refreshed each version) |
 | Resources (0.3.0) | window (hidden 320x200, size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration + SKIP when none attached |
 | Event decode (0.4.0) | `SDL_Event` over an owned 128-byte buffer: shared header + key/mouse-motion/mouse-button/window accessors + f32 bit decode; offsets pinned to the 3.4.8 headers (== the 3.2.10 clone) |
 | Event filter/watch (0.5.0) | fixed dispatchers + 1-arg handler registries; keep/drop proven (reject makes SDL refuse the push); watch non-consuming + removable; B-14/B-15 workarounds documented (`docs/repro/bindings-pilot/cb-abi/probe7_element_units.xi`) |
@@ -31,6 +31,7 @@ return over this loader.
 | Pointer/relative mouse (0.14.0) | 5 symbols (SDL_GetGlobalMouseState, SDL_GetRelativeMouseState, SDL_Set/GetWindowRelativeMouseMode, SDL_CaptureMouse); two owned out-param slots per state call (B-17); suite proves the per-window relative-mode round trip (true/true/false/false), global/relative state sanity, and the capture toggle (on=false without focus is per the header docs, off=true) |
 | Joystick live path (0.15.0) | 10 symbols (OpenJoystick/CloseJoystick/Connected/Name/Axis/Button + SetJoystickVirtualAxis/Button + Attach/DetachVirtualJoystick); `SDL_VirtualJoystickDesc` built as a 136-byte x64 slot (`version` = sizeof(desc) per SDL_INIT_INTERFACE; byte-indexed writes, B-16/B-17); the suite attaches a hardware-free virtual pad, sets axis0=16384 + button1 through the real open path, reads them back (name + connected green), then detaches |
 | Drag-drop payloads (0.16.0) | Pure-buffer decode of `SDL_DropEvent` (pinned layout: windowID @16, x @20, y @24, source ptr @32, data ptr @40): windowID/xy + source/data C-string copies; NULL payloads decode to `""`; the arm is DLL-independent (runs in both shapes -- absent baseline 4 -> 5) |
+| Foreign-written event readback (0.18.0) | Poll a pushed user event / KEY_DOWN INTO an owned 128-byte slot and decode it with the 0.4.0 accessors; the B-11-addendum deferral is RETIRED on v0.64.4 (previously recycled bytes `0x33323100`/`0x04040404` on v0.64.3; now `type=0x8000` exact, `REL-20261011-0304` re-tested 2026-10-13).  The general B-11 driver-thread shape stays open (`xiom.vma`) |
 
 ## G2 pin
 

@@ -394,6 +394,39 @@ fn main() -> Int {
       "events: synthetic KEY_DOWN (scancode A) injected + consumed (pushed=" + b2s(kpushed)
         + ", consumed=" + b2s(kconsumed) + ")");
 
+    // 0.18.0: foreign-written event readback -- the B-11 addendum shape
+    // (SDL writing an event INTO an XIOM-owned buffer) is FIXED on
+    // v0.64.4: poll the pushed user event into an owned 128-byte buffer
+    // and read the type back byte-indexed.  The 0.3.1-era deferral is
+    // retired (addendum item REL-20261011-0304 re-tested 2026-10-13).
+    // Bounded drains first: SDL's poll internals can leave sentinel
+    // residue (SDL_EVENT_POLL_SENTINEL) ahead of our event.
+    let _ = drain_events(&lib, 50);
+    var ev_out = slot_new(128);
+    let opushed = sdl3_push_event(&lib, ev_in.as_mut_ptr() as Int);
+    sdl3_pump_events(&lib);
+    let oconsumed = sdl3_poll_event(&lib, ev_out.as_mut_ptr() as Int);
+    failed = failed + report(opushed && oconsumed && sdl3_event_type(&ev_out) == SDL_EVENT_USER,
+      "events: poll into owned buffer -> readback type = " + to_string(sdl3_event_type(&ev_out))
+        + " (B-11 addendum retired)");
+
+    // The full decode layer over a FOREIGN-written buffer (deferred in
+    // 0.4.0): push the KEY_DOWN again, poll it into a fresh owned slot and
+    // decode field-by-field with the 0.4.0 accessors.
+    let _ = drain_events(&lib, 50);
+    var kev_out = slot_new(128);
+    let k2pushed = sdl3_push_event(&lib, kev.as_mut_ptr() as Int);
+    sdl3_pump_events(&lib);
+    let k2consumed = sdl3_poll_event(&lib, kev_out.as_mut_ptr() as Int);
+    failed = failed + report(k2pushed && k2consumed
+        && sdl3_event_type(&kev_out) == SDL_EVENT_KEY_DOWN
+        && sdl3_event_key_scancode(&kev_out) == SDL_SCANCODE_A
+        && sdl3_event_key_code(&kev_out) == 97
+        && sdl3_event_key_down(&kev_out),
+      "events: KEY_DOWN readback decode (type=" + to_string(sdl3_event_type(&kev_out))
+        + " scancode=" + to_string(sdl3_event_key_scancode(&kev_out))
+        + " key=" + to_string(sdl3_event_key_code(&kev_out)) + ")");
+
     // 0.5.0: event filter (C callback -> dispatcher -> handler registry).
     // Drains keep the queue deterministic (SDL's filter/poll internals can
     // leave sentinel residue).  Keep-path: the filter sees the KEY_DOWN and

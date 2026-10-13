@@ -1,6 +1,6 @@
 # xiom.sdl3 -- Roadmap
 
-**Version**: v0.16.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
+**Version**: v0.18.0 | **Compiler**: xiom v0.64.4 | **Last updated**: 2026-10-13
 
 ## Current state
 
@@ -28,6 +28,7 @@
 | Pointer capture + relative mouse (per-window) + global/relative state | Done -- 0.14.0 |
 | Joystick open/axis/button reads (virtual-joystick instrumented, no hardware) | Done -- 0.15.0 |
 | Drag-drop payload decode (SDL_DropEvent, DLL-independent) | Done -- 0.16.0 |
+| Foreign-written event readback (poll into an owned buffer) | Done -- 0.18.0 (B-11 addendum retired on v0.64.4; user-event + KEY_DOWN readback witnesses live) |
 | POSIX soname fallback | Phase 2 |
 
 ## Phase 2 (remaining)
@@ -38,8 +39,11 @@
    next if a consumer needs them).
 2. Surface layer: texture update from a pixel buffer (done -- 0.8.0),
    `SDL_SetTextureBlendMode` + mono/alpha formats next.
-3. Poll-into-owned-buffer decoding once the B-11-family foreign-write
-   readback is fixed on the pin (re-test the addendum reproducer first).
+3. ~~Poll-into-owned-buffer decoding once the B-11-family foreign-write
+   readback is fixed on the pin~~ **DONE -- 0.18.0** (re-tested the
+   addendum reproducer on v0.64.4: the SDL-written buffer reads back
+   exactly; user-event + KEY_DOWN readback checks live in the suite;
+   the general B-11 driver-thread shape stays open, see `xiom.vma`).
 4. POSIX loader fallback (`libSDL3.so.0`) when a Linux CI target exists.
 5. OpenGL-context interop with `xiom.opengl` (attribute setup only; no
    cross-package imports -- both packages stay independent).
@@ -50,5 +54,6 @@
    blit in 0.8.0, mouse + window contract in 0.9.0, audio/joystick
    enumeration in 0.10.0, tables in 0.11.0, push audio + wheel in 0.12.0,
    capture streams + query in 0.13.0, pointer/relative mouse in 0.14.0,
-   live joystick reads in 0.15.0, drag-drop payload decode in 0.16.0; the
+   live joystick reads in 0.15.0, drag-drop payload decode in 0.16.0,
+   foreign-written event readback in 0.18.0; the
    full-coverage drive continues).
