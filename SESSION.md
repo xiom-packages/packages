@@ -155,6 +155,15 @@ running). Check `git log -1 --format=%h %s` before starting.
   implemented: engine availability relay sent (`REL-20261013-2128-packages`; standing flow = relay
   to engine after every publish). Clone protocol VERIFIED at the ledger (8 wave-B clones +
   steam-audio refresh; pinned + licensed + review-after 2026-12-01).
+- **OWNER EXCEPTION -- unattended publish staged (2026-10-13 21:40Z)**: the 17 bindings-wave names
+  (harfbuzz/basisu/spz + opus/lz4/ktx2/vdb/nis + fidelityfx/dlss/xess/nrd/oidn + rpr/rtxdi/rtxgi/openpgl)
+  are in `publish-allowlist.txt` + grandfathered in `allowlist-baseline.txt` (guard **538 allowlisted /
+  508 ready / 30 grandfathered / 0 failures**; `f5e4c925`). Protocol from here: ops confirms the
+  registry scopes (their VPS pass; consolidated ask `REL-20261013-2147-packages`) -> each package
+  publishes AUTOMATICALLY on its green record at the next eco tag (batch 79 = harfbuzz/basisu/spz on
+  scope-live; ffmpeg 0.4.0 held for the generation fix `-2142-packages`). No further owner/ops
+  per-package steps; engine relay after every publish (standing). Bindings' full suite manifest:
+  `REL-20261013-2143-bindings-2` (the working queue); 13 agent sessions in flight.
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
