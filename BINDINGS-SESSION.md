@@ -3,30 +3,28 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: ALL PUBLISHES CONFIRMED LIVE -- last item sdl3 0.18.0 landed
-as `eco-v0.1.173`** -- LIVE this window: dx12 0.3.1 stable
-(`eco-v0.1.169`) + dx12 0.4.0 command recording (`eco-v0.1.172`; B-25
-fixed in-surface), opengl 0.5.0 WGL surface (`eco-v0.1.170`), gles 0.1.0
-new ANGLE package (`eco-v0.1.171`), sdl3 0.18.0 (foreign-written event
-readback; 61/61 x2 on `5a26dee8`; `REL-20261013-1338-bindings-2` fixed);
-Vulkan 0.6.0 live (engine-green, OWNER lane); OpenGL 0.4.0 LIVE
-(`eco-v0.1.164`; 656/656 core-4.6); DX12 0.1.0/0.2.0/0.3.0 live
-(`eco-v0.1.166`/`167`/`168`); SDK100 all slices live; v0.64.4 pin wave
-done. **NEXT = next compiler archive (v0.64.5+) carrying the m277-m281
-fix batch** (m277 B-22; m279 B-16/B-17; m280 `-2230` +
-`-1549-packages-3`; m281 B-23/B-24/B-20/B-11 addendum/`-1548`; B-05
-alloc-guard-spin fix ready stdlib-side, `-1445-compiler`) -- then
-the re-verify wave + glfw 0.6.0 lift + sdl3 widening + workaround
-retirement; **glfw 0.6.0 lift parked until then** (fixes staged on
-compiler main, no archive ships them yet); **`xiom.sqlite` 0.4.0 (PULSE
-SQL driver) LIVE in `eco-v0.1.174`** (sha256 `1e142acc...` @15:31:42Z;
-x2 21/21 on `4ba13167`; retrofits merged `5bd95448`/`80a06b6b`; B-26
-nested-payload filed with repro; PULSE co-verify pending
-`-1540-packages`); ops clobber rules
-in force; per-touch PROVENANCE rule in effect (dx12/opengl/gles/sdl3/sqlite
-compliant; matrix declared=4, backlog 33) -- UPDATE 2026-10-13 15:48Z
-(origin/bindings tip `80a06b6b`)** (NEXT = watch v0.64.5+ carrying the
-m277-m281 fix batch; the paste prompt below carries the wave).
+**STATUS: EVERYTHING THIS LANE SHIPPED TODAY IS LIVE -- last: sqlite
+0.4.1 in `eco-v0.1.175`** -- LIVE: dx12 0.3.1 stable (`eco-v0.1.169`) +
+dx12 0.4.0 (`eco-v0.1.172`), opengl 0.5.0 (`eco-v0.1.170`), gles 0.1.0
+(`eco-v0.1.171`), sdl3 0.18.0 (`eco-v0.1.173`), sqlite 0.4.0
+(`eco-v0.1.174`) + 0.4.1 modules fix (`eco-v0.1.175`; sha256
+`21c1f673...`; x2 21/21 on `c239b90e`); Vulkan 0.6.0 live (OWNER lane);
+SDK100 all slices live; v0.64.4 pin wave done.  **NEXT = next compiler
+archive (v0.64.5+) carrying the m277-m283 fix batch** (m277 B-22; m279
+B-16/B-17; m280 `-2230`; m281 B-23/B-24/B-20/B-11 addendum; **m283
+`3ef4d6a9` B-26 FIXED + B-25 green + contract-cycle guard**; B-05 stdlib
+guard_free in wave 124 but still red on v0.64.4 even with
+`XIOM_RUNTIME_DIR`) -- then the re-verify wave + glfw 0.6.0 lift + sdl3
+widening + workaround retirement + **sqlite nested-shape restore**.
+**glfw 0.6.0 lift parked until then.**  PULSE co-verify: driver surface
+GREEN 24/24 in-tree; registry-artifact re-run waits on the compiler
+project-dependency fix (`REL-20261013-1731-packages`, "modules list
+ignored"); sqlite 0.4.1 modules list published.  Ops clobber rules in
+force; per-touch PROVENANCE rule in effect (dx12/opengl/gles/sdl3/sqlite
+compliant; matrix declared=4, backlog 33; `modules:` retrofit at touch --
+41 published + 26 unpublished remain fleet-wide).  UPDATE 2026-10-13
+18:05Z (origin/bindings tip `9600ae26`)** (NEXT = watch v0.64.5+; the
+paste prompt below carries the wave).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -635,6 +633,31 @@ witness)**: localized the nested-payload corruption for the compiler.
   `-2012-engine-2`/`-1948` (owner Vulkan lane), `-2012-engine-4` (imgui
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
+
+**UPDATE 2026-10-13 18:05Z (sqlite 0.4.1 PUBLISHED -- `eco-v0.1.175`;
+consumer blocker now compiler-side)**: doorbell tick; NOTE three
+concurrent "bindings" acks landed on the fleet note (multiple sessions) --
+coordinate, do not duplicate moves.
+- **`xiom.sqlite` 0.4.1 LIVE**: `eco-v0.1.175`, run 38437966256 green,
+  sha256 `21c1f673...`, sync `89d6b178` (tally 91 releases through
+  `eco-v0.1.175`).  Republish request `-1721-bindings` (packages moves
+  it; publication already happened).
+- **Deeper consumer blocker is compiler-side**: packages filed
+  `REL-20261013-1731-packages` (to compiler, acked) -- even WITH the
+  modules list, `xiom build` project consumption fails for xiom.sqlite
+  0.4.0/0.4.1 AND sdl3 0.18.0 ("modules list ignored"; xiom.kv passes).
+  So the manifest field is the standing convention (and now correct),
+  but external project resolution needs the compiler fix.  PULSE's
+  artifact re-run waits on it (`-1718-pulse`: driver surface GREEN 24/24
+  in-tree on v0.64.3 + v0.64.4; two doc suggestions -- rows_affected =
+  LAST statement only; external examples resolve after the fix).
+- Fleet note `-1731-packages-2` acked (three times, concurrent
+  sessions): 41 published + 26 unpublished lack `modules:` (our scan:
+  67 total); policy = retrofit at each real publish + generation
+  templates (no scaffolder found in the lane tree).  sqlite done; our
+  other packages ride their next publish.
+- Compiler m285 `77dfc786` seen; B-05 overlay still red (17:30Z block);
+  no v0.64.5 archive yet.  Relay tip `a423b58`, validate 411.
 
 **UPDATE 2026-10-13 17:30Z (PULSE co-verify blocker: sqlite artifact not
 consumable -- 0.4.1 modules fix; systemic 67-package scan; B-05 overlay
@@ -1405,14 +1428,15 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-13 15:48Z;
+Bindings lane continuation -- seamless pickup (2026-10-13 18:05Z;
 **everything this lane shipped today is LIVE**: sdl3 0.18.0
-(`eco-v0.1.173`) and xiom.sqlite 0.4.0 PULSE SQL driver
-(`eco-v0.1.174`; sha256 `1e142acc...`; retrofits merged; PULSE co-verify
-pending packages-side).
+(`eco-v0.1.173`) and xiom.sqlite 0.4.0/0.4.1 PULSE SQL driver
+(`eco-v0.1.174`/`175`; 0.4.1 = modules fix, sha256 `21c1f673...`;
+PULSE surface co-verify GREEN 24/24 in-tree -- artifact re-run waits on
+the compiler project-dep fix `REL-20261013-1731-packages`).
 First action = check for the next compiler archive (v0.64.5+) carrying
-the m277-m281 fix batch; when it ships, run the re-verify wave + lifts.
-No ungated lane work otherwise -- relay-driven only).
+the m277-m283 fix batch (B-26 fixed m283); when it ships, run the
+re-verify wave + lifts.  Relay-driven otherwise).
 
 0. STATE (the 13:50Z handoff UPDATE block + STATUS above carry the
    evidence):
