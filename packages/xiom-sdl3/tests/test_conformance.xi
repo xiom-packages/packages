@@ -399,6 +399,9 @@ fn main() -> Int {
     // v0.64.4: poll the pushed user event into an owned 128-byte buffer
     // and read the type back byte-indexed.  The 0.3.1-era deferral is
     // retired (addendum item REL-20261011-0304 re-tested 2026-10-13).
+    // Bounded drains first: SDL's poll internals can leave sentinel
+    // residue (SDL_EVENT_POLL_SENTINEL) ahead of our event.
+    let _ = drain_events(&lib, 50);
     var ev_out = slot_new(128);
     let opushed = sdl3_push_event(&lib, ev_in.as_mut_ptr() as Int);
     sdl3_pump_events(&lib);
@@ -410,6 +413,7 @@ fn main() -> Int {
     // The full decode layer over a FOREIGN-written buffer (deferred in
     // 0.4.0): push the KEY_DOWN again, poll it into a fresh owned slot and
     // decode field-by-field with the 0.4.0 accessors.
+    let _ = drain_events(&lib, 50);
     var kev_out = slot_new(128);
     let k2pushed = sdl3_push_event(&lib, kev.as_mut_ptr() as Int);
     sdl3_pump_events(&lib);
