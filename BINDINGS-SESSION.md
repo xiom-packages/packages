@@ -634,6 +634,29 @@ witness)**: localized the nested-payload corruption for the compiler.
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
 
+**UPDATE 2026-10-13 19:35Z (codec/container wave + solver bridge -- AGENT
+FAN-OUT)**: owner-prioritized wave accepted and started in 5 isolated
+Agent Manager worktrees.
+- Accepted: `REL-20261013-1926-packages` (URGENT: codec/container prep
+  wave; wave A quick wins + wave B candidates, clone-protocol per
+  UPSTREAM-FIRST sec. 6) and `REL-20261013-1903-engine` (solver bridge
+  world/body surface).  `REL-20261012-1948-engine` -> fixed (engine-side
+  `c8bcd9e`; compiler item `-1819-engine`; the wrapper is correct);
+  `-1819-engine-2` acked.  Relay tip `fcb545e`, validate 422 items.
+- Agent sessions (worktree, independent; one branch each):
+  `feat/jolt-world-body` (jolt 0.3.0: world/body add/remove/step/state),
+  `feat/zstd-container` (zstd 0.3.0: indexed multi-frame container +
+  random access), `feat/meshopt-cooked` (meshopt 0.5.0: cooked container
+  + decode surface), `feat/ffmpeg-av1` (ffmpeg 0.3.0: AV1 decode
+  surface, dynamic loader), `prep/codec-wave-b` (clones + CLEANUP rows +
+  prep doc; no builds).  Request `am-1791919807965-sw6i5d`.
+- Integration plan: each agent delivers feat + x2 + record on its
+  branch; THIS session integrates (merge into `bindings`), files the
+  per-library relay items to packages, records the eco publishes and
+  updates this ledger.  **Do NOT duplicate agent moves on the bus.**
+- Still parked: v0.64.5 archive wave (m277-m283 batch); sdl3 widening;
+  glfw 0.6.0 lift.
+
 **UPDATE 2026-10-13 18:05Z (sqlite 0.4.1 PUBLISHED -- `eco-v0.1.175`;
 consumer blocker now compiler-side)**: doorbell tick; NOTE three
 concurrent "bindings" acks landed on the fleet note (multiple sessions) --
