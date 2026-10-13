@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T13:23:30Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T13:52:00Z.
 
 ## How to read this table
 
@@ -89,7 +89,7 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | xiom.portaudio | 0.2.0 | incubating | runtime-load | undeclared | portaudio_x64.dll (runtime, derived) | pass 2/2 @ 15040752 |
 | xiom.raylib | 0.2.0 | incubating | runtime-load | undeclared | raylib.dll (runtime, derived) | pass 12/12 @ 843586a3 |
 | xiom.sdl2 | 0.1.0 | incubating | runtime-load | undeclared | SDL2.dll (runtime, derived) | pass 16/16 @ 674dea9d |
-| xiom.sdl3 | 0.17.0 | incubating | runtime-load | undeclared | SDL3.dll (runtime, derived) | pass 59/59 @ 674dea9d |
+| xiom.sdl3 | 0.18.0 | incubating | runtime-load | undeclared | SDL3.dll (runtime, derived) | pass 61/61 @ aa7aa15e |
 | xiom.shaderc | 0.1.0 | incubating | runtime-load | undeclared | shaderc_shared.dll (runtime, derived) | pass 17/17 @ 674dea9d |
 | xiom.slang | 0.1.0 | incubating | runtime-load | undeclared | slang.dll, slang-compiler.dll (runtime, derived) | pass 20/20 @ 674dea9d |
 | xiom.spirv-cross | 0.1.0 | incubating | runtime-load | undeclared | spirv-cross-c-shared.dll (runtime, derived) | pass 20/20 @ 674dea9d |
