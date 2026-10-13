@@ -14,10 +14,10 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 91 eco releases; this block is the live handoff):**
+**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 92 eco releases; this block is the live handoff):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified; canonical install byte-identical
   556/556; 532 records repinned). Validate **534/0**; guard **521 allowlisted / 505 ready / 16
-  grandfathered / 0 failures**. Tally: **91 eco releases** (`eco-v0.1.86` -> `eco-v0.1.175`).
+  grandfathered / 0 failures**. Tally: **92 eco releases** (`eco-v0.1.86` -> `eco-v0.1.176`).
 - **Published since the 18:45Z block**: batch 62 sdl3 0.16.1; **v0.64.4 gate** (repin + batch 63 jolt
   0.2.0 / vma 0.3.0 / dxc 0.3.0, `eco-v0.1.161`); **SDK100 wave complete** (batches 64-67:
   spirv-tools/cross/reflect + glslang + slang + sdl2 + shaderc + spirv.headers 0.1.0, sdl3 0.17.0,
@@ -29,7 +29,8 @@ running). Check `git log -1 --format=%h %s` before starting.
   **dx12 0.4.0** (`eco-v0.1.172`; command recording + B-25, 42/42 x2);
   **sdl3 0.18.0** (`eco-v0.1.173`; event readback, 61/61 x2);
   **sqlite 0.4.0** (`eco-v0.1.174`; PULSE SQL driver, 21/21 x2);
-  **sqlite 0.4.1** (`eco-v0.1.175`; modules list, 21/21 x2).
+  **sqlite 0.4.1** (`eco-v0.1.175`; modules list, 21/21 x2);
+  **codec wave A** (`eco-v0.1.176`; jolt 0.3.0 + zstd 0.3.0 + meshopt 0.5.0 + ffmpeg 0.3.0, all x2 green).
 - **v0.64.4 re-verify wave DONE**: `-1549-packages-4` VERIFIED (phantom probes -> one clean
   `19:5 unresolved import`); `-6` VERIFIED (jolt `--cxx-standard 17`); `-5`/`-7` BOUNCED still red
   (consumer link `undefined symbol: sqlite3_libversion`; local fallback silent no-op + ranges
@@ -131,6 +132,18 @@ running). Check `git log -1 --format=%h %s` before starting.
   local fallback writes a dot-named dir in flat layout -- project discovery ignores it until
   normalized to the registry layout (`xiom-minprobe-0.1.0/<pkg>/src`). Ops: no scope ask needed for
   Wave A (existing names); Wave B scope asks deferred until bindings names the upstreams.
+- **CODEC WAVE A DELIVERED (2026-10-13 21:00Z, engine priority)**: bindings ran the wave in ~1h
+  after the owner directive; merged tip `f927952b` (`11a58915`; 7 conflicts resolved -- wave READMEs
+  restored published lines; sqlite pinned to the published 0.4.1 state; PLATFORM-MATRIX add/add
+  resolved to ours); validate 534/0; native x2 **jolt 18/18, zstd 24/24, meshopt 43/43, ffmpeg
+  12/12** (present-path via Blender 5.1: FFmpeg 7.1.1 + libaom-av1, 3 real AV1 frames); record
+  `89527eac`; wrap `7caf0e42`; **`eco-v0.1.176`**, run 38468818666 green; live sha256s jolt
+  `3ac3df4e`, zstd `6288ac84`, meshopt `521dab9e`, ffmpeg `24a5c522` @21:14-21:17Z; README/STATUS
+  synced `f48acb15`; all five items fixed. **Matrix declared=8** (backlog 29). Wave B prep VERIFIED:
+  8 clones registered in CLEANUP.md (opus/ogg/vorbis/openvdb/spz/KTX/basisu/harfbuzz; pinned +
+  licensed + review-after 2026-12-01; `docs/prep/codec-wave-b.md`); `xiom.harfbuzz` 0.1.0 and
+  `xiom.basisu` 0.1.0 already prepped by bindings (their bring-up publishes will arrive as items;
+  new names -> ops scope asks before publish).
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
@@ -634,12 +647,12 @@ if the target item is already in its target state, skip it and report.
 
 STATE: pin v0.64.4 (official archive, SHA256 44a41aea verified; canonical install
 byte-identical 556/556; 532 records repinned). Validate 534/0; guard 521
-allowlisted / 505 ready / 16 grandfathered / 0 failures. Tally: 91 eco releases
-(eco-v0.1.86 -> eco-v0.1.175) -- SDK100 wave complete + vulkan 0.6.0 + opengl
+allowlisted / 505 ready / 16 grandfathered / 0 failures. Tally: 92 eco releases
+(eco-v0.1.86 -> eco-v0.1.176) -- SDK100 wave complete + vulkan 0.6.0 + opengl
 0.5.0 + dx12 0.4.0 (stable) + sdl3 0.18.0 + sqlite 0.4.1 (PULSE driver +
-modules fix) + gles 0.1.0 + jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 all live.
-Consumer project-build blocker open with compiler (-1731-packages). Nothing
-else open addressed to packages.
+modules fix) + codec wave A (jolt 0.3.0/zstd 0.3.0/meshopt 0.5.0/ffmpeg 0.3.0)
++ gles 0.1.0 + vma 0.3.0 + dxc 0.3.0 all live. Consumer project-build blocker
+open with compiler (-1731-packages). Nothing else open addressed to packages.
 
 WORK QUEUE (in priority order as items land):
 1. [DONE 2026-10-13] xiom.sqlite 0.4.0 SQL driver + 0.4.1 modules-list fix live
