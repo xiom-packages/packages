@@ -67,6 +67,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   no packages blocker (KTX2/Basis-class codecs at the cook gate later). **Compiler m277 (`29e35ef8`)
   FIXED our `-1403`** (nested fn types; depth-aware split) -- re-run the sdl3 compile at the next
   archive to confirm 0 warnings (row appended to the next-batch table).
+- **`-1550-packages-6` (file locking) VERIFIED (2026-10-13 03:0xZ)**: stdlib wave 118 (`a0631eb`)
+  landed `sync_io.file_lock/file_unlock/file_try_lock` (POSIX fcntl whole-file; Windows LockFileEx +
+  FAIL_IMMEDIATELY try); `tools/probes/p_wave118_shapes.xi` exit 0 in-lane on v0.64.4 with the
+  `XIOM_RUNTIME_DIR` override; item `fixed -> verified` (`909351e` in relays). Never re-lock a held
+  range (lock -> work -> unlock). Remaining `acked` stdlib/compiler items: `-1549-packages-2/-3/-5/-7/
+  -8/-9/-10/-11/-12`, `-1550-packages-9`, `-1550-packages` (root) -- re-verify rows ride the next
+  archive where applicable.
 - **Duplicate doorbell deliveries (2026-10-13 01:00Z, seen x2)**: the same cron task was delivered
   twice; the second pass repeated the seven-item re-verify (idempotent -- probes + churn green again,
   notes appended `ca63fbe`). Before acting on a doorbell, check the newest commits/SESSION to detect
