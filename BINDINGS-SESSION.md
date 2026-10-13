@@ -610,6 +610,31 @@ witness)**: localized the nested-payload corruption for the compiler.
 - **NEXT**: unchanged -- v0.64.5+ watch (m277-m281 batch); B-26 waits on
   the compiler lane.
 
+**UPDATE 2026-10-13 16:05Z (relay delivered-ask sweep -- 8 items acked
+-> fixed)**: the bus now reflects actual deliveries; reporters verify.
+- `REL-20261011-1153-engine` + `-1159-engine` -- SDL3 present path
+  DELIVERED in sdl3 0.8.0 (`3d7f6f3e`: SDL_UpdateTexture +
+  SDL_RenderTexture + SDL_SetRenderVSync; demo probe green; 44/44 x2);
+  engine window tier GREEN 2026-10-12 (their `-1702`); long since
+  published.
+- `REL-20261012-2032-packages` -- PULSE SQL driver DELIVERED (sqlite
+  0.4.0; LIVE `eco-v0.1.174`; PULSE co-verify pending).
+- `REL-20261011-1108-packages` -- glfw fixes DELIVERED (0.5.0,
+  `5a213f30`; eco-v0.1.137).
+- `REL-20261010-1900-packages` -- stb codec DELIVERED (0.2.0,
+  `07f5b9da`; eco-v0.1.139, sha256 `41a205f7`).
+- `REL-20261011-1539-engine` + `-1900-packages-2` -- assimp 0.8.0
+  file-import group + CONTRACT.md DELIVERED (16/16 native suite;
+  `a76bdef4`).
+- `REL-20261011-2131-packages` -- upstream-first OWNER POLICY adopted
+  (PROVENANCE per touched package; clone-at-pin; declared surface).
+- Remaining acked (board state for the next session): `-1550-xvector-11`
+  (accelerator mirror; future), `-1600/-1841/-1852` (standing info),
+  `-1834-engine-2`/`-2015`/`-2012-engine-2`/`-1948` (owner Vulkan lane),
+  `-2012-engine-4` (imgui P6 blocked), `-1509/-1702/-1754` (mini-RHI
+  interop info), `-1417-xvector` (replied via `-1500-bindings-2`;
+  xvector verifies).  Relay tips `d3ea9b3` + `7507169`, validate 402.
+
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
 - Merge `46b45e76` (prep tip `4afec760`; conflicts resolved to theirs +
