@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T12:24:24Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T12:36:22Z.
 
 ## How to read this table
 
@@ -40,28 +40,29 @@ preserved by `-Action repin`/`-Action update`:
 
 ## Summary
 
-- packages: 533
-- declared rows: 1
+- packages: 534
+- declared rows: 3
 - compile: 13
-- compile+runtime-load: 9
+- compile+runtime-load: 10
 - pure: 497
 - runtime-load: 14
-- native packages pending declaration: 35
+- native packages pending declaration: 34
 
 ## Declaration backlog (native)
 
-xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xiom.ffmpeg, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.jolt, xiom.libpq, xiom.lzfse, xiom.meshopt, xiom.miniaudio, xiom.odbc, xiom.opengl, xiom.openssl, xiom.ozz, xiom.phonon, xiom.portaudio, xiom.raylib, xiom.sdl2, xiom.sdl3, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.sqlite, xiom.stb, xiom.vma, xiom.vulkan, xiom.zstd
+xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xiom.ffmpeg, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.jolt, xiom.libpq, xiom.lzfse, xiom.meshopt, xiom.miniaudio, xiom.odbc, xiom.openssl, xiom.ozz, xiom.phonon, xiom.portaudio, xiom.raylib, xiom.sdl2, xiom.sdl3, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.sqlite, xiom.stb, xiom.vma, xiom.vulkan, xiom.zstd
 
 ## Matrix
 
 | Package | Version | Stage | Class | Platforms | Runtime needs | Evidence |
 |---|---|---|---|---|---|---|
 | xiom.dx12 | 0.3.1 | stable | compile+runtime-load | windows-x64 | d3d12.dll (runtime loader; SKIP when absent); dxgi.dll (runtime loader; SKIP when absent) | pass 35/35 @ 46b45e76 |
+| xiom.gles | 0.1.0 | incubating | compile+runtime-load | windows-x64 | libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent); libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent) | pass 18/18 @ 779ac140 |
+| xiom.opengl | 0.5.0 | incubating | compile+runtime-load | windows-x64 | opengl32.dll (runtime loader; SKIP when absent; WGL needs a Win32 device context) | pass 28/28 @ 779ac140 |
 | xiom.cuda | 0.2.0 | incubating | compile+runtime-load | undeclared | nvcuda.dll (runtime, derived) | pass 5/5 @ 4bb65d14 |
 | xiom.directx11 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d11.dll, dxgi.dll (runtime, derived) | pass 5/5 @ cce33ecb |
 | xiom.directx12 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d12.dll, dxgi.dll (runtime, derived) | pass 5/5 @ 3e0c2384 |
 | xiom.dxc | 0.3.0 | incubating | compile+runtime-load | undeclared | dxcompiler.dll (runtime, derived) | pass 20/20 @ f2e6523d |
-| xiom.opengl | 0.4.0 | incubating | compile+runtime-load | undeclared | opengl32.dll (runtime, derived) | pass 21/21 @ 8f8a238b |
 | xiom.spirv-tools | 0.1.0 | incubating | compile+runtime-load | undeclared | SPIRV-Tools-shared.dll (runtime, derived) | pass 39/39 @ 674dea9d |
 | xiom.vma | 0.3.0 | incubating | compile+runtime-load | undeclared | vulkan-1.dll (runtime, derived) | pass 5/5 @ f2e6523d |
 | xiom.vulkan | 0.6.0 | incubating | compile+runtime-load | undeclared | vulkan-1.dll (runtime, derived) | pass 22/22 @ 1aa5be5b |

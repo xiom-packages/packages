@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T12:32:34Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T12:36:17Z.
 
 ## Summary
 
@@ -80,7 +80,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.dotenv | xiom-dotenv | stable | tests/test_conformance.xi | pass 18/18 | ee7080c4 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.dtb | xiom-dtb | stable | tests/test_conformance.xi | pass 18/18 | 3daa4787 | False | legacy bracket repair patch bump |
 | xiom.duration | xiom-duration | stable | tests/test_conformance.xi | pass 22/22 | 676fc4cb | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.dx12 | xiom-dx12 | stable | tests/test_conformance.xi | pass 35/35 | 1a392b91 | False |  |
+| xiom.dx12 | xiom-dx12 | stable | tests/test_conformance.xi | pass 35/35 | 46b45e76 | False | published in eco-v0.1.169 (2026-10-13, stable 0.3.1; 0.3.0 in eco-v0.1.168; 0.2.0 in eco-v0.1.167; 0.1.0 in eco-v0.1.166) |
 | xiom.ean | xiom-ean | stable | tests/test_conformance.xi | pass 20/20 | 4422ca91 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.edl | xiom-edl | stable | tests/test_conformance.xi | pass 22/22 | 39af9193 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.eeprom | xiom-eeprom | stable | tests/test_conformance.xi | pass 17/17 | 0be46d3f | False | category harmonization patch bump (registry metadata) |
@@ -315,11 +315,11 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.actor | xiom-actor | incubating | tests/test_conformance.xi | pass 28/28 | 761842c9 | False | publish pending: next scope delta |
 | xiom.algo | xiom-algo | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.analyzer | xiom-analyzer | incubating | tests/test_conformance.xi | pass 23/23 | a0d17c7b | False | publish pending: next scope delta |
-| xiom.ann | xiom-ann | incubating | tests/test_conformance.xi | pass 24/24 | 493e44d0 | False | new name: pending ops scope + native-lane allowlist append |
+| xiom.ann | xiom-ann | incubating | tests/test_conformance.xi | pass 24/24 | 934d9fd3 | False | published in eco-v0.1.144 (2026-10-11; 0.1.0 in eco-v0.1.139) |
 | xiom.ansible | xiom-ansible | incubating | tests/test_conformance.xi | pass 26/26 | 973754e8 | False | publish pending: next scope delta |
 | xiom.apple | xiom-apple | incubating | tests/test_conformance.xi | pass 21/21 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.arrow | xiom-arrow | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | pass 16/16 | fa372e07 | False | published in eco-v0.1.132 (2026-10-10; 0.5.0 in eco-v0.1.130) |
+| xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | pass 16/16 | a76bdef4 | False | published in eco-v0.1.153 (2026-10-11; 0.7.0 in eco-v0.1.132) |
 | xiom.ast | xiom-ast | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.audio-meta | xiom-audio-meta | incubating | tests/test_conformance.xi | pass 25/25 | bf525d98 | False | publish pending: next scope delta |
 | xiom.auth | xiom-auth | incubating | tests/test_conformance.xi | pass 24/24 | 4dec18c5 | False | category harmonization patch bump (registry metadata) |
@@ -334,8 +334,8 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.blas | xiom-blas | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.bolt | xiom-bolt | incubating | tests/test_conformance.xi | pass 18/18 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.boosting | xiom-boosting | incubating | tests/test_conformance.xi | pass 20/20 | a3696e55 | False | publish pending: next scope delta |
-| xiom.box2d | xiom-box2d | incubating | tests/test_conformance.xi | pass 7/7 | 56b7e31c | False | published in eco-v0.1.123 (2026-10-09) |
-| xiom.btree | xiom-btree | incubating | tests/test_conformance.xi | pass 22/22 | c78fe78a | False | published in eco-v0.1.121 (2026-10-09) |
+| xiom.box2d | xiom-box2d | incubating | tests/test_conformance.xi | pass 7/7 | 0e4604f7 | False | published in eco-v0.1.157 (2026-10-11; 0.2.0 in eco-v0.1.123) |
+| xiom.btree | xiom-btree | incubating | tests/test_conformance.xi | pass 23/23 | 5be4adeb | False | published in eco-v0.1.141 (2026-10-11; 0.1.0 in eco-v0.1.121) |
 | xiom.bullet | xiom-bullet | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.cache | xiom-cache | incubating | tests/test_conformance.xi | pass 26/26 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.cancel | xiom-cancel | incubating | tests/test_conformance.xi | pass 24/24 | b3305ef6 | False | publish pending: next scope delta |
@@ -372,7 +372,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.docker | xiom-docker | incubating | tests/test_conformance.xi | pass 26/26 | ee890e25 | False | publish pending: next scope delta |
 | xiom.docx | xiom-docx | incubating | tests/test_conformance.xi | pass 27/27 | f0f7743d | False | category harmonization patch bump (registry metadata) |
 | xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | pass 152/152 | 88b51d96 | False | port done 2026-10-09 (WAL reconciled to xiom.wal); not on the publish scope |
-| xiom.dxc | xiom-dxc | incubating | tests/test_conformance.xi | pass 20/20 | 46a2b107 | False | publish pending: bindings batches 9-10 (eco-v0.1.102) |
+| xiom.dxc | xiom-dxc | incubating | tests/test_conformance.xi | pass 20/20 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12) |
 | xiom.dynamo | xiom-dynamo | incubating | tests/test_conformance.xi | pass 21/21 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.eigen | xiom-eigen | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.elastic | xiom-elastic | incubating | tests/test_conformance.xi | pass 28/28 | a1a1acc5 | False | publish pending: next scope delta |
@@ -397,9 +397,9 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.geology | xiom-geology | incubating | tests/test_conformance.xi | pass 26/26 | fb04b916 | False | publish pending: next scope delta |
 | xiom.geom3d | xiom-geom3d | incubating | tests/test_conformance.xi | pass 27/27 | a3fb80eb | False | publish pending: next scope delta |
 | xiom.git2 | xiom-git2 | incubating | tests/test_conformance.xi | pass 24/24 | fd38977f | False | publish pending: next scope delta |
-| xiom.gles | xiom-gles | incubating | tests/test_conformance.xi | pass 18/18 | ee741d77 | False | new package; 0.1.0 publish requested (REL-20261013-1231-bindings; registry scope needed) |
+| xiom.gles | xiom-gles | incubating | tests/test_conformance.xi | pass 18/18 | 779ac140 | False | new package; 0.1.0 publish requested (REL-20261013-1231-bindings; registry scope needed) |
 | xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | 5a213f30 | False | published in eco-v0.1.137 (2026-10-11; 0.4.0 in eco-v0.1.136) |
-| xiom.glslang | xiom-glslang | incubating | tests/test_conformance.xi | pass 29/29 | 5051955b | False | new binding package (SDK-100 program); relayed to the coordinator for merge/publish |
+| xiom.glslang | xiom-glslang | incubating | tests/test_conformance.xi | pass 29/29 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.golden | xiom-golden | incubating | tests/test_conformance.xi | pass 35/35 | fd38977f | False | publish pending: next scope delta |
 | xiom.gpio | xiom-gpio | incubating | tests/test_conformance.xi | pass 21/21 | 9dde8219 | False | category harmonization patch bump (registry metadata) |
 | xiom.graphql | xiom-graphql | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -412,12 +412,12 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.i2p | xiom-i2p | incubating | tests/test_conformance.xi | pass 24/24 | 76e49956 | False | publish pending: next scope delta |
 | xiom.image | xiom-image | incubating | tests/test_conformance.xi | pass 24/24 | 6f07e57b | False | publish pending: next scope delta |
 | xiom.imaging | xiom-imaging | incubating | tests/test_conformance.xi | pass 22/22 | 2d7a1b4c | False | publish pending: next scope delta |
-| xiom.imgui | xiom-imgui | incubating | tests/test_conformance.xi | pass 7/7 | bb69c92a | False | published in eco-v0.1.123 (2026-10-09) |
+| xiom.imgui | xiom-imgui | incubating | tests/test_conformance.xi | pass 7/7 | 05c30982 | False | published in eco-v0.1.156 (2026-10-11; 0.2.0 in eco-v0.1.123) |
 | xiom.inference | xiom-inference | incubating | tests/test_conformance.xi | pass 28/28 | 27a0a7ee | False | publish pending: next scope delta |
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb2 | False | publish pending: next scope delta |
 | xiom.jit-fw | xiom-jit-fw | incubating | tests/test_conformance.xi | pass 25/25 | c1e35d4f | False | category harmonization patch bump (registry metadata) |
-| xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | unknown |  | False | batch 35 parked: needs an official archive carrying m258 (--cxx-standard absent in v0.64.3); local-build record replaced |
+| xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 4/4 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12; batch 35, m258 gate cleared on v0.64.4) |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.kv | xiom-kv | incubating | tests/test_conformance.xi | pass 30/30 | 603f87ef | False | tests-only touch 2026-10-09 (rides the next source version bump) |
@@ -449,12 +449,12 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.mechanics | xiom-mechanics | incubating | tests/test_conformance.xi | pass 24/24 | f0933894 | False | publish pending: next scope delta |
 | xiom.memcached | xiom-memcached | incubating | tests/test_conformance.xi | pass 22/22 | ef1c057a | False | category harmonization patch bump (registry metadata) |
 | xiom.merkle | xiom-merkle | incubating | tests/test_conformance.xi | pass 22/22 | 425d4cb2 | False | publish pending: next scope delta |
-| xiom.meshopt | xiom-meshopt | incubating | tests/test_conformance.xi | pass 38/38 | e50b3f99 | False |  |
+| xiom.meshopt | xiom-meshopt | incubating | tests/test_conformance.xi | pass 38/38 | bd059406 | False | published in eco-v0.1.159 (2026-10-11; 0.3.0 in eco-v0.1.158) |
 | xiom.messaging | xiom-messaging | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.metadata | xiom-metadata | incubating | tests/test_conformance.xi | pass 28/28 | b7c0bfbf | False | publish pending: next scope delta |
 | xiom.micro | xiom-micro | incubating | tests/test_conformance.xi | pass 10/10 | 57cdac5b | False | publish pending: eco-v0.1.42 |
 | xiom.microscopy | xiom-microscopy | incubating | tests/test_conformance.xi | pass 24/24 | d475ef4b | False | publish pending: next scope delta |
-| xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | pass 6/6 | 9f1c1bcd | False | publish pending: bindings batch 17 (eco-v0.1.114) |
+| xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | pass 6/6 | ab8dc89e | False | published in eco-v0.1.154 (2026-10-11; 0.2.0 in eco-v0.1.114) |
 | xiom.ml | xiom-ml | incubating | tests/test_conformance.xi | pass 18/18 | 6a19ce99 | False | publish pending: next scope delta |
 | xiom.mock | xiom-mock | incubating | tests/test_conformance.xi | pass 20/20 | 4c9f5b3e | False | publish pending: next scope delta |
 | xiom.mongo | xiom-mongo | incubating | tests/test_conformance.xi | pass 23/23 | 6f9ebf38 | False | category harmonization patch bump (registry metadata) |
@@ -474,11 +474,11 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.openal | xiom-openal | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.openblas | xiom-openblas | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.opencv | xiom-opencv | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.opengl | xiom-opengl | incubating | tests/test_conformance.xi | pass 28/28 | 468b73d1 | False | published in eco-v0.1.164 (0.4.0); 0.5.0 publish requested (REL-20261013-1222-bindings) |
+| xiom.opengl | xiom-opengl | incubating | tests/test_conformance.xi | pass 28/28 | 779ac140 | False | published in eco-v0.1.164 (0.4.0); 0.5.0 publish requested (REL-20261013-1222-bindings) |
 | xiom.openssl | xiom-openssl | incubating | tests/test_conformance.xi | pass 4/4 | ec7a7e2e | False | publish pending: bindings batch 20 (eco-v0.1.119) |
 | xiom.optimizer-fw | xiom-optimizer-fw | incubating | tests/test_conformance.xi | pass 25/25 | ecf76d12 | False | publish pending: next scope delta |
 | xiom.oracle | xiom-oracle | incubating | tests/test_conformance.xi | pass 22/22 | f487102b | False | publish pending: owner scope decision (parallel-lane implementation) |
-| xiom.ozz | xiom-ozz | incubating | tests/test_conformance.xi | pass 5/5 | 926efce7 | False | publish pending: bindings batch 14 (eco-v0.1.109) |
+| xiom.ozz | xiom-ozz | incubating | tests/test_conformance.xi | pass 5/5 | 1b1389e2 | False | published in eco-v0.1.156 (2026-10-11; 0.2.0 in eco-v0.1.109) |
 | xiom.pandas | xiom-pandas | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.parquet | xiom-parquet | incubating | tests/test_conformance.xi | pass 20/20 | 4ff075bf | False | publish pending: next scope delta |
 | xiom.parser-fw | xiom-parser-fw | incubating | tests/test_conformance.xi | pass 27/27 | 1f0dff6d | False | category harmonization patch bump (registry metadata) |
@@ -508,26 +508,26 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.salt | xiom-salt | incubating | tests/test_conformance.xi | pass 28/28 | 425f4f71 | False | publish pending: next scope delta |
 | xiom.saml | xiom-saml | incubating | tests/test_conformance.xi | pass 28/28 | fcadeee8 | False | publish pending: next scope delta |
 | xiom.scipy | xiom-scipy | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.sdl2 | xiom-sdl2 | incubating | tests/test_conformance.xi | pass 16/16 | b7019de1 | False |  |
-| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 59/59 | c2d3330f | False | publish pending: bindings batch 41 (eco-v0.1.138) |
+| xiom.sdl2 | xiom-sdl2 | incubating | tests/test_conformance.xi | pass 16/16 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
+| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 59/59 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12; 0.16.1 in eco-v0.1.160; 0.16.0 in eco-v0.1.152; 0.15.0 in eco-v0.1.151) |
 | xiom.sectest | xiom-sectest | incubating | tests/test_conformance.xi | pass 22/22 | fc1702a9 | False | publish pending: next scope delta |
 | xiom.semaphore | xiom-semaphore | incubating | tests/test_conformance.xi | pass 23/23 | df934ed2 | False | publish pending: next scope delta |
 | xiom.serverless | xiom-serverless | incubating | tests/test_conformance.xi | pass 23/23 | 628a9502 | False | publish pending: next scope delta |
 | xiom.session | xiom-session | incubating | tests/test_conformance.xi | pass 24/24 | 7b7da18c | False |  |
-| xiom.shaderc | xiom-shaderc | incubating | tests/test_conformance.xi | pass 17/17 | 164161ed | False | not allowlisted: no readiness evidence recorded |
-| xiom.slang | xiom-slang | incubating | tests/test_conformance.xi | pass 20/20 | 5516746d | False | publish pending: SDK-100 bindings slice A6 (generated Slang C API facade) -- coordinator relay |
+| xiom.shaderc | xiom-shaderc | incubating | tests/test_conformance.xi | pass 17/17 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
+| xiom.slang | xiom-slang | incubating | tests/test_conformance.xi | pass 20/20 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.smartcontract | xiom-smartcontract | incubating | tests/test_conformance.xi | pass 22/22 | 5f469ee5 | False | publish pending: next scope delta |
-| xiom.spirv.headers | xiom-spirv-headers | incubating | tests/test_conformance.xi | pass 10/10 | 3501b249 | False | not allowlisted: SDK100 program slice B4; coordinator merge + allowlist pending |
-| xiom.spirv-cross | xiom-spirv-cross | incubating | tests/test_conformance.xi | pass 20/20 | a785b942 | False | incubating: port complete 2026-10-11 (spirv-cross C API 169/169); not on the publish scope |
-| xiom.spirv-reflect | xiom-spirv-reflect | incubating | tests/test_conformance.xi | pass 40/40 | 79e58309 | False | new binding package; awaiting coordinator relay/publish |
-| xiom.spirv-tools | xiom-spirv-tools | incubating | tests/test_conformance.xi | pass 39/39 | 8b8c214a | False | publish pending: SDK-100 bindings batch (xiom.spirv-tools 0.1.0) |
+| xiom.spirv.headers | xiom-spirv-headers | incubating | tests/test_conformance.xi | pass 10/10 | 674dea9d | False | published in eco-v0.1.165 (2026-10-12) |
+| xiom.spirv-cross | xiom-spirv-cross | incubating | tests/test_conformance.xi | pass 20/20 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
+| xiom.spirv-reflect | xiom-spirv-reflect | incubating | tests/test_conformance.xi | pass 40/40 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
+| xiom.spirv-tools | xiom-spirv-tools | incubating | tests/test_conformance.xi | pass 39/39 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.sql | xiom-sql | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: stub body |
 | xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | pass 16/16 | 1435ac01 | False | published in eco-v0.1.122 (2026-10-09) |
 | xiom.ssh2 | xiom-ssh2 | incubating | tests/test_conformance.xi | pass 24/24 | 0da2fa55 | False | publish pending: eco-v0.1.37 (v0.62.3 result-payload fix) |
 | xiom.static | xiom-static | incubating | tests/test_conformance.xi | pass 25/25 | 50742952 | False |  |
 | xiom.stats-ml | xiom-stats-ml | incubating | tests/test_conformance.xi | pass 22/22 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.stats-tests | xiom-stats-tests | incubating | tests/test_conformance.xi | pass 25/25 | 6b308204 | False | publish pending: next scope delta |
-| xiom.stb | xiom-stb | incubating | tests/test_conformance.xi | pass 5/5 | 07f5b9da | False | new name: pending ops scope + native-lane allowlist append |
+| xiom.stb | xiom-stb | incubating | tests/test_conformance.xi | pass 5/5 | 07f5b9da | False | published in eco-v0.1.139 (2026-10-11) |
 | xiom.stm | xiom-stm | incubating | tests/test_conformance.xi | pass 20/20 | add37727 | False | publish pending: next scope delta |
 | xiom.streaming | xiom-streaming | incubating | tests/test_conformance.xi | pass 21/21 | fb04b916 | False | publish pending: next scope delta |
 | xiom.stub | xiom-stub | incubating | tests/test_conformance.xi | pass 22/22 | 84801644 | False | publish pending: next scope delta |
@@ -546,8 +546,8 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.vault | xiom-vault | incubating | tests/test_conformance.xi | pass 28/28 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.vectors | xiom-vectors | incubating | tests/test_conformance.xi | pass 37/37 | b8911083 | False | published in eco-v0.1.131 (2026-10-10) |
 | xiom.video | xiom-video | incubating | tests/test_conformance.xi | pass 24/24 | e23f8e3a | False | publish pending: next scope delta |
-| xiom.vma | xiom-vma | incubating | tests/test_full_surface.xi | pass 21/21 | fde95379 | False | published in eco-v0.1.124 (2026-10-09) |
-| xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 22/22 | 7a941c1f | False | publish pending: bindings batch 40 (eco-v0.1.138) |
+| xiom.vma | xiom-vma | incubating | tests/test_full_surface.xi | pass 5/5 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12; 0.2.0 in eco-v0.1.124) |
+| xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 22/22 | 1aa5be5b | False | published in eco-v0.1.163 (2026-10-12; 0.5.0 in eco-v0.1.138; 0.4.0 in eco-v0.1.135) |
 | xiom.wal | xiom-wal | incubating | tests/test_conformance.xi | pass 21/21 | 137a8200 | False | published in eco-v0.1.121 (2026-10-09) |
 | xiom.wallet | xiom-wallet | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.wasmtime | xiom-wasmtime | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
