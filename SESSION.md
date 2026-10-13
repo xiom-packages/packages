@@ -113,6 +113,15 @@ running). Check `git log -1 --format=%h %s` before starting.
   gate deferred until compiler semantics settle); `-1800-bindings` fixed (at-touch split confirmed).
   Compiler acked `-1731-packages` 18:00Z (consumer-build batch); bindings `-1721-bindings-3` in
   flight (uncommitted working-tree file in relays -- not ours to touch). Archive still v0.64.4.
+- **ENGINE PIPELINE = TOP EXTERNAL PRIORITY (owner directive 2026-10-13 19:25Z; ALL engine asks urgent)**:
+  codec/container prep wave filed to bindings (`REL-20261013-1926-packages`, high): Wave A surfaces on
+  pinned libs (meshopt cooked wrapper; zstd container framing; ffmpeg AV1/demux) then Wave B in engine
+  order (streaming audio codec; HRTF -- note `xiom.phonon` IS Steam Audio; volumetrics; splats; KTX2/Basis;
+  HarfBuzz). **Clone-repo protocol ENFORCED in the ask**: `E:\repos\<name>` clone + CLEANUP.md row
+  (review-after) + license-on-touch + PROVENANCE.md at landing, no orphan clones; ledger verified
+  (meshoptimizer/steam-audio rows present; FFmpeg row reference-only LGPL/GPL -> keep dynamic-loader
+  model; zstd + new candidates need clones at prep). Engine asks tracked: `-1819-engine` (compiler),
+  `-1819-engine-2` + `-1903-engine` (bindings), `-1914-engine` acked with sequencing.
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
