@@ -25,7 +25,9 @@ stderr: xiominput.ll:1731:45: error: use of undefined value '%tmp42'
    %tmp1018 = load %struct.Vec, %struct.Vec* %tmp42
 ```
 
-No XIOM-level diagnostic; the failure is in the lowered IR.
+No XIOM-level diagnostic; the failure is in the lowered IR. `--emit-ir` alone
+succeeds (the IR contains the undefined value); `--run` fails when clang
+rejects it.
 
 ## Fix / workaround (shipped in `xiom.phonon` 0.3.0)
 
