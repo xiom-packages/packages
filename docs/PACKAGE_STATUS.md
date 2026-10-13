@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T12:32:34Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T13:14:43Z.
 
 ## Summary
 
@@ -80,7 +80,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.dotenv | xiom-dotenv | stable | tests/test_conformance.xi | pass 18/18 | ee7080c4 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.dtb | xiom-dtb | stable | tests/test_conformance.xi | pass 18/18 | 3daa4787 | False | legacy bracket repair patch bump |
 | xiom.duration | xiom-duration | stable | tests/test_conformance.xi | pass 22/22 | 676fc4cb | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.dx12 | xiom-dx12 | stable | tests/test_conformance.xi | pass 35/35 | 1a392b91 | False |  |
+| xiom.dx12 | xiom-dx12 | stable | tests/test_conformance.xi | pass 42/42 | fd9f2a4d | False | stable; 0.4.0 publish requested (REL-20261013-1313-bindings; command recording + B-25 Int object params) |
 | xiom.ean | xiom-ean | stable | tests/test_conformance.xi | pass 20/20 | 4422ca91 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.edl | xiom-edl | stable | tests/test_conformance.xi | pass 22/22 | 39af9193 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.eeprom | xiom-eeprom | stable | tests/test_conformance.xi | pass 17/17 | 0be46d3f | False | category harmonization patch bump (registry metadata) |
