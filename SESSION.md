@@ -112,6 +112,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   physics hand-off), plus sdl3/gles/sqlite above; glfw 0.5.0 compiles + SKIP-path (no glfw3.dll
   on this box). All recipe families proven: pure loader / +C bridge / multi-C+link / C++17 TU set /
   vendored amalgamation. The `-5` gap is tool wiring, not the data -- port.args replays exactly.
+- **Release-trail audit (2026-10-13)**: all six eco runs of the day (169-174: dx12 0.3.1,
+  opengl 0.5.0, gles 0.1.0, dx12 0.4.0, sdl3 0.18.0, sqlite 0.4.0) published exactly their
+  intended package -- no accidental republications; registry pre-check + readiness filter behaved.
 - **Ops hygiene (clobber incident `-1852-ops`)**: installs/extracts to lane-local dirs only;
   `tools/home-snapshot.ps1` before risky windows; restore-from-snapshot after a clobber. Packages ran
   no install/extract; timeline observation filed (`REL-20261012-1904-packages`).
