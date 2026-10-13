@@ -1,17 +1,24 @@
 {
     "package":  "xiom.dx12",
-    "stage":  "incubating",
+    "stage":  "stable",
     "compiler":  "v0.64.4",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  31,
+                  "passed":  35,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "3fcb92aa",
-                  "checked":  "2026-10-12T21:03:48Z"
+                  "commit":  "46b45e76",
+                  "checked":  "2026-10-13T12:24:00Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.168 (2026-10-12; 0.2.0 in eco-v0.1.167; 0.1.0 in eco-v0.1.166)"
+    "excluded_reason":  "published in eco-v0.1.168 (2026-10-12; 0.2.0 in eco-v0.1.167; 0.1.0 in eco-v0.1.166)",
+    "platforms":  [
+                      "windows-x64"
+                  ],
+    "runtime_deps":  [
+                         "d3d12.dll (runtime loader; SKIP when absent)",
+                         "dxgi.dll (runtime loader; SKIP when absent)"
+                     ]
 }
