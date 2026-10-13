@@ -5,6 +5,7 @@
 
 module xiom.sqlite.rows
 
+use xiom.string;
 use xiom.sqlite.ffi;
 use xiom.sqlite.types;
 
@@ -67,6 +68,83 @@ pub fn count_rows(db: Int, sql: Str) -> Result[Int, SqliteError]
   }
   let res: SqliteResult = r.value;
   return Ok(res.row_count());
+}
+
+/// Prepare `sql`, return its first row when one exists (as a flat
+/// RowOutcome -- `has_row` false when the result set is empty).  The
+/// statement is finalized before returning (single step; unlike query_all
+/// this does not materialize the remaining rows).
+///
+/// The return type is deliberately `Result[RowOutcome, SqliteError]` and not
+/// `Result[Option[SqliteRow], SqliteError]`: extracting a struct-with-Vec
+/// payload from an enum nested in an enum payload corrupts the value on the
+/// current pin (finding B-26; repro in docs/repro/bindings-pilot/
+/// nested-payload/).
+/// Complexity: O(columns) for the returned row.
+pub fn query_one(db: Int, sql: Str) -> Result[RowOutcome, SqliteError]
+  requires: db != 0
+  requires: sql.len() > 0
+{
+  let prep = ffi.prepare(db, sql);
+  if !prep.is_ok {
+    return Err(prep.error);
+  }
+  let stmt: Int = prep.value;
+  let s = ffi.step(stmt);
+  if !s.is_ok {
+    var ignored = ffi.finalize(stmt);
+    return Err(s.error);
+  }
+  var row = SqliteRow.new();
+  var has_row = false;
+  if s.value {
+    let ncols = ffi.column_count(stmt);
+    var k: Int = 0;
+    while k < ncols {
+      row.add(value_at(stmt, k));
+      k = k + 1;
+    }
+    has_row = true;
+  }
+  let fin = ffi.finalize(stmt);
+  if !fin.is_ok {
+    return Err(fin.error);
+  }
+  return Ok(RowOutcome{ has_row: has_row, row: row });
+}
+
+/// Index of the first result column named `name`, or None when there is no
+/// such column.  Name comparison uses `string.str_compare` (BUG 17
+/// discipline: never `==` on Str values).
+/// Complexity: O(columns).
+pub fn SqliteResult.column_index(res: &SqliteResult, name: Str) -> Option[Int]
+  requires: name.len() > 0
+{
+  var i: Int = 0;
+  while i < res.column_names.len() {
+    if string.str_compare(res.column_names[i], name) == 0 {
+      return Some(i);
+    }
+    i = i + 1;
+  }
+  return None;
+}
+
+/// Value of the column named `name` in result row `row_index`, or None when
+/// the row index or the column does not exist (by-name counterpart of
+/// `SqliteRow.get`).
+/// Complexity: O(columns).
+pub fn SqliteResult.value_by_name(res: &SqliteResult, row_index: Int, name: Str) -> Option[SqliteValue]
+  requires: name.len() > 0
+{
+  if row_index < 0 { return None; }
+  if row_index >= res.rows.len() { return None; }
+  let idx = SqliteResult.column_index(res, name);
+  if !idx.is_some { return None; }
+  let row = SqliteResult.get_row(res, row_index);
+  if !row.is_some { return None; }
+  let rw: SqliteRow = row.value;
+  return SqliteRow.get(&rw, idx.value);
 }
 
 // Map one column of the current row to a SqliteValue. BLOBs are

@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sqlite` |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SQLite -- https://sqlite.org/ |
 | Upstream version | **3.53.4** (amalgamation build 3530400; `libversion_number` = 3053004) |
 | Upstream license | Public domain (blessing text in `vendor/LICENSE`) |
 | Package license | MIT OR Apache-2.0 (everything outside `vendor/`) |
 | Platform | Windows x64 (primary); no platform-specific XIOM code |
-| Compiler pin | xiom v0.64.2 |
+| Compiler pin | xiom v0.64.4 |
 
 ## 2. Vendored path (G2 pin)
 
@@ -57,11 +57,12 @@ vendored (CLI only, not needed by the library API).
 |--------|------|------|
 | `xiom.sqlite` | `src/sqlite.xi` | Package entry. Public API facade; **no unsafe**; delegates to `xiom.sqlite.ffi` |
 | `xiom.sqlite.ffi` | `src/ffi.xi` | **The only module with `unsafe` and `extern "C"`.** All foreign calls and pointer/memory handling confined here; exposes typed safe wrappers |
-| `xiom.sqlite.types` | `src/types.xi` | Value/row/result/error types; pure |
-| `xiom.sqlite.rows` | `src/rows.xi` | Materializes statements into owned values; pure |
+| `xiom.sqlite.types` | `src/types.xi` | Value/row/result/error types (+ `RowOutcome`); pure |
+| `xiom.sqlite.rows` | `src/rows.xi` | Materializes statements into owned values (`query_all`, `count_rows`, `query_one`, by-name access); pure |
 | `xiom.sqlite.query` | `src/query.xi` | SQL query builder; pure |
 | `xiom.sqlite.schema` | `src/schema.xi` | DDL builder; pure |
 | `xiom.sqlite.migration` | `src/migration.xi` | Migration manager over a live handle; pure |
+| `xiom.sqlite.driver` | `src/driver.xi` | SQL driver facade for consumers (DSN, execute/query, transactions, caps); pure |
 
 Handle model: connections and statements are opaque `Int` addresses owned by
 the caller; `close`/`finalize` release them. No implicit frees. A statement
@@ -79,12 +80,58 @@ connection exists). `error_name(code)` maps codes to stable identifiers;
 `SQLITE_*` constants are exported from the facade and the FFI module with
 literal values.
 
+### 3.1 Driver module (0.4.0 -- PULSE SQL driver contract)
+
+`src/driver.xi` implements the consumer contract in
+`docs/requirements/pulse-sql-driver.md` (option A): a pure-XIOM facade over
+the FFI surface. No `unsafe`, no externs -- all foreign calls stay in
+`xiom.sqlite.ffi`.
+
+API (`SqlDriver`):
+
+| Call | Contract |
+|------|----------|
+| `SqlDsn.parse(dsn)` | DSN grammar below; fails closed on unknown options / malformed values |
+| `SqlDriver.open_from_dsn(dsn)` | open + apply `busy_timeout` / `journal_mode`; closes the handle on any failure |
+| `SqlDriver.execute(sql)` | non-query (result rows discarded); Ok = rows affected + last insert rowid |
+| `SqlDriver.query(sql)` | `SqliteResult` (typed values by index; column names for by-name access) |
+| `SqlDriver.query_one(sql)` | flat `RowOutcome { has_row, row }` -- first row or empty |
+| `SqlDriver.transaction_begin/commit/rollback` | explicit transaction control |
+| `SqlDriver.in_transaction()` | true while an explicit transaction is open (`sqlite3_get_autocommit`) |
+| `SqlDriver.last_error()` | `{code, message}` of the connection's most recent error |
+| `SqlDriver.caps()` / `.transactional_ddl()` | capability flags (DDL is transactional; `:memory:` supported) |
+| `SqlDriver.close()` | release the connection |
+
+DSN grammar: `[sqlite:|sqlite3:|sqlite://]PATH[?opt=val[&opt=val]...]` with
+`busy_timeout=<ms>` (default 5000; 0 disables the busy handler) and
+`journal_mode=delete|truncate|persist|memory|wal|off`. Unknown options and
+malformed values return `SQLITE_ERROR` with a printable description.
+`journal_mode` is read back after open (`PRAGMA journal_mode;`), so
+`SqlDriver.journal_mode` / `caps().journal_mode` report what is actually in
+effect (SQLite may ignore WAL for `:memory:`, for example).
+
+Transaction discipline (runner-side): begin; on the FIRST `Err` call
+`transaction_rollback` and report the ORIGINAL error; otherwise `commit`.
+The driver owns no migrations policy (locks, batches, ordering and the
+backup fence are the runner's).  The `-- no-transaction` escape is runner
+policy: sqlite reports `transactional_ddl == true`.
+
+`query_one` returns a flat `RowOutcome` instead of
+`Result[Option[SqliteRow]]` deliberately: the nested payload corrupts
+struct-with-Vec values on the current pin (finding B-26; repro
+`docs/repro/bindings-pilot/nested-payload/`). Restore the nested shape only
+after the compiler fix, re-tested from that bundle.
+
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` (16 checks: version pin, connection
+Suite: `tests/test_conformance.xi` (21 checks: version pin, connection
 lifecycle, exec, prepared statements + binding, error codes, transactions,
 typed rows, datatypes, wide values, handle reuse, query builder, schema
-builder, migration manager, file persistence, errmsg freshness).
+builder, migration manager, file persistence, errmsg freshness -- plus five
+driver checks: DSN parse cases; `:memory:` round trip + capability flags;
+transactions (commit/rollback visible state + `in_transaction`);
+rollback-on-error + error mapping via `last_error`; file DSN options +
+reopen persistence/defaults).
 
 Command (cwd = this package directory):
 
@@ -132,3 +179,11 @@ restored, everything else stays avoided. Documented in
 6. **A module exporting an associated fn named `up`/`down` crashes the
    compiler when `xiom.test` is in the catalog.** Migration methods are
    `migrate_up`/`migrate_down`.
+7. **Nested enum payloads (`Result[Option[T]]`) corrupt struct-with-Vec
+   payloads** (B-26; found 2026-10-13 while building the 0.4.0 driver).
+   Extracting the struct from the nested payload leaves its `Vec` length
+   reading as a pointer-like value; using the value crashes (0xC0000005).
+   Flat struct payloads and single-level `Option` extraction are correct.
+   Workaround shipped: `query_one` returns the flat `RowOutcome`; repro
+   `docs/repro/bindings-pilot/nested-payload/` (re-test after the compiler
+   fix).

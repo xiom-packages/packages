@@ -106,6 +106,13 @@ pub fn extended_errcode(db: Int) -> Int
   return ffi.extended_errcode(db);
 }
 
+/// True when no explicit transaction is open on this connection.
+pub fn autocommit(db: Int) -> Bool
+  requires: db != 0
+{
+  return ffi.autocommit(db);
+}
+
 /// Human-readable description of the most recent error on this connection.
 pub fn errmsg(db: Int) -> Str
   requires: db != 0

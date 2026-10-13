@@ -17,10 +17,16 @@
 //   * schema builder integration: TableDef DDL executes
 //   * migration manager: up/down over a live handle
 //   * file-backed database: create, close, reopen, persisted row count
+//   * driver module (0.4.0, PULSE contract): DSN parsing (scheme/options,
+//     fail-closed errors), open_from_dsn + capability flags, execute /
+//     query / query_one + by-name access, explicit transactions
+//     (commit/rollback visible state, rollback-on-error, in_transaction),
+//     error mapping via SqlDriver.last_error, file DSN options + reopen
 //
-// The file-backed check creates `sqlite_conformance_tmp.db` in the current
-// directory (already covered by the package .gitignore).  It resets its own
-// table on every run, so repeated runs are deterministic.
+// The file-backed checks create `sqlite_conformance_tmp.db` and
+// `sqlite_driver_tmp.db` in the current directory (already covered by the
+// package .gitignore).  They reset their own tables on every run, so
+// repeated runs are deterministic.
 
 module sqlite_conformance
 
@@ -35,6 +41,7 @@ use xiom.sqlite.types;
 use xiom.sqlite.query;
 use xiom.sqlite.schema;
 use xiom.sqlite.migration;
+use xiom.sqlite.driver;
 
 // ---------------------------------------------------------------------------
 // helpers
@@ -571,6 +578,203 @@ fn t16_errmsg_updates() -> TestResult {
   return assert(ok, "errmsg: distinct failures carry distinct messages");
 }
 
+// 17. Driver DSN parsing: schemes, options, fail-closed errors.
+fn t17_driver_dsn_parse() -> TestResult {
+  var ok = true;
+  let m = driver.SqlDsn.parse(":memory:");
+  if !m.is_ok { ok = false; } else {
+    if !str_eq(m.value.path, ":memory:") { ok = false; }
+    if m.value.busy_timeout_ms != 5000 { ok = false; }
+    if m.value.journal_mode.len() != 0 { ok = false; }
+  }
+  let f = driver.SqlDsn.parse("sqlite://C:/data/pulse.db?busy_timeout=0&journal_mode=WAL");
+  if !f.is_ok { ok = false; } else {
+    if !str_eq(f.value.path, "C:/data/pulse.db") { ok = false; }
+    if f.value.busy_timeout_ms != 0 { ok = false; }
+    if !str_eq(f.value.journal_mode, "wal") { ok = false; }
+  }
+  let p = driver.SqlDsn.parse("demo.db?busy_timeout=250");
+  if !p.is_ok { ok = false; } else {
+    if !str_eq(p.value.path, "demo.db") { ok = false; }
+    if p.value.busy_timeout_ms != 250 { ok = false; }
+  }
+  let bad_key = driver.SqlDsn.parse("x.db?bogus=1");
+  if bad_key.is_ok { ok = false; } else {
+    if bad_key.error.code != SQLITE_ERROR { ok = false; }
+    if bad_key.error.message.len() == 0 { ok = false; }
+  }
+  let bad_val = driver.SqlDsn.parse("x.db?busy_timeout=abc");
+  if bad_val.is_ok { ok = false; }
+  let bad_mode = driver.SqlDsn.parse("x.db?journal_mode=turbo");
+  if bad_mode.is_ok { ok = false; }
+  let bad_neg = driver.SqlDsn.parse("x.db?busy_timeout=-5");
+  if bad_neg.is_ok { ok = false; }
+  return assert(ok, "driver dsn: :memory:/scheme/options parse + fail-closed errors");
+}
+
+// 18. Driver open/execute/query/query_one over :memory: + capability flags.
+fn t18_driver_memory_roundtrip() -> TestResult {
+  let o = driver.SqlDriver.open_from_dsn(":memory:");
+  if !o.is_ok { return assert(false, "driver mem: open_from_dsn"); }
+  let drv = o.value;
+  var ok = true;
+  let caps = driver.SqlDriver.caps(&drv);
+  if !caps.transactional_ddl { ok = false; }
+  if !caps.supports_in_memory { ok = false; }
+  if !str_eq(caps.journal_mode, "memory") { ok = false; }
+  if caps.busy_timeout_ms != 5000 { ok = false; }
+  if !driver.SqlDriver.transactional_ddl(&drv) { ok = false; }
+  if !str_eq(driver.SqlDriver.dsn(&drv), ":memory:") { ok = false; }
+  let c = driver.SqlDriver.execute(&drv, "CREATE TABLE t(id INTEGER PRIMARY KEY, name TEXT);");
+  if !c.is_ok { ok = false; } else {
+    if c.value.rows_affected != 0 { ok = false; }
+  }
+  let i = driver.SqlDriver.execute(&drv, "INSERT INTO t(name) VALUES ('hello');");
+  if !i.is_ok { ok = false; } else {
+    if i.value.rows_affected != 1 { ok = false; }
+    if i.value.last_insert_rowid != 1 { ok = false; }
+  }
+  let q = driver.SqlDriver.query(&drv, "SELECT id, name FROM t;");
+  if !q.is_ok { ok = false; } else {
+    let res: SqliteResult = q.value;
+    if res.row_count() != 1 { ok = false; }
+    let by_name = SqliteResult.value_by_name(&res, 0, "name");
+    if !by_name.is_some { ok = false; } else {
+      if !opt_str_eq(SqliteValue.as_text(&by_name.value), "hello") { ok = false; }
+    }
+    let by_id = SqliteResult.value_by_name(&res, 0, "id");
+    if !by_id.is_some { ok = false; } else {
+      if !opt_int_is(SqliteValue.as_int(&by_id.value), 1) { ok = false; }
+    }
+    let missing = SqliteResult.value_by_name(&res, 0, "nope");
+    if missing.is_some { ok = false; }
+  }
+  let q1 = driver.SqlDriver.query_one(&drv, "SELECT name FROM t;");
+  if !q1.is_ok { ok = false; } else {
+    let out: RowOutcome = q1.value;
+    if !out.has_row { ok = false; } else {
+      let v = SqliteRow.get(&out.row, 0);
+      if !v.is_some { ok = false; } else {
+        if !opt_str_eq(SqliteValue.as_text(&v.value), "hello") { ok = false; }
+      }
+    }
+  }
+  let q0 = driver.SqlDriver.query_one(&drv, "SELECT name FROM t WHERE id = 99;");
+  if !q0.is_ok { ok = false; } else {
+    let out0: RowOutcome = q0.value;
+    if out0.has_row { ok = false; }
+  }
+  let cl = driver.SqlDriver.close(&drv);
+  if !cl.is_ok { ok = false; }
+  return assert(ok, "driver mem: caps, execute/query/query_one, by-name access");
+}
+
+// 19. Driver transactions: begin/commit/rollback visible state.
+fn t19_driver_transactions() -> TestResult {
+  let o = driver.SqlDriver.open_from_dsn(":memory:");
+  if !o.is_ok { return assert(false, "driver tx: open"); }
+  let drv = o.value;
+  var ok = true;
+  if driver.SqlDriver.in_transaction(&drv) { ok = false; }
+  let c = driver.SqlDriver.execute(&drv, "CREATE TABLE t(x INTEGER);");
+  if !c.is_ok { ok = false; }
+  let b = driver.SqlDriver.transaction_begin(&drv);
+  if !b.is_ok { ok = false; }
+  if !driver.SqlDriver.in_transaction(&drv) { ok = false; }
+  let i1 = driver.SqlDriver.execute(&drv, "INSERT INTO t VALUES (1);");
+  if !i1.is_ok { ok = false; }
+  let rb = driver.SqlDriver.transaction_rollback(&drv);
+  if !rb.is_ok { ok = false; }
+  if driver.SqlDriver.in_transaction(&drv) { ok = false; }
+  let n1 = count_rows(driver.SqlDriver.db(&drv), "SELECT x FROM t;");
+  if !n1.is_ok { ok = false; } else {
+    if n1.value != 0 { ok = false; }
+  }
+  let b2 = driver.SqlDriver.transaction_begin(&drv);
+  if !b2.is_ok { ok = false; }
+  let i2 = driver.SqlDriver.execute(&drv, "INSERT INTO t VALUES (2);");
+  if !i2.is_ok { ok = false; }
+  let cm = driver.SqlDriver.transaction_commit(&drv);
+  if !cm.is_ok { ok = false; }
+  let n2 = count_rows(driver.SqlDriver.db(&drv), "SELECT x FROM t;");
+  if !n2.is_ok { ok = false; } else {
+    if n2.value != 1 { ok = false; }
+  }
+  let cl = driver.SqlDriver.close(&drv);
+  if !cl.is_ok { ok = false; }
+  return assert(ok, "driver tx: begin/commit/rollback visible state + in_transaction");
+}
+
+// 20. Driver rollback-on-error discipline + error mapping.
+fn t20_driver_rollback_on_error() -> TestResult {
+  let o = driver.SqlDriver.open_from_dsn(":memory:");
+  if !o.is_ok { return assert(false, "driver err: open"); }
+  let drv = o.value;
+  var ok = true;
+  let c = driver.SqlDriver.execute(&drv, "CREATE TABLE t(x INTEGER PRIMARY KEY);");
+  if !c.is_ok { ok = false; }
+  let b = driver.SqlDriver.transaction_begin(&drv);
+  if !b.is_ok { ok = false; }
+  let good = driver.SqlDriver.execute(&drv, "INSERT INTO t VALUES (1);");
+  if !good.is_ok { ok = false; }
+  let dup = driver.SqlDriver.execute(&drv, "INSERT INTO t VALUES (1);");
+  if dup.is_ok { ok = false; } else {
+    if dup.error.code != SQLITE_CONSTRAINT { ok = false; }
+    if dup.error.message.len() == 0 { ok = false; }
+    let le = driver.SqlDriver.last_error(&drv);
+    if le.code != SQLITE_CONSTRAINT { ok = false; }
+    if le.message.len() == 0 { ok = false; }
+    let rb = driver.SqlDriver.transaction_rollback(&drv);
+    if !rb.is_ok { ok = false; }
+  }
+  if driver.SqlDriver.in_transaction(&drv) { ok = false; }
+  let n = count_rows(driver.SqlDriver.db(&drv), "SELECT x FROM t;");
+  if !n.is_ok { ok = false; } else {
+    if n.value != 0 { ok = false; }
+  }
+  let retry = driver.SqlDriver.execute(&drv, "INSERT INTO t VALUES (7);");
+  if !retry.is_ok { ok = false; }
+  let n2 = count_rows(driver.SqlDriver.db(&drv), "SELECT x FROM t;");
+  if !n2.is_ok { ok = false; } else {
+    if n2.value != 1 { ok = false; }
+  }
+  let cl = driver.SqlDriver.close(&drv);
+  if !cl.is_ok { ok = false; }
+  return assert(ok, "driver err: failed step + rollback keeps code/message, connection reusable");
+}
+
+// 21. Driver file-backed DSN with options; persistence + defaults on reopen.
+fn t21_driver_file_options() -> TestResult {
+  let path = "sqlite_driver_tmp.db";
+  var ok = true;
+  let o1 = driver.SqlDriver.open_from_dsn("sqlite:" + path + "?busy_timeout=250&journal_mode=wal");
+  if !o1.is_ok { return assert(false, "driver file: open with options"); }
+  let drv1 = o1.value;
+  let caps1 = driver.SqlDriver.caps(&drv1);
+  if !str_eq(caps1.journal_mode, "wal") { ok = false; }
+  if caps1.busy_timeout_ms != 250 { ok = false; }
+  let d = driver.SqlDriver.execute(&drv1, "DROP TABLE IF EXISTS t;");
+  if !d.is_ok { ok = false; }
+  let c = driver.SqlDriver.execute(&drv1, "CREATE TABLE t(x INTEGER); INSERT INTO t VALUES (5);");
+  if !c.is_ok { ok = false; }
+  let cl1 = driver.SqlDriver.close(&drv1);
+  if !cl1.is_ok { ok = false; }
+  let o2 = driver.SqlDriver.open_from_dsn(path);
+  if !o2.is_ok { ok = false; } else {
+    let drv2 = o2.value;
+    let n = count_rows(driver.SqlDriver.db(&drv2), "SELECT x FROM t;");
+    if !n.is_ok { ok = false; } else {
+      if n.value != 1 { ok = false; }
+    }
+    let caps2 = driver.SqlDriver.caps(&drv2);
+    if !str_eq(caps2.journal_mode, "wal") { ok = false; }
+    if caps2.busy_timeout_ms != 5000 { ok = false; }
+    let cl2 = driver.SqlDriver.close(&drv2);
+    if !cl2.is_ok { ok = false; }
+  }
+  return assert(ok, "driver file: DSN options applied, reopen persists (wal) + defaults");
+}
+
 // ---------------------------------------------------------------------------
 // runner
 // ---------------------------------------------------------------------------
@@ -608,6 +812,11 @@ fn main() -> Int {
   failed = failed + report(t14_migration_manager());
   failed = failed + report(t15_file_persistence());
   failed = failed + report(t16_errmsg_updates());
+  failed = failed + report(t17_driver_dsn_parse());
+  failed = failed + report(t18_driver_memory_roundtrip());
+  failed = failed + report(t19_driver_transactions());
+  failed = failed + report(t20_driver_rollback_on_error());
+  failed = failed + report(t21_driver_file_options());
   if failed == 0 {
     io.println("xiom.sqlite: all tests passed");
   } else {

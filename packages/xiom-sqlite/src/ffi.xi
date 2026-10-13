@@ -68,6 +68,7 @@ extern "C" {
   fn sqlite3_errmsg(db: *UInt8) -> *UInt8;
   fn sqlite3_errcode(db: *UInt8) -> Int;
   fn sqlite3_extended_errcode(db: *UInt8) -> Int;
+  fn sqlite3_get_autocommit(db: *UInt8) -> Int;
 
   fn sqlite3_exec(db: *UInt8, sql: *UInt8, callback: Int, arg: Int, errmsg: *UInt8) -> Int;
 
@@ -210,6 +211,15 @@ pub fn extended_errcode(db: Int) -> Int
   requires: db != 0
 {
   unsafe { sqlite3_extended_errcode(db as *UInt8) }
+}
+
+/// True when the connection is in autocommit mode (no explicit transaction
+/// is open).  Backed by `sqlite3_get_autocommit`.
+/// Complexity: O(1).
+pub fn autocommit(db: Int) -> Bool
+  requires: db != 0
+{
+  unsafe { sqlite3_get_autocommit(db as *UInt8) != 0 }
 }
 
 /// Human-readable description of the most recent error on this connection.
