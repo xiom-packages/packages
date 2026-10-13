@@ -289,6 +289,13 @@ def norm_type(base, stars, enums, typedefs, structs, where, skips):
     b = b.replace("*", " ").strip()
     b = norm(b)
     if stars:
+        # COM object pointers cross as `Int` (the C param is `void*` and
+        # Int->void* marshals value-preserving, while `Int as *UInt8` does
+        # NOT preserve the handle on v0.64.4 -- finding B-25, filed with a
+        # repro in docs/repro/bindings-pilot/ptr-cast).  Pointer-to-pointer
+        # out-slots stay `*UInt8` (callers pass owned slot pointers).
+        if len(stars) == 1 and (b.startswith("ID") or b in ("IUnknown", "IStream")):
+            return ("void*", "Int")
         return ("void*", "*UInt8")
     if b in PTR_ALIASES:
         return ("void*", "*UInt8")

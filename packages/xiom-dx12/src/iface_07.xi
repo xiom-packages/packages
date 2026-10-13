@@ -33,27 +33,27 @@ pub fn d3d12_device9_create_command_queue1(obj: Int, pDesc: *UInt8, CreatorID: *
 // ---- ID3D12Device10 ----
 
 extern "C" {
-  fn xd12c_ID3D12Device10_CreateCommittedResource3(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: *UInt8, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riidResource: *UInt8, ppvResource: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device10_CreateCommittedResource3(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: Int, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riidResource: *UInt8, ppvResource: *UInt8) -> Int32;
 }
-pub fn d3d12_device10_create_committed_resource3(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: *UInt8, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riidResource: *UInt8, ppvResource: *UInt8) -> Int32
+pub fn d3d12_device10_create_committed_resource3(obj: Int, pHeapProperties: *UInt8, HeapFlags: Int32, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: Int, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riidResource: *UInt8, ppvResource: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device10_CreateCommittedResource3(obj, pHeapProperties, HeapFlags, pDesc, InitialLayout, pOptimizedClearValue, pProtectedSession, NumCastableFormats, pCastableFormats, riidResource, ppvResource); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device10_CreatePlacedResource2(obj: Int, pHeap: *UInt8, HeapOffset: UInt64, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device10_CreatePlacedResource2(obj: Int, pHeap: Int, HeapOffset: UInt64, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32;
 }
-pub fn d3d12_device10_create_placed_resource2(obj: Int, pHeap: *UInt8, HeapOffset: UInt64, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32
+pub fn d3d12_device10_create_placed_resource2(obj: Int, pHeap: Int, HeapOffset: UInt64, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device10_CreatePlacedResource2(obj, pHeap, HeapOffset, pDesc, InitialLayout, pOptimizedClearValue, NumCastableFormats, pCastableFormats, riid, ppvResource); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device10_CreateReservedResource2(obj: Int, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: *UInt8, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device10_CreateReservedResource2(obj: Int, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: Int, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32;
 }
-pub fn d3d12_device10_create_reserved_resource2(obj: Int, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: *UInt8, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32
+pub fn d3d12_device10_create_reserved_resource2(obj: Int, pDesc: *UInt8, InitialLayout: Int32, pOptimizedClearValue: *UInt8, pProtectedSession: Int, NumCastableFormats: UInt32, pCastableFormats: *UInt8, riid: *UInt8, ppvResource: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device10_CreateReservedResource2(obj, pDesc, InitialLayout, pOptimizedClearValue, pProtectedSession, NumCastableFormats, pCastableFormats, riid, ppvResource); }
@@ -113,18 +113,18 @@ pub fn d3d12_device15_unregister_trim_notification_callback(obj: Int, CallbackCo
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device15_TryCreateShaderResourceView(obj: Int, pResource: *UInt8, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32;
+  fn xd12c_ID3D12Device15_TryCreateShaderResourceView(obj: Int, pResource: Int, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32;
 }
-pub fn d3d12_device15_try_create_shader_resource_view(obj: Int, pResource: *UInt8, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32
+pub fn d3d12_device15_try_create_shader_resource_view(obj: Int, pResource: Int, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device15_TryCreateShaderResourceView(obj, pResource, pDesc, DestDescriptor); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device15_TryCreateUnorderedAccessView(obj: Int, pResource: *UInt8, pCounterResource: *UInt8, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32;
+  fn xd12c_ID3D12Device15_TryCreateUnorderedAccessView(obj: Int, pResource: Int, pCounterResource: Int, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32;
 }
-pub fn d3d12_device15_try_create_unordered_access_view(obj: Int, pResource: *UInt8, pCounterResource: *UInt8, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32
+pub fn d3d12_device15_try_create_unordered_access_view(obj: Int, pResource: Int, pCounterResource: Int, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device15_TryCreateUnorderedAccessView(obj, pResource, pCounterResource, pDesc, DestDescriptor); }
@@ -149,27 +149,27 @@ pub fn d3d12_device15_try_create_sampler2(obj: Int, pDesc: *UInt8, DestDescripto
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device15_TryCreateRenderTargetView(obj: Int, pResource: *UInt8, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32;
+  fn xd12c_ID3D12Device15_TryCreateRenderTargetView(obj: Int, pResource: Int, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32;
 }
-pub fn d3d12_device15_try_create_render_target_view(obj: Int, pResource: *UInt8, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32
+pub fn d3d12_device15_try_create_render_target_view(obj: Int, pResource: Int, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device15_TryCreateRenderTargetView(obj, pResource, pDesc, DestDescriptor); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device15_TryCreateDepthStencilView(obj: Int, pResource: *UInt8, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32;
+  fn xd12c_ID3D12Device15_TryCreateDepthStencilView(obj: Int, pResource: Int, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32;
 }
-pub fn d3d12_device15_try_create_depth_stencil_view(obj: Int, pResource: *UInt8, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32
+pub fn d3d12_device15_try_create_depth_stencil_view(obj: Int, pResource: Int, pDesc: *UInt8, DestDescriptor: UInt64) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device15_TryCreateDepthStencilView(obj, pResource, pDesc, DestDescriptor); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device15_TryCreateSamplerFeedbackUnorderedAccessView(obj: Int, pTargetedResource: *UInt8, pFeedbackResource: *UInt8, DestDescriptor: UInt64) -> Int32;
+  fn xd12c_ID3D12Device15_TryCreateSamplerFeedbackUnorderedAccessView(obj: Int, pTargetedResource: Int, pFeedbackResource: Int, DestDescriptor: UInt64) -> Int32;
 }
-pub fn d3d12_device15_try_create_sampler_feedback_unordered_access_view(obj: Int, pTargetedResource: *UInt8, pFeedbackResource: *UInt8, DestDescriptor: UInt64) -> Int32
+pub fn d3d12_device15_try_create_sampler_feedback_unordered_access_view(obj: Int, pTargetedResource: Int, pFeedbackResource: Int, DestDescriptor: UInt64) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device15_TryCreateSamplerFeedbackUnorderedAccessView(obj, pTargetedResource, pFeedbackResource, DestDescriptor); }
@@ -185,9 +185,9 @@ pub fn d3d12_device15_create_query_heap1(obj: Int, pDesc: *UInt8, Flags: Int32, 
 }
 
 extern "C" {
-  fn xd12c_ID3D12Device15_ResolveQueryData(obj: Int, pQueryHeap: *UInt8, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pResolvedQueryData: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device15_ResolveQueryData(obj: Int, pQueryHeap: Int, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pResolvedQueryData: *UInt8) -> Int32;
 }
-pub fn d3d12_device15_resolve_query_data(obj: Int, pQueryHeap: *UInt8, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pResolvedQueryData: *UInt8) -> Int32
+pub fn d3d12_device15_resolve_query_data(obj: Int, pQueryHeap: Int, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pResolvedQueryData: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device15_ResolveQueryData(obj, pQueryHeap, Type, StartIndex, NumQueries, pResolvedQueryData); }
@@ -315,18 +315,18 @@ pub fn d3d12_virtualization_guest_device_release(obj: Int) -> UInt32
 }
 
 extern "C" {
-  fn xd12c_ID3D12VirtualizationGuestDevice_ShareWithHost(obj: Int, pObject: *UInt8, pHandle: *UInt8) -> Int32;
+  fn xd12c_ID3D12VirtualizationGuestDevice_ShareWithHost(obj: Int, pObject: Int, pHandle: *UInt8) -> Int32;
 }
-pub fn d3d12_virtualization_guest_device_share_with_host(obj: Int, pObject: *UInt8, pHandle: *UInt8) -> Int32
+pub fn d3d12_virtualization_guest_device_share_with_host(obj: Int, pObject: Int, pHandle: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VirtualizationGuestDevice_ShareWithHost(obj, pObject, pHandle); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VirtualizationGuestDevice_CreateFenceFd(obj: Int, pFence: *UInt8, FenceValue: UInt64, pFenceFd: *UInt8) -> Int32;
+  fn xd12c_ID3D12VirtualizationGuestDevice_CreateFenceFd(obj: Int, pFence: Int, FenceValue: UInt64, pFenceFd: *UInt8) -> Int32;
 }
-pub fn d3d12_virtualization_guest_device_create_fence_fd(obj: Int, pFence: *UInt8, FenceValue: UInt64, pFenceFd: *UInt8) -> Int32
+pub fn d3d12_virtualization_guest_device_create_fence_fd(obj: Int, pFence: Int, FenceValue: UInt64, pFenceFd: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VirtualizationGuestDevice_CreateFenceFd(obj, pFence, FenceValue, pFenceFd); }

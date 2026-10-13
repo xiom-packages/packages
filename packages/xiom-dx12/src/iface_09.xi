@@ -105,9 +105,9 @@ pub fn d3d12_device_factory_enable_experimental_features(obj: Int, NumFeatures: 
 }
 
 extern "C" {
-  fn xd12c_ID3D12DeviceFactory_CreateDevice(obj: Int, adapter: *UInt8, FeatureLevel: Int32, riid: *UInt8, ppvDevice: *UInt8) -> Int32;
+  fn xd12c_ID3D12DeviceFactory_CreateDevice(obj: Int, adapter: Int, FeatureLevel: Int32, riid: *UInt8, ppvDevice: *UInt8) -> Int32;
 }
-pub fn d3d12_device_factory_create_device(obj: Int, adapter: *UInt8, FeatureLevel: Int32, riid: *UInt8, ppvDevice: *UInt8) -> Int32
+pub fn d3d12_device_factory_create_device(obj: Int, adapter: Int, FeatureLevel: Int32, riid: *UInt8, ppvDevice: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12DeviceFactory_CreateDevice(obj, adapter, FeatureLevel, riid, ppvDevice); }
@@ -152,9 +152,9 @@ pub fn d3d12_device_configuration_get_enabled_experimental_features(obj: Int, pG
 }
 
 extern "C" {
-  fn xd12c_ID3D12DeviceConfiguration_SerializeVersionedRootSignature(obj: Int, pDesc: *UInt8, ppResult: *UInt8, ppError: *UInt8) -> Int32;
+  fn xd12c_ID3D12DeviceConfiguration_SerializeVersionedRootSignature(obj: Int, pDesc: *UInt8, ppResult: Int, ppError: Int) -> Int32;
 }
-pub fn d3d12_device_configuration_serialize_versioned_root_signature(obj: Int, pDesc: *UInt8, ppResult: *UInt8, ppError: *UInt8) -> Int32
+pub fn d3d12_device_configuration_serialize_versioned_root_signature(obj: Int, pDesc: *UInt8, ppResult: Int, ppError: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12DeviceConfiguration_SerializeVersionedRootSignature(obj, pDesc, ppResult, ppError); }
@@ -268,9 +268,9 @@ pub fn d3d12_graphics_command_list5_rs_set_shading_rate(obj: Int, baseShadingRat
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList5_RSSetShadingRateImage(obj: Int, shadingRateImage: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList5_RSSetShadingRateImage(obj: Int, shadingRateImage: Int);
 }
-pub fn d3d12_graphics_command_list5_rs_set_shading_rate_image(obj: Int, shadingRateImage: *UInt8)
+pub fn d3d12_graphics_command_list5_rs_set_shading_rate_image(obj: Int, shadingRateImage: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList5_RSSetShadingRateImage(obj, shadingRateImage); }

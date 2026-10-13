@@ -1,12 +1,12 @@
-# SPEC: xiom.dx12 -- Direct3D 12 foundation bindings (0.3.1)
+# SPEC: xiom.dx12 -- Direct3D 12 foundation bindings (0.4.0)
 
 ## 1. Identity
 
 | Field | Value |
 |-------|-------|
 | Package | `xiom.dx12` |
-| Version | 0.3.1 |
-| Stage | `stable` (promoted 2026-10-13; gate evidence in sec. 7) |
+| Version | 0.4.0 |
+| Stage | `stable` (promoted 2026-10-13 at 0.3.1; gate evidence in sec. 7) |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream (declaration oracle) | `microsoft/DirectX-Headers` @ `461ef513` (nearest stable tag `v1.619.5`); `include/directx/d3d12.h` SHA256 `AFA193D3...`; DXGI: Windows SDK **10.0.26100.0** shared headers (`dxgi.h`/`dxgi1_2..6.h`/`dxgitype.h`/`dxgicommon.h`/`dxgiformat.h`; per-file SHA256 in `PROVENANCE.md`) |
 | Runtime | OS `d3d12.dll` + `dxgi.dll`, resolved at runtime (no link dependency; `user32` linked only for the swapchain's hidden window); Agility SDK NOT required or vendored |
@@ -57,6 +57,25 @@
   `docs/repro/bindings-pilot/ptr-read-stale/` (ffi_bad=2, byte_bad=0 of
   400).  **B-23**: the `null` literal crosses to C extern params as garbage;
   use the bridge's `xd12_null_ptr()`.
+- **Command-recording pin (0.4.0)**: `ID3D12Fence` slots 8
+  `GetCompletedValue` / 9 `SetEventOnCompletion` / 10 `Signal`;
+  `ID3D12CommandAllocator::Reset` slot 8;
+  `ID3D12GraphicsCommandList::Close` slot 9.  The recording helpers
+  (`xiom.dx12.recording`) drive the generated wrappers with **COM object
+  parameters typed `Int`** (C side still `void*`) -- the value-preserving
+  crossing -- and the bridge adds
+  `xd12_fence_wait(fence: Int64, value, timeout_ms)` (Win32 auto-reset
+  event + `WaitForSingleObject`) plus the fidelity diagnostics
+  `xd12_ptr_value`/`xd12_ptr_value_i`.
+- **B-25 (0.4.0, B-20 family)**: `Int as *UInt8` is **not
+  value-preserving** on v0.64.4: a casted pointer reaches C at a
+  different (heap-dependent) address, while the same value through an
+  `Int` param round-trips exactly (`true_ptr == int_param != cast_ptr`).
+  Found while wiring the recording handles (D3D12 `CreateCommandList`
+  returned `E_INVALIDARG`); repro
+  `docs/repro/bindings-pilot/ptr-cast/`, row B-25 in
+  `docs/BINDINGS-COMPILER-FINDINGS.md`.  Never cast handles to pointers:
+  object params are `Int`, bridge helpers take int64 and cast in C.
 
 ## 3. Design: vendored C bridge + staged probe
 
@@ -89,6 +108,12 @@
   `_hr`/`_alloc`/`_cleanup`, `DxgiFactoryInfo`, `DxgiProbeError`, plus
   `dx12_poke_u32/u64` and `dx12_null_ptr` (bridge-provided NULL; the XIOM
   `null` literal marshals garbage to C extern params on v0.64.4 -- B-23).
+- `src/recording.xi` (0.4.0, module `xiom.dx12.recording`): typed
+  recording helpers over the generated surface -- `dx12_execute_one`
+  builds the single-entry `ID3D12CommandList* const*` array in an owned
+  slot (B-24) and submits it; the root module adds
+  `dx12_fence_wait` (bridge int64 handle), `dx12_ptr_value` and
+  `dx12_ptr_value_i` (fidelity diagnostics).
 - **Build:** `port.args.json` compiles the bridges: `--c-source
   ${PACKAGE_DIR}/src/dx12_probe.c` + `d3d12_calls.c` + `d3d12_structs.c` +
   `dxgi_probe.c` + `dxgi_calls.c`, `--link user32`.
@@ -104,6 +129,7 @@
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.dx12` | **PASS 35/35 x2** -- constants + SKIP classification (three runtimes), device (node_count=1), allocator roundtrip, generated surface (GetNodeCount, CreateCommandQueue + Release, D3D12SerializeRootSignature + typed RS probe 88-byte blob), struct metadata (queue GetDesc sret, committed-buffer Resource::GetDesc, GetResourceAllocationInfo 65536/65536, GetCustomHeapProperties, oracle-vs-build sizeof cross-check), DXGI (factory live, 3 adapters, Adapter1::GetDesc1, WARP adapter + desc, WARP D3D12 device, BGRA8/FIFO 640x480 swapchain + GetBuffer + GetDesc1 + Present), video (`ID3D12VideoDevice` QI, VIDEO_DECODE command list created C-side + generated `Close` = 0), unload paths, and **error paths** (NULL blob guard, invalid queue priority rejected, invalid buffer layout rejected, out-of-range adapter index -> 0) |
+| Full + command recording (0.4.0, v0.64.4) | same | **PASS 42/42 x2** -- adds: handle fidelity (`Int` params preserve addresses), command allocator created + `Reset`, graphics command list created (Int-param path) + `Close`, fence created (initial 0), queue signal + `dx12_fence_wait` (5 s timeout, completed >= 1) -- an empty submitted list executes and the fence round-trips |
 | No runtime / no adapter | deterministic SKIP classification via the bogus-soname paths; `NO_DEVICE` maps to the same SKIP markers | covered by the classification checks |
 
 ## 5. Scope
@@ -118,10 +144,18 @@ video QI + command-list chain live.  The 97 unparsed struct shapes
 (anonymous unions/bitfields/function-pointer members) are listed in
 `docs/struct_meta_manifest.json`.  0.3.1 is the promotion republication of
 this same verified surface (patch bump; published versions are
-immutable).  Still next: command recording (queue/list/allocator +
-fences) is the 0.4.0 wave.
+immutable).
 
-## 6. Error catalog (0.3.1)
+0.4.0 adds **command recording**: allocator + command-list lifecycle
+(create/`Reset`/`Close`), submission through the generated
+`ID3D12CommandQueue::ExecuteCommandLists` wrapper (`dx12_execute_one`),
+and fence signal/wait (`d3d12_command_queue_signal` + `dx12_fence_wait`)
+-- witnessed by an execute + signal + wait round-trip.  COM object
+parameters are typed `Int` in the generated surface (B-25).  Still next:
+recording conveniences on top (resource-barrier helpers, bundle
+recording, command signatures).
+
+## 6. Error catalog (0.4.0)
 
 Every failure mode is classified; nothing fails silently:
 
@@ -139,11 +173,15 @@ Every failure mode is classified; nothing fails silently:
 | `dxgi_enum_adapter` | out of range (`DXGI_ERROR_NOT_FOUND`) | returns 0 (never a stray pointer) |
 | `dx12_blob_size*` | NULL handle | `-1` |
 | `dx12_video_cmdlist_create` | chain failure | 0 + `dx12_video_cmdlist_hr()` carries the HRESULT |
+| `dx12_fence_wait` | signaled / timeout / set-event / no fence / no event / wait failure | `0` / `1` / `2` / `3` / `4` / `5` (never masks; the suite asserts `0`) |
+| `dx12_execute_one` | unresolved queue/list | no-op guard (`requires` non-zero; the generated wrapper returns silently when the entry point is unresolved -- flagged by the suite's resolved-count checks) |
 | any probe | success | `Ok` + typed info; `*_unload` safe when nothing is loaded |
 
 Pointer-shaped out-parameters follow B-24: owned slots are read
 byte-indexed only; pointer edges cross via C return values.  Nullable C
-arguments use the bridge null (`dx12_null_ptr()`; B-23).
+arguments use the bridge null (`dx12_null_ptr()`; B-23).  COM object
+handles cross as `Int` params or int64 C-helper arguments -- never
+through `x as *UInt8` (B-25).
 
 ## 7. Contracts and promotion notes (2026-10-13, v0.3.1)
 
@@ -194,3 +232,8 @@ promotion republishes as **0.3.1** (patch; versions are immutable).
   yet), documented in README; no stale rows remain for this package.
 - **G7**: dependents -- none.  No package manifest declares `xiom.dx12`
   in `deps:` (scan of all `package.xi`); nothing to re-check.
+
+**0.4.0 continuation (2026-10-13)**: the command-recording wave builds on
+this stable baseline; the gate rows above remain the promotion evidence
+for 0.3.1.  New workarounds (B-25) are recorded in
+`docs/MAINTENANCE.md` with `expiry = next compiler pin`.

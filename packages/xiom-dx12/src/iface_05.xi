@@ -4,9 +4,9 @@ module xiom.dx12.iface_05
 // ---- ID3D12Device5 ----
 
 extern "C" {
-  fn xd12c_ID3D12Device5_CreateLifetimeTracker(obj: Int, pOwner: *UInt8, riid: *UInt8, ppvTracker: *UInt8) -> Int32;
+  fn xd12c_ID3D12Device5_CreateLifetimeTracker(obj: Int, pOwner: Int, riid: *UInt8, ppvTracker: *UInt8) -> Int32;
 }
-pub fn d3d12_device5_create_lifetime_tracker(obj: Int, pOwner: *UInt8, riid: *UInt8, ppvTracker: *UInt8) -> Int32
+pub fn d3d12_device5_create_lifetime_tracker(obj: Int, pOwner: Int, riid: *UInt8, ppvTracker: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12Device5_CreateLifetimeTracker(obj, pOwner, riid, ppvTracker); }

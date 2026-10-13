@@ -4,9 +4,9 @@ module xiom.dx12.dxgi_iface_05
 // ---- IDXGIOutput4 ----
 
 extern "C" {
-  fn xd12c_IDXGIOutput4_CheckOverlayColorSpaceSupport(obj: Int, Format: Int32, ColorSpace: Int32, pConcernedDevice: *UInt8, pFlags: *UInt8) -> Int32;
+  fn xd12c_IDXGIOutput4_CheckOverlayColorSpaceSupport(obj: Int, Format: Int32, ColorSpace: Int32, pConcernedDevice: Int, pFlags: *UInt8) -> Int32;
 }
-pub fn dxgi_output4_check_overlay_color_space_support(obj: Int, Format: Int32, ColorSpace: Int32, pConcernedDevice: *UInt8, pFlags: *UInt8) -> Int32
+pub fn dxgi_output4_check_overlay_color_space_support(obj: Int, Format: Int32, ColorSpace: Int32, pConcernedDevice: Int, pFlags: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIOutput4_CheckOverlayColorSpaceSupport(obj, Format, ColorSpace, pConcernedDevice, pFlags); }
@@ -91,9 +91,9 @@ pub fn dxgi_adapter3_unregister_video_memory_budget_change_notification(obj: Int
 // ---- IDXGIOutput5 ----
 
 extern "C" {
-  fn xd12c_IDXGIOutput5_DuplicateOutput1(obj: Int, pDevice: *UInt8, Flags: UInt32, SupportedFormatsCount: UInt32, pSupportedFormats: *UInt8, ppOutputDuplication: *UInt8) -> Int32;
+  fn xd12c_IDXGIOutput5_DuplicateOutput1(obj: Int, pDevice: Int, Flags: UInt32, SupportedFormatsCount: UInt32, pSupportedFormats: *UInt8, ppOutputDuplication: Int) -> Int32;
 }
-pub fn dxgi_output5_duplicate_output1(obj: Int, pDevice: *UInt8, Flags: UInt32, SupportedFormatsCount: UInt32, pSupportedFormats: *UInt8, ppOutputDuplication: *UInt8) -> Int32
+pub fn dxgi_output5_duplicate_output1(obj: Int, pDevice: Int, Flags: UInt32, SupportedFormatsCount: UInt32, pSupportedFormats: *UInt8, ppOutputDuplication: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIOutput5_DuplicateOutput1(obj, pDevice, Flags, SupportedFormatsCount, pSupportedFormats, ppOutputDuplication); }
@@ -113,18 +113,18 @@ pub fn dxgi_swap_chain4_set_hdr_meta_data(obj: Int, Type: Int32, Size: UInt32, p
 // ---- IDXGIDevice4 ----
 
 extern "C" {
-  fn xd12c_IDXGIDevice4_OfferResources1(obj: Int, NumResources: UInt32, ppResources: *UInt8, Priority: Int32, Flags: UInt32) -> Int32;
+  fn xd12c_IDXGIDevice4_OfferResources1(obj: Int, NumResources: UInt32, ppResources: Int, Priority: Int32, Flags: UInt32) -> Int32;
 }
-pub fn dxgi_device4_offer_resources1(obj: Int, NumResources: UInt32, ppResources: *UInt8, Priority: Int32, Flags: UInt32) -> Int32
+pub fn dxgi_device4_offer_resources1(obj: Int, NumResources: UInt32, ppResources: Int, Priority: Int32, Flags: UInt32) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIDevice4_OfferResources1(obj, NumResources, ppResources, Priority, Flags); }
 }
 
 extern "C" {
-  fn xd12c_IDXGIDevice4_ReclaimResources1(obj: Int, NumResources: UInt32, ppResources: *UInt8, pResults: *UInt8) -> Int32;
+  fn xd12c_IDXGIDevice4_ReclaimResources1(obj: Int, NumResources: UInt32, ppResources: Int, pResults: *UInt8) -> Int32;
 }
-pub fn dxgi_device4_reclaim_resources1(obj: Int, NumResources: UInt32, ppResources: *UInt8, pResults: *UInt8) -> Int32
+pub fn dxgi_device4_reclaim_resources1(obj: Int, NumResources: UInt32, ppResources: Int, pResults: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIDevice4_ReclaimResources1(obj, NumResources, ppResources, pResults); }

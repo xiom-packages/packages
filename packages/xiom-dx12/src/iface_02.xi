@@ -15,9 +15,9 @@ pub fn d3d12_fence1_get_creation_flags(obj: Int) -> Int32
 // ---- ID3D12PipelineState ----
 
 extern "C" {
-  fn xd12c_ID3D12PipelineState_GetCachedBlob(obj: Int, ppBlob: *UInt8) -> Int32;
+  fn xd12c_ID3D12PipelineState_GetCachedBlob(obj: Int, ppBlob: Int) -> Int32;
 }
-pub fn d3d12_pipeline_state_get_cached_blob(obj: Int, ppBlob: *UInt8) -> Int32
+pub fn d3d12_pipeline_state_get_cached_blob(obj: Int, ppBlob: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12PipelineState_GetCachedBlob(obj, ppBlob); }
@@ -77,18 +77,18 @@ pub fn d3d12_graphics_command_list_close(obj: Int) -> Int32
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_Reset(obj: Int, pAllocator: *UInt8, pInitialState: *UInt8) -> Int32;
+  fn xd12c_ID3D12GraphicsCommandList_Reset(obj: Int, pAllocator: Int, pInitialState: Int) -> Int32;
 }
-pub fn d3d12_graphics_command_list_reset(obj: Int, pAllocator: *UInt8, pInitialState: *UInt8) -> Int32
+pub fn d3d12_graphics_command_list_reset(obj: Int, pAllocator: Int, pInitialState: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12GraphicsCommandList_Reset(obj, pAllocator, pInitialState); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_ClearState(obj: Int, pPipelineState: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList_ClearState(obj: Int, pPipelineState: Int);
 }
-pub fn d3d12_graphics_command_list_clear_state(obj: Int, pPipelineState: *UInt8)
+pub fn d3d12_graphics_command_list_clear_state(obj: Int, pPipelineState: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_ClearState(obj, pPipelineState); }
@@ -122,9 +122,9 @@ pub fn d3d12_graphics_command_list_dispatch(obj: Int, ThreadGroupCountX: UInt32,
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_CopyBufferRegion(obj: Int, pDstBuffer: *UInt8, DstOffset: UInt64, pSrcBuffer: *UInt8, SrcOffset: UInt64, NumBytes: UInt64);
+  fn xd12c_ID3D12GraphicsCommandList_CopyBufferRegion(obj: Int, pDstBuffer: Int, DstOffset: UInt64, pSrcBuffer: Int, SrcOffset: UInt64, NumBytes: UInt64);
 }
-pub fn d3d12_graphics_command_list_copy_buffer_region(obj: Int, pDstBuffer: *UInt8, DstOffset: UInt64, pSrcBuffer: *UInt8, SrcOffset: UInt64, NumBytes: UInt64)
+pub fn d3d12_graphics_command_list_copy_buffer_region(obj: Int, pDstBuffer: Int, DstOffset: UInt64, pSrcBuffer: Int, SrcOffset: UInt64, NumBytes: UInt64)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_CopyBufferRegion(obj, pDstBuffer, DstOffset, pSrcBuffer, SrcOffset, NumBytes); }
@@ -140,27 +140,27 @@ pub fn d3d12_graphics_command_list_copy_texture_region(obj: Int, pDst: *UInt8, D
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_CopyResource(obj: Int, pDstResource: *UInt8, pSrcResource: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList_CopyResource(obj: Int, pDstResource: Int, pSrcResource: Int);
 }
-pub fn d3d12_graphics_command_list_copy_resource(obj: Int, pDstResource: *UInt8, pSrcResource: *UInt8)
+pub fn d3d12_graphics_command_list_copy_resource(obj: Int, pDstResource: Int, pSrcResource: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_CopyResource(obj, pDstResource, pSrcResource); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_CopyTiles(obj: Int, pTiledResource: *UInt8, pTileRegionStartCoordinate: *UInt8, pTileRegionSize: *UInt8, pBuffer: *UInt8, BufferStartOffsetInBytes: UInt64, Flags: Int32);
+  fn xd12c_ID3D12GraphicsCommandList_CopyTiles(obj: Int, pTiledResource: Int, pTileRegionStartCoordinate: *UInt8, pTileRegionSize: *UInt8, pBuffer: Int, BufferStartOffsetInBytes: UInt64, Flags: Int32);
 }
-pub fn d3d12_graphics_command_list_copy_tiles(obj: Int, pTiledResource: *UInt8, pTileRegionStartCoordinate: *UInt8, pTileRegionSize: *UInt8, pBuffer: *UInt8, BufferStartOffsetInBytes: UInt64, Flags: Int32)
+pub fn d3d12_graphics_command_list_copy_tiles(obj: Int, pTiledResource: Int, pTileRegionStartCoordinate: *UInt8, pTileRegionSize: *UInt8, pBuffer: Int, BufferStartOffsetInBytes: UInt64, Flags: Int32)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_CopyTiles(obj, pTiledResource, pTileRegionStartCoordinate, pTileRegionSize, pBuffer, BufferStartOffsetInBytes, Flags); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_ResolveSubresource(obj: Int, pDstResource: *UInt8, DstSubresource: UInt32, pSrcResource: *UInt8, SrcSubresource: UInt32, Format: Int32);
+  fn xd12c_ID3D12GraphicsCommandList_ResolveSubresource(obj: Int, pDstResource: Int, DstSubresource: UInt32, pSrcResource: Int, SrcSubresource: UInt32, Format: Int32);
 }
-pub fn d3d12_graphics_command_list_resolve_subresource(obj: Int, pDstResource: *UInt8, DstSubresource: UInt32, pSrcResource: *UInt8, SrcSubresource: UInt32, Format: Int32)
+pub fn d3d12_graphics_command_list_resolve_subresource(obj: Int, pDstResource: Int, DstSubresource: UInt32, pSrcResource: Int, SrcSubresource: UInt32, Format: Int32)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_ResolveSubresource(obj, pDstResource, DstSubresource, pSrcResource, SrcSubresource, Format); }
@@ -212,9 +212,9 @@ pub fn d3d12_graphics_command_list_om_set_stencil_ref(obj: Int, StencilRef: UInt
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_SetPipelineState(obj: Int, pPipelineState: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList_SetPipelineState(obj: Int, pPipelineState: Int);
 }
-pub fn d3d12_graphics_command_list_set_pipeline_state(obj: Int, pPipelineState: *UInt8)
+pub fn d3d12_graphics_command_list_set_pipeline_state(obj: Int, pPipelineState: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_SetPipelineState(obj, pPipelineState); }
@@ -230,36 +230,36 @@ pub fn d3d12_graphics_command_list_resource_barrier(obj: Int, NumBarriers: UInt3
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_ExecuteBundle(obj: Int, pCommandList: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList_ExecuteBundle(obj: Int, pCommandList: Int);
 }
-pub fn d3d12_graphics_command_list_execute_bundle(obj: Int, pCommandList: *UInt8)
+pub fn d3d12_graphics_command_list_execute_bundle(obj: Int, pCommandList: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_ExecuteBundle(obj, pCommandList); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_SetDescriptorHeaps(obj: Int, NumDescriptorHeaps: UInt32, ppDescriptorHeaps: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList_SetDescriptorHeaps(obj: Int, NumDescriptorHeaps: UInt32, ppDescriptorHeaps: Int);
 }
-pub fn d3d12_graphics_command_list_set_descriptor_heaps(obj: Int, NumDescriptorHeaps: UInt32, ppDescriptorHeaps: *UInt8)
+pub fn d3d12_graphics_command_list_set_descriptor_heaps(obj: Int, NumDescriptorHeaps: UInt32, ppDescriptorHeaps: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_SetDescriptorHeaps(obj, NumDescriptorHeaps, ppDescriptorHeaps); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_SetComputeRootSignature(obj: Int, pRootSignature: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList_SetComputeRootSignature(obj: Int, pRootSignature: Int);
 }
-pub fn d3d12_graphics_command_list_set_compute_root_signature(obj: Int, pRootSignature: *UInt8)
+pub fn d3d12_graphics_command_list_set_compute_root_signature(obj: Int, pRootSignature: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_SetComputeRootSignature(obj, pRootSignature); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_SetGraphicsRootSignature(obj: Int, pRootSignature: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList_SetGraphicsRootSignature(obj: Int, pRootSignature: Int);
 }
-pub fn d3d12_graphics_command_list_set_graphics_root_signature(obj: Int, pRootSignature: *UInt8)
+pub fn d3d12_graphics_command_list_set_graphics_root_signature(obj: Int, pRootSignature: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_SetGraphicsRootSignature(obj, pRootSignature); }
@@ -428,63 +428,63 @@ pub fn d3d12_graphics_command_list_clear_render_target_view(obj: Int, RenderTarg
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_ClearUnorderedAccessViewUint(obj: Int, ViewGPUHandleInCurrentHeap: UInt64, ViewCPUHandle: UInt64, pResource: *UInt8, arg3: *UInt8, NumRects: UInt32, pRects: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList_ClearUnorderedAccessViewUint(obj: Int, ViewGPUHandleInCurrentHeap: UInt64, ViewCPUHandle: UInt64, pResource: Int, arg3: *UInt8, NumRects: UInt32, pRects: *UInt8);
 }
-pub fn d3d12_graphics_command_list_clear_unordered_access_view_uint(obj: Int, ViewGPUHandleInCurrentHeap: UInt64, ViewCPUHandle: UInt64, pResource: *UInt8, arg3: *UInt8, NumRects: UInt32, pRects: *UInt8)
+pub fn d3d12_graphics_command_list_clear_unordered_access_view_uint(obj: Int, ViewGPUHandleInCurrentHeap: UInt64, ViewCPUHandle: UInt64, pResource: Int, arg3: *UInt8, NumRects: UInt32, pRects: *UInt8)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_ClearUnorderedAccessViewUint(obj, ViewGPUHandleInCurrentHeap, ViewCPUHandle, pResource, arg3, NumRects, pRects); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_ClearUnorderedAccessViewFloat(obj: Int, ViewGPUHandleInCurrentHeap: UInt64, ViewCPUHandle: UInt64, pResource: *UInt8, arg3: *UInt8, NumRects: UInt32, pRects: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList_ClearUnorderedAccessViewFloat(obj: Int, ViewGPUHandleInCurrentHeap: UInt64, ViewCPUHandle: UInt64, pResource: Int, arg3: *UInt8, NumRects: UInt32, pRects: *UInt8);
 }
-pub fn d3d12_graphics_command_list_clear_unordered_access_view_float(obj: Int, ViewGPUHandleInCurrentHeap: UInt64, ViewCPUHandle: UInt64, pResource: *UInt8, arg3: *UInt8, NumRects: UInt32, pRects: *UInt8)
+pub fn d3d12_graphics_command_list_clear_unordered_access_view_float(obj: Int, ViewGPUHandleInCurrentHeap: UInt64, ViewCPUHandle: UInt64, pResource: Int, arg3: *UInt8, NumRects: UInt32, pRects: *UInt8)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_ClearUnorderedAccessViewFloat(obj, ViewGPUHandleInCurrentHeap, ViewCPUHandle, pResource, arg3, NumRects, pRects); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_DiscardResource(obj: Int, pResource: *UInt8, pRegion: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList_DiscardResource(obj: Int, pResource: Int, pRegion: *UInt8);
 }
-pub fn d3d12_graphics_command_list_discard_resource(obj: Int, pResource: *UInt8, pRegion: *UInt8)
+pub fn d3d12_graphics_command_list_discard_resource(obj: Int, pResource: Int, pRegion: *UInt8)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_DiscardResource(obj, pResource, pRegion); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_BeginQuery(obj: Int, pQueryHeap: *UInt8, Type: Int32, Index: UInt32);
+  fn xd12c_ID3D12GraphicsCommandList_BeginQuery(obj: Int, pQueryHeap: Int, Type: Int32, Index: UInt32);
 }
-pub fn d3d12_graphics_command_list_begin_query(obj: Int, pQueryHeap: *UInt8, Type: Int32, Index: UInt32)
+pub fn d3d12_graphics_command_list_begin_query(obj: Int, pQueryHeap: Int, Type: Int32, Index: UInt32)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_BeginQuery(obj, pQueryHeap, Type, Index); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_EndQuery(obj: Int, pQueryHeap: *UInt8, Type: Int32, Index: UInt32);
+  fn xd12c_ID3D12GraphicsCommandList_EndQuery(obj: Int, pQueryHeap: Int, Type: Int32, Index: UInt32);
 }
-pub fn d3d12_graphics_command_list_end_query(obj: Int, pQueryHeap: *UInt8, Type: Int32, Index: UInt32)
+pub fn d3d12_graphics_command_list_end_query(obj: Int, pQueryHeap: Int, Type: Int32, Index: UInt32)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_EndQuery(obj, pQueryHeap, Type, Index); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_ResolveQueryData(obj: Int, pQueryHeap: *UInt8, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pDestinationBuffer: *UInt8, AlignedDestinationBufferOffset: UInt64);
+  fn xd12c_ID3D12GraphicsCommandList_ResolveQueryData(obj: Int, pQueryHeap: Int, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pDestinationBuffer: Int, AlignedDestinationBufferOffset: UInt64);
 }
-pub fn d3d12_graphics_command_list_resolve_query_data(obj: Int, pQueryHeap: *UInt8, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pDestinationBuffer: *UInt8, AlignedDestinationBufferOffset: UInt64)
+pub fn d3d12_graphics_command_list_resolve_query_data(obj: Int, pQueryHeap: Int, Type: Int32, StartIndex: UInt32, NumQueries: UInt32, pDestinationBuffer: Int, AlignedDestinationBufferOffset: UInt64)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_ResolveQueryData(obj, pQueryHeap, Type, StartIndex, NumQueries, pDestinationBuffer, AlignedDestinationBufferOffset); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_SetPredication(obj: Int, pBuffer: *UInt8, AlignedBufferOffset: UInt64, Operation: Int32);
+  fn xd12c_ID3D12GraphicsCommandList_SetPredication(obj: Int, pBuffer: Int, AlignedBufferOffset: UInt64, Operation: Int32);
 }
-pub fn d3d12_graphics_command_list_set_predication(obj: Int, pBuffer: *UInt8, AlignedBufferOffset: UInt64, Operation: Int32)
+pub fn d3d12_graphics_command_list_set_predication(obj: Int, pBuffer: Int, AlignedBufferOffset: UInt64, Operation: Int32)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_SetPredication(obj, pBuffer, AlignedBufferOffset, Operation); }
@@ -518,9 +518,9 @@ pub fn d3d12_graphics_command_list_end_event(obj: Int)
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList_ExecuteIndirect(obj: Int, pCommandSignature: *UInt8, MaxCommandCount: UInt32, pArgumentBuffer: *UInt8, ArgumentBufferOffset: UInt64, pCountBuffer: *UInt8, CountBufferOffset: UInt64);
+  fn xd12c_ID3D12GraphicsCommandList_ExecuteIndirect(obj: Int, pCommandSignature: Int, MaxCommandCount: UInt32, pArgumentBuffer: Int, ArgumentBufferOffset: UInt64, pCountBuffer: Int, CountBufferOffset: UInt64);
 }
-pub fn d3d12_graphics_command_list_execute_indirect(obj: Int, pCommandSignature: *UInt8, MaxCommandCount: UInt32, pArgumentBuffer: *UInt8, ArgumentBufferOffset: UInt64, pCountBuffer: *UInt8, CountBufferOffset: UInt64)
+pub fn d3d12_graphics_command_list_execute_indirect(obj: Int, pCommandSignature: Int, MaxCommandCount: UInt32, pArgumentBuffer: Int, ArgumentBufferOffset: UInt64, pCountBuffer: Int, CountBufferOffset: UInt64)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList_ExecuteIndirect(obj, pCommandSignature, MaxCommandCount, pArgumentBuffer, ArgumentBufferOffset, pCountBuffer, CountBufferOffset); }
@@ -529,18 +529,18 @@ pub fn d3d12_graphics_command_list_execute_indirect(obj: Int, pCommandSignature:
 // ---- ID3D12GraphicsCommandList1 ----
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList1_AtomicCopyBufferUINT(obj: Int, pDstBuffer: *UInt8, DstOffset: UInt64, pSrcBuffer: *UInt8, SrcOffset: UInt64, Dependencies: UInt32, ppDependentResources: *UInt8, pDependentSubresourceRanges: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList1_AtomicCopyBufferUINT(obj: Int, pDstBuffer: Int, DstOffset: UInt64, pSrcBuffer: Int, SrcOffset: UInt64, Dependencies: UInt32, ppDependentResources: Int, pDependentSubresourceRanges: *UInt8);
 }
-pub fn d3d12_graphics_command_list1_atomic_copy_buffer_uint(obj: Int, pDstBuffer: *UInt8, DstOffset: UInt64, pSrcBuffer: *UInt8, SrcOffset: UInt64, Dependencies: UInt32, ppDependentResources: *UInt8, pDependentSubresourceRanges: *UInt8)
+pub fn d3d12_graphics_command_list1_atomic_copy_buffer_uint(obj: Int, pDstBuffer: Int, DstOffset: UInt64, pSrcBuffer: Int, SrcOffset: UInt64, Dependencies: UInt32, ppDependentResources: Int, pDependentSubresourceRanges: *UInt8)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList1_AtomicCopyBufferUINT(obj, pDstBuffer, DstOffset, pSrcBuffer, SrcOffset, Dependencies, ppDependentResources, pDependentSubresourceRanges); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList1_AtomicCopyBufferUINT64(obj: Int, pDstBuffer: *UInt8, DstOffset: UInt64, pSrcBuffer: *UInt8, SrcOffset: UInt64, Dependencies: UInt32, ppDependentResources: *UInt8, pDependentSubresourceRanges: *UInt8);
+  fn xd12c_ID3D12GraphicsCommandList1_AtomicCopyBufferUINT64(obj: Int, pDstBuffer: Int, DstOffset: UInt64, pSrcBuffer: Int, SrcOffset: UInt64, Dependencies: UInt32, ppDependentResources: Int, pDependentSubresourceRanges: *UInt8);
 }
-pub fn d3d12_graphics_command_list1_atomic_copy_buffer_uint64(obj: Int, pDstBuffer: *UInt8, DstOffset: UInt64, pSrcBuffer: *UInt8, SrcOffset: UInt64, Dependencies: UInt32, ppDependentResources: *UInt8, pDependentSubresourceRanges: *UInt8)
+pub fn d3d12_graphics_command_list1_atomic_copy_buffer_uint64(obj: Int, pDstBuffer: Int, DstOffset: UInt64, pSrcBuffer: Int, SrcOffset: UInt64, Dependencies: UInt32, ppDependentResources: Int, pDependentSubresourceRanges: *UInt8)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList1_AtomicCopyBufferUINT64(obj, pDstBuffer, DstOffset, pSrcBuffer, SrcOffset, Dependencies, ppDependentResources, pDependentSubresourceRanges); }
@@ -565,9 +565,9 @@ pub fn d3d12_graphics_command_list1_set_sample_positions(obj: Int, NumSamplesPer
 }
 
 extern "C" {
-  fn xd12c_ID3D12GraphicsCommandList1_ResolveSubresourceRegion(obj: Int, pDstResource: *UInt8, DstSubresource: UInt32, DstX: UInt32, DstY: UInt32, pSrcResource: *UInt8, SrcSubresource: UInt32, pSrcRect: *UInt8, Format: Int32, ResolveMode: Int32);
+  fn xd12c_ID3D12GraphicsCommandList1_ResolveSubresourceRegion(obj: Int, pDstResource: Int, DstSubresource: UInt32, DstX: UInt32, DstY: UInt32, pSrcResource: Int, SrcSubresource: UInt32, pSrcRect: *UInt8, Format: Int32, ResolveMode: Int32);
 }
-pub fn d3d12_graphics_command_list1_resolve_subresource_region(obj: Int, pDstResource: *UInt8, DstSubresource: UInt32, DstX: UInt32, DstY: UInt32, pSrcResource: *UInt8, SrcSubresource: UInt32, pSrcRect: *UInt8, Format: Int32, ResolveMode: Int32)
+pub fn d3d12_graphics_command_list1_resolve_subresource_region(obj: Int, pDstResource: Int, DstSubresource: UInt32, DstX: UInt32, DstY: UInt32, pSrcResource: Int, SrcSubresource: UInt32, pSrcRect: *UInt8, Format: Int32, ResolveMode: Int32)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12GraphicsCommandList1_ResolveSubresourceRegion(obj, pDstResource, DstSubresource, DstX, DstY, pSrcResource, SrcSubresource, pSrcRect, Format, ResolveMode); }

@@ -228,18 +228,18 @@ pub fn dxgi_factory_media_release(obj: Int) -> UInt32
 }
 
 extern "C" {
-  fn xd12c_IDXGIFactoryMedia_CreateSwapChainForCompositionSurfaceHandle(obj: Int, pDevice: *UInt8, hSurface: *UInt8, pDesc: *UInt8, pRestrictToOutput: *UInt8, ppSwapChain: *UInt8) -> Int32;
+  fn xd12c_IDXGIFactoryMedia_CreateSwapChainForCompositionSurfaceHandle(obj: Int, pDevice: Int, hSurface: *UInt8, pDesc: *UInt8, pRestrictToOutput: Int, ppSwapChain: Int) -> Int32;
 }
-pub fn dxgi_factory_media_create_swap_chain_for_composition_surface_handle(obj: Int, pDevice: *UInt8, hSurface: *UInt8, pDesc: *UInt8, pRestrictToOutput: *UInt8, ppSwapChain: *UInt8) -> Int32
+pub fn dxgi_factory_media_create_swap_chain_for_composition_surface_handle(obj: Int, pDevice: Int, hSurface: *UInt8, pDesc: *UInt8, pRestrictToOutput: Int, ppSwapChain: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIFactoryMedia_CreateSwapChainForCompositionSurfaceHandle(obj, pDevice, hSurface, pDesc, pRestrictToOutput, ppSwapChain); }
 }
 
 extern "C" {
-  fn xd12c_IDXGIFactoryMedia_CreateDecodeSwapChainForCompositionSurfaceHandle(obj: Int, pDevice: *UInt8, hSurface: *UInt8, pDesc: *UInt8, pYuvDecodeBuffers: *UInt8, pRestrictToOutput: *UInt8, ppSwapChain: *UInt8) -> Int32;
+  fn xd12c_IDXGIFactoryMedia_CreateDecodeSwapChainForCompositionSurfaceHandle(obj: Int, pDevice: Int, hSurface: *UInt8, pDesc: *UInt8, pYuvDecodeBuffers: Int, pRestrictToOutput: Int, ppSwapChain: Int) -> Int32;
 }
-pub fn dxgi_factory_media_create_decode_swap_chain_for_composition_surface_handle(obj: Int, pDevice: *UInt8, hSurface: *UInt8, pDesc: *UInt8, pYuvDecodeBuffers: *UInt8, pRestrictToOutput: *UInt8, ppSwapChain: *UInt8) -> Int32
+pub fn dxgi_factory_media_create_decode_swap_chain_for_composition_surface_handle(obj: Int, pDevice: Int, hSurface: *UInt8, pDesc: *UInt8, pYuvDecodeBuffers: Int, pRestrictToOutput: Int, ppSwapChain: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIFactoryMedia_CreateDecodeSwapChainForCompositionSurfaceHandle(obj, pDevice, hSurface, pDesc, pYuvDecodeBuffers, pRestrictToOutput, ppSwapChain); }
@@ -304,9 +304,9 @@ pub fn dxgi_swap_chain_media_check_present_duration_support(obj: Int, DesiredPre
 // ---- IDXGIOutput3 ----
 
 extern "C" {
-  fn xd12c_IDXGIOutput3_CheckOverlaySupport(obj: Int, EnumFormat: Int32, pConcernedDevice: *UInt8, pFlags: *UInt8) -> Int32;
+  fn xd12c_IDXGIOutput3_CheckOverlaySupport(obj: Int, EnumFormat: Int32, pConcernedDevice: Int, pFlags: *UInt8) -> Int32;
 }
-pub fn dxgi_output3_check_overlay_support(obj: Int, EnumFormat: Int32, pConcernedDevice: *UInt8, pFlags: *UInt8) -> Int32
+pub fn dxgi_output3_check_overlay_support(obj: Int, EnumFormat: Int32, pConcernedDevice: Int, pFlags: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGIOutput3_CheckOverlaySupport(obj, EnumFormat, pConcernedDevice, pFlags); }
@@ -342,9 +342,9 @@ pub fn dxgi_swap_chain3_set_color_space1(obj: Int, ColorSpace: Int32) -> Int32
 }
 
 extern "C" {
-  fn xd12c_IDXGISwapChain3_ResizeBuffers1(obj: Int, BufferCount: UInt32, Width: UInt32, Height: UInt32, Format: Int32, SwapChainFlags: UInt32, pCreationNodeMask: *UInt8, ppPresentQueue: *UInt8) -> Int32;
+  fn xd12c_IDXGISwapChain3_ResizeBuffers1(obj: Int, BufferCount: UInt32, Width: UInt32, Height: UInt32, Format: Int32, SwapChainFlags: UInt32, pCreationNodeMask: *UInt8, ppPresentQueue: Int) -> Int32;
 }
-pub fn dxgi_swap_chain3_resize_buffers1(obj: Int, BufferCount: UInt32, Width: UInt32, Height: UInt32, Format: Int32, SwapChainFlags: UInt32, pCreationNodeMask: *UInt8, ppPresentQueue: *UInt8) -> Int32
+pub fn dxgi_swap_chain3_resize_buffers1(obj: Int, BufferCount: UInt32, Width: UInt32, Height: UInt32, Format: Int32, SwapChainFlags: UInt32, pCreationNodeMask: *UInt8, ppPresentQueue: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_IDXGISwapChain3_ResizeBuffers1(obj, BufferCount, Width, Height, Format, SwapChainFlags, pCreationNodeMask, ppPresentQueue); }

@@ -1,4 +1,4 @@
-// XIOM -- xiom.dx12: Direct3D 12 foundation bindings (0.3.1).
+// XIOM -- xiom.dx12: Direct3D 12 foundation bindings (0.4.0).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -23,7 +23,10 @@
 // The full generated surface (all ID3D12* interfaces + free functions +
 // enums/struct metadata from the pinned headers) lives in the generated
 // modules; the struct-metadata + DXGI + d3d12video slices are complete as
-// of 0.3.0 (stable at 0.3.1).
+// of 0.3.0 (promoted stable at 0.3.1); 0.4.0 adds command recording
+// (allocator/list/execute + fence signal/wait) in `xiom.dx12.recording`
+// with the object params typed `Int` (B-25: `Int as *UInt8` is not
+// value-preserving on v0.64.4).
 
 module xiom.dx12
 
@@ -37,6 +40,8 @@ extern "C" {
   fn xd12_device_ptr() -> Int;
   fn xd12_resolve(name: *UInt8) -> *UInt8;
   fn xd12_iid(which: Int32, dst16: *UInt8) -> Int32;
+  fn xd12_ptr_value(p: *UInt8) -> Int64;
+  fn xd12_ptr_value_i(p: Int64) -> Int64;
   fn xd12_blob_size(blob: *UInt8) -> Int32;
   fn xd12_blob_size64(blob: *UInt8) -> Int64;
   fn xd12_blob_head64(blob: *UInt8) -> Int64;
@@ -46,6 +51,7 @@ extern "C" {
   fn xd12_poke_u32(dst: *UInt8, off: Int32, v: UInt32);
   fn xd12_poke_u64(dst: *UInt8, off: Int32, v: UInt64);
   fn xd12_null_ptr() -> *UInt8;
+  fn xd12_fence_wait(fence: Int64, value: UInt64, timeout_ms: Int32) -> Int32;
   fn xd12_unload();
 }
 
@@ -271,4 +277,36 @@ pub fn dx12_null_ptr() -> *UInt8
   requires: true
 {
   unsafe { return xd12_null_ptr(); }
+}
+
+/// Block until an `ID3D12Fence` reaches `value` (0.4.0, command
+/// recording): `SetEventOnCompletion` on a Win32 auto-reset event +
+/// `WaitForSingleObject` inside the bridge.  Returns 0 = signaled,
+/// 1 = timeout, 2 = set-event failed, 3 = no fence, 4 = no event,
+/// 5 = wait failed.  `timeout_ms` < 0 waits indefinitely.  The fence
+/// handle crosses as `Int` (B-25: Int->pointer casts are not
+/// value-preserving on v0.64.4; the bridge casts in C).
+/// Complexity: O(wait).
+pub fn dx12_fence_wait(fence: Int, value: UInt64, timeout_ms: Int) -> Int
+  requires: fence != 0
+{
+  unsafe { return xd12_fence_wait(fence as Int64, value, timeout_ms as Int32) as Int; }
+}
+
+/// The address C actually receives for a `*UInt8` argument (handle
+/// round-trip diagnostic; used by the suite's fidelity checks).
+/// Complexity: O(1).
+pub fn dx12_ptr_value(p: *UInt8) -> Int
+  requires: true
+{
+  unsafe { return xd12_ptr_value(p) as Int; }
+}
+
+/// The value C receives for an `Int` argument (handle round-trip
+/// diagnostic; `Int` params are how object handles cross to C).
+/// Complexity: O(1).
+pub fn dx12_ptr_value_i(p: Int) -> Int
+  requires: true
+{
+  unsafe { return xd12_ptr_value_i(p) as Int; }
 }

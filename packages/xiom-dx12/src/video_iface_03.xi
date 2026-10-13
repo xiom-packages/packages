@@ -4,45 +4,45 @@ module xiom.dx12.video_iface_03
 // ---- ID3D12VideoDevice2 ----
 
 extern "C" {
-  fn xd12c_ID3D12VideoDevice2_CreateVideoDecoder1(obj: Int, pDesc: *UInt8, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoDecoder: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoDevice2_CreateVideoDecoder1(obj: Int, pDesc: *UInt8, pProtectedResourceSession: Int, riid: *UInt8, ppVideoDecoder: *UInt8) -> Int32;
 }
-pub fn d3d12_video_device2_create_video_decoder1(obj: Int, pDesc: *UInt8, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoDecoder: *UInt8) -> Int32
+pub fn d3d12_video_device2_create_video_decoder1(obj: Int, pDesc: *UInt8, pProtectedResourceSession: Int, riid: *UInt8, ppVideoDecoder: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoDevice2_CreateVideoDecoder1(obj, pDesc, pProtectedResourceSession, riid, ppVideoDecoder); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoDevice2_CreateVideoDecoderHeap1(obj: Int, pVideoDecoderHeapDesc: *UInt8, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoDecoderHeap: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoDevice2_CreateVideoDecoderHeap1(obj: Int, pVideoDecoderHeapDesc: *UInt8, pProtectedResourceSession: Int, riid: *UInt8, ppVideoDecoderHeap: *UInt8) -> Int32;
 }
-pub fn d3d12_video_device2_create_video_decoder_heap1(obj: Int, pVideoDecoderHeapDesc: *UInt8, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoDecoderHeap: *UInt8) -> Int32
+pub fn d3d12_video_device2_create_video_decoder_heap1(obj: Int, pVideoDecoderHeapDesc: *UInt8, pProtectedResourceSession: Int, riid: *UInt8, ppVideoDecoderHeap: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoDevice2_CreateVideoDecoderHeap1(obj, pVideoDecoderHeapDesc, pProtectedResourceSession, riid, ppVideoDecoderHeap); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoDevice2_CreateVideoProcessor1(obj: Int, NodeMask: UInt32, pOutputStreamDesc: *UInt8, NumInputStreamDescs: UInt32, pInputStreamDescs: *UInt8, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoProcessor: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoDevice2_CreateVideoProcessor1(obj: Int, NodeMask: UInt32, pOutputStreamDesc: *UInt8, NumInputStreamDescs: UInt32, pInputStreamDescs: *UInt8, pProtectedResourceSession: Int, riid: *UInt8, ppVideoProcessor: *UInt8) -> Int32;
 }
-pub fn d3d12_video_device2_create_video_processor1(obj: Int, NodeMask: UInt32, pOutputStreamDesc: *UInt8, NumInputStreamDescs: UInt32, pInputStreamDescs: *UInt8, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoProcessor: *UInt8) -> Int32
+pub fn d3d12_video_device2_create_video_processor1(obj: Int, NodeMask: UInt32, pOutputStreamDesc: *UInt8, NumInputStreamDescs: UInt32, pInputStreamDescs: *UInt8, pProtectedResourceSession: Int, riid: *UInt8, ppVideoProcessor: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoDevice2_CreateVideoProcessor1(obj, NodeMask, pOutputStreamDesc, NumInputStreamDescs, pInputStreamDescs, pProtectedResourceSession, riid, ppVideoProcessor); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoDevice2_CreateVideoExtensionCommand(obj: Int, pDesc: *UInt8, pCreationParameters: *UInt8, CreationParametersDataSizeInBytes: Int, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoExtensionCommand: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoDevice2_CreateVideoExtensionCommand(obj: Int, pDesc: *UInt8, pCreationParameters: *UInt8, CreationParametersDataSizeInBytes: Int, pProtectedResourceSession: Int, riid: *UInt8, ppVideoExtensionCommand: *UInt8) -> Int32;
 }
-pub fn d3d12_video_device2_create_video_extension_command(obj: Int, pDesc: *UInt8, pCreationParameters: *UInt8, CreationParametersDataSizeInBytes: Int, pProtectedResourceSession: *UInt8, riid: *UInt8, ppVideoExtensionCommand: *UInt8) -> Int32
+pub fn d3d12_video_device2_create_video_extension_command(obj: Int, pDesc: *UInt8, pCreationParameters: *UInt8, CreationParametersDataSizeInBytes: Int, pProtectedResourceSession: Int, riid: *UInt8, ppVideoExtensionCommand: *UInt8) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoDevice2_CreateVideoExtensionCommand(obj, pDesc, pCreationParameters, CreationParametersDataSizeInBytes, pProtectedResourceSession, riid, ppVideoExtensionCommand); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoDevice2_ExecuteExtensionCommand(obj: Int, pExtensionCommand: *UInt8, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int, pOutputData: *UInt8, OutputDataSizeInBytes: Int) -> Int32;
+  fn xd12c_ID3D12VideoDevice2_ExecuteExtensionCommand(obj: Int, pExtensionCommand: Int, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int, pOutputData: *UInt8, OutputDataSizeInBytes: Int) -> Int32;
 }
-pub fn d3d12_video_device2_execute_extension_command(obj: Int, pExtensionCommand: *UInt8, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int, pOutputData: *UInt8, OutputDataSizeInBytes: Int) -> Int32
+pub fn d3d12_video_device2_execute_extension_command(obj: Int, pExtensionCommand: Int, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int, pOutputData: *UInt8, OutputDataSizeInBytes: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoDevice2_ExecuteExtensionCommand(obj, pExtensionCommand, pExecutionParameters, ExecutionParametersSizeInBytes, pOutputData, OutputDataSizeInBytes); }
@@ -51,27 +51,27 @@ pub fn d3d12_video_device2_execute_extension_command(obj: Int, pExtensionCommand
 // ---- ID3D12VideoDecodeCommandList2 ----
 
 extern "C" {
-  fn xd12c_ID3D12VideoDecodeCommandList2_SetProtectedResourceSession(obj: Int, pProtectedResourceSession: *UInt8);
+  fn xd12c_ID3D12VideoDecodeCommandList2_SetProtectedResourceSession(obj: Int, pProtectedResourceSession: Int);
 }
-pub fn d3d12_video_decode_command_list2_set_protected_resource_session(obj: Int, pProtectedResourceSession: *UInt8)
+pub fn d3d12_video_decode_command_list2_set_protected_resource_session(obj: Int, pProtectedResourceSession: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoDecodeCommandList2_SetProtectedResourceSession(obj, pProtectedResourceSession); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoDecodeCommandList2_InitializeExtensionCommand(obj: Int, pExtensionCommand: *UInt8, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int);
+  fn xd12c_ID3D12VideoDecodeCommandList2_InitializeExtensionCommand(obj: Int, pExtensionCommand: Int, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int);
 }
-pub fn d3d12_video_decode_command_list2_initialize_extension_command(obj: Int, pExtensionCommand: *UInt8, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int)
+pub fn d3d12_video_decode_command_list2_initialize_extension_command(obj: Int, pExtensionCommand: Int, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoDecodeCommandList2_InitializeExtensionCommand(obj, pExtensionCommand, pInitializationParameters, InitializationParametersSizeInBytes); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoDecodeCommandList2_ExecuteExtensionCommand(obj: Int, pExtensionCommand: *UInt8, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int);
+  fn xd12c_ID3D12VideoDecodeCommandList2_ExecuteExtensionCommand(obj: Int, pExtensionCommand: Int, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int);
 }
-pub fn d3d12_video_decode_command_list2_execute_extension_command(obj: Int, pExtensionCommand: *UInt8, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int)
+pub fn d3d12_video_decode_command_list2_execute_extension_command(obj: Int, pExtensionCommand: Int, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoDecodeCommandList2_ExecuteExtensionCommand(obj, pExtensionCommand, pExecutionParameters, ExecutionParametersSizeInBytes); }
@@ -91,27 +91,27 @@ pub fn d3d12_video_decode_command_list3_barrier(obj: Int, NumBarrierGroups: UInt
 // ---- ID3D12VideoProcessCommandList2 ----
 
 extern "C" {
-  fn xd12c_ID3D12VideoProcessCommandList2_SetProtectedResourceSession(obj: Int, pProtectedResourceSession: *UInt8);
+  fn xd12c_ID3D12VideoProcessCommandList2_SetProtectedResourceSession(obj: Int, pProtectedResourceSession: Int);
 }
-pub fn d3d12_video_process_command_list2_set_protected_resource_session(obj: Int, pProtectedResourceSession: *UInt8)
+pub fn d3d12_video_process_command_list2_set_protected_resource_session(obj: Int, pProtectedResourceSession: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoProcessCommandList2_SetProtectedResourceSession(obj, pProtectedResourceSession); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoProcessCommandList2_InitializeExtensionCommand(obj: Int, pExtensionCommand: *UInt8, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int);
+  fn xd12c_ID3D12VideoProcessCommandList2_InitializeExtensionCommand(obj: Int, pExtensionCommand: Int, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int);
 }
-pub fn d3d12_video_process_command_list2_initialize_extension_command(obj: Int, pExtensionCommand: *UInt8, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int)
+pub fn d3d12_video_process_command_list2_initialize_extension_command(obj: Int, pExtensionCommand: Int, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoProcessCommandList2_InitializeExtensionCommand(obj, pExtensionCommand, pInitializationParameters, InitializationParametersSizeInBytes); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoProcessCommandList2_ExecuteExtensionCommand(obj: Int, pExtensionCommand: *UInt8, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int);
+  fn xd12c_ID3D12VideoProcessCommandList2_ExecuteExtensionCommand(obj: Int, pExtensionCommand: Int, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int);
 }
-pub fn d3d12_video_process_command_list2_execute_extension_command(obj: Int, pExtensionCommand: *UInt8, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int)
+pub fn d3d12_video_process_command_list2_execute_extension_command(obj: Int, pExtensionCommand: Int, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoProcessCommandList2_ExecuteExtensionCommand(obj, pExtensionCommand, pExecutionParameters, ExecutionParametersSizeInBytes); }
@@ -131,18 +131,18 @@ pub fn d3d12_video_process_command_list3_barrier(obj: Int, NumBarrierGroups: UIn
 // ---- ID3D12VideoEncodeCommandList1 ----
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList1_InitializeExtensionCommand(obj: Int, pExtensionCommand: *UInt8, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int);
+  fn xd12c_ID3D12VideoEncodeCommandList1_InitializeExtensionCommand(obj: Int, pExtensionCommand: Int, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int);
 }
-pub fn d3d12_video_encode_command_list1_initialize_extension_command(obj: Int, pExtensionCommand: *UInt8, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int)
+pub fn d3d12_video_encode_command_list1_initialize_extension_command(obj: Int, pExtensionCommand: Int, pInitializationParameters: *UInt8, InitializationParametersSizeInBytes: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList1_InitializeExtensionCommand(obj, pExtensionCommand, pInitializationParameters, InitializationParametersSizeInBytes); }
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncodeCommandList1_ExecuteExtensionCommand(obj: Int, pExtensionCommand: *UInt8, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int);
+  fn xd12c_ID3D12VideoEncodeCommandList1_ExecuteExtensionCommand(obj: Int, pExtensionCommand: Int, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int);
 }
-pub fn d3d12_video_encode_command_list1_execute_extension_command(obj: Int, pExtensionCommand: *UInt8, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int)
+pub fn d3d12_video_encode_command_list1_execute_extension_command(obj: Int, pExtensionCommand: Int, pExecutionParameters: *UInt8, ExecutionParametersSizeInBytes: Int)
   requires: obj != 0
 {
   unsafe { xd12c_ID3D12VideoEncodeCommandList1_ExecuteExtensionCommand(obj, pExtensionCommand, pExecutionParameters, ExecutionParametersSizeInBytes); }
@@ -196,9 +196,9 @@ pub fn d3d12_video_encoder_set_private_data(obj: Int, guid: *UInt8, DataSize: UI
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncoder_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoEncoder_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: Int) -> Int32;
 }
-pub fn d3d12_video_encoder_set_private_data_interface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32
+pub fn d3d12_video_encoder_set_private_data_interface(obj: Int, guid: *UInt8, pData: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoEncoder_SetPrivateDataInterface(obj, guid, pData); }
@@ -315,9 +315,9 @@ pub fn d3d12_video_encoder_heap_set_private_data(obj: Int, guid: *UInt8, DataSiz
 }
 
 extern "C" {
-  fn xd12c_ID3D12VideoEncoderHeap_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32;
+  fn xd12c_ID3D12VideoEncoderHeap_SetPrivateDataInterface(obj: Int, guid: *UInt8, pData: Int) -> Int32;
 }
-pub fn d3d12_video_encoder_heap_set_private_data_interface(obj: Int, guid: *UInt8, pData: *UInt8) -> Int32
+pub fn d3d12_video_encoder_heap_set_private_data_interface(obj: Int, guid: *UInt8, pData: Int) -> Int32
   requires: obj != 0
 {
   unsafe { return xd12c_ID3D12VideoEncoderHeap_SetPrivateDataInterface(obj, guid, pData); }
