@@ -241,12 +241,18 @@ fn run_instance_checks(inst: &NrdInstance, ids: &Vec[UInt8]) -> Int {
 
   var reblur_img = image_stub();
   var sigma_img = image_stub();
+  var relax_img = image_stub();
+  var reference_img = image_stub();
   var imgs_ok = false;
   let reblur_r = nrd_image_default(NRD_SETTINGS_REBLUR);
   let sigma_r = nrd_image_default(NRD_SETTINGS_SIGMA);
-  if reblur_r.is_ok && sigma_r.is_ok {
+  let relax_r = nrd_image_default(NRD_SETTINGS_RELAX);
+  let reference_r = nrd_image_default(NRD_SETTINGS_REFERENCE);
+  if reblur_r.is_ok && sigma_r.is_ok && relax_r.is_ok && reference_r.is_ok {
     reblur_img = reblur_r.value;
     sigma_img = sigma_r.value;
+    relax_img = relax_r.value;
+    reference_img = reference_r.value;
     imgs_ok = true;
   }
 
@@ -268,7 +274,7 @@ fn run_instance_checks(inst: &NrdInstance, ids: &Vec[UInt8]) -> Int {
   }
   failed = failed + report(invalid_common_ok, "typed: zero-size CommonSettings -> INVALID_ARGUMENT");
 
-  // B10: valid settings application.
+  // B10: valid settings application (all four denoiser settings kinds).
   var settings_ok = false;
   let frame0 = nrd_common_settings_for_frame(320, 180);
   if frame0.is_ok && imgs_ok {
@@ -276,9 +282,11 @@ fn run_instance_checks(inst: &NrdInstance, ids: &Vec[UInt8]) -> Int {
     let sc = nrd_set_common_settings(inst, &frame0_img);
     let sr = nrd_set_denoiser_settings(inst, 1, &reblur_img);
     let ss = nrd_set_denoiser_settings(inst, 2, &sigma_img);
-    settings_ok = sc.is_ok && sr.is_ok && ss.is_ok;
+    let sx = nrd_set_denoiser_settings(inst, 3, &reference_img);
+    let sl = nrd_set_denoiser_settings(inst, 4, &relax_img);
+    settings_ok = sc.is_ok && sr.is_ok && ss.is_ok && sx.is_ok && sl.is_ok;
   }
-  failed = failed + report(settings_ok, "settings: common + reblur + sigma applied (320x180)");
+  failed = failed + report(settings_ok, "settings: common + reblur + sigma + reference + relax applied (320x180)");
 
   if !settings_ok {
     failed = failed + report(false, "plan: dispatch plan unavailable (settings stage failed)");
@@ -412,7 +420,7 @@ fn skip_instance_checks() -> Int {
   var failed = 0;
   failed = failed + skip("typed: unknown identifier");
   failed = failed + skip("typed: zero-size CommonSettings");
-  failed = failed + skip("settings: common + reblur + sigma");
+  failed = failed + skip("settings: common + denoiser images (reblur/sigma/reference/relax)");
   failed = failed + skip("plan: count/sums/grids");
   failed = failed + skip("plan: REBLUR resource evidence");
   failed = failed + skip("plan: SIGMA resource evidence");
@@ -484,9 +492,13 @@ fn run_present(lib: &NrdLibrary) -> Int {
   var id_vals: Vec[Int32] = Vec[Int32].new();
   push_i32(&mut id_vals, 1);
   push_i32(&mut id_vals, 2);
+  push_i32(&mut id_vals, 3);
+  push_i32(&mut id_vals, 4);
   var kind_vals: Vec[Int32] = Vec[Int32].new();
   push_i32(&mut kind_vals, NRD_DENOISER_REBLUR_DIFFUSE_SPECULAR);
   push_i32(&mut kind_vals, NRD_DENOISER_SIGMA_SHADOW);
+  push_i32(&mut kind_vals, NRD_DENOISER_REFERENCE);
+  push_i32(&mut kind_vals, NRD_DENOISER_RELAX_DIFFUSE_SPECULAR);
   let ids = nrd_u32_image(&id_vals);
   let kinds = nrd_u32_image(&kind_vals);
 

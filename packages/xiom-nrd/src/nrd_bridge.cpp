@@ -832,7 +832,7 @@ int32_t nrdb_set_common_settings(int64_t handle, int64_t instance, const uint8_t
 int32_t nrdb_set_denoiser_settings(int64_t handle, int64_t instance, int32_t identifier, const uint8_t* settings, int32_t size)
 {
     if (handle == 0 || instance == 0 || settings == 0) return NRDB_ERR_BAD_ARGS;
-    if (size < 16) return NRDB_ERR_SIZE; // the module always passes full images
+    if (size < 4) return NRDB_ERR_SIZE; // smallest mirror is ReferenceSettings (4 bytes)
     if (g_module == 0 || (HMODULE)(intptr_t)handle != g_module) return NRDB_ERR_NOT_LOADED;
 
     return (int32_t)g_setDenoiserSettings((void*)(intptr_t)instance, (uint32_t)identifier, settings);

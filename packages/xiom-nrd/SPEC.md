@@ -55,10 +55,10 @@ loader and exercised by the suite:
 | `CreateInstance` | `Result(const InstanceCreationDesc&, Instance*&)` | create with 2 denoisers; typed `UNSUPPORTED`, `NON_UNIQUE_IDENTIFIER` |
 | `DestroyInstance` | `void(Instance&)` | destroy after plan checks |
 | `GetLibraryDesc` | `const LibraryDesc*()` | version 4.17.3, encodings 2/1, 19 denoisers, SPIR-V offsets 0/20/2/3 |
-| `GetInstanceDesc` | `const InstanceDesc*(const Instance&)` | pipelines=32, cbMax=864, samplers=2, pools=14/13, entry "main" |
+| `GetInstanceDesc` | `const InstanceDesc*(const Instance&)` | pipelines=59, cbMax=864, samplers=2, pools=25/15, entry "main" (4-denoiser instance) |
 | `SetCommonSettings` | `Result(Instance&, const CommonSettings&)` | 320x180 valid frame; typed `INVALID_ARGUMENT` on zero sizes |
-| `SetDenoiserSettings` | `Result(Instance&, Identifier, const void*)` | REBLUR + SIGMA settings; typed `INVALID_ARGUMENT` on unknown id |
-| `GetComputeDispatches` | `Result(Instance&, const Identifier*, uint32_t, const DispatchDesc*&, uint32_t&)` | 44 dispatches / 145 resources / 9216 constant bytes at 320x180; per-denoiser resource evidence; CB reuse; frameIndex flow |
+| `SetDenoiserSettings` | `Result(Instance&, Identifier, const void*)` | REBLUR + SIGMA + REFERENCE + RELAX settings images; typed `INVALID_ARGUMENT` on unknown id |
+| `GetComputeDispatches` | `Result(Instance&, const Identifier*, uint32_t, const DispatchDesc*&, uint32_t&)` | 70 dispatches / 277 resources / 16456 constant bytes at 320x180 (4 denoisers); per-denoiser resource evidence; CB reuse; frameIndex flow |
 | `GetResourceTypeString` | `const char*(ResourceType)` | all 32 resource type strings non-empty; spot checks |
 | `GetDenoiserString` | `const char*(Denoiser)` | 19 denoiser strings; spot checks |
 
