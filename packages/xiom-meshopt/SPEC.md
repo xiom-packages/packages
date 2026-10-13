@@ -5,14 +5,15 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.meshopt` |
-| Version | 0.4.0 |
+| Version | 0.5.0 |
 | Kind | binding (`categories: ["graphics"]`) |
 | Upstream project | meshoptimizer -- https://github.com/zeux/meshoptimizer |
 | Upstream version pinned | commit `f843aae0` (post-tag `v1.2`, `v1.2-17-gf843aae0`; `MESHOPTIMIZER_VERSION` 1020) |
 | Upstream license | MIT (`vendor/LICENSE.md`) |
 | Package license | MIT OR Apache-2.0 (everything outside `vendor/`) |
 | Platform | Windows x64 (primary); the vendored C++ path is portable |
-| Compiler pin | v0.64.3 |
+| Compiler pin | v0.64.4 |
+| Modules | `xiom.meshopt` (root: FFI surface + probes + wrappers), `xiom.meshopt_safe` (pipeline wrappers), `xiom.meshopt_cooked` (XMC1 container) |
 
 ## 2. Vendored path (G2 pin)
 
@@ -105,6 +106,31 @@ typed 4/3: vertex refs byte-exact, triangle corners may rotate -- the
 meshlet triangle coder rotates corners to line up next-bits, so the check
 is rotation-invariant).
 
+0.5.0 cooked-mesh container (ROADMAP Phase 3 item 3, section 4 below):
+`meshopt_cooked_encode` wraps both EncodePipeline codec streams (vertex +
+index) into the "XMC1" container; `meshopt_cooked_decode` opens it from
+owned bytes and returns the decoded mesh (counts + XIOM-owned vertex/index
+buffers) in one call, with typed `MeshoptError` codes 10..15 for
+corrupt/truncated input. The module is pure-XIOM (no `unsafe`).
+
+0.5.0 module layout: `extern "C"` names are module-private on the pin and a
+dotted child cannot import its parent (B-04), so `src/meshopt_safe.xi`
+(module `xiom.meshopt_safe`) and `src/meshopt_cooked.xi` (module
+`xiom.meshopt_cooked`) use flat sibling names and reach the C surface
+through thin pub wrappers exported by the root module (`generate_vertex_remap_into`,
+`remap_vertex_buffer`, `optimize_vertex_cache_fifo`, `optimize_overdraw`,
+`optimize_vertex_fetch`, `optimize_vertex_fetch_remap`,
+`analyze_vertex_fetch`, `simplify_with_options`, `encode_index_bound`,
+`encode_indices_raw`, `encode_vertices_bound`, `encode_vertices_raw`,
+`decode_vertex_buffer`, `decode_index_buffer`, `stripify_bound`,
+`byte_slot`). FFI stays confined to `meshopt.xi` (G5). The wrappers also
+fixed two latent landmines in the previously-uncompiled safe module:
+`generate_vertex_remap` no longer passes a NULL destination to
+`meshopt_generateVertexRemap` (upstream memsets it unconditionally), and
+`RemapPipeline` now owns its remap table instead of carrying a zero
+pointer. `EncodePipeline` gained the missing `decode_indices` half so the
+codec surface is symmetric.
+
 ABI discipline: probes return scalars or write 4-byte ints into XIOM-owned
 slots read little-endian (B-11/B-16/B-17); C++ structs (vertex-cache/fetch
 statistics, `meshopt_Bounds`, meshlets) never cross the boundary by value;
@@ -119,23 +145,70 @@ edge FIFO (README: use `meshopt_encodeIndexSequence` to preserve exact
 order), so the probe asserts triangle-multiset equality, not byte equality.
 The vertex codec round trip is byte-exact.
 
-## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
+## 4. Cooked container "XMC1" (0.5.0)
+
+`meshopt_cooked_encode` / `meshopt_cooked_decode` (module
+`xiom.meshopt_cooked`) wrap the EncodePipeline streams into a small
+self-describing container so an asset pipeline can store one byte blob and
+recover the mesh without pointer juggling. All integers are little-endian
+u32:
+
+| Offset | Size | Field |
+|--------|------|-------|
+| 0 | 4 | magic `"XMC1"` (bytes `0x58 0x4D 0x43 0x31`) |
+| 4 | 4 | format version (`1`) |
+| 8 | 4 | vertex_count |
+| 12 | 4 | vertex_size (bytes per vertex, 1..256) |
+| 16 | 4 | index_count (u32 indices, multiple of 3) |
+| 20 | 4 | vertex_stream_size (encoded bytes) |
+| 24 | 4 | index_stream_size (encoded bytes) |
+| 28 | 4 | total_size = 32 + vertex_stream_size + index_stream_size |
+| 32 | ... | vertex stream (`meshopt_encodeVertexBuffer`), then index stream (`meshopt_encodeIndexBuffer`) |
+
+Writer: caller-owned `Vec[UInt8]` mesh in, container bytes out (both
+streams encoded through the existing `EncodePipeline` bounds/calls).
+Reader (`meshopt_cooked_decode`, the single-call integration helper):
+validates the header, copies each stream into an owned staging slot, decodes
+into owned destination slots via `EncodePipeline.decode_vertices` /
+`decode_indices`, range-checks every decoded index against `vertex_count`
+and returns `MeshoptCookedMesh { vertex_count, vertex_size, index_count,
+vertices, indices }`. Reading is byte-indexed on XIOM-owned memory only; C
+only ever reads owned input and writes owned output (B-16/B-17/B-20/B-24/
+B-25 discipline; no pointer arithmetic, no foreign-pointer reads).
+
+Because the triangle-list index codec rotates corners (edge FIFO), the
+lossless contract of the index stream is the triangle multiset, not byte
+order; the vertex stream is byte-exact. Decode failures surface as typed
+`MeshoptError` codes:
+
+| Code | Constant | Meaning |
+|------|----------|---------|
+| 10 | `MESHOPT_COOKED_ERR_HEADER` | truncated header / invalid counts |
+| 11 | `MESHOPT_COOKED_ERR_MAGIC` | bad magic (want `XMC1`) |
+| 12 | `MESHOPT_COOKED_ERR_VERSION` | unsupported format version |
+| 13 | `MESHOPT_COOKED_ERR_SIZE` | declared size mismatch / truncation |
+| 14 | `MESHOPT_COOKED_ERR_DECODE` | codec stream encode/decode failure |
+| 15 | `MESHOPT_COOKED_ERR_RANGE` | decoded index >= vertex_count |
+
+## 5. Test matrix (0.5.0 recorded 2026-10-13, compiler v0.64.4)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Vendored tree (always compiled in) | `scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900` | **PASS 38/38 x2** -- 16 constants + 12 runtime probes + 2 owned-buffer probes + 3 owned-buffer wrappers + 5 codec-family checks; version 1020, remap 6->4, ACMR drops after cache optimization, simplify ~100 indices at <= 5% error, both index codecs round-trip (list: rotation-invariant; sequence: byte-exact), vertex codec byte-exact, stripify set-preserving, fp16 patterns 0x3C00/0xC000, sphere r=1414 on the 2x2 square, 98 meshlet triangles conserved, oct error <= 0.02, wrapper remap/optimize/simplify green, quat/exp/color filters within micro error bounds, meshlet codec round trip (refs exact, triangles rotation-invariant) |
+| Vendored tree (always compiled in) | `scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900` | **PASS 43/43 x2** -- 16 constants + 12 runtime probes + 2 owned-buffer probes + 3 owned-buffer wrappers + 5 codec-family checks + 5 cooked-container checks; all 0.4.0 evidence plus: encode -> container -> decode identical vertex bytes (768/768), decoded indices valid and triangle multiset preserved, corrupt-magic/truncated-header/version/size container errors map to typed codes 11/10/12/13 |
 
 Build cost: 20 vendored TUs + the bridge, `--timeout 900` carried by
 `port.args.json` (watchdog headroom; ~25 s/run on this host). There is no
 library-absence SKIP path -- the sources are vendored and always compiled in.
 
-## 5. Scope
+## 6. Scope
 
-0.3.0 delivered the owned-buffer wrappers (remap/optimize/simplify) and
+0.3.0 delivered the owned-buffer wrappers (remap/optimize/simplify),
 0.4.0 the codec-family probes (index sequence, quat/exp/color filters,
-meshlet codec). The cluster pipeline (buildMeshlets -> optimizeMeshlet ->
-computeMeshletBounds), the remaining family probes (partition, spatial sort,
-opacity maps, tangents) and a re-pin to the next upstream tag are Phase 3
-(`ROADMAP.md`). The legacy pre-vendor 72-check declaration-only suite is
-preserved in git history; its 72/72 re-verify on v0.64.3 was recorded
-before the modernization.
+meshlet codec) and 0.5.0 the cooked-mesh container plus the decoder
+integration surface (and the pinned-wrapper floor that makes the previously
+uncompiled `xiom.meshopt_safe` module real). The cluster pipeline
+(buildMeshlets -> optimizeMeshlet -> computeMeshletBounds), the remaining
+family probes (partition, spatial sort, opacity maps, tangents) and a re-pin
+to the next upstream tag are Phase 3 (`ROADMAP.md`). The legacy pre-vendor
+72-check declaration-only suite is preserved in git history; its 72/72
+re-verify on v0.64.3 was recorded before the modernization.

@@ -26,6 +26,14 @@
 // surface.  ABI-sensitive shapes (fp returns through casts, struct-by-value
 // returns) go through the bridge; probes never read through foreign
 // pointers (B-20 -- C copies into XIOM-owned slots read byte-indexed).
+//
+// 0.5.0: `extern "C"` names are module-private on the pin, so the sibling
+// modules (xiom.meshopt_safe, xiom.meshopt_cooked -- flat sibling names,
+// because a dotted child cannot import its parent on the pin, B-04) reach
+// the C surface through the thin pub wrappers at the bottom; FFI stays
+// confined to this module (G5).  The cooked-mesh container "XMC1"
+// (SPEC.md section 4) wraps the EncodePipeline streams behind an
+// owned-bytes writer/reader.
 
 module xiom.meshopt
 
@@ -273,8 +281,11 @@ pub fn generate_vertex_remap(vertices_ptr: Int, vertex_count: Int, vertex_size: 
   requires: vertex_count > 0
   requires: vertex_size > 0
 {
-  let remap_ptr: Int = 0;
-  let unique_count: Int = unsafe { meshopt_generateVertexRemap(remap_ptr, 0, 0, vertices_ptr, vertex_count, vertex_size) };
+  // Upstream memsets the destination unconditionally, so the old
+  // destination=0 call was an access violation; the mapping is written into
+  // an owned scratch slot and only the unique count is returned.
+  var scratch: Vec[UInt8] = byte_slot(vertex_count * 4);
+  let unique_count: Int = unsafe { meshopt_generateVertexRemap(scratch.as_mut_ptr() as Int, 0, vertex_count, vertices_ptr, vertex_count, vertex_size) };
   if unique_count == 0 { return Err("meshopt_generateVertexRemap returned 0 vertices"); }
   return Ok(unique_count);
 }
@@ -360,16 +371,24 @@ extern "C" {
   fn xmo_meshlet_codec_probe(out_vertex_count: *UInt8, out_triangle_count: *UInt8, out_size: *UInt8, out_rc: *UInt8, out_equal: *UInt8) -> Int32;
 }
 
-fn xmo_slot4() -> Vec[UInt8]
-  requires: true
+/// n zero bytes in an XIOM-owned slot (owned out-param / staging buffers).
+/// Complexity: O(n).
+pub fn byte_slot(n: Int) -> Vec[UInt8]
+  requires: n > 0
 {
   var s: Vec[UInt8] = Vec[UInt8].new();
   var i: Int = 0;
-  while i < 4 {
+  while i < n {
     s.push(0 as UInt8);
     i = i + 1;
   }
   return s;
+}
+
+fn xmo_slot4() -> Vec[UInt8]
+  requires: true
+{
+  return byte_slot(4);
 }
 
 fn xmo_read_u32(buf: &Vec[UInt8]) -> Int
@@ -863,4 +882,154 @@ pub fn meshopt_meshlet_codec_probe() -> Result[MeshoptMeshletCodec, Str]
       equal: xmo_read_u32(&fe) != 0
     });
   }
+}
+
+// =========================================================================
+// 0.5.0: raw-surface wrappers for the safe/cooked sibling modules
+// =========================================================================
+//
+// Extern "C" names are module-private on the pin (v0.64.4), so the sibling
+// modules (xiom.meshopt_safe, xiom.meshopt_cooked) reach the C surface
+// through these thin pub wrappers; FFI stays confined to this module (G5).
+// Signatures mirror meshoptimizer.h with the declaration convention above
+// (pointer params are Int; Int params cross the boundary faithfully).
+
+pub fn generate_vertex_remap_into(remap_ptr: Int, vertices_ptr: Int, vertex_count: Int, vertex_size: Int) -> Int
+  requires: remap_ptr != 0
+  requires: vertices_ptr != 0
+  requires: vertex_count > 0
+  requires: vertex_size > 0
+{
+  // indices = NULL with index_count = vertex_count: the identity index list,
+  // which is the valid NULL-indices form (upstream asserts the equality).
+  return unsafe { meshopt_generateVertexRemap(remap_ptr, 0, vertex_count, vertices_ptr, vertex_count, vertex_size) };
+}
+
+pub fn remap_vertex_buffer(dest_ptr: Int, vertices_ptr: Int, vertex_count: Int, vertex_size: Int, remap_ptr: Int)
+  requires: dest_ptr != 0
+  requires: vertices_ptr != 0
+  requires: remap_ptr != 0
+  requires: vertex_count > 0
+  requires: vertex_size > 0
+{
+  unsafe { meshopt_remapVertexBuffer(dest_ptr, vertices_ptr, vertex_count, vertex_size, remap_ptr); }
+}
+
+pub fn remap_index_buffer(dest_ptr: Int, indices_ptr: Int, index_count: Int, remap_ptr: Int)
+  requires: dest_ptr != 0
+  requires: indices_ptr != 0
+  requires: remap_ptr != 0
+  requires: index_count > 0
+{
+  unsafe { meshopt_remapIndexBuffer(dest_ptr, indices_ptr, index_count, remap_ptr); }
+}
+
+pub fn optimize_vertex_cache_fifo(dest_ptr: Int, indices_ptr: Int, index_count: Int, vertex_count: Int, cache_size: Int32)
+  requires: dest_ptr != 0
+  requires: indices_ptr != 0
+  requires: index_count > 0
+  requires: vertex_count > 0
+{
+  unsafe { meshopt_optimizeVertexCacheFifo(dest_ptr, indices_ptr, index_count, vertex_count, cache_size); }
+}
+
+pub fn optimize_overdraw(dest_ptr: Int, indices_ptr: Int, index_count: Int, positions_ptr: Int, vertex_count: Int, pos_stride: Int, threshold: Float32)
+  requires: dest_ptr != 0
+  requires: indices_ptr != 0
+  requires: positions_ptr != 0
+  requires: index_count > 0
+  requires: vertex_count > 0
+{
+  unsafe { meshopt_optimizeOverdraw(dest_ptr, indices_ptr, index_count, positions_ptr, vertex_count, pos_stride, threshold); }
+}
+
+pub fn optimize_vertex_fetch(dest_ptr: Int, indices_ptr: Int, index_count: Int, vertices_ptr: Int, vertex_count: Int, vertex_size: Int) -> Int
+  requires: dest_ptr != 0
+  requires: indices_ptr != 0
+  requires: vertices_ptr != 0
+  requires: index_count > 0
+  requires: vertex_count > 0
+{
+  return unsafe { meshopt_optimizeVertexFetch(dest_ptr, indices_ptr, index_count, vertices_ptr, vertex_count, vertex_size) };
+}
+
+pub fn optimize_vertex_fetch_remap(dest_ptr: Int, indices_ptr: Int, index_count: Int, vertex_count: Int) -> Int
+  requires: dest_ptr != 0
+  requires: indices_ptr != 0
+  requires: index_count > 0
+  requires: vertex_count > 0
+{
+  return unsafe { meshopt_optimizeVertexFetchRemap(dest_ptr, indices_ptr, index_count, vertex_count) };
+}
+
+pub fn analyze_vertex_fetch(indices_ptr: Int, index_count: Int, vertex_count: Int, vertex_size: Int) -> MeshoptVertexFetchStatistics
+  requires: indices_ptr != 0
+  requires: index_count > 0
+  requires: vertex_count > 0
+{
+  return unsafe { meshopt_analyzeVertexFetch(indices_ptr, index_count, vertex_count, vertex_size) };
+}
+
+pub fn simplify_with_options(dest_ptr: Int, indices_ptr: Int, index_count: Int, pos_ptr: Int, vertex_count: Int, pos_stride: Int, target_count: Int, target_error: Float32, options: Int32) -> Int
+  requires: dest_ptr != 0
+  requires: indices_ptr != 0
+  requires: pos_ptr != 0
+  requires: index_count > 0
+  requires: vertex_count > 0
+  requires: target_count > 0
+{
+  return unsafe { meshopt_simplify(dest_ptr, indices_ptr, index_count, pos_ptr, vertex_count, pos_stride, target_count, target_error, options, 0) };
+}
+
+pub fn encode_index_bound(index_count: Int, vertex_count: Int) -> Int
+  requires: index_count > 0
+{
+  return unsafe { meshopt_encodeIndexBufferBound(index_count, vertex_count) };
+}
+
+pub fn encode_indices_raw(buffer_ptr: Int, buffer_size: Int, indices_ptr: Int, index_count: Int) -> Int
+  requires: buffer_ptr != 0
+  requires: indices_ptr != 0
+  requires: index_count > 0
+{
+  return unsafe { meshopt_encodeIndexBuffer(buffer_ptr, buffer_size, indices_ptr, index_count) };
+}
+
+pub fn encode_vertices_bound(vertex_count: Int, vertex_size: Int) -> Int
+  requires: vertex_count > 0
+  requires: vertex_size > 0
+{
+  return unsafe { meshopt_encodeVertexBufferBound(vertex_count, vertex_size) };
+}
+
+pub fn encode_vertices_raw(buffer_ptr: Int, buffer_size: Int, vertices_ptr: Int, vertex_count: Int, vertex_size: Int) -> Int
+  requires: buffer_ptr != 0
+  requires: vertices_ptr != 0
+  requires: vertex_count > 0
+  requires: vertex_size > 0
+{
+  return unsafe { meshopt_encodeVertexBuffer(buffer_ptr, buffer_size, vertices_ptr, vertex_count, vertex_size) };
+}
+
+pub fn decode_vertex_buffer(dest_ptr: Int, vertex_count: Int, vertex_size: Int, buffer_ptr: Int, buffer_size: Int) -> Int32
+  requires: dest_ptr != 0
+  requires: buffer_ptr != 0
+  requires: vertex_count > 0
+  requires: vertex_size > 0
+{
+  return unsafe { meshopt_decodeVertexBuffer(dest_ptr, vertex_count, vertex_size, buffer_ptr, buffer_size) };
+}
+
+pub fn decode_index_buffer(dest_ptr: Int, index_count: Int, index_size: Int, buffer_ptr: Int, buffer_size: Int) -> Int32
+  requires: dest_ptr != 0
+  requires: buffer_ptr != 0
+  requires: index_count > 0
+{
+  return unsafe { meshopt_decodeIndexBuffer(dest_ptr, index_count, index_size, buffer_ptr, buffer_size) };
+}
+
+pub fn stripify_bound(index_count: Int) -> Int
+  requires: index_count > 0
+{
+  return unsafe { meshopt_stripifyBound(index_count) };
 }

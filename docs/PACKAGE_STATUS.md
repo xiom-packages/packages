@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T17:31:04Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-13T19:45:50Z.
 
 ## Summary
 
@@ -562,5 +562,5 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.zigbee | xiom-zigbee | incubating | tests/test_conformance.xi | pass 26/26 | 2c6a7b88 | False | category harmonization patch bump (registry metadata) |
 | xiom.zkp | xiom-zkp | incubating | tests/test_conformance.xi | pass 20/20 | e295e6fc | False | publish pending: next scope delta |
 | xiom.zookeeper | xiom-zookeeper | incubating | tests/test_conformance.xi | pass 24/24 | 0535dc8e | False | publish pending: next scope delta |
-| xiom.zstd | xiom-zstd | incubating | tests/test_conformance.xi | pass 8/8 | ba754abf | False | publish pending: bindings batch 12 (eco-v0.1.106) |
+| xiom.zstd | xiom-zstd | incubating | tests/test_conformance.xi | pass 24/24 | 0482c055 | False | publish pending: bindings batch 12 (eco-v0.1.106) |
 

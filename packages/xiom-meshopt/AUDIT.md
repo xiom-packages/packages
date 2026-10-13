@@ -1,20 +1,21 @@
 # AUDIT: xiom.meshopt
 
-## Status (2026-10-11)
+## Status (2026-10-13)
 
-Vendored C++ implementation at 0.2.0. The pre-pilot declaration-only module
+Vendored C++ implementation at 0.5.0. The pre-pilot declaration-only module
 (85 externs plus an assert-only 72-check suite that never linked the library)
 is preserved in git history; 0.2.0 vendors the real upstream sources and
 links them, so the suite now exercises the library.
 
 | Item | State |
 |------|-------|
-| Compiler | xiom v0.64.3 |
+| Compiler | xiom v0.64.4 |
 | Upstream | meshoptimizer v1.2 (commit `f843aae0`, `v1.2-17-gf843aae0`), vendored unmodified (MIT) |
 | Link model | `--c-source` (20 vendored TUs + `src/meshopt_bridge.cpp`) via `port.args.json`, `--timeout 900`; no system library |
 | FFI confinement | all `extern "C"` in the root module `meshopt.xi` (G5) |
-| Suite | `tests/test_conformance.xi`, 38 checks (16 constants + 14 real-library probes + 3 owned-buffer wrappers + 5 codec-family checks) |
-| Runs | **PASS 38/38 x2** on the pin (`scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900`) |
+| Modules | `xiom.meshopt`, `xiom.meshopt_safe`, `xiom.meshopt_cooked` (declared in `package.xi`) |
+| Suite | `tests/test_conformance.xi`, 43 checks (16 constants + 14 real-library probes + 3 owned-buffer wrappers + 5 codec-family checks + 5 cooked-container checks) |
+| Runs | **PASS 43/43 x2** on the pin (`scripts/port.ps1 -Package xiom.meshopt -TimeoutSec 900`) |
 
 ## Design notes
 
@@ -35,9 +36,7 @@ links them, so the suite now exercises the library.
   the inputs and writes results into XIOM-owned outputs, and the suite
   reads results back byte-indexed. `meshopt_fill_grid` is the deterministic
   fixture filler (f32 grid positions, reversed triangle order so cache
-  optimization must reorder). Wrapper remap merges byte-identical vertices
-  and copies the remapped vertex buffer out; optimize verifies the triangle
-  multiset before write-back; simplify reports count + relative error.
+  optimization must reorder).
 - **Codec family (0.4.0)**: index sequence codec (arbitrary topology,
   byte-exact order -- unlike the triangle-list codec), the quat/exp/color
   filter family at 16/16/8 bits (max error in micro units; decode layouts
@@ -46,6 +45,32 @@ links them, so the suite now exercises the library.
   4/3 decode; vertex refs byte-exact, triangles compared rotation-invariant
   because the meshlet triangle coder rotates corners to line up next-bits,
   meshletcodec.cpp line 120).
+- **Cooked container (0.5.0)**: module `xiom.meshopt_cooked` frames the
+  EncodePipeline vertex + index streams with the documented "XMC1" header
+  (32 bytes: magic/version/counts/stream sizes/total; SPEC section 4).
+  `meshopt_cooked_encode` encodes caller-owned mesh bytes through the
+  existing EncodePipeline bounds/calls; `meshopt_cooked_decode` validates
+  the header, copies each stream into an owned staging slot, decodes into
+  owned destination slots, range-checks the decoded indices and returns
+  `MeshoptCookedMesh` (counts + bytes) in one call. Failures are typed
+  `MeshoptError` codes 10..15. The decode path caught a real framing bug
+  during bring-up (append into a pre-sized slot doubles the stream): staging
+  copies now start from empty owned vectors, and the roundtrip test pins
+  byte-exact vertices plus a rotation-invariant triangle multiset.
+- **Module layout + wrapper floor (0.5.0)**: `extern "C"` names are
+  module-private on the pin and a dotted child cannot import its parent
+  (B-04), so the sibling modules use flat names (`xiom.meshopt_safe`,
+  `xiom.meshopt_cooked`) and call thin pub wrappers exported by the root
+  module (`generate_vertex_remap_into`, `remap_*`, `optimize_*`,
+  `analyze_vertex_fetch`, `simplify_with_options`, `encode_*`,
+  `decode_vertex_buffer`, `decode_index_buffer`, `stripify_bound`,
+  `byte_slot`). FFI stays confined to `meshopt.xi`. Side effects of making
+  the safe module compile for the first time: `generate_vertex_remap` no
+  longer passes a NULL destination to `meshopt_generateVertexRemap`
+  (upstream memsets the destination unconditionally -- the old call was an
+  access violation), `RemapPipeline` owns its remap table instead of
+  carrying a zero pointer, and `EncodePipeline.decode_indices` completes
+  the encode/decode pair used by the cooked reader.
 - **Deterministic probes**: an 8x8 grid (64 vertices / 98 triangles,
   triangle order reversed to be cache-hostile) and an 11x11 bumpy grid (121
   vertices / 200 triangles) for simplification. The index codec check is
@@ -67,9 +92,15 @@ links them, so the suite now exercises the library.
 - Runtime coverage is a pilot slice of the vendored library: remap, cache and
   fetch analysis, simplify, index/sequence/vertex codecs, meshlet codec,
   stripify, meshlets, sphere bounds, oct/quat/exp/color filters, plus the
-  owned-buffer optimize path and the 0.3.0 wrappers. The remaining families
-  (partition, spatial sort, opacity maps, tangents) and the cluster pipeline
-  are Phase 3 (`ROADMAP.md`).
+  owned-buffer optimize path, the 0.3.0 wrappers and the 0.5.0 cooked
+  container. The pipeline types in `xiom.meshopt_safe` are compile-verified
+  and thin pass-throughs; only `EncodePipeline` is exercised end-to-end so
+  far (through the cooked container). The remaining families (partition,
+  spatial sort, opacity maps, tangents) and the cluster pipeline are Phase 3
+  (`ROADMAP.md`).
+- The "XMC1" container is a package-local framing (versioned), not the
+  upstream `.meshopt` meshlet file format; it stores vertex + index streams
+  only.
 - The raw 85-function extern surface remains declaration-first: fp returns
   and struct-by-value returns must go through the bridge until the compiler
   fixes land (B-12/B-20); callbacks (custom remap, setAllocator) need a C

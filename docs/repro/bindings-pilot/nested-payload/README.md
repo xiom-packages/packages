@@ -56,6 +56,34 @@ RED: extracted nested payload reads a bogus length (`9`, pointer-like values
 in the package context) and crashes when the Vec is used.  GREEN: flat
 struct payload and single-level `Option[Bag]` extraction are correct.
 
+## Shape matrix (`matrix.xi`, 3 fresh builds, 2026-10-13, v0.64.4)
+
+| Shape | Result |
+|-------|--------|
+| D `Result[BagFlat]` (flat struct) | GREEN 3/3 -- tag=2, items.len=2 |
+| E `Option[Bag]` (single level) | GREEN 3/3 |
+| B `Result[Option[Int]]` (nested scalar) | GREEN 3/3 -- value=41 |
+| C `Option[Result[Bag]]` (inverted nesting) | GREEN 3/3 |
+| F `Result[Option[Vec[Int]]]` (nested bare Vec) | GREEN 3/3 -- len=2 |
+| A2 `Result[Option[BagV]]` (nested struct-with-Vec, no scalar) | GREEN 3/3 in `matrix.xi`; **RED 4/4 in `probe.xi`** (items.len=9) |
+| A `Result[Option[Bag]]` (nested struct-with-Vec + leading Int tag) | **ACCESS VIOLATION 3/3** (0xC0000005) |
+
+Reading:
+
+- The corruption needs a nested enum payload whose value is a
+  struct-with-Vec (`Result[Option[..]]`); nested scalar and nested bare
+  `Vec` stay green, as do flat and single-level payloads.
+- The exact behavior depends on the surrounding **module content**: the
+  same no-scalar nested shape is RED in `probe.xi` (4/4 builds) and GREEN
+  in `matrix.xi` (3/3 builds) -- a source/build-sensitive miscompilation
+  (B-01 family signature).
+- Adding a leading `Int` field to the nested struct makes it a reliable
+  access violation at the extraction/use step (`matrix.xi` shape A, 3/3);
+  the crash lands between the shape header and the first field read.
+
+`matrix.xi` shape A is the reliable red artifact; `probe.xi` stays the
+minimal RED for the source-sensitivity flip.
+
 ## Workaround shipped (xiom.sqlite 0.4.0)
 
 `query_one` returns a flat `RowOutcome { has_row: Bool; row: SqliteRow; }`
