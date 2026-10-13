@@ -95,10 +95,11 @@ and recomputing (see `scripts`-free procedure below).
 `SDL_PushEvent` joined the resolved symbol set and the loader struct
 (`sdl3_push_event`); the suite gained a headless event-pump proof -- inject
 a synthetic user event (0x8000) into a 128-byte XIOM slot, pump, consume
-with `poll(NULL)` (22/22 x2 with SDL 3.4.8).  Buffer readback is deferred:
-on this host reading the foreign-written event buffer reproduces the
-B-11-family slot corruption (recycled bytes after the call; addendum item
-filed to the compiler lane).
+with `poll(NULL)` (22/22 x2 with SDL 3.4.8).  Buffer readback was deferred
+at the time: on v0.64.3 reading the foreign-written event buffer reproduced
+the B-11-family slot corruption (recycled bytes; addendum item
+`REL-20261011-0304` filed to the compiler lane).  **RETIRED on v0.64.4 --
+see the 0.18.0 addition below.**
 
 **0.4.0 addition (event decoding, 2026-10-11):** `SDL_Event` decoded from an
 owned 128-byte buffer (`SDL_EVENT_SIZE`; the union's `padding[128]` pins the
@@ -111,7 +112,8 @@ and byte-identical in the local `release-3.2.10` clone.  Accessors are pure
 XIOM; f32 fields have `_bits` accessors plus `sdl3_f32_from_bits` (B-12
 discipline -- no fp cast-call returns).  The suite decodes self-built buffers
 in every shape (DLL-free) and injects a synthetic KEY_DOWN through the real
-queue (consume semantics; B-11 readback deferral unchanged).
+queue (consume semantics; the 0.18.0 readback path below is now the
+preferred decode route).
 
 **0.5.0 addition (event filter + watch, 2026-10-11):** `SDL_SetEventFilter`,
 `SDL_AddEventWatch`, `SDL_RemoveEventWatch` joined the resolved symbol set
@@ -282,12 +284,24 @@ The SDL_EVENT_DROP_* type constants already existed (0.11.0 tables).
 Because the arm is DLL-independent it joins the decode layer that runs in
 BOTH shapes -- the absent baseline becomes 5 checks.
 
-## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
+**0.18.0 addition (foreign-written event readback, 2026-10-13):** the
+B-11-addendum deferral is RETIRED on v0.64.4.  Re-testing the addendum
+reproducer (`REL-20261011-0304`) shows the SDL-written event buffer reads
+back EXACTLY: poll a pushed `SDL_EVENT_USER` (0x8000) into an owned
+128-byte slot, decode `type` byte-indexed -> `0x8000` (no recycled
+bytes; previously `0x33323100`/`0x04040404` on v0.64.3).  The suite now
+witnesses both the user-event readback and the full `KEY_DOWN` readback
+decode (type/scancode/key/down via the 0.4.0 accessors over a
+FOREIGN-written buffer).  The general B-11 (driver-thread slot recycle,
+`xiom.vma` packed-return workaround) remains open and is not claimed
+fixed by this re-test.
+
+## 4. Test matrix (recorded 2026-10-13, compiler v0.64.4)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 5/5 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer + drag-drop decode still run -- both are pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 59/59 x2** -- previous 58 checks + drag-drop payload decode (windowID/xy + source/data C-string copies, NULL-safe) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 61/61 x2** (v0.64.4) -- previous 59 checks + foreign-written user-event readback + KEY_DOWN readback decode (the B-11 addendum re-test) |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no
