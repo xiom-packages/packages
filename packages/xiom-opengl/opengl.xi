@@ -35,6 +35,12 @@
 // (wglGetProcAddress, then the opengl32 export table).  All hand-written
 // `unsafe`/`extern` stay here; the generated modules carry only the
 // mechanical resolve + cast call (AUDIT.md, G5 note).
+//
+// 0.5.0 adds the WGL surface: `src/wgl_cmds_*.xi` (modules
+// `xiom.opengl.wgl_cmds_<grp>`) wraps every command in the pinned
+// wgl.xml (WGL_VERSION_1_0 exports + all WGL extensions) through the same
+// resolver; `opengl_session_dc`/`opengl_session_hglrc` expose the raw
+// session handles the wrappers take as `Int`.
 
 module xiom.opengl
 
@@ -56,6 +62,8 @@ extern "C" {
   fn xgl_glsl() -> *UInt8;
   fn xgl_session_open(major: Int32, minor: Int32, flags: Int32) -> Int32;
   fn xgl_session_active() -> Int32;
+  fn xgl_session_dc() -> Int;
+  fn xgl_session_hglrc() -> Int;
   fn xgl_get_proc(name: *UInt8) -> Int;
   fn xgl_session_close();
   fn xgl_unload();
@@ -321,6 +329,23 @@ pub fn opengl_session_is_active() -> Bool
   requires: true
 {
   unsafe { return (xgl_session_active() as Int) != 0; }
+}
+
+/// The live session's `HDC` (window device context; 0 without a session).
+/// The generated WGL wrappers take handles as `Int`.
+/// Complexity: O(1).
+pub fn opengl_session_dc() -> Int
+  requires: true
+{
+  unsafe { return xgl_session_dc(); }
+}
+
+/// The live session's `HGLRC` (0 without a session).
+/// Complexity: O(1).
+pub fn opengl_session_hglrc() -> Int
+  requires: true
+{
+  unsafe { return xgl_session_hglrc(); }
 }
 
 /// Resolve a GL command through the live session: `wglGetProcAddress` first,

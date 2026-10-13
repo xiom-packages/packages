@@ -1,0 +1,31 @@
+{
+ "command_count": 146,
+ "command_skips": [],
+ "const_skips": [],
+ "core_command_count": 26,
+ "core_macro_aliases": [
+  "wglUseFontBitmaps",
+  "wglUseFontOutlines"
+ ],
+ "core_resolvable_count": 24,
+ "emitted_commands": 146,
+ "emitted_consts": 298,
+ "enum_count": 298,
+ "extension_command_count": 119,
+ "extensions_declared": 57,
+ "features": [
+  "WGL_VERSION_1_0 1.0"
+ ],
+ "groups": [
+  {
+   "count": 100,
+   "file": "wgl_cmds_01.xi"
+  },
+  {
+   "count": 46,
+   "file": "wgl_cmds_02.xi"
+  }
+ ],
+ "oracle": "E:\\repos\\OpenGL-Registry\\xml\\wgl.xml",
+ "registry_pin": "OpenGL-Registry 6af574a14089ccfee87efe230ebcdd8742859813"
+}
