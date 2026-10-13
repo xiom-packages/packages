@@ -1,0 +1,6 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/oidn_bridge.cpp",
+  "--timeout",
+  "300"
+]
