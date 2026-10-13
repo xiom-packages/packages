@@ -1,0 +1,31 @@
+{
+ "command_count": 158,
+ "command_skips": [],
+ "const_skips": [],
+ "core_command_count": 44,
+ "emitted_commands": 158,
+ "emitted_consts": 694,
+ "enum_count": 694,
+ "extension_command_count": 114,
+ "extensions_declared": 167,
+ "features": [
+  "EGL_VERSION_1_0 1.0",
+  "EGL_VERSION_1_1 1.1",
+  "EGL_VERSION_1_2 1.2",
+  "EGL_VERSION_1_3 1.3",
+  "EGL_VERSION_1_4 1.4",
+  "EGL_VERSION_1_5 1.5"
+ ],
+ "groups": [
+  {
+   "count": 100,
+   "file": "egl_cmds_01.xi"
+  },
+  {
+   "count": 58,
+   "file": "egl_cmds_02.xi"
+  }
+ ],
+ "oracle": "E:\\repos\\EGL-Registry\\api\\egl.xml",
+ "registry_pin": "EGL-Registry db3425b8246136faccb5e2782b5694960bd6edf1"
+}

@@ -1,0 +1,33 @@
+{
+ "command_skips": [],
+ "const_skips": [],
+ "core_command_count": 358,
+ "core_enum_count": 1001,
+ "emitted_commands": 358,
+ "emitted_consts": 1001,
+ "features": [
+  "GL_ES_VERSION_2_0",
+  "GL_ES_VERSION_3_0",
+  "GL_ES_VERSION_3_1",
+  "GL_ES_VERSION_3_2"
+ ],
+ "groups": [
+  {
+   "count": 100,
+   "file": "gles_cmds_01.xi"
+  },
+  {
+   "count": 100,
+   "file": "gles_cmds_02.xi"
+  },
+  {
+   "count": 100,
+   "file": "gles_cmds_03.xi"
+  },
+  {
+   "count": 58,
+   "file": "gles_cmds_04.xi"
+  }
+ ],
+ "oracle": "E:\\repos\\OpenGL-Registry\\xml\\gl.xml"
+}
