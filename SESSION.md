@@ -14,10 +14,10 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 88 eco releases; this block is the live handoff):**
+**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 89 eco releases; this block is the live handoff):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified; canonical install byte-identical
   556/556; 532 records repinned). Validate **534/0**; guard **521 allowlisted / 505 ready / 16
-  grandfathered / 0 failures**. Tally: **88 eco releases** (`eco-v0.1.86` -> `eco-v0.1.172`).
+  grandfathered / 0 failures**. Tally: **89 eco releases** (`eco-v0.1.86` -> `eco-v0.1.173`).
 - **Published since the 18:45Z block**: batch 62 sdl3 0.16.1; **v0.64.4 gate** (repin + batch 63 jolt
   0.2.0 / vma 0.3.0 / dxc 0.3.0, `eco-v0.1.161`); **SDK100 wave complete** (batches 64-67:
   spirv-tools/cross/reflect + glslang + slang + sdl2 + shaderc + spirv.headers 0.1.0, sdl3 0.17.0,
@@ -26,7 +26,8 @@ running). Check `git log -1 --format=%h %s` before starting.
   434 shapes/2238 consts + DXGI 43 ifaces/163 wrappers + d3d12video 30/190; 31/31 x2); plus
   **dx12 0.3.1 stable promotion** (`eco-v0.1.169`; 35/35 x2; first sec.7 gate promotion);
   **opengl 0.5.0** (`eco-v0.1.170`; WGL wave, 28/28 x2); **gles 0.1.0** (`eco-v0.1.171`; ANGLE, 18/18 x2);
-  **dx12 0.4.0** (`eco-v0.1.172`; command recording + B-25, 42/42 x2).
+  **dx12 0.4.0** (`eco-v0.1.172`; command recording + B-25, 42/42 x2);
+  **sdl3 0.18.0** (`eco-v0.1.173`; event readback, 61/61 x2).
 - **v0.64.4 re-verify wave DONE**: `-1549-packages-4` VERIFIED (phantom probes -> one clean
   `19:5 unresolved import`); `-6` VERIFIED (jolt `--cxx-standard 17`); `-5`/`-7` BOUNCED still red
   (consumer link `undefined symbol: sqlite3_libversion`; local fallback silent no-op + ranges
@@ -70,6 +71,11 @@ running). Check `git log -1 --format=%h %s` before starting.
   sha256 `38ff6d0b...` @13:25:27Z stage stable; README/STATUS synced `da377c75`; item `-1313` fixed).
   B-25: single-star COM object params cross as `Int` (repro `docs/repro/bindings-pilot/ptr-cast/`;
   INFO relayed to compiler `-1309-bindings`).
+- **`xiom.sdl3` 0.18.0 PUBLISHED (foreign-written event readback; B-11 addendum retired)**: x2
+  **61/61** (readback type=32768; KEY_DOWN decode type=768 scancode=4 key=97); record `05d5feda`;
+  wrap `f70f02ae`; **`eco-v0.1.173`**, run 38408548028 green; registry sha256 `544c59b8...`
+  @13:55:09Z; README/STATUS synced `5000800a`; item `-1338-bindings-2` fixed. The 6 known `-1403`
+  unknown-type warnings persist on v0.64.4 -- the 0-warning re-check rides the next archive (m277).
 - **Ops hygiene (clobber incident `-1852-ops`)**: installs/extracts to lane-local dirs only;
   `tools/home-snapshot.ps1` before risky windows; restore-from-snapshot after a clobber. Packages ran
   no install/extract; timeline observation filed (`REL-20261012-1904-packages`).
@@ -547,10 +553,10 @@ if the target item is already in its target state, skip it and report.
 
 STATE: pin v0.64.4 (official archive, SHA256 44a41aea verified; canonical install
 byte-identical 556/556; 532 records repinned). Validate 534/0; guard 521
-allowlisted / 505 ready / 16 grandfathered / 0 failures. Tally: 88 eco releases
-(eco-v0.1.86 -> eco-v0.1.172) -- SDK100 wave complete + vulkan 0.6.0 + opengl
-0.5.0 + dx12 0.4.0 (stable) + gles 0.1.0 + jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0
-all live. Nothing open addressed to packages.
+allowlisted / 505 ready / 16 grandfathered / 0 failures. Tally: 89 eco releases
+(eco-v0.1.86 -> eco-v0.1.173) -- SDK100 wave complete + vulkan 0.6.0 + opengl
+0.5.0 + dx12 0.4.0 (stable) + sdl3 0.18.0 + gles 0.1.0 + jolt 0.2.0 + vma 0.3.0
++ dxc 0.3.0 all live. Nothing open addressed to packages.
 
 WORK QUEUE (in priority order as items land):
 1. `xiom.sqlite` 0.4.0 SQL driver (bindings accepted it; PULSE top production
