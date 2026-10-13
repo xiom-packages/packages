@@ -10,7 +10,8 @@ requires C++17, carried by the pinned v0.64.4 toolchain (thread via
 > 0.2.0 probes (drop settles at 479 milli asleep; impulse vx=4995) plus the
 > 0.3.0 caller-usable world/body surface (engine contract v0 flow: world +
 > ground + box/sphere + N fixed steps + read-back; run record in
-> `STATUS.json`). 0.2.0 published in `eco-v0.1.161` (sha256 `f08d65ca...`).
+> `STATUS.json`). 0.2.0 published in `eco-v0.1.161` (sha256 `f08d65ca...`);
+> **0.3.0 in `eco-v0.1.176` (sha256 `3ac3df4e...`)**.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start

@@ -14,7 +14,7 @@ frame width/height/pixel-format. Packets are built from XIOM-owned bytes by
 `src/ffmpeg_bridge.c` (our code; FFmpeg is still resolved at runtime only).
 
 > **Status:** `incubating` -- suite green on the pin (v0.64.4; 0.2.0 published
-> in `eco-v0.1.122`):
+> in `eco-v0.1.122`; **0.3.0 in `eco-v0.1.176` (sha256 `24a5c522...`)**):
 > **12/12 x2** with a software AV1 decoder present (`libaom-av1` on Blender
 > 7.1.1; `libdav1d` 1.2.1 on Cascadeur 6.0 and CapCut 7.x -- 3 real AV1
 > frames decoded per run: 64x48, `yuv420p`), **3/3 x2** SKIP on the default
