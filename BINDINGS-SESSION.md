@@ -634,6 +634,35 @@ witness)**: localized the nested-payload corruption for the compiler.
   P6 blocked), `-1509/-1702/-1754` (mini-RHI interop info; owner lane).
   Relay tips `7507169` + `0556f51`, validate 402.
 
+**UPDATE 2026-10-13 21:15Z (wave-B first results integrated + UPSCALER/
+SAMPLER WAVE launched; owner ask "cover DLSS/FSR/XeSS-class")**: yes --
+split by license class.
+- Integrated (cherry-picked to `bindings`, tip `14acc078`; records
+  re-pointed; x2 evidence from the delivery runs -- no re-run per the
+  hurry directive; packages re-verifies at publish): **harfbuzz 0.1.0**
+  (571/571 declared surface; suite 27/27 x2), **basisu 0.1.0**
+  (68 `bt_*` + 13 `bu_*`; 31/31 x2), **ffmpeg 0.4.0** demux (23/23 x2
+  present-path: 12 decode + 11 demux; SKIP 3/3 x2 default PATH),
+  **spz 0.1.0** (100% declared; 74/74 x2).  Publish requests
+  `REL-20261013-2105-bindings` x4 (new-name scope + allowlist notes
+  included).  validate 537/0.
+- **Upscaler/sampler wave (request `am-1791925519293-w3dsv4`)**:
+  - open (full vendored bindings): `feat/fidelityfx-bindings` (AMD
+    FidelityFX SDK, MIT: FSR1/2/3 + CAS/SPD + frame-gen surfaces;
+    shader blobs vendored as shipped headers), `feat/nrd-bindings`
+    (NVIDIA NRD, MIT), `feat/oidn-bindings` (Intel OIDN, Apache-2.0;
+    CPU C API 100%; GPU excluded from declared scope).
+  - closed runtimes (independent declarations + dynamic loader,
+    SKIP-safe, NO SDK binaries vendored -- FFmpeg-style posture):
+    `feat/dlss-ngx` (`xiom.dlss` NGX/DLSS-SR/FG/RR + Reflex decls; plus
+    open `xiom.nis`), `feat/xess-bindings` (`xiom.xess`, XeSS SDK
+    License, `libxess.dll` loader).
+- "samplers" read as the sampling/downsample+upscale family (SPD/LPM/
+  NIS); texture-sampling libraries (OIIO-class) would be a follow-up if
+  that was intended.
+- Still in flight from the earlier mega-wave: opus, ktx2, vdb, phonon,
+  lz4 (spz's second half).  Relay tip `6e09bad`, validate 439.
+
 **UPDATE 2026-10-13 20:25Z (FULL BUILD-OUT WAVE -- 8 agent sessions; no
 more staging)**: owner directive: cover all requested packages now.
 - Status answers: **wave A surfaces = 100% delivered** (jolt/zstd/
