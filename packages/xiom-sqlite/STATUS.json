@@ -9,13 +9,9 @@
                   "passed":  21,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "4ba13167",
-                  "checked":  "2026-10-13T15:23:37Z"
+                  "commit":  "c239b90e",
+                  "checked":  "2026-10-13T17:20:30Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.122 (2026-10-09, 0.3.0); 0.4.0 publish requested (2026-10-13)",
-    "platforms":  [
-                      "windows-x64"
-                  ],
-    "runtime_deps":  []
+    "excluded_reason":  "published in eco-v0.1.122 (2026-10-09, 0.3.0); 0.4.0 publish requested (2026-10-13)"
 }
