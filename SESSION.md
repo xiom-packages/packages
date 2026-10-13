@@ -14,7 +14,46 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-12 14:20Z (batch 64 -- SDK100 wave on v0.64.4; one held name; this block is the live handoff):**
+**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 84 eco releases; this block is the live handoff):**
+- **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified; canonical install byte-identical
+  556/556; 532 records repinned). Validate **533/0**; guard **520 allowlisted / 504 ready / 16
+  grandfathered / 0 failures**. Tally: **84 eco releases** (`eco-v0.1.86` -> `eco-v0.1.168`).
+- **Published since the 18:45Z block**: batch 62 sdl3 0.16.1; **v0.64.4 gate** (repin + batch 63 jolt
+  0.2.0 / vma 0.3.0 / dxc 0.3.0, `eco-v0.1.161`); **SDK100 wave complete** (batches 64-67:
+  spirv-tools/cross/reflect + glslang + slang + sdl2 + shaderc + spirv.headers 0.1.0, sdl3 0.17.0,
+  `eco-v0.1.162`/`165`); **vulkan 0.6.0** (owner-approved SDK100 bump, `eco-v0.1.163`); **opengl
+  0.4.0** (`eco-v0.1.164`); **dx12 0.1.0/0.2.0/0.3.0** (`eco-v0.1.166`/`167`/`168`; 0.3.0 = struct-meta
+  434 shapes/2238 consts + DXGI 43 ifaces/163 wrappers + d3d12video 30/190; 31/31 x2).
+- **v0.64.4 re-verify wave DONE**: `-1549-packages-4` VERIFIED (phantom probes -> one clean
+  `19:5 unresolved import`); `-6` VERIFIED (jolt `--cxx-standard 17`); `-5`/`-7` BOUNCED still red
+  (consumer link `undefined symbol: sqlite3_libversion`; local fallback silent no-op + ranges
+  unresolved); `-2100` VERIFIED on WSL (relative XIOM_HOME refused; absolute lands). B-13..B-20
+  verdicts filed by bindings. Ledger: `release-checks/compiler-compiler-v0.64.3.md` packages block.
+- **Stdlib durability file CLOSED (8/8 verified)**: `-1550-packages`/-2/-3/-4/-5/-6/-7/-8 all
+  `fixed -> verified` in-lane (wave 115/117/98 + crlf probes exit 0 with `XIOM_STDLIB` +
+  `XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime`; btree order-3 churn GREEN; wave118 locking probe
+  green). Caveat: the new runtime symbols reach consumers at the next compiler pin.
+- **Queue (nothing open addressed to packages)**: (1) **`xiom.sqlite` 0.4.0 driver accepted by
+  bindings** (PULSE top ask; requirements `docs/requirements/pulse-sql-driver.md`; PULSE co-verifies)
+  -- verify x2 + publish under the normal flow when their item lands; (2) binding batches as they
+  arrive; (3) **next compiler archive (v0.64.5+)**: repin + re-verify sdl3 compile 0 warnings
+  (m277 fixed our `-1403`), B-22, rows `-1549-packages-5/-7`, plus the compiler next-batch rows;
+  (4) promotions per policy sec. 7 (vulkan 0.6.0, sdl3 0.17.0 [blocked while `-1403` open], opengl
+  0.4.0, dx12 0.3.0 [B-24 open], SDK100 names); (5) provenance retrofits at touch (14/519; audit
+  `scripts/provenance-audit.ps1`); engine codecs at the cook gate later.
+- **Ops hygiene (clobber incident `-1852-ops`)**: installs/extracts to lane-local dirs only;
+  `tools/home-snapshot.ps1` before risky windows; restore-from-snapshot after a clobber. Packages ran
+  no install/extract; timeline observation filed (`REL-20261012-1904-packages`).
+- **Operational gotchas**: duplicate doorbell deliveries (same task 2-3x -- CHECK-BEFORE-ACT: diff the
+  newest commits/items, skip already-done states, go to the report); dual-session warning (two
+  packages windows double-run doorbells -- keep ONE); shared relay repo races (index.lock retries
+  resolve; other lanes' uncommitted files are theirs); gh auth `Lefteris-Notas` (switch if it flips).
+- **Protocol (owner restated 2026-10-12)**: upstream-first + clone-repo workflow + 100% coverage on
+  EVERY package, new or old; per-touch `PROVENANCE.md` (upstream pin + license OR explicit
+  independent declaration); doctrine `docs/UPSTREAM-FIRST.md`; clones ledger `E:\repos\CLEANUP.md`
+  with review-after dates.
+
+**STATE AT 2026-10-12 14:20Z (batch 64 -- SDK100 wave on v0.64.4; one held name; history):**
 - **Batch 64 = `eco-v0.1.162` (run 38260596476 green 3m49s)**: eight packages published + live-verified
   -- spirv-tools 0.1.0 (`24012686`), spirv-cross 0.1.0 (`a08d2d4a`), spirv-reflect 0.1.0 (`97f96c62`),
   glslang 0.1.0 (`33898cf6`), slang 0.1.0 (`0dd5548d`), sdl2 0.1.0 (`a5bdb037`), shaderc 0.1.0
@@ -455,7 +494,87 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **NEW operating resource (owner):** `E:\repos\` -- clone upstream projects there and STUDY them
   before writing package code (disposable when done); no writing from memory.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-11 21:10Z) -- USE THIS ONE
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-13 11:55Z) -- USE THIS ONE
+
+```
+You are the packages session for xiom-packages/packages (native lane; local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
+Read SESSION.md first -- the 2026-10-13 11:55Z STATE block is the live handoff;
+all older STATE blocks and paste prompts below are history.
+
+RELAY BUS (do FIRST and LAST every session): sync E:\xiom-lang\xiom-relays with
+  git fetch origin; git merge --ff-only origin/main    (never git pull there)
+  python tools/relay.py view --lane packages
+Process every item addressed to packages (ack/fix/verify with evidence refs;
+move statuses only for items whose `to` is packages; never edit another lane's
+item -- open a new item instead; one item per issue; link evidence, never copy
+logs; ASCII-only notes -- the validator rejects non-ASCII). Commit+push with
+`python tools/relay.py commit`. The shared relays repo is raced by other lanes:
+their uncommitted files are not yours; index.lock rejections retry themselves.
+The doorbell cron fires every 2 h (re-sync, process, check
+`gh release list -R xiom-lang/xiom` for the next official archive). CHECK-BEFORE-
+ACT: the doorbell can be delivered 2-3x -- diff the newest commits/items first;
+if the target item is already in its target state, skip it and report.
+
+STATE: pin v0.64.4 (official archive, SHA256 44a41aea verified; canonical install
+byte-identical 556/556; 532 records repinned). Validate 533/0; guard 520
+allowlisted / 504 ready / 16 grandfathered / 0 failures. Tally: 84 eco releases
+(eco-v0.1.86 -> eco-v0.1.168) -- SDK100 wave complete + vulkan 0.6.0 + opengl
+0.4.0 + dx12 0.3.0 + jolt 0.2.0 + vma 0.3.0 + dxc 0.3.0 all live. Nothing open
+addressed to packages.
+
+WORK QUEUE (in priority order as items land):
+1. `xiom.sqlite` 0.4.0 SQL driver (bindings accepted it; PULSE top production
+   ask): on their batch item -> merge + validate + port x2 + record + wrap +
+   publish + live-verify (requirements + acceptance: docs/requirements/
+   pulse-sql-driver.md; PULSE co-verifies driver+runner before their 0.3 unit).
+2. Bindings batches as items arrive: merge ONLY the newest tip (same-package
+   items supersede; different packages stack into one eco batch); resolve
+   package STATUS/README conflicts to THEIR side but RESTORE earlier shipped/
+   published README lines (resolves drop them); ack; port x2 (absent shapes
+   where applicable; watchdogs 90 normal, 240-300 vendored C/C++, 600+ for
+   100+ TU compiles -- run quiet, sequential, never concurrent with another
+   compile); record; wrap; publish; live-verify; fix the item. ALWAYS run
+   `status.ps1 -Action validate` AFTER the merge and BEFORE tagging.
+3. Next compiler archive (v0.64.5+; watch gh release list -R xiom-lang/xiom):
+   repin (SHA256-verify + swap + `status.ps1 -Action repin`) then re-verify the
+   rows: sdl3 compile 0 warnings (m277 fixed nested fn types = our -1403), B-22,
+   rows -1549-packages-5/-7 (bounced red on v0.64.4), plus the compiler's
+   next-batch rows. Repin hygiene: installs/extracts to lane-local dirs only;
+   tools/home-snapshot.ps1 before risky windows.
+4. Promotions (policy sec. 7, docs/UPSTREAM-FIRST.md): flip stage to stable at
+   the next touch once a package's full surface is published + a settle cycle +
+   no open defects (candidates: vulkan 0.6.0, sdl3 0.17.0 [blocked while -1403
+   open], opengl 0.4.0, dx12 0.3.0 [B-24 open], the SDK100 names).
+5. Provenance retrofits at touch (owner protocol): EVERY package merged/fixed/
+   verified/published gets a PROVENANCE.md (upstream pin + license OR an
+   explicit independent declaration); new packages must land with it; audit
+   `scripts/provenance-audit.ps1` (report docs/PROVENANCE-COMPLIANCE.md;
+   backlog 14/519). Upstream-first + clone-repo workflow + 100% of declared
+   surface on every package; clones into E:\repos\<name>, registered in
+   E:\repos\CLEANUP.md with a review-after date.
+
+CARRIES: eco batch = wrap commit -> push -> tag `eco-v0.1.NNN` -> approve the
+pending deployment (environment_ids:[22424011031]; integer -F for the array) ->
+watch green -> live-verify the registry sha256 -> sync README ("published in
+eco-vX") + STATUS excluded_reason -> fix the bus item -> fold SESSION.md with a
+fresh STATE block. Leave the publish workflow's registry re-check on retry
+(CI 42e7c489) alone. Stdlib runtime caveat: new runtime symbols reach consumers
+at the next compiler pin (XIOM_RUNTIME_DIR override meanwhile). btree churn:
+tests/churn.ps1 -Order N -Ops 20000 -N 4096 (order 3 permanent in the matrix).
+
+Keep ONE packages window open (two sessions double-run doorbells -- see the
+dual-session warning in SESSION.md). CREDENTIAL NOTE: gh sometimes flips to
+`Lefteris-Ngonart` (403 on push); switch with
+`gh auth switch --user Lefteris-Notas`; verify with
+`gh api repos/xiom-packages/packages --jq .permissions`.
+
+Start: git fetch; git status -sb; git log -1; relay sync + view (above); then
+  $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+  & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+```
+
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, SUPERSEDED -- 2026-10-11 21:10Z; kept for history)
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local
