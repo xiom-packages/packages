@@ -106,6 +106,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   `SqlDriver` DSN (`busy_timeout=5000&journal_mode=wal`) / DDL / transaction / query /
   `value_by_name` roundtrip green ("hello"); `pulse.db` created (WAL checkpointed on clean
   close). The PULSE recipe is pre-validated from the installed artifact.
+- **Native consumer build sweep (2026-10-13, installed artifacts; shipped `port.args.json`
+  replayed verbatim)**: live -- vulkan 0.6.0 (RTX 3070 Ti; triangle frames=2 center=65280),
+  opengl 0.5.0 (GL 4.6.0 NVIDIA 616.92), dx12 0.4.0 (device nodes=1), jolt 0.2.0 (26 C++17 TUs;
+  physics hand-off), plus sdl3/gles/sqlite above; glfw 0.5.0 compiles + SKIP-path (no glfw3.dll
+  on this box). All recipe families proven: pure loader / +C bridge / multi-C+link / C++17 TU set /
+  vendored amalgamation. The `-5` gap is tool wiring, not the data -- port.args replays exactly.
 - **Ops hygiene (clobber incident `-1852-ops`)**: installs/extracts to lane-local dirs only;
   `tools/home-snapshot.ps1` before risky windows; restore-from-snapshot after a clobber. Packages ran
   no install/extract; timeline observation filed (`REL-20261012-1904-packages`).
