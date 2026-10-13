@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  42,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "fd9f2a4d",
-                  "checked":  "2026-10-13T13:13:27Z"
+                  "run_by":  "native-session",
+                  "commit":  "fd90ebf3",
+                  "checked":  "2026-10-13T13:23:22Z"
               },
     "publish":  false,
     "excluded_reason":  "published 0.4.0 in eco-v0.1.172 (command recording + B-25; 42/42 x2); stable"
