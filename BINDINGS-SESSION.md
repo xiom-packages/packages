@@ -18,10 +18,13 @@ fix batch** (m277 B-22; m279 B-16/B-17; m280 `-2230` +
 alloc-guard-spin fix ready stdlib-side, `-1445-compiler`) -- then
 the re-verify wave + glfw 0.6.0 lift + sdl3 widening + workaround
 retirement; **glfw 0.6.0 lift parked until then** (fixes staged on
-compiler main, no archive ships them yet); ops clobber rules in force;
-per-touch PROVENANCE rule in effect (dx12/opengl/gles/sdl3 compliant) --
-UPDATE 2026-10-13 14:10Z (origin/bindings tip `d7e9c75d`)** (NEXT = watch
-for v0.64.5+; the paste prompt below carries the wave).
+compiler main, no archive ships them yet); **`xiom.sqlite` 0.4.0 (PULSE
+SQL driver) publish-requested** (`REL-20261013-1524-bindings`; x2 21/21
+on `4ba13167`; B-26 nested-payload filed with repro); ops clobber rules
+in force; per-touch PROVENANCE rule in effect (dx12/opengl/gles/sdl3
+compliant) -- UPDATE 2026-10-13 15:35Z (origin/bindings tip `a075059a`)**
+(NEXT = sqlite 0.4.0 publish confirm + v0.64.5+; the paste prompt below
+carries the wave).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -513,6 +516,37 @@ packages tally unchanged (89 eco releases through `eco-v0.1.173`).
   `alloc-guard-spin` probe under a watchdog; our item `-1548-bindings-5`
   stays acked).  Stdlib-side, NOT in v0.64.4 -- **B-05 added to the
   next-archive re-verify wave (watchdog run)**.
+
+**UPDATE 2026-10-13 15:35Z (xiom.sqlite 0.4.0 -- PULSE SQL DRIVER
+SHIPPED; publish requested)**: the queue-behind-graphics item (paste task
+vi) landed.
+- **`xiom.sqlite` 0.4.0** (feat `4ba13167`, record `a075059a`): NEW
+  `xiom.sqlite.driver` module (option A of
+  `docs/requirements/pulse-sql-driver.md`): `SqlDsn.parse` (schemes
+  `sqlite:`/`sqlite3:`/`sqlite://`; `busy_timeout` default 5000;
+  `journal_mode` delete|truncate|persist|memory|wal|off; fail-closed),
+  `open_from_dsn` (applies options, reads the effective journal mode
+  back), `execute` (rows-affected + last rowid), `query`/`query_one`,
+  explicit `transaction_begin/commit/rollback` + `in_transaction`
+  (`sqlite3_get_autocommit` wrapper), `caps` + `transactional_ddl`,
+  `last_error`; `rows.query_one` + by-name access
+  (`SqliteResult.column_index`/`value_by_name`) + `RowOutcome`.
+- Suite 16 -> 21; **x2 21/21 on `4ba13167` (v0.64.4)**; validate 534/0;
+  trap-14 clean; docs synced (SPEC 3.1 driver section; ROADMAP; README
+  driver section; AUDIT; STATUS record `a075059a`).
+- **B-26 FOUND + filed with a minimal pure-XIOM repro**: nested enum
+  payloads (`Result[Option[T]]`) corrupt struct-with-Vec values
+  (`items.len=9` vs 2; flat + single-level controls green; silent
+  corruption + AV when used).  Repro
+  `docs/repro/bindings-pilot/nested-payload/`; rows added to
+  `docs/BINDINGS-COMPILER-FINDINGS.md` + MAINTENANCE; INFO to compiler
+  `REL-20261013-1524-bindings-2`.  Shipped workaround: flat `RowOutcome`.
+- Relay: publish request `REL-20261013-1524-bindings` (to packages; PULSE
+  co-verify per the requirements doc) + INFO `-3` to pulse (frozen
+  co-verify surface).  Relay tip `51268ec`; validate 398 items.
+- **NEXT**: packages verify x2 + publish 0.4.0 (their queue item 1); on
+  live, record the eco version here.  Still parked: v0.64.5+ wave (B-22
+  glfw lift, sdl3 widening).
 
 **UPDATE 2026-10-13 12:55Z (DX12 0.3.1 STABLE PROMOTION PUBLISHED --
 `eco-v0.1.169`)**: the first policy sec.-7 gate promotion is LIVE.
@@ -1226,11 +1260,13 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-13 14:10Z;
-ALL PUBLISHES CONFIRMED LIVE -- sdl3 0.18.0 landed as `eco-v0.1.173`.
-First action = check for the next compiler archive (v0.64.5+) carrying
-the m277-m281 fix batch; when it ships, run the re-verify wave + lifts.
-No ungated lane work otherwise -- relay-driven only).
+Bindings lane continuation -- seamless pickup (2026-10-13 15:35Z;
+sdl3 0.18.0 live (`eco-v0.1.173`); **xiom.sqlite 0.4.0 (PULSE SQL
+driver) publish-requested** (`REL-20261013-1524-bindings`).
+First action = confirm the sqlite 0.4.0 publish (record the live eco
+version + sha256 here), then check for the next compiler archive
+(v0.64.5+) carrying the m277-m281 fix batch; when it ships, run the
+re-verify wave + lifts).
 
 0. STATE (the 13:50Z handoff UPDATE block + STATUS above carry the
    evidence):
@@ -1306,11 +1342,24 @@ No ungated lane work otherwise -- relay-driven only).
      `5000800a`).  Merge note: keep package.xi at 0.18.0.  INFO items
      `-1338-bindings` / `-1309-bindings` still open compiler-side (their
      sweep).
+   - **xiom.sqlite 0.4.0 SHIPPED, PUBLISH-REQUESTED (PULSE SQL driver)**:
+     NEW `xiom.sqlite.driver` (DSN parse/open, execute/query/query_one,
+     explicit transactions + `in_transaction`, caps, `last_error`);
+     suite 16 -> 21, **x2 21/21 on `4ba13167`** (record `a075059a`);
+     request `REL-20261013-1524-bindings` (to packages); INFO `-3` to
+     pulse (co-verify surface).  **B-26 filed**: nested enum payloads
+     (`Result[Option[T]]`) corrupt struct-with-Vec values -- flat
+     `RowOutcome` workaround; repro
+     `docs/repro/bindings-pilot/nested-payload/`; INFO
+     `-1524-bindings-2` to compiler.
    - Graphics drive: Vulkan 0.6.0 live + engine-green (GPU window + scene
      tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
      the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
 
-0b. FIRST ACTION: check for the **next compiler archive (v0.64.5+)** --
+0b. FIRST ACTION: (1) confirm the **xiom.sqlite 0.4.0 publish**
+    (`REL-20261013-1524-bindings`; x2 21/21 on `4ba13167`) -- record the
+    live eco version + sha256 here (commit+push); (2) check for the
+    **next compiler archive (v0.64.5+)** --
     `gh release list -R xiom-lang/xiom` + relay `release-checks/`.
     If shipped: repin is the packages lane's queue item 3; THIS lane then
     runs the RE-VERIFY WAVE (see 0.) and on green executes the lifts:
@@ -1407,8 +1456,10 @@ No ungated lane work otherwise -- relay-driven only).
    imgui renderer backends now ASKED (`REL-20261012-2012-engine-4`;
    still blocked on a shared+dev imgui build), meshopt cluster pipeline,
    box2d broad-phase + contact events; ffmpeg stays blocked on a
-   shared+dev build; (vi) **PULSE SQL driver accepted into xiom.sqlite
-   0.4.0** (`REL-20261012-2032-packages`; queued behind graphics).
+   shared+dev build; (vi) **DONE -- PULSE SQL driver SHIPPED as
+   `xiom.sqlite` 0.4.0** (feat `4ba13167`, x2 21/21 on v0.64.4;
+   publish requested `REL-20261013-1524-bindings`; PULSE INFO `-3`;
+   B-26 nested-payload filed with repro -- flat `RowOutcome` workaround).
    Vulkan mini-RHI is the OWNER session's lane (0.7.0-0.13.0 ladder;
    READ docs/checklists/vulkan-sdk-100.md before any Vulkan work;
    coordinate, do not duplicate; interop decision filed
@@ -1424,7 +1475,9 @@ B-23 = the `null` literal crosses to C as garbage (use `dx12_null_ptr()`);
 B-24 = ffi out-slot reads after a C extern write are unreliable -- read
 owned slots byte-indexed, keep pointer-edged flows on C return values;
 B-25 = `Int as *UInt8` is not value-preserving -- never cast handles to
-pointers; object params cross as `Int` / int64 C-helper args).
+pointers; object params cross as `Int` / int64 C-helper args; B-26 = nested
+enum payloads (`Result[Option[T]]`) corrupt struct-with-Vec values -- return
+flat outcome structs, never Result-of-Option).
 Deliver batches as: feat -> x2 green -> record via scripts/status.ps1 ->
 relay item to packages -> ledger update, all pushed; leave the worktree
    clean. TODO NOW: item 0b (watch v0.64.5+; on ship run the RE-VERIFY
