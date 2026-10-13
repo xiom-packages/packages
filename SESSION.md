@@ -67,6 +67,14 @@ running). Check `git log -1 --format=%h %s` before starting.
   no packages blocker (KTX2/Basis-class codecs at the cook gate later). **Compiler m277 (`29e35ef8`)
   FIXED our `-1403`** (nested fn types; depth-aware split) -- re-run the sdl3 compile at the next
   archive to confirm 0 warnings (row appended to the next-batch table).
+- **Stdlib durability re-verify DONE (2026-10-13 01:0xZ)**: all seven `fixed` items VERIFIED in-lane
+  on v0.64.4 with `XIOM_STDLIB + XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime`: `p_wave115_shapes`
+  (io.fsync family, append_file_bytes parity, sync_io.read_exact) + `p_wave117_shapes`
+  (remove_dir/truncate_fd/append_line_sync) + `p_wave98_tostring_shapes` + `p_read_file_lines_crlf`
+  all exit 0; btree **order-3 churn GREEN** (order=3 ops=20000 n=4096 seed=12345; order 3 stays in the
+  acceptance matrix permanently). Caveat recorded: the symbols reach consumers at the next compiler
+  pin; until then the runtime override. Bus: `-1550-packages`/-2/-3/-4/-5/-7/-8 moved
+  `fixed -> verified` (`e4e1111`).
 - **DUAL-SESSION WARNING (2026-10-12 21:10Z)**: TWO packages-lane processes ran against this worktree
   tonight (evidence: parallel merge `4970096a` + wrap `113af041` vs this session's `6e9a95de` +
   `65d0703c`; both ran the dx12 x2 sweeps). Interleaving was loss-free (one worktree serializes
