@@ -57,20 +57,20 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | Package | Version | Stage | Class | Platforms | Runtime needs | Evidence |
 |---|---|---|---|---|---|---|
 | xiom.dx12 | 0.4.0 | stable | compile+runtime-load | windows-x64 | d3d12.dll (runtime loader; SKIP when absent); dxgi.dll (runtime loader; SKIP when absent) | pass 42/42 @ fd90ebf3 |
-| xiom.ffmpeg | 0.4.1 | incubating | compile+runtime-load | windows-x64 | avcodec/avformat/avutil/swresample shared libraries (multi-soname runtime loader; SKIP when absent) | pass 23/23 @ 1a488054 |
+| xiom.ffmpeg | 0.4.1 | incubating | compile+runtime-load | windows-x64 | avcodec/avformat/avutil/swresample shared libraries (multi-soname runtime loader; SKIP when absent) | pass 23/23 @ 50b65cee |
 | xiom.fidelityfx | 0.1.0 | incubating | compile+runtime-load | windows-x64 | amd_fidelityfx_loader_dx12.dll / amd_fidelityfx_upscaler_dx12.dll / amd_fidelityfx_framegeneration_dx12.dll (signed FidelityFX-SDK 2.3.0 effect modules; multi-soname runtime loader; SKIP when absent) | pass 35/35 @ 3a22a083 |
 | xiom.gles | 0.1.0 | incubating | compile+runtime-load | windows-x64 | libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent); libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent) | pass 18/18 @ 779ac140 |
 | xiom.oidn | 0.1.0 | incubating | compile+runtime-load | windows-x64 | OpenImageDenoise.dll + OpenImageDenoise_core.dll + OpenImageDenoise_device_cpu.dll + tbb12.dll (OIDN v2.5.1 runtime, loader-resolved; SKIP when absent) | pass 4/4 @ 3a22a083 |
 | xiom.opengl | 0.5.0 | incubating | compile+runtime-load | windows-x64 | opengl32.dll (runtime loader; SKIP when absent; WGL needs a Win32 device context) | pass 28/28 @ 779ac140 |
 | xiom.ktx2 | 0.1.0 | incubating | compile | windows-x64 | - | pass 41/41 @ 82e75e16 |
 | xiom.sqlite | 0.4.1 | incubating | compile | windows-x64 | - | pass 21/21 @ 88a45273 |
-| xiom.stb | 0.3.0 | incubating | compile | windows-x64 | - | pass 18/18 @ 45a09fa3 |
+| xiom.stb | 0.3.0 | incubating | compile | windows-x64 | - | pass 18/18 @ 50b65cee |
 | xiom.zstd | 0.3.0 | incubating | compile | windows-x64 | - | pass 24/24 @ 11a58915 |
 | xiom.dlss | 0.1.0 | incubating | runtime-load | windows-x64 | NVIDIA NGX runtime modules (nvngx_dlss.dll + nvngx.dll core; dynamic loader, typed SKIP when absent) | pass 21/21 @ 3a22a083 |
 | xiom.phonon | 0.3.0 | incubating | runtime-load | windows-x64 | steam-audio runtime (phonon.dll; dynamic loader; SKIP when absent) | pass 6/6 @ 3a22a083 |
-| xiom.sdl3 | 0.19.0 | incubating | runtime-load | windows-x64 | SDL3 runtime (SDL3.dll; dynamic loader; SKIP when absent) | pass 72/72 @ 14ab2962 |
+| xiom.sdl3 | 0.19.0 | incubating | runtime-load | windows-x64 | SDL3 runtime (SDL3.dll; dynamic loader; SKIP when absent) | pass 72/72 @ 50b65cee |
 | xiom.xess | 0.1.0 | incubating | runtime-load | windows-x64 | libxess.dll (Intel XeSS SR core; runtime loader; SKIP when absent); libxess_dx11.dll (XeSS D3D11 companion; optional; typed CANT_LOAD_LIBRARY when absent) | pass 24/24 @ 3a22a083 |
-| xiom.photometrics | 0.1.0 | incubating | pure | windows-x64 | - | pass 43/43 @ 3baf9734 |
+| xiom.photometrics | 0.1.0 | incubating | pure | windows-x64 | - | pass 43/43 @ 50b65cee |
 | xiom.vdb | 0.1.0 | incubating | pure | windows-x64 | - | pass 30/30 @ 3a22a083 |
 | xiom.cuda | 0.2.0 | incubating | compile+runtime-load | undeclared | nvcuda.dll (runtime, derived) | pass 5/5 @ 4bb65d14 |
 | xiom.directx11 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d11.dll, dxgi.dll (runtime, derived) | pass 5/5 @ cce33ecb |
