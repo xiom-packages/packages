@@ -1,17 +1,24 @@
 {
     "package":  "xiom.xess",
     "stage":  "incubating",
-    "compiler":  "v0.64.5",
+    "compiler":  "v0.64.4",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  29,
+                  "passed":  24,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "f42852f2",
-                  "checked":  "2026-10-14T12:05:32Z"
+                  "run_by":  "native-session",
+                  "commit":  "3a22a083",
+                  "checked":  "2026-10-14T12:42:24Z"
               },
     "publish":  false,
-    "excluded_reason":  null
+    "excluded_reason":  null,
+    "platforms":  [
+                      "windows-x64"
+                  ],
+    "runtime_deps":  [
+                         "libxess.dll (Intel XeSS SR core; runtime loader; SKIP when absent)",
+                         "libxess_dx11.dll (XeSS D3D11 companion; optional; typed CANT_LOAD_LIBRARY when absent)"
+                     ]
 }
