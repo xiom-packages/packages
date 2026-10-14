@@ -30,6 +30,7 @@ public headers expose it:
 CAS and LPM are not present in the 2.3.0 headers and are documented out of
 scope. GPU rendering paths degrade to typed no-device classification; CI
 without any AMD binary stays green (typed SKIP).
+**Published**: `0.1.0` in `eco-v0.1.178` (sha256 `82935440...`).
 
 ## Quick start
 

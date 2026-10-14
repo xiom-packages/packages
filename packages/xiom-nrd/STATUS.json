@@ -13,7 +13,7 @@
                   "checked":  "2026-10-14T12:42:24Z"
               },
     "publish":  false,
-    "excluded_reason":  null,
+    "excluded_reason":  "published in eco-v0.1.178 (2026-10-14, 0.1.0 -- NRD reference loader)",
     "platforms":  [
                       "windows-x64"
                   ],

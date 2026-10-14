@@ -18,6 +18,7 @@ dependency, no headers, no vendored code -- the suite reports **SKIP**
 > **29/29 x2** with a locally built `NRD.dll` (v4.17.3) and **29/29 x2**
 > SKIP-classified on the default PATH.
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.1.0` in `eco-v0.1.178` (sha256 `53b3abd2...`).
 
 ## Quick start
 

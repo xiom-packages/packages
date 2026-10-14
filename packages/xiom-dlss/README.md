@@ -5,6 +5,7 @@ the NVIDIA DLSS SDK (NVIDIA RTX SDKs License) is studied at a pinned commit
 and **nothing from it is vendored** -- this package ships independent
 declarations of the NGX API surface and dynamic-loads the user's own
 runtime modules, with typed SKIP when they are absent.
+**Published**: `0.1.0` in `eco-v0.1.178` (sha256 `f9780ec3...`).
 
 ## What you get
 
