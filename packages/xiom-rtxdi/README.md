@@ -10,6 +10,7 @@ nothing from RTXDI ships here -- no source, headers, shader sources or
 binaries. The package is independent XIOM code plus an XIOM-side bridge
 (`src/rtxdi_bridge.cpp`, ours) that resolution-loads a locally built sample
 module (`xiom_rtxdi_shim.dll`) and classifies **SKIP** when it is absent.
+**Published**: `0.1.0` in `eco-v0.1.179` (sha256 `f1fabdcb...`).
 
 ## Surface (0.1.0)
 

@@ -8,6 +8,7 @@ save path (tinyexr's own writer) is bound for fixtures and round trips.
 
 > **Status:** `incubating` -- conformance suite green on the pin
 > (v0.64.4; 12/12 x2). **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.1.0` in `eco-v0.1.179` (sha256 `542e0467...`).
 
 ## Quick start
 

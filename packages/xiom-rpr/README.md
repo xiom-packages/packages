@@ -19,6 +19,7 @@ fail-closed from the pinned header by `tools/surface_rpr.py`).
   `SKIP(no render output on host)` after completing the full API flow.
 - Handles never cross as pointers: the bridge owns a registry and XIOM sees
   typed integer-handle structs (toolchain v0.64.4 discipline, SPEC.md sec. 4).
+**Published**: `0.1.0` in `eco-v0.1.179` (sha256 `140e9004...`).
 
 ## Quick start
 
