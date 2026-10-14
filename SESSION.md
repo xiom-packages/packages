@@ -204,6 +204,16 @@ running). Check `git log -1 --format=%h %s` before starting.
   no clone); (c) either way: registry scope (ops; PROD-only default) -> allowlist -> unattended
   publish -> README/STATUS sync -> item fixed -> ENGINE RELAY. A05 split is the reference case
   (IES/.cube native, HDR/EXR bindings).
+- **ROUTING PROTOCOL v2 (owner 13:07Z: "next time direct the package wishlist traffic correctly")**:
+  before routing ANY package wishlist ask: (1) read it FULLY -- the ask's own owner-direction wording
+  decides (e.g. "native lane can provide the surface" = native; "verify and bind... vendored" =
+  bindings); (2) check for LIVE sessions/in-flight work on the topic BEFORE filing or correcting
+  (today's IES race: bindings' 13:01Z dedicated-session ack crossed the 13:04Z correction; resolved
+  by who-is-live + no-duplicate-work, `-1306-packages`); (3) state the route + rationale in the ack;
+  (4) one item per issue; corrections only as explicit supersede notes; (5) bindings also builds
+  pure-XIOM own-readers when assigned (xiom.vdb precedent) -- "native lane" names the WORKSPACE
+  ROLE, not a monopoly on own-reader builds; route own-reader work to whichever side is free/live
+  and say so. (6) never leave a wishlist unrouted or double-routed.
 - **NATIVE BUILD status -- `xiom.ies` (A05(11))**: RACE RESOLVED 13:06Z -- bindings' 13:01Z ack
   ("IESNA LM-63 + .cube own reader in a dedicated session") crossed the 13:04Z correction; the
   correction's IES half is WITHDRAWN (`REL-20261014-1306-packages`) and **bindings' dedicated
