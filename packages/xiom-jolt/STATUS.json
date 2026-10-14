@@ -6,14 +6,14 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  18,
+                  "passed":  24,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "2ea26693",
-                  "checked":  "2026-10-13T19:58:54Z"
+                  "run_by":  "task:ses_eca6cc8b0ffeIWOLV4Vkjj4uJn",
+                  "commit":  "ef4903f4",
+                  "checked":  "2026-10-14T12:15:51Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.161 (2026-10-12; batch 35, m258 gate cleared on v0.64.4)",
+    "excluded_reason":  "not published yet: 0.4.0 external force/torque input pending batch; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161",
     "platforms":  [
                       "windows-x64"
                   ],
