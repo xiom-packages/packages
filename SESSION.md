@@ -28,8 +28,13 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   (`eco-v0.1.86` -> `eco-v0.1.179`).
 - **A05 (10)+(11) fully delivered**: HDR = stb 0.3.0 + exr 0.1.0; IES/.cube = photometrics 0.1.0
   (pure XIOM). Engine relayed `REL-20261014-1416-packages`.
-- **Bus**: `-1331` fixed (with full evidence); `-1304`/`-1306` (IES/HDR routing) await bindings/owner
-  to move (packages may not). Wave-3 evidence logs: `%TEMP%\kilo\wave3\*.log`.
+- **Bus**: `-1331` fixed (full evidence); A05 asks `-1202`/`-1207-engine` fixed (delivered); ops loop
+  `-1407-ops` fixed; engine ACKED `-1416-packages` (adopted all 11; wiring queue: jolt->E8 water leg,
+  ozz->animation adapter sampling tier, sdl3->input device tier, stb/exr/photometrics->renderer audit
+  rows). NEW engine finding `-1427-engine` -> stdlib (copy_file/read_file not binary-safe: truncates
+  at the first NUL; fleet scan shows all binary reads already use `io.read_file_bytes` and no package
+  uses copy_file on binaries -- data point filed `-1453-packages`). `-1304`/`-1306` await
+  bindings/owner to move (packages may not). Wave-3 evidence logs: `%TEMP%\kilo\wave3\*.log`.
 - **Next up (queue unchanged otherwise)**: promotions per sec.7; next archive re-verify (m275-m294 +
   workaround retirements; compiler m310 now carries fixes for `-1549-packages-5/-7` -- re-verify when
   a v0.64.5 archive lands); bindings suite manifest `-2143-bindings-2` (standing queue); `-1731`
