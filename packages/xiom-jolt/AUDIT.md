@@ -1,8 +1,8 @@
 # AUDIT: xiom.jolt
 
-## Status (2026-10-13)
+## Status (2026-10-14)
 
-Vendored C++ implementation at 0.3.0, **verified on the pinned v0.64.4
+Vendored C++ implementation at 0.4.0, **verified on the pinned v0.64.4
 toolchain** (`--cxx-standard 17`; the m258 flag now ships in the official
 pin, so the m258 gate that parked 0.2.0 is closed).  Jolt requires real
 C++17; the flag and the 26-source list are threaded into `port.args.json`.
@@ -11,12 +11,12 @@ C++17; the flag and the 26-source list are threaded into `port.args.json`.
 |------|-------|
 | Compiler | v0.64.4 (official pin; `--cxx-standard 17`) |
 | Upstream | JoltPhysics tag **v5.6.0** (tarball sha256 `6E069EE0...`, 19.4 MB) |
-| Generator | `tools/combine.py` -- mirrors `Jolt/**` (`<Jolt/...>` -> `"Jolt/..."`), 25 per-directory TUs + a bridge shim at the vendor root; tree sha256 `ea20c2d1f1f2a16e1fa62efeff5804c9d7b47f51812eefb8ed9ddb4330d6b69b` (re-verified read-only 2026-10-13) |
-| Bridge | `src/jolt_bridge.cpp` via the generated `vendor/jolt_bridge.cpp` shim: probes (drop/impulse) + a 4-slot world registry with body add/remove/count, step/step_n, and a bridge-owned state cache; single-threaded job system; integer-only ABI |
-| Suite | `tests/test_conformance.xi`, 18 checks |
-| Runs | **18/18 x2** on v0.64.4: 0.2.0 probes (drop settles at 479 milli, body asleep; impulse vx=4995) + world lifecycle, engine flows (box/sphere), between-step read-back, body add/remove/count, rotation round-trip, determinism |
-| Manifest | `modules: ["xiom.jolt"]` + `PROVENANCE.md` retrofitted at this touch (fleet -1721-2 / upstream-first) |
-| History | The v0.64.3 release-check "if constexpr probe green -> unblocked" verdict was a false positive (clang accepts constexpr if as a C++14 extension); corrected via bus items `REL-20261010-1815-bindings` / `-7`.  Jolt 0.2.0 shipped in `eco-v0.1.161`; 0.3.0 is the engine-ask wave (REL-20261013-1903-engine). |
+| Generator | `tools/combine.py` -- mirrors `Jolt/**` (`<Jolt/...>` -> `"Jolt/..."`), 25 per-directory TUs + a bridge shim at the vendor root; tree sha256 `ea20c2d1f1f2a16e1fa62efeff5804c9d7b47f51812eefb8ed9ddb4330d6b69b` (re-verified read-only 2026-10-13; untouched by 0.4.0) |
+| Bridge | `src/jolt_bridge.cpp` via the generated `vendor/jolt_bridge.cpp` shim: probes (drop/impulse) + a 4-slot world registry with body add/remove/count, per-body apply_force/apply_torque, step/step_n, and a bridge-owned state cache (position/rotation/linear+angular velocity); single-threaded job system; integer-only ABI |
+| Suite | `tests/test_conformance.xi`, 24 checks |
+| Runs | **24/24 x2** on v0.64.4: 0.2.0 probes (drop settles at 479 milli, body asleep; impulse vx=4995) + world lifecycle, engine flows (box/sphere), between-step read-back, body add/remove/count, rotation round-trip, determinism, and the 0.4.0 force/torque checks (60 N on 1 kg -> vx ~1 m/s in one step, no re-acceleration after the step; 6 N.m about z -> wz ~0.6 rad/s; unknown/removed ids rejected) |
+| Manifest | `modules: ["xiom.jolt"]` + `PROVENANCE.md` retrofitted at the 0.3.0 touch (fleet -1721-2 / upstream-first) |
+| History | The v0.64.3 release-check "if constexpr probe green -> unblocked" verdict was a false positive (clang accepts constexpr if as a C++14 extension); corrected via bus items `REL-20261010-1815-bindings` / `-7`.  Jolt 0.2.0 shipped in `eco-v0.1.161`; 0.3.0 shipped in `eco-v0.1.176`; 0.4.0 external force/torque input is the engine buoyancy ask (REL-20261013-2115-engine). |
 
 ## Design notes
 

@@ -11,7 +11,7 @@
 // has no -I passthrough).  Unblocked by compiler v0.64.3 (C++17 default;
 // bus item REL-20261010-1548-bindings-7).
 //
-// The module has two caller layers, both integer-only (floats cross as
+// The module has three caller layers, all integer-only (floats cross as
 // milli/micros; B-20/B-23/B-24/B-25 discipline -- no pointer casts, no bare
 // null, no foreign-pointer reads, no out-param slots):
 //   * 0.2.0 scalar-return probes: jolt_drop / jolt_impulse_vx run a fixed
@@ -21,13 +21,20 @@
 //     the engine contract v0 flow (world + ground + box/sphere + N fixed
 //     steps + read-back).  Values are owned; state is cached bridge-side and
 //     fetched as scalars, mirroring the JoltDropResult probe style.
+//   * 0.4.0 per-body external force/torque input: jolt_body_apply_force /
+//     jolt_body_apply_torque (owned scalar args, milli N / milli N.m) target
+//     a live dynamic body for the next step only -- Jolt clears accumulated
+//     force/torque after every Update, so repeated calls before a step
+//     accumulate and each application wakes the body.  Read-back gains
+//     angular velocity (w*_milli) so torque effects are observable; unknown
+//     or removed ids are rejected with a typed error.
 // All `unsafe`/`extern "C"` live in this single module (G5).
 //
 // G2 pin (SPEC.md): upstream tag v5.6.0 + generator + generated-tree sha256.
 //
-// API subset: probes + world/body v0.  Broad-phase queries, joint variety,
-// character controllers, soft bodies, and contact events are Phase 4
-// (ROADMAP.md).
+// API subset: probes + world/body v0 + external force/torque input.
+// Broad-phase queries, joint variety, character controllers, soft bodies,
+// and contact events are Phase 5 (ROADMAP.md).
 
 module xiom.jolt
 
@@ -41,12 +48,15 @@ extern "C" {
   fn joltb_body_add(handle: Int32, shape: Int32, ex_milli: Int32, ey_milli: Int32, ez_milli: Int32, mass_milli: Int32, px_milli: Int32, py_milli: Int32, pz_milli: Int32, rx_milli: Int32, ry_milli: Int32, rz_milli: Int32, rw_milli: Int32, is_static: Int32) -> Int32;
   fn joltb_body_remove(handle: Int32, body: Int32) -> Int32;
   fn joltb_body_count(handle: Int32) -> Int32;
+  fn joltb_body_apply_force(handle: Int32, body: Int32, fx_milli: Int32, fy_milli: Int32, fz_milli: Int32) -> Int32;
+  fn joltb_body_apply_torque(handle: Int32, body: Int32, tx_milli: Int32, ty_milli: Int32, tz_milli: Int32) -> Int32;
   fn joltb_step(handle: Int32, dt_micros: Int32) -> Int32;
   fn joltb_step_n(handle: Int32, dt_micros: Int32, steps: Int32) -> Int32;
   fn joltb_body_state(handle: Int32, body: Int32) -> Int32;
   fn joltb_state_pos(axis: Int32) -> Int32;
   fn joltb_state_rot(axis: Int32) -> Int32;
   fn joltb_state_vel(axis: Int32) -> Int32;
+  fn joltb_state_wvel(axis: Int32) -> Int32;
   fn joltb_state_awake() -> Int32;
 }
 
@@ -89,8 +99,9 @@ pub type JoltBodyDesc = {
   is_static: Bool;
 }
 
-/// Owned read-back of one body: position (3), rotation (4), velocity (3) and
-/// the awake flag, all from bridge-owned scalars (no out-param slots).
+/// Owned read-back of one body: position (3), rotation (4), linear velocity
+/// (3), angular velocity (3) and the awake flag, all from bridge-owned
+/// scalars (no out-param slots).
 pub type JoltBodyState = {
   px_milli: Int;
   py_milli: Int;
@@ -102,6 +113,9 @@ pub type JoltBodyState = {
   vx_milli: Int;
   vy_milli: Int;
   vz_milli: Int;
+  wx_milli: Int;
+  wy_milli: Int;
+  wz_milli: Int;
   awake: Bool;
 }
 
@@ -216,6 +230,36 @@ pub fn jolt_body_count(w: JoltWorld) -> Result[Int, Str]
   return Ok(rc);
 }
 
+/// Apply an external force (milli-Newtons per axis) at a dynamic body's
+/// center of mass for the next step; wakes the body.  Jolt clears the
+/// accumulated force after every Update, so repeated calls before a step
+/// accumulate and a call without a following step has no effect.  Static
+/// bodies are a silent no-op (Jolt semantics).  Returns the body id; unknown
+/// or removed ids are rejected.  Complexity: O(bodies).
+pub fn jolt_body_apply_force(w: JoltWorld, body_id: Int, fx_milli: Int, fy_milli: Int, fz_milli: Int) -> Result[Int, Str]
+  requires: body_id >= 0
+{
+  let rc = unsafe { joltb_body_apply_force(w.handle as Int32, body_id as Int32, fx_milli as Int32, fy_milli as Int32, fz_milli as Int32) as Int };
+  if rc < 0 {
+    return Err("jolt: apply force rc=" + jolt_i2s(0 - rc));
+  }
+  return Ok(rc);
+}
+
+/// Apply an external torque (milli Newton-metres per axis) about a dynamic
+/// body's center of mass for the next step; same accumulation/clear/wake
+/// semantics as `jolt_body_apply_force`.  Returns the body id; unknown or
+/// removed ids are rejected.  Complexity: O(bodies).
+pub fn jolt_body_apply_torque(w: JoltWorld, body_id: Int, tx_milli: Int, ty_milli: Int, tz_milli: Int) -> Result[Int, Str]
+  requires: body_id >= 0
+{
+  let rc = unsafe { joltb_body_apply_torque(w.handle as Int32, body_id as Int32, tx_milli as Int32, ty_milli as Int32, tz_milli as Int32) as Int };
+  if rc < 0 {
+    return Err("jolt: apply torque rc=" + jolt_i2s(0 - rc));
+  }
+  return Ok(rc);
+}
+
 /// Advance the world by one fixed step of `dt_micros`; returns the steps
 /// applied (1).  State is readable between steps.
 /// Complexity: O(bodies).
@@ -242,8 +286,8 @@ pub fn jolt_step_n(w: JoltWorld, dt_micros: Int, steps: Int) -> Result[Int, Str]
   return Ok(rc);
 }
 
-/// Read one body's state as owned values (position/rotation/velocity in
-/// milli + awake).  Complexity: O(bodies).
+/// Read one body's state as owned values (position/rotation/linear velocity/
+/// angular velocity in milli + awake).  Complexity: O(bodies).
 pub fn jolt_body_state(w: JoltWorld, body_id: Int) -> Result[JoltBodyState, Str]
   requires: body_id >= 0
 {
@@ -262,6 +306,9 @@ pub fn jolt_body_state(w: JoltWorld, body_id: Int) -> Result[JoltBodyState, Str]
     vx_milli: unsafe { joltb_state_vel(0) as Int };
     vy_milli: unsafe { joltb_state_vel(1) as Int };
     vz_milli: unsafe { joltb_state_vel(2) as Int };
+    wx_milli: unsafe { joltb_state_wvel(0) as Int };
+    wy_milli: unsafe { joltb_state_wvel(1) as Int };
+    wz_milli: unsafe { joltb_state_wvel(2) as Int };
     awake: unsafe { joltb_state_awake() as Int } != 0;
   });
 }

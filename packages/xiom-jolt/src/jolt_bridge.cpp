@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Two layers over one integer ABI (floats cross as milli/micros; XIOM never
+// Layers over one integer ABI (floats cross as milli/micros; XIOM never
 // marshals structs or pointers across the boundary):
 //   * scalar-return probes (0.2.0): joltprobe_drop / joltprobe_impulse each
 //     build a small world, step it with a single-threaded job system and
@@ -13,6 +13,12 @@
 //     only.  State reads land in bridge-owned scalars (no out-param slots),
 //     then are fetched by joltb_state_* (B-20/B-23/B-24 discipline: XIOM
 //     never reads through foreign pointers).
+//   * per-body external input (0.4.0): joltb_body_apply_force /
+//     joltb_body_apply_torque accumulate force/torque for the next Update
+//     (Jolt clears both automatically after every step; repeated calls before
+//     a step accumulate) and wake sleeping bodies (EActivation::Activate);
+//     the state cache gains angular velocity so torque effects read back as
+//     owned scalars.  Only the integer ABI grows -- no new pointer surface.
 // Registration mirrors the upstream HelloWorld sample
 // (RegisterDefaultAllocator + Factory + RegisterTypes), ref-counted so probes
 // and live worlds can share it.
@@ -128,10 +134,12 @@ int g_final_y_milli;
 int g_awake;
 int g_impulse_vx_milli;
 
-// Bridge-owned state cache for joltb_body_state / joltb_state_* (0.3.0).
+// Bridge-owned state cache for joltb_body_state / joltb_state_* (0.3.0;
+// angular velocity added in 0.4.0).
 int g_state_pos[3];
 int g_state_rot[4];
 int g_state_vel[3];
+int g_state_avel[3];
 int g_state_awake;
 
 struct World {
@@ -402,6 +410,37 @@ int joltb_body_count(int handle) {
   return (int)w->bodies.size();
 }
 
+// Apply an external force (milli-Newtons per axis) at the body's center of
+// mass for the next Update; wakes the body (EActivation::Activate).  Jolt
+// clears the accumulated force after every Update, so repeated calls before a
+// step accumulate and a call without a following step has no effect.  Static
+// bodies are a silent no-op (Jolt semantics).  Returns the packed body id
+// (>= 0) or a negative code; unknown/removed ids are rejected.
+int joltb_body_apply_force(int handle, int packed, int fx_milli, int fy_milli, int fz_milli) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  BodyID body = find_body(w, packed);
+  if (body.IsInvalid()) return kErrBadBody;
+  w->physics.GetBodyInterface().AddForce(body,
+      Vec3(from_milli(fx_milli), from_milli(fy_milli), from_milli(fz_milli)),
+      EActivation::Activate);
+  return packed;
+}
+
+// Apply an external torque (milli Newton-metres per axis) about the body's
+// center of mass for the next Update; same accumulation/clear/activation and
+// id-rejection semantics as joltb_body_apply_force.
+int joltb_body_apply_torque(int handle, int packed, int tx_milli, int ty_milli, int tz_milli) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  BodyID body = find_body(w, packed);
+  if (body.IsInvalid()) return kErrBadBody;
+  w->physics.GetBodyInterface().AddTorque(body,
+      Vec3(from_milli(tx_milli), from_milli(ty_milli), from_milli(tz_milli)),
+      EActivation::Activate);
+  return packed;
+}
+
 // Advance the world by one fixed step of dt_micros; returns 1 or a negative
 // code.  Deterministic: the only clock is dt_micros (no wall time).
 int joltb_step(int handle, int dt_micros) {
@@ -444,6 +483,7 @@ int joltb_body_state(int handle, int packed) {
   RVec3 p = bi.GetPosition(body);
   Quat q = bi.GetRotation(body);
   Vec3 v = bi.GetLinearVelocity(body);
+  Vec3 av = bi.GetAngularVelocity(body);
   g_state_pos[0] = to_milli(p.GetX());
   g_state_pos[1] = to_milli(p.GetY());
   g_state_pos[2] = to_milli(p.GetZ());
@@ -454,6 +494,9 @@ int joltb_body_state(int handle, int packed) {
   g_state_vel[0] = to_milli(v.GetX());
   g_state_vel[1] = to_milli(v.GetY());
   g_state_vel[2] = to_milli(v.GetZ());
+  g_state_avel[0] = to_milli(av.GetX());
+  g_state_avel[1] = to_milli(av.GetY());
+  g_state_avel[2] = to_milli(av.GetZ());
   g_state_awake = bi.IsActive(body) ? 1 : 0;
   return 0;
 }
@@ -471,6 +514,11 @@ int joltb_state_rot(int axis) {
 int joltb_state_vel(int axis) {
   if (axis < 0 || axis > 2) return 0;
   return g_state_vel[axis];
+}
+
+int joltb_state_wvel(int axis) {
+  if (axis < 0 || axis > 2) return 0;
+  return g_state_avel[axis];
 }
 
 int joltb_state_awake(void) {

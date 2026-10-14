@@ -26,7 +26,7 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   `E:\repos\CLEANUP.md`, review-after 2026-12-01).  Study only -- the pinned
   artifact above is the tarball; the vendored tree is never regenerated from
   a dirty working checkout.
-- **Declared surface (100% bound):** the package binds **16** bridge entry
+- **Declared surface (100% bound):** the package binds **19** bridge entry
   points, every one with a public safe wrapper or an internal caller in
   `jolt.xi` (0 skips):
 
@@ -41,12 +41,15 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   | `joltb_body_add` | `jolt_body_add` |
   | `joltb_body_remove` | `jolt_body_remove` |
   | `joltb_body_count` | `jolt_body_count` |
+  | `joltb_body_apply_force` | `jolt_body_apply_force` |
+  | `joltb_body_apply_torque` | `jolt_body_apply_torque` |
   | `joltb_step` | `jolt_step` |
   | `joltb_step_n` | `jolt_step_n` |
   | `joltb_body_state` | `jolt_body_state` |
   | `joltb_state_pos` | (internal: read inside `jolt_body_state`) |
   | `joltb_state_rot` | (internal: read inside `jolt_body_state`) |
   | `joltb_state_vel` | (internal: read inside `jolt_body_state`) |
+  | `joltb_state_wvel` | (internal: read inside `jolt_body_state`) |
   | `joltb_state_awake` | (internal: read inside `jolt_body_state`) |
 
   In addition the full vendored library compiles into the test binary (all
@@ -60,15 +63,19 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   upstream HelloWorld registration pattern (RegisterDefaultAllocator +
   Factory + RegisterTypes).  No upstream code was copied into the XIOM
   module.
-- **Boundary discipline:** integer-only ABI (milli/micros); handles are
-  registry indices, never raw pointers (B-25); no bare `null` crosses (B-23);
-  XIOM never reads through foreign pointers -- state is cached bridge-side
-  and fetched as scalars (B-20/B-24); no out-param slots.
+- **Boundary discipline:** integer-only ABI (milli/micros; forces milli-N,
+  torques milli-N.m); handles are registry indices, never raw pointers
+  (B-25); no bare `null` crosses (B-23); XIOM never reads through foreign
+  pointers -- state is cached bridge-side and fetched as scalars
+  (B-20/B-24); no out-param slots.  Force/torque input uses Jolt's
+  `BodyInterface::AddForce`/`AddTorque` (center of mass, `EActivation::
+  Activate`); Jolt clears the accumulators after every `Update`, and unknown
+  or removed body ids are rejected before the Jolt call.
 - **Link model:** static -- the vendored C++ sources are compiled at port
   time via `--c-source` (`--cxx-standard 17`); no DLL, no dl-load, no
   runtime probe.
 - **License:** `vendor/` is MIT (notice retained); everything outside
   `vendor/` is MIT OR Apache-2.0.
-- **Evidence:** `tests/test_conformance.xi` (18 checks) x2 green on the
+- **Evidence:** `tests/test_conformance.xi` (24 checks) x2 green on the
   pinned v0.64.4 toolchain; the run record (run_by/commit/checked) lives in
   `STATUS.json`.

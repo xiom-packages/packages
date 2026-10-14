@@ -4,8 +4,8 @@
 
 package xiom_jolt {
   name: "xiom.jolt";
-  version: "0.3.0";
-  description: "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; probes + caller-usable world/body surface)";
+  version: "0.4.0";
+  description: "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; probes + caller-usable world/body surface + per-body external force/torque input)";
   categories: ["graphics"];
   keywords: ["jolt", "physics", "collision", "rigid-body", "binding"];
   license: "MIT OR Apache-2.0";

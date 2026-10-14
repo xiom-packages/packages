@@ -4,10 +4,12 @@
 // carried by the pinned compiler):
 //   scripts/port.ps1 -Package xiom.jolt -TimeoutSec 600
 //
-// Covers the 0.2.0 scalar probes and the 0.3.0 caller-usable world/body
+// Covers the 0.2.0 scalar probes, the 0.3.0 caller-usable world/body
 // surface (world lifecycle, body add/remove/count, step control, owned state
 // read-back; engine contract v0 flow = world + ground + box/sphere + N fixed
-// steps + read-back).
+// steps + read-back), and the 0.4.0 per-body external force/torque input
+// (apply_force/apply_torque, one-step-only semantics, angular read-back,
+// unknown/removed id rejection).
 
 module jolt_conformance
 
@@ -60,7 +62,7 @@ fn i2s(n: Int) -> Str {
 
 // Every JoltBodyState field equal, bit for bit.
 fn st_same(a: JoltBodyState, b: JoltBodyState) -> Bool {
-  return a.px_milli == b.px_milli && a.py_milli == b.py_milli && a.pz_milli == b.pz_milli && a.rx_milli == b.rx_milli && a.ry_milli == b.ry_milli && a.rz_milli == b.rz_milli && a.rw_milli == b.rw_milli && a.vx_milli == b.vx_milli && a.vy_milli == b.vy_milli && a.vz_milli == b.vz_milli && a.awake == b.awake;
+  return a.px_milli == b.px_milli && a.py_milli == b.py_milli && a.pz_milli == b.pz_milli && a.rx_milli == b.rx_milli && a.ry_milli == b.ry_milli && a.rz_milli == b.rz_milli && a.rw_milli == b.rw_milli && a.vx_milli == b.vx_milli && a.vy_milli == b.vy_milli && a.vz_milli == b.vz_milli && a.wx_milli == b.wx_milli && a.wy_milli == b.wy_milli && a.wz_milli == b.wz_milli && a.awake == b.awake;
 }
 
 // Engine contract v0 flow: world (gravity -9.81 m/s^2 y, fixed 1/60 s step) +
@@ -314,6 +316,73 @@ fn main() -> Int {
     let d10 = jolt_world_destroy(world);
   } else {
     failed = failed + report(false, "rotation: create failed: " + w10.error);
+  }
+
+  // 11. External force/torque input (0.4.0): apply_force / apply_torque on a
+  //     zero-gravity world.  The input applies to the next step only (Jolt
+  //     clears accumulated force/torque after every Update) and wakes the
+  //     body.  60 N on a 1 kg box (mass_milli override) for dt=1/60 s gives
+  //     dv=1 m/s; 6 N.m about z gives dw = (6 / (1/6)) * 1/60 = 0.6 rad/s.
+  let w11 = jolt_world_create(0, 0, 0, 16666, 8);
+  if w11.is_ok {
+    let world = w11.value;
+    let fd = JoltBodyDesc{
+      shape: JOLT_SHAPE_BOX;
+      ex_milli: 500;
+      ey_milli: 500;
+      ez_milli: 500;
+      mass_milli: 1000;
+      px_milli: 0;
+      py_milli: 0;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      is_static: false;
+    };
+    let b = jolt_body_add(world, fd);
+    if b.is_ok {
+      let bid = b.value;
+      let af = jolt_body_apply_force(world, bid, 60000, 0, 0);
+      let s1 = jolt_step(world, 16666);
+      let st1 = jolt_body_state(world, bid);
+      if af.is_ok && s1.is_ok && st1.is_ok {
+        failed = failed + report(st1.value.vx_milli >= 900 && st1.value.vx_milli <= 1100 && st1.value.px_milli > 0,
+          "force: 60 N on 1 kg accelerated vx to " + i2s(st1.value.vx_milli) + " milli (px=" + i2s(st1.value.px_milli) + ")");
+      } else {
+        failed = failed + report(false, "force: apply/step/state failed");
+      }
+      let s2 = jolt_step(world, 16666);
+      let st2 = jolt_body_state(world, bid);
+      if s2.is_ok && st2.is_ok {
+        failed = failed + report(st2.value.vx_milli >= 900 && st2.value.vx_milli <= 1100,
+          "force: cleared after one step (vx held at " + i2s(st2.value.vx_milli) + " milli, no re-acceleration)");
+      } else {
+        failed = failed + report(false, "force: second step read-back failed");
+      }
+      let at = jolt_body_apply_torque(world, bid, 0, 0, 6000);
+      let s3 = jolt_step(world, 16666);
+      let st3 = jolt_body_state(world, bid);
+      if at.is_ok && s3.is_ok && st3.is_ok {
+        failed = failed + report(st3.value.wz_milli >= 500 && st3.value.wz_milli <= 700 && st3.value.rz_milli != 0,
+          "torque: 6 N.m about z changed angular state (wz=" + i2s(st3.value.wz_milli) + " milli, rz=" + i2s(st3.value.rz_milli) + ")");
+      } else {
+        failed = failed + report(false, "torque: apply/step/state failed");
+      }
+      let unk = jolt_body_apply_force(world, 99999999, 1000, 0, 0);
+      failed = failed + report(!unk.is_ok, "force: unknown id rejected");
+      let rem = jolt_body_remove(world, bid);
+      let rf = jolt_body_apply_force(world, bid, 1000, 0, 0);
+      let rt = jolt_body_apply_torque(world, bid, 0, 0, 1000);
+      failed = failed + report(rem.is_ok && !rf.is_ok, "force: removed id rejected");
+      failed = failed + report(!rt.is_ok, "torque: removed id rejected");
+    } else {
+      failed = failed + report(false, "force: add failed: " + b.error);
+    }
+    let d11 = jolt_world_destroy(world);
+  } else {
+    failed = failed + report(false, "force: create failed: " + w11.error);
   }
 
   if failed == 0 {
