@@ -595,3 +595,6 @@ xiom.rpr
 xiom.rtxdi
 xiom.rtxgi
 xiom.openpgl
+# A05 HDR + photometric wave; ops scopes confirmed LIVE 2026-10-14 (eco-release 539; PROD-only)
+xiom.exr
+xiom.photometrics
