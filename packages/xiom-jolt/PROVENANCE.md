@@ -26,7 +26,7 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   `E:\repos\CLEANUP.md`, review-after 2026-12-01).  Study only -- the pinned
   artifact above is the tarball; the vendored tree is never regenerated from
   a dirty working checkout.
-- **Declared surface (100% bound):** the package binds **19** bridge entry
+- **Declared surface (100% bound):** the package binds **49** bridge entry
   points, every one with a public safe wrapper or an internal caller in
   `jolt.xi` (0 skips):
 
@@ -39,6 +39,7 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   | `joltb_world_destroy` | `jolt_world_destroy` |
   | `joltb_world_dt` | `jolt_world_dt_micros` |
   | `joltb_body_add` | `jolt_body_add` |
+  | `joltb_body_add_sensor` | `jolt_body_add_sensor` |
   | `joltb_body_remove` | `jolt_body_remove` |
   | `joltb_body_count` | `jolt_body_count` |
   | `joltb_body_apply_force` | `jolt_body_apply_force` |
@@ -51,11 +52,41 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   | `joltb_state_vel` | (internal: read inside `jolt_body_state`) |
   | `joltb_state_wvel` | (internal: read inside `jolt_body_state`) |
   | `joltb_state_awake` | (internal: read inside `jolt_body_state`) |
+  | `joltb_raycast_closest` | `jolt_raycast` (via internal `jolt_hit_result`) |
+  | `joltb_raycast_any` | `jolt_raycast_any` (via internal `jolt_hit_result`) |
+  | `joltb_sweep_sphere_closest` | `jolt_sweep_sphere` (via internal `jolt_hit_result`) |
+  | `joltb_sweep_capsule_closest` | `jolt_sweep_capsule` (via internal `jolt_hit_result`) |
+  | `joltb_overlap_sphere` | `jolt_overlap_sphere` |
+  | `joltb_overlap_capsule` | `jolt_overlap_capsule` |
+  | `joltb_overlap_fetch` | `jolt_overlap` |
+  | `joltb_overlap_body` | (internal: read inside `jolt_overlap`) |
+  | `joltb_overlap_pos` | (internal: read inside `jolt_overlap`) |
+  | `joltb_query_hit` | (internal: read inside `jolt_hit_result`) |
+  | `joltb_query_body` | (internal: read inside `jolt_hit_result`) |
+  | `joltb_query_pos` | (internal: read inside `jolt_hit_result`) |
+  | `joltb_query_nrm` | (internal: read inside `jolt_hit_result`) |
+  | `joltb_query_fraction` | (internal: read inside `jolt_hit_result`) |
+  | `joltb_contact_count` | `jolt_contact_count` |
+  | `joltb_contact_fetch` | `jolt_contact` |
+  | `joltb_contact_point_fetch` | `jolt_contact_point` |
+  | `joltb_contact_pair_count` | `jolt_contact_pair_count` |
+  | `joltb_contact_body_a` | (internal: read inside `jolt_contact`) |
+  | `joltb_contact_body_b` | (internal: read inside `jolt_contact`) |
+  | `joltb_contact_point_count` | (internal: read inside `jolt_contact`) |
+  | `joltb_contact_normal` | (internal: read inside `jolt_contact`) |
+  | `joltb_contact_depth_micros` | (internal: read inside `jolt_contact`) |
+  | `joltb_contact_point` | (internal: read inside `jolt_contact`/`jolt_contact_point`) |
+  | `joltb_sensor_event_count` | `jolt_sensor_event_count` |
+  | `joltb_sensor_event_fetch` | `jolt_sensor_event` |
+  | `joltb_sensor_event_sensor` | (internal: read inside `jolt_sensor_event`) |
+  | `joltb_sensor_event_other` | (internal: read inside `jolt_sensor_event`) |
+  | `joltb_sensor_overlap_count` | `jolt_sensor_overlap_count` |
 
   In addition the full vendored library compiles into the test binary (all
   25 per-directory TUs).  The world/body surface is a declared v0 subset
-  (engine contract flow), not the full Jolt API -- a binding-subset
-  declaration like `xiom.sqlite`, extended at each wave.
+  (engine contract flow + query/contact/sensor tiers), not the full Jolt
+  API -- a binding-subset declaration like `xiom.sqlite`, extended at each
+  wave.
 - **Derived vs independent:** `vendor/Jolt/**` is upstream code (compiled
   unmodified except the include rewrite).  `src/jolt_bridge.cpp`,
   `tools/combine.py`, `jolt.xi`, and `tests/` are original to this package;
@@ -70,12 +101,19 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   (B-20/B-24); no out-param slots.  Force/torque input uses Jolt's
   `BodyInterface::AddForce`/`AddTorque` (center of mass, `EActivation::
   Activate`); Jolt clears the accumulators after every `Update`, and unknown
-  or removed body ids are rejected before the Jolt call.
+  or removed body ids are rejected before the Jolt call.  Query shapes are
+  temporary and owned by `RefConst<Shape>` (Jolt shapes start at refcount 0;
+  a raw `Release()` would assert), results land in bridge-owned caches
+  (POD storage only -- no non-trivial globals), and every list surface is
+  canonicalized to ascending packed body id (deterministic broadphase
+  order).  Contact/sensor caches are rebuilt per step from a
+  `ContactListener` (bounded: 2048 manifolds / 1024 events, <= 8 points per
+  manifold).
 - **Link model:** static -- the vendored C++ sources are compiled at port
   time via `--c-source` (`--cxx-standard 17`); no DLL, no dl-load, no
   runtime probe.
 - **License:** `vendor/` is MIT (notice retained); everything outside
   `vendor/` is MIT OR Apache-2.0.
-- **Evidence:** `tests/test_conformance.xi` (24 checks) x2 green on the
+- **Evidence:** `tests/test_conformance.xi` (67 checks) x2 green on the
   pinned v0.64.4 toolchain; the run record (run_by/commit/checked) lives in
   `STATUS.json`.

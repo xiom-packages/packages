@@ -33,11 +33,19 @@
 - [x] Engine buoyancy/water ask (REL-20261013-2115-engine) covered by the
       suite (+6 checks, 24 total)
 
-## Phase 5 (Planned)
-- [ ] Broad-phase queries + collision filtering surface (layers, ray casts)
-- [ ] Joint wrappers (hinge/slider/fixed/cone)
-- [ ] Character controller
-- [ ] Soft bodies
-- [ ] Contact events / activation callbacks
-- [ ] Deterministic save/restore state helper
+## Phase 5 (In progress) -- engine E-family
+- [x] 0.5.0 **E1 world queries**: raycast (closest + any-hit), sphere/capsule
+      closest sweeps, sphere/capsule overlap lists; owned `JoltQueryHit`
+      (flag/body/position/normal/fraction); deterministic broadphase order
+      (canonical ascending body id; tested across fresh worlds)
+- [x] 0.5.0 **E2 capsule shape**: `JOLT_SHAPE_CAPSULE` bodies (radius + half
+      height of the segment) settle/contact and take part in E1 queries
+- [x] 0.5.0 **E7 contacts + sensors**: last-step contact manifolds (pair,
+      points, normal, penetration depth) and non-physical sensor volumes
+      with per-step overlap events; typed errors for unknown/removed ids
+- [ ] **E3** joints (hinge/slider/fixed/cone) -- remains
+- [ ] **E4** character controller -- remains
+- [ ] **E5** soft bodies -- remains
+- [ ] **E6** deterministic save/restore state helper -- remains
+- [ ] Collision filtering surface (layers/masks on query paths)
 - [ ] Re-pin when the drift guard flags a new Jolt tag
