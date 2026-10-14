@@ -8,12 +8,12 @@
                   "status":  "pass",
                   "passed":  23,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "c1065a50",
-                  "checked":  "2026-10-13T21:03:22Z"
+                  "run_by":  "task:ses_eca6cc8b0ffeIWOLV4Vkjj4uJn",
+                  "commit":  "759422a6",
+                  "checked":  "2026-10-14T12:32:54Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.122 (2026-10-09); 0.4.0 demux publish requested (2026-10-13)",
+    "excluded_reason":  "published in eco-v0.1.176 (2026-10-13, 0.3.0 AV1 decode; 0.2.0 in eco-v0.1.122); 0.4.1 demux publish requested (0.4.0 was held by REL-20261013-2142-packages: codec-id gate fixed to a runtime generation-resolved AV1 id)",
     "platforms":  [
                       "windows-x64"
                   ],
