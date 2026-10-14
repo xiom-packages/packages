@@ -190,8 +190,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   `3a22a083` -- opus 26, ogg 34, lz4 81, ktx2 41, vdb 30, phonon 6 (SKIP-path), fidelityfx 35, nis 28,
   dlss 21, xess 24, nrd 29, oidn 4 (`323483ab`); wrap `eb21dc46`; run 38565995820 green (5m51s);
   registry-live sha256s verified; README/STATUS synced `14fcee68`; item `-1208-bindings-3` fixed;
-  **engine relayed** (`REL-20261014-1259-packages`). A05 asks (HDR + IES) routed to bindings
-  (`REL-20261014-1223-packages`). Still in flight: path-tracer set (rpr/rtxdi/rtxgi/openpgl).
+  **engine relayed** (`REL-20261014-1259-packages`). A05 asks split per owner direction (correction
+  `REL-20261014-1304-packages`): **A05(10) HDR (.hdr on stb + EXR-class) = bindings prep** (stays
+  `-1223-packages`); **A05(11) IES/.cube = NATIVE LANE (packages) -- own IESNA LM-63 reader +
+  optional .cube, typed tables + battery + independent-declaration PROVENANCE; BUILD QUEUED for
+  this lane** (new-name scope ask to ops when it lands). Still in flight: path-tracer set
+  (rpr/rtxdi/rtxgi/openpgl).
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
