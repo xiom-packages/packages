@@ -46,6 +46,16 @@
 // `format`) are selected from the loaded generation's packed versions and
 // verified by the suite against the fixture's known header.
 //
+// 0.4.1 (REL-20261013-2142-packages fix): the numeric AVCodecID is NOT
+// stable across FFmpeg major generations.  AV_CODEC_ID_AV1 is 226 on lavc
+// 60.x (FFmpeg 6.1), 225 on lavc 61.x (FFmpeg 7.0+, after the deprecated
+// packed-YUV ids were removed from the video enum) and 222 in the pinned
+// 8.0.git list.  The bridge read `codecpar.codec_id` correctly on every
+// generation; the 0.4.0 suite gate failed only against a hardcoded 226.
+// The stable codec identity is the NAME: `ffmpeg_codec_id_by_name` resolves
+// the loaded generation's numeric id for a name via avcodec_get_name, and
+// the suite gates on that (plus the name itself) instead of a constant.
+//
 // Decode FFI discipline (v0.64.4 findings B-20/B-24/B-25/B-17/B-23):
 //   * handles cross as `Int` params in the fn-pointer casts (B-25: never
 //     `Int as *UInt8`); `src/ffmpeg_bridge.c` casts in C only;
@@ -671,10 +681,6 @@ pub fn ffmpeg_decoder_close(dec: &FfDecoder) -> Result[Unit, Str]
 /// A container/stream operation failed (open/find/read/seek) -> FAIL.
 pub const FFMPEG_DEMUX_FAILED: Int = 4;
 
-/// AV_CODEC_ID_AV1 (libavcodec/codec_id.h video-enum position; verified at
-/// runtime via avcodec_get_name -> "av1").  Complexity: O(1).
-pub const FFMPEG_CODEC_ID_AV1: Int = 226;
-
 /// AVMediaType values used by `ffmpeg_demux_best_stream`
 /// (libavutil/avutil.h).  Complexity: O(1).
 pub const FFMPEG_MEDIA_TYPE_VIDEO: Int = 0;
@@ -1051,6 +1057,41 @@ pub fn ffmpeg_codec_name(lib: &FfmpegLibrary, codec_id: Int) -> Str
     }
     return "";
   }
+}
+
+/// Reverse of `ffmpeg_codec_name`: the numeric AVCodecID the loaded
+/// generation uses for a codec `name` (-1 when the name is not registered).
+/// The numeric enum is NOT stable across FFmpeg major generations
+/// (AV_CODEC_ID_AV1: 226 on lavc 60.x, 225 on lavc 61.x, 222 in the pinned
+/// 8.0.git list), so name-gating is the generation-independent check and
+/// this helper resolves the generation's own id.  Scans the AVCodecID space
+/// through the already-public `avcodec_get_name` (no foreign-pointer reads,
+/// B-20/B-24); early exit on match.
+/// Complexity: O(ids) worst case; the AV1-class names resolve in the video
+/// section (~200s) on every pinned generation.
+pub fn ffmpeg_codec_id_by_name(lib: &FfmpegLibrary, name: Str) -> Int
+  requires: lib.h_codec != 0
+  requires: name.len() > 0
+{
+  let s_name = dl.dl_sym(lib.h_codec, "avcodec_get_name");
+  if !s_name.is_ok { return -1; }
+  // AVCodecID space (pinned oracle): video ids run 0 .. ~0x500; the
+  // audio/subtitle/data sections are the explicit first-id markers, the
+  // last registered id being AV_CODEC_ID_WRAPPED_AVFRAME = 0x21001.
+  var id = 0;
+  while id <= 0x21001 {
+    unsafe {
+      let f_name = s_name.value as fn(Int32) -> *UInt8;
+      let np = f_name(id as Int32);
+      if (np as Int) != 0 {
+        if str_compare(Str::from_c_str(np), name) == 0 {
+          return id;
+        }
+      }
+    }
+    id = id + 1;
+  }
+  return -1;
 }
 
 // =========================================================================

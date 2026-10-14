@@ -1,8 +1,9 @@
 # AUDIT: xiom.sdl3
 
-## Status (2026-10-11)
+## Status (2026-10-14)
 
-Dynamic-loader implementation at **0.18.0** (foreign-written event readback; B-11 addendum retired on v0.64.4).
+Dynamic-loader implementation at **0.19.0** (device surface: joystick caps,
+haptic wave forms, pen/tablet decode).
 The pre-pilot static-extern module (`src/sdl3_safe.xi`) and the
 extern-backed tail of the root module were removed: they could not satisfy
 the SKIP-when-absent gate (link-time symbol requirements). The full
@@ -11,12 +12,12 @@ return over this loader.
 
 | Item | State |
 |------|-------|
-| Compiler | v0.64.3 |
+| Compiler | v0.64.4 |
 | Upstream pin | SDL 3.4.8 (tag `release-3.4.8`), soname `SDL3.dll` |
 | Link model | none at build time; runtime `LoadLibraryA`/`GetProcAddress` via `xiom.ffi.dl` |
 | FFI confinement | all `unsafe` + fn-pointer casts in the root module `xiom.sdl3` only |
-| Suite | `tests/test_conformance.xi`, 61 checks (5 run without the DLL) |
-| Runs | absent (PATH-filtered): PASS 5/5 x2; present (SDL 3.4.8): PASS 61/61 x2 (+7/7 stability runs); demo probe `examples/demo_sdl3.xi` exit 0 with the blit section green -- all via `scripts/port.ps1`/direct run (v0.64.3, 2026-10-11; refreshed each version) |
+| Suite | `tests/test_conformance.xi`, 72 checks (8 run without the DLL) |
+| Runs | absent (PATH-filtered): PASS 8/8 x2; present (SDL 3.4.8): PASS 72/72 x2; full-surface suite 1269/1269 bound + 1270/1270 resolved; generator device-surface audit 32/32 symbols, 45/45 constants, 14/14 Win64 layouts -- all via `scripts/port.ps1` (v0.64.4, 2026-10-14; refreshed each version) |
 | Resources (0.3.0) | window (hidden 320x200, size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration + SKIP when none attached |
 | Event decode (0.4.0) | `SDL_Event` over an owned 128-byte buffer: shared header + key/mouse-motion/mouse-button/window accessors + f32 bit decode; offsets pinned to the 3.4.8 headers (== the 3.2.10 clone) |
 | Event filter/watch (0.5.0) | fixed dispatchers + 1-arg handler registries; keep/drop proven (reject makes SDL refuse the push); watch non-consuming + removable; B-14/B-15 workarounds documented (`docs/repro/bindings-pilot/cb-abi/probe7_element_units.xi`) |
@@ -32,6 +33,11 @@ return over this loader.
 | Joystick live path (0.15.0) | 10 symbols (OpenJoystick/CloseJoystick/Connected/Name/Axis/Button + SetJoystickVirtualAxis/Button + Attach/DetachVirtualJoystick); `SDL_VirtualJoystickDesc` built as a 136-byte x64 slot (`version` = sizeof(desc) per SDL_INIT_INTERFACE; byte-indexed writes, B-16/B-17); the suite attaches a hardware-free virtual pad, sets axis0=16384 + button1 through the real open path, reads them back (name + connected green), then detaches |
 | Drag-drop payloads (0.16.0) | Pure-buffer decode of `SDL_DropEvent` (pinned layout: windowID @16, x @20, y @24, source ptr @32, data ptr @40): windowID/xy + source/data C-string copies; NULL payloads decode to `""`; the arm is DLL-independent (runs in both shapes -- absent baseline 4 -> 5) |
 | Foreign-written event readback (0.18.0) | Poll a pushed user event / KEY_DOWN INTO an owned 128-byte slot and decode it with the 0.4.0 accessors; the B-11-addendum deferral is RETIRED on v0.64.4 (previously recycled bytes `0x33323100`/`0x04040404` on v0.64.3; now `type=0x8000` exact, `REL-20261011-0304` re-tested 2026-10-13).  The general B-11 driver-thread shape stays open (`xiom.vma`) |
+| Joystick caps (0.19.0) | 8 symbols; caps are boolean strings on the joystick properties group in 3.4.8 (no `SDL_JoystickHasRumble`/`HasLED`): five `SDL_PROP_JOYSTICK_CAP_*` typed getters + counts/type + `Sdl3JoystickCaps` aggregate; virtual-pad suite check (2/2 axes/buttons, type 0, flags all false) plus a property round-trip witness (`SDL.joystick.cap.rumble` true -> read -> reset -> read false) |
+| Haptic wave forms (0.19.0) | 23 symbols; `SDL_HapticPeriodic` validated byte-indexed encode into an owned 72-byte slot (`SDL_HAPTIC_EFFECT_SIZE`, Win64 pin), typed `Sdl3HapticError{kind,message}` on open/create/update/run/stop (PARAM for encode violations, SDL_GetError otherwise); enumeration + name/features/max/axes; rumble convenience layer; suite witnesses the encode layout + typed PARAM + typed OPEN/from-joystick errors with no hardware (device path present, runs when `SDL_GetHaptics` finds a device) |
+| Pen/tablet decode (0.19.0) | 1 symbol + 11 pure-buffer accessors; pen/touch/button/proximity member layouts pinned and generator-gated (sizes 24/40/40/40; windowID @16, which @20, pen_state @24, x/y @28/32, eraser/button @36, down @37); tool type via `SDL_GetPenDeviceType` (INVALID for unknown ids); suite decodes self-built buffers + a pushed PEN_MOTION readback from the queue + the tool-type probe |
+| Poll semantics correction (0.19.0) | `SDL_PollEvent(NULL)` on the pinned 3.4.8 runtime is a PEEK: it reports a pending real event without removing it (only SDL's internal poll sentinel is cleared), and a poll meeting that sentinel returns false with events queued behind it.  Caught by the new pen-live marker; the suite's `drain_events` now consumes into an owned scratch buffer and `poll_for` matches pushed events by type for a bounded number of polls |
+| Device-surface generator audit (0.19.0) | `tools/gen_sdl3_full.py` recomputes the Win64 layouts from the pinned header member lists (MSVC x64 natural alignment; union size 72 for `SDL_HapticEffect`) and gates generation on 32/32 declared+exported+wrapped symbols, 45/45 constant values, 14/14 layouts; the audit is recorded in `docs/gen_manifest.json` under `device_surface`; declared/exported/target stay 1271/1270/1269 (100% kept) |
 
 ## G2 pin
 
@@ -56,9 +62,11 @@ return over this loader.
 
 ## Known limitations
 
-- Event decoding covers the common members (key/mouse/window/quit); the
-  pump path still uses consume semantics (poll(0)) because SDL writing into
-  an XIOM-owned buffer reproduces the B-11-family corruption on v0.64.3.
+- Event decoding covers the common members (key/mouse/window/quit + pen
+  family); queue hygiene is via true-consume polls into owned buffers
+  (`SDL_PollEvent(NULL)` is a peek on 3.4.8; see the 0.19.0 row above),
+  and the foreign-written readback path (SDL -> owned buffer) is retired
+  on v0.64.4 (0.18.0).
 - On hosts with the Vulkan SDK bin on PATH (the dev box), SDL3 is always
   found; the absent shape is exercised by filtering that dir out of PATH.
 - Curated constant subset only (full tables in git history).

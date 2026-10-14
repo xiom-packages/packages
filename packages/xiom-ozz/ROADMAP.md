@@ -1,6 +1,6 @@
 # xiom.ozz -- Roadmap
 
-**Version**: v0.3.0 | **Compiler**: xiom v0.64.3 | **Last updated**: 2026-10-11
+**Version**: v0.4.0 | **Compiler**: xiom v0.64.4 | **Last updated**: 2026-10-14
 
 ## Current state
 
@@ -9,10 +9,12 @@
 | Vendored C++ amalgamation (G2 pinned) | Done -- 0.16.0, two generated TUs |
 | In-package bundler `tools/combine.py` (regeneration validated byte-identically) | Done -- 0.3.0 |
 | FFI core + C bridge (single confined module) | Done |
-| Math probes (Float3/Quaternion) | Done -- 5/5 x2 |
+| Math probes (Float3/Quaternion) | Done -- 9/9 x2 |
 | Offline RawSkeleton -> runtime Skeleton | Done |
 | LocalToModelJob (model-space matrices) | Done |
 | Animation clip build + sampling (`AnimationBuilder` -> `SamplingJob`, hand-checked pose) | Done -- 0.3.0 |
+| Caller-key clip build (owned bridge storage, integer handles) | Done -- 0.4.0 |
+| Caller-time sampling -> owned pose buffers + typed bounds errors | Done -- 0.4.0 |
 | Blending / motion blending / IK jobs | Phase 2 |
 | Tracks (float/quaternion vectors) | Phase 2 |
 | Archive I/O (Save/Load via streams) | Phase 2 |
@@ -22,13 +24,21 @@
 
 1. ~~Clip pipeline~~ Done 0.3.0 (`AnimationBuilder` -> `SamplingJob` with a
    context; ratio 0.5/1.0 verified against a hand-computed pose).
-2. Blending: `BlendingJob` on two sampled poses; `LocalToModelJob` after
+2. ~~Caller surface~~ Done 0.4.0 (`ozz_clip_build` from caller keys into
+   bridge-owned storage; `ozz_clip_sample` at caller times into owned pose
+   buffers; typed `OZZ_ERR_TIME`/`OZZ_ERR_HANDLE`/... errors; determinism
+   verified). Engine consumer can build/sample without fixed scenarios.
+3. Caller skeletons: wrap the offline `RawSkeleton` -> runtime `Skeleton`
+   path (joint names/parents/rest poses as caller data) so sampling results
+   can drive `LocalToModelJob` on caller-built skeletons.
+4. Blending: `BlendingJob` on two sampled poses; `LocalToModelJob` after
    blending.
-3. IK: `IKTwoBoneJob`/`IKAimJob` probes (the runtime sources are already
+5. IK: `IKTwoBoneJob`/`IKAimJob` probes (the runtime sources are already
    compiled in; only bridge endpoints are missing).
-4. Archive I/O: expose `Save`/`Load` through XIOM `Vec[UInt8]` streams so
+6. Archive I/O: expose `Save`/`Load` through XIOM `Vec[UInt8]` streams so
    skeletons/animations can round-trip without files.
-5. Re-pin to 0.17.0 (check `SoaTransform`/job API changes; regenerate the
+7. Re-pin to 0.17.0 (check `SoaTransform`/job API changes; regenerate the
    two TUs with `tools/combine.py` per SPEC.md section 2).
-6. Consumer note: PULSE/XVECTOR do not need ozz; keep the API stable for
-   game/media consumers when they appear.
+8. Consumer note: PULSE/XVECTOR do not need ozz; keep the API stable for
+   game/media consumers when they appear (the 0.4.0 caller surface is the
+   first engine-facing API).

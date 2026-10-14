@@ -22,8 +22,11 @@
 // /available/clear/format); 0.14.0 adds pointer capture + per-window relative
 // mouse + global/relative mouse state; 0.15.0 adds the joystick open/read
 // surface (virtual-joystick instrumented); 0.16.0 adds drag-drop payload
-// decode (SDL_DropEvent, DLL-independent). The full pre-pilot constant tables
-// stay in git history (ROADMAP.md).
+// decode (SDL_DropEvent, DLL-independent); 0.19.0 adds joystick caps
+// (properties flags + num-getters/type), the haptic wave-form surface
+// (periodic encode + create/update/run/stop with typed errors) and the
+// pen/tablet decode path (motion/touch/button/proximity + tool-type query).
+// The full pre-pilot constant tables stay in git history (ROADMAP.md).
 
 module xiom.sdl3
 
@@ -406,6 +409,38 @@ pub type Sdl3Library = {
   p_set_joystick_virtual_button: Int;
   p_attach_virtual_joystick: Int;
   p_detach_virtual_joystick: Int;
+  p_get_joystick_properties: Int;
+  p_get_boolean_property: Int;
+  p_set_boolean_property: Int;
+  p_get_num_joystick_axes: Int;
+  p_get_num_joystick_buttons: Int;
+  p_get_num_joystick_hats: Int;
+  p_get_num_joystick_balls: Int;
+  p_get_joystick_type: Int;
+  p_get_haptics: Int;
+  p_get_haptic_from_id: Int;
+  p_get_haptic_name: Int;
+  p_get_haptic_name_for_id: Int;
+  p_open_haptic: Int;
+  p_close_haptic: Int;
+  p_is_joystick_haptic: Int;
+  p_open_haptic_from_joystick: Int;
+  p_get_haptic_features: Int;
+  p_get_max_haptic_effects: Int;
+  p_get_max_haptic_effects_playing: Int;
+  p_get_num_haptic_axes: Int;
+  p_haptic_effect_supported: Int;
+  p_create_haptic_effect: Int;
+  p_update_haptic_effect: Int;
+  p_run_haptic_effect: Int;
+  p_stop_haptic_effect: Int;
+  p_destroy_haptic_effect: Int;
+  p_get_haptic_effect_status: Int;
+  p_haptic_rumble_supported: Int;
+  p_init_haptic_rumble: Int;
+  p_play_haptic_rumble: Int;
+  p_stop_haptic_rumble: Int;
+  p_get_pen_device_type: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -549,6 +584,70 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a64.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_AttachVirtualJoystick: " + a64.error }); }
   let a65 = dl.dl_sym(handle, "SDL_DetachVirtualJoystick");
   if !a65.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_DetachVirtualJoystick: " + a65.error }); }
+  let a66 = dl.dl_sym(handle, "SDL_GetJoystickProperties");
+  if !a66.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetJoystickProperties: " + a66.error }); }
+  let a67 = dl.dl_sym(handle, "SDL_GetBooleanProperty");
+  if !a67.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetBooleanProperty: " + a67.error }); }
+  let a68 = dl.dl_sym(handle, "SDL_SetBooleanProperty");
+  if !a68.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetBooleanProperty: " + a68.error }); }
+  let a69 = dl.dl_sym(handle, "SDL_GetNumJoystickAxes");
+  if !a69.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetNumJoystickAxes: " + a69.error }); }
+  let a70 = dl.dl_sym(handle, "SDL_GetNumJoystickButtons");
+  if !a70.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetNumJoystickButtons: " + a70.error }); }
+  let a71 = dl.dl_sym(handle, "SDL_GetNumJoystickHats");
+  if !a71.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetNumJoystickHats: " + a71.error }); }
+  let a72 = dl.dl_sym(handle, "SDL_GetNumJoystickBalls");
+  if !a72.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetNumJoystickBalls: " + a72.error }); }
+  let a73 = dl.dl_sym(handle, "SDL_GetJoystickType");
+  if !a73.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetJoystickType: " + a73.error }); }
+  let a74 = dl.dl_sym(handle, "SDL_GetHaptics");
+  if !a74.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetHaptics: " + a74.error }); }
+  let a75 = dl.dl_sym(handle, "SDL_GetHapticFromID");
+  if !a75.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetHapticFromID: " + a75.error }); }
+  let a76 = dl.dl_sym(handle, "SDL_GetHapticName");
+  if !a76.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetHapticName: " + a76.error }); }
+  let a77 = dl.dl_sym(handle, "SDL_GetHapticNameForID");
+  if !a77.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetHapticNameForID: " + a77.error }); }
+  let a78 = dl.dl_sym(handle, "SDL_OpenHaptic");
+  if !a78.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_OpenHaptic: " + a78.error }); }
+  let a79 = dl.dl_sym(handle, "SDL_CloseHaptic");
+  if !a79.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CloseHaptic: " + a79.error }); }
+  let a80 = dl.dl_sym(handle, "SDL_IsJoystickHaptic");
+  if !a80.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_IsJoystickHaptic: " + a80.error }); }
+  let a81 = dl.dl_sym(handle, "SDL_OpenHapticFromJoystick");
+  if !a81.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_OpenHapticFromJoystick: " + a81.error }); }
+  let a82 = dl.dl_sym(handle, "SDL_GetHapticFeatures");
+  if !a82.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetHapticFeatures: " + a82.error }); }
+  let a83 = dl.dl_sym(handle, "SDL_GetMaxHapticEffects");
+  if !a83.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetMaxHapticEffects: " + a83.error }); }
+  let a84 = dl.dl_sym(handle, "SDL_GetMaxHapticEffectsPlaying");
+  if !a84.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetMaxHapticEffectsPlaying: " + a84.error }); }
+  let a85 = dl.dl_sym(handle, "SDL_GetNumHapticAxes");
+  if !a85.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetNumHapticAxes: " + a85.error }); }
+  let a86 = dl.dl_sym(handle, "SDL_HapticEffectSupported");
+  if !a86.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_HapticEffectSupported: " + a86.error }); }
+  let a87 = dl.dl_sym(handle, "SDL_CreateHapticEffect");
+  if !a87.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CreateHapticEffect: " + a87.error }); }
+  let a88 = dl.dl_sym(handle, "SDL_UpdateHapticEffect");
+  if !a88.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_UpdateHapticEffect: " + a88.error }); }
+  let a89 = dl.dl_sym(handle, "SDL_RunHapticEffect");
+  if !a89.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_RunHapticEffect: " + a89.error }); }
+  let a90 = dl.dl_sym(handle, "SDL_StopHapticEffect");
+  if !a90.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_StopHapticEffect: " + a90.error }); }
+  let a91 = dl.dl_sym(handle, "SDL_DestroyHapticEffect");
+  if !a91.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_DestroyHapticEffect: " + a91.error }); }
+  let a92 = dl.dl_sym(handle, "SDL_GetHapticEffectStatus");
+  if !a92.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetHapticEffectStatus: " + a92.error }); }
+  let a93 = dl.dl_sym(handle, "SDL_HapticRumbleSupported");
+  if !a93.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_HapticRumbleSupported: " + a93.error }); }
+  let a94 = dl.dl_sym(handle, "SDL_InitHapticRumble");
+  if !a94.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_InitHapticRumble: " + a94.error }); }
+  let a95 = dl.dl_sym(handle, "SDL_PlayHapticRumble");
+  if !a95.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_PlayHapticRumble: " + a95.error }); }
+  let a96 = dl.dl_sym(handle, "SDL_StopHapticRumble");
+  if !a96.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_StopHapticRumble: " + a96.error }); }
+  let a97 = dl.dl_sym(handle, "SDL_GetPenDeviceType");
+  if !a97.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetPenDeviceType: " + a97.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -617,6 +716,38 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_set_joystick_virtual_button: a63.value,
     p_attach_virtual_joystick: a64.value,
     p_detach_virtual_joystick: a65.value,
+    p_get_joystick_properties: a66.value,
+    p_get_boolean_property: a67.value,
+    p_set_boolean_property: a68.value,
+    p_get_num_joystick_axes: a69.value,
+    p_get_num_joystick_buttons: a70.value,
+    p_get_num_joystick_hats: a71.value,
+    p_get_num_joystick_balls: a72.value,
+    p_get_joystick_type: a73.value,
+    p_get_haptics: a74.value,
+    p_get_haptic_from_id: a75.value,
+    p_get_haptic_name: a76.value,
+    p_get_haptic_name_for_id: a77.value,
+    p_open_haptic: a78.value,
+    p_close_haptic: a79.value,
+    p_is_joystick_haptic: a80.value,
+    p_open_haptic_from_joystick: a81.value,
+    p_get_haptic_features: a82.value,
+    p_get_max_haptic_effects: a83.value,
+    p_get_max_haptic_effects_playing: a84.value,
+    p_get_num_haptic_axes: a85.value,
+    p_haptic_effect_supported: a86.value,
+    p_create_haptic_effect: a87.value,
+    p_update_haptic_effect: a88.value,
+    p_run_haptic_effect: a89.value,
+    p_stop_haptic_effect: a90.value,
+    p_destroy_haptic_effect: a91.value,
+    p_get_haptic_effect_status: a92.value,
+    p_haptic_rumble_supported: a93.value,
+    p_init_haptic_rumble: a94.value,
+    p_play_haptic_rumble: a95.value,
+    p_stop_haptic_rumble: a96.value,
+    p_get_pen_device_type: a97.value,
   });
 }
 
@@ -739,8 +870,12 @@ pub fn sdl3_pump_events(lib: &Sdl3Library)
   }
 }
 
-/// SDL_PollEvent(event) -> bool.  Pass event_ptr = 0 to pump/clear without a
-/// buffer; returns true when at least one event was processed.
+/// SDL_PollEvent(event) -> bool.  Pass an owned-buffer address
+/// (`buf.as_mut_ptr() as Int`) to CONSUME the head event into it.  Passing 0
+/// (NULL) is a PEEK on the pinned 3.4.8 runtime: it returns true when a real
+/// event is pending but leaves it queued (it only clears SDL's internal poll
+/// sentinel and reports false at the end of the poll cycle) -- the suite's
+/// drain helper consumes into a scratch buffer instead.
 /// Complexity: O(1).
 pub fn sdl3_poll_event(lib: &Sdl3Library, event_ptr: Int) -> Bool
   requires: lib.handle != 0
@@ -1263,8 +1398,11 @@ fn sdl3_read_u32(buf: &Vec[UInt8]) -> Int
 // B-11 note: the accessors below are pure XIOM reads and safe on any buffer
 // -- but SDL writing INTO an XIOM-owned buffer (`SDL_PollEvent(ptr)`) can
 // come back corrupted on v0.64.3 (lane reproducer
-// REL-20261011-0304-bindings), so the pump path keeps consume semantics
-// (`sdl3_poll_event(lib, 0)`) and event tests decode self-built buffers.
+// REL-20261011-0304-bindings; RETIRED on v0.64.4 -- see 0.18.0 below), so
+// the suite keeps old decode checks on self-built buffers.  0.19.0
+// correction: SDL_PollEvent(NULL) is a PEEK on the pinned 3.4.8 runtime (no
+// consume for real events; it only clears SDL's poll sentinel), so queue
+// draining MUST poll into an owned scratch buffer.
 // =========================================================================
 
 /// Size of an `SDL_Event` on the pinned headers (write one when pushing).
@@ -2954,4 +3092,860 @@ pub fn sdl3_event_drop_data(ev: &Vec[UInt8]) -> Str
     if p == 0 { return ""; }
     return Str::from_c_str(p as *UInt8);
   }
+}
+
+// =========================================================================
+// 0.19.0: joystick CAPS accessors (engine ask REL-20261013-2324-engine)
+//
+// SDL3 has no SDL_JoystickHasRumble/LED style functions in the pinned 3.4.8
+// headers: capabilities are BOOLEAN strings on the joystick properties group
+// (SDL_GetJoystickProperties -> SDL_GetBooleanProperty).  The five
+// SDL_PROP_JOYSTICK_CAP_* keys and the num-getters (axes/buttons/hats/balls)
+// plus SDL_GetJoystickType are exposed as typed queries; sdl3_joystick_caps
+// aggregates them into one struct.  A missing properties group reads as an
+// all-false/zero caps record (no silent nulls).
+// =========================================================================
+
+/// Joystick capability property name: mono LED with adjustable brightness.
+pub const SDL_PROP_JOYSTICK_CAP_MONO_LED_BOOLEAN: Str = "SDL.joystick.cap.mono_led";
+/// Joystick capability property name: RGB LED.
+pub const SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN: Str = "SDL.joystick.cap.rgb_led";
+/// Joystick capability property name: player LED.
+pub const SDL_PROP_JOYSTICK_CAP_PLAYER_LED_BOOLEAN: Str = "SDL.joystick.cap.player_led";
+/// Joystick capability property name: left/right rumble.
+pub const SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN: Str = "SDL.joystick.cap.rumble";
+/// Joystick capability property name: simple trigger rumble.
+pub const SDL_PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN: Str = "SDL.joystick.cap.trigger_rumble";
+
+/// SDL_JoystickType values (3.4.8 enum).
+pub const SDL_JOYSTICK_TYPE_UNKNOWN: Int = 0;
+pub const SDL_JOYSTICK_TYPE_GAMEPAD: Int = 1;
+pub const SDL_JOYSTICK_TYPE_WHEEL: Int = 2;
+pub const SDL_JOYSTICK_TYPE_ARCADE_STICK: Int = 3;
+pub const SDL_JOYSTICK_TYPE_FLIGHT_STICK: Int = 4;
+pub const SDL_JOYSTICK_TYPE_DANCE_PAD: Int = 5;
+pub const SDL_JOYSTICK_TYPE_GUITAR: Int = 6;
+pub const SDL_JOYSTICK_TYPE_DRUM_KIT: Int = 7;
+pub const SDL_JOYSTICK_TYPE_ARCADE_PAD: Int = 8;
+pub const SDL_JOYSTICK_TYPE_THROTTLE: Int = 9;
+pub const SDL_JOYSTICK_TYPE_COUNT: Int = 10;
+
+/// Typed joystick capabilities: counts + kind from the joystick getters,
+/// capability flags from the properties group.  All fields are exact reads;
+/// no field is approximated.
+pub type Sdl3JoystickCaps = {
+  axes: Int;
+  buttons: Int;
+  hats: Int;
+  balls: Int;
+  kind: Int;
+  has_rumble: Bool;
+  has_rumble_triggers: Bool;
+  has_mono_led: Bool;
+  has_rgb_led: Bool;
+  has_player_led: Bool;
+}
+
+/// SDL_GetJoystickProperties -> properties id (0 on failure).  The id backs
+/// every SDL_PROP_JOYSTICK_CAP_* read below.
+/// Complexity: O(1).
+pub fn sdl3_joystick_properties(lib: &Sdl3Library, joy: Int) -> Int
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_get_joystick_properties as fn(Int) -> UInt32;
+    return f(joy) as Int;
+  }
+}
+
+/// SDL_GetBooleanProperty(props, name, fallback) -> bool.
+/// Complexity: O(len(name)).
+pub fn sdl3_property_bool(lib: &Sdl3Library, props: Int, name: Str, fallback: Bool) -> Bool
+  requires: lib.handle != 0
+  requires: props != 0
+  requires: name.len() > 0
+{
+  unsafe {
+    let f = lib.p_get_boolean_property as fn(Int, *UInt8, UInt8) -> UInt8;
+    let dv: UInt8 = if fallback { 1 as UInt8 } else { 0 as UInt8 };
+    return (f(props, name.c_str(), dv) as Int) != 0;
+  }
+}
+
+/// SDL_SetBooleanProperty(props, name, value) -> bool.  Writes a property on
+/// a properties group SDL returned (e.g. instrumenting a capability read);
+/// SDL's own cap flags are set by the device open path.
+/// Complexity: O(len(name)).
+pub fn sdl3_set_boolean_property(lib: &Sdl3Library, props: Int, name: Str, value: Bool) -> Bool
+  requires: lib.handle != 0
+  requires: props != 0
+  requires: name.len() > 0
+{
+  unsafe {
+    let f = lib.p_set_boolean_property as fn(Int, *UInt8, UInt8) -> UInt8;
+    let v: UInt8 = if value { 1 as UInt8 } else { 0 as UInt8 };
+    return (f(props, name.c_str(), v) as Int) != 0;
+  }
+}
+
+fn sdl3_joystick_cap_flag(lib: &Sdl3Library, joy: Int, name: Str) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  let props = sdl3_joystick_properties(lib, joy);
+  if props == 0 { return false; }
+  return sdl3_property_bool(lib, props, name, false);
+}
+
+/// Has left/right rumble (`SDL.joystick.cap.rumble`).
+/// Complexity: O(1).
+pub fn sdl3_joystick_has_rumble(lib: &Sdl3Library, joy: Int) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  return sdl3_joystick_cap_flag(lib, joy, SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN);
+}
+
+/// Has simple trigger rumble (`SDL.joystick.cap.trigger_rumble`).
+/// Complexity: O(1).
+pub fn sdl3_joystick_has_rumble_triggers(lib: &Sdl3Library, joy: Int) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  return sdl3_joystick_cap_flag(lib, joy, SDL_PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN);
+}
+
+/// Has a mono LED (`SDL.joystick.cap.mono_led`).
+/// Complexity: O(1).
+pub fn sdl3_joystick_has_mono_led(lib: &Sdl3Library, joy: Int) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  return sdl3_joystick_cap_flag(lib, joy, SDL_PROP_JOYSTICK_CAP_MONO_LED_BOOLEAN);
+}
+
+/// Has an RGB LED (`SDL.joystick.cap.rgb_led`).
+/// Complexity: O(1).
+pub fn sdl3_joystick_has_rgb_led(lib: &Sdl3Library, joy: Int) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  return sdl3_joystick_cap_flag(lib, joy, SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN);
+}
+
+/// Has a player LED (`SDL.joystick.cap.player_led`).
+/// Complexity: O(1).
+pub fn sdl3_joystick_has_player_led(lib: &Sdl3Library, joy: Int) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  return sdl3_joystick_cap_flag(lib, joy, SDL_PROP_JOYSTICK_CAP_PLAYER_LED_BOOLEAN);
+}
+
+/// SDL_GetNumJoystickAxes.
+/// Complexity: O(1).
+pub fn sdl3_joystick_num_axes(lib: &Sdl3Library, joy: Int) -> Int
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_get_num_joystick_axes as fn(Int) -> Int32;
+    return f(joy) as Int;
+  }
+}
+
+/// SDL_GetNumJoystickButtons.
+/// Complexity: O(1).
+pub fn sdl3_joystick_num_buttons(lib: &Sdl3Library, joy: Int) -> Int
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_get_num_joystick_buttons as fn(Int) -> Int32;
+    return f(joy) as Int;
+  }
+}
+
+/// SDL_GetNumJoystickHats.
+/// Complexity: O(1).
+pub fn sdl3_joystick_num_hats(lib: &Sdl3Library, joy: Int) -> Int
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_get_num_joystick_hats as fn(Int) -> Int32;
+    return f(joy) as Int;
+  }
+}
+
+/// SDL_GetNumJoystickBalls.
+/// Complexity: O(1).
+pub fn sdl3_joystick_num_balls(lib: &Sdl3Library, joy: Int) -> Int
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_get_num_joystick_balls as fn(Int) -> Int32;
+    return f(joy) as Int;
+  }
+}
+
+/// SDL_GetJoystickType -> SDL_JOYSTICK_TYPE_* (unknown = 0).
+/// Complexity: O(1).
+pub fn sdl3_joystick_type(lib: &Sdl3Library, joy: Int) -> Int
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_get_joystick_type as fn(Int) -> Int32;
+    return f(joy) as Int;
+  }
+}
+
+/// One typed caps record for a joystick: counts + kind + the five
+/// capability flags (see Sdl3JoystickCaps).
+/// Complexity: O(1).
+pub fn sdl3_joystick_caps(lib: &Sdl3Library, joy: Int) -> Sdl3JoystickCaps
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  return Sdl3JoystickCaps{
+    axes: sdl3_joystick_num_axes(lib, joy);
+    buttons: sdl3_joystick_num_buttons(lib, joy);
+    hats: sdl3_joystick_num_hats(lib, joy);
+    balls: sdl3_joystick_num_balls(lib, joy);
+    kind: sdl3_joystick_type(lib, joy);
+    has_rumble: sdl3_joystick_has_rumble(lib, joy);
+    has_rumble_triggers: sdl3_joystick_has_rumble_triggers(lib, joy);
+    has_mono_led: sdl3_joystick_has_mono_led(lib, joy);
+    has_rgb_led: sdl3_joystick_has_rgb_led(lib, joy);
+    has_player_led: sdl3_joystick_has_player_led(lib, joy);
+  };
+}
+
+// =========================================================================
+// 0.19.0: haptic wave forms (SDL_haptic.h, engine ask REL-20261013-2324)
+//
+// SDL_HapticEffect is a 72-byte x64 union (sizeof pinned by the generator's
+// Win64 layout audit; cross-checked with a clang offsetof probe on the same
+// headers).  The wave-form members are SDL_HapticPeriodic:
+//   type u16 @0, direction{ type u8 @4, dir[3] s32 @8/12/16 },
+//   length u32 @20, delay u16 @24, button u16 @26, interval u16 @28,
+//   period u16 @30, magnitude s16 @32, offset s16 @34, phase u16 @36,
+//   attack_length u16 @38, attack_level u16 @40, fade_length u16 @42,
+//   fade_level u16 @44.
+// sdl3_haptic_encode_periodic validates + writes the slot with byte-indexed
+// stores (B-16/B-17); the create/update/run/stop wrappers return typed
+// Sdl3HapticError (kind + SDL_GetError message) instead of silent false.
+// =========================================================================
+
+/// SDL_HAPTIC_INFINITY (u32 max): duration for a forever effect.
+pub const SDL_HAPTIC_INFINITY: Int = 4294967295;
+/// Wave-form effect types (SDL_HapticEffectType).
+pub const SDL_HAPTIC_SINE: Int = 2;
+pub const SDL_HAPTIC_SQUARE: Int = 4;
+pub const SDL_HAPTIC_TRIANGLE: Int = 8;
+pub const SDL_HAPTIC_SAWTOOTHUP: Int = 16;
+pub const SDL_HAPTIC_SAWTOOTHDOWN: Int = 32;
+/// Direction encodings (SDL_HapticDirectionType).
+pub const SDL_HAPTIC_POLAR: Int = 0;
+pub const SDL_HAPTIC_CARTESIAN: Int = 1;
+pub const SDL_HAPTIC_SPHERICAL: Int = 2;
+/// sizeof(SDL_HapticEffect) on Win64 (MSVC x64): the owned effect-slot size.
+pub const SDL_HAPTIC_EFFECT_SIZE: Int = 72;
+
+/// Typed haptic error kinds (the message carries SDL_GetError()).
+pub const SDL3_HAPTIC_ERR_PARAM: Int = 0;
+pub const SDL3_HAPTIC_ERR_OPEN: Int = 1;
+pub const SDL3_HAPTIC_ERR_CREATE: Int = 2;
+pub const SDL3_HAPTIC_ERR_UPDATE: Int = 3;
+pub const SDL3_HAPTIC_ERR_RUN: Int = 4;
+pub const SDL3_HAPTIC_ERR_STOP: Int = 5;
+
+pub type Sdl3HapticError = {
+  kind: Int;
+  message: Str;
+}
+
+/// Parameters of an SDL_HapticPeriodic wave-form effect.  Time values are
+/// milliseconds; magnitudes are signed -32768..32767; phase is in hundredths
+/// of a degree; the direction follows SDL_HapticDirection (dir[3]).
+pub type Sdl3HapticPeriodic = {
+  wave: Int;
+  length: Int;
+  period: Int;
+  magnitude: Int;
+  offset: Int;
+  phase: Int;
+  attack_length: Int;
+  attack_level: Int;
+  fade_length: Int;
+  fade_level: Int;
+  dir_type: Int;
+  dir0: Int;
+  dir1: Int;
+  dir2: Int;
+}
+
+fn sdl3_haptic_err(kind: Int, message: Str) -> Sdl3HapticError {
+  return Sdl3HapticError{ kind: kind; message: message };
+}
+
+/// Validate + encode a periodic wave-form effect into a caller-owned
+/// SDL_HAPTIC_EFFECT_SIZE slot (byte-indexed stores; delay/button/interval
+/// are encoded as 0 = trigger-less).  Err(kind = SDL3_HAPTIC_ERR_PARAM) on
+/// out-of-range or unknown parameters; the slot is untouched in that case.
+/// Complexity: O(1).
+pub fn sdl3_haptic_encode_periodic(slot: &mut Vec[UInt8], eff: Sdl3HapticPeriodic) -> Result[Unit, Sdl3HapticError] {
+  if slot.len() < SDL_HAPTIC_EFFECT_SIZE {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_PARAM, "effect slot must be >= SDL_HAPTIC_EFFECT_SIZE"));
+  }
+  let wave_ok = eff.wave == SDL_HAPTIC_SINE || eff.wave == SDL_HAPTIC_SQUARE
+    || eff.wave == SDL_HAPTIC_TRIANGLE || eff.wave == SDL_HAPTIC_SAWTOOTHUP
+    || eff.wave == SDL_HAPTIC_SAWTOOTHDOWN;
+  if !wave_ok {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_PARAM, "wave must be SDL_HAPTIC_SINE/SQUARE/TRIANGLE/SAWTOOTHUP/SAWTOOTHDOWN"));
+  }
+  let dir_ok = eff.dir_type == SDL_HAPTIC_POLAR || eff.dir_type == SDL_HAPTIC_CARTESIAN
+    || eff.dir_type == SDL_HAPTIC_SPHERICAL;
+  if !dir_ok {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_PARAM, "dir_type must be SDL_HAPTIC_POLAR/CARTESIAN/SPHERICAL"));
+  }
+  if eff.length < 0 || eff.length > SDL_HAPTIC_INFINITY {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_PARAM, "length out of u32 range"));
+  }
+  if eff.period < 0 || eff.period > 65535 {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_PARAM, "period out of u16 range"));
+  }
+  if eff.magnitude < -32768 || eff.magnitude > 32767 {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_PARAM, "magnitude out of s16 range"));
+  }
+  if eff.offset < -32768 || eff.offset > 32767 {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_PARAM, "offset out of s16 range"));
+  }
+  if eff.phase < 0 || eff.phase > 65535 {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_PARAM, "phase out of u16 range"));
+  }
+  if eff.attack_length < 0 || eff.attack_length > 65535 || eff.attack_level < 0 || eff.attack_level > 65535 {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_PARAM, "attack out of u16 range"));
+  }
+  if eff.fade_length < 0 || eff.fade_length > 65535 || eff.fade_level < 0 || eff.fade_level > 65535 {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_PARAM, "fade out of u16 range"));
+  }
+  sdl3_write_u16_le(slot, 0, eff.wave);
+  slot[4] = (eff.dir_type & 0xFF) as UInt8;
+  sdl3_write_u32_le(slot, 8, eff.dir0 & 0xFFFFFFFF);
+  sdl3_write_u32_le(slot, 12, eff.dir1 & 0xFFFFFFFF);
+  sdl3_write_u32_le(slot, 16, eff.dir2 & 0xFFFFFFFF);
+  sdl3_write_u32_le(slot, 20, eff.length & 0xFFFFFFFF);
+  sdl3_write_u16_le(slot, 30, eff.period);
+  sdl3_write_u16_le(slot, 32, eff.magnitude & 0xFFFF);
+  sdl3_write_u16_le(slot, 34, eff.offset & 0xFFFF);
+  sdl3_write_u16_le(slot, 36, eff.phase);
+  sdl3_write_u16_le(slot, 38, eff.attack_length);
+  sdl3_write_u16_le(slot, 40, eff.attack_level);
+  sdl3_write_u16_le(slot, 42, eff.fade_length);
+  sdl3_write_u16_le(slot, 44, eff.fade_level);
+  return Ok(());
+}
+
+/// SDL_GetHaptics count (array freed via SDL_free).  Requires
+/// SDL_INIT_HAPTIC.
+/// Complexity: O(devices).
+pub fn sdl3_haptic_count(lib: &Sdl3Library) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_haptics as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    if arr != 0 {
+      let fr = lib.p_free as fn(Int);
+      fr(arr);
+    }
+    return n;
+  }
+}
+
+/// i-th haptic device id (0 when out of range; array freed via SDL_free).
+/// Complexity: O(devices).
+pub fn sdl3_haptic_at(lib: &Sdl3Library, i: Int) -> Int
+  requires: lib.handle != 0
+  requires: i >= 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = lib.p_get_haptics as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    var id = 0;
+    if arr != 0 {
+      if i < n {
+        id = ffi.ptr_read_u32_le((arr + i * 4) as *UInt8);
+      }
+      let fr = lib.p_free as fn(Int);
+      fr(arr);
+    }
+    return id;
+  }
+}
+
+/// SDL_GetHapticNameForID (SDL-owned string, copied; "" for unknown ids).
+/// Complexity: O(len).
+pub fn sdl3_haptic_name_for_id(lib: &Sdl3Library, id: Int) -> Str
+  requires: lib.handle != 0
+  requires: id > 0
+{
+  unsafe {
+    let f = lib.p_get_haptic_name_for_id as fn(Int) -> *UInt8;
+    let p = f(id);
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
+  }
+}
+
+/// SDL_GetHapticFromID -> handle (0 when the id is not openable).
+/// Complexity: O(1).
+pub fn sdl3_haptic_from_id(lib: &Sdl3Library, id: Int) -> Int
+  requires: lib.handle != 0
+  requires: id > 0
+{
+  unsafe {
+    let f = lib.p_get_haptic_from_id as fn(Int) -> Int;
+    return f(id);
+  }
+}
+
+/// SDL_GetHapticName (SDL-owned string, copied; "" on failure).
+/// Complexity: O(len).
+pub fn sdl3_haptic_name(lib: &Sdl3Library, haptic: Int) -> Str
+  requires: lib.handle != 0
+  requires: haptic != 0
+{
+  unsafe {
+    let f = lib.p_get_haptic_name as fn(Int) -> *UInt8;
+    let p = f(haptic);
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
+  }
+}
+
+/// SDL_OpenHaptic(id) -> handle.  Err(kind = SDL3_HAPTIC_ERR_OPEN) carries
+/// the SDL error string (not-haptic device, no SDL_INIT_HAPTIC, ...).
+/// Complexity: O(device open).
+pub fn sdl3_haptic_open(lib: &Sdl3Library, id: Int) -> Result[Int, Sdl3HapticError]
+  requires: lib.handle != 0
+  requires: id > 0
+{
+  unsafe {
+    let f = lib.p_open_haptic as fn(Int) -> Int;
+    let h = f(id);
+    if h == 0 {
+      return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_OPEN, sdl3_get_error(lib)));
+    }
+    return Ok(h);
+  }
+}
+
+/// SDL_CloseHaptic.
+/// Complexity: O(1).
+pub fn sdl3_haptic_close(lib: &Sdl3Library, haptic: Int)
+  requires: lib.handle != 0
+  requires: haptic != 0
+{
+  unsafe {
+    let f = lib.p_close_haptic as fn(Int);
+    f(haptic);
+  }
+}
+
+/// SDL_IsJoystickHaptic.
+/// Complexity: O(1).
+pub fn sdl3_is_joystick_haptic(lib: &Sdl3Library, joy: Int) -> Bool
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_is_joystick_haptic as fn(Int) -> UInt8;
+    return (f(joy) as Int) != 0;
+  }
+}
+
+/// SDL_OpenHapticFromJoystick -> handle.  Err(kind = SDL3_HAPTIC_ERR_OPEN)
+/// when the joystick is not haptic (the engine's device-selection probe).
+/// Complexity: O(1).
+pub fn sdl3_open_haptic_from_joystick(lib: &Sdl3Library, joy: Int) -> Result[Int, Sdl3HapticError]
+  requires: lib.handle != 0
+  requires: joy != 0
+{
+  unsafe {
+    let f = lib.p_open_haptic_from_joystick as fn(Int) -> Int;
+    let h = f(joy);
+    if h == 0 {
+      return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_OPEN, sdl3_get_error(lib)));
+    }
+    return Ok(h);
+  }
+}
+
+/// SDL_GetHapticFeatures (SDL_HAPTIC_* mask of supported effect classes).
+/// Complexity: O(1).
+pub fn sdl3_haptic_features(lib: &Sdl3Library, haptic: Int) -> Int
+  requires: lib.handle != 0
+  requires: haptic != 0
+{
+  unsafe {
+    let f = lib.p_get_haptic_features as fn(Int) -> UInt32;
+    return f(haptic) as Int;
+  }
+}
+
+/// SDL_GetMaxHapticEffects.
+/// Complexity: O(1).
+pub fn sdl3_haptic_max_effects(lib: &Sdl3Library, haptic: Int) -> Int
+  requires: lib.handle != 0
+  requires: haptic != 0
+{
+  unsafe {
+    let f = lib.p_get_max_haptic_effects as fn(Int) -> Int32;
+    return f(haptic) as Int;
+  }
+}
+
+/// SDL_GetMaxHapticEffectsPlaying.
+/// Complexity: O(1).
+pub fn sdl3_haptic_max_effects_playing(lib: &Sdl3Library, haptic: Int) -> Int
+  requires: lib.handle != 0
+  requires: haptic != 0
+{
+  unsafe {
+    let f = lib.p_get_max_haptic_effects_playing as fn(Int) -> Int32;
+    return f(haptic) as Int;
+  }
+}
+
+/// SDL_GetNumHapticAxes.
+/// Complexity: O(1).
+pub fn sdl3_haptic_num_axes(lib: &Sdl3Library, haptic: Int) -> Int
+  requires: lib.handle != 0
+  requires: haptic != 0
+{
+  unsafe {
+    let f = lib.p_get_num_haptic_axes as fn(Int) -> Int32;
+    return f(haptic) as Int;
+  }
+}
+
+/// SDL_HapticEffectSupported(haptic, slot) -> bool: probe a slot encoded by
+/// sdl3_haptic_encode_periodic before creating it.
+/// Complexity: O(1).
+pub fn sdl3_haptic_effect_supported(lib: &Sdl3Library, haptic: Int, slot: &mut Vec[UInt8]) -> Bool
+  requires: lib.handle != 0
+  requires: haptic != 0
+  requires: slot.len() >= SDL_HAPTIC_EFFECT_SIZE
+{
+  unsafe {
+    let f = lib.p_haptic_effect_supported as fn(Int, *UInt8) -> UInt8;
+    return (f(haptic, slot.as_mut_ptr()) as Int) != 0;
+  }
+}
+
+/// Encode + SDL_CreateHapticEffect -> effect id.  Err(kind =
+/// SDL3_HAPTIC_ERR_PARAM) for bad parameters, (kind = SDL3_HAPTIC_ERR_CREATE)
+/// when SDL rejects the effect (message = SDL_GetError()).
+/// Complexity: O(1).
+pub fn sdl3_haptic_create_periodic(lib: &Sdl3Library, haptic: Int, eff: Sdl3HapticPeriodic) -> Result[Int, Sdl3HapticError]
+  requires: lib.handle != 0
+  requires: haptic != 0
+{
+  var slot = sdl3_slot(SDL_HAPTIC_EFFECT_SIZE);
+  let enc = sdl3_haptic_encode_periodic(&mut slot, eff);
+  if !enc.is_ok { return Err(enc.error); }
+  var id: Int = -1;
+  unsafe {
+    let f = lib.p_create_haptic_effect as fn(Int, *UInt8) -> Int32;
+    id = f(haptic, slot.as_mut_ptr()) as Int;
+  }
+  if id < 0 {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_CREATE, sdl3_get_error(lib)));
+  }
+  return Ok(id);
+}
+
+/// Encode + SDL_UpdateHapticEffect(effect, eff).  Typed errors as above.
+/// Complexity: O(1).
+pub fn sdl3_haptic_update_periodic(lib: &Sdl3Library, haptic: Int, effect_id: Int, eff: Sdl3HapticPeriodic) -> Result[Unit, Sdl3HapticError]
+  requires: lib.handle != 0
+  requires: haptic != 0
+  requires: effect_id >= 0
+{
+  var slot = sdl3_slot(SDL_HAPTIC_EFFECT_SIZE);
+  let enc = sdl3_haptic_encode_periodic(&mut slot, eff);
+  if !enc.is_ok { return Err(enc.error); }
+  var ok: Bool = false;
+  unsafe {
+    let f = lib.p_update_haptic_effect as fn(Int, Int, *UInt8) -> UInt8;
+    ok = (f(haptic, effect_id, slot.as_mut_ptr()) as Int) != 0;
+  }
+  if !ok {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_UPDATE, sdl3_get_error(lib)));
+  }
+  return Ok(());
+}
+
+/// SDL_RunHapticEffect(effect, iterations).  iterations = SDL_HAPTIC_INFINITY
+/// runs until stopped.
+/// Complexity: O(1).
+pub fn sdl3_haptic_run(lib: &Sdl3Library, haptic: Int, effect_id: Int, iterations: Int) -> Result[Unit, Sdl3HapticError]
+  requires: lib.handle != 0
+  requires: haptic != 0
+  requires: effect_id >= 0
+  requires: iterations >= 0
+{
+  var ok: Bool = false;
+  unsafe {
+    let f = lib.p_run_haptic_effect as fn(Int, Int, Int) -> UInt8;
+    ok = (f(haptic, effect_id, iterations) as Int) != 0;
+  }
+  if !ok {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_RUN, sdl3_get_error(lib)));
+  }
+  return Ok(());
+}
+
+/// SDL_GetHapticEffectStatus -> bool.
+/// Complexity: O(1).
+pub fn sdl3_haptic_status(lib: &Sdl3Library, haptic: Int, effect_id: Int) -> Bool
+  requires: lib.handle != 0
+  requires: haptic != 0
+  requires: effect_id >= 0
+{
+  unsafe {
+    let f = lib.p_get_haptic_effect_status as fn(Int, Int) -> UInt8;
+    return (f(haptic, effect_id) as Int) != 0;
+  }
+}
+
+/// SDL_StopHapticEffect(effect).  Typed error on failure.
+/// Complexity: O(1).
+pub fn sdl3_haptic_stop(lib: &Sdl3Library, haptic: Int, effect_id: Int) -> Result[Unit, Sdl3HapticError]
+  requires: lib.handle != 0
+  requires: haptic != 0
+  requires: effect_id >= 0
+{
+  var ok: Bool = false;
+  unsafe {
+    let f = lib.p_stop_haptic_effect as fn(Int, Int) -> UInt8;
+    ok = (f(haptic, effect_id) as Int) != 0;
+  }
+  if !ok {
+    return Err(sdl3_haptic_err(SDL3_HAPTIC_ERR_STOP, sdl3_get_error(lib)));
+  }
+  return Ok(());
+}
+
+/// SDL_DestroyHapticEffect(effect).
+/// Complexity: O(1).
+pub fn sdl3_haptic_destroy(lib: &Sdl3Library, haptic: Int, effect_id: Int)
+  requires: lib.handle != 0
+  requires: haptic != 0
+  requires: effect_id >= 0
+{
+  unsafe {
+    let f = lib.p_destroy_haptic_effect as fn(Int, Int);
+    f(haptic, effect_id);
+  }
+}
+
+/// SDL_HapticRumbleSupported.
+/// Complexity: O(1).
+pub fn sdl3_haptic_rumble_supported(lib: &Sdl3Library, haptic: Int) -> Bool
+  requires: lib.handle != 0
+  requires: haptic != 0
+{
+  unsafe {
+    let f = lib.p_haptic_rumble_supported as fn(Int) -> UInt8;
+    return (f(haptic) as Int) != 0;
+  }
+}
+
+/// SDL_InitHapticRumble.
+/// Complexity: O(1).
+pub fn sdl3_haptic_init_rumble(lib: &Sdl3Library, haptic: Int) -> Bool
+  requires: lib.handle != 0
+  requires: haptic != 0
+{
+  unsafe {
+    let f = lib.p_init_haptic_rumble as fn(Int) -> UInt8;
+    return (f(haptic) as Int) != 0;
+  }
+}
+
+/// SDL_PlayHapticRumble(strength 0..1, length_ms).
+/// Complexity: O(1).
+pub fn sdl3_haptic_play_rumble(lib: &Sdl3Library, haptic: Int, strength: Float64, length_ms: Int) -> Bool
+  requires: lib.handle != 0
+  requires: haptic != 0
+  requires: strength >= 0.0
+  requires: strength <= 1.0
+  requires: length_ms >= 0
+{
+  unsafe {
+    let v_strength: Float32 = strength as Float32;
+    let f = lib.p_play_haptic_rumble as fn(Int, Float32, Int) -> UInt8;
+    return (f(haptic, v_strength, length_ms) as Int) != 0;
+  }
+}
+
+/// SDL_StopHapticRumble.
+/// Complexity: O(1).
+pub fn sdl3_haptic_stop_rumble(lib: &Sdl3Library, haptic: Int) -> Bool
+  requires: lib.handle != 0
+  requires: haptic != 0
+{
+  unsafe {
+    let f = lib.p_stop_haptic_rumble as fn(Int) -> UInt8;
+    return (f(haptic) as Int) != 0;
+  }
+}
+
+// =========================================================================
+// 0.19.0: PEN/TABLET decoding path (engine ask REL-20261013-2324)
+//
+// SDL_PenProximityEvent / SDL_PenMotionEvent / SDL_PenTouchEvent /
+// SDL_PenButtonEvent layouts pinned to the 3.4.8 header (Win64 sizes 24/40/
+// 40/40; the generator's layout audit gates the offsets): every pen event
+// carries type u32 @0, reserved u32 @4, timestamp u64 @8, windowID u32 @16,
+// which (pen instance id) u32 @20; motion/touch/button continue with
+// pen_state u32 @24 (SDL_PEN_INPUT_* mask), x f32 @28, y f32 @32; touch:
+// eraser u8 @36, down u8 @37; button: button u8 @36, down u8 @37.
+// SDL_EVENT_PEN_DOWN/UP are the "touched/lifted" pair (eraser flag included);
+// proximity in/out decode to the same windowID/which pair.  Tool type is a
+// typed query: sdl3_pen_device_type (SDL_GetPenDeviceType; INVALID for a
+// stale/unknown pen id).  All decoders are pure XIOM buffer reads and run
+// with or without the DLL (0.18.0 readback route).
+// =========================================================================
+
+/// SDL_PenDeviceType values.
+pub const SDL_PEN_DEVICE_TYPE_INVALID: Int = -1;
+pub const SDL_PEN_DEVICE_TYPE_UNKNOWN: Int = 0;
+pub const SDL_PEN_DEVICE_TYPE_DIRECT: Int = 1;
+pub const SDL_PEN_DEVICE_TYPE_INDIRECT: Int = 2;
+
+/// SDL_PenInputFlags bits (the `pen_state` field of motion/touch/button
+/// events).
+pub const SDL_PEN_INPUT_DOWN: Int = 1;
+pub const SDL_PEN_INPUT_BUTTON_1: Int = 2;
+pub const SDL_PEN_INPUT_BUTTON_2: Int = 4;
+pub const SDL_PEN_INPUT_BUTTON_3: Int = 8;
+pub const SDL_PEN_INPUT_BUTTON_4: Int = 16;
+pub const SDL_PEN_INPUT_BUTTON_5: Int = 32;
+pub const SDL_PEN_INPUT_ERASER_TIP: Int = 1073741824;
+pub const SDL_PEN_INPUT_IN_PROXIMITY: Int = 2147483648;
+
+/// SDL_GetPenDeviceType -> SDL_PEN_DEVICE_TYPE_*; INVALID (-1) for an
+/// unknown/stale pen instance id (callers treat that as "no tablet").
+/// Complexity: O(1).
+pub fn sdl3_pen_device_type(lib: &Sdl3Library, id: Int) -> Int
+  requires: lib.handle != 0
+  requires: id > 0
+{
+  unsafe {
+    let f = lib.p_get_pen_device_type as fn(Int) -> Int32;
+    return f(id) as Int;
+  }
+}
+
+/// Pen event: windowID (u32 @16; shared by all pen event members).
+/// Complexity: O(1).
+pub fn sdl3_event_pen_window_id(ev: &Vec[UInt8]) -> Int
+  requires: ev.len() >= 20
+{
+  return ev_read_u32(ev, 16);
+}
+
+/// Pen event: `which` = pen instance id (u32 @20; proximity/motion/touch/
+/// button all carry it).  Feed it to sdl3_pen_device_type for the tool type.
+/// Complexity: O(1).
+pub fn sdl3_event_pen_which(ev: &Vec[UInt8]) -> Int
+  requires: ev.len() >= 24
+{
+  return ev_read_u32(ev, 20);
+}
+
+/// Pen motion/touch/button event: complete input state at event time
+/// (u32 @24; mask of SDL_PEN_INPUT_*).  Proximity events have no state:
+/// requires len >= 28, callers use it on motion/touch/button members only.
+/// Complexity: O(1).
+pub fn sdl3_event_pen_state(ev: &Vec[UInt8]) -> Int
+  requires: ev.len() >= 28
+{
+  return ev_read_u32(ev, 24);
+}
+
+/// Pen event: x as raw f32 bits (u32 @28).
+/// Complexity: O(1).
+pub fn sdl3_event_pen_x_bits(ev: &Vec[UInt8]) -> Int
+  requires: ev.len() >= 32
+{
+  return ev_read_u32(ev, 28);
+}
+
+/// Pen event: y as raw f32 bits (u32 @32).
+/// Complexity: O(1).
+pub fn sdl3_event_pen_y_bits(ev: &Vec[UInt8]) -> Int
+  requires: ev.len() >= 36
+{
+  return ev_read_u32(ev, 32);
+}
+
+/// Pen event: x (f32 @28, window-relative) as Float64.
+/// Complexity: O(1).
+pub fn sdl3_event_pen_x(ev: &Vec[UInt8]) -> Float64
+  requires: ev.len() >= 32
+{
+  return sdl3_f32_from_bits(ev_read_u32(ev, 28));
+}
+
+/// Pen event: y (f32 @32, window-relative) as Float64.
+/// Complexity: O(1).
+pub fn sdl3_event_pen_y(ev: &Vec[UInt8]) -> Float64
+  requires: ev.len() >= 36
+{
+  return sdl3_f32_from_bits(ev_read_u32(ev, 32));
+}
+
+/// Pen TOUCH event (SDL_EVENT_PEN_DOWN/PEN_UP): eraser tip active (u8 @36).
+/// Complexity: O(1).
+pub fn sdl3_event_pen_touch_eraser(ev: &Vec[UInt8]) -> Bool
+  requires: ev.len() >= 37
+{
+  return ev_read_u8(ev, 36) != 0;
+}
+
+/// Pen TOUCH event: pen touching the surface (u8 @37; true for PEN_DOWN,
+/// false for PEN_UP).
+/// Complexity: O(1).
+pub fn sdl3_event_pen_touch_down(ev: &Vec[UInt8]) -> Bool
+  requires: ev.len() >= 38
+{
+  return ev_read_u8(ev, 37) != 0;
+}
+
+/// Pen BUTTON event: button index (u8 @36; first pen button is 1).
+/// Complexity: O(1).
+pub fn sdl3_event_pen_button(ev: &Vec[UInt8]) -> Int
+  requires: ev.len() >= 37
+{
+  return ev_read_u8(ev, 36);
+}
+
+/// Pen BUTTON event: pressed flag (u8 @37).
+/// Complexity: O(1).
+pub fn sdl3_event_pen_button_down(ev: &Vec[UInt8]) -> Bool
+  requires: ev.len() >= 38
+{
+  return ev_read_u8(ev, 37) != 0;
 }

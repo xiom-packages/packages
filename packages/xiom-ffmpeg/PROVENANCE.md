@@ -64,6 +64,17 @@ exactly this; the runtime probe on the GIMP 6.1.1 DLL caught the
 first-attempt 72-offset read (field_order/color_space = 0/1 instead of
 64x48) before any record was made.
 
+**AVCodecID generation skew (found 2026-10-14, fixed in 0.4.1).** The
+numeric `AVCodecID` enum is not stable across FFmpeg major generations:
+`AV_CODEC_ID_AV1` is 226 at the `n6.1` header, 225 at `n7.1` (the
+deprecated packed-YUV ids -- AYUV/V308/V408 -- were removed from the video
+section) and 222 in the pinned master list. The 0.4.0 suite asserted a
+hardcoded 226 and failed 22/23 on the Blender 5.1 (7.1.1) runtime; the
+bridge read was correct (the runtime reports `avcodec_get_name(225) ==
+"av1"`). 0.4.1 resolves the id from the codec name at runtime
+(`ffmpeg_codec_id_by_name`, an avcodec_get_name scan) and the suite gates on
+the name plus that resolved id. No bridge/ABI change, no new oracle facts.
+
 ## Derived vs independent
 
 - `ffmpeg.xi` (root module, all `unsafe`/`extern`): **independent** XIOM
@@ -123,8 +134,10 @@ first-attempt 72-offset read (field_order/color_space = 0/1 instead of
    re-hash the oracle files into this table.
 3. Re-check the discovery set (native `av1` hw-only classification; the
    `libdav1d`/`libaom-av1` wrapper names) against the new `av1dec.c`/
-   `libdav1d.c`/`libaomdec.c`, and the generation rules for `stream_base`
-   (lavf major) / `wh_off` (lavc major) against the tag headers.
+   `libdav1d.c`/`libaomdec.c`, the generation rules for `stream_base`
+   (lavf major) / `wh_off` (lavc major) against the tag headers, and never
+   assert numeric AVCodecIDs in tests -- resolve them from the codec name
+   (`ffmpeg_codec_id_by_name`; the enum shifts across majors).
 4. `scripts/port.ps1 -Package xiom.ffmpeg` (default SKIP x2 + a present-path
    generation directory on PATH x2); `scripts/status.ps1 -Action update`;
    conventional commit; sync `SPEC.md`/`AUDIT.md` counts in the same commit.

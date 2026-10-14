@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.jolt` |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | JoltPhysics -- https://github.com/jrouwe/JoltPhysics |
 | Upstream version | tag **v5.6.0** |
@@ -38,8 +38,8 @@ this table + `README.md`/`AUDIT.md`/`PROVENANCE.md`.
 
 ## 3. Design and safe boundary (G5)
 
-`jolt.xi` is the only module with `unsafe`/`extern "C"`.  Two caller layers
-over one integer-only bridge (`src/jolt_bridge.cpp`; floats cross as
+`jolt.xi` is the only module with `unsafe`/`extern "C"`.  Three caller
+layers over one integer-only bridge (`src/jolt_bridge.cpp`; floats cross as
 milli/micros, so XIOM never marshals structs or pointers):
 
 - **0.2.0 probes:** `jolt_drop` builds a static ground + dynamic box
@@ -53,18 +53,29 @@ milli/micros, so XIOM never marshals structs or pointers):
   (extents/mass/pose/static flag); `jolt_step` / `jolt_step_n` advance by an
   explicit dt; `jolt_body_state` returns owned position (3)/rotation
   (4)/velocity (3)/awake values.
+- **0.4.0 external force/torque input (engine buoyancy/water leg):**
+  `jolt_body_apply_force` / `jolt_body_apply_torque` take owned scalar args
+  (milli-Newtons / milli Newton-metres) and apply them at the body's center
+  of mass for the next `Update` only -- Jolt clears the accumulated
+  force/torque automatically after every step (repeated calls before a step
+  accumulate), and both calls wake a sleeping body (`EActivation::Activate`);
+  static bodies are a silent no-op (Jolt semantics).  The owned state
+  read-back gains angular velocity (`wx/wy/wz_milli`), so torque effects are
+  observable without new pointer surface.
 
 Boundary discipline: handle lifetimes are bridge-owned (registry slots and
 Jolt packed body ids, never raw pointers -- B-25); no bare `null` crosses
 (B-23); state reads land in bridge-owned scalars and are fetched as scalars
--- no out-param slots, no foreign-pointer reads (B-20/B-24); all Str
-composition stays XIOM-side.  There is no SKIP path -- the vendored sources
-always compile in.  Determinism: the only clock is the dt argument (fixed
-step, no wall clock); the job system is single-threaded.
+-- no out-param slots, no foreign-pointer reads (B-20/B-24); unknown or
+removed body ids are rejected with the typed bridge error code for a bad
+body (surfaced as `Err` with the code in the message); all Str composition
+stays XIOM-side.  There is no SKIP path -- the vendored sources always
+compile in.  Determinism: the only clock is the dt argument (fixed step, no
+wall clock); the job system is single-threaded.
 
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- **18 checks**, x2 required:
+Suite: `tests/test_conformance.xi` -- **24 checks**, x2 required:
 
 - 0.2.0 probes (unchanged): drop settles within [400, 600] milli on the
   ground (top at y=0), the body sleeps, the velocity hand-off stays within
@@ -74,6 +85,12 @@ Suite: `tests/test_conformance.xi` -- **18 checks**, x2 required:
   and sleeps; the same flow with a sphere settles; a repeated flow is
   bit-identical; free fall is readable between single steps; body
   add/remove/count with stale-id rejection; rotation input round-trips.
+- 0.4.0 force/torque input: 60 N on a 1 kg box raises vx to ~1 m/s in one
+  1/60 s step (and moves it +x); a second step without re-applying keeps vx
+  (no accumulation -- the input was cleared); 6 N.m about z spins wz to
+  ~0.6 rad/s and rotation changes; an unknown id and a removed id are both
+  rejected by `jolt_body_apply_force`, and a removed id by
+  `jolt_body_apply_torque`.
 
 ```
 scripts/port.ps1 -Package xiom.jolt -TimeoutSec 600
@@ -84,9 +101,11 @@ The `--cxx-standard 17` flag and the 26-source list are carried by
 
 ## 5. Scope
 
-World/body v0: enough for the engine contract flow (world + ground +
-box/sphere + N fixed steps + read-back).  Broad-phase queries, joint
-variety, character controllers, soft bodies, and contact events are Phase 4
-(`ROADMAP.md`).  The pre-pilot declaration-only module is preserved in git
-history.  The generated-tree hash above was re-verified read-only on
-2026-10-13 against the committed `vendor/` tree.
+World/body v0 plus per-body external force/torque input: enough for the
+engine contract flow (world + ground + box/sphere + N fixed steps +
+read-back) and the buoyancy/water application leg (force/torque per body per
+frame).  Broad-phase queries, joint variety, character controllers, soft
+bodies, and contact events are Phase 5 (`ROADMAP.md`).  The pre-pilot
+declaration-only module is preserved in git history.  The generated-tree
+hash above was re-verified read-only on 2026-10-13 against the committed
+`vendor/` tree (unchanged by 0.4.0 -- the vendored tree is not touched).

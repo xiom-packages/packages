@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.16.0 |
+| Version | 0.19.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
 | Upstream license | zlib (bindings only; no code vendored) |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (loader path is OS-agnostic in design; soname here is `SDL3.dll`) |
-| Compiler pin | v0.64.3 |
+| Compiler pin | v0.64.4 |
 
 ## 2. G2 pin: soname + dev header hash set
 
@@ -112,8 +112,8 @@ and byte-identical in the local `release-3.2.10` clone.  Accessors are pure
 XIOM; f32 fields have `_bits` accessors plus `sdl3_f32_from_bits` (B-12
 discipline -- no fp cast-call returns).  The suite decodes self-built buffers
 in every shape (DLL-free) and injects a synthetic KEY_DOWN through the real
-queue (consume semantics; the 0.18.0 readback path below is now the
-preferred decode route).
+queue (the true-consume route; the 0.19.0 correction below retires the
+old poll(NULL) "consume" wording -- NULL is a peek on 3.4.8).
 
 **0.5.0 addition (event filter + watch, 2026-10-11):** `SDL_SetEventFilter`,
 `SDL_AddEventWatch`, `SDL_RemoveEventWatch` joined the resolved symbol set
@@ -296,12 +296,88 @@ FOREIGN-written buffer).  The general B-11 (driver-thread slot recycle,
 `xiom.vma` packed-return workaround) remains open and is not claimed
 fixed by this re-test.
 
-## 4. Test matrix (recorded 2026-10-13, compiler v0.64.4)
+**0.19.0 addition (device surface, 2026-10-13; engine ask
+`REL-20261013-2324-engine`):** 32 symbols joined the core loader, all
+verified by the generator's new device-surface audit (declared in the
+pinned headers AND exported by the DLL AND carrying a generated wrapper;
+see below).
+
+- **Joystick caps (typed queries).** SDL3 has no
+  `SDL_JoystickHasRumble`-style functions in the pinned 3.4.8 headers:
+  capabilities are BOOLEAN strings on the joystick properties group.
+  `sdl3_joystick_properties` (`SDL_GetJoystickProperties`) + the five
+  `SDL_PROP_JOYSTICK_CAP_*_BOOLEAN` names read through
+  `SDL_GetBooleanProperty` back `sdl3_joystick_has_rumble`,
+  `_has_rumble_triggers`, `_has_mono_led`, `_has_rgb_led`,
+  `_has_player_led`; `SDL_GetNumJoystickAxes/Buttons/Hats/Balls` and
+  `SDL_GetJoystickType` back the counts/kind; `sdl3_joystick_caps`
+  aggregates everything into `Sdl3JoystickCaps` (missing properties
+  group -> all-false/zero record, no silent nulls).  The suite proves the
+  virtual pad's 2 axes/2 buttons/type 0 with all flags naturally false,
+  then witnesses the flag READ path positively by flipping
+  `SDL.joystick.cap.rumble` on the SDL-owned group (true -> read true ->
+  reset false -> read false).
+- **Haptic wave forms.** `SDL_HapticEffect` is a 72-byte x64 union
+  (`SDL_HAPTIC_EFFECT_SIZE`; sizeof/offsets computed by the generator's
+  Win64 layout engine and cross-checked with a clang `offsetof` probe
+  against the pinned headers).  `sdl3_haptic_encode_periodic` validates
+  (wave in SINE/SQUARE/TRIANGLE/SAWTOOTHUP/SAWTOOTHDOWN, direction
+  encoding, range checks per field) and writes `SDL_HapticPeriodic`
+  byte-indexed (`type` u16 @0, `direction{type u8 @4, dir[3] s32
+  @8/12/16}`, `length` u32 @20, `delay/button/interval` u16 @24/26/28 =
+  0 trigger-less, `period` @30, `magnitude` @32, `offset` @34, `phase`
+  @36, `attack_*` @38/40, `fade_*` @42/44).  `sdl3_haptic_open`/
+  `open_from_joystick`/`create_periodic`/`update_periodic`/`run`/`stop`
+  return typed `Sdl3HapticError{kind, message}` (`SDL3_HAPTIC_ERR_PARAM`
+  for encode violations, `_OPEN/_CREATE/_UPDATE/_RUN/_STOP` with the
+  `SDL_GetError` string otherwise); `effect_supported`, `status`,
+  `destroy`, the `GetHaptics` enumeration (`count`/`at`/`name_for_id`),
+  features/max-effects/axes getters, and the rumble convenience layer
+  (`rumble_supported`/`init`/`play`/`stop`) complete the surface.  The
+  suite proves the encode + typed PARAM error + enumeration + typed OPEN
+  error (unknown id) + the not-haptic virtual pad path
+  (`SDL_OpenHapticFromJoystick` typed error) with no hardware; the
+  device path (SINE create/run/status/stop/destroy + rumble) is written
+  and runs when `SDL_GetHaptics` finds a device (SKIP on this host).
+- **Pen/tablet decoding path.** Layouts pinned to the 3.4.8 headers
+  (Win64 sizes 24/40/40/40; verified offsets): every pen event carries
+  windowID u32 @16 and `which` (pen id) u32 @20; motion/touch/button add
+  `pen_state` u32 @24 (`SDL_PEN_INPUT_*`), x f32 @28, y f32 @32; touch:
+  `eraser` u8 @36, `down` u8 @37; button: `button` u8 @36, `down` u8
+  @37; proximity in/out decode to the windowID/`which` pair.
+  `sdl3_pen_device_type` (`SDL_GetPenDeviceType`) is the tool-type
+  query, `SDL_PEN_DEVICE_TYPE_INVALID` for an unknown id.  The suite
+  decodes self-built buffers for all four members (DLL-free), pushes a
+  synthetic PEN_MOTION through the real queue and decodes it from the
+  SDL-written buffer, and probes the tool-type query for an unknown id.
+- **Suite semantics correction found by the pen-live check:**
+  `SDL_PollEvent(NULL)` on the pinned 3.4.8 runtime is a PEEK (a pending
+  real event is reported but NOT removed; only SDL's internal poll
+  sentinel is cleared), and a poll that meets that sentinel returns
+  false with events queued right behind it.  The suite's drains now
+  consume into an owned scratch buffer and pushed-event checks match on
+  the event type for a bounded number of polls (`drain_events`/
+  `poll_for`); the two legacy injection checks were tightened the same
+  way.  The 0.3.1/0.18.0 history is preserved: true consumption always
+  polls into an XIOM-owned buffer.
+- **Generator extension (100% declared additions kept):** the generator
+  now audits the device-surface additions against the pinned inputs at
+  generation time: 32/32 symbols declared+exported+wrapped, 45/45
+  constant values (property strings, haptic/pen/joystick tables) match
+  the headers, and 14/14 Win64 layouts (pen/touch event structs + haptic
+  periodic/union members) match the pinned offsets -- mismatch aborts
+  generation.  The audit lands in `docs/gen_manifest.json` under
+  `device_surface`; declared/exported/target stay 1271/1270/1269 and the
+  full-surface suite stays 1269/1269 bound, 1270/1270 resolved.
+
+## 4. Test matrix (recorded 2026-10-14, compiler v0.64.4)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 5/5 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layer + drag-drop decode still run -- both are pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 61/61 x2** (v0.64.4) -- previous 59 checks + foreign-written user-event readback + KEY_DOWN readback decode (the B-11 addendum re-test) |
+| SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 8/8 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layers + drag-drop + haptic encode + device constant tables still run -- all pure XIOM) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 72/72 x2** (v0.64.4) -- previous 61 checks + pen/tablet decode (4 members) + haptic encode + device constants + pen-live queue readback + 2 joystick-caps checks + 3 haptic checks + pen tool-type query |
+| Full surface (generated modules) | `xiom --run tests/test_full_surface.xi` with SDL3 on PATH | PASS: bound 1269/1269, resolved 1270/1270 exports (2026-10-14, unchanged by 0.19.0) |
+| Device ABIs | generator audit + clang `x86_64-pc-windows-msvc` offsetof/sizeof probe against the pinned headers | 32/32 symbols, 45/45 constants, 14/14 layouts (2026-10-14) |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no

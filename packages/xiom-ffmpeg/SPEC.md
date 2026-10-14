@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.ffmpeg` |
-| Version | 0.4.0 |
+| Version | 0.4.1 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | FFmpeg -- https://ffmpeg.org/ (libavcodec/libavformat/libavutil/libswresample) |
 | Upstream version | floating system builds (local samples: 6.1.1 GIMP GPL set, 6.0 LGPL, 7.1.1 GPL, 8.x partial) |
@@ -56,7 +56,17 @@ via `GetProcAddress` (never linked).
 `avformat_close_input`, `avformat_find_stream_info`, `av_find_best_stream`,
 `av_read_frame`, `av_seek_frame` (libavformat); `av_packet_alloc`,
 `av_packet_unref`, `av_packet_free` (libavcodec); `av_strerror` (libavutil).
-`ffmpeg_codec_name` resolves `avcodec_get_name` (libavcodec). All LGPL-safe.
+`ffmpeg_codec_name` and `ffmpeg_codec_id_by_name` (0.4.1) resolve
+`avcodec_get_name` (libavcodec). All LGPL-safe.
+
+**0.4.1 generation-skew fix:** the numeric `AVCodecID` is NOT stable across
+FFmpeg major generations -- `AV_CODEC_ID_AV1` is 226 on lavc 60.x (FFmpeg
+6.1), 225 on lavc 61.x (FFmpeg 7.0+, after the deprecated packed-YUV ids
+were removed from the video enum) and 222 in the pinned 8.0.git list. The
+0.4.0 suite asserted a hardcoded 226 and failed on the 7.1.1 generation
+while the bridge read the field correctly. `ffmpeg_codec_id_by_name(lib,
+name)` resolves the loaded generation's id from the stable codec name; the
+suite gates on name + resolved id. No bridge/ABI change was needed.
 
 **Probe evidence:** version string + the four packed versions decoded as
 `major.minor.micro` (`major<<16 | minor<<8 | micro`) + the build's
@@ -73,10 +83,12 @@ via `GetProcAddress` (never linked).
 | `AVPacket` | pts 8, dts 16, data 24, size 32, stream_index 36, flags 40, duration 64, pos 72 | none across lavc 58-62 |
 | `AVFrame` (0.3.0) | width 104, height 108, format 116 | none across lavc 58-62 |
 
-The two generation-dependent values are selected from the loaded
+The two generation-dependent prefix values are selected from the loaded
 generation's packed versions at `ffmpeg_demux_open` time; the suite verifies
 them every present-path run against the fixture's known header (64x48,
-time_base 1/4, AV_CODEC_ID_AV1 = 226), so drift fails loudly.
+time_base 1/4, the AV1 codec NAME plus the generation's own id resolved by
+`ffmpeg_codec_id_by_name`), so drift fails loudly. No AVCodecID constant is
+asserted: the enum shifts across FFmpeg majors (see 0.4.1 note in §3).
 
 **Local runtime samples used for positive-path proof (NOT the pin; nothing
 committed):**
@@ -132,14 +144,14 @@ reads happen only in `src/ffmpeg_bridge.c` (B-20); no XIOM pointer
 arithmetic; flat outcome structs, no `Result[Option[T]]` (B-26); Str
 equality via `string.str_compare`.
 
-## 5. Test matrix (0.4.0 recorded 2026-10-13, compiler v0.64.4)
+## 5. Test matrix (0.4.1 recorded 2026-10-14, compiler v0.64.4)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | Default PATH (no FFmpeg DLLs) | `scripts/port.ps1 -Package xiom.ffmpeg` | **PASS 3/3 x2** -- SKIP classification (bogus sonames) + probe SKIP + decode+demux SKIP |
-| GIMP 6.1.1 prepended (0.4.0 present path) | same | **PASS 23/23 x2** -- 12 decode + 11 demux checks (`libdav1d` 1.4.1: IVF demux + packet loop + demux->decode + seek) |
+| GIMP 6.1.1 prepended (present path) | same | **PASS 23/23 x2** -- 12 decode + 11 demux checks (`libdav1d` 1.4.1; runtime av1 id 226) |
+| Blender 7.1.1 GPL prepended (present path) | same | **PASS 23/23 x2** (0.4.1) -- 12 decode + 11 demux checks (`libaom-av1`; runtime av1 id 225; the 0.4.0 gate failed 22/23 here) |
 | Cascadeur 6.0 LGPL prepended | same | **PASS 12/12 x2** (0.3.0 recorded) -- `FFmpeg 6.0`, four versions, `LGPL version 2.1 or later` |
-| Blender 7.1.1 GPL prepended | same | **PASS 12/12** (0.3.0 recorded) -- `FFmpeg 7.1.1`, license `GPL version 2 or later` |
 | OneDrive 8.1.2 (partial) prepended | same | **PASS 3/3** (0.3.0 recorded) -- generation skipped (no `swresample-6.dll`), SKIP |
 | DaVinci Resolve 6.x (partial) prepended | same | **PASS 3/3** (0.3.0 recorded) -- generation skipped (no `swresample-4.dll`), SKIP |
 
@@ -151,7 +163,9 @@ close.
 
 ## 6. Scope
 
-0.4.0: library identification + license evidence (0.2.0), AV1-class decode
+0.4.1: generation-skew fix for the demux codec-id gate (runtime id
+resolution by codec name; no API/ABI change to the demux surface). 0.4.0:
+library identification + license evidence (0.2.0), AV1-class decode
 surface (0.3.0), container demux surface (0.4.0: avformat open/close from a
 file path, stream enumeration, best-stream selection, packet read loop,
 seek). Encode/transcode wrappers, audio decode, filters and a transcode

@@ -1,0 +1,4 @@
+# Vendored upstream sources must stay byte-identical to the generated-tree
+# SHA256 pin in PROVENANCE.md / SPEC.md (tools/vendor.py regenerates them
+# LF-normalized).  Disable end-of-line conversion for the whole vendor tree.
+vendor/** -text

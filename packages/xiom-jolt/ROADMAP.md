@@ -21,7 +21,19 @@
 - [x] Engine contract v0 flow covered by the suite (+14 checks, 18 total)
 - [x] Manifest `modules:` + PROVENANCE.md retrofit at this touch
 
-## Phase 4 (Planned)
+## Phase 4 (Done) -- 0.4.0 external force/torque input
+- [x] `jolt_body_apply_force` / `jolt_body_apply_torque`: owned scalar args
+      (milli N / milli N.m), center-of-mass application for the next step
+- [x] One-step-only semantics: Jolt clears accumulated force/torque after
+      every Update (repeated calls before a step accumulate); input wakes
+      sleeping bodies (EActivation::Activate); static bodies are a no-op
+- [x] Angular velocity added to the owned state read-back (wx/wy/wz_milli,
+      bridge-owned scalar cache -- still no out-param slots)
+- [x] Unknown/removed ids rejected with the typed `kErrBadBody` error
+- [x] Engine buoyancy/water ask (REL-20261013-2115-engine) covered by the
+      suite (+6 checks, 24 total)
+
+## Phase 5 (Planned)
 - [ ] Broad-phase queries + collision filtering surface (layers, ray casts)
 - [ ] Joint wrappers (hinge/slider/fixed/cone)
 - [ ] Character controller
