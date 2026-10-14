@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-14T15:42:57+03:00
-# packages: 547  modules: 998
+# generated: 2026-10-14T17:07:58+03:00
+# packages: 553  modules: 1007
 
 ## package names
 xiom.acpi
@@ -141,6 +141,7 @@ xiom.ethereum
 xiom.exchanger
 xiom.executor
 xiom.expat
+xiom.exr
 xiom.ext
 xiom.farbfeld
 xiom.feature
@@ -321,6 +322,7 @@ xiom.openal
 xiom.openblas
 xiom.opencv
 xiom.opengl
+xiom.openpgl
 xiom.openssl
 xiom.optimizer
 xiom.optimizer-fw
@@ -356,6 +358,7 @@ xiom.pgn
 xiom.pgp
 xiom.phaser
 xiom.phonon
+xiom.photometrics
 xiom.physics
 xiom.pki
 xiom.plist
@@ -409,8 +412,11 @@ xiom.ros2
 xiom.router
 xiom.rpc
 xiom.rpm
+xiom.rpr
 xiom.rtc
 xiom.rtf
+xiom.rtxdi
+xiom.rtxgi
 xiom.safetensors
 xiom.salt
 xiom.saml
@@ -773,6 +779,7 @@ xiom.ethereum
 xiom.exchanger
 xiom.executor
 xiom.expat
+xiom.exr
 xiom.ext
 xiom.farbfeld
 xiom.feature
@@ -1049,6 +1056,8 @@ xiom.opengl.wgl_cmds_02
 xiom.opengl.wgl_consts_1
 xiom.opengl.wgl_consts_2
 xiom.opengl.wgl_names
+xiom.openpgl
+xiom.openpgl.ffi
 xiom.optimizer
 xiom.optimizer_fw
 xiom.option
@@ -1086,6 +1095,7 @@ xiom.phaser
 xiom.phonon
 xiom.phonon.abi
 xiom.phonon.exports
+xiom.photometrics
 xiom.physics
 xiom.pki
 xiom.plist
@@ -1137,8 +1147,12 @@ xiom.roman
 xiom.router
 xiom.rpc
 xiom.rpm
+xiom.rpr
+xiom.rpr.ffi
 xiom.rtc
 xiom.rtf
+xiom.rtxdi
+xiom.rtxgi
 xiom.safetensors
 xiom.salt
 xiom.saml
@@ -1380,6 +1394,7 @@ xiom.ssh2
 xiom.static
 xiom.stats_ml
 xiom.stats_tests
+xiom.stb
 xiom.stemming
 xiom.stl
 xiom.stm
