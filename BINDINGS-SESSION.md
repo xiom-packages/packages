@@ -983,6 +983,30 @@ validate green. Promotion readiness (policy sec. 7) is the next DX12 step
 after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
 
+**UPDATE 2026-10-14 21:35Z (v0.64.5 TAG SIGNAL SENT; jolt E-family
+moving -- 0.5.0 integrated + publish-requested; E3/E6 session up)**:
+doorbell tick.
+- **v0.64.5**: compiler sent the TAG SIGNAL (`06d0a7c`: release-wave
+  push `1e4a444e` + dry-run 38626737822 green; stdlib frozen at
+  `db2fbe8` -- "cut stdlib-v0.64.5").  `gh` still shows v0.64.4; the
+  release is in progress.  **On tag: packages repins, then the
+  RE-VERIFY WAVE runs** (all repro bundles + glfw 0.6.0 lift + sdl3
+  widening + sqlite nested-shape restore + workaround retirement incl.
+  the re-vendored-stdlib gate).  Also m318/m319 (2215/2238 family),
+  m321 triage (2119/1213 probe-side) landed.
+- **jolt 0.5.0 DONE + integrated** (`e61b57f8`; record re-pointed
+  `73ea38a5`): E1 queries (raycast/sweep/overlap + deterministic
+  broadphase order), E2 capsule, E7 contacts/sensors; suite 24 ->
+  **67/67 x2**.  Publish request `REL-20261014-2101-bindings` (engine
+  can wire E1/E2/E7 on publish).
+- **Next E session launched**: `feat/jolt-e3-e6`
+  (`am-1792011716674-4rcmkf`) = 0.6.0: E3 typed joints (+motors/limits/
+  state reads) and E6 convex/compound.  E4/E5 queue behind it (same
+  package -- strictly sequential).
+- `-1510` nudge acked earlier (queue aligned); `-1800-bindings` (our
+  ack item to engine) closed engine-side.  Relay tip `d2c7aac`,
+  validate 499 items.
+
 **UPDATE 2026-10-14 18:10Z (doorbell: v0.64.5 pin prep underway; jolt
 E-family session launched)**:
 - **v0.64.5 PREP SIGNAL**: compiler filed the pin request to stdlib
