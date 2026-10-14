@@ -14,7 +14,44 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 94 eco releases; this block is the live handoff):**
+**STATE AT 2026-10-14 13:20Z (CLEAN HANDOFF -- owner-directed pipeline in full flight; 94 eco releases; this block is the live handoff):**
+- **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
+  allowlisted / 518 ready / 20 grandfathered / 0 failures**. Tally **94 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.178`).
+- **OWNER DIRECTIVES (standing; details in the bullets further down)**: (1) **ENGINE PIPELINE = TOP
+  EXTERNAL PRIORITY** -- all engine asks urgent. (2) **TRAFFIC-LANE MANDATE + ROUTING PROTOCOL v2** --
+  route every package wishlist correctly: read the ask FIRST (its owner-direction wording decides);
+  upstream C/C++ -> bindings + clone protocol; own-reader/native -> whichever side is free/live, say
+  so in the ack; check for live sessions BEFORE routing or correcting; no duplicate work. (3) **OWNER
+  PIPELINE**: bindings finishes ALL requests -> packages MERGES -> **OPS owns the allowlist/scope
+  gate** -> batches PUBLISH -> packages RELAYS to the ENGINE lane (standing). (4) **OWNER EXCEPTION**:
+  the 17 wave names are allowlisted + baselined -- they publish UNATTENDED as each goes ready.
+  (5) **STAGING REGISTRY = owner's playground**; scope asks PROD-ONLY by default.
+- **Published 2026-10-13/14**: dx12 0.3.1 stable (`eco-v0.1.169`), opengl 0.5.0 (`.170`), gles 0.1.0
+  (`.171`), dx12 0.4.0 (`.172`), sdl3 0.18.0 (`.173`), sqlite 0.4.0/0.4.1 (`.174`/`.175`; PULSE SQL
+  driver; PULSE consumer co-verify RESOLVED 24/24 on m303+ via `--run`), wave A jolt 0.3.0 + zstd 0.3.0
+  + meshopt 0.5.0 + ffmpeg 0.3.0 (`.176`), wave B first harfbuzz 0.1.0 + basisu 0.1.0 + spz 0.1.0
+  (`.177`), **wave 2 = 12 packages opus/ogg/lz4/ktx2/vdb/phonon/fidelityfx/nis/dlss/xess/nrd/oidn**
+  (`.178`; run 38565995820 green).
+- **IN FLIGHT (bindings dedicated sessions; publish requests arrive as items)**: wave-3 path-tracer
+  set (rpr/rtxdi/rtxgi/openpgl); **A05 IES/.cube own-reader** (race resolved `-1306-packages`: stays
+  with bindings' session); **A05 HDR** (xiom.stb .hdr surface + tinyexr EXR-class). Ops heads-up for
+  the new names filed (`-1308-packages`). **HELD: ffmpeg 0.4.0** (generation fix `-2142-packages`;
+  0.3.0 live).
+- **Ops**: 17 scopes LIVE (eco 537 both; `-2155-ops` confirmed); ops owns the allowlist/scope gate
+  from now on.
+- **Open elsewhere**: compiler `-1731-packages` (project-build consumer blocker; acked; project flow
+  gated, `--run` works); bindings suite manifest `-2143-bindings-2` (standing queue). Next archive
+  (v0.64.5) carries m275-m294: sdl3 0-warning (`-1403`/m277), B-22, B-23/B-24 (m281 -- retire the
+  workarounds), B-20, rows `-1549-packages-5/-7` (bounced), `-9` (m294), `-11` (m293); pre-repin
+  snapshot `20261013-172928` taken (refresh if the shared homes change).
+- **Tool learnings**: `port.ps1 -TimeoutSec 600`+ for heavy compiles (basisu/ktx2/fidelityfx);
+  ffmpeg present-path via `C:\Program Files\Blender Foundation\Blender 5.1\blender.shared` on PATH;
+  consumer harness = xiom.toml project + kv-controlled A/B (`%TEMP%\kilo` probe dirs, consumer-home
+  with 505+ installed packages); `xiom pkg install` local fallback needs registry-shaped layout
+  (dot-named dirs are not discovered by project builds).
+
+**STATE AT 2026-10-13 11:55Z (history -- superseded by the 2026-10-14 13:20Z block above):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified; canonical install byte-identical
   556/556; 532 records repinned). Validate **547/0**; guard **538 allowlisted / 518 ready / 20
   grandfathered / 0 failures**. Tally: **94 eco releases** (`eco-v0.1.86` -> `eco-v0.1.178`).
@@ -710,7 +747,96 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **NEW operating resource (owner):** `E:\repos\` -- clone upstream projects there and STUDY them
   before writing package code (disposable when done); no writing from memory.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-13 11:55Z) -- USE THIS ONE
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-14 13:20Z) -- USE THIS ONE
+
+```
+You are the packages session for xiom-packages/packages (native lane; local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
+Read SESSION.md first -- the 2026-10-14 13:20Z STATE block is the live handoff;
+all older STATE blocks and paste prompts below are history.
+
+RELAY BUS (do FIRST and LAST every session): sync E:\xiom-lang\xiom-relays with
+  git fetch origin; git merge --ff-only origin/main    (never git pull there)
+  python tools/relay.py view --lane packages
+Process every item addressed to packages (ack/fix/verify with evidence refs;
+move statuses only for items whose `to` is packages; never edit another lane's
+item -- open a new item instead; one item per issue; link evidence, never copy
+logs; ASCII-only notes -- the validator rejects non-ASCII). Commit+push with
+`python tools/relay.py commit`. The shared relays repo is raced by other lanes:
+their uncommitted files are not yours; index.lock rejections retry themselves.
+The doorbell cron fires every 2 h (re-sync, process, check
+`gh release list -R xiom-lang/xiom` for the next official archive). CHECK-BEFORE-
+ACT: the doorbell can be delivered 2-3x -- diff the newest commits/items first;
+if the target item is already in its target state, skip it and report.
+
+OWNER DIRECTIVES (standing):
+0. ENGINE PIPELINE = TOP EXTERNAL PRIORITY -- all engine asks urgent.
+1. TRAFFIC-LANE: you are the traffic lane between native and bindings. Route
+   every package wishlist correctly: read the ask FIRST -- its owner-direction
+   wording decides; upstream C/C++/closed-SDK -> bindings + clone protocol
+   (E:\repos clone + CLEANUP.md row + license + PROVENANCE); own-reader/native
+   -> whichever side is FREE/LIVE, and say so in the ack. Check for live
+   sessions BEFORE routing or correcting (the IES race lesson); no duplicate
+   work; one item per issue; corrections as explicit supersede notes.
+2. OWNER PIPELINE: bindings finishes ALL requests -> YOU merge the tips
+   (validate/x2/records) -> OPS owns the allowlist/scope gate -> batches
+   PUBLISH -> YOU relay live availability to the ENGINE lane after every
+   publish (versions + sha256s + SKIP notes).
+3. OWNER EXCEPTION: 17 wave names (harfbuzz basisu spz opus lz4 ktx2 vdb nis
+   fidelityfx dlss xess nrd oidn rpr rtxdi rtxgi openpgl) are allowlisted +
+   baselined -- they publish UNATTENDED as each goes ready.
+4. STAGING REGISTRY = owner's playground; scope asks PROD-ONLY by default.
+
+STATE: pin v0.64.4 (official, SHA256 44a41aea). Validate 547/0; guard 538
+allowlisted / 518 ready / 20 grandfathered / 0 failures; 94 eco releases
+(-> eco-v0.1.178). Wave 2 (12 pkgs), wave A, wave B-first all LIVE; dx12 0.3.1
+stable + sqlite 0.4.1 (PULSE driver; co-verify resolved) live. IN FLIGHT on
+bindings: path-tracer wave (rpr/rtxdi/rtxgi/openpgl), A05 IES/.cube own-reader,
+A05 HDR (stb .hdr + tinyexr EXR-class). HELD: ffmpeg 0.4.0 (generation fix
+REL-20261013-2142-packages; 0.3.0 live).
+
+WORK QUEUE (priority order):
+1. Bindings publish requests as they land: merge ONLY the newest tip (same-
+   package items supersede; different packages stack into one eco batch);
+   resolve package STATUS/README conflicts to THEIR side but RESTORE earlier
+   shipped/published README lines; ALWAYS run `status.ps1 -Action validate`
+   AFTER the merge and BEFORE tagging; x2 every package (watchdog table below;
+   `port.ps1 -TimeoutSec`); record (native-session @ merge sha); regenerate
+   surfaces (status report; platform-matrix -WriteReport; provenance-audit
+   -WriteReport at boundaries); wrap -> tag eco-v0.1.NNN -> approve the pending
+   deployment (environment_ids:[22424011031]; integer -F for the array) ->
+   watch green -> live-verify the registry sha256 -> sync README ("published
+   in eco-vX") + STATUS excluded_reason -> fix the item -> ENGINE RELAY ->
+   fold SESSION with a fresh STATE block.
+2. Next compiler archive (v0.64.5+; watch gh release list): repin (SHA256-verify
+   + swap + `status.ps1 -Action repin`) then re-verify: sdl3 0-warning
+   (-1403/m277), B-22, B-23/B-24 (m281 -- RETIRE those workarounds), B-20, rows
+   -1549-packages-5/-7 (bounced), -9 (m294), -11 (m293), plus the compiler's
+   next-batch rows. Hygiene: lane-local installs only; tools/home-snapshot.ps1
+   first (pre-repin snapshot 20261013-172928 taken; refresh if homes change).
+3. ffmpeg 0.4.0: republish when bindings' generation fix lands (-2142).
+4. Promotions (policy sec. 7) at next touch; provenance + platform-matrix
+   declarations at touch (owner protocol; 16/518 and declared=23/backlog 28
+   as of the live block).
+5. Compiler -1731 project-flow blocker: follow up when compiler lands a fix
+   (project-build consumers gated; --run works today).
+
+WATCHDOGS: 90 s normal; 240-300 vendored C/C++; 600+ for 100+ TU or C++17/20
+(basisu/ktx2/fidelityfx need -TimeoutSec 600). ffmpeg present paths need an
+FFmpeg DLL set on PATH (Blender 5.1 blender.shared verified). Scratch:
+%TEMP%\kilo (consumer-home + probes + logs).
+
+Keep ONE packages window open (two sessions double-run doorbells). CREDENTIAL
+NOTE: gh sometimes flips to `Lefteris-Ngonart` (403 on push); switch with
+`gh auth switch --user Lefteris-Notas`; verify with
+`gh api repos/xiom-packages/packages --jq .permissions`.
+
+Start: git fetch; git status -sb; git log -1; relay sync + view (above); then
+  $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+  & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+```
+
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, SUPERSEDED -- 2026-10-13 11:55Z; kept for history)
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local
