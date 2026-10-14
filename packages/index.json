@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-14T00:59:14Z",
+    "updated":  "2026-10-14T15:42:57Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1832,6 +1832,24 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.dlss",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA DLSS / NGX bindings (CLOSED-SDK pattern -- independent declarations from the pinned public headers, no NVIDIA code or binaries): 85-entry resolvable NGX surface (D3D11/D3D12/CUDA/Vulkan core + parameter C API + globals), 435 parameter keys, 74 effective-key codes, typed D3D12 DLSS-SR flow + optimal-settings query; dynamic-load nvngx_dlss.dll / nvngx.dll SKIP-safe (runtime not shipped)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dlss/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "dlss.xi",
+                                              "surface.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.3",
                          "name":  "xiom.dns",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -2466,6 +2484,26 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ffmpeg/v0.4.0/package.tar.gz",
                          "source_files":  [
                                               "ffmpeg.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.fidelityfx",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "AMD FidelityFX SDK v2.3.0 surface bindings for XIOM: unified API loader (FSR2 / FSR3 upscaler / frame generation), FSR1 EASU+RCAS and SPD CPU constant helpers, vendored compiled swapchain shader blobs, provider version probes; typed SKIP when no effect DLL is present",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fidelityfx/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ffx_gen_structs.xi",
+                                              "ffx_gen_surface.xi",
+                                              "ffx_gen_types.xi",
+                                              "fidelityfx.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3871,6 +3909,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ktx2",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "KTX2 texture container + Basis Universal transcode bindings for XIOM (vendored libktx v4.4.2: create/write/read, ETC1S/UASTC encode, Basis transcode, ASTC encode/decode)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ktx2/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ktx2.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.kv",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM embedded log-structured key-value store: 28-byte segment headers, CRC32C-framed records, tombstones, crash-safe reopen with torn-tail repair, atomic-rename compaction and optional snapshots",
@@ -4394,6 +4449,24 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-luhn/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "luhn.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.lz4",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "LZ4 v1.10.0 bindings: block (lz4.h), high-compression (lz4hc.h) and frame (lz4frame.h) at 100% declared surface (vendored lib/ BSD-2-Clause)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lz4/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "lz4.xi",
+                                              "lz4_ffi.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5186,6 +5259,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.nis",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA Image Scaling (NIS) SDK v1.0.3 bindings (vendored MIT core, byte-exact): 100% of the CPU-visible config surface -- NVScaler/NVSharpen config builders, NISOptimizer dispatch geometry, coefficient tables (f32/fp16) -- over XIOM-owned buffers; GPU pixel path is a typed SKIP (compute-shader-only in v1.0.3)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nis/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "nis.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.2",
                          "name":  "xiom.nlp",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -5216,6 +5306,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nmea/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "nmea.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.nrd",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA Real-time Denoisers (NRD) integration surface for XIOM -- reference-only dynamic-loader binding. Upstream (github.com/NVIDIA-RTX/NRD v4.17.3) is NOT MIT: it is the proprietary NVIDIA RTX SDKs License, so no NRD code, headers, shaders or binaries ship here (FFmpeg precedent, PROVENANCE.md); the suite exercises a locally built NRD.dll and classifies SKIP when absent.",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nrd/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "nrd.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5339,19 +5446,40 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.2.0",
                          "name":  "xiom.ogg",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Ogg page structure: page walk, fields, and the Ogg CRC-32 checksum",
+                         "description":  "Ogg container: pure-XIOM page walk + CRC-32, and the vendored libogg v1.3.6 packet-reassembly/write layer (sync/stream pageout/packetin, mux/demux)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ogg/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ogg/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "ogg.xi",
+                                              "ogg_abi.xi",
+                                              "ogg_ffi.xi",
+                                              "ogg_mux.xi",
+                                              "ogg_types.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.oidn",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Intel Open Image Denoise bindings for XIOM (runtime loader over the public C API of OIDN v2.5.1; CPU device: device/buffer/filter lifecycle, RT and RTLightmap filters with owned byte buffers)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-oidn/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "oidn.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5530,6 +5658,26 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-option/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "option.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.opus",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "libopus v1.6.1 bindings for XIOM (vendored build: encoder/decoder, repacketizer, multistream, custom modes, projection, DRED entry points; 105/105 public functions bound)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-opus/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "opus.xi",
+                                              "opus_abi.xi",
+                                              "opus_ffi.xi",
+                                              "opus_types.xi",
                                               "package.xi"
                                           ]
                      },
@@ -6027,18 +6175,20 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.phonon",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Steam Audio (Phonon) bindings for XIOM via dynamic loader (phonon.dll at runtime, SKIP when absent)",
+                         "description":  "Steam Audio (Phonon) bindings for XIOM via dynamic loader: full audio-processing surface (context/HRTF/audio buffers + 10 effect groups + ambisonics) generated from the pinned public phonon.h, SKIP when phonon.dll is absent",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-phonon/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-phonon/v0.3.0/package.tar.gz",
                          "source_files":  [
+                                              "phonon_abi.xi",
+                                              "phonon_exports.xi",
                                               "package.xi",
                                               "phonon.xi"
                                           ]
@@ -9055,6 +9205,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.vdb",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Minimal OpenVDB .vdb file reader: header, grid descriptors, metadata, transforms, tree topology and dense leaf blocks",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vdb/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "vdb.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.2",
                          "name":  "xiom.vdf",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -9478,6 +9645,23 @@
                          "source_files":  [
                                               "xbm.xi",
                                               "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.xess",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Intel XeSS bindings for XIOM -- dynamic loader for libxess.dll (SR core: context create/destroy, init/execute param structs, properties/version/resolution queries, jitter/velocity/exposure/mask accessors) + libxess_dx11.dll companion (D3D11 surface) + D3D12/Vulkan backends + public debug surface (network model, dump, profiling); 41/41 declared public entries; typed SKIP when the runtime is absent",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-xess/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "package.xi",
+                                              "xess.xi"
                                           ]
                      },
                      {
