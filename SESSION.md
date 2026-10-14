@@ -51,6 +51,14 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   since the block above: m314-m321 (`-2042`/`-2227` wide-int, `-2139` geom collision, `-1158` spawn
   literal, `-2256`/`-2324-2/3` const-surface family, `-2119`/`-1213` probe-side) -- fold into the
   re-verify list at the pin.
+- **UPDATE 2026-10-14 23:15Z**: **v0.64.5 tag still HELD** (stdlib candidate regressions `-2123`
+  in triage; `d80bf1b`) -- no repin yet. **E-family first delivery SHIPPED: `xiom.jolt` 0.5.0**
+  (E1 queries + E2 capsule + E7 contacts/sensors) -- merge `10167d9d` (tip `73ea38a5`; validate
+  553/0), native x2 **67/67** both runs (record `e8c6bf67`), wrap `f5f899c5`, tag **`eco-v0.1.180`**,
+  run 38651812029 green, live sha256 `1035c987...` @23:06:27Z, README/STATUS synced `e4817194`
+  (published chain deduped), item `-2101-bindings` fixed, **engine relayed** (`REL-20261014-2310-packages`;
+  E3-E6 queued sequential follow-ons). Tally **96 eco releases** (`eco-v0.1.86` -> `eco-v0.1.180`).
+  Guard now **540/524/16/0**.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
