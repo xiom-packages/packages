@@ -1,7 +1,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-# Const alias across modules with the same name (v0.64.4, B-28)
+# Const alias across modules with the same name (v0.64.4, B-31)
 
 Found shipping `xiom.phonon` 0.3.0. The binding generator emitted
 `src/phonon_abi.xi` with the canonical `IPL_*` constants and the root module

@@ -156,7 +156,7 @@ Observed on v0.64.2 (2026-10-09): `b03: alias const resolved, value=7`.
 Small catalogs were green on v0.64.0 too; the original stack overflow needed
 the large pre-fix `xiom.sqlite` catalog (no live trigger today).
 
-## bigint-bitops -- REPRO on v0.64.4 (new, B-27)
+## bigint-bitops -- REPRO on v0.64.4 (new, B-29)
 
 Single file: bitwise ops and integer division on values >= 2^31.
 

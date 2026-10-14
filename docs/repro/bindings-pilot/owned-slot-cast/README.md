@@ -1,7 +1,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-# `ptr as Int` cast combined with a second statement in one `unsafe` block (v0.64.4, B-27)
+# `ptr as Int` cast combined with a second statement in one `unsafe` block (v0.64.4, B-30)
 
 Minimal shape found shipping `xiom.phonon` 0.3.0 (owned planar audio buffers built
 in XIOM memory). Pure XIOM -- no C source, no DLL.
