@@ -1,0 +1,4 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/rtxgi_bridge.cpp"
+]
