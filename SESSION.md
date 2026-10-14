@@ -196,6 +196,23 @@ running). Check `git log -1 --format=%h %s` before starting.
   optional .cube, typed tables + battery + independent-declaration PROVENANCE; BUILD QUEUED for
   this lane** (new-name scope ask to ops when it lands). Still in flight: path-tracer set
   (rpr/rtxdi/rtxgi/openpgl).
+- **TRAFFIC-LANE MANDATE (owner 2026-10-14 13:04Z -- STANDING)**: this lane is the TRAFFIC LANE
+  between native and bindings: we CHOOSE the route for every ask and enforce the protocols.
+  Routing rules: (a) needs an upstream C/C++ library -> bindings prep ask with the clone-repo
+  protocol (E:\repos\<name> clone + CLEANUP.md row + license-on-touch + PROVENANCE); (b) implementable
+  as native XIOM -> THIS lane builds it (own reader; spec refs; independent-declaration PROVENANCE;
+  no clone); (c) either way: registry scope (ops; PROD-only default) -> allowlist -> unattended
+  publish -> README/STATUS sync -> item fixed -> ENGINE RELAY. A05 split is the reference case
+  (IES/.cube native, HDR/EXR bindings).
+- **NATIVE BUILD status -- `xiom.ies` (A05(11))**: RACE RESOLVED 13:06Z -- bindings' 13:01Z ack
+  ("IESNA LM-63 + .cube own reader in a dedicated session") crossed the 13:04Z correction; the
+  correction's IES half is WITHDRAWN (`REL-20261014-1306-packages`) and **bindings' dedicated
+  session finishes IES/.cube 100%** (same native deliverable: own reader + independent-declaration
+  PROVENANCE + battery; no second build here -- no duplicate work). Packages lane then verifies x2,
+  asks the ops scope (PROD-only) for the new name, publishes, fixes `-1207-engine`, relays.
+  HDR (stb .hdr + tinyexr EXR-class) also with bindings, per `-1223`.
+  PULSE co-verify `-1305-pulse-3` fixed (artifact path resolved on m303+ via `--run`; `-1731`
+  project-flow caveat stands).
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
