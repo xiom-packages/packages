@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-14T14:16:25Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-14T23:04:00Z.
 
 ## Summary
 
@@ -422,7 +422,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb2 | False | publish pending: next scope delta |
 | xiom.jit-fw | xiom-jit-fw | incubating | tests/test_conformance.xi | pass 25/25 | c1e35d4f | False | category harmonization patch bump (registry metadata) |
-| xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 24/24 | 50b65cee | False | published in eco-v0.1.179 (2026-10-14, 0.4.0 external force/torque; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161) |
+| xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 67/67 | 10167d9d | False | published in eco-v0.1.179 (2026-10-14, 0.4.0 external force/torque; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161) |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.ktx2 | xiom-ktx2 | incubating | tests/test_conformance.xi | pass 41/41 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- KTX-Software 4.4.2) |
