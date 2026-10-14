@@ -14,10 +14,10 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 93 eco releases; this block is the live handoff):**
+**STATE AT 2026-10-13 11:55Z (CLEAN HANDOFF -- all queues parked; 94 eco releases; this block is the live handoff):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified; canonical install byte-identical
-  556/556; 532 records repinned). Validate **537/0**; guard **538 allowlisted / 508 ready / 30
-  grandfathered / 0 failures**. Tally: **93 eco releases** (`eco-v0.1.86` -> `eco-v0.1.177`).
+  556/556; 532 records repinned). Validate **547/0**; guard **538 allowlisted / 518 ready / 20
+  grandfathered / 0 failures**. Tally: **94 eco releases** (`eco-v0.1.86` -> `eco-v0.1.178`).
 - **Published since the 18:45Z block**: batch 62 sdl3 0.16.1; **v0.64.4 gate** (repin + batch 63 jolt
   0.2.0 / vma 0.3.0 / dxc 0.3.0, `eco-v0.1.161`); **SDK100 wave complete** (batches 64-67:
   spirv-tools/cross/reflect + glslang + slang + sdl2 + shaderc + spirv.headers 0.1.0, sdl3 0.17.0,
@@ -31,7 +31,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   **sqlite 0.4.0** (`eco-v0.1.174`; PULSE SQL driver, 21/21 x2);
   **sqlite 0.4.1** (`eco-v0.1.175`; modules list, 21/21 x2);
   **codec wave A** (`eco-v0.1.176`; jolt 0.3.0 + zstd 0.3.0 + meshopt 0.5.0 + ffmpeg 0.3.0, all x2 green);
-  **wave B first** (`eco-v0.1.177`; harfbuzz 0.1.0 + basisu 0.1.0 + spz 0.1.0, x2 green).
+  **wave B first** (`eco-v0.1.177`; harfbuzz 0.1.0 + basisu 0.1.0 + spz 0.1.0, x2 green);
+  **wave 2** (`eco-v0.1.178`; opus 0.1.0 + ogg 0.2.0 + lz4 0.1.0 + ktx2 0.1.0 + vdb 0.1.0 + phonon 0.3.0
+  + fidelityfx 0.1.0 + nis 0.1.0 + dlss 0.1.0 + xess 0.1.0 + nrd 0.1.0 + oidn 0.1.0, all x2 green).
 - **v0.64.4 re-verify wave DONE**: `-1549-packages-4` VERIFIED (phantom probes -> one clean
   `19:5 unresolved import`); `-6` VERIFIED (jolt `--cxx-standard 17`); `-5`/`-7` BOUNCED still red
   (consumer link `undefined symbol: sqlite3_libversion`; local fallback silent no-op + ranges
@@ -183,6 +185,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   **engine relayed** (`REL-20261013-2211-packages`). Remaining 14 wave names publish unattended as
   each goes ready (owner-exception allowlist; ops scopes live). ffmpeg 0.4.0 still held
   (`-2142-packages` generation fix).
+- **WAVE 2 PUBLISHED (2026-10-14 12:43Z, eco-v0.1.178, 12 packages)**: merge `858df12a` (tip
+  `83bce61f`; generated-doc conflicts only -> regen `3a22a083`; validate 547/0); native x2 ALL GREEN @
+  `3a22a083` -- opus 26, ogg 34, lz4 81, ktx2 41, vdb 30, phonon 6 (SKIP-path), fidelityfx 35, nis 28,
+  dlss 21, xess 24, nrd 29, oidn 4 (`323483ab`); wrap `eb21dc46`; run 38565995820 green (5m51s);
+  registry-live sha256s verified; README/STATUS synced `14fcee68`; item `-1208-bindings-3` fixed;
+  **engine relayed** (`REL-20261014-1259-packages`). A05 asks (HDR + IES) routed to bindings
+  (`REL-20261014-1223-packages`). Still in flight: path-tracer set (rpr/rtxdi/rtxgi/openpgl).
 - **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
   cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
   consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
@@ -686,15 +695,15 @@ if the target item is already in its target state, skip it and report.
 
 STATE: pin v0.64.4 (official archive, SHA256 44a41aea verified; canonical install
 byte-identical 556/556; 532 records repinned). Validate 534/0; guard 521
-allowlisted / 508 ready / 30 grandfathered / 0 failures. Tally: 93 eco releases
-(eco-v0.1.86 -> eco-v0.1.177) -- SDK100 wave complete + vulkan 0.6.0 + opengl
+allowlisted / 518 ready / 20 grandfathered / 0 failures. Tally: 94 eco releases
+(eco-v0.1.86 -> eco-v0.1.178) -- SDK100 wave complete + vulkan 0.6.0 + opengl
 0.5.0 + dx12 0.4.0 (stable) + sdl3 0.18.0 + sqlite 0.4.1 (PULSE driver +
-modules fix) + codec wave A (jolt 0.3.0/zstd 0.3.0/meshopt 0.5.0/ffmpeg 0.3.0)
-+ wave B first (harfbuzz 0.1.0/basisu 0.1.0/spz 0.1.0) + gles 0.1.0 + vma 0.3.0
-+ dxc 0.3.0 all live. OWNER EXCEPTION staged: 17 wave names publish unattended
-on green; ops scopes LIVE (eco 537 both). Consumer project-build blocker open
-with compiler (-1731-packages); ffmpeg 0.4.0 held (-2142). Nothing else open
-addressed to packages.
+modules fix) + wave A (jolt/zstd/meshopt/ffmpeg 0.3) + wave B first (harfbuzz/
+basisu/spz) + wave 2 (opus/ogg/lz4/ktx2/vdb/phonon/fidelityfx/nis/dlss/xess/
+nrd/oidn) all live. OWNER EXCEPTION: 17 wave names unattended; ops scopes LIVE
+(eco 537 both). Consumer project-build blocker open with compiler
+(-1731-packages); ffmpeg 0.4.0 held (-2142). Path-tracer wave + A05 addenda in
+flight (bindings). Nothing else open addressed to packages.
 
 WORK QUEUE (in priority order as items land):
 1. [DONE 2026-10-13] xiom.sqlite 0.4.0 SQL driver + 0.4.1 modules-list fix live
