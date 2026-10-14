@@ -9,6 +9,7 @@
 > tests use `xiom.test`, `xiom.io`, `xiom.string` and `xiom.string.compare`).
 > The packet layer is a vendored-C binding (`vendor/ogg`, BSD-3; see
 > PROVENANCE.md) with `unsafe` confined to `xiom.ogg.ffi`.
+> **Published**: `0.2.0` in `eco-v0.1.178` (sha256 `9d3619b2...`).
 
 ## What it is
 

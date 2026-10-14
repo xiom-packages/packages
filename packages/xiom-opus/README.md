@@ -50,6 +50,7 @@ ambisonics projection including the demixing-matrix round trip, DRED stub
 behavior, packet parsing/padding, init-over-own-memory, ctl companions)
 lives in `xiom.opus.ffi`. Constants and ctl request ids live in
 `xiom.opus.abi`.
+**Published**: `0.1.0` in `eco-v0.1.178` (sha256 `b2a7d3d7...`).
 
 ## Layout
 

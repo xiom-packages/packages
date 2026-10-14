@@ -6,6 +6,7 @@ Bindings for the public C API of Intel Open Image Denoise v2.5.1
 C++ bridge (`src/oidn_bridge.cpp`) that resolves `OpenImageDenoise.dll` at
 runtime; nothing from upstream is compiled into XIOM programs and no binary
 is stored in this repository.
+**Published**: `0.1.0` in `eco-v0.1.178` (sha256 `e7bc8f10...`).
 
 ## What you get
 

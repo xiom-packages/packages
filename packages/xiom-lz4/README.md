@@ -8,6 +8,7 @@ BSD-2-Clause) is vendored in `vendor/lz4/` and compiled into the test binary
 > **Status:** `incubating` -- suite green x2 on the pin (v0.64.4): 81/81
 > (`scripts/port.ps1 -Package xiom.lz4 -TimeoutSec 600`).
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.1.0` in `eco-v0.1.178` (sha256 `7b106897...`).
 
 ## Quick start
 
