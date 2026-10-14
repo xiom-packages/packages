@@ -34,6 +34,7 @@
 //     -105     framebuffer read-back capacity mismatch (out_count != fb size)
 //     -106     object table full
 
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <stdint.h>
 #include <string.h>
@@ -202,6 +203,8 @@ static struct {
     g_api.field = (void*)GetProcAddress(g_api.mod, name);                         \
     if (g_api.field == 0) {                                                       \
       set_err("missing entry point: " name);                                      \
+      FreeLibrary(g_api.mod);                                                     \
+      g_api.mod = 0;                                                              \
       return -101;                                                                \
     }                                                                             \
   } while (0)
@@ -630,7 +633,7 @@ int64_t rprx_framebuffer_desc(int64_t fb_h) {
 int64_t rprx_framebuffer_read(int64_t fb_h, float* out, int64_t out_count) {
   rpr_framebuffer fb = get_obj(fb_h);
   if (!fb) return -103;
-  if (!out || out_count <= 0) return -104;
+  if (!out || out_count <= 0 || out_count > (INT64_MAX / 4)) return -104;
   size_t sz = 0;
   rpr_status st = g_api.fb_get_info(fb, 0x1303 /* RPR_FRAMEBUFFER_DATA */, 0, 0, &sz);
   if (st != 0) return (int64_t)st;
