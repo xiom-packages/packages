@@ -15,6 +15,7 @@ no build is present (LGPL policy: dynamic linking only, nothing vendored).
 > **12/12** on 0.3.0-era sets (Cascadeur 6.0 / CapCut / OBS),
 > and **3/3 x2** SKIP on the default PATH.
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.4.1` in `eco-v0.1.179` (sha256 `50f6d46b...`).
 
 ## Quick start
 

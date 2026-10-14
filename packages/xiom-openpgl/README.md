@@ -13,6 +13,7 @@ test binary at port time; nothing is loaded dynamically.
 - Declared surface: 31/103 upstream C symbols across device, guiding
   field, sample storage, surface sampling distribution and field
   statistics (SPEC.md section 1)
+**Published**: `0.1.0` in `eco-v0.1.179` (sha256 `a5e7f5a9...`).
 
 ## Quick start
 

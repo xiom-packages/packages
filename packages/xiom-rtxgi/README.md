@@ -9,6 +9,7 @@ nothing from RTXGI ships here -- no source, headers, shader blobs or
 binaries. The package is independent XIOM code plus an XIOM-side bridge
 (`src/rtxgi_bridge.cpp`, ours) that resolution-loads a locally built sample
 module (`xiom_rtxgi_shim.dll`) and classifies **SKIP** when it is absent.
+**Published**: `0.1.0` in `eco-v0.1.179` (sha256 `60833288...`).
 
 ## Surface (0.1.0)
 

@@ -13,7 +13,7 @@
                   "checked":  "2026-10-14T14:00:31Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: next scope delta (path-tracer wave; allowlisted)",
+    "excluded_reason":  "published in eco-v0.1.179 (2026-10-14, 0.1.0 Open PGL v0.7.1)",
     "platforms":  [
                       "windows-x64"
                   ]
