@@ -11,7 +11,8 @@
 #                                   declared-not-exported, export-only)
 #   src/sdl3_full_registry.xi       one load+close call per module (wiring
 #                                   proof used by tests/test_full_surface.xi)
-#   docs/gen_manifest.json          counts, hashes, skipped-constant ledger
+#   docs/gen_manifest.json          counts, hashes, skipped-constant ledger,
+#                                   device-surface pin (0.19.0)
 #
 # Oracle definition (owner policy docs/UPSTREAM-FIRST.md + SDK100 plan):
 #   target = functions DECLARED in the shipped SDL3 headers that SDL3.dll
@@ -778,6 +779,267 @@ class TypeMap:
         return INT_BASES.get(name)
 
 
+# ---------------------------------------------------------------------------
+# Device-surface pin (0.19.0): Win64 layouts + symbol/constant annotations
+# ---------------------------------------------------------------------------
+# The hand-written root module (sdl3.xi) decodes pen/tablet events and encodes
+# SDL_HapticEffect slots with byte-indexed reads/writes pinned to Win64
+# offsets.  This audit recomputes every offset from the pinned header member
+# lists (MSVC x64 natural alignment; struct size rounded up to the struct
+# alignment) and fails generation when a re-pin moves a field, so the 100%
+# declared-addition accounting stays checkable instead of hand-transcribed.
+# The expected values below are the MSVC x64 ABI values, independently
+# cross-checked against the same pinned headers with a clang probe
+# (x86_64-pc-windows-msvc, offsetof/sizeof):
+#   SDL_PenProximityEvent=24 SDL_PenMotionEvent=40 SDL_PenTouchEvent=40
+#   SDL_PenButtonEvent=40 SDL_PenAxisEvent=48 SDL_TouchFingerEvent=56
+#   SDL_HapticDirection=16 SDL_HapticPeriodic=48 SDL_HapticEffect=72
+
+DEVICE_LAYOUT_EXPECTED = {
+    # pen/tablet + touch event members (SDL_events.h)
+    "SDL_PenProximityEvent": {"size": 24, "windowID": 16, "which": 20},
+    "SDL_PenMotionEvent": {"size": 40, "windowID": 16, "which": 20,
+                           "pen_state": 24, "x": 28, "y": 32},
+    "SDL_PenTouchEvent": {"size": 40, "windowID": 16, "which": 20,
+                          "pen_state": 24, "x": 28, "y": 32,
+                          "eraser": 36, "down": 37},
+    "SDL_PenButtonEvent": {"size": 40, "windowID": 16, "which": 20,
+                           "pen_state": 24, "x": 28, "y": 32,
+                           "button": 36, "down": 37},
+    "SDL_PenAxisEvent": {"size": 48, "windowID": 16, "which": 20,
+                         "pen_state": 24, "x": 28, "y": 32,
+                         "axis": 36, "value": 40},
+    "SDL_TouchFingerEvent": {"size": 56, "touchID": 16, "fingerID": 24,
+                             "x": 32, "y": 36, "dx": 40, "dy": 44,
+                             "pressure": 48, "windowID": 52},
+    # haptic wave-form members (SDL_haptic.h)
+    "SDL_HapticDirection": {"size": 16, "type": 0, "dir": 4},
+    "SDL_HapticPeriodic": {"size": 48, "type": 0, "direction": 4,
+                           "length": 20, "delay": 24, "button": 26,
+                           "interval": 28, "period": 30, "magnitude": 32,
+                           "offset": 34, "phase": 36, "attack_length": 38,
+                           "attack_level": 40, "fade_length": 42,
+                           "fade_level": 44},
+    "SDL_HapticConstant": {"size": 40},
+    "SDL_HapticCondition": {"size": 68},
+    "SDL_HapticRamp": {"size": 44},
+    "SDL_HapticLeftRight": {"size": 12},
+    "SDL_HapticCustom": {"size": 56},
+}
+
+DEVICE_UNION_EXPECTED = {
+    "SDL_HapticEffect": {"size": 72, "align": 8},
+}
+
+DEVICE_SURFACE_SYMBOLS = [
+    # joystick caps: capability flags live on the joystick properties group
+    # (SDL3 has no SDL_JoystickHasRumble/LED functions in the pinned header)
+    "SDL_GetJoystickProperties", "SDL_GetBooleanProperty",
+    "SDL_SetBooleanProperty", "SDL_GetNumJoystickAxes",
+    "SDL_GetNumJoystickButtons", "SDL_GetNumJoystickHats",
+    "SDL_GetNumJoystickBalls", "SDL_GetJoystickType",
+    # haptic wave-form surface
+    "SDL_GetHaptics", "SDL_GetHapticFromID", "SDL_GetHapticName",
+    "SDL_GetHapticNameForID", "SDL_OpenHaptic", "SDL_CloseHaptic",
+    "SDL_IsJoystickHaptic", "SDL_OpenHapticFromJoystick",
+    "SDL_GetHapticFeatures", "SDL_GetMaxHapticEffects",
+    "SDL_GetMaxHapticEffectsPlaying", "SDL_GetNumHapticAxes",
+    "SDL_HapticEffectSupported", "SDL_CreateHapticEffect",
+    "SDL_UpdateHapticEffect", "SDL_RunHapticEffect", "SDL_StopHapticEffect",
+    "SDL_DestroyHapticEffect", "SDL_GetHapticEffectStatus",
+    "SDL_HapticRumbleSupported", "SDL_InitHapticRumble",
+    "SDL_PlayHapticRumble", "SDL_StopHapticRumble",
+    # pen/tablet tool-type query
+    "SDL_GetPenDeviceType",
+]
+
+DEVICE_SURFACE_CONSTANTS = {
+    # joystick cap property names (Str)
+    "SDL_PROP_JOYSTICK_CAP_MONO_LED_BOOLEAN": "SDL.joystick.cap.mono_led",
+    "SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN": "SDL.joystick.cap.rgb_led",
+    "SDL_PROP_JOYSTICK_CAP_PLAYER_LED_BOOLEAN": "SDL.joystick.cap.player_led",
+    "SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN": "SDL.joystick.cap.rumble",
+    "SDL_PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN": "SDL.joystick.cap.trigger_rumble",
+    # haptic wave-form types + direction encodings
+    "SDL_HAPTIC_INFINITY": 4294967295,
+    "SDL_HAPTIC_SINE": 2, "SDL_HAPTIC_SQUARE": 4, "SDL_HAPTIC_TRIANGLE": 8,
+    "SDL_HAPTIC_SAWTOOTHUP": 16, "SDL_HAPTIC_SAWTOOTHDOWN": 32,
+    "SDL_HAPTIC_POLAR": 0, "SDL_HAPTIC_CARTESIAN": 1,
+    "SDL_HAPTIC_SPHERICAL": 2,
+    # pen/tablet device types + input-state flags + event types
+    "SDL_PEN_DEVICE_TYPE_INVALID": -1, "SDL_PEN_DEVICE_TYPE_UNKNOWN": 0,
+    "SDL_PEN_DEVICE_TYPE_DIRECT": 1, "SDL_PEN_DEVICE_TYPE_INDIRECT": 2,
+    "SDL_PEN_INPUT_DOWN": 1, "SDL_PEN_INPUT_BUTTON_1": 2,
+    "SDL_PEN_INPUT_BUTTON_2": 4, "SDL_PEN_INPUT_BUTTON_3": 8,
+    "SDL_PEN_INPUT_BUTTON_4": 16, "SDL_PEN_INPUT_BUTTON_5": 32,
+    "SDL_PEN_INPUT_ERASER_TIP": 1073741824,
+    "SDL_PEN_INPUT_IN_PROXIMITY": 2147483648,
+    "SDL_EVENT_PEN_PROXIMITY_IN": 4864, "SDL_EVENT_PEN_PROXIMITY_OUT": 4865,
+    "SDL_EVENT_PEN_DOWN": 4866, "SDL_EVENT_PEN_UP": 4867,
+    "SDL_EVENT_PEN_BUTTON_DOWN": 4868, "SDL_EVENT_PEN_BUTTON_UP": 4869,
+    "SDL_EVENT_PEN_MOTION": 4870, "SDL_EVENT_PEN_AXIS": 4871,
+    # joystick device types (SDL_JoystickType enum)
+    "SDL_JOYSTICK_TYPE_UNKNOWN": 0, "SDL_JOYSTICK_TYPE_GAMEPAD": 1,
+    "SDL_JOYSTICK_TYPE_WHEEL": 2, "SDL_JOYSTICK_TYPE_ARCADE_STICK": 3,
+    "SDL_JOYSTICK_TYPE_FLIGHT_STICK": 4, "SDL_JOYSTICK_TYPE_DANCE_PAD": 5,
+    "SDL_JOYSTICK_TYPE_GUITAR": 6, "SDL_JOYSTICK_TYPE_DRUM_KIT": 7,
+    "SDL_JOYSTICK_TYPE_ARCADE_PAD": 8, "SDL_JOYSTICK_TYPE_THROTTLE": 9,
+    "SDL_JOYSTICK_TYPE_COUNT": 10,
+}
+
+
+def align_up(value, align):
+    return (value + align - 1) // align * align
+
+
+class LayoutEngine:
+    """Win64 (MSVC x64) struct/union layout from the parsed header text."""
+
+    def __init__(self, texts, typemap):
+        self.texts = texts
+        self.tm = typemap
+        self.cache = {}
+
+    def find_body(self, kind, name):
+        pat = re.compile(r"typedef\s+" + kind + r"\s+" + re.escape(name) +
+                         r"\s*\{(.*?)\}\s*" + re.escape(name) + r"\s*;", re.S)
+        for fname in sorted(self.texts):
+            m = pat.search(self.texts[fname])
+            if m:
+                return m.group(1)
+        raise SystemExit("layout: %s %s not found in the pinned headers" % (kind, name))
+
+    def members(self, body):
+        out = []
+        for raw in body.split(";"):
+            m = norm(raw)
+            if not m:
+                continue
+            m2 = re.match(r"^(.*?)\b([A-Za-z_][A-Za-z0-9_]*)\s*(\[\s*(\d+)\s*\])?$", m)
+            if not m2:
+                raise SystemExit("layout: unparsed member %r" % m)
+            ctype = norm(m2.group(1))
+            name = m2.group(2)
+            if not ctype:
+                raise SystemExit("layout: member %r without a type" % m)
+            count = int(m2.group(4)) if m2.group(4) else None
+            out.append((ctype, name, count))
+        return out
+
+    def type_size(self, ctype):
+        ctype = norm(ctype)
+        if "*" in ctype:
+            return (8, 8)
+        spec = self.tm.scalar_spec(ctype)
+        if spec is None:
+            raise SystemExit("layout: unmapped member type %r" % ctype)
+        if spec[0] == "struct":
+            lay = self.layout(ctype)
+            return (lay["size"], lay["align"])
+        if spec[0] == "fnptr" or (spec[0] == "int" and spec[2] == 64):
+            return (8, 8)
+        if spec[0] in ("int", "bool", "fp"):
+            bits = spec[2] if len(spec) > 2 else 0
+            n = max(1, bits // 8)
+            return (n, n)
+        raise SystemExit("layout: unmapped member type %r (%r)" % (ctype, spec))
+
+    def layout(self, name):
+        if name in self.cache:
+            return self.cache[name]
+        off = 0
+        max_align = 1
+        fields = {}
+        for ctype, fname, count in self.members(self.find_body("struct", name)):
+            size, align = self.type_size(ctype)
+            if count is not None:
+                size = size * count
+            off = align_up(off, align)
+            fields[fname] = off
+            off += size
+            max_align = max(max_align, align)
+        lay = {"size": align_up(off, max_align), "align": max_align, "fields": fields}
+        self.cache[name] = lay
+        return lay
+
+    def union_layout(self, name):
+        size = 0
+        max_align = 1
+        for ctype, fname, count in self.members(self.find_body("union", name)):
+            s, a = self.type_size(ctype)
+            if count is not None:
+                s = s * count
+            size = max(size, s)
+            max_align = max(max_align, a)
+        return {"size": align_up(size, max_align), "align": max_align}
+
+
+def audit_device_surface(texts, typemap, declared, export_set, oracle, wrapper_names):
+    """Recompute the 0.19.0 device-surface layouts and verify the pinned
+    symbol/constant annotations against the headers.  Any mismatch aborts
+    generation (the hand-written decode layer would be stale)."""
+    engine = LayoutEngine(texts, typemap)
+    layouts = {}
+    problems = []
+
+    for name, expected in sorted(DEVICE_LAYOUT_EXPECTED.items()):
+        got = engine.layout(name)
+        row = {"size": got["size"], "align": got["align"]}
+        for f, off in sorted(got["fields"].items()):
+            row[f] = off
+        layouts[name] = row
+        if "size" in expected and got["size"] != expected["size"]:
+            problems.append("layout %s.size = %d (pinned %d)"
+                            % (name, got["size"], expected["size"]))
+        for f, off in sorted(expected.items()):
+            if f == "size":
+                continue
+            have = got["fields"].get(f)
+            if have != off:
+                problems.append("layout %s.%s = %s (pinned %s)" % (name, f, have, off))
+
+    for name, expected in sorted(DEVICE_UNION_EXPECTED.items()):
+        got = engine.union_layout(name)
+        layouts[name] = {"size": got["size"], "align": got["align"]}
+        if got["size"] != expected["size"] or got["align"] != expected["align"]:
+            problems.append("union %s = size %d/align %d (pinned %d/%d)"
+                            % (name, got["size"], got["align"],
+                               expected["size"], expected["align"]))
+
+    for sym in DEVICE_SURFACE_SYMBOLS:
+        if sym not in declared:
+            problems.append("device symbol not declared: %s" % sym)
+        elif sym not in export_set:
+            problems.append("device symbol not exported: %s" % sym)
+        elif sym not in wrapper_names:
+            problems.append("device symbol has no generated wrapper: %s" % sym)
+
+    constants = {}
+    for cname, cexp in sorted(DEVICE_SURFACE_CONSTANTS.items()):
+        if isinstance(cexp, str):
+            got = oracle.str_values.get(cname)
+        else:
+            got = oracle.sym.get(cname)
+        if got != cexp:
+            problems.append("constant %s = %r (pinned %r)" % (cname, got, cexp))
+        constants[cname] = cexp
+
+    if problems:
+        for p in problems:
+            sys.stderr.write("device-surface: %s\n" % p)
+        raise SystemExit("device-surface audit failed (%d problem(s))" % len(problems))
+
+    return {
+        "layouts": layouts,
+        "symbols": sorted(DEVICE_SURFACE_SYMBOLS),
+        "symbols_verified": len(DEVICE_SURFACE_SYMBOLS),
+        "constants": constants,
+        "constants_verified": len(DEVICE_SURFACE_CONSTANTS),
+        "abi": "Win64 (MSVC x64 natural alignment), cross-checked with a clang "
+               "x86_64-pc-windows-msvc offsetof probe against the pinned headers",
+    }
+
+
 PARAM_ANNOTATION_RE = re.compile(
     r"\bSDL_[A-Z0-9_]*(?:_CAP|_BYTECAP|_FORMAT_STRING|_VARARG_FUNC[V]?|_STRING)\s*(?:\([^()]*\))?\s*")
 
@@ -1125,6 +1387,10 @@ def main():
                 raise SystemExit("unhandled wrapper name collision: %s" % names)
             wrapper_names.update(ren)
 
+    # device-surface pin (0.19.0) -------------------------------------------
+    device_surface = audit_device_surface(texts, typemap, declared, export_set,
+                                          oracle, wrapper_names)
+
     # family plan -----------------------------------------------------------
     family_of = {}
     fam_funcs = {}
@@ -1277,6 +1543,7 @@ def main():
         "constants_str": len(oracle.str_values),
         "constants_float": len(oracle.float_values),
         "constants_unresolved": [[n, s, e] for (n, s, e) in oracle.unresolved],
+        "device_surface": device_surface,
         "modules": manifest_modules,
         "unmapped_types": sorted(set(all_notes)),
     }
@@ -1286,6 +1553,11 @@ def main():
     print("declared=%d exported=%d target=%d" % (len(declared_order), len(exports), len(target)))
     print("declared_not_exported=%s" % declared_not_exported)
     print("export_only=%s" % export_only)
+    print("device-surface: symbols=%d/%d constants=%d/%d layouts=%d/%d (Win64 pin)"
+          % (device_surface["symbols_verified"], len(DEVICE_SURFACE_SYMBOLS),
+             device_surface["constants_verified"], len(DEVICE_SURFACE_CONSTANTS),
+             len(device_surface["layouts"]),
+             len(DEVICE_LAYOUT_EXPECTED) + len(DEVICE_UNION_EXPECTED)))
     print("constants: int=%d str=%d unresolved=%d" %
           (len(oracle.sym), len(oracle.str_values), len(oracle.unresolved)))
     for n, s, e in oracle.unresolved[:30]:
