@@ -6,14 +6,24 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.18.0 foreign-written event readback
-> (B-11 addendum retired on v0.64.4)**: poll into an owned buffer and
-> decode the SDL-written event exactly (user-event + KEY_DOWN readback
-> witnesses).  0.16.1 fixed the `SDL_WasInit` return width (B-19:
-> `SDL_InitFlags` is `Uint32`; the old `UInt8` cast truncated the mask on
-> m263+).  Suite **61/61 x2** with the official SDL 3.4.8 DLL + absent
-> **5/5 x2** (decode arms run without the DLL).  **Lane:** bindings
-> (`keywords: ["binding"]`).
+> **Status:** `incubating` -- **0.19.0 device surface (engine ask
+> `REL-20261013-2324-engine`)**: joystick **caps** as typed queries (the
+> five `SDL.joystick.cap.*` flags over the properties group + counts/type +
+> an aggregate caps record), **haptic wave forms** (validated
+> `SDL_HapticPeriodic` slot encode + create/update/run/status/stop/destroy
+> and rumble with typed `Sdl3HapticError`), and the **pen/tablet decode
+> path** (motion/touch/button/proximity accessors + tool-type query).
+> The same wave fixed a suite bug the new pen check exposed:
+> `SDL_PollEvent(NULL)` is a **peek** on the pinned 3.4.8 runtime, so queue
+> drains now consume into an owned scratch buffer.  Suite **72/72 x2** with
+> the official SDL 3.4.8 DLL + absent **8/8 x2** (decode/encode arms run
+> without the DLL).  Previous: 0.18.0 foreign-written event readback
+> (B-11 addendum retired on v0.64.4); 0.16.1 fixed the `SDL_WasInit` return
+> width (B-19).  0.15.0 shipped in `eco-v0.1.151`; 0.16.0 in
+> `eco-v0.1.152`; 0.16.1 in `eco-v0.1.160` (sha256 `f2d99b9e...`); 0.17.0
+> published in `eco-v0.1.162` (sha256 `2f162d32...`); 0.18.0 in
+> `eco-v0.1.173` (sha256 `544c59b8...`).
+> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -57,6 +67,9 @@ fn main() {
 | Audio capture (0.13.0) | `sdl3_open_audio_recording_stream(format, channels, freq)` (default recording device, NULL callback = pull mode; returns 0 -> SKIP), `sdl3_get_audio_stream_data(stream, buf, len)` (bytes read into an XIOM buffer), `sdl3_get_audio_stream_available`, `sdl3_clear_audio_stream`, `sdl3_get_audio_stream_format` (`Sdl3AudioStreamFormat`); `SDL_AUDIO_DEVICE_DEFAULT_RECORDING` |
 | Pointer/relative mouse (0.14.0) | `sdl3_global_mouse_state`, `sdl3_relative_mouse_state` (`Sdl3MouseState`: x/y + button mask), `sdl3_set_window_relative_mouse_mode(win, enabled)` + `sdl3_window_relative_mouse_mode(win)` (per-window relative mode), `sdl3_capture_mouse(enabled)` -- require `SDL_INIT_VIDEO` |
 | Joystick live path (0.15.0) | `sdl3_open_joystick(id)` / `sdl3_close_joystick`, `sdl3_joystick_connected`, `sdl3_joystick_name`, `sdl3_joystick_axis` (signed, -32768..32767), `sdl3_joystick_button`, `sdl3_set_joystick_virtual_axis/button`, `sdl3_attach_virtual_joystick(name, naxes, nbuttons)` / `sdl3_detach_virtual_joystick(id)` -- hardware-free instrumentation for the real read path |
+| Joystick caps (0.19.0) | `sdl3_joystick_caps(joy)` (`Sdl3JoystickCaps`: axes/buttons/hats/balls + type + the five flags), `sdl3_joystick_has_rumble`, `sdl3_joystick_has_rumble_triggers`, `sdl3_joystick_has_mono_led`, `sdl3_joystick_has_rgb_led`, `sdl3_joystick_has_player_led`, `sdl3_joystick_num_axes/buttons/hats/balls`, `sdl3_joystick_type`, `sdl3_joystick_properties`, `sdl3_property_bool`/`sdl3_set_boolean_property`; `SDL_PROP_JOYSTICK_CAP_*`, `SDL_JOYSTICK_TYPE_*` -- SDL3 exposes caps as boolean strings on the joystick properties group (no `SDL_JoystickHasRumble` function in 3.4.8) |
+| Haptic wave forms (0.19.0) | `sdl3_haptic_encode_periodic(slot, eff)` (validated `SDL_HapticPeriodic` encode, `SDL_HAPTIC_EFFECT_SIZE` = 72), `sdl3_haptic_create_periodic/update_periodic` -> typed `Sdl3HapticError` (`kind` = `SDL3_HAPTIC_ERR_PARAM/OPEN/CREATE/UPDATE/RUN/STOP` + `SDL_GetError` message), `sdl3_haptic_effect_supported`, `sdl3_haptic_run/status/stop/destroy`, `sdl3_haptic_count/at/from_id`, `sdl3_haptic_name/name_for_id`, `sdl3_haptic_open/close`, `sdl3_is_joystick_haptic`, `sdl3_open_haptic_from_joystick`, `sdl3_haptic_features`, `sdl3_haptic_max_effects/max_effects_playing/num_axes`, rumble: `sdl3_haptic_rumble_supported/init/play/stop`; `SDL_HAPTIC_SINE/SQUARE/TRIANGLE/SAWTOOTHUP/SAWTOOTHDOWN/POLAR/CARTESIAN/SPHERICAL/INFINITY` |
+| Pen/tablet decode (0.19.0) | `sdl3_pen_device_type(id)` (`SDL_PEN_DEVICE_TYPE_*`; INVALID for unknown ids), pen event accessors: `sdl3_event_pen_window_id/_which/_state`, `sdl3_event_pen_x/_y` (+`_bits`), touch: `sdl3_event_pen_touch_eraser/_touch_down`, button: `sdl3_event_pen_button/_button_down`; `SDL_PEN_INPUT_*` flags |
 | Drag-drop (0.16.0) | `sdl3_event_drop_window_id`, `sdl3_event_drop_x/_y`, `sdl3_event_drop_source/_data` (payload C-string copies; `""` when NULL), `sdl3_str_c_ptr` (build synthetic C structures); `SDL_EVENT_DROP_*` constants from the 0.11.0 tables |
 | Mouse wheel (0.12.0) | `sdl3_event_wheel_x/_y` (+`_bits`), `sdl3_event_wheel_direction`, `sdl3_event_wheel_mouse_x/_y`; `SDL_MOUSEWHEEL_NORMAL/FLIPPED` |
 | Event decode (0.4.0) | `sdl3_event_type`, `sdl3_event_timestamp`, `sdl3_event_window_id`, `sdl3_event_key_scancode/key_code/mods/down/repeat`, `sdl3_event_mouse_state/x_bits/y_bits/x/y/button/button_down/clicks`, `sdl3_event_window_data1/data2`, `sdl3_f32_from_bits`, `SDL_EVENT_SIZE` |
@@ -134,13 +147,25 @@ anywhere on `PATH`. G2 pin (soname + header-set manifest hash): `SPEC.md` §2.
 xiom --run tests/test_conformance.xi
 ```
 
-- With SDL3: 49 `[PASS]` (decode layer + smoke + hidden window, renderer
-  clear/present, textures, gamepad enumeration, synthetic event injection,
-  filter keep/drop + watch semantics, displays + keyboard, filesystem round
-  trip, 64x64 RGBA blit, window resize typed event + mouse, audio/joystick
-  enumeration, 7680 B silent push stream), exit 0 (~14 s).
+- With SDL3: 72 `[PASS]` (decode layers incl. pen/tablet + drag-drop +
+  haptic encode, smoke + hidden window, renderer clear/present, textures,
+  gamepad enumeration, synthetic event injection incl. a PEN_MOTION
+  readback, filter keep/drop + watch semantics, displays + keyboard,
+  filesystem round trip, 64x64 RGBA blit, window resize typed event +
+  mouse, joystick live path + caps queries, audio/joystick enumeration,
+  7680 B silent push stream, haptic enumeration + typed errors), exit 0
+  (~15 s).
 - Without SDL3: the loader smoke reports explicit `SKIP` labels and stays
-  green; the decode layer runs in both shapes (pure XIOM; no DLL needed).
+  green (8 markers); the decode/encode arms run in both shapes (pure XIOM;
+  no DLL needed).
+
+Queue semantics note (0.19.0 correction): `SDL_PollEvent(NULL)` on the
+pinned 3.4.8 runtime REPORTS a pending event but does not consume it (it
+only clears SDL's internal poll sentinel); and a poll that meets that
+sentinel returns false with events still queued behind it. Draining
+therefore polls into an owned scratch buffer, and checks that expect a
+pushed event match on its type for a bounded number of polls (the suite's
+`drain_events`/`poll_for` helpers).
 
 On a host where `C:\VulkanSDK\1.4.350.0\Bin` is on PATH (as on the dev
 box), SDL3 is always found, so the absent shape is code-reviewed only.

@@ -1,6 +1,6 @@
 # xiom.sdl3 -- Roadmap
 
-**Version**: v0.18.0 | **Compiler**: xiom v0.64.4 | **Last updated**: 2026-10-13
+**Version**: v0.19.0 | **Compiler**: xiom v0.64.4 | **Last updated**: 2026-10-14
 
 ## Current state
 
@@ -29,6 +29,9 @@
 | Joystick open/axis/button reads (virtual-joystick instrumented, no hardware) | Done -- 0.15.0 |
 | Drag-drop payload decode (SDL_DropEvent, DLL-independent) | Done -- 0.16.0 |
 | Foreign-written event readback (poll into an owned buffer) | Done -- 0.18.0 (B-11 addendum retired on v0.64.4; user-event + KEY_DOWN readback witnesses live) |
+| Joystick caps (rumble/LED flags + counts/type) as typed queries | Done -- 0.19.0 (property-flag path incl. positive round trip witness) |
+| Haptic wave forms (periodic encode/create/run/stop, typed errors) | Done -- 0.19.0 (device path SKIP-safe; not-haptic typed-error witness live) |
+| Pen/tablet decode (motion/touch/button/proximity + tool type) | Done -- 0.19.0 (DLL-free decode + queue readback witness) |
 | POSIX soname fallback | Phase 2 |
 
 ## Phase 2 (remaining)
@@ -55,5 +58,6 @@
    enumeration in 0.10.0, tables in 0.11.0, push audio + wheel in 0.12.0,
    capture streams + query in 0.13.0, pointer/relative mouse in 0.14.0,
    live joystick reads in 0.15.0, drag-drop payload decode in 0.16.0,
-   foreign-written event readback in 0.18.0; the
+   foreign-written event readback in 0.18.0, joystick caps + haptic wave
+   forms + pen/tablet decode in 0.19.0; the
    full-coverage drive continues).

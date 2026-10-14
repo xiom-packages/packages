@@ -19,11 +19,17 @@ module sdl3_conformance
 use xiom.io;
 use xiom.convert;
 use xiom.test;
+use xiom.string;
 use xiom.sdl3;
 
 fn b2s(b: Bool) -> Str {
   if b { return "true"; }
   return "false";
+}
+
+// All Str equality goes through string.str_compare (B-26 discipline).
+fn sc_eq(a: Str, b: Str) -> Bool {
+  return string.str_compare(a, b) == 0;
 }
 
 fn report(ok: Bool, name: Str) -> Int {
@@ -48,16 +54,43 @@ fn slot_new(n: Int) -> Vec[UInt8] {
   return s;
 }
 
-// Drain the event queue (consume semantics; returns the drained count).
+// Drain the event queue with TRUE consume semantics: poll into a scratch
+// owned buffer.  SDL_PollEvent(NULL) on the pinned 3.4.8 runtime is a PEEK
+// (real events stay queued; only the internal poll sentinel is cleared) --
+// see the 0.19.0 pen-live check, which caught stale events this way.  The
+// loop ends when the poll hits SDL's end-of-cycle sentinel (false).
 fn drain_events(lib: &Sdl3Library, max: Int) -> Int
   requires: max > 0
 {
   var n = 0;
   while n < max {
-    if !sdl3_poll_event(lib, 0) { break; }
+    var scratch = slot_new(128);
+    if !sdl3_poll_event(lib, scratch.as_mut_ptr() as Int) { break; }
     n = n + 1;
   }
   return n;
+}
+
+// Poll until an event of type `want` is CONSUMED into `out` (an owned
+// 128-byte buffer).  Pinned 3.4.8 poll-cycle semantics: a poll that meets
+// SDL's internal POLL_SENTINEL returns false (the sentinel is consumed) even
+// when pushed events are queued right behind it, so the suite drains before
+// pushing and then matches on the event type (non-matching events, if any,
+// are consumed until `want` arrives or `tries` is exhausted).
+fn poll_for(lib: &Sdl3Library, want: Int, out: &mut Vec[UInt8], tries: Int) -> Bool
+  requires: out.len() >= 128
+  requires: tries > 0
+{
+  var i = 0;
+  while i < tries {
+    if sdl3_poll_event(lib, out.as_mut_ptr() as Int) {
+      if sdl3_event_type(out) == want {
+        return true;
+      }
+    }
+    i = i + 1;
+  }
+  return false;
 }
 
 // Constant tables and version arithmetic (independent of the DLL).
@@ -131,6 +164,22 @@ fn wr_u64(buf: &mut Vec[UInt8], off: Int, v: Int)
 {
   wr_u32(buf, off + 0, v & 0xFFFFFFFF);
   wr_u32(buf, off + 4, (v >> 32) & 0xFFFFFFFF);
+}
+
+fn rd_u16(buf: &Vec[UInt8], off: Int) -> Int
+  requires: buf.len() >= off + 2
+{
+  return (buf[off + 0] as Int) | ((buf[off + 1] as Int) << 8);
+}
+
+fn rd_u32(buf: &Vec[UInt8], off: Int) -> Int
+  requires: buf.len() >= off + 4
+{
+  let b0 = buf[off + 0] as Int;
+  let b1 = buf[off + 1] as Int;
+  let b2 = buf[off + 2] as Int;
+  let b3 = buf[off + 3] as Int;
+  return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
 }
 
 fn t_event_decode() -> Bool {
@@ -247,6 +296,227 @@ fn t_drop_decode() -> Bool {
   return ok;
 }
 
+// SINE wave used by the haptic device path (built per call: the parameter
+// struct is passed by value and moved at the first use).
+fn haptic_sine_wave() -> Sdl3HapticPeriodic {
+  return Sdl3HapticPeriodic{
+    wave: SDL_HAPTIC_SINE;
+    length: 100;
+    period: 20;
+    magnitude: 10000;
+    offset: 0;
+    phase: 0;
+    attack_length: 0;
+    attack_level: 0;
+    fade_length: 0;
+    fade_level: 0;
+    dir_type: SDL_HAPTIC_CARTESIAN;
+    dir0: 1;
+    dir1: 0;
+    dir2: 0;
+  };
+}
+
+// ---- 0.19.0: device-surface constant tables (DLL-independent) -------------
+
+fn t_device_constants() -> Bool {
+  var ok = true;
+  // Haptic wave forms + direction encodings + the x64 union size.
+  if SDL_HAPTIC_SINE != 2 || SDL_HAPTIC_SQUARE != 4 || SDL_HAPTIC_TRIANGLE != 8 { ok = false; }
+  if SDL_HAPTIC_SAWTOOTHUP != 16 || SDL_HAPTIC_SAWTOOTHDOWN != 32 { ok = false; }
+  if SDL_HAPTIC_INFINITY != 4294967295 { ok = false; }
+  if SDL_HAPTIC_POLAR != 0 || SDL_HAPTIC_CARTESIAN != 1 || SDL_HAPTIC_SPHERICAL != 2 { ok = false; }
+  if SDL_HAPTIC_EFFECT_SIZE != 72 { ok = false; }
+  // Pen/tablet device types + input flags + event types.
+  if SDL_PEN_DEVICE_TYPE_INVALID != -1 || SDL_PEN_DEVICE_TYPE_UNKNOWN != 0 { ok = false; }
+  if SDL_PEN_DEVICE_TYPE_DIRECT != 1 || SDL_PEN_DEVICE_TYPE_INDIRECT != 2 { ok = false; }
+  if SDL_PEN_INPUT_DOWN != 1 || SDL_PEN_INPUT_BUTTON_1 != 2 || SDL_PEN_INPUT_BUTTON_5 != 32 { ok = false; }
+  if SDL_PEN_INPUT_ERASER_TIP != 1073741824 || SDL_PEN_INPUT_IN_PROXIMITY != 2147483648 { ok = false; }
+  if SDL_EVENT_PEN_PROXIMITY_IN != 4864 || SDL_EVENT_PEN_PROXIMITY_OUT != 4865 { ok = false; }
+  if SDL_EVENT_PEN_DOWN != 4866 || SDL_EVENT_PEN_UP != 4867 { ok = false; }
+  if SDL_EVENT_PEN_BUTTON_DOWN != 4868 || SDL_EVENT_PEN_BUTTON_UP != 4869 { ok = false; }
+  if SDL_EVENT_PEN_MOTION != 4870 || SDL_EVENT_PEN_AXIS != 4871 { ok = false; }
+  // Joystick types + the five capability property names (Str via str_compare).
+  if SDL_JOYSTICK_TYPE_UNKNOWN != 0 || SDL_JOYSTICK_TYPE_GAMEPAD != 1 { ok = false; }
+  if SDL_JOYSTICK_TYPE_COUNT != 10 { ok = false; }
+  if !sc_eq(SDL_PROP_JOYSTICK_CAP_MONO_LED_BOOLEAN, "SDL.joystick.cap.mono_led") { ok = false; }
+  if !sc_eq(SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN, "SDL.joystick.cap.rgb_led") { ok = false; }
+  if !sc_eq(SDL_PROP_JOYSTICK_CAP_PLAYER_LED_BOOLEAN, "SDL.joystick.cap.player_led") { ok = false; }
+  if !sc_eq(SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN, "SDL.joystick.cap.rumble") { ok = false; }
+  if !sc_eq(SDL_PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN, "SDL.joystick.cap.trigger_rumble") { ok = false; }
+  return ok;
+}
+
+// ---- 0.19.0: haptic wave-form slot encode (DLL-independent) ---------------
+// Lays out SDL_HapticPeriodic byte-indexed (type u16 @0, direction @4/8/12/16,
+// length @20, delay/button/interval @24/26/28, period @30, magnitude @32,
+// offset @34, phase @36, attack @38/@40, fade @42/@44; Win64 pin, see the
+// generator's layout audit) and validates the typed PARAM error path.
+
+fn t_haptic_encode() -> Bool {
+  var ok = true;
+  var slot = slot_new(SDL_HAPTIC_EFFECT_SIZE);
+  let eff = Sdl3HapticPeriodic{
+    wave: SDL_HAPTIC_SINE;
+    length: 500;
+    period: 40;
+    magnitude: 20000;
+    offset: -1000;
+    phase: 9000;
+    attack_length: 10;
+    attack_level: 5;
+    fade_length: 20;
+    fade_level: 7;
+    dir_type: SDL_HAPTIC_CARTESIAN;
+    dir0: 1;
+    dir1: 0;
+    dir2: 0;
+  };
+  let enc = sdl3_haptic_encode_periodic(&mut slot, eff);
+  if !enc.is_ok { ok = false; }
+  if rd_u16(&slot, 0) != SDL_HAPTIC_SINE { ok = false; }
+  if (slot[4] as Int) != SDL_HAPTIC_CARTESIAN { ok = false; }
+  if rd_u32(&slot, 8) != 1 || rd_u32(&slot, 12) != 0 || rd_u32(&slot, 16) != 0 { ok = false; }
+  if rd_u32(&slot, 20) != 500 { ok = false; }
+  if rd_u16(&slot, 24) != 0 || rd_u16(&slot, 26) != 0 || rd_u16(&slot, 28) != 0 { ok = false; }
+  if rd_u16(&slot, 30) != 40 { ok = false; }
+  if rd_u16(&slot, 32) != 20000 { ok = false; }
+  if rd_u16(&slot, 34) != 64536 { ok = false; }   // -1000 two's complement
+  if rd_u16(&slot, 36) != 9000 { ok = false; }
+  if rd_u16(&slot, 38) != 10 || rd_u16(&slot, 40) != 5 { ok = false; }
+  if rd_u16(&slot, 42) != 20 || rd_u16(&slot, 44) != 7 { ok = false; }
+
+  // Square wave, infinite length, extreme signed values (two's complement).
+  var slot2 = slot_new(SDL_HAPTIC_EFFECT_SIZE);
+  let sq = Sdl3HapticPeriodic{
+    wave: SDL_HAPTIC_SQUARE;
+    length: SDL_HAPTIC_INFINITY;
+    period: 100;
+    magnitude: -32768;
+    offset: 32767;
+    phase: 0;
+    attack_length: 0;
+    attack_level: 0;
+    fade_length: 0;
+    fade_level: 0;
+    dir_type: SDL_HAPTIC_POLAR;
+    dir0: 0;
+    dir1: 0;
+    dir2: 0;
+  };
+  let enc2 = sdl3_haptic_encode_periodic(&mut slot2, sq);
+  if !enc2.is_ok { ok = false; }
+  if rd_u32(&slot2, 20) != SDL_HAPTIC_INFINITY { ok = false; }
+  if rd_u16(&slot2, 32) != 32768 { ok = false; }
+  if rd_u16(&slot2, 34) != 32767 { ok = false; }
+
+  // Unknown wave -> typed PARAM error, slot untouched.
+  var slot3 = slot_new(SDL_HAPTIC_EFFECT_SIZE);
+  let bad = Sdl3HapticPeriodic{
+    wave: 99;
+    length: 100;
+    period: 10;
+    magnitude: 0;
+    offset: 0;
+    phase: 0;
+    attack_length: 0;
+    attack_level: 0;
+    fade_length: 0;
+    fade_level: 0;
+    dir_type: SDL_HAPTIC_CARTESIAN;
+    dir0: 0;
+    dir1: 0;
+    dir2: 0;
+  };
+  let enc3 = sdl3_haptic_encode_periodic(&mut slot3, bad);
+  if enc3.is_ok { ok = false; }
+  if !enc3.is_ok {
+    if enc3.error.kind != SDL3_HAPTIC_ERR_PARAM { ok = false; }
+  }
+  if rd_u32(&slot3, 0) != 0 || rd_u32(&slot3, 20) != 0 { ok = false; }
+  return ok;
+}
+
+// ---- 0.19.0: PEN/TABLET decode (DLL-independent) --------------------------
+// SDL_PenProximityEvent (24 bytes: windowID @16, which @20), SDL_PenMotionEvent
+// (40 bytes: + pen_state @24, x @28, y @32), SDL_PenTouchEvent (40 bytes:
+// + eraser @36, down @37), SDL_PenButtonEvent (40 bytes: button @36, down @37)
+// -- offsets from the generator's Win64 layout audit of the pinned headers.
+
+fn t_pen_decode() -> Bool {
+  var ok = true;
+
+  // Motion: windowID 7, pen 42, IN_PROXIMITY|DOWN, x=12.5, y=-3.25.
+  var mev = slot_new(128);
+  wr_u32(&mut mev, 0, SDL_EVENT_PEN_MOTION);
+  wr_u64(&mut mev, 8, 5551212);
+  wr_u32(&mut mev, 16, 7);
+  wr_u32(&mut mev, 20, 42);
+  wr_u32(&mut mev, 24, SDL_PEN_INPUT_IN_PROXIMITY | SDL_PEN_INPUT_DOWN);
+  wr_u32(&mut mev, 28, 0x41480000);
+  wr_u32(&mut mev, 32, 0xC0500000);
+  if sdl3_event_type(&mev) != SDL_EVENT_PEN_MOTION { ok = false; }
+  if sdl3_event_timestamp(&mev) != 5551212 { ok = false; }
+  if sdl3_event_pen_window_id(&mev) != 7 { ok = false; }
+  if sdl3_event_pen_which(&mev) != 42 { ok = false; }
+  if sdl3_event_pen_state(&mev) != (SDL_PEN_INPUT_IN_PROXIMITY | SDL_PEN_INPUT_DOWN) { ok = false; }
+  if sdl3_event_pen_x_bits(&mev) != 0x41480000 { ok = false; }
+  if sdl3_event_pen_x(&mev) != 12.5 { ok = false; }
+  if sdl3_event_pen_y(&mev) != -3.25 { ok = false; }
+
+  // Touch down with the eraser tip: x=100.0, y=0.0.
+  var tev = slot_new(128);
+  wr_u32(&mut tev, 0, SDL_EVENT_PEN_DOWN);
+  wr_u32(&mut tev, 16, 9);
+  wr_u32(&mut tev, 20, 43);
+  wr_u32(&mut tev, 24, SDL_PEN_INPUT_DOWN | SDL_PEN_INPUT_ERASER_TIP);
+  wr_u32(&mut tev, 28, 0x42C80000);
+  wr_u32(&mut tev, 32, 0x00000000);
+  wr_u8(&mut tev, 36, 1);
+  wr_u8(&mut tev, 37, 1);
+  if !sdl3_event_pen_touch_eraser(&tev) { ok = false; }
+  if !sdl3_event_pen_touch_down(&tev) { ok = false; }
+  if sdl3_event_pen_x(&tev) != 100.0 { ok = false; }
+  if sdl3_event_pen_which(&tev) != 43 { ok = false; }
+
+  // Touch up: down flag false (eraser clear).
+  var uev = slot_new(128);
+  wr_u32(&mut uev, 0, SDL_EVENT_PEN_UP);
+  wr_u8(&mut uev, 37, 0);
+  if sdl3_event_pen_touch_down(&uev) { ok = false; }
+  if sdl3_event_pen_touch_eraser(&uev) { ok = false; }
+
+  // Button 2 pressed (barrel button).
+  var bev = slot_new(128);
+  wr_u32(&mut bev, 0, SDL_EVENT_PEN_BUTTON_DOWN);
+  wr_u32(&mut bev, 16, 9);
+  wr_u32(&mut bev, 20, 44);
+  wr_u32(&mut bev, 24, SDL_PEN_INPUT_BUTTON_2);
+  wr_u32(&mut bev, 28, 0x42480000);
+  wr_u32(&mut bev, 32, 0x42C80000);
+  wr_u8(&mut bev, 36, 2);
+  wr_u8(&mut bev, 37, 1);
+  if sdl3_event_pen_button(&bev) != 2 { ok = false; }
+  if !sdl3_event_pen_button_down(&bev) { ok = false; }
+  if sdl3_event_pen_x(&bev) != 50.0 { ok = false; }
+  if sdl3_event_pen_y(&bev) != 100.0 { ok = false; }
+
+  // Proximity in: windowID + which only (24-byte member; proximity out too).
+  var pev = slot_new(128);
+  wr_u32(&mut pev, 0, SDL_EVENT_PEN_PROXIMITY_IN);
+  wr_u32(&mut pev, 16, 11);
+  wr_u32(&mut pev, 20, 45);
+  if sdl3_event_type(&pev) != SDL_EVENT_PEN_PROXIMITY_IN { ok = false; }
+  if sdl3_event_pen_window_id(&pev) != 11 { ok = false; }
+  if sdl3_event_pen_which(&pev) != 45 { ok = false; }
+  var xev = slot_new(128);
+  wr_u32(&mut xev, 0, SDL_EVENT_PEN_PROXIMITY_OUT);
+  wr_u32(&mut xev, 20, 45);
+  if sdl3_event_type(&xev) != SDL_EVENT_PEN_PROXIMITY_OUT { ok = false; }
+  if sdl3_event_pen_which(&xev) != 45 { ok = false; }
+  return ok;
+}
+
 // ---- 0.5.0: event filter + watch capture state ----------------------------
 // Handlers take the event only (B-15: Vec[fn] element calls with >= 2 args
 // type their result as ()); userdata comes back via the package getters.
@@ -296,6 +566,9 @@ fn main() -> Int {
   failed = failed + report(t_constants(), "constants: init/window/event tables + SDL_VERSIONNUM math");
   failed = failed + report(t_event_decode(), "events: decode layer (key/mouse-motion/mouse-button/window + f32 bits) on owned buffers");
   failed = failed + report(t_drop_decode(), "events: drag-drop payload decode (windowID/xy + source/data C-string reads; NULL-safe)");
+  failed = failed + report(t_device_constants(), "constants: 0.19.0 device tables (haptic waves/dirs, pen types+flags+events, joystick caps props)");
+  failed = failed + report(t_haptic_encode(), "haptic: SDL_HapticPeriodic slot encode (sine/square fields, two's-complement, typed PARAM error)");
+  failed = failed + report(t_pen_decode(), "pen: motion/touch/button/proximity decode on owned buffers (Win64 layout pin)");
 
   let l = sdl3_load();
   if !l.is_ok {
@@ -353,34 +626,37 @@ fn main() -> Int {
 
     // Headless event-pump proof (engine ask REL-20261010-1834-engine-3):
     // inject a synthetic user event (SDL_EVENT_USER = 0x8000) into a
-    // 128-byte XIOM slot, pump, and verify the queue semantics WITHOUT
-    // reading the foreign-written buffer: poll(NULL) must consume it
-    // (true) and the following poll(NULL) must find the queue empty
-    // (false).  Buffer readback is deferred -- on this host it reproduces
-    // the B-11 slot-read corruption (recycled bytes; see the addendum item
-    // filed to the compiler lane).
+    // 128-byte XIOM slot, pump, and consume it with a real poll into an
+    // owned buffer.  (0.19.0 correction: SDL_PollEvent(NULL) is a PEEK on
+    // the pinned 3.4.8 runtime -- it reports the event but does NOT consume
+    // it; the earlier poll(NULL) "consume" wording was a suite bug caught
+    // by the pen-live check.)
     var ev_in = slot_new(128);
     // Byte-indexed writes only (B-16), and NO pointer arithmetic (B-17:
     // `as_mut_ptr() + 1` compiles to a wild address on v0.64.3).  slot_new
     // zero-fills, so byte 0 (the low half of 0x8000) is already 0; only
     // byte 1 needs the 0x80 high half.
     wr_u8(&mut ev_in, 1, 128);
-    // Drain any early queue entries (bounded) so the consume check is ours.
+    // Drain any early queue entries (bounded, true consume) so the poll
+    // below is ours.
     var drained: Int = 0;
+    var drain_scratch = slot_new(128);
     while drained < 500 {
-      if !sdl3_poll_event(&lib, 0) { break; }
+      if !sdl3_poll_event(&lib, drain_scratch.as_mut_ptr() as Int) { break; }
       drained = drained + 1;
     }
     let pushed = sdl3_push_event(&lib, ev_in.as_mut_ptr() as Int);
     sdl3_pump_events(&lib);
-    let consumed = sdl3_poll_event(&lib, 0);
-    failed = failed + report(pushed && consumed,
+    var u1_out = slot_new(128);
+    let consumed = poll_for(&lib, SDL_EVENT_USER, &mut u1_out, 8);
+    failed = failed + report(pushed && consumed && sdl3_event_type(&u1_out) == SDL_EVENT_USER,
       "events: synthetic user event (0x8000) injected + consumed (pushed=" + b2s(pushed)
-        + ", consumed=" + b2s(consumed) + ", drained-before=" + to_string(drained) + ")");
+        + ", consumed=" + b2s(consumed) + ", type=" + to_string(sdl3_event_type(&u1_out))
+        + ", drained-before=" + to_string(drained) + ")");
 
     // 0.4.0: push a synthetic KEY_DOWN (the decode layout above is what the
-    // runtime reads) and consume it; the same consume semantics avoid the
-    // foreign-write readback path (B-11).
+    // runtime reads) and consume it into an owned buffer; true consumption
+    // (poll into a buffer) avoids the foreign-write readback path (B-11).
     var kev = slot_new(128);
     wr_u32(&mut kev, 0, SDL_EVENT_KEY_DOWN);
     wr_u32(&mut kev, 16, 1);
@@ -389,10 +665,13 @@ fn main() -> Int {
     wr_u8(&mut kev, 36, 1);
     let kpushed = sdl3_push_event(&lib, kev.as_mut_ptr() as Int);
     sdl3_pump_events(&lib);
-    let kconsumed = sdl3_poll_event(&lib, 0);
-    failed = failed + report(kpushed && kconsumed,
+    var k1_out = slot_new(128);
+    let kconsumed = poll_for(&lib, SDL_EVENT_KEY_DOWN, &mut k1_out, 8);
+    failed = failed + report(kpushed && kconsumed
+        && sdl3_event_type(&k1_out) == SDL_EVENT_KEY_DOWN
+        && sdl3_event_key_scancode(&k1_out) == SDL_SCANCODE_A,
       "events: synthetic KEY_DOWN (scancode A) injected + consumed (pushed=" + b2s(kpushed)
-        + ", consumed=" + b2s(kconsumed) + ")");
+        + ", consumed=" + b2s(kconsumed) + ", type=" + to_string(sdl3_event_type(&k1_out)) + ")");
 
     // 0.18.0: foreign-written event readback -- the B-11 addendum shape
     // (SDL writing an event INTO an XIOM-owned buffer) is FIXED on
@@ -405,7 +684,7 @@ fn main() -> Int {
     var ev_out = slot_new(128);
     let opushed = sdl3_push_event(&lib, ev_in.as_mut_ptr() as Int);
     sdl3_pump_events(&lib);
-    let oconsumed = sdl3_poll_event(&lib, ev_out.as_mut_ptr() as Int);
+    let oconsumed = poll_for(&lib, SDL_EVENT_USER, &mut ev_out, 8);
     failed = failed + report(opushed && oconsumed && sdl3_event_type(&ev_out) == SDL_EVENT_USER,
       "events: poll into owned buffer -> readback type = " + to_string(sdl3_event_type(&ev_out))
         + " (B-11 addendum retired)");
@@ -417,7 +696,7 @@ fn main() -> Int {
     var kev_out = slot_new(128);
     let k2pushed = sdl3_push_event(&lib, kev.as_mut_ptr() as Int);
     sdl3_pump_events(&lib);
-    let k2consumed = sdl3_poll_event(&lib, kev_out.as_mut_ptr() as Int);
+    let k2consumed = poll_for(&lib, SDL_EVENT_KEY_DOWN, &mut kev_out, 8);
     failed = failed + report(k2pushed && k2consumed
         && sdl3_event_type(&kev_out) == SDL_EVENT_KEY_DOWN
         && sdl3_event_key_scancode(&kev_out) == SDL_SCANCODE_A
@@ -426,6 +705,35 @@ fn main() -> Int {
       "events: KEY_DOWN readback decode (type=" + to_string(sdl3_event_type(&kev_out))
         + " scancode=" + to_string(sdl3_event_key_scancode(&kev_out))
         + " key=" + to_string(sdl3_event_key_code(&kev_out)) + ")");
+
+    // 0.19.0: pen motion through the real queue -- push a synthetic
+    // PEN_MOTION (which=77, IN_PROXIMITY|DOWN, x=100.0, y=-3.25), poll it
+    // into an owned buffer and decode with the pen accessors (the 0.18.0
+    // foreign-written readback route).
+    let _ = drain_events(&lib, 50);
+    var pen_in = slot_new(128);
+    wr_u32(&mut pen_in, 0, SDL_EVENT_PEN_MOTION);
+    wr_u32(&mut pen_in, 16, 3);
+    wr_u32(&mut pen_in, 20, 77);
+    wr_u32(&mut pen_in, 24, SDL_PEN_INPUT_IN_PROXIMITY | SDL_PEN_INPUT_DOWN);
+    wr_u32(&mut pen_in, 28, 0x42C80000);
+    wr_u32(&mut pen_in, 32, 0xC0500000);
+    var pen_out = slot_new(128);
+    let ppushed = sdl3_push_event(&lib, pen_in.as_mut_ptr() as Int);
+    sdl3_pump_events(&lib);
+    let pconsumed = poll_for(&lib, SDL_EVENT_PEN_MOTION, &mut pen_out, 8);
+    failed = failed + report(ppushed && pconsumed
+        && sdl3_event_type(&pen_out) == SDL_EVENT_PEN_MOTION
+        && sdl3_event_pen_window_id(&pen_out) == 3
+        && sdl3_event_pen_which(&pen_out) == 77
+        && sdl3_event_pen_state(&pen_out) == (SDL_PEN_INPUT_IN_PROXIMITY | SDL_PEN_INPUT_DOWN)
+        && sdl3_event_pen_x(&pen_out) == 100.0
+        && sdl3_event_pen_y(&pen_out) == -3.25,
+      "pen-live: PEN_MOTION pushed + polled readback (type="
+        + to_string(sdl3_event_type(&pen_out)) + " which="
+        + to_string(sdl3_event_pen_which(&pen_out)) + " x="
+        + to_string(sdl3_event_pen_x(&pen_out) as Int) + " pushed=" + b2s(ppushed)
+        + " consumed=" + b2s(pconsumed) + ")");
 
     // 0.5.0: event filter (C callback -> dispatcher -> handler registry).
     // Drains keep the queue deterministic (SDL's filter/poll internals can
@@ -727,6 +1035,12 @@ fn main() -> Int {
       "mouse: state idle (buttons=" + to_string(mst.buttons) + " at "
         + to_string(mst.x as Int) + "," + to_string(mst.y as Int) + ")");
 
+    // 0.19.0: pen/tablet tool type via a typed query -- an unknown pen id
+    // must report INVALID (no stale handle wall).
+    let pbad = sdl3_pen_device_type(&lib, 987654);
+    failed = failed + report(pbad == SDL_PEN_DEVICE_TYPE_INVALID,
+      "pen: tool-type query INVALID for unknown id (got " + to_string(pbad) + ")");
+
     sdl3_quit(&lib);
   }
 
@@ -777,12 +1091,41 @@ fn main() -> Int {
         let ax = sdl3_joystick_axis(&lib, jh, 0);
         let bt = sdl3_joystick_button(&lib, jh, 1);
         let conn = sdl3_joystick_connected(&lib, jh);
+
+        // 0.19.0: joystick CAPS (properties flags + counts/type).  The
+        // virtual driver declares no Rumble/SetLED callbacks, so every
+        // capability flag is naturally false; the flag read path is then
+        // witnessed positively with a property round trip on the SDL-owned
+        // group (set true -> read true -> reset false -> read false).
+        let caps = sdl3_joystick_caps(&lib, jh);
+        let jtype = sdl3_joystick_type(&lib, jh);
+        let props = sdl3_joystick_properties(&lib, jh);
+        let caps_ok = caps.axes == 2 && caps.buttons == 2 && caps.hats == 0 && caps.balls == 0
+          && caps.kind == SDL_JOYSTICK_TYPE_UNKNOWN
+          && !caps.has_rumble && !caps.has_rumble_triggers
+          && !caps.has_mono_led && !caps.has_rgb_led && !caps.has_player_led;
+        var flag_ok = false;
+        if props != 0 {
+          let set_on = sdl3_set_boolean_property(&lib, props, SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN, true);
+          let on = sdl3_joystick_has_rumble(&lib, jh);
+          let set_off = sdl3_set_boolean_property(&lib, props, SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN, false);
+          let off = sdl3_joystick_has_rumble(&lib, jh);
+          flag_ok = set_on && on && set_off && !off;
+        }
+
         sdl3_close_joystick(&lib, jh);
         failed = failed + report(sva && svb && ax == 16384 && bt && conn
             && jname == "xiom-virtual-pad",
           "joystick-live: virtual pad axis0 set=16384 read=" + to_string(ax)
             + " button1=" + b2s(bt) + " connected=" + b2s(conn) + " name=\"" + jname
             + "\" (set-axis=" + b2s(sva) + " set-button=" + b2s(svb) + ")");
+        failed = failed + report(caps_ok && jtype == SDL_JOYSTICK_TYPE_UNKNOWN && props != 0,
+          "joystick-caps: typed caps axes=" + to_string(caps.axes) + " buttons="
+            + to_string(caps.buttons) + " hats=" + to_string(caps.hats) + " balls="
+            + to_string(caps.balls) + " type=" + to_string(caps.kind) + " flags-all-false="
+            + b2s(caps_ok) + " props=" + to_string(props));
+        failed = failed + report(flag_ok,
+          "joystick-caps: SDL.joystick.cap.rumble flag round trip true->false (read path witnessed)");
       }
       let vdet = sdl3_detach_virtual_joystick(&lib, vjid);
       failed = failed + report(vdet, "joystick-live: virtual pad detached=" + b2s(vdet));
@@ -907,6 +1250,127 @@ fn main() -> Int {
             + to_string(rava) + " dst=" + to_string(rf.dst_format) + "/"
             + to_string(rf.dst_channels) + "ch/" + to_string(rf.dst_freq) + "Hz)");
       }
+    }
+    sdl3_quit(&lib);
+  }
+
+  // -------------------------------------------------------------------
+  // 0.19.0: haptic wave-form surface (engine ask REL-20261013-2324).
+  // Needs SDL_INIT_HAPTIC; SKIP when the platform cannot init.  The encode
+  // layer + typed open error run without any device; the device path (when
+  // GetHaptics finds one) creates a SINE effect through the real API.
+  // -------------------------------------------------------------------
+  let hflags = SDL_INIT_HAPTIC | SDL_INIT_JOYSTICK;
+  let hinited = sdl3_init(&lib, hflags);
+  if !hinited {
+    failed = failed + report(true, "haptic: SKIP -- SDL_Init(HAPTIC|JOYSTICK) failed ("
+      + sdl3_get_error(&lib) + ")");
+  } else {
+    let hc = sdl3_haptic_count(&lib);
+    let hname = sdl3_haptic_name_for_id(&lib, 999999);
+    let hopen = sdl3_haptic_open(&lib, 999999);
+    var hopen_kind = -1;
+    var herr_ok = false;
+    if !hopen.is_ok {
+      hopen_kind = hopen.error.kind;
+      herr_ok = hopen.error.kind == SDL3_HAPTIC_ERR_OPEN && hopen.error.message.len() > 0;
+    }
+    failed = failed + report(hc >= 0 && sc_eq(hname, "") && herr_ok,
+      "haptic: enumeration count=" + to_string(hc) + " unknown-id name empty="
+        + b2s(sc_eq(hname, "")) + " typed open error kind=" + to_string(hopen_kind));
+
+    // Virtual pad: not haptic -> typed OPEN error through the real path
+    // (SDL_OpenHapticFromJoystick on a device without a haptic driver).
+    let vhjid = sdl3_attach_virtual_joystick(&lib, "xiom-virtual-haptic", 2, 2);
+    if vhjid == 0 {
+      failed = failed + report(true, "haptic: SKIP -- attach virtual joystick failed ("
+        + sdl3_get_error(&lib) + ")");
+    } else {
+      let vjh = sdl3_open_joystick(&lib, vhjid);
+      if vjh == 0 {
+        failed = failed + report(false, "haptic: SDL_OpenJoystick(attached virtual) failed -- "
+          + sdl3_get_error(&lib));
+      } else {
+        let ish = sdl3_is_joystick_haptic(&lib, vjh);
+        let oh = sdl3_open_haptic_from_joystick(&lib, vjh);
+        var oh_kind = -1;
+        var oh_err = false;
+        if !oh.is_ok {
+          oh_kind = oh.error.kind;
+          oh_err = oh.error.kind == SDL3_HAPTIC_ERR_OPEN && oh.error.message.len() > 0;
+        }
+        sdl3_close_joystick(&lib, vjh);
+        failed = failed + report(!ish && oh_err,
+          "haptic: virtual pad is not haptic; OpenHapticFromJoystick typed error (kind="
+            + to_string(oh_kind) + ")");
+      }
+      let vhdet = sdl3_detach_virtual_joystick(&lib, vhjid);
+      failed = failed + report(vhdet, "haptic: virtual pad detached=" + b2s(vhdet));
+    }
+
+    if hc > 0 {
+      // Device path: open the first id, query caps, then encode + create +
+      // run + status + stop + destroy a SINE effect (support-gated).
+      let hid0 = sdl3_haptic_at(&lib, 0);
+      let ho = sdl3_haptic_open(&lib, hid0);
+      if !ho.is_ok {
+        failed = failed + report(true, "haptic-device: SKIP -- open first id failed: "
+          + ho.error.message);
+      } else {
+        let haptic: Int = ho.value;
+        let hnm = sdl3_haptic_name(&lib, haptic);
+        let feats = sdl3_haptic_features(&lib, haptic);
+        let maxe = sdl3_haptic_max_effects(&lib, haptic);
+        let axes = sdl3_haptic_num_axes(&lib, haptic);
+        var hslot = slot_new(SDL_HAPTIC_EFFECT_SIZE);
+        let henc = sdl3_haptic_encode_periodic(&mut hslot, haptic_sine_wave());
+        var supported = false;
+        if henc.is_ok {
+          supported = sdl3_haptic_effect_supported(&lib, haptic, &mut hslot);
+        }
+        var cid_ok = false;
+        var eid = 0;
+        if supported {
+          let cr = sdl3_haptic_create_periodic(&lib, haptic, haptic_sine_wave());
+          if cr.is_ok {
+            eid = cr.value;
+            cid_ok = true;
+          }
+        }
+        var run_ok = false;
+        var stat = false;
+        var stop_ok = false;
+        if cid_ok {
+          let rr = sdl3_haptic_run(&lib, haptic, eid, 1);
+          run_ok = rr.is_ok;
+          stat = sdl3_haptic_status(&lib, haptic, eid);
+          let sr = sdl3_haptic_stop(&lib, haptic, eid);
+          stop_ok = sr.is_ok;
+          sdl3_haptic_destroy(&lib, haptic, eid);
+        }
+        let rum = sdl3_haptic_rumble_supported(&lib, haptic);
+        var rum_ok = true;
+        if rum {
+          let ir = sdl3_haptic_init_rumble(&lib, haptic);
+          let pr = sdl3_haptic_play_rumble(&lib, haptic, 0.5, 50);
+          sdl3_delay(&lib, 20);
+          let sr2 = sdl3_haptic_stop_rumble(&lib, haptic);
+          rum_ok = ir && pr && sr2;
+        }
+        sdl3_haptic_close(&lib, haptic);
+        var effect_ok = true;
+        if supported {
+          effect_ok = cid_ok && run_ok && stop_ok;
+        }
+        failed = failed + report(hnm.len() > 0 && maxe > 0 && axes >= 0 && effect_ok && rum_ok,
+          "haptic-device: name=\"" + hnm + "\" feats=" + to_string(feats) + " max="
+            + to_string(maxe) + " axes=" + to_string(axes) + " sine-supported=" + b2s(supported)
+            + " created=" + b2s(cid_ok) + " run=" + b2s(run_ok) + " status=" + b2s(stat)
+            + " stop=" + b2s(stop_ok) + " rumble=" + b2s(rum) + " rumble-run=" + b2s(rum_ok));
+      }
+    } else {
+      failed = failed + report(true,
+        "haptic-device: SKIP -- no haptic device on this host (encode + typed-error paths covered)");
     }
     sdl3_quit(&lib);
   }
