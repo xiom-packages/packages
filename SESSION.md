@@ -3,18 +3,37 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-05 (12:20Z), by the main/debug session (v0.63.1
-pinned + SHA256-verified, repin 514; contract-evaluator fix confirmed:
-`varint` tuple-advance + `cobs` decode bound restored, x2-green, and
-published in `eco-v0.1.55` (0.1.3); hardening batches #1-#11 published
-across `eco-v0.1.44`-`eco-v0.1.54` -- 46 packages + `option`
-documented all-unasserted; **grpc still RED on v0.63.1** (crash+hang;
-numeric arms stay blocked) and graphql still 9/10; fleet sweep v0.63.1
-running). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-14 (14:10Z), by the main/packages session (v0.64.4
+pinned; **wave-3 integrated + native x2 all green; publish waits only on the
+ops scope gate**; relay check found the bindings batch `-1331` and the full
+pipeline ran: merge -> validate -> regen -> x2 -> record -> [ops gate] ->
+wrap/publish -> engine relay. Check `git log -1 --format=%h %s` before
+starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-14 13:20Z (CLEAN HANDOFF -- owner-directed pipeline in full flight; 94 eco releases; this block is the live handoff):**
+**STATE AT 2026-10-14 14:10Z (WAVE-3 INTEGRATED + x2 GREEN; publish waits only on the ops gate; this block is the live handoff):**
+- **Wave-3 processed end-to-end short of publish**: bindings' batch `REL-20261014-1331-bindings`
+  (11 packages; branch tip `dd160416`) MERGED into main (`945b795f`; README/STATUS conflicts resolved
+  to bindings + published lines restored -- stb `eco-v0.1.139` ref back in); validate **553/0**
+  (matches the bindings claim); docs regenerated (`50b65cee`); **native x2 ALL GREEN @ `50b65cee`**
+  (`2d3fc725`): ffmpeg 23/23 x2 BOTH generations (Blender 7.1.1 + GIMP 6.1.1) + SKIP 3/3 x2, jolt 24,
+  ozz 9, sdl3 72/72 x2 present + true-absent 8/8 x2 (the Vulkan bin sits on the box PATH -- strip it
+  for the absent arm), rtxgi 28, rtxdi 33, rpr 35 present x2 + 9/9 SKIP, openpgl 14, stb 18, exr 12,
+  photometrics 43. Guard now **538 allowlisted / 522 ready / 16 grandfathered / 0 failures**.
+- **OPS GATE PENDING**: `REL-20261014-1338-packages` (open) asks scope check/stage for the TWO new
+  names `xiom.exr` + `xiom.photometrics` (PROD-only; the other 4 new names rpr/rtxdi/rtxgi/openpgl are
+  in the 17-name bulk, LIVE). On ops confirm: append allowlist (538->540) + wrap (namespaces/index)
+  + tag `eco-v0.1.179` + approve + watch + live-verify + README/STATUS sync + item fixed + engine
+  relay. ffmpeg ships **0.4.1 ONLY** (0.4.0 stays held; generation-skew fix `-2142`).
+- **Bus state**: `-1331-bindings` acked (with merge+x2 progress note); `-1304`/`-1306` (IES/HDR
+  routing) await bindings/owner to move (packages may not move them). Wave-3 evidence logs:
+  `%TEMP%\kilo\wave3\*.log` (runs + true-absent re-runs).
+- **Watches unchanged**: `-1731` project-build consumer blocker (compiler); promotions per sec.7;
+  next-archive re-verify list (m275-m294 incl. workaround retirements); bindings suite manifest
+  `-2143-bindings-2` (standing queue).
+
+**STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:10Z block above; owner-directed pipeline in full flight; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
   allowlisted / 518 ready / 20 grandfathered / 0 failures**. Tally **94 eco releases**
   (`eco-v0.1.86` -> `eco-v0.1.178`).
