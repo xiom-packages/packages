@@ -984,8 +984,8 @@ after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
 
 **UPDATE 2026-10-14 14:57Z (WAVE-3 + A05 PUBLISHED -- `eco-v0.1.179`,
-15 packages; ops loop closed; stdlib B-27/28 root cause)**: doorbell
-relay check.
+11 packages incl. the A05 set; ops loop closed; stdlib B-27/28 root
+cause)**: doorbell relay check.
 - **WAVE-3 LIVE**: `eco-v0.1.179` (run 38577890832 green; merge
   `945b795f`, wrap `52dc853b`): ffmpeg 0.4.1 (0.4.0 stays held),
   jolt 0.4.0, ozz 0.4.0, sdl3 0.19.0, rtxgi 0.1.0, rtxdi 0.1.0,
