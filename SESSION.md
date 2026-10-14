@@ -44,6 +44,13 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   workaround retirements; compiler m310 now carries fixes for `-1549-packages-5/-7` -- re-verify when
   a v0.64.5 archive lands); bindings suite manifest `-2143-bindings-2` (standing queue); `-1731`
   project-build blocker (compiler).
+- **UPDATE 2026-10-14 21:00Z**: **v0.64.5 release wave in motion** -- compiler push `1e4a444e` +
+  release dry-run 38626737822 GREEN (~20:00Z: release guard + windows-x64 + VSIX all pass); tag
+  signal sent; **archive not yet listed** -- the repin window opens the moment `gh release list`
+  shows v0.64.5 (pre-repin home snapshot REFRESHED to `20261015-000115`, 5019 files). Fix batch grew
+  since the block above: m314-m321 (`-2042`/`-2227` wide-int, `-2139` geom collision, `-1158` spawn
+  literal, `-2256`/`-2324-2/3` const-surface family, `-2119`/`-1213` probe-side) -- fold into the
+  re-verify list at the pin.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
