@@ -1,0 +1,4 @@
+# Vendored upstream sources must stay byte-identical to the SHA256 pins in
+# vendor/MANIFEST.sha256. Disable end-of-line conversion for the whole
+# vendor tree.
+vendor/** -text

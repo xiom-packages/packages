@@ -1,0 +1,14 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lz4/lz4.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lz4/lz4hc.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lz4/lz4frame.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lz4/xxhash.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/lz4_bridge.c",
+  "--timeout",
+  "600"
+]

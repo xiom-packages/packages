@@ -1,0 +1,362 @@
+{
+  "bound_functions": 53,
+  "bridge_entry_points": 60,
+  "companion_entries": 7,
+  "declared_functions": 53,
+  "functions": {
+    "ogg_packet_clear": {
+      "bound": true,
+      "group": "packet",
+      "skips": 0,
+      "xo": "xo_packet_clear"
+    },
+    "ogg_page_bos": {
+      "bound": true,
+      "group": "page",
+      "skips": 0,
+      "xo": "xo_page_bos"
+    },
+    "ogg_page_checksum_set": {
+      "bound": true,
+      "group": "page",
+      "skips": 0,
+      "xo": "xo_page_checksum_set"
+    },
+    "ogg_page_continued": {
+      "bound": true,
+      "group": "page",
+      "skips": 0,
+      "xo": "xo_page_continued"
+    },
+    "ogg_page_eos": {
+      "bound": true,
+      "group": "page",
+      "skips": 0,
+      "xo": "xo_page_eos"
+    },
+    "ogg_page_granulepos": {
+      "bound": true,
+      "group": "page",
+      "skips": 0,
+      "xo": "xo_page_granulepos"
+    },
+    "ogg_page_packets": {
+      "bound": true,
+      "group": "page",
+      "skips": 0,
+      "xo": "xo_page_packets"
+    },
+    "ogg_page_pageno": {
+      "bound": true,
+      "group": "page",
+      "skips": 0,
+      "xo": "xo_page_pageno"
+    },
+    "ogg_page_serialno": {
+      "bound": true,
+      "group": "page",
+      "skips": 0,
+      "xo": "xo_page_serialno"
+    },
+    "ogg_page_version": {
+      "bound": true,
+      "group": "page",
+      "skips": 0,
+      "xo": "xo_page_version"
+    },
+    "ogg_stream_check": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_check"
+    },
+    "ogg_stream_clear": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_clear"
+    },
+    "ogg_stream_destroy": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_destroy"
+    },
+    "ogg_stream_eos": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_eos"
+    },
+    "ogg_stream_flush": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_flush"
+    },
+    "ogg_stream_flush_fill": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_flush_fill"
+    },
+    "ogg_stream_init": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_init"
+    },
+    "ogg_stream_iovecin": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_iovecin"
+    },
+    "ogg_stream_packetin": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_packetin"
+    },
+    "ogg_stream_packetout": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_packetout"
+    },
+    "ogg_stream_packetpeek": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_packetpeek"
+    },
+    "ogg_stream_pagein": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_pagein"
+    },
+    "ogg_stream_pageout": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_pageout"
+    },
+    "ogg_stream_pageout_fill": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_pageout_fill"
+    },
+    "ogg_stream_reset": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_reset"
+    },
+    "ogg_stream_reset_serialno": {
+      "bound": true,
+      "group": "stream",
+      "skips": 0,
+      "xo": "xo_stream_reset_serialno"
+    },
+    "ogg_sync_buffer": {
+      "bound": true,
+      "group": "sync",
+      "skips": 0,
+      "xo": "xo_sync_buffer"
+    },
+    "ogg_sync_check": {
+      "bound": true,
+      "group": "sync",
+      "skips": 0,
+      "xo": "xo_sync_check"
+    },
+    "ogg_sync_clear": {
+      "bound": true,
+      "group": "sync",
+      "skips": 0,
+      "xo": "xo_sync_clear"
+    },
+    "ogg_sync_destroy": {
+      "bound": true,
+      "group": "sync",
+      "skips": 0,
+      "xo": "xo_sync_destroy"
+    },
+    "ogg_sync_init": {
+      "bound": true,
+      "group": "sync",
+      "skips": 0,
+      "xo": "xo_sync_init"
+    },
+    "ogg_sync_pageout": {
+      "bound": true,
+      "group": "sync",
+      "skips": 0,
+      "xo": "xo_sync_pageout"
+    },
+    "ogg_sync_pageseek": {
+      "bound": true,
+      "group": "sync",
+      "skips": 0,
+      "xo": "xo_sync_pageseek"
+    },
+    "ogg_sync_reset": {
+      "bound": true,
+      "group": "sync",
+      "skips": 0,
+      "xo": "xo_sync_reset"
+    },
+    "ogg_sync_wrote": {
+      "bound": true,
+      "group": "sync",
+      "skips": 0,
+      "xo": "xo_sync_wrote"
+    },
+    "oggpack_adv": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_adv"
+    },
+    "oggpack_adv1": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_adv1"
+    },
+    "oggpack_bits": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_bits"
+    },
+    "oggpack_bytes": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_bytes"
+    },
+    "oggpack_get_buffer": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_get_buffer"
+    },
+    "oggpack_look": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_look"
+    },
+    "oggpack_look1": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_look1"
+    },
+    "oggpack_read": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_read"
+    },
+    "oggpack_read1": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_read1"
+    },
+    "oggpack_readinit": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_readinit"
+    },
+    "oggpack_reset": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_reset"
+    },
+    "oggpack_write": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_write"
+    },
+    "oggpack_writealign": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_writealign"
+    },
+    "oggpack_writecheck": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_writecheck"
+    },
+    "oggpack_writeclear": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_writeclear"
+    },
+    "oggpack_writecopy": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_writecopy"
+    },
+    "oggpack_writeinit": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_writeinit"
+    },
+    "oggpack_writetrunc": {
+      "bound": true,
+      "group": "oggpack (bitpacking)",
+      "skips": 0,
+      "xo": "xo_pack_writetrunc"
+    }
+  },
+  "headers": {
+    "ogg.h": "9158491901A1D0A8DDA75B9FEE3661B269C6EA337A75D1EE3F4D8E1EC62827E8"
+  },
+  "libogg_pin": {
+    "commit": "be05b13e98b048f0b5a0f5fa8ce514d56db5f822",
+    "tag": "v1.3.6"
+  },
+  "package": "xiom.ogg",
+  "per_group": {
+    "oggpack (bitpacking)": {
+      "bound": 18,
+      "declared": 18,
+      "skips": 0
+    },
+    "packet": {
+      "bound": 1,
+      "declared": 1,
+      "skips": 0
+    },
+    "page": {
+      "bound": 9,
+      "declared": 9,
+      "skips": 0
+    },
+    "stream": {
+      "bound": 16,
+      "declared": 16,
+      "skips": 0
+    },
+    "sync": {
+      "bound": 9,
+      "declared": 9,
+      "skips": 0
+    }
+  },
+  "skips": 0
+}

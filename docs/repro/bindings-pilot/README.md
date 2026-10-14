@@ -155,3 +155,24 @@ xiom --run tests/probe.xi
 Observed on v0.64.2 (2026-10-09): `b03: alias const resolved, value=7`.
 Small catalogs were green on v0.64.0 too; the original stack overflow needed
 the large pre-fix `xiom.sqlite` catalog (no live trigger today).
+
+## bigint-bitops -- REPRO on v0.64.4 (new, B-29)
+
+Single file: bitwise ops and integer division on values >= 2^31.
+
+```
+cd docs/repro/bindings-pilot/bigint-bitops
+xiom --run probe.xi
+```
+
+Observed 2026-10-13 building `xiom.dlss` 0.1.0 (NVSDK_NGX_Result failure
+codes are `0xBAD00000 | N` and the upstream SUCCEED/FAILED macros are
+bitwise): on v0.64.4, `3132620800 >> 20 = 2987` (expected 2989),
+`3132620800 & 4293918720 = 3132096512` (expected 3132620800),
+`3132620800 / 1048576 = 2987` (expected 2989). Controls on the same build:
+`2147483648 >> 20 = 2048`, `3000000000 >> 20 = 2861`,
+`3132620800 - 3132620800 = 0` -- comparisons, subtraction and printing of
+the literal are faithful; the ops lose the `0x0D00000` nibble. `xiom.dlss`
+ships the boundary form `failed = (rc - 0xBAD00000) in [0, 18]` and pins it
+in-suite; the probe exits 0 when a fix restores the three ops.
+

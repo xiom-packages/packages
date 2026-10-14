@@ -1,0 +1,8 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/ffx_bridge.cpp",
+  "--c-source",
+  "${PACKAGE_DIR}/src/ffx_gen_abi.cpp",
+  "--cxx-standard",
+  "c++20"
+]

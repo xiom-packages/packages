@@ -1,0 +1,798 @@
+{
+  "counts": {
+    "by_class": {
+      "deprecated": 34,
+      "stable": 66,
+      "static": 11
+    },
+    "total": 111
+  },
+  "functions": [
+    {
+      "c": "LZ4_versionNumber",
+      "class": "stable",
+      "doc": "runtime version number (1.10.0 = 11000)",
+      "header": "lz4.h",
+      "wrapper": "version_number"
+    },
+    {
+      "c": "LZ4_versionString",
+      "class": "stable",
+      "doc": "runtime version string pointer",
+      "header": "lz4.h",
+      "wrapper": "version_string"
+    },
+    {
+      "c": "LZ4_compress_default",
+      "class": "stable",
+      "doc": "one-shot block compression at the default level",
+      "header": "lz4.h",
+      "wrapper": "compress_default"
+    },
+    {
+      "c": "LZ4_decompress_safe",
+      "class": "stable",
+      "doc": "safe block decompression into a sized destination",
+      "header": "lz4.h",
+      "wrapper": "decompress_safe"
+    },
+    {
+      "c": "LZ4_compressBound",
+      "class": "stable",
+      "doc": "worst-case compressed size for an input",
+      "header": "lz4.h",
+      "wrapper": "compress_bound"
+    },
+    {
+      "c": "LZ4_compress_fast",
+      "class": "stable",
+      "doc": "one-shot block compression with an acceleration factor",
+      "header": "lz4.h",
+      "wrapper": "compress_fast"
+    },
+    {
+      "c": "LZ4_sizeofState",
+      "class": "stable",
+      "doc": "byte size of the LZ4_stream_t state buffer",
+      "header": "lz4.h",
+      "wrapper": "sizeof_state"
+    },
+    {
+      "c": "LZ4_compress_fast_extState",
+      "class": "stable",
+      "doc": "compression with a caller-owned state buffer",
+      "header": "lz4.h",
+      "wrapper": "compress_fast_ext_state"
+    },
+    {
+      "c": "LZ4_compress_destSize",
+      "class": "stable",
+      "doc": "fill dstCapacity, decoding as much of src as fits (updates srcSizePtr)",
+      "header": "lz4.h",
+      "wrapper": "compress_dest_size"
+    },
+    {
+      "c": "LZ4_decompress_safe_partial",
+      "class": "stable",
+      "doc": "decompress up to targetOutputSize bytes",
+      "header": "lz4.h",
+      "wrapper": "decompress_safe_partial"
+    },
+    {
+      "c": "LZ4_createStream",
+      "class": "stable",
+      "doc": "allocate an LZ4_stream_t (free with LZ4_freeStream)",
+      "header": "lz4.h",
+      "wrapper": "create_stream"
+    },
+    {
+      "c": "LZ4_freeStream",
+      "class": "stable",
+      "doc": "free an LZ4_stream_t",
+      "header": "lz4.h",
+      "wrapper": "free_stream"
+    },
+    {
+      "c": "LZ4_resetStream_fast",
+      "class": "stable",
+      "doc": "fast re-init of a coherent LZ4_stream_t",
+      "header": "lz4.h",
+      "wrapper": "reset_stream_fast"
+    },
+    {
+      "c": "LZ4_loadDict",
+      "class": "stable",
+      "doc": "load a dictionary into a stream",
+      "header": "lz4.h",
+      "wrapper": "load_dict"
+    },
+    {
+      "c": "LZ4_loadDictSlow",
+      "class": "stable",
+      "doc": "slower, more thorough dictionary load",
+      "header": "lz4.h",
+      "wrapper": "load_dict_slow"
+    },
+    {
+      "c": "LZ4_attach_dictionary",
+      "class": "stable",
+      "doc": "attach a dictionary stream (0 detaches)",
+      "header": "lz4.h",
+      "wrapper": "attach_dictionary"
+    },
+    {
+      "c": "LZ4_compress_fast_continue",
+      "class": "stable",
+      "doc": "streaming block compression (linked blocks)",
+      "header": "lz4.h",
+      "wrapper": "compress_fast_continue"
+    },
+    {
+      "c": "LZ4_saveDict",
+      "class": "stable",
+      "doc": "save the stream dictionary into a caller buffer",
+      "header": "lz4.h",
+      "wrapper": "save_dict"
+    },
+    {
+      "c": "LZ4_createStreamDecode",
+      "class": "stable",
+      "doc": "allocate an LZ4_streamDecode_t (free with LZ4_freeStreamDecode)",
+      "header": "lz4.h",
+      "wrapper": "create_stream_decode"
+    },
+    {
+      "c": "LZ4_freeStreamDecode",
+      "class": "stable",
+      "doc": "free an LZ4_streamDecode_t",
+      "header": "lz4.h",
+      "wrapper": "free_stream_decode"
+    },
+    {
+      "c": "LZ4_setStreamDecode",
+      "class": "stable",
+      "doc": "set the decoder's prefix dictionary (NULL clears)",
+      "header": "lz4.h",
+      "wrapper": "set_stream_decode"
+    },
+    {
+      "c": "LZ4_decoderRingBufferSize",
+      "class": "stable",
+      "doc": "ring buffer size for LZ4_decompress_safe_continue",
+      "header": "lz4.h",
+      "wrapper": "decoder_ring_buffer_size"
+    },
+    {
+      "c": "LZ4_decompress_safe_continue",
+      "class": "stable",
+      "doc": "streaming block decompression",
+      "header": "lz4.h",
+      "wrapper": "decompress_safe_continue"
+    },
+    {
+      "c": "LZ4_decompress_safe_usingDict",
+      "class": "stable",
+      "doc": "one-shot decompression with a dictionary",
+      "header": "lz4.h",
+      "wrapper": "decompress_safe_using_dict"
+    },
+    {
+      "c": "LZ4_decompress_safe_partial_usingDict",
+      "class": "stable",
+      "doc": "partial decompression with a dictionary",
+      "header": "lz4.h",
+      "wrapper": "decompress_safe_partial_using_dict"
+    },
+    {
+      "c": "LZ4_initStream",
+      "class": "stable",
+      "doc": "initialize a caller-owned state buffer (returns state as handle)",
+      "header": "lz4.h",
+      "wrapper": "init_stream"
+    },
+    {
+      "c": "LZ4_resetStream",
+      "class": "stable",
+      "doc": "full re-init of a stream (obsolete: prefer LZ4_resetStream_fast)",
+      "header": "lz4.h",
+      "wrapper": "reset_stream"
+    },
+    {
+      "c": "LZ4_compress_fast_extState_fastReset",
+      "class": "static",
+      "doc": "extState compression assuming an already-coherent state",
+      "header": "lz4.h",
+      "wrapper": "compress_fast_ext_state_fast_reset"
+    },
+    {
+      "c": "LZ4_compress_destSize_extState",
+      "class": "static",
+      "doc": "destSize compression with a caller-owned state",
+      "header": "lz4.h",
+      "wrapper": "compress_dest_size_ext_state"
+    },
+    {
+      "c": "LZ4_compress",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_default()",
+      "header": "lz4.h",
+      "wrapper": "compress"
+    },
+    {
+      "c": "LZ4_compress_limitedOutput",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_default()",
+      "header": "lz4.h",
+      "wrapper": "compress_limited_output"
+    },
+    {
+      "c": "LZ4_compress_withState",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_fast_extState()",
+      "header": "lz4.h",
+      "wrapper": "compress_with_state"
+    },
+    {
+      "c": "LZ4_compress_limitedOutput_withState",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_fast_extState()",
+      "header": "lz4.h",
+      "wrapper": "compress_limited_output_with_state"
+    },
+    {
+      "c": "LZ4_compress_continue",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_fast_continue()",
+      "header": "lz4.h",
+      "wrapper": "compress_continue"
+    },
+    {
+      "c": "LZ4_compress_limitedOutput_continue",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_fast_continue()",
+      "header": "lz4.h",
+      "wrapper": "compress_limited_output_continue"
+    },
+    {
+      "c": "LZ4_uncompress",
+      "class": "deprecated",
+      "doc": "obsolete/unsafe: use LZ4_decompress_safe()",
+      "header": "lz4.h",
+      "wrapper": "uncompress"
+    },
+    {
+      "c": "LZ4_uncompress_unknownOutputSize",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_decompress_safe()",
+      "header": "lz4.h",
+      "wrapper": "uncompress_unknown_output_size"
+    },
+    {
+      "c": "LZ4_create",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_createStream()",
+      "header": "lz4.h",
+      "wrapper": "create"
+    },
+    {
+      "c": "LZ4_sizeofStreamState",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_createStream()",
+      "header": "lz4.h",
+      "wrapper": "sizeof_stream_state"
+    },
+    {
+      "c": "LZ4_resetStreamState",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_resetStream()",
+      "header": "lz4.h",
+      "wrapper": "reset_stream_state"
+    },
+    {
+      "c": "LZ4_slideInputBuffer",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_saveDict() (returns an internal pointer)",
+      "header": "lz4.h",
+      "wrapper": "slide_input_buffer"
+    },
+    {
+      "c": "LZ4_decompress_safe_withPrefix64k",
+      "class": "deprecated",
+      "doc": "obsolete: assumes a 64 KB prefix dictionary",
+      "header": "lz4.h",
+      "wrapper": "decompress_safe_with_prefix64k"
+    },
+    {
+      "c": "LZ4_decompress_fast_withPrefix64k",
+      "class": "deprecated",
+      "doc": "obsolete/unsafe: use LZ4_decompress_fast_usingDict()",
+      "header": "lz4.h",
+      "wrapper": "decompress_fast_with_prefix64k"
+    },
+    {
+      "c": "LZ4_decompress_fast",
+      "class": "deprecated",
+      "doc": "obsolete/unsafe: use LZ4_decompress_safe_partial()",
+      "header": "lz4.h",
+      "wrapper": "decompress_fast"
+    },
+    {
+      "c": "LZ4_decompress_fast_continue",
+      "class": "deprecated",
+      "doc": "obsolete/unsafe: use LZ4_decompress_safe_continue()",
+      "header": "lz4.h",
+      "wrapper": "decompress_fast_continue"
+    },
+    {
+      "c": "LZ4_decompress_fast_usingDict",
+      "class": "deprecated",
+      "doc": "obsolete/unsafe: use LZ4_decompress_safe_partial_usingDict()",
+      "header": "lz4.h",
+      "wrapper": "decompress_fast_using_dict"
+    },
+    {
+      "c": "LZ4_compress_HC",
+      "class": "stable",
+      "doc": "one-shot high-compression block encode",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc"
+    },
+    {
+      "c": "LZ4_sizeofStateHC",
+      "class": "stable",
+      "doc": "byte size of the LZ4_streamHC_t state buffer",
+      "header": "lz4hc.h",
+      "wrapper": "sizeof_state_hc"
+    },
+    {
+      "c": "LZ4_compress_HC_extStateHC",
+      "class": "stable",
+      "doc": "HC compression with a caller-owned state buffer",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc_ext_state_hc"
+    },
+    {
+      "c": "LZ4_compress_HC_destSize",
+      "class": "stable",
+      "doc": "HC destSize compression (updates srcSizePtr)",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc_dest_size"
+    },
+    {
+      "c": "LZ4_createStreamHC",
+      "class": "stable",
+      "doc": "allocate an LZ4_streamHC_t (free with LZ4_freeStreamHC)",
+      "header": "lz4hc.h",
+      "wrapper": "create_stream_hc"
+    },
+    {
+      "c": "LZ4_freeStreamHC",
+      "class": "stable",
+      "doc": "free an LZ4_streamHC_t",
+      "header": "lz4hc.h",
+      "wrapper": "free_stream_hc"
+    },
+    {
+      "c": "LZ4_resetStreamHC_fast",
+      "class": "stable",
+      "doc": "fast re-init of a coherent HC stream",
+      "header": "lz4hc.h",
+      "wrapper": "reset_stream_hc_fast"
+    },
+    {
+      "c": "LZ4_loadDictHC",
+      "class": "stable",
+      "doc": "load a dictionary into an HC stream",
+      "header": "lz4hc.h",
+      "wrapper": "load_dict_hc"
+    },
+    {
+      "c": "LZ4_compress_HC_continue",
+      "class": "stable",
+      "doc": "streaming HC block compression",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc_continue"
+    },
+    {
+      "c": "LZ4_compress_HC_continue_destSize",
+      "class": "stable",
+      "doc": "streaming HC destSize compression (updates srcSizePtr)",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc_continue_dest_size"
+    },
+    {
+      "c": "LZ4_saveDictHC",
+      "class": "stable",
+      "doc": "save the HC stream dictionary into a caller buffer",
+      "header": "lz4hc.h",
+      "wrapper": "save_dict_hc"
+    },
+    {
+      "c": "LZ4_attach_HC_dictionary",
+      "class": "stable",
+      "doc": "attach an HC dictionary stream (0 detaches)",
+      "header": "lz4hc.h",
+      "wrapper": "attach_hc_dictionary"
+    },
+    {
+      "c": "LZ4_initStreamHC",
+      "class": "stable",
+      "doc": "initialize a caller-owned HC state buffer (returns state as handle)",
+      "header": "lz4hc.h",
+      "wrapper": "init_stream_hc"
+    },
+    {
+      "c": "LZ4_resetStreamHC",
+      "class": "stable",
+      "doc": "full re-init of an HC stream",
+      "header": "lz4hc.h",
+      "wrapper": "reset_stream_hc"
+    },
+    {
+      "c": "LZ4_setCompressionLevel",
+      "class": "static",
+      "doc": "change the HC level between streaming calls",
+      "header": "lz4hc.h",
+      "wrapper": "set_compression_level"
+    },
+    {
+      "c": "LZ4_favorDecompressionSpeed",
+      "class": "static",
+      "doc": "favor decompression speed for levels >= 10",
+      "header": "lz4hc.h",
+      "wrapper": "favor_decompression_speed"
+    },
+    {
+      "c": "LZ4_compress_HC_extStateHC_fastReset",
+      "class": "static",
+      "doc": "HC extState assuming an already-coherent state",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc_ext_state_hc_fast_reset"
+    },
+    {
+      "c": "LZ4_compressHC",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC()",
+      "header": "lz4hc.h",
+      "wrapper": "legacy_compress_hc"
+    },
+    {
+      "c": "LZ4_compressHC_limitedOutput",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC()",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc_limited_output"
+    },
+    {
+      "c": "LZ4_compressHC2",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC()",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc2"
+    },
+    {
+      "c": "LZ4_compressHC2_limitedOutput",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC()",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc2_limited_output"
+    },
+    {
+      "c": "LZ4_compressHC_withStateHC",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC_extStateHC()",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc_with_state_hc"
+    },
+    {
+      "c": "LZ4_compressHC_limitedOutput_withStateHC",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC_extStateHC()",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc_limited_output_with_state_hc"
+    },
+    {
+      "c": "LZ4_compressHC2_withStateHC",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC_extStateHC()",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc2_with_state_hc"
+    },
+    {
+      "c": "LZ4_compressHC2_limitedOutput_withStateHC",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC_extStateHC()",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc2_limited_output_with_state_hc"
+    },
+    {
+      "c": "LZ4_compressHC_continue",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC_continue()",
+      "header": "lz4hc.h",
+      "wrapper": "legacy_compress_hc_continue"
+    },
+    {
+      "c": "LZ4_compressHC_limitedOutput_continue",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC_continue()",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc_limited_output_continue"
+    },
+    {
+      "c": "LZ4_createHC",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_createStreamHC()",
+      "header": "lz4hc.h",
+      "wrapper": "create_hc"
+    },
+    {
+      "c": "LZ4_freeHC",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_freeStreamHC()",
+      "header": "lz4hc.h",
+      "wrapper": "free_hc"
+    },
+    {
+      "c": "LZ4_slideInputBufferHC",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_saveDictHC() (returns an internal pointer)",
+      "header": "lz4hc.h",
+      "wrapper": "slide_input_buffer_hc"
+    },
+    {
+      "c": "LZ4_compressHC2_continue",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC_continue()",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc2_continue"
+    },
+    {
+      "c": "LZ4_compressHC2_limitedOutput_continue",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_compress_HC_continue()",
+      "header": "lz4hc.h",
+      "wrapper": "compress_hc2_limited_output_continue"
+    },
+    {
+      "c": "LZ4_sizeofStreamStateHC",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_createStreamHC()",
+      "header": "lz4hc.h",
+      "wrapper": "sizeof_stream_state_hc"
+    },
+    {
+      "c": "LZ4_resetStreamStateHC",
+      "class": "deprecated",
+      "doc": "obsolete: use LZ4_initStreamHC()",
+      "header": "lz4hc.h",
+      "wrapper": "reset_stream_state_hc"
+    },
+    {
+      "c": "LZ4F_isError",
+      "class": "stable",
+      "doc": "true when a size_t result encodes an error",
+      "header": "lz4frame.h",
+      "wrapper": "is_error"
+    },
+    {
+      "c": "LZ4F_getErrorName",
+      "class": "stable",
+      "doc": "error message string pointer",
+      "header": "lz4frame.h",
+      "wrapper": "get_error_name"
+    },
+    {
+      "c": "LZ4F_compressFrame",
+      "class": "stable",
+      "doc": "one-shot frame compression (NULL preferences = defaults)",
+      "header": "lz4frame.h",
+      "wrapper": "compress_frame"
+    },
+    {
+      "c": "LZ4F_compressFrameBound",
+      "class": "stable",
+      "doc": "worst-case frame size for compressFrame",
+      "header": "lz4frame.h",
+      "wrapper": "compress_frame_bound"
+    },
+    {
+      "c": "LZ4F_compressionLevel_max",
+      "class": "stable",
+      "doc": "maximum frame compression level (12)",
+      "header": "lz4frame.h",
+      "wrapper": "compression_level_max"
+    },
+    {
+      "c": "LZ4F_getVersion",
+      "class": "stable",
+      "doc": "LZ4F API version (LZ4F_VERSION = 100)",
+      "header": "lz4frame.h",
+      "wrapper": "get_version"
+    },
+    {
+      "c": "LZ4F_createCompressionContext",
+      "class": "stable",
+      "doc": "create a compression context (handle written to the slot)",
+      "header": "lz4frame.h",
+      "wrapper": "create_compression_context"
+    },
+    {
+      "c": "LZ4F_freeCompressionContext",
+      "class": "stable",
+      "doc": "free a compression context",
+      "header": "lz4frame.h",
+      "wrapper": "free_compression_context"
+    },
+    {
+      "c": "LZ4F_compressBegin",
+      "class": "stable",
+      "doc": "write the frame header",
+      "header": "lz4frame.h",
+      "wrapper": "compress_begin"
+    },
+    {
+      "c": "LZ4F_compressBound",
+      "class": "stable",
+      "doc": "worst-case size for compressUpdate/flush",
+      "header": "lz4frame.h",
+      "wrapper": "frame_compress_bound"
+    },
+    {
+      "c": "LZ4F_compressUpdate",
+      "class": "stable",
+      "doc": "streaming frame compression of one chunk",
+      "header": "lz4frame.h",
+      "wrapper": "compress_update"
+    },
+    {
+      "c": "LZ4F_flush",
+      "class": "stable",
+      "doc": "flush buffered data without ending the frame",
+      "header": "lz4frame.h",
+      "wrapper": "flush"
+    },
+    {
+      "c": "LZ4F_compressEnd",
+      "class": "stable",
+      "doc": "write the frame epilogue (endMark + checksum)",
+      "header": "lz4frame.h",
+      "wrapper": "compress_end"
+    },
+    {
+      "c": "LZ4F_createDecompressionContext",
+      "class": "stable",
+      "doc": "create a decompression context (handle written to the slot)",
+      "header": "lz4frame.h",
+      "wrapper": "create_decompression_context"
+    },
+    {
+      "c": "LZ4F_freeDecompressionContext",
+      "class": "stable",
+      "doc": "free a decompression context",
+      "header": "lz4frame.h",
+      "wrapper": "free_decompression_context"
+    },
+    {
+      "c": "LZ4F_headerSize",
+      "class": "stable",
+      "doc": "frame header byte size (from the first bytes)",
+      "header": "lz4frame.h",
+      "wrapper": "header_size"
+    },
+    {
+      "c": "LZ4F_getFrameInfo",
+      "class": "stable",
+      "doc": "parse the frame header into the frameInfo slot (updates srcSizePtr)",
+      "header": "lz4frame.h",
+      "wrapper": "get_frame_info"
+    },
+    {
+      "c": "LZ4F_decompress",
+      "class": "stable",
+      "doc": "one decompression step (see xiom.lz4.lz4f_decompress_all for the loop)",
+      "header": "lz4frame.h",
+      "wrapper": "decompress"
+    },
+    {
+      "c": "LZ4F_resetDecompressionContext",
+      "class": "stable",
+      "doc": "reset a decompression context for a new frame",
+      "header": "lz4frame.h",
+      "wrapper": "reset_decompression_context"
+    },
+    {
+      "c": "LZ4F_compressBegin_usingDict",
+      "class": "stable",
+      "doc": "write a frame header with a dictionary",
+      "header": "lz4frame.h",
+      "wrapper": "compress_begin_using_dict"
+    },
+    {
+      "c": "LZ4F_decompress_usingDict",
+      "class": "stable",
+      "doc": "one decompression step with an external dictionary",
+      "header": "lz4frame.h",
+      "wrapper": "decompress_using_dict"
+    },
+    {
+      "c": "LZ4F_createCDict",
+      "class": "stable",
+      "doc": "create a digested dictionary (free with LZ4F_freeCDict)",
+      "header": "lz4frame.h",
+      "wrapper": "create_cdict"
+    },
+    {
+      "c": "LZ4F_freeCDict",
+      "class": "stable",
+      "doc": "free a digested dictionary",
+      "header": "lz4frame.h",
+      "wrapper": "free_cdict"
+    },
+    {
+      "c": "LZ4F_compressFrame_usingCDict",
+      "class": "stable",
+      "doc": "one-shot frame compression with a CDict (cctx is reused, not freed)",
+      "header": "lz4frame.h",
+      "wrapper": "compress_frame_using_cdict"
+    },
+    {
+      "c": "LZ4F_compressBegin_usingCDict",
+      "class": "stable",
+      "doc": "write a frame header using a CDict",
+      "header": "lz4frame.h",
+      "wrapper": "compress_begin_using_cdict"
+    },
+    {
+      "c": "LZ4F_getErrorCode",
+      "class": "static",
+      "doc": "LZ4F_errorCodes enum value for a function result",
+      "header": "lz4frame.h",
+      "wrapper": "get_error_code"
+    },
+    {
+      "c": "LZ4F_getBlockSize",
+      "class": "static",
+      "doc": "block size for a LZ4F_blockSizeID_t",
+      "header": "lz4frame.h",
+      "wrapper": "get_block_size"
+    },
+    {
+      "c": "LZ4F_uncompressedUpdate",
+      "class": "static",
+      "doc": "append a raw (uncompressed) block",
+      "header": "lz4frame.h",
+      "wrapper": "uncompressed_update"
+    },
+    {
+      "c": "xlz4f_create_cctx_advanced",
+      "class": "static",
+      "doc": "LZ4F_createCompressionContext_advanced with a CustomMem slot",
+      "header": "lz4frame.h",
+      "wrapper": "xlz4f_create_cctx_advanced"
+    },
+    {
+      "c": "xlz4f_create_dctx_advanced",
+      "class": "static",
+      "doc": "LZ4F_createDecompressionContext_advanced with a CustomMem slot",
+      "header": "lz4frame.h",
+      "wrapper": "xlz4f_create_dctx_advanced"
+    },
+    {
+      "c": "xlz4f_create_cdict_advanced",
+      "class": "static",
+      "doc": "LZ4F_createCDict_advanced with a CustomMem slot",
+      "header": "lz4frame.h",
+      "wrapper": "xlz4f_create_cdict_advanced"
+    }
+  ],
+  "headers": [
+    "lz4.h",
+    "lz4frame.h",
+    "lz4hc.h"
+  ],
+  "package": "xiom.lz4",
+  "pin": "v1.10.0 = ebb370ca83af193212df4dcbadcc5d87bc0de2f0",
+  "problems": [],
+  "upstream": "github.com/lz4/lz4"
+}

@@ -1,0 +1,5 @@
+# Vendored upstream sources are kept byte-stable relative to the
+# vendor/FILES.sha256 manifest (the include rewrite and build-config
+# prologues are produced by tools/vendor_ktx.py; see SPEC.md section 2).
+# Disable end-of-line conversion for the whole vendor tree.
+vendor/** -text

@@ -1,4 +1,4 @@
-// XIOM -- xiom.ogg conformance tests (22 checks)
+// XIOM -- xiom.ogg conformance tests (34 checks: 22 pure-XIOM page layer + 12 libogg packet layer)
 // Port task: prove the pure-XIOM xiom.ogg page walk and Ogg CRC-32.
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
@@ -19,6 +19,10 @@
 module ogg_tests
 use xiom.io; use xiom.test;
 use xiom.ogg;
+use xiom.ogg.abi;
+use xiom.ogg.ffi;
+use xiom.ogg.mux;
+use xiom.ogg.types;
 use xiom.string;
 use xiom.string.compare;
 
@@ -679,53 +683,737 @@ fn t22() -> TestResult {
   return assert(ok, "crc_ok verifies only the selected page");
 }
 
+
+// ==================================================
+//  0.2.0 -- libogg packet layer (sync/stream/pack,
+//  mux/demux, fixture)
+// ==================================================
+
+fn b2s(b: Bool) -> Str {
+  if b { return "true"; }
+  return "false";
+}
+
+fn read_i16le(buf: &Vec[UInt8], pos: Int) -> Int {
+  return (buf[pos] as Int) | ((buf[pos + 1] as Int) << 8);
+}
+
+fn read_i32le(buf: &Vec[UInt8], pos: Int) -> Int {
+  var v: Int = 0;
+  var i = 3;
+  while i >= 0 {
+    v = v * 256 + (buf[pos + i] as Int);
+    i = i - 1;
+  }
+  return v;
+}
+
+fn bytes_prefix_eq(buf: &Vec[UInt8], prefix: Str) -> Bool {
+  if buf.len() < prefix.len() { return false; }
+  var i = 0;
+  while i < prefix.len() {
+    if buf[i] != string.byte_at(prefix, i) { return false; }
+    i = i + 1;
+  }
+  return true;
+}
+
+fn bytes_eq(a: &Vec[UInt8], b: &Vec[UInt8]) -> Bool {
+  if a.len() != b.len() { return false; }
+  var i = 0;
+  while i < a.len() {
+    if a[i] != b[i] { return false; }
+    i = i + 1;
+  }
+  return true;
+}
+
+fn repeat_byte(b: UInt8, n: Int) -> Vec[UInt8] {
+  var v: Vec[UInt8] = Vec[UInt8].new();
+  var i = 0;
+  while i < n {
+    v.push(b);
+    i = i + 1;
+  }
+  return v;
+}
+
+// Mux three packets through the write path; returns all page bytes.
+fn mux_three(serial: Int, out_pages: &mut Int) -> Result[Vec[UInt8], Str] {
+  let mxr = OggMuxer.create(serial);
+  if !mxr.is_ok { return Err(mxr.error); }
+  let mx = mxr.value;
+  var all: Vec[UInt8] = Vec[UInt8].new();
+  let p0 = repeat_byte(65 as UInt8, 10);
+  let p1 = repeat_byte(66 as UInt8, 300);
+  let p2 = repeat_byte(67 as UInt8, 700);
+  let r0 = OggMuxer.add(&mx, &p0, 0, true, false);
+  if !r0.is_ok { OggMuxer.destroy(&mx); return Err(r0.error); }
+  let r1 = OggMuxer.add(&mx, &p1, 480, false, false);
+  if !r1.is_ok { OggMuxer.destroy(&mx); return Err(r1.error); }
+  let r2 = OggMuxer.add(&mx, &p2, 1160, false, true);
+  if !r2.is_ok { OggMuxer.destroy(&mx); return Err(r2.error); }
+  var pages = 0;
+  var guard = 0;
+  while guard < 64 {
+    let pr = OggMuxer.page(&mx);
+    if !pr.is_ok { guard = 64; } else {
+      if !pr.value.found { guard = 64; } else {
+        append_slice(&mut all, &page_bytes(&pr.value));
+        pages = pages + 1;
+      }
+    }
+  }
+  let fr = OggMuxer.flush(&mx);
+  if fr.is_ok {
+    if fr.value.found {
+      append_slice(&mut all, &page_bytes(&fr.value));
+      pages = pages + 1;
+    }
+  }
+  let eos_ok = OggMuxer.eos(&mx);
+  if !eos_ok.is_ok { OggMuxer.destroy(&mx); return Err("eos query failed"); }
+  if !eos_ok.value { OggMuxer.destroy(&mx); return Err("eos flag not set on muxer"); }
+  OggMuxer.destroy(&mx);
+  out_pages = pages;
+  return Ok(all);
+}
+
+// Demux all packets from `data` (Result[Demuxed, Str]; the direct
+// Result[Vec[PacketOut], Str] payload miscompiles on v0.64.4).
+fn packets_of(data: &Vec[UInt8], cap: Int) -> Result[Demuxed, Str] {
+  return demux_all(data, cap);
+}
+
+fn t23() -> TestResult {
+  var ok = abi.DECLARED_FUNCTIONS == 53;
+  if abi.BOUND_FUNCTIONS != 53 { ok = false; }
+  if abi.COMPANION_ENTRIES != 7 { ok = false; }
+  return assert(ok, "libogg ledger: 53/53 declared bound, 7 companions, 0 skips");
+}
+
+fn t24() -> TestResult {
+  let wr = ffi.pack_writeinit();
+  if !wr.is_ok {
+    return assert(false, "pack_writeinit failed");
+  }
+  let pk = wr.value;
+  var ok = true;
+  let w1 = ffi.pack_write(pk, 5, 3);       // 101b
+  if !w1.is_ok { ok = false; }
+  let w2 = ffi.pack_write(pk, 31, 5);      // 11111b
+  if !w2.is_ok { ok = false; }
+  let w3 = ffi.pack_write(pk, 65535, 16);  // sixteen 1-bits
+  if !w3.is_ok { ok = false; }
+  let wa = ffi.pack_writealign(pk);
+  if !wa.is_ok { ok = false; }
+  io.println("  [info] pack bytes=" + ffi.pack_bytes(pk) + " bits=" + ffi.pack_bits(pk));
+  if ffi.pack_bytes(pk) != 3 { ok = false; }
+  if ffi.pack_bits(pk) != 24 { ok = false; }
+  var readbuf: Vec[UInt8] = Vec[UInt8].new();
+  let gb = ffi.pack_get_buffer(pk, 8);
+  if !gb.is_ok {
+    ok = false;
+  } else {
+    readbuf = gb.value;
+    io.println("  [info] pack buf len=" + readbuf.len());
+    if readbuf.len() != 3 { ok = false; }
+    if readbuf.len() == 3 {
+      io.println("  [info] bytes=" + (readbuf[0] as Int) + "," + (readbuf[1] as Int) + "," + (readbuf[2] as Int));
+      // LSB-first packing: 101b + 11111b + 16 one-bits -> FD FF FF
+      if readbuf[0] != (253 as UInt8) { ok = false; }
+      if readbuf[1] != (255 as UInt8) { ok = false; }
+      if readbuf[2] != (255 as UInt8) { ok = false; }
+    }
+  }
+  // truncate back to 8 bits on the WRITE stream, then reset + writecopy
+  let rt = ffi.pack_writetrunc(pk, 8);
+  if !rt.is_ok { ok = false; }
+  io.println("  [info] after trunc bytes=" + ffi.pack_bytes(pk));
+  if ffi.pack_bytes(pk) != 1 { ok = false; }
+  let ra = ffi.pack_reset(pk);
+  if !ra.is_ok { ok = false; }
+  if ffi.pack_bytes(pk) != 0 { ok = false; }
+  let src = repeat_byte(171 as UInt8, 2);        // 0xAB 0xAB
+  let rc = ffi.pack_writecopy(pk, &src, 16);
+  if !rc.is_ok { ok = false; }
+  io.println("  [info] after writecopy bytes=" + ffi.pack_bytes(pk));
+  if ffi.pack_bytes(pk) != 2 { ok = false; }
+  let chk = ffi.pack_writecheck(pk);
+  if !chk.is_ok { ok = false; }
+  // read back through a copy of the ORIGINAL FD FF FF bytes (readinit)
+  let rd = ffi.pack_readinit(pk, &readbuf);
+  if !rd.is_ok { ok = false; }
+  let r1 = ffi.pack_read(pk, 3);
+  if r1 != 5 { ok = false; io.println("  [info] read3=" + r1); }
+  let lk = ffi.pack_look(pk, 5);
+  if lk != 31 { ok = false; io.println("  [info] look5=" + lk); }
+  let r2 = ffi.pack_read(pk, 5);
+  if r2 != 31 { ok = false; io.println("  [info] read5=" + r2); }
+  let r3 = ffi.pack_read(pk, 16);
+  if r3 != 65535 { ok = false; io.println("  [info] read16=" + r3); }
+  // counters must be exact before any sentinel read mutates the read state
+  let rb = ffi.pack_bytes(pk);
+  let rbits = ffi.pack_bits(pk);
+  io.println("  [info] read-state bytes=" + rb + " bits=" + rbits);
+  if rb != 3 { ok = false; }
+  if rbits != 24 { ok = false; }
+  let r4 = ffi.pack_read1(pk);
+  if r4 != -1 { ok = false; io.println("  [info] read1 sentinel=" + r4); }
+  let r5 = ffi.pack_look1(pk);
+  if r5 != -1 { ok = false; io.println("  [info] look1 sentinel=" + r5); }
+  let cl = ffi.pack_writeclear(pk);
+  if !cl.is_ok { ok = false; }
+  let fr = ffi.pack_free(pk);
+  if !fr.is_ok { ok = false; }
+  return assert(ok, "bitpacker LSB-first write/read round trip + lifecycle");
+}
+
+fn t25() -> TestResult {
+  var pages = 0;
+  let mr = mux_three(7777, &mut pages);
+  if !mr.is_ok {
+    return assert(false, "mux_three failed");
+  }
+  let wire = mr.value;
+  var ok = wire.len() > 0;
+  if pages < 2 { ok = false; }
+
+  // demux side: sync -> page accessor consistency
+  let dxr = OggDemuxer.create();
+  if !dxr.is_ok { return assert(false, "demuxer create failed"); }
+  let dx = dxr.value;
+  let fr = OggDemuxer.feed(&dx, &wire);
+  if !fr.is_ok { ok = false; }
+  var seen = 0;
+  var last_gp = 0;
+  var last_serial = 0;
+  var bos_seen = false;
+  var eos_seen = false;
+  var pageno_max = -1;
+  var guard = 0;
+  while guard < 64 {
+    let pr = OggDemuxer.next_page(&dx);
+    if !pr.is_ok { guard = 64; } else {
+      if !pr.value.found { guard = 64; } else {
+        let pg = pr.value;
+        seen = seen + 1;
+        let ver = ffi.page_version(&pg.header, &pg.body);
+        if !ver.is_ok {
+          ok = false;
+        } else {
+          if ver.value != 0 { ok = false; }
+        }
+        if pg.bos { bos_seen = true; }
+        if pg.eos { eos_seen = true; }
+        if pg.pageno > pageno_max { pageno_max = pg.pageno; }
+        last_gp = pg.granulepos;
+        last_serial = pg.serialno;
+      }
+    }
+  }
+  OggDemuxer.destroy(&dx);
+  if seen != pages { ok = false; }
+  if !bos_seen { ok = false; }
+  if !eos_seen { ok = false; }
+  if last_gp != 1160 { ok = false; }
+  if last_serial != 7777 { ok = false; }
+  if pageno_max != pages - 1 { ok = false; }
+
+  // stream side: pagein -> packetout reassembly
+  let pr2 = packets_of(&wire, 2048);
+  if !pr2.is_ok {
+    ok = false;
+  } else {
+    let pkts = pr2.value.packets;
+    if pkts.len() != 3 { ok = false; }
+    if pkts.len() == 3 {
+      let p0 = pkts[0];
+      let p1 = pkts[1];
+      let p2 = pkts[2];
+      if !p0.found { ok = false; }
+      if p0.size != 10 { ok = false; }
+      if !p0.b_o_s { ok = false; }
+      if p0.data.len() != 10 { ok = false; }
+      if p0.data.len() == 10 {
+        if p0.data[0] != (65 as UInt8) { ok = false; }
+      }
+      if p1.size != 300 { ok = false; }
+      if p2.size != 700 { ok = false; }
+      if !p2.e_o_s { ok = false; }
+      if p2.granulepos != 1160 { ok = false; }
+      if p2.packetno != 2 { ok = false; }
+    }
+  }
+  return assert(ok, "muxer->sync->page accessors and stream reassembly round trip");
+}
+
+fn t26() -> TestResult {
+  var pages = 0;
+  let mr = mux_three(4242, &mut pages);
+  if !mr.is_ok {
+    return assert(false, "mux_three failed");
+  }
+  let wire = mr.value;
+  let pr = ogg_parse_pages(&wire);
+  var ok = pr.is_ok;
+  if pr.is_ok {
+    let idx = pr.value;
+    if ogg_page_count(&idx) != pages { ok = false; }
+    var i = 0;
+    while i < ogg_page_count(&idx) {
+      let c = ogg_page_crc_ok(&wire, i);
+      if !c.is_ok { ok = false; } elif !c.value { ok = false; }
+      i = i + 1;
+    }
+  }
+  return assert(ok, "muxed pages validate against the pure-XIOM page walk + CRC-32");
+}
+
+fn t27() -> TestResult {
+  var pages = 0;
+  let mr = mux_three(5150, &mut pages);
+  if !mr.is_ok {
+    return assert(false, "mux_three failed");
+  }
+  let wire = mr.value;
+  // pageseek on a pristine stream returns a positive page size
+  let dxr = OggDemuxer.create();
+  if !dxr.is_ok { return assert(false, "demuxer create failed"); }
+  let dx = dxr.value;
+  var ok = true;
+  let fr = OggDemuxer.feed(&dx, &wire);
+  if !fr.is_ok { ok = false; }
+  let sk = ffi.sync_pageseek(dx.sync);
+  if !sk.is_ok { ok = false; }
+  if sk.is_ok {
+    if sk.value <= 0 { ok = false; }
+  }
+  OggDemuxer.destroy(&dx);
+  // junk prefix: pageseek reports skipped bytes (< 0), pageout then recovers
+  var junked: Vec[UInt8] = Vec[UInt8].new();
+  append_slice(&mut junked, &repeat_byte(120 as UInt8, 8));
+  append_slice(&mut junked, &wire);
+  let dx2r = OggDemuxer.create();
+  if !dx2r.is_ok { return assert(false, "demuxer 2 create failed"); }
+  let dx2 = dx2r.value;
+  let fr2 = OggDemuxer.feed(&dx2, &junked);
+  if !fr2.is_ok { ok = false; }
+  let sk2 = ffi.sync_pageseek(dx2.sync);
+  if !sk2.is_ok { ok = false; }
+  if sk2.is_ok {
+    if sk2.value >= 0 { ok = false; }
+  }
+  let po = OggDemuxer.next_page(&dx2);
+  if !po.is_ok { ok = false; } else {
+    if !po.value.found { ok = false; }
+  }
+  OggDemuxer.destroy(&dx2);
+  return assert(ok, "pageseek: positive size on aligned stream, skip on junk, pageout recovers");
+}
+
+fn t28() -> TestResult {
+  var pages = 0;
+  let mr = mux_three(9001, &mut pages);
+  if !mr.is_ok {
+    return assert(false, "mux_three failed");
+  }
+  let wire = mr.value;
+  let pr = ogg_parse_pages(&wire);
+  if !pr.is_ok {
+    return assert(false, "parse of muxed bytes failed");
+  }
+  let idx = pr.value;
+  let off0: Int = idx.offsets[0];
+  let size0: Int = idx.sizes[0];
+  var hdr: Vec[UInt8] = Vec[UInt8].new();
+  var i = 0;
+  while i < 27 {
+    hdr.push(wire[off0 + i]);
+    i = i + 1;
+  }
+  let nsegs = hdr[26] as Int;
+  i = 27;
+  while i < 27 + nsegs {
+    hdr.push(wire[off0 + i]);
+    i = i + 1;
+  }
+  var body: Vec[UInt8] = Vec[UInt8].new();
+  i = 27 + nsegs;
+  while i < size0 {
+    body.push(wire[off0 + i]);
+    i = i + 1;
+  }
+  // accessor consistency against the muxed page
+  var ok = true;
+  let ver = ffi.page_version(&hdr, &body);
+  if !ver.is_ok { ok = false; } else if ver.value != 0 { ok = false; }
+  let bos = ffi.page_bos(&hdr, &body);
+  if !bos.is_ok { ok = false; } else if !bos.value { ok = false; }
+  let cont = ffi.page_continued(&hdr, &body);
+  if !cont.is_ok { ok = false; } else if cont.value { ok = false; }
+  let ser = ffi.page_serialno(&hdr, &body);
+  if !ser.is_ok { ok = false; } else if ser.value != 9001 { ok = false; }
+  let pno = ffi.page_pageno(&hdr, &body);
+  if !pno.is_ok { ok = false; } else if pno.value != 0 { ok = false; }
+  let npk = ffi.page_packets(&hdr, &body);
+  if !npk.is_ok { ok = false; } else if npk.value != 1 { ok = false; }
+  // checksum_set zeroes the field internally, recomputes and stores it
+  let cs = ffi.page_checksum_set(&mut hdr, &body);
+  if !cs.is_ok { ok = false; }
+  // rebuild the page and let the pure-layer oracle verify the CRC
+  var rebuilt: Vec[UInt8] = Vec[UInt8].new();
+  append_slice(&mut rebuilt, &hdr);
+  append_slice(&mut rebuilt, &body);
+  let c = ogg_page_crc_ok(&rebuilt, 0);
+  if !c.is_ok { ok = false; } elif !c.value { ok = false; }
+  return assert(ok, "page accessors + checksum_set agree with the pure-layer oracle");
+}
+
+fn t29() -> TestResult {
+  let mxr = OggMuxer.create(6001);
+  if !mxr.is_ok {
+    return assert(false, "muxer create failed");
+  }
+  let mx = mxr.value;
+  let head = ascii_bytes("boot");
+  let r0 = OggMuxer.add(&mx, &head, 0, true, false);
+  let a = ascii_bytes("hello ");
+  let b = ascii_bytes("world");
+  let r = OggMuxer.add_iovec(&mx, &a, &b, 42, true);
+  var ok = r.is_ok;
+  if !r0.is_ok { ok = false; }
+  var all: Vec[UInt8] = Vec[UInt8].new();
+  var guard = 0;
+  while guard < 64 {
+    let pr = OggMuxer.page(&mx);
+    if !pr.is_ok { guard = 64; } else {
+      if !pr.value.found { guard = 64; } else {
+        append_slice(&mut all, &page_bytes(&pr.value));
+      }
+    }
+  }
+  let fr = OggMuxer.flush(&mx);
+  if fr.is_ok {
+    if fr.value.found {
+      append_slice(&mut all, &page_bytes(&fr.value));
+    }
+  } else {
+    ok = false;
+  }
+  OggMuxer.destroy(&mx);
+  let pr2 = packets_of(&all, 64);
+  if !pr2.is_ok {
+    ok = false;
+  } else {
+    if pr2.value.packets.len() != 2 { ok = false; }
+    if pr2.value.packets.len() == 2 {
+      let pkt = pr2.value.packets[1];
+      io.println("  [info] iovec pkt size=" + pkt.size + " gp=" + pkt.granulepos + " datalen=" + pkt.data.len());
+      if pkt.size != 11 { ok = false; }
+      if !pkt.e_o_s { ok = false; }
+      // the page's granule position belongs to the final packet
+      if pkt.granulepos != 42 { ok = false; }
+      if !bytes_prefix_eq(&pkt.data, "hello world") { ok = false; }
+    }
+  }
+  return assert(ok, "iovec scatter-gather packet muxes and demuxes as one packet");
+}
+
+fn t30() -> TestResult {
+  let mxr = OggMuxer.create(1111);
+  if !mxr.is_ok {
+    return assert(false, "muxer create failed");
+  }
+  let mx = mxr.value;
+  let p = repeat_byte(90 as UInt8, 32);
+  let r = OggMuxer.add(&mx, &p, 10, true, false);
+  var ok = r.is_ok;
+  let pf = OggMuxer.page_fill(&mx, 1);
+  if !pf.is_ok { ok = false; } else {
+    io.println("  [info] page_fill found=" + b2s(pf.value.found) + " packets=" + pf.value.packets);
+    if !pf.value.found { ok = false; }
+    if pf.value.packets != 1 { ok = false; }
+  }
+  OggMuxer.destroy(&mx);
+  let mx2r = OggMuxer.create(2222);
+  if !mx2r.is_ok { return assert(false, "muxer 2 create failed"); }
+  let mx2 = mx2r.value;
+  let r2 = OggMuxer.add(&mx2, &p, 20, true, false);
+  if !r2.is_ok { ok = false; }
+  let ff = OggMuxer.flush_page_bytes(&mx2);
+  if !ff.is_ok {
+    ok = false;
+  } else {
+    let wire = ff.value;
+    if wire.len() < 27 { ok = false; }
+    let pr = packets_of(&wire, 64);
+    if !pr.is_ok { ok = false; } else {
+      if pr.value.packets.len() != 1 { ok = false; }
+      if pr.value.packets.len() == 1 {
+        // upstream forces the granule position of the first (BOS) page to 0
+        if pr.value.packets[0].granulepos != 0 { ok = false; }
+      }
+    }
+  }
+  OggMuxer.destroy(&mx2);
+  return assert(ok, "pageout_fill flushes on demand; flush_page_bytes serializes a valid page");
+}
+
+fn t31() -> TestResult {
+  let v = repeat_byte(42 as UInt8, 16);
+  let r = ffi.packet_clear(&v);
+  var ok = r.is_ok;
+  // XIOM-owned bytes are never freed by packet_clear
+  if v.len() != 16 { ok = false; }
+  if v[0] != (42 as UInt8) { ok = false; }
+  if v[15] != (42 as UInt8) { ok = false; }
+  return assert(ok, "packet_clear clears the struct without touching owned bytes");
+}
+
+fn t32() -> TestResult {
+  var ok = true;
+  // sync lifecycle
+  let sr = ffi.sync_init();
+  if !sr.is_ok { return assert(false, "sync_init failed"); }
+  let sy = sr.value;
+  let ck = ffi.sync_check(sy);
+  if !ck.is_ok { ok = false; }
+  let rs = ffi.sync_reset(sy);
+  if !rs.is_ok { ok = false; }
+  let junk = ascii_bytes("no page here");
+  let bf = ffi.sync_buffer(sy, &junk);
+  if !bf.is_ok { ok = false; } else {
+    if bf.value != junk.len() { ok = false; }
+  }
+  let wr = ffi.sync_wrote(sy, junk.len());
+  if !wr.is_ok { ok = false; }
+  let po = ffi.sync_pageout(sy);
+  if !po.is_ok { ok = false; } else {
+    if po.value.found { ok = false; }
+  }
+  let cl = ffi.sync_clear(sy);
+  if !cl.is_ok { ok = false; }
+  let dd = ffi.sync_destroy(sy);
+  if !dd.is_ok { ok = false; }
+  // stream lifecycle
+  let str = ffi.stream_init(3333);
+  if !str.is_ok { return assert(false, "stream_init failed"); }
+  let os = str.value;
+  let ck2 = ffi.stream_check(os);
+  if !ck2.is_ok { ok = false; }
+  let eo = ffi.stream_eos(os);
+  if !eo.is_ok { ok = false; } else if eo.value { ok = false; }
+  let rso = ffi.stream_reset_serialno(os, 4444);
+  if !rso.is_ok { ok = false; }
+  let rst = ffi.stream_reset(os);
+  if !rst.is_ok { ok = false; }
+  let cl2 = ffi.stream_clear(os);
+  if !cl2.is_ok { ok = false; }
+  let dd2 = ffi.stream_destroy(os);
+  if !dd2.is_ok { ok = false; }
+  return assert(ok, "sync/stream lifecycle + validation entry points");
+}
+
+fn t33() -> TestResult {
+  let fr = io.read_file_bytes("tests/fixtures/tone.ogg");
+  if !fr.is_ok {
+    return assert(false, "fixture tests/fixtures/tone.ogg missing");
+  }
+  let fixture = fr.value;
+  var ok = fixture.len() > 1000;
+  let dr = demux_all(&fixture, 1500);
+  if !dr.is_ok {
+    return assert(false, "fixture demux failed");
+  }
+  let d = dr.value;
+  if d.pages != 3 { ok = false; }
+  if d.packets.len() != 27 { ok = false; }
+  if !d.eos_seen { ok = false; }
+  if d.serialno == 0 { ok = false; }
+  if d.packets.len() == 27 {
+    if !bytes_prefix_eq(&d.packets[0].data, "OpusHead") { ok = false; }
+    if !bytes_prefix_eq(&d.packets[1].data, "OpusTags") { ok = false; }
+    if !d.packets[0].b_o_s { ok = false; }
+    if !d.packets[26].e_o_s { ok = false; }
+    if d.packets[26].granulepos != 24312 { ok = false; }
+    var audio_ok = true;
+    var i = 2;
+    while i < 27 {
+      if d.packets[i].size <= 0 { audio_ok = false; }
+      if d.packets[i].size >= 1500 { audio_ok = false; }
+      i = i + 1;
+    }
+    if !audio_ok { ok = false; }
+  }
+  return assert(ok, "fixture tone.ogg: 3 pages, 27 packets (OpusHead/OpusTags/25 audio), EOS, gp");
+}
+
+fn t34() -> TestResult {
+  let fr = io.read_file_bytes("tests/fixtures/tone.ogg");
+  if !fr.is_ok {
+    return assert(false, "fixture missing");
+  }
+  let fixture = fr.value;
+  var ok = true;
+  // pure-layer oracle over the whole fixture
+  let pr = ogg_parse_pages(&fixture);
+  if !pr.is_ok {
+    ok = false;
+  } else {
+    let idx = pr.value;
+    if ogg_page_count(&idx) != 3 { ok = false; }
+    var i = 0;
+    while i < ogg_page_count(&idx) {
+      let c = ogg_page_crc_ok(&fixture, i);
+      if !c.is_ok { ok = false; } elif !c.value { ok = false; }
+      i = i + 1;
+    }
+  }
+  // identification header fields as written by the fixture generator
+  let dr = demux_all(&fixture, 1500);
+  if !dr.is_ok {
+    ok = false;
+  } else {
+    let d = dr.value;
+    if d.packets.len() == 27 {
+      let head = d.packets[0].data;
+      io.println("  [info] head.len=" + head.len());
+      if head.len() != 19 { ok = false; }
+      if head.len() == 19 {
+        io.println("  [info] ver=" + (head[8] as Int) + " ch=" + (head[9] as Int) + " preskip=" + read_i16le(&head, 10) + " rate=" + read_i32le(&head, 12) + " fam=" + (head[18] as Int));
+        if head[8] != (1 as UInt8) { ok = false; }             // version
+        if head[9] != (1 as UInt8) { ok = false; }             // channels
+        if read_i16le(&head, 10) != 312 { ok = false; }        // pre-skip
+        if read_i32le(&head, 12) != 48000 { ok = false; }      // input rate
+        if head[18] != (0 as UInt8) { ok = false; }            // mapping family
+      }
+      // upstream assigns the page granule position to the packet that ends
+      // the page; earlier packets on the page report -1 by design
+      io.println("  [info] gp2=" + d.packets[2].granulepos + " gp26=" + d.packets[26].granulepos);
+      if d.packets[2].granulepos != -1 { ok = false; }
+      if d.packets[26].granulepos != 312 + 25 * 960 { ok = false; }
+    } else {
+      ok = false;
+    }
+  }
+  return assert(ok, "fixture OpusHead fields + pure-layer CRC on all pages + granule math");
+}
+
+fn append_slice(dst: &mut Vec[UInt8], src: &Vec[UInt8]) {
+  var i = 0;
+  while i < src.len() {
+    dst.push(src[i]);
+    i = i + 1;
+  }
+}
+
 fn main() -> Int {
   io.println("=== xiom.ogg conformance tests ===");
+  io.flush_stdout();
   var failed: Int = 0;
   let r1 = t1();
   if r1.passed { io.println("  [PASS] " + r1.name); } else { io.println("  [FAIL] " + r1.name); failed = failed + 1; }
+  io.flush_stdout();
   let r2 = t2();
   if r2.passed { io.println("  [PASS] " + r2.name); } else { io.println("  [FAIL] " + r2.name); failed = failed + 1; }
+  io.flush_stdout();
   let r3 = t3();
   if r3.passed { io.println("  [PASS] " + r3.name); } else { io.println("  [FAIL] " + r3.name); failed = failed + 1; }
+  io.flush_stdout();
   let r4 = t4();
   if r4.passed { io.println("  [PASS] " + r4.name); } else { io.println("  [FAIL] " + r4.name); failed = failed + 1; }
+  io.flush_stdout();
   let r5 = t5();
   if r5.passed { io.println("  [PASS] " + r5.name); } else { io.println("  [FAIL] " + r5.name); failed = failed + 1; }
+  io.flush_stdout();
   let r6 = t6();
   if r6.passed { io.println("  [PASS] " + r6.name); } else { io.println("  [FAIL] " + r6.name); failed = failed + 1; }
+  io.flush_stdout();
   let r7 = t7();
   if r7.passed { io.println("  [PASS] " + r7.name); } else { io.println("  [FAIL] " + r7.name); failed = failed + 1; }
+  io.flush_stdout();
   let r8 = t8();
   if r8.passed { io.println("  [PASS] " + r8.name); } else { io.println("  [FAIL] " + r8.name); failed = failed + 1; }
+  io.flush_stdout();
   let r9 = t9();
   if r9.passed { io.println("  [PASS] " + r9.name); } else { io.println("  [FAIL] " + r9.name); failed = failed + 1; }
+  io.flush_stdout();
   let r10 = t10();
   if r10.passed { io.println("  [PASS] " + r10.name); } else { io.println("  [FAIL] " + r10.name); failed = failed + 1; }
+  io.flush_stdout();
   let r11 = t11();
   if r11.passed { io.println("  [PASS] " + r11.name); } else { io.println("  [FAIL] " + r11.name); failed = failed + 1; }
+  io.flush_stdout();
   let r12 = t12();
   if r12.passed { io.println("  [PASS] " + r12.name); } else { io.println("  [FAIL] " + r12.name); failed = failed + 1; }
+  io.flush_stdout();
   let r13 = t13();
   if r13.passed { io.println("  [PASS] " + r13.name); } else { io.println("  [FAIL] " + r13.name); failed = failed + 1; }
+  io.flush_stdout();
   let r14 = t14();
   if r14.passed { io.println("  [PASS] " + r14.name); } else { io.println("  [FAIL] " + r14.name); failed = failed + 1; }
+  io.flush_stdout();
   let r15 = t15();
   if r15.passed { io.println("  [PASS] " + r15.name); } else { io.println("  [FAIL] " + r15.name); failed = failed + 1; }
+  io.flush_stdout();
   let r16 = t16();
   if r16.passed { io.println("  [PASS] " + r16.name); } else { io.println("  [FAIL] " + r16.name); failed = failed + 1; }
+  io.flush_stdout();
   let r17 = t17();
   if r17.passed { io.println("  [PASS] " + r17.name); } else { io.println("  [FAIL] " + r17.name); failed = failed + 1; }
+  io.flush_stdout();
   let r18 = t18();
   if r18.passed { io.println("  [PASS] " + r18.name); } else { io.println("  [FAIL] " + r18.name); failed = failed + 1; }
+  io.flush_stdout();
   let r19 = t19();
   if r19.passed { io.println("  [PASS] " + r19.name); } else { io.println("  [FAIL] " + r19.name); failed = failed + 1; }
+  io.flush_stdout();
   let r20 = t20();
   if r20.passed { io.println("  [PASS] " + r20.name); } else { io.println("  [FAIL] " + r20.name); failed = failed + 1; }
+  io.flush_stdout();
   let r21 = t21();
   if r21.passed { io.println("  [PASS] " + r21.name); } else { io.println("  [FAIL] " + r21.name); failed = failed + 1; }
+  io.flush_stdout();
   let r22 = t22();
   if r22.passed { io.println("  [PASS] " + r22.name); } else { io.println("  [FAIL] " + r22.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r23 = t23();
+  if r23.passed { io.println("  [PASS] " + r23.name); } else { io.println("  [FAIL] " + r23.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r24 = t24();
+  if r24.passed { io.println("  [PASS] " + r24.name); } else { io.println("  [FAIL] " + r24.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r25 = t25();
+  if r25.passed { io.println("  [PASS] " + r25.name); } else { io.println("  [FAIL] " + r25.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r26 = t26();
+  if r26.passed { io.println("  [PASS] " + r26.name); } else { io.println("  [FAIL] " + r26.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r27 = t27();
+  if r27.passed { io.println("  [PASS] " + r27.name); } else { io.println("  [FAIL] " + r27.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r28 = t28();
+  if r28.passed { io.println("  [PASS] " + r28.name); } else { io.println("  [FAIL] " + r28.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r29 = t29();
+  if r29.passed { io.println("  [PASS] " + r29.name); } else { io.println("  [FAIL] " + r29.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r30 = t30();
+  if r30.passed { io.println("  [PASS] " + r30.name); } else { io.println("  [FAIL] " + r30.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r31 = t31();
+  if r31.passed { io.println("  [PASS] " + r31.name); } else { io.println("  [FAIL] " + r31.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r32 = t32();
+  if r32.passed { io.println("  [PASS] " + r32.name); } else { io.println("  [FAIL] " + r32.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r33 = t33();
+  if r33.passed { io.println("  [PASS] " + r33.name); } else { io.println("  [FAIL] " + r33.name); failed = failed + 1; }
+  io.flush_stdout();
+  let r34 = t34();
+  if r34.passed { io.println("  [PASS] " + r34.name); } else { io.println("  [FAIL] " + r34.name); failed = failed + 1; }
+  io.flush_stdout();
   if failed == 0 {
     io.println("xiom.ogg: all tests passed");
   } else {

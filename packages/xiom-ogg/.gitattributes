@@ -1,0 +1,7 @@
+# Vendored upstream sources: keep byte content exactly as recorded in
+# vendor/MANIFEST.sha256 (the four include lines rewritten per
+# tools/vendor_ogg.py are the ONLY delta; see PROVENANCE.md).
+vendor/** -text
+
+# Binary test fixture: never convert line endings.
+tests/fixtures/*.ogg -text

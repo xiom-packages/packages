@@ -1,43 +1,47 @@
 # xiom.phonon -- Roadmap
 
-**Version**: v0.2.0 | **Compiler**: xiom v0.64.1 | **Last updated**: 2026-10-09
+**Version**: v0.3.0 | **Compiler**: xiom v0.64.4 | **Last updated**: 2026-10-13
 
 ## Current state
 
 | Criterion | Status |
 |-----------|--------|
 | Dynamic loader (no link dependency) | Done -- `phonon.dll` at runtime |
-| G2 pin (version + ABI layouts + header hashes) | Done -- `SPEC.md` §2 |
-| Context lifecycle (create/retain/release) | Done -- probe |
-| SKIP/FAIL classification | Done |
-| HRTF creation (`iplHRTFCreate`) | Phase 2 |
-| Binaural/panning/virtual-surround effects | Phase 2 |
-| Ambisonics effects | Phase 2 |
+| G2 pin (version + 216-name manifest + ABI layouts + header hashes) | Done -- `SPEC.md` §2 |
+| Generated surface (header -> `abi`/`exports`, drift-checked) | Done -- `tools/gen_phonon.py --check/--coverage/--verify-dll` |
+| Context lifecycle (create/retain/release) | Done |
+| Version + capability probes | Done (`phonon_capabilities`: 216/216 resolved, per-group availability) |
+| HRTF creation (built-in + SOFA file) | Done |
+| Owned planar audio buffers + DLL-managed interop | Done |
+| Binaural / panning / virtual surround effects | Done (create/apply/reset/retain/release/tail) |
+| Direct effect (forward on/off, attenuation, air absorption, directivity, occlusion, transmission) | Done (via generated params layout; in-place supported) |
+| Path effect (SH coefficients, spatialized + ambisonic) | Done |
+| Ambisonics encode / panning / binaural / rotation / decode | Done |
+| Audio buffer mix / downmix / convert-ambisonics | Done (managed buffers) |
 | Scenes/geometry (static + instanced meshes) | Phase 2 |
+| Simulator + probes + occlusion | Phase 2 |
+| Reflections + path baking | Phase 2 |
 | Serialization | Phase 2 |
-| Simulator + probes | Phase 2 |
+| Pathing helpers (`iplCalculateRelativeDirection`, fp calculators) | Deferred on B-12 (see SPEC §3) |
+| Custom speaker layouts (caller speaker arrays) | Future slice |
 
 ## Phase 2 (next touches)
 
-1. HRTF: `iplHRTFCreate` with `IPL_HRTFTYPE_DEFAULT` (embedded SOFA data)
-   and derived settings (`iplHRTFGetBinauralFilter`, normalization volume) --
-   the key spatial-audio capability.
-2. Core effects: binaural (`iplBinauralEffectCreate` + `...Apply` on an
-   `IPLAudioBuffer`) with an in-memory mono impulse, plus panning and
-   virtual-surround.
-3. Ambisonics: encode/rotation/decode chain on owned buffers.
-4. Scenes: `iplSceneCreate` + `iplStaticMeshCreate` from an XIOM vertex
-   array; `iplSimulator*` for occlusion/propagation probes (Embree/RadeonRays
-   optional -- keep the default ray tracer).
-5. Struct marshalling: XIOM-owned byte buffers with documented layouts for
-   `IPLAudioBuffer`/`IPLVector3`/`IPLCoordinateSpace3` (the byte-pinned style
-   used across this lane).
-6. Batch the surface deliberately: the pre-pilot module declared ~125
-   functions; rebuild the safe wrappers in reviewable slices with a suite per
-   slice.
+1. Scene + geometry: `iplSceneCreate` / `iplStaticMeshCreate` from XIOM
+   vertex arrays; `iplSimulatorCreate` + `iplSourceCreate`/`SetInputs`/
+   `RunDirect` for occlusion; keep the default ray tracer (Embree/RadeonRays
+   optional devices stay non-goals).
+2. Probe batches: `iplProbeArray*` + `iplProbeBatch*` (+ load/save) to feed
+   `iplSimulatorRunReflections`.
+3. Reflections: IR/reconstructor + reflection effect/mixer/baker slice once
+   the probe + scene layers exist.
+4. Re-attempt the four deferred helpers when the fp-return fix (B-12) is
+   pinned; add `iplCalculateRelativeDirection` via a C-side sret probe.
+5. Custom speaker layouts: expose the speaker-array pointer path for
+   `IPL_SPEAKERLAYOUTTYPE_CUSTOM`.
 
 ## Sector note
 
 Audio sector, package 3 of 3 (`xiom.miniaudio`, `xiom.portaudio`,
-`xiom.phonon` -- this package). Next sector per the proposal: accelerators
-(gated on XVECTOR) then crypto/media.
+`xiom.phonon` -- this package). 0.3.0 completes the runtime DSP surface the
+spatial-audio engine needs; the simulation half is the Phase 2 target.
