@@ -9,8 +9,8 @@
                   "passed":  35,
                   "failed":  0,
                   "run_by":  "task:ses_eca6cc8b0ffeIWOLV4Vkjj4uJn",
-                  "commit":  "a9722798",
-                  "checked":  "2026-10-14T12:39:06Z"
+                  "commit":  "8222b886",
+                  "checked":  "2026-10-14T12:40:56Z"
               },
     "publish":  false,
     "excluded_reason":  "new 0.1.0; not in publish-allowlist yet (native lane appends + registry scope enumeration at merge)",
