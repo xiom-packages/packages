@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-14T15:42:57Z",
+    "updated":  "2026-10-14T17:07:59Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -2404,6 +2404,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.exr",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "OpenEXR reader for XIOM via vendored tinyexr v3.2.0 (BSD-3; single TU + miniz): read from memory/file into owned planar float32 channel buffers, metadata queries (dimensions, channel names/count, declared pixel types, compression, data window), save-to-memory round trips, typed errors",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-exr/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "exr.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.2",
                          "name":  "xiom.ext",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -2471,7 +2488,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.4.0",
+                         "version":  "0.4.1",
                          "name":  "xiom.ffmpeg",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "FFmpeg (libavcodec/libavformat/libavutil/libswresample) bindings for XIOM via dynamic loader (system-library SKIP path; LGPL-safe probe; AV1-class decode surface; container demux -- avformat open/close, stream enumeration, best-stream selection, packet read loop, seek)",
@@ -2481,7 +2498,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ffmpeg/v0.4.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ffmpeg/v0.4.1/package.tar.gz",
                          "source_files":  [
                                               "ffmpeg.xi",
                                               "package.xi"
@@ -3750,17 +3767,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.3.0",
+                         "version":  "0.4.0",
                          "name":  "xiom.jolt",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; probes + caller-usable world/body surface)",
+                         "description":  "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; probes + caller-usable world/body surface + per-body external force/torque input)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jolt/v0.3.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jolt/v0.4.0/package.tar.gz",
                          "source_files":  [
                                               "jolt.xi",
                                               "package.xi"
@@ -5594,6 +5611,24 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.openpgl",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Intel Open Path Guiding Library (Open PGL) v0.7.1 bindings: vendored C++ core (oneTBB runtime included), public C API subset -- sample storage, guiding field training, surface sampling distribution queries, field statistics",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-openpgl/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "openpgl.xi",
+                                              "openpgl_ffi.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.2.0",
                          "name":  "xiom.openssl",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -5733,17 +5768,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.3.0",
+                         "version":  "0.4.0",
                          "name":  "xiom.ozz",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Ozz-Animation (v0.16.0) bindings for XIOM -- vendored C++ amalgamation, no system library",
+                         "description":  "Ozz-Animation (v0.16.0) bindings for XIOM -- vendored C++ amalgamation, no system library; caller-key clip build + caller-time sampling",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ozz/v0.3.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ozz/v0.4.0/package.tar.gz",
                          "source_files":  [
                                               "ozz.xi",
                                               "package.xi"
@@ -6191,6 +6226,23 @@
                                               "phonon_exports.xi",
                                               "package.xi",
                                               "phonon.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.photometrics",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Photometric profile import: IESNA LM-63 (1986/1991/1995/2002) reader and Adobe .cube 1D/3D LUT reader, pure XIOM",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-photometrics/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "photometrics.xi",
+                                              "package.xi"
                                           ]
                      },
                      {
@@ -7114,6 +7166,24 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.rpr",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "AMD Radeon ProRender SDK v3.1.7.1 core-API bindings (runtime DLL loader, no SDK binaries vendored; context/scene/camera/light/PBR material/mesh/framebuffer render + read-back)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rpr/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "rpr.xi",
+                                              "rpr_ffi.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.3",
                          "name":  "xiom.rtc",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -7145,6 +7215,40 @@
                          "source_files":  [
                                               "rtf.xi",
                                               "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.rtxdi",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA RTXDI (ReSTIR DI integration runtime) for XIOM -- reference-only dynamic-loader binding. Upstream (github.com/NVIDIAGameWorks/RTXDI, tag v3.1.0, runtime library RTXDI-Library @ f12037fa) is NOT MIT as expected: it ships the proprietary NVIDIA RTX SDKs License, so no RTXDI code, headers, shaders or binaries ship here (NRD/FFmpeg precedent, PROVENANCE.md); the suite exercises a locally built shim DLL and classifies SKIP when absent.",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rtxdi/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "package.xi",
+                                              "rtxdi.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.rtxgi",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA RTXGI-DDGI integration surface for XIOM -- reference-only dynamic-loader binding. Upstream (github.com/NVIDIAGameWorks/RTXGI-DDGI, tag v1.3.7) is NOT MIT as expected: it ships the proprietary NVIDIA RTX SDKs License, so no RTXGI code, headers, shaders or binaries ship here (NRD/FFmpeg precedent, PROVENANCE.md); the suite exercises a locally built shim DLL and classifies SKIP when absent.",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rtxgi/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "package.xi",
+                                              "rtxgi.xi"
                                           ]
                      },
                      {
@@ -7386,17 +7490,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.18.0",
+                         "version":  "0.19.0",
                          "name":  "xiom.sdl3",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors incl. mouse wheel + drag-drop payload decode) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit + mouse state + window contract + audio/joystick enumeration + push audio streaming + capture streams + pointer capture/relative mouse + joystick open/axis/button reads (virtual-joystick instrumented) + full source-generated constant tables",
+                         "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors incl. mouse wheel + drag-drop + pen/tablet motion/touch/button/proximity payloads) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit + mouse state + window contract + audio/joystick enumeration + push audio streaming + capture streams + pointer capture/relative mouse + joystick open/axis/button reads (virtual-joystick instrumented) + joystick caps queries (rumble/LED flags + counts/type) + haptic wave-form effects (periodic encode/create/run/stop, typed errors) + full source-generated constant tables",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.18.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.19.0/package.tar.gz",
                          "source_files":  [
                                               "sdl3_full_assert.xi",
                                               "sdl3_full_asyncio.xi",
@@ -8182,17 +8286,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.stb",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "stb image codecs for XIOM (vendored stb_image + stb_image_write single headers; in-memory PNG encode/decode + BMP decode probe)",
+                         "description":  "stb image codecs for XIOM (vendored stb_image + stb_image_write single headers; in-memory PNG encode/decode + BMP decode probe + the full HDR class surface: stbi_loadf family, stbi_is_hdr family, hdr/ldr conversion knobs)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stb/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stb/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "package.xi",
                                               "stb.xi"
