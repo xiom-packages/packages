@@ -145,7 +145,9 @@ int32_t __cdecl ffmpeg_bridge_frame_info(int64_t frame, uint8_t* out_slot)
  * The generation-dependent values (stream_base, wh_off) are selected in
  * ffmpeg.xi from the loaded generation's packed versions and verified every
  * run by the conformance suite against the fixture's known header (64x48,
- * time_base 1/4, AV_CODEC_ID_AV1); any drift fails loudly.
+ * time_base 1/4, the AV1 codec id -- which the suite resolves by codec NAME,
+ * since the numeric AVCodecID shifts across FFmpeg majors: 226 on lavc 60.x,
+ * 225 on lavc 61.x); any drift fails loudly.
  * ------------------------------------------------------------------------ */
 
 /* AVFormatContext -> nb_streams.  Out-slot: [0..3]=nb_streams (u32).

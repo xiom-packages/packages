@@ -1,8 +1,8 @@
 # AUDIT: xiom.ffmpeg
 
-## Status (2026-10-13, v0.64.4)
+## Status (2026-10-14, v0.64.4)
 
-System-library dynamic-loader implementation at 0.4.0 (probe + AV1-class
+System-library dynamic-loader implementation at 0.4.1 (probe + AV1-class
 decode + container demux). The pre-pilot module (27 static `extern "C"`
 declarations, compile-time linked) required FFmpeg import libraries at build
 time and is preserved in git history only.
@@ -15,8 +15,8 @@ time and is preserved in git history only.
 | Link model | none at build time; runtime `xiom.ffi.dl` (generation scan) |
 | FFI confinement | all `unsafe`/`extern` in the root module `ffmpeg.xi` (G5); `src/ffmpeg_bridge.c` is XIOM-side support code (no FFmpeg link) |
 | Suite | `tests/test_conformance.xi` |
-| Runs (0.4.0) | default PATH: SKIP 3/3 x2; GIMP 6.1.1: 23/23 x2 (12 decode + 11 demux, `libdav1d` 1.4.1) |
-| Runs (0.3.0, kept green) | Cascadeur 6.0 LGPL: 12/12 x2 (`libdav1d` 1.2.1); Blender 7.1.1 GPL: 12/12 (`libaom-av1`); CapCut 7.x LGPL: 12/12 (`libdav1d`); OBS n7.0.2 GPL: 12/12 (`libaom-av1`); partial generations (OneDrive 8.1.2, DaVinci 6.x): SKIP 3/3 |
+| Runs (0.4.1) | default PATH: SKIP 3/3 x2; GIMP 6.1.1: 23/23 x2 (`libdav1d` 1.4.1); Blender 7.1.1 GPL: 23/23 x2 (`libaom-av1`) |
+| Runs (0.3.0, kept green) | Cascadeur 6.0 LGPL: 12/12 x2 (`libdav1d` 1.2.1); CapCut 7.x LGPL: 12/12 (`libdav1d`); OBS n7.0.2 GPL: 12/12 (`libaom-av1`); partial generations (OneDrive 8.1.2, DaVinci 6.x): SKIP 3/3 |
 
 ## Design notes
 
@@ -73,10 +73,16 @@ time and is preserved in git history only.
   with the 72 offset against the 6.1 runtime read field_order/color_space
   (0/1) instead of 64/48 -- the geometry check caught the skew immediately
   (loud-failure design working as intended).
-- **AV_CODEC_ID_AV1 = 226** (video enum order after XPM/BITPACKED in the
-  pinned headers) verified at runtime on the 6.1 DLL:
-  `avcodec_get_name(226) == "av1"`; the suite asserts both the constant and
-  the name.
+- **Codec-id gate is generation-independent (0.4.1 fix).** The numeric
+  `AVCodecID` is not stable across FFmpeg majors: `AV_CODEC_ID_AV1` is 226
+  on lavc 60.x (FFmpeg 6.1), 225 on lavc 61.x (FFmpeg 7.0+ removed the
+  deprecated packed-YUV ids from the video enum) and 222 in the pinned
+  8.0.git list. 0.4.0 asserted a hardcoded 226, which failed 1/23 on the
+  7.1.1 generation (`id=225`) although the bridge read `codecpar.codec_id`
+  correctly and `avcodec_get_name(225) == "av1"`; the 0.4.1 suite resolves
+  the generation's own id from the stable codec name via
+  `ffmpeg_codec_id_by_name` (avcodec_get_name scan) and gates on the name
+  plus that resolved id. No bridge/ABI change.
 - **The packet read loop is checked against the container's own framing**:
   count (3), per-packet size (450/44/63), payload byte equality against the
   IVF frame bytes, stream_index/pts (0/1/2) against the per-frame headers,
@@ -101,8 +107,9 @@ time and is preserved in git history only.
 - Frame pixel planes are not copied out yet (the frame head +
   lifecycle are surfaced; pixel copy-out is a later item).
 - The demux surface is validated on the IVF fixture (single video stream)
-  and the 6.1 GIMP runtime; the 4.x/5.x and 8.x prefix values are pinned
-  from the declaration oracle, not exercised on this host.
+  against the 6.1 GIMP and 7.1.1 Blender runtimes; the 4.x/5.x and 8.x
+  prefix values are pinned from the declaration oracle, not exercised on
+  this host.
 - The AV1 surface is exercised against software decoders; the native
   hardware path needs a device-context surface that is not part of 0.3.0.
 - Only the five built-in generations are scanned; an unusual soname needs

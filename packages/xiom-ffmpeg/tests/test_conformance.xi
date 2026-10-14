@@ -23,6 +23,10 @@
 //   * the same IVF fixture is opened through avformat_open_input +
 //     avformat_find_stream_info (stream enumeration: count, codec id/type,
 //     time base, geometry; best-stream selection);
+//   * the codec-id gate is generation-independent (0.4.1): the expected AV1
+//     id is resolved from the stable codec name at runtime -- the numeric
+//     AVCodecID shifts across FFmpeg majors (226 on lavc 60.x, 225 on
+//     lavc 61.x), so no constant is asserted;
 //   * the packet loop is checked against the IVF framing (count, sizes,
 //     payload byte equality, stream_index/pts against the container header,
 //     clean EOF) and the demuxed packets are fed to a fresh AV1 decoder
@@ -311,12 +315,18 @@ fn run_demux_section(lib: &FfmpegLibrary, failed: Int) -> Int {
     "demux: opened " + path + " (streams=" + i2s(count) + ")");
 
   let si = ffmpeg_demux_stream_info(&demux, 0);
+  // The numeric AVCodecID is not stable across FFmpeg major generations
+  // (AV_CODEC_ID_AV1: 226 on lavc 60.x, 225 on lavc 61.x after the
+  // deprecated packed-YUV ids were removed): resolve the loaded
+  // generation's own AV1 id from the stable codec NAME instead of gating on
+  // a hardcoded constant.
+  let av1_id = ffmpeg_codec_id_by_name(lib, "av1");
   var cname = "";
   if si.ok && si.codec_id >= 0 { cname = ffmpeg_codec_name(lib, si.codec_id); }
-  out = out + report(si.ok && si.codec_id == FFMPEG_CODEC_ID_AV1 && si.codec_type == FFMPEG_MEDIA_TYPE_VIDEO
+  out = out + report(si.ok && av1_id >= 0 && si.codec_id == av1_id && si.codec_type == FFMPEG_MEDIA_TYPE_VIDEO
       && str_compare(cname, "av1") == 0 && si.time_base_num == 1 && si.time_base_den == 4,
-    "demux: stream 0 codec=" + cname + " id=" + i2s(si.codec_id) + " type=" + i2s(si.codec_type)
-      + " time_base=" + i2s(si.time_base_num) + "/" + i2s(si.time_base_den));
+    "demux: stream 0 codec=" + cname + " id=" + i2s(si.codec_id) + " (generation av1 id=" + i2s(av1_id)
+      + ") type=" + i2s(si.codec_type) + " time_base=" + i2s(si.time_base_num) + "/" + i2s(si.time_base_den));
   out = out + report(si.ok && si.width == iw && si.height == ih,
     "demux: stream 0 geometry " + i2s(si.width) + "x" + i2s(si.height) + " matches IVF header");
 
