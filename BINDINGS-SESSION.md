@@ -20,11 +20,12 @@ guard_free in wave 124 but still red on v0.64.4 even with
 `XIOM_RUNTIME_DIR`) -- then the re-verify wave + glfw 0.6.0 lift + sdl3
 widening + workaround retirement + **sqlite nested-shape restore**.
 **glfw 0.6.0 lift parked until then.**  **WAVE-2 (12 pkgs: opus/ogg/
-lz4/ktx2/vdb/phonon/fidelityfx/nis/dlss/xess/nrd/oidn) integrated
-2026-10-14 12:15Z (tip `5bc15161`); publish batch filed
-(`REL-20261014-1208-bindings-3`); ffmpeg 0.4.0 held from publish pending
+lz4/ktx2/vdb/phonon/fidelityfx/nis/dlss/xess/nrd/oidn) LIVE in
+`eco-v0.1.178`** (integrated 2026-10-14 12:15Z, tip `5bc15161`;
+publish batch `REL-20261014-1208-bindings-3` fixed; engine relayed
+`-1259-packages`); ffmpeg 0.4.0 held from publish pending
 the 0.4.1 demux fix (7.1.1 ok-gate; fix session in flight);
-B-27..B-31 canonized (B-27/28 stdlib, B-29/30/31 compiler).**  PULSE co-verify: driver surface
+B-27..B-31 canonized (B-27/28 stdlib acked, B-29/30/31 compiler open).**  PULSE co-verify: driver surface
 GREEN 24/24 in-tree; registry-artifact re-run waits on the compiler
 project-dependency fix (`REL-20261013-1731-packages`, "modules list
 ignored"); sqlite 0.4.1 modules list published.  Ops clobber rules in
@@ -978,6 +979,26 @@ wrappers) -- is now LIVE (packages fixed `REL-20261012-2051-bindings`,
 validate green. Promotion readiness (policy sec. 7) is the next DX12 step
 after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
+
+**UPDATE 2026-10-14 13:05Z (WAVE-2 LIVE in `eco-v0.1.178`; engine
+relayed; A05 launched)**: relay check -- the unattended flow closed the
+loop end-to-end.
+- **WAVE 2 PUBLISHED**: `eco-v0.1.178` (merge `858df12a`, tip
+  `3a22a083`, wrap `eb21dc46`, run 38565995820 green; 12 packages, all
+  x2).  Tally 94 releases through `.178`.  My batch item
+  `-1208-bindings-3` fixed; **engine relay already sent** by packages
+  (`REL-20261014-1259-packages`, per the standing `-2125` rule) with
+  per-package sha256s.
+- **B-27/B-28 acked** by the stdlib lane (fixes can ride the next pin;
+  re-probe bundles ready).  B-29/B-30/B-31 still open on the compiler
+  side.
+- **A05 ask acked + sessions launched** (`am-1791982901082-notuk9`):
+  `feat/stb-hdr-exr` (xiom.stb 0.3.0 `.hdr` surface + NEW `xiom.exr`
+  tinyexr reader) and `feat/photometric-profiles` (NEW
+  `xiom.photometrics`: IES LM-63 + `.cube`, pure XIOM independent).
+- Still in flight: ffmpeg 0.4.1 fix, jolt 0.4.0 forces, ozz 0.4.0,
+  sdl3 0.19.0, rtxdi+rtxgi, rpr, openpgl.  v0.64.4 still latest (no
+  v0.64.5 archive yet).  Relay tip `d1b6b27`, validate 477 items.
 
 **UPDATE 2026-10-14 12:15Z (WAVE-2 FULL INTEGRATION -- 12 packages;
 B-27..B-31 canonized; publish batch filed)**: all overnight agent
