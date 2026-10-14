@@ -21,11 +21,14 @@ guard_free in wave 124 but still red on v0.64.4 even with
 widening + workaround retirement + **sqlite nested-shape restore**.
 **glfw 0.6.0 lift parked until then.**  **WAVE-2 (12 pkgs: opus/ogg/
 lz4/ktx2/vdb/phonon/fidelityfx/nis/dlss/xess/nrd/oidn) LIVE in
-`eco-v0.1.178`** (integrated 2026-10-14 12:15Z, tip `5bc15161`;
-publish batch `REL-20261014-1208-bindings-3` fixed; engine relayed
-`-1259-packages`); ffmpeg 0.4.0 held from publish pending
-the 0.4.1 demux fix (7.1.1 ok-gate; fix session in flight);
-B-27..B-31 canonized (B-27/28 stdlib acked, B-29/30/31 compiler open).**  PULSE co-verify: driver surface
+`eco-v0.1.178`** (engine relayed `-1259-packages`); **WAVE-3 (11 pkgs:
+ffmpeg 0.4.1 SHIP-only, jolt 0.4.0, ozz 0.4.0, sdl3 0.19.0, rtxgi +
+rtxdi, rpr, openpgl, stb 0.3.0, exr, photometrics) + A05 LIVE in
+`eco-v0.1.179`** (run 38577890832 green; merge `945b795f`, wrap
+`52dc853b`; ops allowlist 540; ffmpeg 0.4.0 stays held -- 0.4.1
+supersedes).  B-27..B-31 canonized: B-27/28 REAL vs the stale stdlib
+snapshot bundled in v0.64.4 (stdlib main fixed `45d0337`; retire the
+workarounds at the next re-vendored pin); B-29/30/31 compiler open.**  PULSE co-verify: driver surface
 GREEN 24/24 in-tree; registry-artifact re-run waits on the compiler
 project-dependency fix (`REL-20261013-1731-packages`, "modules list
 ignored"); sqlite 0.4.1 modules list published.  Ops clobber rules in
@@ -979,6 +982,29 @@ wrappers) -- is now LIVE (packages fixed `REL-20261012-2051-bindings`,
 validate green. Promotion readiness (policy sec. 7) is the next DX12 step
 after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
+
+**UPDATE 2026-10-14 14:57Z (WAVE-3 + A05 PUBLISHED -- `eco-v0.1.179`,
+15 packages; ops loop closed; stdlib B-27/28 root cause)**: doorbell
+relay check.
+- **WAVE-3 LIVE**: `eco-v0.1.179` (run 38577890832 green; merge
+  `945b795f`, wrap `52dc853b`): ffmpeg 0.4.1 (0.4.0 stays held),
+  jolt 0.4.0, ozz 0.4.0, sdl3 0.19.0, rtxgi 0.1.0, rtxdi 0.1.0,
+  rpr 0.1.0, openpgl 0.1.0, stb 0.3.0, exr 0.1.0, photometrics 0.1.0.
+  A05 (10)+(11) items fixed in the same release; ops closed the loop
+  (allowlist 540; `992c4b1`).  Tally 95 releases through `.179`.
+- **stdlib B-27/28 root cause** (`-1401-stdlib`, acked): the v0.64.4
+  archive bundles a STALE stdlib snapshot -- the findings are real
+  against the shipped toolchain; stdlib main is fixed (`45d0337`).  Our
+  runner uses `XIOM_STDLIB=E:\xiom-lang\stdlib` (main) so in-lane is
+  already on the fix; shipped workarounds stay for consumers on the
+  bundle.  **Retirement gate = the next pin that re-vendors stdlib**
+  (wave item; re-probe bundles ready).
+- Compiler: m309 fixed `-2320-bindings` parts 2+3 (confined-block Vec
+  Copy-Out + deep first-wins merge); m312/313 progress (1423 hang gone;
+  B-05 spin still persists -- call-site lowering in flight).
+- The A05 race corrections (`-1304`/`-1306`) were withdrawn/deleted by
+  packages -- no action.  No sessions in flight.  Relay tip `b74b49c`,
+  validate 490 items.  No v0.64.5 archive yet.
 
 **UPDATE 2026-10-14 13:35Z (WAVE-3 integrated -- 11 packages; ffmpeg 0.4.1
 FIX DONE; stdlib fixed B-27/B-28 within the hour)**: relay check turned
