@@ -980,6 +980,30 @@ validate green. Promotion readiness (policy sec. 7) is the next DX12 step
 after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
 
+**UPDATE 2026-10-14 13:35Z (WAVE-3 integrated -- 11 packages; ffmpeg 0.4.1
+FIX DONE; stdlib fixed B-27/B-28 within the hour)**: relay check turned
+into a full integration pass; everything green.
+- **ffmpeg 0.4.1 SHIPPED IN-LANE**: `-2142` root cause = demux codec id
+  resolved BY NAME (the avformat 61 generation reports a different
+  numeric id); x2 23/23 on BOTH generations (7.1.1 Blender + 6.1.1 GIMP)
+  + SKIP 3/3.  **0.4.0 stays HELD; ship 0.4.1 only.**  Publish batch
+  `REL-20261014-1331-bindings`.
+- **Wave-3 integrated (11 packages; tip `cae7a9b1`; validate 553/0)**:
+  jolt 0.4.0 (24/24 forces), ozz 0.4.0 (9/9 caller surface), sdl3 0.19.0
+  (72/72 + absent 8/8; full surface 1269/1269 bound + 1270/1270
+  resolved), rtxgi 0.1.0 (28/28), rtxdi 0.1.0 (33/33), rpr 0.1.0
+  (35/35 present + 9/9 SKIP; ProRender SDK v3.1.7.1; 88 declared items),
+  openpgl 0.1.0 (14/14; Open PGL v0.7.1 + oneTBB), stb 0.3.0 (18/18 HDR
+  class), exr 0.1.0 (12/12; tinyexr v3.2.0), photometrics 0.1.0 (43/43;
+  IES + .cube).  All records re-pointed; platform rows restored.
+- **stdlib FIXED B-27/B-28** (`45d0337`, ~1h after filing): write_at
+  offsets + reserve cap seed; probe + smokes green.  Workaround
+  retirement becomes a wave item once a pin carries the fix (keep the
+  shipped forms until then).
+- Still open: B-29/B-30/B-31 (compiler); no v0.64.5 archive yet.
+- **No sessions in flight** -- all 9 (wave-3 + A05) delivered and
+  integrated.  Relay tip `811d35f`, validate 484 items.
+
 **UPDATE 2026-10-14 13:05Z (WAVE-2 LIVE in `eco-v0.1.178`; engine
 relayed; A05 launched)**: relay check -- the unattended flow closed the
 loop end-to-end.
