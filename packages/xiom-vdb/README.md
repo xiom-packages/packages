@@ -8,6 +8,7 @@
 > **Deps:** `xiom.std` only (the library module imports `xiom.string`,
 > `xiom.string.compare`, `xiom.math` and `xiom.num.float`; the tests also
 > use `xiom.test`, `xiom.io` and `xiom.convert`).
+> **Published**: `0.1.0` in `eco-v0.1.178` (sha256 `a1eab885...`).
 
 ## What it is
 

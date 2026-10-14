@@ -17,6 +17,7 @@ from hand-typed constants.
 > decode, version + capability probes) green **38/38 (present)** and
 > **6/6 (absent, SKIP)** on compiler v0.64.4 -- see `AUDIT.md`.
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.3.0` in `eco-v0.1.178` (sha256 `385edce9...`).
 
 ## Quick start
 

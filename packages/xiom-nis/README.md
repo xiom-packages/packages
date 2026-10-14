@@ -9,6 +9,7 @@ sharpen-only), the `NISOptimizer` dispatch geometry and the four filter
 coefficient tables (f32/fp16). All buffers crossing the boundary are
 XIOM-owned; the pixel pipeline itself is the upstream compute shader pair,
 reported as a typed SKIP (`nis_gpu_path()`).
+**Published**: `0.1.0` in `eco-v0.1.178` (sha256 `1ef6b172...`).
 
 ## Usage
 
