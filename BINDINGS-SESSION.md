@@ -19,7 +19,12 @@ B-16/B-17; m280 `-2230`; m281 B-23/B-24/B-20/B-11 addendum; **m283
 guard_free in wave 124 but still red on v0.64.4 even with
 `XIOM_RUNTIME_DIR`) -- then the re-verify wave + glfw 0.6.0 lift + sdl3
 widening + workaround retirement + **sqlite nested-shape restore**.
-**glfw 0.6.0 lift parked until then.**  PULSE co-verify: driver surface
+**glfw 0.6.0 lift parked until then.**  **WAVE-2 (12 pkgs: opus/ogg/
+lz4/ktx2/vdb/phonon/fidelityfx/nis/dlss/xess/nrd/oidn) integrated
+2026-10-14 12:15Z (tip `5bc15161`); publish batch filed
+(`REL-20261014-1208-bindings-3`); ffmpeg 0.4.0 held from publish pending
+the 0.4.1 demux fix (7.1.1 ok-gate; fix session in flight);
+B-27..B-31 canonized (B-27/28 stdlib, B-29/30/31 compiler).**  PULSE co-verify: driver surface
 GREEN 24/24 in-tree; registry-artifact re-run waits on the compiler
 project-dependency fix (`REL-20261013-1731-packages`, "modules list
 ignored"); sqlite 0.4.1 modules list published.  Ops clobber rules in
@@ -974,6 +979,41 @@ validate green. Promotion readiness (policy sec. 7) is the next DX12 step
 after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
 
+**UPDATE 2026-10-14 12:15Z (WAVE-2 FULL INTEGRATION -- 12 packages;
+B-27..B-31 canonized; publish batch filed)**: all overnight agent
+deliveries integrated onto `bindings` (tip `5bc15161`); records
+re-pointed; platform rows restored; validate 547/0.
+- NEW packages: `xiom.opus` 0.1.0 (105/105; 26/26 x2), `xiom.lz4` 0.1.0
+  (111/111; 81/81), `xiom.ktx2` 0.1.0 (93/93; 41/41), `xiom.vdb` 0.1.0
+  (pure-XIOM minimal reader; 30/30), `xiom.nis` 0.1.0 (28/28),
+  `xiom.fidelityfx` 0.1.0 (FSR SDK v2.3.0; 43/43 present + 35/35 SKIP),
+  `xiom.dlss` 0.1.0 (closed-SDK independent declarations; 21/21 SKIP /
+  22/22 present), `xiom.xess` 0.1.0 (29/29), `xiom.nrd` 0.1.0
+  (reference-only loader, license NOT MIT; 29/29 both paths),
+  `xiom.oidn` 0.1.0 (33/33 + 4/4).
+- Updates: `xiom.ogg` 0.2.0 (libogg packet layer; 34/34), `xiom.phonon`
+  0.3.0 (FULL 216/216 surface; 38/38 present + 6/6 absent).
+- Publish batch to packages `REL-20261014-1208-bindings-3` (hold-and-
+  report on any x2 failure; engine relay standing per `-2125`);
+  new-name coverage already in the ops bulk confirm.
+- **B-27..B-31 canonized** (three sessions collided on B-27/B-28):
+  **B-27** `ffi.write_u32_at/u64_at` drop offset (STDLIB); **B-28**
+  `Vec.reserve`/`with_len` HEAP OVERFLOW, ASan-proven (STDLIB);
+  **B-29** big-int bitops >= 2^31 (compiler; dlss); **B-30**
+  confined-block ptr-cast IR undef (compiler; phonon); **B-31**
+  const-alias stack overflow (compiler; phonon).  Items: stdlib
+  `-1208-bindings`, compiler `-1208-bindings-2`; rows/notes/repro refs
+  updated; B-25/B-26 m283 rows restored (a cherry-pick take had
+  regressed them).
+- New sessions (`am-1791979162620-6ud3yt`): ffmpeg 0.4.1 demux fix
+  (HIGH; 7.1.1-vs-6.1.1 ok-gate), jolt 0.4.0 forces (engine `-2115`),
+  ozz 0.4.0 caller-data (`-2308`), sdl3 0.19.0 device surface
+  (`-2324`), path-tracer re-request (rtxdi+rtxgi / rpr / openpgl --
+  the first request never materialized).
+- Acks: ffmpeg bug, three new engine asks, engine 2109/2112/2115-2;
+  path-tracer survey answered to engine (`-1200-bindings`).  Relay
+  tips `dd65a83` + `296bb0a`, validate 474 items.
+
 **UPDATE 2026-10-14 12:05Z (doorbell -- wave A/B eco versions recorded)**:
 - **Codec wave A LIVE as `eco-v0.1.176`** (run 38468818666): `xiom.jolt`
   0.3.0 (sha `3ac3df4e`), `xiom.zstd` 0.3.0 (`6288ac84`), `xiom.meshopt`
@@ -1627,14 +1667,16 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-13 18:05Z;
-**everything this lane shipped today is LIVE**: sdl3 0.18.0
-(`eco-v0.1.173`) and xiom.sqlite 0.4.0/0.4.1 PULSE SQL driver
-(`eco-v0.1.174`/`175`; 0.4.1 = modules fix, sha256 `21c1f673...`;
-PULSE surface co-verify GREEN 24/24 in-tree -- artifact re-run waits on
-the compiler project-dep fix `REL-20261013-1731-packages`).
-First action = check for the next compiler archive (v0.64.5+) carrying
-the m277-m283 fix batch (B-26 fixed m283); when it ships, run the
+Bindings lane continuation -- seamless pickup (2026-10-14 12:15Z;
+everything is LIVE through `eco-v0.1.177` (codec wave A + wave B
+first); **WAVE-2 integrated (12 pkgs: opus/ogg/lz4/ktx2/vdb/phonon/
+fidelityfx/nis/dlss/xess/nrd/oidn; tip `5bc15161`; publish batch
+`-1208-bindings-3`)**; ffmpeg 0.4.0 held pending the 0.4.1 fix
+(session in flight); new sessions running: jolt 0.4.0 forces, ozz
+0.4.0 caller-data, sdl3 0.19.0 device surface, path-tracer
+(rtxdi+rtxgi/rpr/openpgl).
+First action = process new relay items + integrate any finished agent
+deliveries; then check for the next compiler archive (v0.64.5+) for the
 re-verify wave + lifts.  Relay-driven otherwise).
 
 0. STATE (the 13:50Z handoff UPDATE block + STATUS above carry the
@@ -1855,7 +1897,13 @@ owned slots byte-indexed, keep pointer-edged flows on C return values;
 B-25 = `Int as *UInt8` is not value-preserving -- never cast handles to
 pointers; object params cross as `Int` / int64 C-helper args; B-26 = nested
 enum payloads (`Result[Option[T]]`) corrupt struct-with-Vec values -- return
-flat outcome structs, never Result-of-Option).
+flat outcome structs, never Result-of-Option; B-27 = `ffi.write_u32_at`/
+`write_u64_at` DROP their offset (use package-local byte-store writers);
+B-28 = never `Vec.with_len` for FFI buffers (heap overflow; use
+push-growth `owned_bytes`); B-29 = mask/compare big result codes
+(>= 2^31) with boundary arithmetic, not bitwise ops; B-30 = one
+`ptr as Int` cast per `unsafe` block; B-31 = one canonical home per
+const name, no cross-module aliases).
 Deliver batches as: feat -> x2 green -> record via scripts/status.ps1 ->
 relay item to packages -> ledger update, all pushed; leave the worktree
    clean. TODO NOW: item 0b (watch v0.64.5+; on ship run the RE-VERIFY
