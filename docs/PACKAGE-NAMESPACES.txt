@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-14T00:59:14+03:00
-# packages: 537  modules: 973
+# generated: 2026-10-14T15:42:57+03:00
+# packages: 547  modules: 998
 
 ## package names
 xiom.acpi
@@ -112,6 +112,7 @@ xiom.dimred
 xiom.directx11
 xiom.directx12
 xiom.discovery
+xiom.dlss
 xiom.dns
 xiom.docker
 xiom.docx
@@ -145,6 +146,7 @@ xiom.farbfeld
 xiom.feature
 xiom.ffi
 xiom.ffmpeg
+xiom.fidelityfx
 xiom.finance
 xiom.firebird
 xiom.fits
@@ -222,6 +224,7 @@ xiom.k8s
 xiom.kafka
 xiom.keymgmt
 xiom.ktx
+xiom.ktx2
 xiom.kv
 xiom.l10n.number
 xiom.l10n-address
@@ -253,6 +256,7 @@ xiom.loss
 xiom.lrc
 xiom.lru
 xiom.luhn
+xiom.lz4
 xiom.lzfse
 xiom.m3u
 xiom.macaddr
@@ -299,8 +303,10 @@ xiom.neural
 xiom.nft
 xiom.ngram
 xiom.nii
+xiom.nis
 xiom.nlp
 xiom.nmea
+xiom.nrd
 xiom.ntp
 xiom.ntriples
 xiom.nuclear
@@ -309,6 +315,7 @@ xiom.oauth
 xiom.obj
 xiom.odbc
 xiom.ogg
+xiom.oidn
 xiom.onnx
 xiom.openal
 xiom.openblas
@@ -318,6 +325,7 @@ xiom.openssl
 xiom.optimizer
 xiom.optimizer-fw
 xiom.option
+xiom.opus
 xiom.oracle
 xiom.orc
 xiom.osrelease
@@ -511,6 +519,7 @@ xiom.validation
 xiom.varint
 xiom.vault
 xiom.vcf
+xiom.vdb
 xiom.vdf
 xiom.vectors
 xiom.video
@@ -532,6 +541,7 @@ xiom.wkt
 xiom.woff
 xiom.worker
 xiom.xbm
+xiom.xess
 xiom.xlsx
 xiom.xml
 xiom.xml2
@@ -662,6 +672,8 @@ xiom.diff
 xiom.dimacs
 xiom.dimred
 xiom.discovery
+xiom.dlss
+xiom.dlss.surface
 xiom.dns
 xiom.docker
 xiom.docker.compose
@@ -765,6 +777,10 @@ xiom.ext
 xiom.farbfeld
 xiom.feature
 xiom.ffmpeg
+xiom.fidelityfx
+xiom.fidelityfx.gen_structs
+xiom.fidelityfx.gen_surface
+xiom.fidelityfx.gen_types
 xiom.finance
 xiom.firebird
 xiom.fits
@@ -914,6 +930,7 @@ xiom.kafka.producer
 xiom.kafka.types
 xiom.keymgmt
 xiom.ktx
+xiom.ktx2
 xiom.kv
 xiom.l10n.address
 xiom.l10n.currency
@@ -942,6 +959,8 @@ xiom.loss
 xiom.lrc
 xiom.lru
 xiom.luhn
+xiom.lz4
+xiom.lz4.ffi
 xiom.m3u
 xiom.macaddr
 xiom.macro
@@ -987,8 +1006,10 @@ xiom.neural
 xiom.nft
 xiom.ngram
 xiom.nii
+xiom.nis
 xiom.nlp
 xiom.nmea
+xiom.nrd
 xiom.ntp
 xiom.ntriples
 xiom.nuclear
@@ -996,6 +1017,11 @@ xiom.numpy
 xiom.oauth
 xiom.obj
 xiom.ogg
+xiom.ogg.abi
+xiom.ogg.ffi
+xiom.ogg.mux
+xiom.ogg.types
+xiom.oidn
 xiom.onnx.io
 xiom.onnx.session
 xiom.onnx.types
@@ -1026,6 +1052,10 @@ xiom.opengl.wgl_names
 xiom.optimizer
 xiom.optimizer_fw
 xiom.option
+xiom.opus
+xiom.opus.abi
+xiom.opus.ffi
+xiom.opus.types
 xiom.oracle
 xiom.orc
 xiom.osrelease
@@ -1053,6 +1083,9 @@ xiom.perf
 xiom.pgn
 xiom.pgp
 xiom.phaser
+xiom.phonon
+xiom.phonon.abi
+xiom.phonon.exports
 xiom.physics
 xiom.pki
 xiom.plist
@@ -1424,6 +1457,7 @@ xiom.vault.kv
 xiom.vault.policy
 xiom.vault.unseal
 xiom.vcf
+xiom.vdb
 xiom.vdf
 xiom.vectors
 xiom.video
@@ -1507,6 +1541,7 @@ xiom.wkt
 xiom.woff
 xiom.worker
 xiom.xbm
+xiom.xess
 xiom.xlsx
 xiom.xml
 xiom.xml2
