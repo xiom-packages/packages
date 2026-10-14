@@ -31,10 +31,15 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
 - **Bus**: `-1331` fixed (full evidence); A05 asks `-1202`/`-1207-engine` fixed (delivered); ops loop
   `-1407-ops` fixed; engine ACKED `-1416-packages` (adopted all 11; wiring queue: jolt->E8 water leg,
   ozz->animation adapter sampling tier, sdl3->input device tier, stb/exr/photometrics->renderer audit
-  rows). NEW engine finding `-1427-engine` -> stdlib (copy_file/read_file not binary-safe: truncates
-  at the first NUL; fleet scan shows all binary reads already use `io.read_file_bytes` and no package
-  uses copy_file on binaries -- data point filed `-1453-packages`). `-1304`/`-1306` await
-  bindings/owner to move (packages may not). Wave-3 evidence logs: `%TEMP%\kilo\wave3\*.log`.
+  rows -- these are ENGINE-INTERNAL lanes consuming the packages, not asks to us). NEW engine finding
+  `-1427-engine` -> stdlib (copy_file/read_file not binary-safe: truncates at the first NUL; fleet scan
+  shows all binary reads already use `io.read_file_bytes` and no package uses copy_file on binaries --
+  data point filed `-1453-packages`). Engine nudge `-1510-engine` (to bindings) listed wave-B + the
+  upscaler wave as still-open priorities though both are LIVE since `eco-v0.1.178` (`-1259-packages`
+  unacked on their side) -- corrected `-1630-packages`. `-1509-engine` (jolt+harfbuzz port.args
+  repeated `--cxx-standard` drops C++17 for earlier TUs) -> compiler; engine merge-workaround in
+  place, our per-package port.args.json stand unchanged. `-1304`/`-1306` await bindings/owner to
+  move (packages may not). Wave-3 evidence logs: `%TEMP%\kilo\wave3\*.log`.
 - **Next up (queue unchanged otherwise)**: promotions per sec.7; next archive re-verify (m275-m294 +
   workaround retirements; compiler m310 now carries fixes for `-1549-packages-5/-7` -- re-verify when
   a v0.64.5 archive lands); bindings suite manifest `-2143-bindings-2` (standing queue); `-1731`
