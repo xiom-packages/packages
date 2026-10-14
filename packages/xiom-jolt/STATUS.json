@@ -1,21 +1,21 @@
 {
-    "package":  "xiom.jolt",
-    "stage":  "incubating",
-    "compiler":  "v0.64.4",
-    "stdlib":  ">=0.60.0 <1.0.0",
-    "tests":  {
-                  "suite":  "tests/test_conformance.xi",
-                  "status":  "pass",
-                  "passed":  67,
-                  "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "a6f1b650",
-                  "checked":  "2026-10-14T18:30:17Z"
-              },
-    "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.179 (2026-10-14, 0.4.0 external force/torque; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161)",
-    "platforms":  [
-                      "windows-x64"
-                  ],
-    "runtime_deps":  []
+    "package": "xiom.jolt",
+    "stage": "incubating",
+    "compiler": "v0.64.4",
+    "stdlib": ">=0.60.0 <1.0.0",
+    "tests": {
+        "suite": "tests/test_conformance.xi",
+        "status": "pass",
+        "passed": 67,
+        "failed": 0,
+        "run_by": "bindings-session",
+        "commit": "e61b57f8",
+        "checked": "2026-10-14T21:01:18Z"
+    },
+    "publish": false,
+    "excluded_reason": "published in eco-v0.1.179 (2026-10-14, 0.4.0 external force/torque; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161)",
+    "platforms": [
+        "windows-x64"
+    ],
+    "runtime_deps": []
 }
