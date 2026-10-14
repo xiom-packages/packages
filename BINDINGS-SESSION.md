@@ -983,6 +983,29 @@ validate green. Promotion readiness (policy sec. 7) is the next DX12 step
 after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
 
+**UPDATE 2026-10-14 18:10Z (doorbell: v0.64.5 pin prep underway; jolt
+E-family session launched)**:
+- **v0.64.5 PREP SIGNAL**: compiler filed the pin request to stdlib
+  (`af92693`: freeze sha carrying wave 139; tag on signal).  Release
+  gate ON the 1423 runtime long-truncation fix (stdlib main `6937b7c`
+  still has it; the runtime half landed `ae9c963`).  Also m314-m320:
+  2042/2042-2/2227 (wide-int), 2139 geom collision, 1158 spawn-literal
+  parse, 2256/2324-2/-3 (constant surface), **m320 `b672a19f` 1819
+  Int-ptr arg + 2035 &Str param**; thread gate green pre-pin.
+  **When the v0.64.5 tag lands -> the RE-VERIFY WAVE** (repros + glfw
+  0.6.0 lift + sdl3 widening + sqlite nested-shape restore + workaround
+  retirement, incl. the re-vendored-stdlib gate for B-27/B-28).
+- Engine nudge `-1510-engine` (acked by the concurrent session):
+  priority = **E-family E1-E7 > wave-B remainder > upscaler wave**; E8
+  landed in jolt 0.4.0; wave-B/upscaler largely live (`.178`/`.179`).
+- **Launched `feat/jolt-e1-e2-e7`** (`am-1792000864533-27vojc`): jolt
+  0.5.0 = E1 queries (raycast/sweep/overlap + deterministic broadphase
+  order), E2 capsule shape, E7 contacts/sensors.  E3/E4/E5/E6 are
+  follow-on jolt sessions (same package -> strictly sequential; queued
+  for when 0.5.0 lands).
+- No new eco notes (95 through `.179`); no new bindings-addressed asks.
+  Relay tip `af92693`, validate 490 items.
+
 **UPDATE 2026-10-14 14:57Z (WAVE-3 + A05 PUBLISHED -- `eco-v0.1.179`,
 11 packages incl. the A05 set; ops loop closed; stdlib B-27/28 root
 cause)**: doorbell relay check.
