@@ -28,6 +28,24 @@
 //     volumes).  Every list surface is canonicalized (ascending packed body
 //     id) so repeated runs are bit-identical; all results land in
 //     bridge-owned caches and cross as scalars.
+//   * typed joints (0.6.0, tier E3): a per-world joint registry holds
+//     Ref<Constraint> handles -- fixed/hinge/slider/point constraints between
+//     two live bodies or between one live body and Body::sFixedToWorld (the
+//     "world" sentinel).  Creation takes world-space anchors/axes in milli;
+//     hinge/slider motors (velocity/position targets) and limits
+//     (min/max angle or translation) are configured at creation and driven
+//     with joltb_joint_set_motor.  State read-back caches the current hinge
+//     angle / slider position and the applied total lambda (motor impulse
+//     where a motor exists, reaction impulse otherwise).  Typed errors cover
+//     bad body ids, unsupported kinds/combos and invalid limits.
+//   * convex + compound bodies (0.6.0, tier E6): joltb_body_add_convex
+//     builds a ConvexHullShape from a caller-supplied int64 milli xyz
+//     triples buffer (copied bridge-side; the XIOM Vec stays owned by the
+//     caller); joltb_body_add_compound builds a StaticCompoundShape from a
+//     flat part table (kind/extents/vertex-slice/local pose per part,
+//     box/sphere/capsule/convex) over the same vertex buffer.  Both body
+//     kinds simulate (mass/pose/static as usual) and take part in every E1
+//     query and E7 contact/sensor surface with no extra code.
 // Registration mirrors the upstream HelloWorld sample
 // (RegisterDefaultAllocator + Factory + RegisterTypes), ref-counted so probes
 // and live worlds can share it.
@@ -53,9 +71,19 @@
 #include "../vendor/Jolt/Physics/Collision/ShapeCast.h"
 #include "../vendor/Jolt/Physics/Collision/Shape/BoxShape.h"
 #include "../vendor/Jolt/Physics/Collision/Shape/CapsuleShape.h"
+#include "../vendor/Jolt/Physics/Collision/Shape/CompoundShape.h"
+#include "../vendor/Jolt/Physics/Collision/Shape/ConvexHullShape.h"
 #include "../vendor/Jolt/Physics/Collision/Shape/SphereShape.h"
+#include "../vendor/Jolt/Physics/Collision/Shape/StaticCompoundShape.h"
+#include "../vendor/Jolt/Physics/Constraints/Constraint.h"
+#include "../vendor/Jolt/Physics/Constraints/FixedConstraint.h"
+#include "../vendor/Jolt/Physics/Constraints/HingeConstraint.h"
+#include "../vendor/Jolt/Physics/Constraints/PointConstraint.h"
+#include "../vendor/Jolt/Physics/Constraints/SliderConstraint.h"
+#include "../vendor/Jolt/Physics/Constraints/TwoBodyConstraint.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <new>
 #include <vector>
@@ -74,6 +102,27 @@ constexpr int kMaxCapacity = 65536;
 constexpr int kShapeBox = 0;
 constexpr int kShapeSphere = 1;
 constexpr int kShapeCapsule = 2;
+constexpr int kShapeConvex = 3;   // 0.6.0: hull from a vertex set (E6)
+constexpr int kShapeCompound = 4; // 0.6.0: multi-shape body (E6)
+
+// Typed joint surface (0.6.0, tier E3).
+constexpr int kJointWorld = -1;
+constexpr int kJointFixed = 0;
+constexpr int kJointHinge = 1;
+constexpr int kJointSlider = 2;
+constexpr int kJointPoint = 3;
+constexpr int kMotorOff = 0;
+constexpr int kMotorVelocity = 1;
+constexpr int kMotorPosition = 2;
+
+// E6 shape-building limits (compound part table stride matches jolt.xi).
+constexpr int kPartStride = 13;
+constexpr int kMinHullVertices = 4;
+constexpr int kMaxHullVertices = 256;
+constexpr int kMaxCompoundParts = 64;
+
+// Hinge limits are [-pi, pi] in milli radians (Jolt asserts this range).
+constexpr int kPiMilli = 3142;
 
 // Query return codes (non-negative; errors stay negative as above).
 constexpr int kHitFound = 0;
@@ -94,6 +143,12 @@ constexpr int kErrBadShape = -6;
 constexpr int kErrNoBody = -7;
 constexpr int kErrNoMem = -8;
 constexpr int kErrNotSensor = -9;
+constexpr int kErrBadJoint = -10;     // unknown/removed joint id
+constexpr int kErrBadJointKind = -11; // unsupported joint kind
+constexpr int kErrNoMotor = -12;      // motor op on a joint without a motor
+constexpr int kErrBadHull = -13;      // hull vertex count/build failure
+constexpr int kErrBadCompound = -14;  // invalid compound part table
+constexpr int kErrBadLimits = -15;    // out-of-range/inverted limits
 
 class BPLayerInterfaceImpl final : public BroadPhaseLayerInterface {
 public:
@@ -210,6 +265,14 @@ int g_contact_point[3];
 int g_sensor_event_sensor;
 int g_sensor_event_other;
 
+// Bridge-owned fetch cache for joint state (0.6.0): joltb_joint_state copies
+// the kind/primary/impulse/pair into the scalars below for the module.
+int g_joint_kind;
+int g_joint_primary_milli;
+int g_joint_impulse_milli;
+int g_joint_body_a;
+int g_joint_body_b;
+
 // One cached contact manifold from the last step (contact listener).
 struct CachedContact {
   int body_a;
@@ -312,11 +375,24 @@ struct World {
   }
 };
 
+// One live typed joint (0.6.0): a bridge-assigned joint id, the kind, the
+// packed body ids (kJointWorld for the fixed world) and the owning Ref.
+// The Ref keeps the constraint alive while it is registered in the physics
+// system; removal drops both.
+struct BridgeJoint {
+  int id;
+  int kind;
+  int body_a;
+  int body_b;
+  Ref<Constraint> constraint;
+};
+
 // A registry world: one PhysicsSystem plus its allocator/job system/filters,
 // the configured gravity and fixed step, and the live body list.  Member
-// declaration order is destruction order reversed: the body list and config
-// die first, then physics, then the contact listener/job system/allocator
-// (physics is destroyed before the listener it points at).
+// declaration order is destruction order reversed: the body/joint lists die
+// first, then physics, then the contact listener/job system/allocator
+// (physics is destroyed before the listener it points at; joints are removed
+// explicitly in joltb_world_destroy so no Ref outlives its bodies).
 struct BridgeWorld {
   TempAllocatorImpl temp_allocator;
   JobSystemSingleThreaded job_system;
@@ -330,6 +406,8 @@ struct BridgeWorld {
   uint capacity;
   bool dirty;
   std::vector<BodyID> bodies;
+  std::vector<BridgeJoint> joints;
+  int next_joint_id;
 
   BridgeWorld(uint inCapacity, Vec3Arg inGravity, int inFixedDtMicros)
       : temp_allocator(8 * 1024 * 1024),
@@ -337,7 +415,8 @@ struct BridgeWorld {
         gravity(inGravity),
         fixed_dt_micros(inFixedDtMicros),
         capacity(inCapacity),
-        dirty(false) {
+        dirty(false),
+        next_joint_id(0) {
     physics.Init(inCapacity, 0, inCapacity * 2, inCapacity * 2, bp_layer, ov_bp, ov);
     physics.SetGravity(gravity);
     physics.SetContactListener(&contact_listener);
@@ -451,18 +530,17 @@ Quat quat_from_milli(int rx_milli, int ry_milli, int rz_milli, int rw_milli) {
   return Quat(from_milli(rx_milli), from_milli(ry_milli), from_milli(rz_milli), from_milli(rw_milli)).Normalized();
 }
 
-// Shared body creation for joltb_body_add / joltb_body_add_sensor.  Sensors
-// are non-physical: forced static on the non-moving layer (they report
-// overlaps with dynamic bodies and take no part in collision response).
-int add_body_impl(BridgeWorld* w, int shape, int ex_milli, int ey_milli, int ez_milli, int mass_milli,
-                  int px_milli, int py_milli, int pz_milli,
-                  int rx_milli, int ry_milli, int rz_milli, int rw_milli,
-                  bool is_static, bool is_sensor) {
-  int rc = validate_shape_args(shape, ex_milli, ey_milli, ez_milli);
-  if (rc != 0) return rc;
+// Shared body creation from an already-built shape (0.6.0: also used by the
+// convex and compound paths).  Sensors are non-physical: forced static on the
+// non-moving layer (they report overlaps with dynamic bodies and take no part
+// in collision response).
+int register_body_with_shape(BridgeWorld* w, const Shape* inShape, int mass_milli,
+                             int px_milli, int py_milli, int pz_milli,
+                             int rx_milli, int ry_milli, int rz_milli, int rw_milli,
+                             bool is_static, bool is_sensor) {
+  if (inShape == nullptr) return kErrBadShape;
   if (w->bodies.size() >= w->capacity) return kErrFull;
 
-  const Shape* shape_ptr = make_shape(shape, ex_milli, ey_milli, ez_milli);
   Quat rotation = quat_from_milli(rx_milli, ry_milli, rz_milli, rw_milli);
 
   bool is_static_body = is_static || is_sensor;
@@ -470,7 +548,7 @@ int add_body_impl(BridgeWorld* w, int shape, int ex_milli, int ey_milli, int ez_
   ObjectLayer layer = is_static_body ? kLayerNonMoving : kLayerMoving;
   EActivation activation = is_static_body ? EActivation::DontActivate : EActivation::Activate;
 
-  BodyCreationSettings settings(shape_ptr,
+  BodyCreationSettings settings(inShape,
                                 RVec3(from_milli(px_milli), from_milli(py_milli), from_milli(pz_milli)),
                                 rotation, motion, layer);
   settings.mIsSensor = is_sensor;
@@ -486,6 +564,21 @@ int add_body_impl(BridgeWorld* w, int shape, int ex_milli, int ey_milli, int ez_
   return packed_id(body);
 }
 
+// Shared body creation for joltb_body_add / joltb_body_add_sensor.
+int add_body_impl(BridgeWorld* w, int shape, int ex_milli, int ey_milli, int ez_milli, int mass_milli,
+                  int px_milli, int py_milli, int pz_milli,
+                  int rx_milli, int ry_milli, int rz_milli, int rw_milli,
+                  bool is_static, bool is_sensor) {
+  int rc = validate_shape_args(shape, ex_milli, ey_milli, ez_milli);
+  if (rc != 0) return rc;
+
+  const Shape* shape_ptr = make_shape(shape, ex_milli, ey_milli, ez_milli);
+  return register_body_with_shape(w, shape_ptr, mass_milli,
+                                  px_milli, py_milli, pz_milli,
+                                  rx_milli, ry_milli, rz_milli, rw_milli,
+                                  is_static, is_sensor);
+}
+
 // Queries read the broadphase like stepping does: optimize it first when the
 // body set changed, so the same construction sequence always sees the same
 // broadphase state.
@@ -494,6 +587,259 @@ void prepare_queries(BridgeWorld* w) {
     w->physics.OptimizeBroadPhase();
     w->dirty = false;
   }
+}
+
+// ---- typed joints (0.6.0, tier E3) -----------------------------------------
+
+BridgeJoint* find_joint(BridgeWorld* w, int joint_id) {
+  for (size_t i = 0; i < w->joints.size(); i++) {
+    if (w->joints[i].id == joint_id) return &w->joints[i];
+  }
+  return nullptr;
+}
+
+// Resolve a packed body id to a Body&, with the world sentinel mapping to
+// Body::sFixedToWorld (Jolt's documented "attach to the world" body).
+Body* resolve_joint_body(BridgeWorld* w, int packed) {
+  if (packed == kJointWorld) return &Body::sFixedToWorld;
+  BodyID id = find_body(w, packed);
+  if (id.IsInvalid()) return nullptr;
+  return w->physics.GetBodyLockInterface().TryGetBody(id);
+}
+
+// A normalized world-space axis from milli components; false when degenerate.
+bool world_axis_from_milli(int ax_milli, int ay_milli, int az_milli, Vec3& out) {
+  Vec3 v(from_milli(ax_milli), from_milli(ay_milli), from_milli(az_milli));
+  if (v.LengthSq() <= 1.0e-6f) return false;
+  out = v.Normalized();
+  return true;
+}
+
+// A stable perpendicular to a unit axis (pick the least-aligned basis axis).
+Vec3 perpendicular_axis(Vec3Arg inAxis) {
+  Vec3 helper = std::fabs(inAxis.GetY()) < 0.99f ? Vec3(0, 1, 0) : Vec3(1, 0, 0);
+  return inAxis.Cross(helper).NormalizedOr(Vec3(0, 0, 1));
+}
+
+// Joint creation inputs (milli units; psi = world anchor, axis = hinge/slider
+// axis in world space).
+struct JointArgs {
+  int kind;
+  int body_a;
+  int body_b;
+  int px_milli, py_milli, pz_milli;
+  int ax_milli, ay_milli, az_milli;
+  bool auto_anchor;
+  bool has_limits;
+  int limits_min_milli;
+  int limits_max_milli;
+  int motor_frequency_milli;
+  int motor_damping_milli;
+  int motor_max_force_milli;
+  int motor_max_torque_milli;
+};
+
+// Motor settings from the desc: Jolt's default (2 Hz, critical damping,
+// unlimited force/torque) unless the caller overrides.  Frequency/damping
+// overrides must both be sane; limits are mirrored onto both kinds.
+bool build_motor_settings(const JointArgs& j, MotorSettings& out) {
+  if (j.motor_frequency_milli < 0) return false;
+  if (j.motor_damping_milli < 0) return false;
+  if (j.motor_damping_milli != 0 && j.motor_frequency_milli <= 0) return false;
+  if (j.motor_max_force_milli < 0 || j.motor_max_torque_milli < 0) return false;
+  out = MotorSettings();
+  if (j.motor_frequency_milli > 0) {
+    out.mSpringSettings = SpringSettings(ESpringMode::FrequencyAndDamping,
+                                         from_milli(j.motor_frequency_milli),
+                                         from_milli(j.motor_damping_milli));
+  }
+  if (j.motor_max_force_milli > 0) out.SetForceLimit(from_milli(j.motor_max_force_milli));
+  if (j.motor_max_torque_milli > 0) out.SetTorqueLimit(from_milli(j.motor_max_torque_milli));
+  return out.IsValid();
+}
+
+// Create a typed joint; returns the bridge joint id (>= 0) or a negative
+// code.  At least one side must be a live dynamic-capable body (Jolt asserts
+// on two non-dynamic bodies); the world sentinel may appear on either side.
+int add_joint_impl(BridgeWorld* w, const JointArgs& j) {
+  if (j.kind < kJointFixed || j.kind > kJointPoint) return kErrBadJointKind;
+  if (j.body_a == j.body_b) return kErrBadArg;
+  Body* body_a = resolve_joint_body(w, j.body_a);
+  Body* body_b = resolve_joint_body(w, j.body_b);
+  if (body_a == nullptr || body_b == nullptr) return kErrBadBody;
+  if (!body_a->IsDynamic() && !body_b->IsDynamic()) return kErrBadArg;
+
+  const bool has_motor_config = j.motor_frequency_milli != 0 || j.motor_damping_milli != 0 ||
+                                j.motor_max_force_milli != 0 || j.motor_max_torque_milli != 0;
+  if (has_motor_config && j.kind != kJointHinge && j.kind != kJointSlider) return kErrNoMotor;
+  if (j.has_limits && j.kind != kJointHinge && j.kind != kJointSlider) return kErrBadArg;
+  if (j.has_limits) {
+    if (j.limits_min_milli > 0 || j.limits_max_milli < 0) return kErrBadLimits;
+    if (j.kind == kJointHinge &&
+        (j.limits_min_milli < -kPiMilli || j.limits_max_milli > kPiMilli)) return kErrBadLimits;
+  }
+  if (j.auto_anchor && j.kind != kJointFixed && j.kind != kJointSlider) return kErrBadArg;
+
+  MotorSettings motor;
+  if ((j.kind == kJointHinge || j.kind == kJointSlider) && !build_motor_settings(j, motor)) {
+    return kErrBadArg;
+  }
+
+  const RVec3 anchor(from_milli(j.px_milli), from_milli(j.py_milli), from_milli(j.pz_milli));
+  Ref<Constraint> constraint;
+  switch (j.kind) {
+    case kJointFixed: {
+      FixedConstraintSettings settings;
+      settings.mSpace = EConstraintSpace::WorldSpace;
+      if (j.auto_anchor) {
+        settings.mAutoDetectPoint = true;
+      } else {
+        settings.mPoint1 = anchor;
+        settings.mPoint2 = anchor;
+      }
+      constraint = settings.Create(*body_a, *body_b);
+      break;
+    }
+    case kJointHinge: {
+      Vec3 axis;
+      if (!world_axis_from_milli(j.ax_milli, j.ay_milli, j.az_milli, axis)) return kErrBadArg;
+      Vec3 normal = perpendicular_axis(axis);
+      HingeConstraintSettings settings;
+      settings.mSpace = EConstraintSpace::WorldSpace;
+      settings.mPoint1 = anchor;
+      settings.mPoint2 = anchor;
+      settings.mHingeAxis1 = axis;
+      settings.mHingeAxis2 = axis;
+      settings.mNormalAxis1 = normal;
+      settings.mNormalAxis2 = normal;
+      if (j.has_limits) {
+        settings.mLimitsMin = from_milli(j.limits_min_milli);
+        settings.mLimitsMax = from_milli(j.limits_max_milli);
+      }
+      settings.mMotorSettings = motor;
+      constraint = settings.Create(*body_a, *body_b);
+      break;
+    }
+    case kJointSlider: {
+      Vec3 axis;
+      if (!world_axis_from_milli(j.ax_milli, j.ay_milli, j.az_milli, axis)) return kErrBadArg;
+      Vec3 normal = perpendicular_axis(axis);
+      SliderConstraintSettings settings;
+      settings.mSpace = EConstraintSpace::WorldSpace;
+      settings.mAutoDetectPoint = j.auto_anchor;
+      settings.mPoint1 = anchor;
+      settings.mPoint2 = anchor;
+      settings.mSliderAxis1 = axis;
+      settings.mSliderAxis2 = axis;
+      settings.mNormalAxis1 = normal;
+      settings.mNormalAxis2 = normal;
+      if (j.has_limits) {
+        settings.mLimitsMin = from_milli(j.limits_min_milli);
+        settings.mLimitsMax = from_milli(j.limits_max_milli);
+      }
+      settings.mMotorSettings = motor;
+      constraint = settings.Create(*body_a, *body_b);
+      break;
+    }
+    default: { // kJointPoint
+      PointConstraintSettings settings;
+      settings.mSpace = EConstraintSpace::WorldSpace;
+      settings.mPoint1 = anchor;
+      settings.mPoint2 = anchor;
+      constraint = settings.Create(*body_a, *body_b);
+      break;
+    }
+  }
+  if (constraint == nullptr) return kErrNoBody;
+
+  BridgeJoint joint;
+  joint.id = w->next_joint_id++;
+  joint.kind = j.kind;
+  joint.body_a = j.body_a;
+  joint.body_b = j.body_b;
+  joint.constraint = constraint;
+  w->joints.push_back(joint);
+  w->physics.AddConstraint(constraint.GetPtr());
+  return joint.id;
+}
+
+// Remove every joint that references a packed body id (called before the body
+// is destroyed: Jolt forbids removing a body a constraint still references).
+void remove_joints_for_body(BridgeWorld* w, int packed) {
+  for (size_t i = 0; i < w->joints.size();) {
+    if (w->joints[i].body_a == packed || w->joints[i].body_b == packed) {
+      w->physics.RemoveConstraint(w->joints[i].constraint.GetPtr());
+      w->joints.erase(w->joints.begin() + i);
+    } else {
+      i++;
+    }
+  }
+}
+
+// ---- convex + compound shapes (0.6.0, tier E6) ------------------------------
+
+// Build a ConvexHullShape from a caller buffer of int64 milli xyz triples
+// (copied bridge-side; the caller's Vec is untouched).  `ok` is false when
+// the vertex count is out of range or the hull builder rejects the points
+// (e.g. all points collinear/coincident).
+RefConst<Shape> build_hull_shape(const int64_t* inVerts, int inVertCount, bool& ok) {
+  ok = false;
+  if (inVertCount < kMinHullVertices || inVertCount > kMaxHullVertices) return RefConst<Shape>();
+  std::vector<Vec3> points;
+  points.reserve((size_t)inVertCount);
+  for (int i = 0; i < inVertCount; i++) {
+    points.push_back(Vec3(from_milli((int)inVerts[3 * i + 0]),
+                          from_milli((int)inVerts[3 * i + 1]),
+                          from_milli((int)inVerts[3 * i + 2])));
+  }
+  ConvexHullShapeSettings settings(points.data(), (int)points.size());
+  ShapeSettings::ShapeResult result = settings.Create();
+  if (result.HasError()) return RefConst<Shape>();
+  ok = true;
+  return result.Get();
+}
+
+// Build a StaticCompoundShape from a flat part table (kPartStride int64
+// entries per part: kind, ex, ey, ez, vertex offset, vertex count, local
+// position (3), local rotation quaternion (4), all milli; the vertex offset/
+// count are only read for convex parts).  Convex parts slice the shared
+// vertex buffer.  `ok` is false on any malformed part or failed child build.
+RefConst<Shape> build_compound_shape(const int64_t* inParts, int inPartCount,
+                                     const int64_t* inVerts, int inVertCount, bool& ok) {
+  ok = false;
+  if (inPartCount <= 0 || inPartCount > kMaxCompoundParts) return RefConst<Shape>();
+  StaticCompoundShapeSettings settings;
+  for (int i = 0; i < inPartCount; i++) {
+    const int64_t* p = inParts + (size_t)i * kPartStride;
+    const int kind = (int)p[0];
+    const int ex_milli = (int)p[1];
+    const int ey_milli = (int)p[2];
+    const int ez_milli = (int)p[3];
+    const int vtx_offset = (int)p[4];
+    const int vtx_count = (int)p[5];
+    const Vec3 part_pos(from_milli((int)p[6]), from_milli((int)p[7]), from_milli((int)p[8]));
+    const Quat part_rot = quat_from_milli((int)p[9], (int)p[10], (int)p[11], (int)p[12]);
+
+    RefConst<Shape> child;
+    if (kind == kShapeBox || kind == kShapeSphere || kind == kShapeCapsule) {
+      if (validate_shape_args(kind, ex_milli, ey_milli, ez_milli) != 0) return RefConst<Shape>();
+      child = make_shape(kind, ex_milli, ey_milli, ez_milli);
+    } else if (kind == kShapeConvex) {
+      if (vtx_offset < 0 || vtx_count < kMinHullVertices || vtx_offset + vtx_count > inVertCount) {
+        return RefConst<Shape>();
+      }
+      bool hull_ok = false;
+      child = build_hull_shape(inVerts + (size_t)vtx_offset * 3, vtx_count, hull_ok);
+      if (!hull_ok) return RefConst<Shape>();
+    } else {
+      return RefConst<Shape>();
+    }
+    settings.AddShape(part_pos, part_rot, child.GetPtr());
+  }
+  ShapeSettings::ShapeResult result = settings.Create();
+  if (result.HasError()) return RefConst<Shape>();
+  ok = true;
+  return result.Get();
 }
 
 void clear_query_hit() {
@@ -624,10 +970,15 @@ int joltb_world_create(int gravity_x_milli, int gravity_y_milli, int gravity_z_m
 
 // Destroy the world and every body in it; returns the number of bodies
 // destroyed (>= 0) or a negative code.  Stale handles are rejected.
+// Constraints are unregistered from the physics system before destruction so
+// no joint Ref outlives the world.
 int joltb_world_destroy(int handle) {
   BridgeWorld* w = get_world(handle);
   if (w == nullptr) return kErrBadWorld;
   int destroyed = (int)w->bodies.size();
+  for (size_t i = 0; i < w->joints.size(); i++) {
+    w->physics.RemoveConstraint(w->joints[i].constraint.GetPtr());
+  }
   delete w;
   g_worlds[handle] = nullptr;
   unregister_globals();
@@ -675,12 +1026,15 @@ int joltb_body_add_sensor(int handle, int shape, int ex_milli, int ey_milli, int
 }
 
 // Remove a body by id; returns the number of bodies left (>= 0) or a
-// negative code.  Removed ids are stale and rejected afterwards.
+// negative code.  Removed ids are stale and rejected afterwards.  Joints
+// referencing the body are removed first (Jolt forbids removing a body a
+// constraint still references).
 int joltb_body_remove(int handle, int packed) {
   BridgeWorld* w = get_world(handle);
   if (w == nullptr) return kErrBadWorld;
   for (size_t i = 0; i < w->bodies.size(); i++) {
     if (packed_id(w->bodies[i]) != packed) continue;
+    remove_joints_for_body(w, packed);
     BodyInterface& bi = w->physics.GetBodyInterface();
     bi.RemoveBody(w->bodies[i]);
     bi.DestroyBody(w->bodies[i]);
@@ -1114,6 +1468,234 @@ int joltb_sensor_overlap_count(int handle, int sensor_id) {
     if (w->contact_listener.sensor_events[i].sensor == sensor_id) n++;
   }
   return n;
+}
+
+// ---- convex + compound bodies (0.6.0, tier E6) -----------------------------
+
+// Add a convex hull body from a caller vertex buffer (`verts_addr` points at
+// vert_count * 3 int64 milli components: x, y, z per vertex).  The points are
+// copied into a bridge-owned hull; the caller buffer is borrowed for the call
+// only.  Returns the body id (>= 0) or a negative code.
+int joltb_body_add_convex(int handle, int mass_milli,
+                          int px_milli, int py_milli, int pz_milli,
+                          int rx_milli, int ry_milli, int rz_milli, int rw_milli,
+                          int is_static, int64_t verts_addr, int vert_count) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  if (verts_addr == 0) return kErrBadArg;
+  const int64_t* verts = reinterpret_cast<const int64_t*>(verts_addr);
+  bool ok = false;
+  RefConst<Shape> shape = build_hull_shape(verts, vert_count, ok);
+  if (!ok) return kErrBadHull;
+  return register_body_with_shape(w, shape.GetPtr(), mass_milli,
+                                  px_milli, py_milli, pz_milli,
+                                  rx_milli, ry_milli, rz_milli, rw_milli,
+                                  is_static != 0, false);
+}
+
+// Add a compound body from a flat part table (kPartStride int64 entries per
+// part; see build_compound_shape) and a shared vertex buffer for convex
+// parts.  Both buffers are borrowed for the call only.  Returns the body id
+// (>= 0) or a negative code.
+int joltb_body_add_compound(int handle, int mass_milli,
+                            int px_milli, int py_milli, int pz_milli,
+                            int rx_milli, int ry_milli, int rz_milli, int rw_milli,
+                            int is_static, int64_t parts_addr, int part_count,
+                            int64_t verts_addr, int vert_count) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  if (parts_addr == 0 || part_count <= 0) return kErrBadArg;
+  if (part_count > kMaxCompoundParts) return kErrBadCompound;
+  if (vert_count < 0 || vert_count > kMaxHullVertices * kMaxCompoundParts) return kErrBadCompound;
+  if (vert_count > 0 && verts_addr == 0) return kErrBadArg;
+  const int64_t* parts = reinterpret_cast<const int64_t*>(parts_addr);
+  const int64_t* verts = reinterpret_cast<const int64_t*>(verts_addr);
+  bool ok = false;
+  RefConst<Shape> shape = build_compound_shape(parts, part_count, verts, vert_count, ok);
+  if (!ok) return kErrBadCompound;
+  return register_body_with_shape(w, shape.GetPtr(), mass_milli,
+                                  px_milli, py_milli, pz_milli,
+                                  rx_milli, ry_milli, rz_milli, rw_milli,
+                                  is_static != 0, false);
+}
+
+// ---- typed joints (0.6.0, tier E3) -----------------------------------------
+
+// Create a fixed/hinge/slider/point joint between two live bodies or between
+// one live body and the world sentinel (kJointWorld).  World-space anchor
+// (px/py/pz) and axis (ax/ay/az, hinge/slider only) in milli; limits in
+// milli rad (hinge) / milli m (slider); motor config in milli Hz, damping,
+// milli N and milli N.m (0 = Jolt default).  Returns the joint id (>= 0) or a
+// negative code; bad body ids, unsupported combos and invalid limits yield
+// typed errors.
+int joltb_joint_add(int handle, int kind, int body_a, int body_b,
+                    int px_milli, int py_milli, int pz_milli,
+                    int ax_milli, int ay_milli, int az_milli,
+                    int auto_anchor, int has_limits,
+                    int limits_min_milli, int limits_max_milli,
+                    int motor_frequency_milli, int motor_damping_milli,
+                    int motor_max_force_milli, int motor_max_torque_milli) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  JointArgs j;
+  j.kind = kind;
+  j.body_a = body_a;
+  j.body_b = body_b;
+  j.px_milli = px_milli;
+  j.py_milli = py_milli;
+  j.pz_milli = pz_milli;
+  j.ax_milli = ax_milli;
+  j.ay_milli = ay_milli;
+  j.az_milli = az_milli;
+  j.auto_anchor = auto_anchor != 0;
+  j.has_limits = has_limits != 0;
+  j.limits_min_milli = limits_min_milli;
+  j.limits_max_milli = limits_max_milli;
+  j.motor_frequency_milli = motor_frequency_milli;
+  j.motor_damping_milli = motor_damping_milli;
+  j.motor_max_force_milli = motor_max_force_milli;
+  j.motor_max_torque_milli = motor_max_torque_milli;
+  return add_joint_impl(w, j);
+}
+
+// Remove a joint by id; returns the number of joints left (>= 0) or a
+// negative code.  The id is stale afterwards.
+int joltb_joint_remove(int handle, int joint_id) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  for (size_t i = 0; i < w->joints.size(); i++) {
+    if (w->joints[i].id != joint_id) continue;
+    w->physics.RemoveConstraint(w->joints[i].constraint.GetPtr());
+    w->joints.erase(w->joints.begin() + i);
+    return (int)w->joints.size();
+  }
+  return kErrBadJoint;
+}
+
+// Number of live joints in the world (>= 0) or a negative code.
+int joltb_joint_count(int handle) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  return (int)w->joints.size();
+}
+
+// Drive a joint motor: state 0 off, 1 velocity target (milli rad/s for
+// hinge, milli m/s for slider) or 2 position target (milli rad / milli m).
+// Fixed and point joints have no motor (kErrNoMotor).  Returns the state or
+// a negative code.
+int joltb_joint_set_motor(int handle, int joint_id, int state, int target_milli) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  if (state < kMotorOff || state > kMotorPosition) return kErrBadArg;
+  BridgeJoint* joint = find_joint(w, joint_id);
+  if (joint == nullptr) return kErrBadJoint;
+  if (joint->kind == kJointHinge) {
+    HingeConstraint* hinge = static_cast<HingeConstraint*>(joint->constraint.GetPtr());
+    switch (state) {
+      case kMotorOff:
+        hinge->SetMotorState(EMotorState::Off);
+        break;
+      case kMotorVelocity:
+        hinge->SetMotorState(EMotorState::Velocity);
+        hinge->SetTargetAngularVelocity(from_milli(target_milli));
+        break;
+      default:
+        hinge->SetMotorState(EMotorState::Position);
+        hinge->SetTargetAngle(from_milli(target_milli));
+        break;
+    }
+  } else if (joint->kind == kJointSlider) {
+    SliderConstraint* slider = static_cast<SliderConstraint*>(joint->constraint.GetPtr());
+    switch (state) {
+      case kMotorOff:
+        slider->SetMotorState(EMotorState::Off);
+        break;
+      case kMotorVelocity:
+        slider->SetMotorState(EMotorState::Velocity);
+        slider->SetTargetVelocity(from_milli(target_milli));
+        break;
+      default:
+        slider->SetMotorState(EMotorState::Position);
+        slider->SetTargetPosition(from_milli(target_milli));
+        break;
+    }
+  } else {
+    return kErrNoMotor;
+  }
+  // Motor changes must be seen by the solver this step even if both bodies
+  // had fallen asleep (Jolt semantics: constraints solve only active bodies).
+  BodyInterface& bi = w->physics.GetBodyInterface();
+  if (joint->body_a != kJointWorld) {
+    BodyID id_a = find_body(w, joint->body_a);
+    if (!id_a.IsInvalid()) bi.ActivateBody(id_a);
+  }
+  if (joint->body_b != kJointWorld) {
+    BodyID id_b = find_body(w, joint->body_b);
+    if (!id_b.IsInvalid()) bi.ActivateBody(id_b);
+  }
+  return state;
+}
+
+// Cache one joint's state into the owned scalars: kind, primary value
+// (hinge angle in milli rad / slider position in milli m; 0 for fixed and
+// point) and the applied total lambda in milli (motor impulse for hinge/
+// slider, reaction impulse magnitude for fixed/point).  Returns 0 or a
+// negative code.
+int joltb_joint_state(int handle, int joint_id) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  BridgeJoint* joint = find_joint(w, joint_id);
+  if (joint == nullptr) return kErrBadJoint;
+  switch (joint->kind) {
+    case kJointHinge: {
+      HingeConstraint* hinge = static_cast<HingeConstraint*>(joint->constraint.GetPtr());
+      g_joint_primary_milli = to_milli(hinge->GetCurrentAngle());
+      g_joint_impulse_milli = to_milli(hinge->GetTotalLambdaMotor());
+      break;
+    }
+    case kJointSlider: {
+      SliderConstraint* slider = static_cast<SliderConstraint*>(joint->constraint.GetPtr());
+      g_joint_primary_milli = to_milli(slider->GetCurrentPosition());
+      g_joint_impulse_milli = to_milli(slider->GetTotalLambdaMotor());
+      break;
+    }
+    case kJointFixed: {
+      FixedConstraint* fixed = static_cast<FixedConstraint*>(joint->constraint.GetPtr());
+      g_joint_primary_milli = 0;
+      g_joint_impulse_milli = to_milli(fixed->GetTotalLambdaPosition().Length());
+      break;
+    }
+    default: { // kJointPoint
+      PointConstraint* point = static_cast<PointConstraint*>(joint->constraint.GetPtr());
+      g_joint_primary_milli = 0;
+      g_joint_impulse_milli = to_milli(point->GetTotalLambdaPosition().Length());
+      break;
+    }
+  }
+  g_joint_kind = joint->kind;
+  g_joint_body_a = joint->body_a;
+  g_joint_body_b = joint->body_b;
+  return 0;
+}
+
+int joltb_joint_state_kind(void) {
+  return g_joint_kind;
+}
+
+int joltb_joint_state_primary(void) {
+  return g_joint_primary_milli;
+}
+
+int joltb_joint_state_impulse(void) {
+  return g_joint_impulse_milli;
+}
+
+int joltb_joint_state_body_a(void) {
+  return g_joint_body_a;
+}
+
+int joltb_joint_state_body_b(void) {
+  return g_joint_body_b;
 }
 
 } // extern "C"

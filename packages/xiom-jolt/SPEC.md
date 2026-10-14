@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.jolt` |
-| Version | 0.5.0 |
+| Version | 0.6.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | JoltPhysics -- https://github.com/jrouwe/JoltPhysics |
 | Upstream version | tag **v5.6.0** |
@@ -38,7 +38,7 @@ this table + `README.md`/`AUDIT.md`/`PROVENANCE.md`.
 
 ## 3. Design and safe boundary (G5)
 
-`jolt.xi` is the only module with `unsafe`/`extern "C"`.  Five caller
+`jolt.xi` is the only module with `unsafe`/`extern "C"`.  Eight caller
 layers over one integer-only bridge (`src/jolt_bridge.cpp`; floats cross as
 milli/micros, so XIOM never marshals structs or pointers):
 
@@ -101,6 +101,44 @@ milli/micros, so XIOM never marshals structs or pointers):
   active bodies; sleeping bodies receive `OnContactRemoved` and disappear
   from the cache).  Caches are bounded (2048 manifolds / 1024 sensor events
   per world, up to 8 points per manifold).
+- **0.6.0 typed joints (tier E3):** `jolt_joint_add` creates FIXED / HINGE /
+  SLIDER / POINT joints from a `JoltJointDesc` between two live bodies or
+  between one live body and `JOLT_WORLD` (Jolt's `Body::sFixedToWorld`
+  sentinel; the bridge maps -1 onto it and never crosses a pointer).  The
+  anchor (`px/py/pz`) and axis (`ax/ay/az`, hinge/slider) are world-space
+  milli; `auto_anchor` (fixed/slider) welds/zeroes at the bodies' current
+  relative pose; `has_limits` enables hinge limits in milli rad (validated
+  inside [-pi, pi] with min <= 0 <= max, Jolt's assert range) or slider
+  limits in milli m (min <= 0 <= max).  Hinge/slider motors are configured
+  per joint at creation (`motor_frequency_milli` / `motor_damping_milli`
+  override Jolt's default 2 Hz critical spring; `motor_max_force_milli` /
+  `motor_max_torque_milli` cap the drive) and driven with
+  `jolt_joint_set_motor` (velocity target in milli rad/s or milli m/s;
+  position target in milli rad or milli m, clamped to the limits by Jolt);
+  motor updates wake the joint bodies.  `jolt_joint_state` reads back owned
+  values: the hinge angle / slider position (`primary_milli`) and the applied
+  impulse (`impulse_milli`: the motor's total lambda for hinge/slider, the
+  reaction-impulse magnitude for fixed/point).  `jolt_joint_remove` /
+  `jolt_joint_count` manage a per-world joint registry (bridge-assigned ids,
+  one owned `Ref<Constraint>` per joint); removing a body removes its joints
+  first (Jolt forbids removing a referenced body) and world destruction
+  unregisters every constraint before teardown.  Typed errors:
+  `kErrBadJoint` (unknown/removed id), `kErrBadJointKind`, `kErrNoMotor`
+  (motor op/config on a joint without a motor), `kErrBadLimits`, plus the
+  shared bad-body/bad-arg codes; world-world and same-body pairs, two
+  non-dynamic bodies and degenerate hinge/slider axes are rejected.
+- **0.6.0 convex + compound bodies (tier E6):** `jolt_body_add_convex`
+  builds a `ConvexHullShape` from a caller-owned `Vec[Int]` of milli xyz
+  triples (4..256 vertices; interior points allowed; the bridge copies the
+  points, so the Vec stays caller-owned; a failed hull build is a typed
+  `kErrBadHull`).  `jolt_body_add_compound` builds a `StaticCompoundShape`
+  from a flat part table (`JOLT_PART_STRIDE` = 13 Int entries per part:
+  kind, extents, vertex offset/count for convex slices, local position,
+  local quaternion; box/sphere/capsule/convex parts) over a shared vertex
+  buffer; malformed part tables are rejected with `kErrBadCompound`.  Both
+  body kinds take the usual mass/pose/static inputs, simulate like the
+  primitive shapes (settle/contact/sleep) and participate in every E1 query
+  and E7 contact/sensor surface with no extra code.
 
 Boundary discipline: handle lifetimes are bridge-owned (registry slots and
 Jolt packed body ids, never raw pointers -- B-25); no bare `null` crosses
@@ -119,7 +157,7 @@ by the suite.
 
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- **67 checks**, x2 required:
+Suite: `tests/test_conformance.xi` -- **109 checks**, x2 required:
 
 - 0.2.0 probes (unchanged): drop settles within [400, 600] milli on the
   ground (top at y=0), the body sleeps, the velocity hand-off stays within
@@ -157,6 +195,31 @@ Suite: `tests/test_conformance.xi` -- **67 checks**, x2 required:
   passes straight through (non-physical), events clear after exit (last
   step only), the sensor is counted/removable like a body, and the repeated
   scenario reports the identical first event.
+- 0.6.0 E3 joints (25 checks): a zero-gravity world hinge with a +1 rad/s
+  velocity motor reaches ~1 rad (999 milli) after 60 fixed steps and the
+  repeated flow is bit-identical (angle/impulse/pair -- the joint-driven
+  determinism requirement); a position motor converges to +700 milli rad;
+  hinge limits [-250, +250] milli rad stop the motor at +250; a world
+  slider with a +500 milli m/s motor travels ~500 milli and its
+  [-1000, +200] limits clamp at +200; a two-body auto-anchored fixed weld
+  under gravity holds the welded box at its spawn pose and reports a
+  non-zero reaction impulse; a world point joint keeps the pivot distance
+  through a pendulum swing.  Typed errors: unknown body id, same body,
+  world-world, degenerate hinge axis, motor config on fixed, limits on
+  point, out-of-range hinge limits, unknown joint id (state + remove),
+  stale joint id after remove, motor op on fixed, joint count, and
+  auto-removal of joints when a body is removed (count drops, state
+  rejects).
+- 0.6.0 E6 convex/compound (17 checks): a convex hull body built from an
+  8-corner + interior-point vertex Vec settles at y=479 and sleeps like the
+  box flow, the repeated flow is bit-identical, and the hull is hit by
+  raycast/overlap; a 4-part compound (box + sphere + capsule + convex at
+  relative transforms) settles at y=479 and sleeps, repeats bit-identically,
+  is hit per part by raycasts (convex top at y=1400, sphere top at y=750
+  in the fixture), is found by overlap and reports a landing contact
+  manifold with the ground; typed errors: too-few hull vertices, unknown
+  part kind, out-of-range convex vertex slice, empty part table, wrong
+  part-table stride.
 
 ```
 scripts/port.ps1 -Package xiom.jolt -TimeoutSec 600
@@ -169,10 +232,12 @@ The `--cxx-standard 17` flag and the 26-source list are carried by
 
 World/body v0 + external force/torque input + world queries (raycast,
 sphere/capsule sweep, sphere/capsule overlap with deterministic order) +
-capsule shape + contacts/sensors: enough for the engine contract flow and
-its query/trigger asks.  Joints, character controllers, soft bodies and the
-deterministic save/restore helper remain later tiers (`ROADMAP.md`, tiers
-E3/E4/E5/E6).  The pre-pilot declaration-only module is preserved in git
+capsule shape + contacts/sensors + typed joints (fixed/hinge/slider/point
+with motors, limits and state read-back) + convex/compound bodies: enough
+for the engine contract flow and its query/trigger/joint/shape asks.
+Character controllers (E4), soft bodies (E5), collision filtering on query
+paths and the deterministic save/restore state helper remain later tiers
+(`ROADMAP.md`).  The pre-pilot declaration-only module is preserved in git
 history.  The generated-tree hash above was re-verified read-only on
-2026-10-13 against the committed `vendor/` tree (unchanged by 0.4.0/0.5.0 --
-the vendored tree is not touched).
+2026-10-13 against the committed `vendor/` tree (unchanged by
+0.4.0/0.5.0/0.6.0 -- the vendored tree is not touched).

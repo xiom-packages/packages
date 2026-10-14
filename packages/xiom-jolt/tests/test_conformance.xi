@@ -9,11 +9,15 @@
 // read-back; engine contract v0 flow = world + ground + box/sphere + N fixed
 // steps + read-back), the 0.4.0 per-body external force/torque input
 // (apply_force/apply_torque, one-step-only semantics, angular read-back,
-// unknown/removed id rejection), and the 0.5.0 tiers: E1 world queries
+// unknown/removed id rejection), the 0.5.0 tiers (E1 world queries
 // (raycast closest/any-hit, sphere/capsule sweeps, sphere/capsule overlaps,
 // canonical order + determinism), E2 capsule bodies (settle/rotation/query
 // participation) and E7 contacts + sensors (manifold reads, typed id errors,
-// per-step sensor events, non-physical pass-through).
+// per-step sensor events, non-physical pass-through)), and the 0.6.0 tiers:
+// E3 typed joints (fixed/hinge/slider/point to a body or the world; motors,
+// limits, state read-back, typed errors, joint-driven determinism) and
+// E6 convex/compound bodies (hull bodies from caller vertex buffers,
+// multi-shape compounds; settle + query participation + determinism).
 
 module jolt_conformance
 
@@ -388,6 +392,503 @@ fn sensor_first_event() -> Result[JoltSensorEvent, Str] {
   if !e.is_ok { return Err("sensor det event: " + e.error); }
   if !d.is_ok { return Err("sensor det destroy: " + d.error); }
   return e;
+}
+
+// ---- 0.6.0 helpers (E3 joints, E6 convex/compound) -------------------------
+
+// Every JoltJointState field equal, bit for bit.
+fn joint_state_same(a: JoltJointState, b: JoltJointState) -> Bool {
+  return a.kind == b.kind && a.primary_milli == b.primary_milli && a.impulse_milli == b.impulse_milli && a.body_a == b.body_a && a.body_b == b.body_b;
+}
+
+// A 1 m dynamic box described once for the E3 joint scenes.
+fn joint_box_desc(px_milli: Int, py_milli: Int) -> JoltBodyDesc {
+  return JoltBodyDesc{
+    shape: JOLT_SHAPE_BOX;
+    ex_milli: 500;
+    ey_milli: 500;
+    ez_milli: 500;
+    mass_milli: 0;
+    px_milli: px_milli;
+    py_milli: py_milli;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    is_static: false;
+  };
+}
+
+// Motorized world hinge: zero gravity, box at (0,1000,0), hinge about world
+// +Z at its center, velocity motor +1 rad/s, `steps` fixed steps.  Returns
+// the joint state (angle + motor impulse); the world is destroyed first.
+fn hinge_motor_state(steps: Int) -> Result[JoltJointState, Str] {
+  let wr = jolt_world_create(0, 0, 0, 16666, 16);
+  if !wr.is_ok { return Err("hinge create: " + wr.error); }
+  let w = wr.value;
+  let b = jolt_body_add(w, joint_box_desc(0, 1000));
+  if !b.is_ok { return Err("hinge body: " + b.error); }
+  let jd = JoltJointDesc{
+    kind: JOLT_JOINT_HINGE;
+    body_a: JOLT_WORLD;
+    body_b: b.value;
+    px_milli: 0;
+    py_milli: 1000;
+    pz_milli: 0;
+    ax_milli: 0;
+    ay_milli: 0;
+    az_milli: 1000;
+    auto_anchor: false;
+    has_limits: false;
+    limits_min_milli: 0;
+    limits_max_milli: 0;
+    motor_frequency_milli: 0;
+    motor_damping_milli: 0;
+    motor_max_force_milli: 0;
+    motor_max_torque_milli: 0;
+  };
+  let j = jolt_joint_add(w, jd);
+  if !j.is_ok { return Err("hinge joint: " + j.error); }
+  let m = jolt_joint_set_motor(w, j.value, JOLT_MOTOR_VELOCITY, 1000);
+  if !m.is_ok { return Err("hinge motor: " + m.error); }
+  let s = jolt_step_n(w, 16666, steps);
+  let st = jolt_joint_state(w, j.value);
+  let d = jolt_world_destroy(w);
+  if !s.is_ok { return Err("hinge step: " + s.error); }
+  if !st.is_ok { return Err("hinge state: " + st.error); }
+  if !d.is_ok { return Err("hinge destroy: " + d.error); }
+  return st;
+}
+
+// Position-motor world hinge: same scene, motor state POSITION with
+// `target_milli` (milli rad), `steps` steps.  Returns the joint state.
+fn hinge_position_state(steps: Int, target_milli: Int) -> Result[JoltJointState, Str] {
+  let wr = jolt_world_create(0, 0, 0, 16666, 16);
+  if !wr.is_ok { return Err("hinge pos create: " + wr.error); }
+  let w = wr.value;
+  let b = jolt_body_add(w, joint_box_desc(0, 1000));
+  if !b.is_ok { return Err("hinge pos body: " + b.error); }
+  let jd = JoltJointDesc{
+    kind: JOLT_JOINT_HINGE;
+    body_a: JOLT_WORLD;
+    body_b: b.value;
+    px_milli: 0;
+    py_milli: 1000;
+    pz_milli: 0;
+    ax_milli: 0;
+    ay_milli: 0;
+    az_milli: 1000;
+    auto_anchor: false;
+    has_limits: false;
+    limits_min_milli: 0;
+    limits_max_milli: 0;
+    motor_frequency_milli: 0;
+    motor_damping_milli: 0;
+    motor_max_force_milli: 0;
+    motor_max_torque_milli: 0;
+  };
+  let j = jolt_joint_add(w, jd);
+  if !j.is_ok { return Err("hinge pos joint: " + j.error); }
+  let m = jolt_joint_set_motor(w, j.value, JOLT_MOTOR_POSITION, target_milli);
+  if !m.is_ok { return Err("hinge pos motor: " + m.error); }
+  let s = jolt_step_n(w, 16666, steps);
+  let st = jolt_joint_state(w, j.value);
+  let d = jolt_world_destroy(w);
+  if !s.is_ok { return Err("hinge pos step: " + s.error); }
+  if !st.is_ok { return Err("hinge pos state: " + st.error); }
+  if !d.is_ok { return Err("hinge pos destroy: " + d.error); }
+  return st;
+}
+
+// Limited world hinge: velocity motor +1 rad/s into limits [-250, +250]
+// milli rad; the angle must stop at the +limit.  Returns the joint state.
+fn hinge_limits_state(steps: Int) -> Result[JoltJointState, Str] {
+  let wr = jolt_world_create(0, 0, 0, 16666, 16);
+  if !wr.is_ok { return Err("hinge lim create: " + wr.error); }
+  let w = wr.value;
+  let b = jolt_body_add(w, joint_box_desc(0, 1000));
+  if !b.is_ok { return Err("hinge lim body: " + b.error); }
+  let jd = JoltJointDesc{
+    kind: JOLT_JOINT_HINGE;
+    body_a: JOLT_WORLD;
+    body_b: b.value;
+    px_milli: 0;
+    py_milli: 1000;
+    pz_milli: 0;
+    ax_milli: 0;
+    ay_milli: 0;
+    az_milli: 1000;
+    auto_anchor: false;
+    has_limits: true;
+    limits_min_milli: -250;
+    limits_max_milli: 250;
+    motor_frequency_milli: 0;
+    motor_damping_milli: 0;
+    motor_max_force_milli: 0;
+    motor_max_torque_milli: 0;
+  };
+  let j = jolt_joint_add(w, jd);
+  if !j.is_ok { return Err("hinge lim joint: " + j.error); }
+  let m = jolt_joint_set_motor(w, j.value, JOLT_MOTOR_VELOCITY, 1000);
+  if !m.is_ok { return Err("hinge lim motor: " + m.error); }
+  let s = jolt_step_n(w, 16666, steps);
+  let st = jolt_joint_state(w, j.value);
+  let d = jolt_world_destroy(w);
+  if !s.is_ok { return Err("hinge lim step: " + s.error); }
+  if !st.is_ok { return Err("hinge lim state: " + st.error); }
+  if !d.is_ok { return Err("hinge lim destroy: " + d.error); }
+  return st;
+}
+
+// Motorized world slider: zero gravity, box at the origin, slider along
+// world +X through its center, motor velocity +500 milli m/s.  `limits_min`/
+// `limits_max_milli` enable limits (pass min > max to disable: only the
+// `has_limits` flag decides).  Returns the joint state (position + motor
+// impulse); destroyed first.
+fn slider_motor_state(steps: Int, has_limits: Bool, limits_min_milli: Int, limits_max_milli: Int) -> Result[JoltJointState, Str] {
+  let wr = jolt_world_create(0, 0, 0, 16666, 16);
+  if !wr.is_ok { return Err("slider create: " + wr.error); }
+  let w = wr.value;
+  let b = jolt_body_add(w, joint_box_desc(0, 0));
+  if !b.is_ok { return Err("slider body: " + b.error); }
+  let jd = JoltJointDesc{
+    kind: JOLT_JOINT_SLIDER;
+    body_a: JOLT_WORLD;
+    body_b: b.value;
+    px_milli: 0;
+    py_milli: 0;
+    pz_milli: 0;
+    ax_milli: 1000;
+    ay_milli: 0;
+    az_milli: 0;
+    auto_anchor: false;
+    has_limits: has_limits;
+    limits_min_milli: limits_min_milli;
+    limits_max_milli: limits_max_milli;
+    motor_frequency_milli: 0;
+    motor_damping_milli: 0;
+    motor_max_force_milli: 0;
+    motor_max_torque_milli: 0;
+  };
+  let j = jolt_joint_add(w, jd);
+  if !j.is_ok { return Err("slider joint: " + j.error); }
+  let m = jolt_joint_set_motor(w, j.value, JOLT_MOTOR_VELOCITY, 500);
+  if !m.is_ok { return Err("slider motor: " + m.error); }
+  let s = jolt_step_n(w, 16666, steps);
+  let st = jolt_joint_state(w, j.value);
+  let d = jolt_world_destroy(w);
+  if !s.is_ok { return Err("slider step: " + s.error); }
+  if !st.is_ok { return Err("slider state: " + st.error); }
+  if !d.is_ok { return Err("slider destroy: " + d.error); }
+  return st;
+}
+
+// A fixed-joint weld under gravity: static anchor box at (0,500,0), dynamic
+// 1 m box at (1000,500,0), auto-anchored weld.  After 4 steps the welded box
+// must not have fallen and the joint must report a non-zero reaction
+// impulse.  Returns the joint state and the welded box's position.
+type WeldResult = {
+  kind: Int;
+  impulse_milli: Int;
+  body_x_milli: Int;
+  body_y_milli: Int;
+}
+
+fn fixed_weld_result() -> Result[WeldResult, Str] {
+  let wr = jolt_world_create(0, -9810, 0, 16666, 16);
+  if !wr.is_ok { return Err("weld create: " + wr.error); }
+  let w = wr.value;
+  let ad = JoltBodyDesc{
+    shape: JOLT_SHAPE_BOX;
+    ex_milli: 500;
+    ey_milli: 500;
+    ez_milli: 500;
+    mass_milli: 0;
+    px_milli: 0;
+    py_milli: 500;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    is_static: true;
+  };
+  let a = jolt_body_add(w, ad);
+  if !a.is_ok { return Err("weld anchor: " + a.error); }
+  let b = jolt_body_add(w, joint_box_desc(1000, 500));
+  if !b.is_ok { return Err("weld body: " + b.error); }
+  let jd = JoltJointDesc{
+    kind: JOLT_JOINT_FIXED;
+    body_a: a.value;
+    body_b: b.value;
+    px_milli: 0;
+    py_milli: 0;
+    pz_milli: 0;
+    ax_milli: 0;
+    ay_milli: 0;
+    az_milli: 0;
+    auto_anchor: true;
+    has_limits: false;
+    limits_min_milli: 0;
+    limits_max_milli: 0;
+    motor_frequency_milli: 0;
+    motor_damping_milli: 0;
+    motor_max_force_milli: 0;
+    motor_max_torque_milli: 0;
+  };
+  let j = jolt_joint_add(w, jd);
+  if !j.is_ok { return Err("weld joint: " + j.error); }
+  let s = jolt_step_n(w, 16666, 4);
+  let st = jolt_joint_state(w, j.value);
+  let bs = jolt_body_state(w, b.value);
+  let d = jolt_world_destroy(w);
+  if !s.is_ok { return Err("weld step: " + s.error); }
+  if !st.is_ok { return Err("weld state: " + st.error); }
+  if !bs.is_ok { return Err("weld body state: " + bs.error); }
+  if !d.is_ok { return Err("weld destroy: " + d.error); }
+  return Ok(WeldResult{
+    kind: st.value.kind;
+    impulse_milli: st.value.impulse_milli;
+    body_x_milli: bs.value.px_milli;
+    body_y_milli: bs.value.py_milli;
+  });
+}
+
+// Point-joint (ball) world pendulum under gravity: dynamic box COM starts at
+// (1000, 2000, 0), pinned to the world point (0, 2000, 0) at distance 1000.
+// After 120 steps the pivot distance must hold (squared-distance reported in
+// milli^2) and the body must have swung below the start height.
+type PendulumResult = {
+  dist_sq_milli: Int;
+  py_milli: Int;
+}
+
+fn point_pendulum_result(steps: Int) -> Result[PendulumResult, Str] {
+  let wr = jolt_world_create(0, -9810, 0, 16666, 16);
+  if !wr.is_ok { return Err("point create: " + wr.error); }
+  let w = wr.value;
+  let b = jolt_body_add(w, joint_box_desc(1000, 2000));
+  if !b.is_ok { return Err("point body: " + b.error); }
+  let jd = JoltJointDesc{
+    kind: JOLT_JOINT_POINT;
+    body_a: JOLT_WORLD;
+    body_b: b.value;
+    px_milli: 0;
+    py_milli: 2000;
+    pz_milli: 0;
+    ax_milli: 0;
+    ay_milli: 0;
+    az_milli: 0;
+    auto_anchor: false;
+    has_limits: false;
+    limits_min_milli: 0;
+    limits_max_milli: 0;
+    motor_frequency_milli: 0;
+    motor_damping_milli: 0;
+    motor_max_force_milli: 0;
+    motor_max_torque_milli: 0;
+  };
+  let j = jolt_joint_add(w, jd);
+  if !j.is_ok { return Err("point joint: " + j.error); }
+  let s = jolt_step_n(w, 16666, steps);
+  let bs = jolt_body_state(w, b.value);
+  let d = jolt_world_destroy(w);
+  if !s.is_ok { return Err("point step: " + s.error); }
+  if !bs.is_ok { return Err("point body state: " + bs.error); }
+  if !d.is_ok { return Err("point destroy: " + d.error); }
+  let dx = bs.value.px_milli - 0;
+  let dy = bs.value.py_milli - 2000;
+  return Ok(PendulumResult{
+    dist_sq_milli: dx * dx + dy * dy;
+    py_milli: bs.value.py_milli;
+  });
+}
+
+// Push one xyz milli triple.
+fn verts_push(v: &mut Vec[Int], x: Int, y: Int, z: Int) {
+  v.push(x);
+  v.push(y);
+  v.push(z);
+}
+
+// Eight cube corners (+-s) plus one interior point, as xyz milli triples
+// (proves interior points are accepted by the hull builder).
+fn convex_cube_verts(s: Int) -> Vec[Int] {
+  var v = Vec[Int].new();
+  verts_push(&mut v, -s, -s, -s);
+  verts_push(&mut v, s, -s, -s);
+  verts_push(&mut v, -s, s, -s);
+  verts_push(&mut v, s, s, -s);
+  verts_push(&mut v, -s, -s, s);
+  verts_push(&mut v, s, -s, s);
+  verts_push(&mut v, -s, s, s);
+  verts_push(&mut v, s, s, s);
+  verts_push(&mut v, 0, 0, 0);
+  return v;
+}
+
+// Convex engine flow (0.6.0, E6): the same settle scenario as `engine_flow`
+// but the dynamic body is a convex hull of the (s=500) cube corners dropped
+// from y=5.  The world is destroyed before return.
+fn convex_engine_flow() -> Result[JoltBodyState, Str] {
+  let wr = jolt_world_create(0, -9810, 0, 16666, 64);
+  if !wr.is_ok { return Err("convex create: " + wr.error); }
+  let w = wr.value;
+  let gd = JoltBodyDesc{
+    shape: JOLT_SHAPE_BOX;
+    ex_milli: 20000;
+    ey_milli: 500;
+    ez_milli: 20000;
+    mass_milli: 0;
+    px_milli: 0;
+    py_milli: -500;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    is_static: true;
+  };
+  let g = jolt_body_add(w, gd);
+  if !g.is_ok { return Err("convex ground: " + g.error); }
+  var verts = convex_cube_verts(500);
+  let bd = JoltBodyDesc{
+    shape: JOLT_SHAPE_CONVEX;
+    ex_milli: 0;
+    ey_milli: 0;
+    ez_milli: 0;
+    mass_milli: 0;
+    px_milli: 0;
+    py_milli: 5000;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    is_static: false;
+  };
+  let b = jolt_body_add_convex(w, bd, &verts);
+  if !b.is_ok { return Err("convex body: " + b.error); }
+  let s = jolt_step_n(w, 16666, 300);
+  if !s.is_ok { return Err("convex step_n: " + s.error); }
+  let st = jolt_body_state(w, b.value);
+  let d = jolt_world_destroy(w);
+  if !st.is_ok { return Err("convex state: " + st.error); }
+  if !d.is_ok { return Err("convex destroy: " + d.error); }
+  return st;
+}
+
+// Compound part table (0.6.0, E6): 4 parts, JOLT_PART_STRIDE entries each --
+// box (+-500) at the origin, sphere (r=250) at (+750,0,0), capsule
+// (r=200, half 100) laid along x (90 deg about z) at (-750,0,0), convex cube
+// (half 200) on top at (0,700,0) slicing the shared 8-corner vertex buffer.
+fn compound_parts() -> Vec[Int] {
+  var p = Vec[Int].new();
+  // part 0: box, ex/ey/ez = 500, at origin, identity.
+  p.push(JOLT_SHAPE_BOX);
+  p.push(500); p.push(500); p.push(500);
+  p.push(0); p.push(0);
+  p.push(0); p.push(0); p.push(0);
+  p.push(0); p.push(0); p.push(0); p.push(0);
+  // part 1: sphere, ex = 250, at (+750,0,0), identity.
+  p.push(JOLT_SHAPE_SPHERE);
+  p.push(250); p.push(0); p.push(0);
+  p.push(0); p.push(0);
+  p.push(750); p.push(0); p.push(0);
+  p.push(0); p.push(0); p.push(0); p.push(0);
+  // part 2: capsule, radius 200 / half height 100, at (-750,0,0), rotated
+  // 90 deg about z (quat 0,0,0.707,0.707).
+  p.push(JOLT_SHAPE_CAPSULE);
+  p.push(200); p.push(100); p.push(0);
+  p.push(0); p.push(0);
+  p.push(-750); p.push(0); p.push(0);
+  p.push(0); p.push(0); p.push(707); p.push(707);
+  // part 3: convex cube (half 200 = vertices [0,8) of the shared buffer),
+  // at (0,700,0), identity.
+  p.push(JOLT_SHAPE_CONVEX);
+  p.push(0); p.push(0); p.push(0);
+  p.push(0); p.push(8);
+  p.push(0); p.push(700); p.push(0);
+  p.push(0); p.push(0); p.push(0); p.push(0);
+  return p;
+}
+
+// The shared 8-corner (+-200) vertex buffer for the compound's convex part.
+fn compound_verts() -> Vec[Int] {
+  return convex_cube_verts(200);
+}
+
+// A fresh static compound desc at the origin (one fresh value per call: XIOM
+// struct values move) for the typed-error probes.
+fn compound_error_desc() -> JoltBodyDesc {
+  return JoltBodyDesc{
+    shape: JOLT_SHAPE_COMPOUND;
+    ex_milli: 0;
+    ey_milli: 0;
+    ez_milli: 0;
+    mass_milli: 0;
+    px_milli: 0;
+    py_milli: 0;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    is_static: true;
+  };
+}
+
+// Compound engine flow (0.6.0, E6): the box-part bottom (y=-500) lands on
+// the ground; the body settles and sleeps like the primitive flows.  The
+// world is destroyed before return.
+fn compound_engine_flow() -> Result[JoltBodyState, Str] {
+  let wr = jolt_world_create(0, -9810, 0, 16666, 64);
+  if !wr.is_ok { return Err("compound create: " + wr.error); }
+  let w = wr.value;
+  let gd = JoltBodyDesc{
+    shape: JOLT_SHAPE_BOX;
+    ex_milli: 20000;
+    ey_milli: 500;
+    ez_milli: 20000;
+    mass_milli: 0;
+    px_milli: 0;
+    py_milli: -500;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    is_static: true;
+  };
+  let g = jolt_body_add(w, gd);
+  if !g.is_ok { return Err("compound ground: " + g.error); }
+  var parts = compound_parts();
+  var verts = compound_verts();
+  let bd = JoltBodyDesc{
+    shape: JOLT_SHAPE_COMPOUND;
+    ex_milli: 0;
+    ey_milli: 0;
+    ez_milli: 0;
+    mass_milli: 0;
+    px_milli: 0;
+    py_milli: 5000;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    is_static: false;
+  };
+  let b = jolt_body_add_compound(w, bd, &parts, &verts);
+  if !b.is_ok { return Err("compound body: " + b.error); }
+  let s = jolt_step_n(w, 16666, 300);
+  if !s.is_ok { return Err("compound step_n: " + s.error); }
+  let st = jolt_body_state(w, b.value);
+  let d = jolt_world_destroy(w);
+  if !st.is_ok { return Err("compound state: " + st.error); }
+  if !d.is_ok { return Err("compound destroy: " + d.error); }
+  return st;
 }
 
 fn main() -> Int {
@@ -993,6 +1494,503 @@ fn main() -> Int {
   let se2 = sensor_first_event();
   failed = failed + report(se1.is_ok && se2.is_ok && se1.value.sensor_id == se2.value.sensor_id && se1.value.other_id == se2.value.other_id,
     "sensor: repeated scenario identical first event");
+
+  // 16. Typed joints (0.6.0, E3): motorized world hinges, sliders, limits,
+  //     welds, pendulums and the typed error surface.
+
+  // Motorized world hinge (zero gravity): velocity motor +1 rad/s for 60
+  // fixed steps ramps the relative angle to ~1 rad (1000 milli).
+  let h1 = hinge_motor_state(60);
+  if h1.is_ok {
+    failed = failed + report(h1.value.kind == JOLT_JOINT_HINGE && h1.value.primary_milli >= 850 && h1.value.primary_milli <= 1050,
+      "joints: motorized hinge angle=" + i2s(h1.value.primary_milli) + " milli after 60 steps");
+  } else {
+    failed = failed + report(false, "joints: hinge motor flow: " + h1.error);
+  }
+
+  // Joint-driven determinism: the repeated motorized-hinge flow is
+  // bit-identical (angle, impulse and pair).
+  let h2 = hinge_motor_state(60);
+  var h2msg = "joints: repeated motorized hinge bit-identical";
+  if h2.is_ok { h2msg = h2msg + " (angle=" + i2s(h2.value.primary_milli) + " milli)"; }
+  failed = failed + report(h1.is_ok && h2.is_ok && joint_state_same(h1.value, h2.value), h2msg);
+
+  // Position motor: drive the hinge to +700 milli rad; 120 steps converge
+  // near the target angle.
+  let hp = hinge_position_state(120, 700);
+  if hp.is_ok {
+    failed = failed + report(hp.value.primary_milli >= 450 && hp.value.primary_milli <= 800,
+      "joints: position motor drove hinge to " + i2s(hp.value.primary_milli) + " milli (target 700)");
+  } else {
+    failed = failed + report(false, "joints: hinge position flow: " + hp.error);
+  }
+
+  // Limits: a +1 rad/s velocity motor into [-250, +250] milli rad stops at
+  // the upper limit instead of passing it.
+  let hl = hinge_limits_state(120);
+  if hl.is_ok {
+    failed = failed + report(hl.value.primary_milli >= 150 && hl.value.primary_milli <= 320,
+      "joints: hinge limit clamped angle=" + i2s(hl.value.primary_milli) + " milli (limit 250)");
+  } else {
+    failed = failed + report(false, "joints: hinge limits flow: " + hl.error);
+  }
+
+  // Motorized world slider (zero gravity): +500 milli m/s along +X for 60
+  // steps slides the body to ~500 milli.
+  let sl1 = slider_motor_state(60, false, 0, 0);
+  if sl1.is_ok {
+    failed = failed + report(sl1.value.kind == JOLT_JOINT_SLIDER && sl1.value.primary_milli >= 300 && sl1.value.primary_milli <= 600,
+      "joints: motorized slider position=" + i2s(sl1.value.primary_milli) + " milli after 60 steps");
+  } else {
+    failed = failed + report(false, "joints: slider motor flow: " + sl1.error);
+  }
+
+  // Slider limits: +500 milli m/s into [-1000, +200] clamps at +200.
+  let sl2 = slider_motor_state(120, true, -1000, 200);
+  if sl2.is_ok {
+    failed = failed + report(sl2.value.primary_milli >= 150 && sl2.value.primary_milli <= 260,
+      "joints: slider limit clamped position=" + i2s(sl2.value.primary_milli) + " milli (limit 200)");
+  } else {
+    failed = failed + report(false, "joints: slider limits flow: " + sl2.error);
+  }
+
+  // Two-body fixed weld under gravity: the welded box neither falls nor
+  // drifts, and the joint reports a non-zero reaction impulse.
+  let wl = fixed_weld_result();
+  if wl.is_ok {
+    failed = failed + report(wl.value.kind == JOLT_JOINT_FIXED && wl.value.body_y_milli >= 470 && wl.value.body_y_milli <= 530 && wl.value.body_x_milli >= 970 && wl.value.body_x_milli <= 1030,
+      "joints: fixed weld held body at (" + i2s(wl.value.body_x_milli) + "," + i2s(wl.value.body_y_milli) + ") milli");
+    failed = failed + report(wl.value.impulse_milli > 0,
+      "joints: fixed weld reaction impulse=" + i2s(wl.value.impulse_milli) + " milli");
+  } else {
+    failed = failed + report(false, "joints: fixed weld flow: " + wl.error);
+    failed = failed + report(false, "joints: fixed weld flow: " + wl.error);
+  }
+
+  // Point joint: the pivot distance holds through a gravity swing.
+  let pd = point_pendulum_result(120);
+  if pd.is_ok {
+    failed = failed + report(pd.value.dist_sq_milli >= 810000 && pd.value.dist_sq_milli <= 1210000,
+      "joints: point pivot distance holds (d^2=" + i2s(pd.value.dist_sq_milli) + " milli^2)");
+    failed = failed + report(pd.value.py_milli < 1900,
+      "joints: point pendulum swung (y=" + i2s(pd.value.py_milli) + " milli)");
+  } else {
+    failed = failed + report(false, "joints: point pendulum flow: " + pd.error);
+    failed = failed + report(false, "joints: point pendulum flow: " + pd.error);
+  }
+
+  // Typed joint errors: bad ids, unsupported combos, degenerate axes and
+  // stale handles after remove/body-removal.
+  let jw = jolt_world_create(0, 0, 0, 16666, 8);
+  if jw.is_ok {
+    let w = jw.value;
+    let jb = jolt_body_add(w, joint_box_desc(0, 0));
+    if jb.is_ok {
+      let bid = jb.value;
+
+      let e1 = jolt_joint_add(w, JoltJointDesc{
+        kind: JOLT_JOINT_HINGE; body_a: JOLT_WORLD; body_b: 99999999;
+        px_milli: 0; py_milli: 0; pz_milli: 0;
+        ax_milli: 0; ay_milli: 0; az_milli: 1000;
+        auto_anchor: false; has_limits: false;
+        limits_min_milli: 0; limits_max_milli: 0;
+        motor_frequency_milli: 0; motor_damping_milli: 0;
+        motor_max_force_milli: 0; motor_max_torque_milli: 0;
+      });
+      failed = failed + report(!e1.is_ok, "joints: unknown body id rejected");
+
+      let e2 = jolt_joint_add(w, JoltJointDesc{
+        kind: JOLT_JOINT_HINGE; body_a: bid; body_b: bid;
+        px_milli: 0; py_milli: 0; pz_milli: 0;
+        ax_milli: 0; ay_milli: 0; az_milli: 1000;
+        auto_anchor: false; has_limits: false;
+        limits_min_milli: 0; limits_max_milli: 0;
+        motor_frequency_milli: 0; motor_damping_milli: 0;
+        motor_max_force_milli: 0; motor_max_torque_milli: 0;
+      });
+      failed = failed + report(!e2.is_ok, "joints: same body both sides rejected");
+
+      let e3 = jolt_joint_add(w, JoltJointDesc{
+        kind: JOLT_JOINT_HINGE; body_a: JOLT_WORLD; body_b: JOLT_WORLD;
+        px_milli: 0; py_milli: 0; pz_milli: 0;
+        ax_milli: 0; ay_milli: 0; az_milli: 1000;
+        auto_anchor: false; has_limits: false;
+        limits_min_milli: 0; limits_max_milli: 0;
+        motor_frequency_milli: 0; motor_damping_milli: 0;
+        motor_max_force_milli: 0; motor_max_torque_milli: 0;
+      });
+      failed = failed + report(!e3.is_ok, "joints: world-world rejected");
+
+      let e4 = jolt_joint_add(w, JoltJointDesc{
+        kind: JOLT_JOINT_HINGE; body_a: JOLT_WORLD; body_b: bid;
+        px_milli: 0; py_milli: 0; pz_milli: 0;
+        ax_milli: 0; ay_milli: 0; az_milli: 0;
+        auto_anchor: false; has_limits: false;
+        limits_min_milli: 0; limits_max_milli: 0;
+        motor_frequency_milli: 0; motor_damping_milli: 0;
+        motor_max_force_milli: 0; motor_max_torque_milli: 0;
+      });
+      failed = failed + report(!e4.is_ok, "joints: degenerate hinge axis rejected");
+
+      let e5 = jolt_joint_add(w, JoltJointDesc{
+        kind: JOLT_JOINT_FIXED; body_a: JOLT_WORLD; body_b: bid;
+        px_milli: 0; py_milli: 0; pz_milli: 0;
+        ax_milli: 0; ay_milli: 0; az_milli: 0;
+        auto_anchor: true; has_limits: false;
+        limits_min_milli: 0; limits_max_milli: 0;
+        motor_frequency_milli: 1000; motor_damping_milli: 0;
+        motor_max_force_milli: 0; motor_max_torque_milli: 0;
+      });
+      failed = failed + report(!e5.is_ok, "joints: motor config on fixed rejected");
+
+      let e6 = jolt_joint_add(w, JoltJointDesc{
+        kind: JOLT_JOINT_POINT; body_a: JOLT_WORLD; body_b: bid;
+        px_milli: 0; py_milli: 0; pz_milli: 0;
+        ax_milli: 0; ay_milli: 0; az_milli: 0;
+        auto_anchor: false; has_limits: true;
+        limits_min_milli: -100; limits_max_milli: 100;
+        motor_frequency_milli: 0; motor_damping_milli: 0;
+        motor_max_force_milli: 0; motor_max_torque_milli: 0;
+      });
+      failed = failed + report(!e6.is_ok, "joints: limits on point rejected");
+
+      let e7 = jolt_joint_add(w, JoltJointDesc{
+        kind: JOLT_JOINT_HINGE; body_a: JOLT_WORLD; body_b: bid;
+        px_milli: 0; py_milli: 0; pz_milli: 0;
+        ax_milli: 0; ay_milli: 0; az_milli: 1000;
+        auto_anchor: false; has_limits: true;
+        limits_min_milli: 100; limits_max_milli: 200;
+        motor_frequency_milli: 0; motor_damping_milli: 0;
+        motor_max_force_milli: 0; motor_max_torque_milli: 0;
+      });
+      failed = failed + report(!e7.is_ok, "joints: out-of-range hinge limits rejected");
+
+      let e8 = jolt_joint_state(w, 12345);
+      failed = failed + report(!e8.is_ok, "joints: unknown joint id rejected by state");
+      let e9 = jolt_joint_remove(w, 12345);
+      failed = failed + report(!e9.is_ok, "joints: unknown joint id rejected by remove");
+
+      // A valid hinge: add, count, remove, stale-state.
+      let hj = jolt_joint_add(w, JoltJointDesc{
+        kind: JOLT_JOINT_HINGE; body_a: JOLT_WORLD; body_b: bid;
+        px_milli: 0; py_milli: 0; pz_milli: 0;
+        ax_milli: 0; ay_milli: 0; az_milli: 1000;
+        auto_anchor: false; has_limits: false;
+        limits_min_milli: 0; limits_max_milli: 0;
+        motor_frequency_milli: 0; motor_damping_milli: 0;
+        motor_max_force_milli: 0; motor_max_torque_milli: 0;
+      });
+      if hj.is_ok {
+        let jc1 = jolt_joint_count(w);
+        failed = failed + report(jc1.is_ok && jc1.value == 1, "joints: count 1 after one add");
+        let jr = jolt_joint_remove(w, hj.value);
+        failed = failed + report(jr.is_ok && jr.value == 0, "joints: remove returns joints left (0)");
+        let sg = jolt_joint_state(w, hj.value);
+        failed = failed + report(!sg.is_ok, "joints: removed joint id rejected by state");
+      } else {
+        failed = failed + report(false, "joints: valid hinge add: " + hj.error);
+        failed = failed + report(false, "joints: valid hinge add: " + hj.error);
+        failed = failed + report(false, "joints: valid hinge add: " + hj.error);
+      }
+
+      // A valid fixed weld: motor op rejected; removing the body removes it.
+      let fj = jolt_joint_add(w, JoltJointDesc{
+        kind: JOLT_JOINT_FIXED; body_a: JOLT_WORLD; body_b: bid;
+        px_milli: 0; py_milli: 0; pz_milli: 0;
+        ax_milli: 0; ay_milli: 0; az_milli: 0;
+        auto_anchor: true; has_limits: false;
+        limits_min_milli: 0; limits_max_milli: 0;
+        motor_frequency_milli: 0; motor_damping_milli: 0;
+        motor_max_force_milli: 0; motor_max_torque_milli: 0;
+      });
+      if fj.is_ok {
+        let sm = jolt_joint_set_motor(w, fj.value, JOLT_MOTOR_VELOCITY, 1000);
+        failed = failed + report(!sm.is_ok, "joints: motor op on fixed rejected");
+        let rem = jolt_body_remove(w, bid);
+        let jc2 = jolt_joint_count(w);
+        failed = failed + report(rem.is_ok && jc2.is_ok && jc2.value == 0, "joints: removing a body removes its joints");
+        let sg2 = jolt_joint_state(w, fj.value);
+        failed = failed + report(!sg2.is_ok, "joints: joint state rejects after body removal");
+      } else {
+        failed = failed + report(false, "joints: fixed add: " + fj.error);
+        failed = failed + report(false, "joints: fixed add: " + fj.error);
+        failed = failed + report(false, "joints: fixed add: " + fj.error);
+      }
+    } else {
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+      failed = failed + report(false, "joints: error fixture body: " + jb.error);
+    }
+    let djw = jolt_world_destroy(w);
+  } else {
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+    failed = failed + report(false, "joints: error world create: " + jw.error);
+  }
+
+  // 17. Convex hull bodies (0.6.0, E6): settle flow, determinism and E1
+  //     query participation.
+  let cx1 = convex_engine_flow();
+  if cx1.is_ok {
+    failed = failed + report(cx1.value.py_milli >= 400 && cx1.value.py_milli <= 600,
+      "convex: settled y=" + i2s(cx1.value.py_milli) + " milli");
+    failed = failed + report(!cx1.value.awake, "convex: asleep after settling");
+  } else {
+    failed = failed + report(false, "convex: flow: " + cx1.error);
+    failed = failed + report(false, "convex: flow: " + cx1.error);
+  }
+  let cx2 = convex_engine_flow();
+  failed = failed + report(cx1.is_ok && cx2.is_ok && st_same(cx1.value, cx2.value), "convex: repeated flow bit-identical");
+
+  let cq = jolt_world_create(0, 0, 0, 16666, 8);
+  if cq.is_ok {
+    let w = cq.value;
+    var cverts = convex_cube_verts(500);
+    let cd = JoltBodyDesc{
+      shape: JOLT_SHAPE_CONVEX;
+      ex_milli: 0;
+      ey_milli: 0;
+      ez_milli: 0;
+      mass_milli: 0;
+      px_milli: 0;
+      py_milli: 500;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      is_static: true;
+    };
+    let cb = jolt_body_add_convex(w, cd, &cverts);
+    if cb.is_ok {
+      let ray = jolt_raycast(w, 0, 2000, 0, 0, -3000, 0);
+      var rmsg = "convex: raycast hits the hull top";
+      if ray.is_ok { rmsg = rmsg + " y=" + i2s(ray.value.py_milli) + " milli"; }
+      failed = failed + report(ray.is_ok && ray.value.hit && ray.value.body_id == cb.value && ray.value.py_milli >= 950 && ray.value.py_milli <= 1050, rmsg);
+      let ov = jolt_overlap_sphere(w, 800, 0, 500, 0);
+      if ov.is_ok {
+        let oe = jolt_overlap(w, 0);
+        failed = failed + report(ov.value == 1 && oe.is_ok && oe.value.body_id == cb.value, "convex: overlap finds the hull");
+      } else {
+        failed = failed + report(false, "convex: overlap: " + ov.error);
+      }
+    } else {
+      failed = failed + report(false, "convex: query add: " + cb.error);
+      failed = failed + report(false, "convex: query add: " + cb.error);
+    }
+    let dcq = jolt_world_destroy(w);
+  } else {
+    failed = failed + report(false, "convex: query create: " + cq.error);
+    failed = failed + report(false, "convex: query create: " + cq.error);
+  }
+
+  // 18. Compound bodies (0.6.0, E6): settle flow, determinism, per-part E1
+  //     queries and a landing contact.
+  let cp1 = compound_engine_flow();
+  if cp1.is_ok {
+    failed = failed + report(cp1.value.py_milli >= 300 && cp1.value.py_milli <= 700,
+      "compound: settled y=" + i2s(cp1.value.py_milli) + " milli");
+    failed = failed + report(!cp1.value.awake, "compound: asleep after settling");
+  } else {
+    failed = failed + report(false, "compound: flow: " + cp1.error);
+    failed = failed + report(false, "compound: flow: " + cp1.error);
+  }
+  let cp2 = compound_engine_flow();
+  failed = failed + report(cp1.is_ok && cp2.is_ok && st_same(cp1.value, cp2.value), "compound: repeated flow bit-identical");
+
+  let oq = jolt_world_create(0, 0, 0, 16666, 8);
+  if oq.is_ok {
+    let w = oq.value;
+    var qparts = compound_parts();
+    var qverts = compound_verts();
+    let cd = JoltBodyDesc{
+      shape: JOLT_SHAPE_COMPOUND;
+      ex_milli: 0;
+      ey_milli: 0;
+      ez_milli: 0;
+      mass_milli: 0;
+      px_milli: 0;
+      py_milli: 500;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      is_static: true;
+    };
+    let cb = jolt_body_add_compound(w, cd, &qparts, &qverts);
+    if cb.is_ok {
+      let r1 = jolt_raycast(w, 0, 3000, 0, 0, -3000, 0);
+      var m1 = "compound: raycast hits the convex part";
+      if r1.is_ok { m1 = m1 + " y=" + i2s(r1.value.py_milli); }
+      failed = failed + report(r1.is_ok && r1.value.hit && r1.value.body_id == cb.value && r1.value.py_milli >= 1370 && r1.value.py_milli <= 1430, m1);
+      let r2 = jolt_raycast(w, 750, 3000, 0, 0, -3000, 0);
+      var m2 = "compound: raycast hits the sphere part";
+      if r2.is_ok { m2 = m2 + " y=" + i2s(r2.value.py_milli); }
+      failed = failed + report(r2.is_ok && r2.value.hit && r2.value.body_id == cb.value && r2.value.py_milli >= 720 && r2.value.py_milli <= 780, m2);
+      let ov = jolt_overlap_sphere(w, 700, 0, 500, 0);
+      failed = failed + report(ov.is_ok && ov.value >= 1, "compound: overlap finds the compound");
+    } else {
+      failed = failed + report(false, "compound: query add: " + cb.error);
+      failed = failed + report(false, "compound: query add: " + cb.error);
+      failed = failed + report(false, "compound: query add: " + cb.error);
+    }
+    let doq = jolt_world_destroy(w);
+  } else {
+    failed = failed + report(false, "compound: query create: " + oq.error);
+    failed = failed + report(false, "compound: query create: " + oq.error);
+    failed = failed + report(false, "compound: query create: " + oq.error);
+  }
+
+  // Compound landing contact: the first step of a 100 mm-penetrating drop
+  // reports a manifold between the ground and the compound.
+  let lw = jolt_world_create(0, -9810, 0, 16666, 16);
+  if lw.is_ok {
+    let w = lw.value;
+    let gd = JoltBodyDesc{
+      shape: JOLT_SHAPE_BOX;
+      ex_milli: 20000;
+      ey_milli: 500;
+      ez_milli: 20000;
+      mass_milli: 0;
+      px_milli: 0;
+      py_milli: -500;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      is_static: true;
+    };
+    let g = jolt_body_add(w, gd);
+    var lparts = compound_parts();
+    var lverts = compound_verts();
+    let bd = JoltBodyDesc{
+      shape: JOLT_SHAPE_COMPOUND;
+      ex_milli: 0;
+      ey_milli: 0;
+      ez_milli: 0;
+      mass_milli: 0;
+      px_milli: 0;
+      py_milli: 400;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      is_static: false;
+    };
+    let cb = jolt_body_add_compound(w, bd, &lparts, &lverts);
+    if g.is_ok && cb.is_ok {
+      let s = jolt_step(w, 16666);
+      let cc = jolt_contact_count(w);
+      let pc = jolt_contact_pair_count(w, g.value, cb.value);
+      failed = failed + report(s.is_ok && cc.is_ok && cc.value >= 1 && pc.is_ok && pc.value >= 1,
+        "compound: landing step reports a contact manifold (count=" + i2s(cc.value) + ")");
+    } else {
+      failed = failed + report(false, "compound: landing fixture add failed");
+    }
+    let dlw = jolt_world_destroy(w);
+  } else {
+    failed = failed + report(false, "compound: landing create failed: " + lw.error);
+  }
+
+  // Typed convex/compound errors: bad hull vertex counts, bad part tables.
+  let ew = jolt_world_create(0, 0, 0, 16666, 4);
+  if ew.is_ok {
+    let w = ew.value;
+
+    // Convex hull with only 3 vertices (below the hull minimum).
+    var tiny = Vec[Int].new();
+    verts_push(&mut tiny, -500, -500, -500);
+    verts_push(&mut tiny, 500, -500, -500);
+    verts_push(&mut tiny, 0, 500, 0);
+    let cd = JoltBodyDesc{
+      shape: JOLT_SHAPE_CONVEX;
+      ex_milli: 0;
+      ey_milli: 0;
+      ez_milli: 0;
+      mass_milli: 0;
+      px_milli: 0;
+      py_milli: 0;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      is_static: true;
+    };
+    let x1 = jolt_body_add_convex(w, cd, &tiny);
+    failed = failed + report(!x1.is_ok, "convex: too-few vertices rejected");
+
+    // Compound with an unknown part kind (9).
+    var empty = Vec[Int].new();
+    var badk = Vec[Int].new();
+    badk.push(9);
+    badk.push(0); badk.push(0); badk.push(0);
+    badk.push(0); badk.push(0);
+    badk.push(0); badk.push(0); badk.push(0);
+    badk.push(0); badk.push(0); badk.push(0); badk.push(0);
+    let x2 = jolt_body_add_compound(w, compound_error_desc(), &badk, &empty);
+    failed = failed + report(!x2.is_ok, "compound: unknown part kind rejected");
+
+    // Convex part slicing vertices that do not exist.
+    var v8 = compound_verts();
+    var badv = Vec[Int].new();
+    badv.push(JOLT_SHAPE_CONVEX);
+    badv.push(0); badv.push(0); badv.push(0);
+    badv.push(0); badv.push(99);
+    badv.push(0); badv.push(0); badv.push(0);
+    badv.push(0); badv.push(0); badv.push(0); badv.push(0);
+    let x3 = jolt_body_add_compound(w, compound_error_desc(), &badv, &v8);
+    failed = failed + report(!x3.is_ok, "compound: out-of-range convex vertex slice rejected");
+
+    // Empty part table.
+    let x4 = jolt_body_add_compound(w, compound_error_desc(), &empty, &empty);
+    failed = failed + report(!x4.is_ok, "compound: empty parts rejected");
+
+    // Part table with the wrong stride.
+    var bads = Vec[Int].new();
+    var bi = 0;
+    while bi < 12 {
+      bads.push(0);
+      bi = bi + 1;
+    }
+    let x5 = jolt_body_add_compound(w, compound_error_desc(), &bads, &empty);
+    failed = failed + report(!x5.is_ok, "compound: wrong part-table stride rejected");
+
+    let dew = jolt_world_destroy(w);
+  } else {
+    failed = failed + report(false, "convex/compound errors: create failed: " + ew.error);
+    failed = failed + report(false, "convex/compound errors: create failed: " + ew.error);
+    failed = failed + report(false, "convex/compound errors: create failed: " + ew.error);
+    failed = failed + report(false, "convex/compound errors: create failed: " + ew.error);
+    failed = failed + report(false, "convex/compound errors: create failed: " + ew.error);
+  }
 
   if failed == 0 {
     io.println("xiom.jolt: all tests passed");
