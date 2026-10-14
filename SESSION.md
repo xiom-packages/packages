@@ -214,6 +214,14 @@ running). Check `git log -1 --format=%h %s` before starting.
   pure-XIOM own-readers when assigned (xiom.vdb precedent) -- "native lane" names the WORKSPACE
   ROLE, not a monopoly on own-reader builds; route own-reader work to whichever side is free/live
   and say so. (6) never leave a wishlist unrouted or double-routed.
+- **OWNER PIPELINE (2026-10-14 13:08Z -- the end-to-end contract; "after bindings done with all
+  requests and you merge, let ops do allowlist to publish and let the engine lane")**: bindings
+  finishes ALL requests -> packages lane MERGES the integrated tips (validate/x2/records) -> **OPS
+  owns the allowlist/scope gate** (their pass; notified via `REL-20261014-1308-packages`) -> batches
+  PUBLISH (packages: wrap, tag, approve, watch, live-verify) -> README/STATUS sync -> items fixed ->
+  **packages RELAYS live availability to the ENGINE lane** (standing). Upcoming new names in flight:
+  `xiom.ies` (IES/.cube) + the EXR-class package (name at prep) -- ops heads-up filed. PROD-only
+  scope default stands.
 - **NATIVE BUILD status -- `xiom.ies` (A05(11))**: RACE RESOLVED 13:06Z -- bindings' 13:01Z ack
   ("IESNA LM-63 + .cube own reader in a dedicated session") crossed the 13:04Z correction; the
   correction's IES half is WITHDRAWN (`REL-20261014-1306-packages`) and **bindings' dedicated
