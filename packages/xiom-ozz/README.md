@@ -13,6 +13,7 @@ separate build step.
 > pipeline + the in-package `tools/combine.py` bundler). 0.2.0 shipped in
 > `eco-v0.1.109`; 0.3.0 published in `eco-v0.1.156` (sha256 `f84988e7...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.4.0` in `eco-v0.1.179` (sha256 `d655e1ef...`).
 
 ## Quick start
 

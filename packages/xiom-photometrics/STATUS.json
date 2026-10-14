@@ -13,7 +13,7 @@
                   "checked":  "2026-10-14T14:00:32Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: allowlist gate; fixtures hand-built from the documented format layouts (SPEC.md sec.8; PROVENANCE.md)",
+    "excluded_reason":  "published in eco-v0.1.179 (2026-10-14, 0.1.0 IESNA LM-63 + Adobe .cube)",
     "platforms":  [
                       "windows-x64"
                   ]

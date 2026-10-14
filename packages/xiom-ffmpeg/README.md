@@ -21,6 +21,7 @@ frame width/height/pixel-format. Packets are built from XIOM-owned bytes by
 > PATH, and **3/3** SKIP on partial generations (DLL sets missing
 > `swresample`).
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.4.1` in `eco-v0.1.179` (sha256 `50f6d46b...`).
 
 ## Quick start
 
