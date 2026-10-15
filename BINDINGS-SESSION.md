@@ -1005,6 +1005,31 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 23:00Z (WAVE-2 LANDING PASS 1 -- 5 of 8 landed;
+overnight watch armed)**:
+- **LANDED**: `xiom.camera2ndk` (merge `ae7a72c3`; 70-export surface,
+  ids 1/10 on-device), `xiom.aaudio` (`30951220`; 67 exports, OPEN->
+  STARTED->close live), `xiom.mediandk` (`37c3b459`; 276 exports +
+  MediaFormat fidelity), `xiom.android-sys` (`612f08dd`; logcat proof +
+  EBADF path), `xiom.opensl` (`ae64c16e`; 114-symbol set + engine
+  lifecycle) -- the four NEW packages landed **path-scoped**
+  (`git checkout <branch> -- packages/<dir>`) because agent branches
+  were seeded from **divergent bases** (wholesale merges conflict on
+  old STATUS.json histories); validate after landing: **559 packages,
+  0 errors**.
+- **STILL IN FLIGHT**: `android/w2c-lifecycle` (0 commits, idle --
+  nudged; will land via rebase request since it EDITS `xiom.android`),
+  `box2d/a02-growth` + `miniaudio/a04-growth` (busy; bases near-tip ->
+  normal merge expected).
+- **Overnight watch**: doorbell cron rewritten as a combined pass
+  (agent-landing with the path-scoped/no-wholesale-merge recipe +
+  rebase requests for existing-package edits + relay items +
+  SESSION.md eco notes). Owner directive: land everything, then pause
+  and keep eyes on relay.
+- Side intel (from branch inspection): the main session already
+  published our lifts -- **eco-v0.1.185 live with glfw 0.6.0 +
+  sdl3 0.20.0** (101 releases; redis live in `.184`).
+
 **UPDATE 2026-10-15 22:35Z (A02 + A04 LAUNCHED in parallel -- 8 agents
 in flight)** per the owner's go-parallel directive; the two queued
 engine asks now run alongside the 6 Android sessions (all disjoint
