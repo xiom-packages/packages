@@ -1005,6 +1005,23 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 20:40Z (glfw 0.6.0 LIFT DONE -- dispatcher lift
+landed live)**: first follow-up queue item cleared:
+- 20 dispatchers + 20 registries removed; setters hand the caller's
+  handler DIRECTLY to the DLL (B-22 fixed m277; probe9 witness; live
+  key round trip exact).
+- Raw-ABI adjustments: error handler `fn(Int32, *UInt8)` + helper
+  `glfw_error_desc_read`; content-scale handler f32; drop handler
+  `fn(Int, Int32, *UInt8)` + helper `glfw_drop_paths_read`; handlers
+  must be env-free (documented in README/SPEC/ROADMAP).
+- Suite LIVE **37/37** on the v0.64.5 pin with the GLFW 3.4 dll
+  (`C:\glfw-3.4.bin.WIN64\lib-vc2022` on PATH): 20/20 setters;
+  error/key/close round trips exact; allocator intact.
+- Commits `bff40cb0` + `14df948c`; relay history on
+  `REL-20261015-1955-bindings`. Next queue: sdl3 widening, sqlite
+  nested restore, dx12 revisit, Android W2b (A02 box2d + A04 miniaudio
+  asks still queued).
+
 **UPDATE 2026-10-15 20:00Z (RE-VERIFY WAVE COMPLETE -- all green except
 B-29; filed `REL-20261015-1955-bindings`)**: full wave on the v0.64.5
 pin (as-shipped; `XIOM_COMPILER=%LOCALAPPDATA%\xiom.new\bin\xiom.exe`):
