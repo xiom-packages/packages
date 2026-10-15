@@ -1005,6 +1005,22 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 22:35Z (A02 + A04 LAUNCHED in parallel -- 8 agents
+in flight)** per the owner's go-parallel directive; the two queued
+engine asks now run alongside the 6 Android sessions (all disjoint
+packages):
+- `box2d/a02-growth` -- xiom.box2d 0.3.0 -> 0.4.0 (A02): world/bodies
+  (caller shapes)/step/state-read (no out-slot recycle)/queries/
+  contacts/joints; fixed scenarios stay as probes.
+- `miniaudio/a04-growth` -- xiom.miniaudio 0.3.0 -> 0.4.0 (A04): device
+  lifecycle + playback engine + mixer/node graph + capture + streamed
+  decode (built-in decoders; opus/ogg custom-backend staged).
+- Relay items `-1904` x2 updated (work launched; the v0.64.5 wave is
+  closed so the earlier queue gate is gone). Agent request
+  `am-1792102594543-f87kzu`.
+- Integration at completion; publish follows the standing flow
+  (packages verifies + relays engine adoption).
+
 **UPDATE 2026-10-15 22:30Z (relay check: PULSE top-tier directive; SQL
 alias re-verified)**:
 - `REL-20261015-2202-pulse-5` (to ALL, awareness; **no responses
