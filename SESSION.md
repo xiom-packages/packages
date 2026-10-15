@@ -91,6 +91,23 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   engine notified (`-3`); XVECTOR accelerators already staged per `-1417` (no re-file). **Tool
   learning**: dep-consuming package suites need `XIOM_HOME=%TEMP%\kilo\consumer-home` (513 installed
   pkgs; e.g. xiom.wal for durable) or the import is unresolved under a bare port.ps1 run.
+- **UPDATE 2026-10-15 19:55Z**: **v0.64.5 RELEASED (19:18Z) -- REPIN DONE + RE-VERIFY WAVE STARTED.**
+  Repin `cb364af3`: COMPILER_VERSION + **553 records** @ v0.64.5; archive SHA256 `bd71e2d3` verified;
+  canonical install (`%LOCALAPPDATA%\xiom.new`) **byte-identical 557/557**; validate **553/0**. Re-verify
+  verdicts on the archive (all `fixed -> verified`): `-1549-packages-5` (consumer port.args auto-apply;
+  links without --c-source; prints 3.53.4), `-7` (local fallback lands 10 files; range spec `>=0.2.0`
+  resolves + runs), `-9` (m294 witness `failures=0`), `-11` (m293 witness exit 0), `-1403` (sdl3 72/72,
+  **0 warnings** -- retire the workaround at the next binds touch). Remaining re-verify: m314-m321
+  language rows + B-2x workaround retirements (bindings/engine-owned witnesses); release-wrap items are
+  v0.64.6-queued except the wide-int half (bindings' reporter wave). **xiom.postgres LANDED**: pure-XIOM
+  PG wire v3 phase 1, **38/38 x2 on v0.64.5** (`7c8a2883`; record `47dc93ea`); ops scope ask
+  `REL-20261015-1932-packages`. Its build surfaced TWO defects, now FILED cross-lane with hardened
+  repros in `%TEMP%\kilo\pg-findings\`: `-1942-stdlib` (`xiom.crypto.md5` silent wrong digests -- HIGH;
+  postgres ships its own RFC MD5 workaround) and `-1941-compiler` (tuple mangling collision
+  `Tuple__Int__Int` vs `Tuple__Str__Int` for `Result[(Str, Int), struct]` with inline `Str::from_utf8`
+  -- HIGH; distinct from the m256 shape; blocked the first postgres suite build). `xiom.redis` build
+  agent still running; durable/postgres ops confirms pending (allowlist appends at wrap; **wrap held
+  until the agents land** so regenerated namespaces/index never capture WIP).
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
