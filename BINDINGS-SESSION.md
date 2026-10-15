@@ -1005,6 +1005,31 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 22:05Z (ANDROID WAVE-2 LAUNCHED -- 4 agent
+worktrees)** per the owner's "agents to 100%" directive; each session
+owns disjoint files (integration at their completion via the normal
+apply flow; ledgers stay coordinator-only):
+- `android/w2c-lifecycle` -- **W2c A2 lifecycle-glue** in
+  `xiom.android` 0.3.0: looper (11) FUNCTIONAL on-device (pipe + addFd
+  callback + pollOnce proof; direct handoff), activity (24) +
+  configuration (52) export-set, native_app_glue documented (source,
+  not vendored).
+- `android/aaudio` -- **xiom.aaudio 0.1.0** (A6 head): AAudio.h 72 fn
+  surface + constants; functional builder lifecycle + honest open
+  attempt (emulator may run -no-audio).
+- `android/mediandk` -- **xiom.mediandk 0.1.0** (A7 core): MediaCodec/
+  Format/Extractor/Muxer/DRM/DataSource; MediaFormat + codec-create
+  functional; rest export-set.
+- `android/camera2ndk` -- **xiom.camera2ndk 0.1.0** (A8 head): camera
+  headers; manager create + camera-id list functional best-effort;
+  rest export-set.
+- Coming waves: A3 input + A4 sensors (serial to W2c -- same package),
+  A9/A10 (existing gles/vulkan packages; A10 = OWNER lane), A11 JNI
+  seam (gates live surfaces), A12 log/sync/binder, A6 tail (AMidi +
+  OpenSL ES), engine asks A02/A04.
+- Agent Manager requests: `am-1792098871905-thr1eg` (3 sessions) +
+  `am-1792098889789-40i772` (camera).
+
 **UPDATE 2026-10-15 21:55Z (doorbell: B-32 acked for v0.64.6; eco .183
 live)**:
 - Compiler **acked B-32** (`8aba9fa`): queued for the **v0.64.6 fixer
