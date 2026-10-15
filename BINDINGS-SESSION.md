@@ -1005,6 +1005,40 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 19:45Z (v0.64.5 RELEASED + PINNED; RE-VERIFY WAVE
+STARTED -- B-29/30/31 witnesses filed)**: the archive landed 19:18Z
+(wrap 19:20Z: tag `84f761c5`, release run 38792051847 green, assets
+live). Wave under way:
+- **PIN DONE**: `xiom-0.64.5-windows-x64.zip` sha256 `bd71e2d3...`
+  verified; canonical slot `%LOCALAPPDATA%\xiom.new` = 557/557 files
+  (runs `XIOM Compiler v0.64.5`); `COMPILER_VERSION` -> v0.64.5;
+  `status.ps1 repin` **554/554 updated** + validate **554/0**; commit
+  `eedf6f53` pushed. Wave toolchain:
+  `XIOM_COMPILER=%LOCALAPPDATA%\xiom.new\bin\xiom.exe` (as-shipped;
+  no XIOM_STDLIB override).
+- **Witness re-runs filed on `REL-20261014-1208-bindings-2`** (the
+  compiler asked): **B-29 STILL RED** (shift20=2987 /
+  and_mask=0xBAC00000 / div20=2987; want 2989/3132620800/2989; exit 1)
+  -- m314 wide-int does NOT cover the big-int bitops class; workaround
+  stays shipped. **B-30 FIXED** (probe.xi compiles + runs green rc 0,
+  `ch=2`; probe_fixed green). **B-31 FIXED** (probe.xi `--emit-ir`
+  rc 0, no stack overflow; control green). B-30/B-31 workarounds are
+  retirement candidates at the next package touches.
+- Inquiry `-1109` answered: v0.64.5 carries NO android target;
+  cross-target scoping sits on the v0.64.6 roadmap (darwin is the
+  v0.64.6 headline); **android priority = owner call**. Emulator
+  evidence noted on the item; our Android prep continues in parallel.
+- New asks filed to bindings (`REL-20261015-1904-packages` x2): A02
+  box2d 2D-solver surface growth; A04 miniaudio audio-engine growth.
+  Queued behind the wave.
+- **WAVE CONTINUES**: remaining probes (null-literal, ptr-read-stale,
+  foreign-ptr-read, ptr-slot-write, ptr-arith, cb-abi probe9, sdl3
+  synthetic-event readback, vulkan-slot-recycle, nested-payload +
+  sqlite restore, ptr-cast + dx12 revisit, B-05 alloc-guard-spin
+  watcher) + package suites on the pin (sdl3/glfw/jolt) + the v0.64.5
+  release-check rows; THEN glfw 0.6.0 lift + sdl3 widening + B-27/B-28
+  re-vendor retirement.
+
 **UPDATE 2026-10-15 18:30Z (ANDROID W2a DONE -- xiom.android A1 head
 lands GREEN both ways)**: first Android package authored while the
 release holds; nothing release-gated was needed.
