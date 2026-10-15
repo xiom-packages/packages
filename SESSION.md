@@ -78,6 +78,19 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   family-complete notice** (`REL-20261015-0507-packages`; all E1-E7 wireable against 0.7.0). Tally
   **98 eco releases** (`eco-v0.1.86` -> `eco-v0.1.182`). v0.64.5 tag still HELD (`-2123` fix in
   progress); agenda/upscaler wave next after.
+- **UPDATE 2026-10-15 19:10Z**: **WAIT-WINDOW PROGRAM (owner: "all 4 in parallel")** -- while the
+  v0.64.5 archive is held: (1) `xiom.redis` rebuilt as a pure-XIOM RESP client and (3) `xiom.postgres`
+  as a pure-XIOM PG-wire client -- **background build agents running in-tree** (redis task
+  `ses_ebf0d2ef...`, postgres `ses_ebf0d073...`; they do NOT commit or touch STATUS.json; main lane
+  reviews + records + integrates on completion); (2) **`xiom.durable` publish prep DONE**: native x2
+  **152/152** both runs @ `22df7bdd` (record `e6a0889d`), ops scope ask filed
+  (`REL-20261015-1906-packages`, PROD-only) -- on LIVE confirm: allowlist 540->541 + wrap + tag +
+  publish + verify + sync (**wrap held until the build agents land**, so the regenerated
+  namespaces/index never capture agent WIP); (4) **routing**: engine ledger asks A02 (2D box2d
+  solver surface) + A04 (audio surface) FILED to bindings (`REL-20261015-1904-packages`/`-2`),
+  engine notified (`-3`); XVECTOR accelerators already staged per `-1417` (no re-file). **Tool
+  learning**: dep-consuming package suites need `XIOM_HOME=%TEMP%\kilo\consumer-home` (513 installed
+  pkgs; e.g. xiom.wal for durable) or the import is unresolved under a bare port.ps1 run.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
