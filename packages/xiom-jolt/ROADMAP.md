@@ -33,7 +33,7 @@
 - [x] Engine buoyancy/water ask (REL-20261013-2115-engine) covered by the
       suite (+6 checks, 24 total)
 
-## Phase 5 (In progress) -- engine E-family
+## Phase 5 (Done) -- engine E-family
 - [x] 0.5.0 **E1 world queries**: raycast (closest + any-hit), sphere/capsule
       closest sweeps, sphere/capsule overlap lists; owned `JoltQueryHit`
       (flag/body/position/normal/fraction); deterministic broadphase order
@@ -56,8 +56,24 @@
       points allowed); compound bodies combining box/sphere/capsule/convex
       parts at relative transforms (flat `JOLT_PART_STRIDE` table + shared
       vertex buffer); both settle/sleep and are queryable through E1 + E7
-- [ ] **E4** character controller -- remains
-- [ ] **E5** soft bodies -- remains
-- [ ] Deterministic save/restore state helper -- remains
+- [x] 0.7.0 **E4 particles / soft bodies**: cloth grid, particle rope and
+      volume cube presets over caller-driven size parameters (bridge-owned
+      vertices/faces/edge+volume constraints; pinned anchor rows/particles
+      as kinematic vertices); simulation under gravity with constraint
+      solving in the fixed-step world; particle state read-back (owned
+      scalars per particle + a bulk read into a caller-owned buffer);
+      typed errors (bad presets/sizes, unknown/removed ids, out-of-range
+      indices, short buffers); settle/drape + bit-identical repeat tests
+- [x] 0.7.0 **E5 heightfield terrain**: static heightfield collider from
+      caller-owned milli height samples (square row-major grid + horizontal
+      sample spacing + vertical scale + 8/16-bit quantization); rigid
+      bodies settle on it and report contacts; E1 raycasts hit it with the
+      terrain height and normal; typed errors for malformed grids/scales;
+      deterministic repeated runs
+
+## Phase 6 (Backlog)
+- [ ] Character controllers (Jolt `CharacterVirtual` surface) -- remains
+- [ ] Skinned soft bodies (bind-pose skin constraints) -- remains
+- [ ] Deterministic save/restore state helper (`StateRecorder`) -- remains
 - [ ] Collision filtering surface (layers/masks on query paths)
 - [ ] Re-pin when the drift guard flags a new Jolt tag

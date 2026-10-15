@@ -17,12 +17,19 @@
 // E3 typed joints (fixed/hinge/slider/point to a body or the world; motors,
 // limits, state read-back, typed errors, joint-driven determinism) and
 // E6 convex/compound bodies (hull bodies from caller vertex buffers,
-// multi-shape compounds; settle + query participation + determinism).
+// multi-shape compounds; settle + query participation + determinism), and
+// the 0.7.0 tiers: E4 soft bodies (cloth grid / rope / volume presets over
+// caller-driven size parameters, simulate under gravity with constraints,
+// particle read-back into owned scalars and a caller-owned buffer, typed
+// errors, settle/drape + determinism) and E5 heightfield terrain (collider
+// from caller samples + scale/quantization, a box settling on it, E1
+// raycasts hitting height/normal, typed errors + determinism).
 
 module jolt_conformance
 
 use xiom.io;
 use xiom.test;
+use xiom.string;
 use xiom.jolt;
 
 fn report(ok: Bool, name: Str) -> Int {
@@ -889,6 +896,289 @@ fn compound_engine_flow() -> Result[JoltBodyState, Str] {
   if !st.is_ok { return Err("compound state: " + st.error); }
   if !d.is_ok { return Err("compound destroy: " + d.error); }
   return st;
+}
+
+// ---- 0.7.0 helpers ---------------------------------------------------------
+
+// Wide static ground box (top at y=0), shared by the soft-body flows.
+fn soft_ground_desc() -> JoltBodyDesc {
+  return JoltBodyDesc{
+    shape: JOLT_SHAPE_BOX;
+    ex_milli: 20000;
+    ey_milli: 500;
+    ez_milli: 20000;
+    mass_milli: 0;
+    px_milli: 0;
+    py_milli: -500;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    is_static: true;
+  };
+}
+
+type SoftOutcome = {
+  vertex_count: Int;
+  center_y_milli: Int;
+  awake: Bool;
+  first_x_milli: Int;
+  first_y_milli: Int;
+  last_x_milli: Int;
+  last_y_milli: Int;
+  signature: Str;
+}
+
+// Every particle position (milli xyz, row order) of a soft body as one Str,
+// via the bulk read-back into a caller-owned buffer.
+fn soft_dump(w: JoltWorld, soft: Int, count: Int) -> Result[Str, Str] {
+  var out = Vec[Int].new();
+  var need = count * 3;
+  var i = 0;
+  while i < need {
+    out.push(0);
+    i = i + 1;
+  }
+  let rr = jolt_soft_vertices_into(w, soft, &mut out);
+  if !rr.is_ok { return Err("soft dump: " + rr.error); }
+  var s = "";
+  var j = 0;
+  while j < need {
+    let e = out.get(j);
+    if e is Some {
+      s = s + i2s(e.value);
+    } else {
+      s = s + "?";
+    }
+    s = s + ",";
+    j = j + 1;
+  }
+  return Ok(s);
+}
+
+// Volume settle flow (E4): ground + 3^3 particle cube (spacing 300) dropped
+// from y=2000, 400 fixed steps.  The world is destroyed before return.
+fn soft_volume_flow() -> Result[SoftOutcome, Str] {
+  let wr = jolt_world_create(0, -9810, 0, 16666, 64);
+  if !wr.is_ok { return Err("soft volume create: " + wr.error); }
+  let w = wr.value;
+  let g = jolt_body_add(w, soft_ground_desc());
+  if !g.is_ok { return Err("soft volume ground: " + g.error); }
+  let d = JoltSoftDesc{
+    kind: JOLT_SOFT_VOLUME;
+    nx: 3;
+    nz: 0;
+    spacing_milli: 300;
+    px_milli: 0;
+    py_milli: 2000;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    pin_edge: false;
+  };
+  let s = jolt_soft_add(w, d);
+  if !s.is_ok { return Err("soft volume add: " + s.error); }
+  let st = jolt_step_n(w, 16666, 400);
+  if !st.is_ok { return Err("soft volume steps: " + st.error); }
+  let rs = jolt_soft_state(w, s.value);
+  if !rs.is_ok { return Err("soft volume state: " + rs.error); }
+  let fv = jolt_soft_vertex(w, s.value, 0);
+  if !fv.is_ok { return Err("soft volume first: " + fv.error); }
+  let lv = jolt_soft_vertex(w, s.value, rs.value.vertex_count - 1);
+  if !lv.is_ok { return Err("soft volume last: " + lv.error); }
+  let dump = soft_dump(w, s.value, rs.value.vertex_count);
+  if !dump.is_ok { return Err("soft volume dump: " + dump.error); }
+  let dr = jolt_world_destroy(w);
+  if !dr.is_ok { return Err("soft volume destroy: " + dr.error); }
+  return Ok(SoftOutcome{
+    vertex_count: rs.value.vertex_count;
+    center_y_milli: rs.value.cy_milli;
+    awake: rs.value.awake;
+    first_x_milli: fv.value.px_milli;
+    first_y_milli: fv.value.py_milli;
+    last_x_milli: lv.value.px_milli;
+    last_y_milli: lv.value.py_milli;
+    signature: dump.value;
+  });
+}
+
+// Grid drape flow (E4): a 4x4 cloth (spacing 500) pinned along its z=0 row
+// at y=2000, gravity, 400 fixed steps.  The world is destroyed before
+// return.
+fn soft_grid_flow() -> Result[SoftOutcome, Str] {
+  let wr = jolt_world_create(0, -9810, 0, 16666, 64);
+  if !wr.is_ok { return Err("soft grid create: " + wr.error); }
+  let w = wr.value;
+  let d = JoltSoftDesc{
+    kind: JOLT_SOFT_GRID;
+    nx: 4;
+    nz: 4;
+    spacing_milli: 500;
+    px_milli: 0;
+    py_milli: 2000;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    pin_edge: true;
+  };
+  let s = jolt_soft_add(w, d);
+  if !s.is_ok { return Err("soft grid add: " + s.error); }
+  let st = jolt_step_n(w, 16666, 400);
+  if !st.is_ok { return Err("soft grid steps: " + st.error); }
+  let rs = jolt_soft_state(w, s.value);
+  if !rs.is_ok { return Err("soft grid state: " + rs.error); }
+  let fv = jolt_soft_vertex(w, s.value, 0);
+  if !fv.is_ok { return Err("soft grid first: " + fv.error); }
+  let lv = jolt_soft_vertex(w, s.value, rs.value.vertex_count - 1);
+  if !lv.is_ok { return Err("soft grid last: " + lv.error); }
+  let dump = soft_dump(w, s.value, rs.value.vertex_count);
+  if !dump.is_ok { return Err("soft grid dump: " + dump.error); }
+  let dr = jolt_world_destroy(w);
+  if !dr.is_ok { return Err("soft grid destroy: " + dr.error); }
+  return Ok(SoftOutcome{
+    vertex_count: rs.value.vertex_count;
+    center_y_milli: rs.value.cy_milli;
+    awake: rs.value.awake;
+    first_x_milli: fv.value.px_milli;
+    first_y_milli: fv.value.py_milli;
+    last_x_milli: lv.value.px_milli;
+    last_y_milli: lv.value.py_milli;
+    signature: dump.value;
+  });
+}
+
+// Rope drape flow (E4): 8 particles (spacing 500) pinned at the first
+// particle at y=3000, gravity, 400 fixed steps.  The world is destroyed
+// before return.
+fn soft_rope_flow() -> Result[SoftOutcome, Str] {
+  let wr = jolt_world_create(0, -9810, 0, 16666, 64);
+  if !wr.is_ok { return Err("soft rope create: " + wr.error); }
+  let w = wr.value;
+  let d = JoltSoftDesc{
+    kind: JOLT_SOFT_ROPE;
+    nx: 8;
+    nz: 0;
+    spacing_milli: 500;
+    px_milli: 0;
+    py_milli: 3000;
+    pz_milli: 0;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    pin_edge: true;
+  };
+  let s = jolt_soft_add(w, d);
+  if !s.is_ok { return Err("soft rope add: " + s.error); }
+  let st = jolt_step_n(w, 16666, 400);
+  if !st.is_ok { return Err("soft rope steps: " + st.error); }
+  let rs = jolt_soft_state(w, s.value);
+  if !rs.is_ok { return Err("soft rope state: " + rs.error); }
+  let fv = jolt_soft_vertex(w, s.value, 0);
+  if !fv.is_ok { return Err("soft rope first: " + fv.error); }
+  let lv = jolt_soft_vertex(w, s.value, rs.value.vertex_count - 1);
+  if !lv.is_ok { return Err("soft rope last: " + lv.error); }
+  let dump = soft_dump(w, s.value, rs.value.vertex_count);
+  if !dump.is_ok { return Err("soft rope dump: " + dump.error); }
+  let dr = jolt_world_destroy(w);
+  if !dr.is_ok { return Err("soft rope destroy: " + dr.error); }
+  return Ok(SoftOutcome{
+    vertex_count: rs.value.vertex_count;
+    center_y_milli: rs.value.cy_milli;
+    awake: rs.value.awake;
+    first_x_milli: fv.value.px_milli;
+    first_y_milli: fv.value.py_milli;
+    last_x_milli: lv.value.px_milli;
+    last_y_milli: lv.value.py_milli;
+    signature: dump.value;
+  });
+}
+
+// ---- 0.7.0 heightfield helpers ---------------------------------------------
+
+// 9x9 terrain (heights in milli, row major, rows along z): a flat plateau
+// at y=2000 for sample columns 0..4, then a ramp rising 500 milli per
+// column.  Row-major index = iy * 9 + ix.
+fn hf_terrain_samples() -> Vec[Int] {
+  var v = Vec[Int].new();
+  var iy = 0;
+  while iy < 9 {
+    var ix = 0;
+    while ix < 9 {
+      if ix <= 4 {
+        v.push(2000);
+      } else {
+        v.push(2000 + (ix - 4) * 500);
+      }
+      ix = ix + 1;
+    }
+    iy = iy + 1;
+  }
+  return v;
+}
+
+type HfFixture = {
+  w: JoltWorld;
+  terrain: Int;
+}
+
+// Terrain-only fixture (zero gravity): the 9x9 heightfield at the origin,
+// horizontal spacing 1000 milli, vertical scale 8000 milli.
+fn hf_query_fixture(bits: Int) -> Result[HfFixture, Str] {
+  let wr = jolt_world_create(0, 0, 0, 16666, 16);
+  if !wr.is_ok { return Err("hf fixture create: " + wr.error); }
+  let w = wr.value;
+  var samples = hf_terrain_samples();
+  let t = jolt_body_add_heightfield(w, 1000, 8000, 1000, 0, 0, 0, bits, &samples);
+  if !t.is_ok { return Err("hf fixture terrain: " + t.error); }
+  return Ok(HfFixture{ w: w; terrain: t.value; });
+}
+
+// Box-on-terrain flow (E5): heightfield terrain + a 1 m dynamic box dropped
+// at (2000, 5000, 2000) over the plateau, 400 fixed steps (gravity
+// -9.81 m/s^2).  The world is destroyed before return.
+fn hf_settle_flow(bits: Int) -> Result[JoltBodyState, Str] {
+  let wr = jolt_world_create(0, -9810, 0, 16666, 64);
+  if !wr.is_ok { return Err("hf settle create: " + wr.error); }
+  let w = wr.value;
+  var samples = hf_terrain_samples();
+  let t = jolt_body_add_heightfield(w, 1000, 8000, 1000, 0, 0, 0, bits, &samples);
+  if !t.is_ok { return Err("hf settle terrain: " + t.error); }
+  let bd = JoltBodyDesc{
+    shape: JOLT_SHAPE_BOX;
+    ex_milli: 500;
+    ey_milli: 500;
+    ez_milli: 500;
+    mass_milli: 0;
+    px_milli: 2000;
+    py_milli: 5000;
+    pz_milli: 2000;
+    rx_milli: 0;
+    ry_milli: 0;
+    rz_milli: 0;
+    rw_milli: 0;
+    is_static: false;
+  };
+  let b = jolt_body_add(w, bd);
+  if !b.is_ok { return Err("hf settle box: " + b.error); }
+  let st = jolt_step_n(w, 16666, 400);
+  if !st.is_ok { return Err("hf settle steps: " + st.error); }
+  let bs = jolt_body_state(w, b.value);
+  if !bs.is_ok { return Err("hf settle state: " + bs.error); }
+  let dr = jolt_world_destroy(w);
+  if !dr.is_ok { return Err("hf settle destroy: " + dr.error); }
+  return bs;
+}
+
+fn vec_get_or(v: &Vec[Int], index: Int, dflt: Int) -> Int {
+  let e = v.get(index);
+  if e is Some { return e.value; }
+  return dflt;
 }
 
 fn main() -> Int {
@@ -1990,6 +2280,396 @@ fn main() -> Int {
     failed = failed + report(false, "convex/compound errors: create failed: " + ew.error);
     failed = failed + report(false, "convex/compound errors: create failed: " + ew.error);
     failed = failed + report(false, "convex/compound errors: create failed: " + ew.error);
+  }
+
+  // ---- 0.7.0 E4: soft bodies ------------------------------------------------
+
+  // Volume settle: a 3^3 particle cube lands on the static ground, settles
+  // and sleeps.
+  let v1 = soft_volume_flow();
+  if v1.is_ok {
+    failed = failed + report(v1.value.vertex_count == 27, "soft volume: 27 particles (3^3)");
+    failed = failed + report(v1.value.center_y_milli >= 100 && v1.value.center_y_milli <= 800,
+      "soft volume: settled on ground (cy=" + i2s(v1.value.center_y_milli) + ")");
+    failed = failed + report(!v1.value.awake, "soft volume: asleep after settling");
+  } else {
+    failed = failed + report(false, "soft volume: flow: " + v1.error);
+    failed = failed + report(false, "soft volume: flow: " + v1.error);
+    failed = failed + report(false, "soft volume: flow: " + v1.error);
+  }
+  let v2 = soft_volume_flow();
+  failed = failed + report(v1.is_ok && v2.is_ok && string.str_compare(v1.value.signature, v2.value.signature) == 0 && v1.value.center_y_milli == v2.value.center_y_milli,
+    "soft volume: repeated flow bit-identical");
+
+  // Cloth drape: a 4x4 grid pinned along its z=0 row hangs under gravity;
+  // the pinned row stays put and the far corner drapes down.
+  let g1 = soft_grid_flow();
+  if g1.is_ok {
+    failed = failed + report(g1.value.vertex_count == 16, "soft grid: 16 particles (4x4)");
+    failed = failed + report(g1.value.first_y_milli >= 1900 && g1.value.first_y_milli <= 2100,
+      "soft grid: pinned row held (y=" + i2s(g1.value.first_y_milli) + ")");
+    failed = failed + report(g1.value.last_y_milli <= 1400,
+      "soft grid: far corner draped (y=" + i2s(g1.value.last_y_milli) + ")");
+    failed = failed + report(g1.value.last_x_milli >= 500 && g1.value.last_x_milli <= 2500,
+      "soft grid: drape keeps the x span (x=" + i2s(g1.value.last_x_milli) + ")");
+  } else {
+    failed = failed + report(false, "soft grid: flow: " + g1.error);
+    failed = failed + report(false, "soft grid: flow: " + g1.error);
+    failed = failed + report(false, "soft grid: flow: " + g1.error);
+    failed = failed + report(false, "soft grid: flow: " + g1.error);
+  }
+  let g2 = soft_grid_flow();
+  failed = failed + report(g1.is_ok && g2.is_ok && string.str_compare(g1.value.signature, g2.value.signature) == 0,
+    "soft grid: repeated drape bit-identical");
+
+  // Rope drape: 8 particles pinned at the first one swing down and hang;
+  // the anchor holds and the chain keeps its length.
+  let r1 = soft_rope_flow();
+  if r1.is_ok {
+    failed = failed + report(r1.value.vertex_count == 8, "soft rope: 8 particles");
+    failed = failed + report(r1.value.first_y_milli >= 2800 && r1.value.first_y_milli <= 3200 && r1.value.first_x_milli >= -200 && r1.value.first_x_milli <= 200,
+      "soft rope: pinned end held (px=" + i2s(r1.value.first_x_milli) + " py=" + i2s(r1.value.first_y_milli) + ")");
+    failed = failed + report(r1.value.last_y_milli <= 1500,
+      "soft rope: tail hangs low (py=" + i2s(r1.value.last_y_milli) + ")");
+  } else {
+    failed = failed + report(false, "soft rope: flow: " + r1.error);
+    failed = failed + report(false, "soft rope: flow: " + r1.error);
+    failed = failed + report(false, "soft rope: flow: " + r1.error);
+  }
+  let r2 = soft_rope_flow();
+  failed = failed + report(r1.is_ok && r2.is_ok && string.str_compare(r1.value.signature, r2.value.signature) == 0,
+    "soft rope: repeated drape bit-identical");
+
+  // Read-back + typed soft-body errors.
+  let sw = jolt_world_create(0, -9810, 0, 16666, 16);
+  if sw.is_ok {
+    let w = sw.value;
+    let sd = JoltSoftDesc{
+      kind: JOLT_SOFT_ROPE;
+      nx: 4;
+      nz: 0;
+      spacing_milli: 500;
+      px_milli: 0;
+      py_milli: 1000;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      pin_edge: true;
+    };
+    let s = jolt_soft_add(w, sd);
+    if s.is_ok {
+      let cn1 = jolt_soft_count(w);
+      failed = failed + report(cn1.is_ok && cn1.value == 1, "soft errors: count 1 after one add");
+      let stp = jolt_step_n(w, 16666, 60);
+      let rs = jolt_soft_state(w, s.value);
+      if stp.is_ok && rs.is_ok {
+        failed = failed + report(rs.value.vertex_count == 4, "soft errors: state reports 4 particles");
+      } else {
+        failed = failed + report(false, "soft errors: state after steps failed");
+      }
+      // Bulk read-back into a caller-owned buffer matches the scalar fetch.
+      var out = Vec[Int].new();
+      var k = 0;
+      while k < 12 {
+        out.push(0);
+        k = k + 1;
+      }
+      let rr = jolt_soft_vertices_into(w, s.value, &mut out);
+      let fv = jolt_soft_vertex(w, s.value, 0);
+      let lv = jolt_soft_vertex(w, s.value, 3);
+      if rr.is_ok && fv.is_ok && lv.is_ok {
+        let bulk_ok = rr.value == 4
+          && vec_get_or(&out, 0, -999999) == fv.value.px_milli
+          && vec_get_or(&out, 1, -999999) == fv.value.py_milli
+          && vec_get_or(&out, 2, -999999) == fv.value.pz_milli
+          && vec_get_or(&out, 9, -999999) == lv.value.px_milli
+          && vec_get_or(&out, 10, -999999) == lv.value.py_milli
+          && vec_get_or(&out, 11, -999999) == lv.value.pz_milli;
+        failed = failed + report(bulk_ok, "soft errors: bulk buffer matches particle fetch");
+      } else {
+        failed = failed + report(false, "soft errors: bulk read-back failed");
+      }
+      var small = Vec[Int].new();
+      small.push(0);
+      let sr = jolt_soft_vertices_into(w, s.value, &mut small);
+      failed = failed + report(!sr.is_ok, "soft errors: short read-back buffer rejected");
+      let orx = jolt_soft_vertex(w, s.value, 4);
+      failed = failed + report(!orx.is_ok, "soft errors: particle index out of range rejected");
+      let ux = jolt_soft_state(w, 99);
+      failed = failed + report(!ux.is_ok, "soft errors: unknown id rejected by state");
+      let rm = jolt_soft_remove(w, s.value);
+      failed = failed + report(rm.is_ok && rm.value == 0, "soft errors: remove returns soft left (0)");
+      let rx = jolt_soft_state(w, s.value);
+      failed = failed + report(!rx.is_ok, "soft errors: removed id rejected by state");
+      let rv = jolt_soft_vertex(w, s.value, 0);
+      failed = failed + report(!rv.is_ok, "soft errors: removed id rejected by vertex");
+      let rrm = jolt_soft_remove(w, s.value);
+      failed = failed + report(!rrm.is_ok, "soft errors: double remove rejected");
+      let cn2 = jolt_soft_count(w);
+      failed = failed + report(cn2.is_ok && cn2.value == 0, "soft errors: count 0 after remove");
+    } else {
+      failed = failed + report(false, "soft errors: add: " + s.error);
+      failed = failed + report(false, "soft errors: add: " + s.error);
+      failed = failed + report(false, "soft errors: add: " + s.error);
+      failed = failed + report(false, "soft errors: add: " + s.error);
+      failed = failed + report(false, "soft errors: add: " + s.error);
+      failed = failed + report(false, "soft errors: add: " + s.error);
+      failed = failed + report(false, "soft errors: add: " + s.error);
+      failed = failed + report(false, "soft errors: add: " + s.error);
+      failed = failed + report(false, "soft errors: add: " + s.error);
+      failed = failed + report(false, "soft errors: add: " + s.error);
+      failed = failed + report(false, "soft errors: add: " + s.error);
+    }
+
+    // Bad presets and size parameters.
+    var gbad = JoltSoftDesc{
+      kind: 9;
+      nx: 4;
+      nz: 4;
+      spacing_milli: 500;
+      px_milli: 0;
+      py_milli: 1000;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      pin_edge: false;
+    };
+    let eb1 = jolt_soft_add(w, gbad);
+    failed = failed + report(!eb1.is_ok, "soft errors: unknown preset rejected");
+    var g1d = JoltSoftDesc{
+      kind: JOLT_SOFT_GRID;
+      nx: 1;
+      nz: 4;
+      spacing_milli: 500;
+      px_milli: 0;
+      py_milli: 1000;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      pin_edge: false;
+    };
+    let eb2 = jolt_soft_add(w, g1d);
+    failed = failed + report(!eb2.is_ok, "soft errors: grid dimension too small rejected");
+    var g65 = JoltSoftDesc{
+      kind: JOLT_SOFT_GRID;
+      nx: 65;
+      nz: 4;
+      spacing_milli: 500;
+      px_milli: 0;
+      py_milli: 1000;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      pin_edge: false;
+    };
+    let eb3 = jolt_soft_add(w, g65);
+    failed = failed + report(!eb3.is_ok, "soft errors: grid dimension too large rejected");
+    var r257 = JoltSoftDesc{
+      kind: JOLT_SOFT_ROPE;
+      nx: 257;
+      nz: 0;
+      spacing_milli: 500;
+      px_milli: 0;
+      py_milli: 1000;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      pin_edge: false;
+    };
+    let eb4 = jolt_soft_add(w, r257);
+    failed = failed + report(!eb4.is_ok, "soft errors: rope particle count too large rejected");
+    var v9 = JoltSoftDesc{
+      kind: JOLT_SOFT_VOLUME;
+      nx: 9;
+      nz: 0;
+      spacing_milli: 500;
+      px_milli: 0;
+      py_milli: 1000;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      pin_edge: false;
+    };
+    let eb5 = jolt_soft_add(w, v9);
+    failed = failed + report(!eb5.is_ok, "soft errors: volume dimension too large rejected");
+    var vp = JoltSoftDesc{
+      kind: JOLT_SOFT_VOLUME;
+      nx: 3;
+      nz: 0;
+      spacing_milli: 500;
+      px_milli: 0;
+      py_milli: 1000;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      pin_edge: true;
+    };
+    let eb6 = jolt_soft_add(w, vp);
+    failed = failed + report(!eb6.is_ok, "soft errors: volume pin rejected");
+    var sp0 = JoltSoftDesc{
+      kind: JOLT_SOFT_ROPE;
+      nx: 4;
+      nz: 0;
+      spacing_milli: 0;
+      px_milli: 0;
+      py_milli: 1000;
+      pz_milli: 0;
+      rx_milli: 0;
+      ry_milli: 0;
+      rz_milli: 0;
+      rw_milli: 0;
+      pin_edge: false;
+    };
+    let eb7 = jolt_soft_add(w, sp0);
+    failed = failed + report(!eb7.is_ok, "soft errors: zero spacing rejected");
+
+    let dsw = jolt_world_destroy(w);
+  } else {
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+    failed = failed + report(false, "soft errors: create failed: " + sw.error);
+  }
+
+  // ---- 0.7.0 E5: heightfield terrain ----------------------------------------
+
+  // E1 queries against caller-supplied terrain: a flat plateau and a ramp.
+  let q1 = hf_query_fixture(0);
+  let q2 = hf_query_fixture(0);
+  let q3 = hf_query_fixture(16);
+  if q1.is_ok && q2.is_ok && q3.is_ok {
+    let p1 = jolt_raycast(q1.value.w, 2000, 10000, 0, 0, -10000, 0);
+    failed = failed + report(p1.is_ok && p1.value.hit && p1.value.body_id == q1.value.terrain,
+      "hf query: plateau ray hits the terrain body");
+    var hmsg = "hf query: plateau height";
+    if p1.is_ok { hmsg = hmsg + " y=" + i2s(p1.value.py_milli); }
+    failed = failed + report(p1.is_ok && p1.value.py_milli >= 1970 && p1.value.py_milli <= 2030, hmsg);
+    failed = failed + report(p1.is_ok && p1.value.ny_milli >= 990 && p1.value.nx_milli >= -30 && p1.value.nx_milli <= 30 && p1.value.nz_milli >= -30 && p1.value.nz_milli <= 30,
+      "hf query: plateau normal points up");
+    failed = failed + report(p1.is_ok && p1.value.fraction_milli >= 770 && p1.value.fraction_milli <= 830,
+      "hf query: plateau hit fraction");
+    let p2 = jolt_raycast(q1.value.w, 6250, 10000, 0, 0, -10000, 0);
+    var rmsg = "hf query: ramp height";
+    if p2.is_ok { rmsg = rmsg + " y=" + i2s(p2.value.py_milli); }
+    failed = failed + report(p2.is_ok && p2.value.hit && p2.value.body_id == q1.value.terrain && p2.value.py_milli >= 3065 && p2.value.py_milli <= 3185, rmsg);
+    failed = failed + report(p2.is_ok && p2.value.nx_milli >= -520 && p2.value.nx_milli <= -380 && p2.value.ny_milli >= 840 && p2.value.ny_milli <= 950,
+      "hf query: ramp normal points up-slope (nx=" + i2s(p2.value.nx_milli) + " ny=" + i2s(p2.value.ny_milli) + ")");
+    // Determinism: a fresh identical world returns the bit-identical hit.
+    let s1 = jolt_raycast(q1.value.w, 2000, 10000, 0, 0, -10000, 0);
+    let s2 = jolt_raycast(q2.value.w, 2000, 10000, 0, 0, -10000, 0);
+    failed = failed + report(s1.is_ok && s2.is_ok && hit_same(s1.value, s2.value), "hf query: repeated fixture bit-identical");
+    // Quantization: the 16-bit terrain reports the same height/normal.
+    let p3 = jolt_raycast(q3.value.w, 6250, 10000, 0, 0, -10000, 0);
+    failed = failed + report(p3.is_ok && p3.value.hit && p3.value.py_milli >= 3065 && p3.value.py_milli <= 3185 && p3.value.nx_milli >= -520 && p3.value.nx_milli <= -380,
+      "hf query: 16-bit quantization hits the same ramp");
+    let dq1 = jolt_world_destroy(q1.value.w);
+    let dq2 = jolt_world_destroy(q2.value.w);
+    let dq3 = jolt_world_destroy(q3.value.w);
+  } else {
+    failed = failed + report(false, "hf query: fixture failed");
+    failed = failed + report(false, "hf query: fixture failed");
+    failed = failed + report(false, "hf query: fixture failed");
+    failed = failed + report(false, "hf query: fixture failed");
+    failed = failed + report(false, "hf query: fixture failed");
+    failed = failed + report(false, "hf query: fixture failed");
+    failed = failed + report(false, "hf query: fixture failed");
+    failed = failed + report(false, "hf query: fixture failed");
+  }
+
+  // A rigid box settles on the terrain (plateau at y=2000, box half height
+  // 500 => resting center y ~2500) and sleeps; the flow is deterministic.
+  let hb1 = hf_settle_flow(0);
+  if hb1.is_ok {
+    failed = failed + report(hb1.value.py_milli >= 2300 && hb1.value.py_milli <= 2700,
+      "hf settle: box rests on plateau (y=" + i2s(hb1.value.py_milli) + ")");
+    failed = failed + report(!hb1.value.awake, "hf settle: box asleep after settling");
+  } else {
+    failed = failed + report(false, "hf settle: flow: " + hb1.error);
+    failed = failed + report(false, "hf settle: flow: " + hb1.error);
+  }
+  let hb2 = hf_settle_flow(0);
+  failed = failed + report(hb1.is_ok && hb2.is_ok && st_same(hb1.value, hb2.value), "hf settle: repeated flow bit-identical");
+
+  // Typed heightfield errors: malformed sample grids and scales.
+  let hw = jolt_world_create(0, 0, 0, 16666, 16);
+  if hw.is_ok {
+    let w = hw.value;
+    var e0 = Vec[Int].new();
+    let z0 = jolt_body_add_heightfield(w, 1000, 8000, 1000, 0, 0, 0, 0, &e0);
+    failed = failed + report(!z0.is_ok, "hf errors: empty sample grid rejected");
+    var s10 = Vec[Int].new();
+    var i10 = 0;
+    while i10 < 10 {
+      s10.push(1000);
+      i10 = i10 + 1;
+    }
+    let z1 = jolt_body_add_heightfield(w, 1000, 8000, 1000, 0, 0, 0, 0, &s10);
+    failed = failed + report(!z1.is_ok, "hf errors: non-square grid rejected");
+    var s9 = Vec[Int].new();
+    var i9 = 0;
+    while i9 < 9 {
+      s9.push(1000);
+      i9 = i9 + 1;
+    }
+    let z2 = jolt_body_add_heightfield(w, 1000, 8000, 1000, 0, 0, 0, 0, &s9);
+    failed = failed + report(!z2.is_ok, "hf errors: too-small grid rejected");
+    var sT = hf_terrain_samples();
+    sT.set(80, 9000);
+    let z3 = jolt_body_add_heightfield(w, 1000, 8000, 1000, 0, 0, 0, 0, &sT);
+    failed = failed + report(!z3.is_ok, "hf errors: sample above vertical scale rejected");
+    var sV = hf_terrain_samples();
+    let z4 = jolt_body_add_heightfield(w, 1000, 0, 1000, 0, 0, 0, 0, &sV);
+    failed = failed + report(!z4.is_ok, "hf errors: zero vertical scale rejected");
+    let z5 = jolt_body_add_heightfield(w, 0, 8000, 1000, 0, 0, 0, 0, &sV);
+    failed = failed + report(!z5.is_ok, "hf errors: zero x sample spacing rejected");
+    let z6 = jolt_body_add_heightfield(w, 1000, 8000, 1000, 0, 0, 0, 7, &sV);
+    failed = failed + report(!z6.is_ok, "hf errors: invalid quantization rejected");
+    var s4 = Vec[Int].new();
+    var i4 = 0;
+    while i4 < 16 {
+      s4.push(1000);
+      i4 = i4 + 1;
+    }
+    let z7 = jolt_body_add_heightfield(w, 1000, 8000, 1000, 0, 0, 0, 0, &s4);
+    failed = failed + report(z7.is_ok, "hf errors: minimal 4x4 grid accepted");
+    let dhw = jolt_world_destroy(w);
+  } else {
+    failed = failed + report(false, "hf errors: create failed: " + hw.error);
+    failed = failed + report(false, "hf errors: create failed: " + hw.error);
+    failed = failed + report(false, "hf errors: create failed: " + hw.error);
+    failed = failed + report(false, "hf errors: create failed: " + hw.error);
+    failed = failed + report(false, "hf errors: create failed: " + hw.error);
+    failed = failed + report(false, "hf errors: create failed: " + hw.error);
+    failed = failed + report(false, "hf errors: create failed: " + hw.error);
+    failed = failed + report(false, "hf errors: create failed: " + hw.error);
   }
 
   if failed == 0 {

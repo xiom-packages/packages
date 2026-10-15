@@ -6,7 +6,7 @@ bridge shim) and compiled into the test binary with `--c-source`; Jolt
 requires C++17, carried by the pinned v0.64.4 toolchain (thread via
 `port.args.json`).
 
-> **Status:** `incubating` -- suite **109/109 x2** on the v0.64.4 pin: the
+> **Status:** `incubating` -- suite **159/159 x2** on the v0.64.4 pin: the
 > 0.2.0 probes (drop settles at 479 milli asleep; impulse vx=4995), the
 > 0.3.0 caller-usable world/body surface (engine contract v0 flow: world +
 > ground + box/sphere + N fixed steps + read-back), the 0.4.0 per-body
@@ -14,15 +14,23 @@ requires C++17, carried by the pinned v0.64.4 toolchain (thread via
 > unknown/removed id rejection), the 0.5.0 tiers (E1 raycast/any-hit,
 > sphere/capsule sweeps, sphere/capsule overlaps with canonical
 > deterministic order; E2 capsule bodies; E7 contact manifolds and
-> non-physical sensor volumes with per-step overlap events), and the 0.6.0
+> non-physical sensor volumes with per-step overlap events), the 0.6.0
 > tiers (E3 typed joints -- fixed/hinge/slider/point to a body or the
 > world, motors (velocity/position targets), limits, owned state read-back
 > and joint-driven determinism; E6 convex hull bodies from caller vertex
-> buffers and compound bodies combining box/sphere/capsule/convex parts);
-> run record in `STATUS.json`. 0.2.0 published in `eco-v0.1.161`
-> (sha256 `f08d65ca...`); 0.3.0 in `eco-v0.1.176` (sha256 `3ac3df4e...`);
-> **0.6.0 unpublished**.
+> buffers and compound bodies combining box/sphere/capsule/convex parts),
+> and the 0.7.0 tiers (E4 soft bodies -- cloth grid / rope / volume presets
+> over caller-driven size parameters, simulate under gravity with
+> constraint solving, particle state read-back into owned scalars and a
+> caller-owned buffer, settle/drape + determinism; E5 heightfield terrain
+> -- collider from caller samples + scale/quantization, a box settling on
+> it, E1 raycasts hitting height/normal); run record in `STATUS.json`.
+> 0.2.0 published in `eco-v0.1.161` (sha256 `f08d65ca...`); 0.3.0 in
+> `eco-v0.1.176` (sha256 `3ac3df4e...`); 0.4.0 in `eco-v0.1.179`
+> (sha256 `9315bbc7...`); 0.5.0 in `eco-v0.1.180` (sha256 `1035c987...`);
+> 0.6.0 unpublished.
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.5.0` in `eco-v0.1.180` (sha256 `1035c987...`).
 
 ## Quick start
 
@@ -175,6 +183,50 @@ let hull = jolt_body_add_convex(w, JoltBodyDesc{
 let comp = jolt_body_add_compound(w, compound_desc, &parts, &comp_verts);
 ```
 
+Soft bodies (0.7.0) come from presets over caller-driven size parameters;
+the bridge owns the particles/constraints and reads state back as owned
+values or into a caller-owned buffer:
+
+```xiom
+// A 6x6 cloth pinned along one row (JOLT_SOFT_GRID) at (0, 2000, 0)
+let cloth = jolt_soft_add(w, JoltSoftDesc{
+  kind: JOLT_SOFT_GRID;
+  nx: 6; nz: 6; spacing_milli: 500;
+  px_milli: 0; py_milli: 2000; pz_milli: 0;
+  rx_milli: 0; ry_milli: 0; rz_milli: 0; rw_milli: 0;
+  pin_edge: true;
+});
+if cloth.is_ok {
+  let st = jolt_soft_state(w, cloth.value); // vertex_count + center + awake
+  // Bulk particle positions: 3 * vertex_count entries (push-growth buffer)
+  var pos = Vec[Int].new();
+  var i = 0;
+  while i < st.value.vertex_count * 3 {
+    pos.push(0);
+    i = i + 1;
+  }
+  let n = jolt_soft_vertices_into(w, cloth.value, &mut pos);
+  let v0 = jolt_soft_vertex(w, cloth.value, 0); // position + velocity
+}
+```
+
+Heightfield terrain (0.7.0) is built from caller-owned height samples; rigid
+bodies settle on it and E1 queries hit it with its height and normal:
+
+```xiom
+// 5x5 samples (milli) with horizontal spacing 2000 and vertical scale 4000
+var hs = Vec[Int].new();
+var s = 0;
+while s < 25 {
+  hs.push(2000); // a flat plateau at 2 m
+  s = s + 1;
+}
+let terrain = jolt_body_add_heightfield(w, 2000, 4000, 2000, 0, 0, 0, 0, &hs);
+if terrain.is_ok {
+  let ray = jolt_raycast(w, 4000, 10000, 4000, 0, -10000, 0); // y ~= 2000
+}
+```
+
 All lengths are thousandths (milli), all times microseconds, forces
 milli-Newtons and torques milli Newton-metres; rotation is a quaternion in
 milli (all-zero = identity). Fixed `dt` only -- no wall clock.
@@ -194,21 +246,29 @@ milli (all-zero = identity). Fixed `dt` only -- no wall clock.
 | Contacts (E7) | `jolt_contact_count`; `jolt_contact(w, i)` -> `JoltContact` (body_a/body_b, point_count, first point, normal, depth_micros); `jolt_contact_point(w, i, j)` -> `JoltPoint`; `jolt_contact_pair_count(w, a, b)` |
 | Sensors (E7) | `jolt_sensor_event_count`; `jolt_sensor_event(w, i)` -> `JoltSensorEvent` (sensor_id/other_id); `jolt_sensor_overlap_count(w, sensor_id)` |
 | Joints (E3) | `jolt_joint_add(w, JoltJointDesc)` -> joint id (`JOLT_JOINT_FIXED` / `HINGE` / `SLIDER` / `POINT`; body-to-body or `JOLT_WORLD`; anchors/axes in milli; limits + motor config per joint); `jolt_joint_set_motor(w, id, state, target_milli)` -> state (`JOLT_MOTOR_OFF`/`VELOCITY`/`POSITION`); `jolt_joint_state(w, id)` -> `JoltJointState` (kind, primary_milli angle/position, impulse_milli); `jolt_joint_remove` -> count left; `jolt_joint_count` |
+| Soft bodies (E4) | `jolt_soft_add(w, JoltSoftDesc)` -> soft id (`JOLT_SOFT_GRID` cloth / `JOLT_SOFT_ROPE` / `JOLT_SOFT_VOLUME` cube; caller-driven nx/nz/spacing + pose + pin_edge); `jolt_soft_state(w, id)` -> `JoltSoftState` (vertex_count, center, awake); `jolt_soft_vertex(w, id, i)` -> `JoltSoftVertex` (world position + velocity); `jolt_soft_vertices_into(w, id, &mut pos_milli)` -> positions written (3 * vertex_count entries); `jolt_soft_remove` -> count left; `jolt_soft_count` |
+| Heightfield (E5) | `jolt_body_add_heightfield(w, sx_milli, sy_milli, sz_milli, px, py, pz, bits, &samples_milli)` -> body id (square row-major sample grid n=isqrt(len), 4..257; samples in [0, sy]; bits 8/16 or 0 = default 8) |
 
 Worlds are bridge-owned: handles are registry slots, valid until
 `jolt_world_destroy`; body ids are stale after `jolt_body_remove` and are
 rejected (its joints are removed with it); joint ids are bridge-assigned and
-stale after `jolt_joint_remove`. Force/torque input is one-step-only by Jolt
+stale after `jolt_joint_remove`; soft ids are bridge-assigned and stale
+after `jolt_soft_remove`. Force/torque input is one-step-only by Jolt
 design (cleared after every `Update`), so re-apply per frame; contacts and
 sensor events describe the last step only (active bodies only). Queries
 canonicalize every list to ascending body id, so repeated runs return
 identical sequences; sensor bodies are visible to queries (filtering is a
 later tier). Convex/compound vertex and part buffers stay caller-owned: the
 bridge copies them per call, so the Vecs can be reused or dropped
-immediately after. The bridge integer-encodes everything (milli/micros) and
-never crosses pointers. Generator + pins: `SPEC.md`; upstream/license
-ledger: `PROVENANCE.md`; toolchain requirement and verification record:
-`AUDIT.md`.
+immediately after. Soft bodies keep their particles and constraints
+bridge-side (presets over size parameters, nothing marshalled);
+`jolt_soft_vertices_into` is the one out-buffer surface: the bridge writes
+3 * vertex_count milli entries through the caller Vec's address and the
+buffer must be sized with push-growth first. The heightfield sample grid
+crosses as a borrowed address for the call only (copied into the shape).
+The bridge integer-encodes everything (milli/micros) and never crosses
+pointers. Generator + pins: `SPEC.md`; upstream/license ledger:
+`PROVENANCE.md`; toolchain requirement and verification record: `AUDIT.md`.
 
 ## Tests
 
@@ -216,4 +276,4 @@ ledger: `PROVENANCE.md`; toolchain requirement and verification record:
 scripts/port.ps1 -Package xiom.jolt -TimeoutSec 600
 ```
 
-109 `[PASS]` expected, x2 recorded in `STATUS.json`.
+159 `[PASS]` expected, x2 recorded in `STATUS.json`.

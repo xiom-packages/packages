@@ -26,7 +26,7 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   `E:\repos\CLEANUP.md`, review-after 2026-12-01).  Study only -- the pinned
   artifact above is the tarball; the vendored tree is never regenerated from
   a dirty working checkout.
-- **Declared surface (100% bound):** the package binds **61** bridge entry
+- **Declared surface (100% bound):** the package binds **73** bridge entry
   points, every one with a public safe wrapper or an internal caller in
   `jolt.xi` (0 skips):
 
@@ -93,12 +93,24 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   | `joltb_joint_state_impulse` | (internal: read inside `jolt_joint_state`) |
   | `joltb_joint_state_body_a` | (internal: read inside `jolt_joint_state`) |
   | `joltb_joint_state_body_b` | (internal: read inside `jolt_joint_state`) |
+  | `joltb_soft_add` | `jolt_soft_add` |
+  | `joltb_soft_remove` | `jolt_soft_remove` |
+  | `joltb_soft_count` | `jolt_soft_count` |
+  | `joltb_soft_state` | `jolt_soft_state` |
+  | `joltb_soft_state_count` | (internal: read inside `jolt_soft_state`) |
+  | `joltb_soft_state_pos` | (internal: read inside `jolt_soft_state`) |
+  | `joltb_soft_state_awake` | (internal: read inside `jolt_soft_state`) |
+  | `joltb_soft_vertex` | `jolt_soft_vertex` |
+  | `joltb_soft_vtx_pos` | (internal: read inside `jolt_soft_vertex`) |
+  | `joltb_soft_vtx_vel` | (internal: read inside `jolt_soft_vertex`) |
+  | `joltb_soft_vertices_into` | `jolt_soft_vertices_into` |
+  | `joltb_body_add_heightfield` | `jolt_body_add_heightfield` |
 
   In addition the full vendored library compiles into the test binary (all
   25 per-directory TUs).  The world/body surface is a declared v0 subset
   (engine contract flow + query/contact/sensor/joint tiers + convex/compound
-  shapes), not the full Jolt API -- a binding-subset declaration like
-  `xiom.sqlite`, extended at each wave.
+  shapes + soft bodies + heightfield terrain), not the full Jolt API -- a
+  binding-subset declaration like `xiom.sqlite`, extended at each wave.
 - **Derived vs independent:** `vendor/Jolt/**` is upstream code (compiled
   unmodified except the include rewrite).  `src/jolt_bridge.cpp`,
   `tools/combine.py`, `jolt.xi`, and `tests/` are original to this package;
@@ -126,12 +138,22 @@ Owner policy: docs/UPSTREAM-FIRST.md (upstream-first, 100% coverage).
   caller pointer; the hull/part vertex buffers cross as one `Vec.as_ptr()
   as Int` address per call and are copied into bridge-owned shapes (the
   caller's Vec remains the owner); B-27 keeps the address cast in its own
-  confined block, one cast per block.
+  confined block, one cast per block.  Soft bodies (0.7.0) keep every
+  particle and constraint bridge-side (presets over caller size parameters;
+  nothing is marshalled in) and read state back as owned scalars, plus one
+  capacity-checked out-buffer (`jolt_soft_vertices_into` writes
+  `3 * vertex_count` int64 milli entries through the caller Vec address,
+  validated before the first write); the heightfield sample grid crosses as
+  one `Vec.as_ptr() as Int` address per call and is copied into the shape
+  (the terrain body itself is a normal registered body id).  Soft ids are
+  bridge-assigned and stale ids are rejected; the heightfield is static by
+  construction (Jolt `MustBeStatic`) and participates in E1/E7 like any
+  body.
 - **Link model:** static -- the vendored C++ sources are compiled at port
   time via `--c-source` (`--cxx-standard 17`); no DLL, no dl-load, no
   runtime probe.
 - **License:** `vendor/` is MIT (notice retained); everything outside
   `vendor/` is MIT OR Apache-2.0.
-- **Evidence:** `tests/test_conformance.xi` (109 checks) x2 green on the
+- **Evidence:** `tests/test_conformance.xi` (159 checks) x2 green on the
   pinned v0.64.4 toolchain; the run record (run_by/commit/checked) lives in
   `STATUS.json`.

@@ -46,6 +46,23 @@
 //     box/sphere/capsule/convex) over the same vertex buffer.  Both body
 //     kinds simulate (mass/pose/static as usual) and take part in every E1
 //     query and E7 contact/sensor surface with no extra code.
+//   * soft bodies (0.7.0, tier E4): joltb_soft_add builds a
+//     SoftBodySharedSettings from a preset (cloth grid / rope / volume cube)
+//     and a caller-driven size description, optimizes it and creates a soft
+//     body in the world; joltb_soft_state / joltb_soft_vertex cache owned
+//     scalars (vertex count, world-space particle position/velocity) and
+//     joltb_soft_vertices_into writes every world-space particle position
+//     into a caller-owned int64 milli buffer (the one out-buffer surface in
+//     the package, bounded and capacity-checked).  Typed errors cover bad
+//     presets, unknown/removed ids, out-of-range indices and short buffers.
+//   * heightfield terrain (0.7.0, tier E5): joltb_body_add_heightfield
+//     builds a static HeightFieldShape from a caller-owned int64 milli
+//     height-sample grid (square, row major), horizontal scale (sample
+//     spacing in milli) and vertical scale (the sample value that equals
+//     1.0), with a caller-chosen quantization (8/16 bits; 0 = Jolt default
+//     8).  The terrain body then takes part in every existing surface:
+//     rigid bodies settle on it, E1 raycasts hit it (height/normal) and
+//     contacts report against it.
 // Registration mirrors the upstream HelloWorld sample
 // (RegisterDefaultAllocator + Factory + RegisterTypes), ref-counted so probes
 // and live worlds can share it.
@@ -73,6 +90,7 @@
 #include "../vendor/Jolt/Physics/Collision/Shape/CapsuleShape.h"
 #include "../vendor/Jolt/Physics/Collision/Shape/CompoundShape.h"
 #include "../vendor/Jolt/Physics/Collision/Shape/ConvexHullShape.h"
+#include "../vendor/Jolt/Physics/Collision/Shape/HeightFieldShape.h"
 #include "../vendor/Jolt/Physics/Collision/Shape/SphereShape.h"
 #include "../vendor/Jolt/Physics/Collision/Shape/StaticCompoundShape.h"
 #include "../vendor/Jolt/Physics/Constraints/Constraint.h"
@@ -81,6 +99,9 @@
 #include "../vendor/Jolt/Physics/Constraints/PointConstraint.h"
 #include "../vendor/Jolt/Physics/Constraints/SliderConstraint.h"
 #include "../vendor/Jolt/Physics/Constraints/TwoBodyConstraint.h"
+#include "../vendor/Jolt/Physics/SoftBody/SoftBodyCreationSettings.h"
+#include "../vendor/Jolt/Physics/SoftBody/SoftBodyMotionProperties.h"
+#include "../vendor/Jolt/Physics/SoftBody/SoftBodySharedSettings.h"
 
 #include <algorithm>
 #include <cmath>
@@ -121,6 +142,23 @@ constexpr int kMinHullVertices = 4;
 constexpr int kMaxHullVertices = 256;
 constexpr int kMaxCompoundParts = 64;
 
+// E4 soft body presets and size limits (0.7.0).
+constexpr int kSoftGrid = 0;    // cloth: nx by nz particle grid
+constexpr int kSoftRope = 1;    // chain: nx particles along +x
+constexpr int kSoftVolume = 2;  // cube: nx^3 particles with volume constraints
+constexpr int kMinSoftGridDim = 2;
+constexpr int kMaxSoftGridDim = 64;
+constexpr int kMinSoftRopeCount = 2;
+constexpr int kMaxSoftRopeCount = 256;
+constexpr int kMinSoftVolumeDim = 2;
+constexpr int kMaxSoftVolumeDim = 8;
+constexpr int kMaxSoftSpacingMilli = 100000;
+
+// E5 heightfield limits (0.7.0): square sample grids, 4..257 samples per
+// side (Jolt rounds up to its block size internally; 2x2 blocks minimum).
+constexpr int kMinHeightfieldSamples = 4;
+constexpr int kMaxHeightfieldSamples = 257;
+
 // Hinge limits are [-pi, pi] in milli radians (Jolt asserts this range).
 constexpr int kPiMilli = 3142;
 
@@ -149,6 +187,10 @@ constexpr int kErrNoMotor = -12;      // motor op on a joint without a motor
 constexpr int kErrBadHull = -13;      // hull vertex count/build failure
 constexpr int kErrBadCompound = -14;  // invalid compound part table
 constexpr int kErrBadLimits = -15;    // out-of-range/inverted limits
+constexpr int kErrBadSoft = -16;      // unknown/removed soft body id
+constexpr int kErrBadSoftArgs = -17;  // invalid soft body preset/size args
+constexpr int kErrBadHeightfield = -18; // invalid heightfield sample grid
+constexpr int kErrBadBuffer = -19;    // caller read-back buffer too small
 
 class BPLayerInterfaceImpl final : public BroadPhaseLayerInterface {
 public:
@@ -273,6 +315,15 @@ int g_joint_impulse_milli;
 int g_joint_body_a;
 int g_joint_body_b;
 
+// Bridge-owned fetch caches for soft bodies (0.7.0): joltb_soft_state copies
+// the vertex count / center / awake flag, joltb_soft_vertex copies one
+// particle's world-space position and velocity.
+int g_soft_vertex_count;
+int g_soft_pos[3];
+int g_soft_awake;
+int g_soft_vtx_pos[3];
+int g_soft_vtx_vel[3];
+
 // One cached contact manifold from the last step (contact listener).
 struct CachedContact {
   int body_a;
@@ -387,6 +438,16 @@ struct BridgeJoint {
   Ref<Constraint> constraint;
 };
 
+// One live soft body (0.7.0): a bridge-assigned id, the body id and the
+// owning shared-settings Ref (kept alive for the body's lifetime; the body's
+// motion properties hold their own reference too).
+struct BridgeSoft {
+  int id;
+  BodyID body;
+  RefConst<SoftBodySharedSettings> settings;
+  int vertex_count;
+};
+
 // A registry world: one PhysicsSystem plus its allocator/job system/filters,
 // the configured gravity and fixed step, and the live body list.  Member
 // declaration order is destruction order reversed: the body/joint lists die
@@ -407,7 +468,9 @@ struct BridgeWorld {
   bool dirty;
   std::vector<BodyID> bodies;
   std::vector<BridgeJoint> joints;
+  std::vector<BridgeSoft> soft_bodies;
   int next_joint_id;
+  int next_soft_id;
 
   BridgeWorld(uint inCapacity, Vec3Arg inGravity, int inFixedDtMicros)
       : temp_allocator(8 * 1024 * 1024),
@@ -416,7 +479,8 @@ struct BridgeWorld {
         fixed_dt_micros(inFixedDtMicros),
         capacity(inCapacity),
         dirty(false),
-        next_joint_id(0) {
+        next_joint_id(0),
+        next_soft_id(0) {
     physics.Init(inCapacity, 0, inCapacity * 2, inCapacity * 2, bp_layer, ov_bp, ov);
     physics.SetGravity(gravity);
     physics.SetContactListener(&contact_listener);
@@ -909,6 +973,251 @@ int overlap_shape(BridgeWorld* w, const Shape* inShape, RMat44Arg inTransform) {
   return g_overlap_count;
 }
 
+// ---- soft bodies (0.7.0, tier E4) -------------------------------------------
+
+// Soft body creation inputs (milli units): the preset kind, caller-driven
+// size parameters (grid: nx/nz; rope: nx; volume: nx), particle spacing,
+// body pose and whether the anchor edge (grid: the z=0 row; rope: the first
+// particle) is kinematic (inv mass 0, pinned in place).
+struct SoftArgs {
+  int kind;
+  int nx;
+  int nz;
+  int spacing_milli;
+  int px_milli, py_milli, pz_milli;
+  int rx_milli, ry_milli, rz_milli, rw_milli;
+  bool pin_edge;
+};
+
+// Integer square root (floor) for the heightfield grid check; n is small
+// (<= kMaxHeightfieldSamples^2) so the linear loop is fine.
+int isqrt_int(int n) {
+  int r = 0;
+  while ((r + 1) * (r + 1) <= n) r++;
+  return r;
+}
+
+// Build the shared settings for one soft body preset from the caller's size
+// description.  Returns a non-null RefConst on success (`err` = 0) or null
+// with a typed negative code.  All presets end with Optimize() so the
+// simulation can consume them (Jolt requires the update groups).
+RefConst<SoftBodySharedSettings> build_soft_settings(const SoftArgs& a, int& err) {
+  err = kErrBadSoftArgs;
+  if (a.spacing_milli <= 0 || a.spacing_milli > kMaxSoftSpacingMilli) return RefConst<SoftBodySharedSettings>();
+  const float spacing = from_milli(a.spacing_milli);
+
+  if (a.kind == kSoftGrid) {
+    // Cloth grid in the x/z plane: nx by nz particles; two triangles per
+    // cell; structural + shear edge constraints created from the faces
+    // (compliance 0 = inextensible; no bend constraints for a cloth).
+    if (a.nx < kMinSoftGridDim || a.nx > kMaxSoftGridDim) return RefConst<SoftBodySharedSettings>();
+    if (a.nz < kMinSoftGridDim || a.nz > kMaxSoftGridDim) return RefConst<SoftBodySharedSettings>();
+    Ref<SoftBodySharedSettings> s = new SoftBodySharedSettings;
+    for (int iz = 0; iz < a.nz; iz++)
+      for (int ix = 0; ix < a.nx; ix++) {
+        const float inv_mass = (a.pin_edge && iz == 0) ? 0.0f : 1.0f;
+        s->mVertices.push_back(SoftBodySharedSettings::Vertex(
+            Float3((float)ix * spacing, 0.0f, (float)iz * spacing), Float3(0, 0, 0), inv_mass));
+      }
+    auto vidx = [&a](int ix, int iz) { return (uint32)(ix + iz * a.nx); };
+    for (int iz = 0; iz + 1 < a.nz; iz++)
+      for (int ix = 0; ix + 1 < a.nx; ix++) {
+        const uint32 v00 = vidx(ix, iz);
+        const uint32 v10 = vidx(ix + 1, iz);
+        const uint32 v01 = vidx(ix, iz + 1);
+        const uint32 v11 = vidx(ix + 1, iz + 1);
+        s->AddFace(SoftBodySharedSettings::Face(v00, v10, v11));
+        s->AddFace(SoftBodySharedSettings::Face(v00, v11, v01));
+      }
+    SoftBodySharedSettings::VertexAttributes attrs(0.0f, 0.0f, FLT_MAX);
+    s->CreateConstraints(&attrs, 1, SoftBodySharedSettings::EBendType::None);
+    s->Optimize();
+    err = 0;
+    return s;
+  }
+
+  if (a.kind == kSoftRope) {
+    // Particle chain along +x with edge constraints only (a rope has no
+    // faces: it constrains but does not collide).
+    if (a.nx < kMinSoftRopeCount || a.nx > kMaxSoftRopeCount) return RefConst<SoftBodySharedSettings>();
+    Ref<SoftBodySharedSettings> s = new SoftBodySharedSettings;
+    for (int i = 0; i < a.nx; i++) {
+      const float inv_mass = (a.pin_edge && i == 0) ? 0.0f : 1.0f;
+      s->mVertices.push_back(SoftBodySharedSettings::Vertex(
+          Float3((float)i * spacing, 0.0f, 0.0f), Float3(0, 0, 0), inv_mass));
+    }
+    for (int i = 0; i + 1 < a.nx; i++) {
+      s->mEdgeConstraints.push_back(
+          SoftBodySharedSettings::Edge((uint32)i, (uint32)(i + 1)));
+    }
+    s->CalculateEdgeLengths();
+    s->Optimize();
+    err = 0;
+    return s;
+  }
+
+  if (a.kind == kSoftVolume) {
+    // Cube of particles with edge + volume constraints and faces (Jolt's
+    // own sCreateCube helper, which already computes rest lengths/volumes).
+    if (a.pin_edge) return RefConst<SoftBodySharedSettings>();
+    if (a.nx < kMinSoftVolumeDim || a.nx > kMaxSoftVolumeDim) return RefConst<SoftBodySharedSettings>();
+    Ref<SoftBodySharedSettings> s = SoftBodySharedSettings::sCreateCube((uint)a.nx, spacing);
+    if (s == nullptr) return RefConst<SoftBodySharedSettings>();
+    s->Optimize();
+    err = 0;
+    return s;
+  }
+
+  return RefConst<SoftBodySharedSettings>();
+}
+
+BridgeSoft* find_soft(BridgeWorld* w, int soft_id) {
+  for (size_t i = 0; i < w->soft_bodies.size(); i++) {
+    if (w->soft_bodies[i].id == soft_id) return &w->soft_bodies[i];
+  }
+  return nullptr;
+}
+
+// Create a soft body from the preset description; returns the bridge soft id
+// (>= 0) or a negative code.
+int add_soft_impl(BridgeWorld* w, const SoftArgs& a) {
+  int err = 0;
+  RefConst<SoftBodySharedSettings> settings = build_soft_settings(a, err);
+  if (settings == nullptr) return err;
+  if (w->bodies.size() + w->soft_bodies.size() >= w->capacity) return kErrFull;
+
+  const Quat rotation = quat_from_milli(a.rx_milli, a.ry_milli, a.rz_milli, a.rw_milli);
+  SoftBodyCreationSettings settings_creation(
+      settings.GetPtr(),
+      RVec3(from_milli(a.px_milli), from_milli(a.py_milli), from_milli(a.pz_milli)),
+      rotation, kLayerMoving);
+  BodyID body = w->physics.GetBodyInterface().CreateAndAddSoftBody(settings_creation, EActivation::Activate);
+  if (body.IsInvalid()) return kErrNoBody;
+
+  BridgeSoft soft;
+  soft.id = w->next_soft_id++;
+  soft.body = body;
+  soft.settings = settings;
+  soft.vertex_count = (int)settings->mVertices.size();
+  w->soft_bodies.push_back(soft);
+  w->dirty = true;
+  return soft.id;
+}
+
+// Cache a soft body's vertex count, center position (the body position) and
+// awake flag into owned scalars; 0 or a negative code.
+int cache_soft_state(BridgeWorld* w, int soft_id) {
+  BridgeSoft* soft = find_soft(w, soft_id);
+  if (soft == nullptr) return kErrBadSoft;
+  BodyLockRead lock(w->physics.GetBodyLockInterface(), soft->body);
+  if (!lock.Succeeded()) return kErrBadSoft;
+  const Body& body = lock.GetBody();
+  if (!body.IsSoftBody()) return kErrBadSoft;
+  const SoftBodyMotionProperties* props =
+      static_cast<const SoftBodyMotionProperties*>(body.GetMotionProperties());
+  g_soft_vertex_count = (int)props->GetVertices().size();
+  const RVec3 p = body.GetPosition();
+  g_soft_pos[0] = to_milli(p.GetX());
+  g_soft_pos[1] = to_milli(p.GetY());
+  g_soft_pos[2] = to_milli(p.GetZ());
+  g_soft_awake = body.IsActive() ? 1 : 0;
+  return 0;
+}
+
+// Cache one particle's world-space position/velocity into owned scalars;
+// 0 or a negative code (kErrBadSoft for a bad id, kErrBadArg for a bad
+// index).  Vertex data is relative to the soft body's center of mass, so
+// both are transformed by the body's COM transform.
+int cache_soft_vertex(BridgeWorld* w, int soft_id, int index) {
+  BridgeSoft* soft = find_soft(w, soft_id);
+  if (soft == nullptr) return kErrBadSoft;
+  BodyLockRead lock(w->physics.GetBodyLockInterface(), soft->body);
+  if (!lock.Succeeded()) return kErrBadSoft;
+  const Body& body = lock.GetBody();
+  if (!body.IsSoftBody()) return kErrBadSoft;
+  const SoftBodyMotionProperties* props =
+      static_cast<const SoftBodyMotionProperties*>(body.GetMotionProperties());
+  const Array<SoftBodyMotionProperties::Vertex>& verts = props->GetVertices();
+  if (index < 0 || index >= (int)verts.size()) return kErrBadArg;
+  const RMat44 com = body.GetCenterOfMassTransform();
+  const RVec3 wp = com * verts[(size_t)index].mPosition;
+  const Vec3 wv = com.Multiply3x3(verts[(size_t)index].mVelocity);
+  g_soft_vtx_pos[0] = to_milli(wp.GetX());
+  g_soft_vtx_pos[1] = to_milli(wp.GetY());
+  g_soft_vtx_pos[2] = to_milli(wp.GetZ());
+  g_soft_vtx_vel[0] = to_milli(wv.GetX());
+  g_soft_vtx_vel[1] = to_milli(wv.GetY());
+  g_soft_vtx_vel[2] = to_milli(wv.GetZ());
+  return 0;
+}
+
+// Write every particle's world-space position (int64 milli xyz triples, row
+// order) into the caller-owned buffer; returns the vertex count or a
+// negative code (kErrBadBuffer when the buffer is shorter than 3 * count).
+int soft_vertices_into(BridgeWorld* w, int soft_id, int64_t* out, int capacity) {
+  BridgeSoft* soft = find_soft(w, soft_id);
+  if (soft == nullptr) return kErrBadSoft;
+  if (out == nullptr || capacity < soft->vertex_count * 3) return kErrBadBuffer;
+  BodyLockRead lock(w->physics.GetBodyLockInterface(), soft->body);
+  if (!lock.Succeeded()) return kErrBadSoft;
+  const Body& body = lock.GetBody();
+  if (!body.IsSoftBody()) return kErrBadSoft;
+  const SoftBodyMotionProperties* props =
+      static_cast<const SoftBodyMotionProperties*>(body.GetMotionProperties());
+  const Array<SoftBodyMotionProperties::Vertex>& verts = props->GetVertices();
+  const RMat44 com = body.GetCenterOfMassTransform();
+  for (Array<SoftBodyMotionProperties::Vertex>::size_type i = 0; i < verts.size(); i++) {
+    const RVec3 wp = com * verts[i].mPosition;
+    out[3 * i + 0] = (int64_t)to_milli(wp.GetX());
+    out[3 * i + 1] = (int64_t)to_milli(wp.GetY());
+    out[3 * i + 2] = (int64_t)to_milli(wp.GetZ());
+  }
+  return (int)verts.size();
+}
+
+// ---- heightfield terrain (0.7.0, tier E5) -----------------------------------
+
+// Build a static height field body from a caller-owned sample grid:
+// square, row major, n = sqrt(sample_count); sample values are heights in
+// milli in [0, scale_y_milli] and are normalized to Jolt's [0, 1] ratio
+// against scale_y_milli (so the world height is exactly the milli sample).
+// scale_x/scale_z are the world-space sample spacings in milli; offset is
+// the body pose.  bits_per_sample selects the quantization: 8 or 16, or 0
+// for Jolt's default (8).
+int add_heightfield_impl(BridgeWorld* w, int sx_milli, int sy_milli, int sz_milli,
+                         int px_milli, int py_milli, int pz_milli,
+                         int bits_per_sample, const int64_t* samples, int sample_count) {
+  if (samples == nullptr || sample_count <= 0) return kErrBadArg;
+  if (sample_count > kMaxHeightfieldSamples * kMaxHeightfieldSamples) return kErrBadHeightfield;
+  const int n = isqrt_int(sample_count);
+  if (n * n != sample_count) return kErrBadHeightfield;
+  if (n < kMinHeightfieldSamples || n > kMaxHeightfieldSamples) return kErrBadHeightfield;
+  if (sx_milli <= 0 || sy_milli <= 0 || sz_milli <= 0) return kErrBadArg;
+  if (bits_per_sample != 0 && bits_per_sample != 8 && bits_per_sample != 16) return kErrBadArg;
+
+  std::vector<float> heights((size_t)n * (size_t)n);
+  for (int i = 0; i < sample_count; i++) {
+    const int64_t s = samples[i];
+    if (s < 0 || s > (int64_t)sy_milli) return kErrBadHeightfield;
+    heights[(size_t)i] = (float)((double)s / (double)sy_milli);
+  }
+
+  HeightFieldShapeSettings settings(
+      heights.data(),
+      Vec3(from_milli(px_milli), from_milli(py_milli), from_milli(pz_milli)),
+      Vec3(from_milli(sx_milli), from_milli(sy_milli), from_milli(sz_milli)),
+      (uint32)n);
+  if (bits_per_sample != 0) settings.mBitsPerSample = (uint32)bits_per_sample;
+  ShapeSettings::ShapeResult result = settings.Create();
+  if (result.HasError()) return kErrBadHeightfield;
+  RefConst<Shape> shape = result.Get();
+
+  // A height field can only be static (Jolt MustBeStatic).
+  return register_body_with_shape(w, shape.GetPtr(), 0,
+                                  px_milli, py_milli, pz_milli,
+                                  0, 0, 0, 0, true, false);
+}
+
 } // namespace
 
 extern "C" {
@@ -969,15 +1278,21 @@ int joltb_world_create(int gravity_x_milli, int gravity_y_milli, int gravity_z_m
 }
 
 // Destroy the world and every body in it; returns the number of bodies
-// destroyed (>= 0) or a negative code.  Stale handles are rejected.
-// Constraints are unregistered from the physics system before destruction so
-// no joint Ref outlives the world.
+// destroyed (rigid + soft, >= 0) or a negative code.  Stale handles are
+// rejected.  Constraints are unregistered from the physics system before
+// destruction so no joint Ref outlives the world; soft bodies are removed
+// like rigid bodies before teardown.
 int joltb_world_destroy(int handle) {
   BridgeWorld* w = get_world(handle);
   if (w == nullptr) return kErrBadWorld;
-  int destroyed = (int)w->bodies.size();
+  int destroyed = (int)(w->bodies.size() + w->soft_bodies.size());
   for (size_t i = 0; i < w->joints.size(); i++) {
     w->physics.RemoveConstraint(w->joints[i].constraint.GetPtr());
+  }
+  BodyInterface& bi = w->physics.GetBodyInterface();
+  for (size_t i = 0; i < w->soft_bodies.size(); i++) {
+    bi.RemoveBody(w->soft_bodies[i].body);
+    bi.DestroyBody(w->soft_bodies[i].body);
   }
   delete w;
   g_worlds[handle] = nullptr;
@@ -1696,6 +2011,126 @@ int joltb_joint_state_body_a(void) {
 
 int joltb_joint_state_body_b(void) {
   return g_joint_body_b;
+}
+
+// ---- soft bodies (0.7.0, tier E4) -------------------------------------------
+
+// Create a soft body from a preset description: kind (0 = cloth grid,
+// 1 = rope, 2 = volume cube), caller-driven size (nx/nz/count), particle
+// spacing in milli, body pose and pin_edge (grid: pin the z=0 row; rope:
+// pin the first particle; volume: rejected).  Returns the bridge soft id
+// (>= 0) or a negative code.
+int joltb_soft_add(int handle, int kind, int nx, int nz, int spacing_milli,
+                   int px_milli, int py_milli, int pz_milli,
+                   int rx_milli, int ry_milli, int rz_milli, int rw_milli,
+                   int pin_edge) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  SoftArgs a;
+  a.kind = kind;
+  a.nx = nx;
+  a.nz = nz;
+  a.spacing_milli = spacing_milli;
+  a.px_milli = px_milli;
+  a.py_milli = py_milli;
+  a.pz_milli = pz_milli;
+  a.rx_milli = rx_milli;
+  a.ry_milli = ry_milli;
+  a.rz_milli = rz_milli;
+  a.rw_milli = rw_milli;
+  a.pin_edge = pin_edge != 0;
+  return add_soft_impl(w, a);
+}
+
+// Remove a soft body by id; returns the number of soft bodies left (>= 0)
+// or a negative code.  The id is stale afterwards.
+int joltb_soft_remove(int handle, int soft_id) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  for (size_t i = 0; i < w->soft_bodies.size(); i++) {
+    if (w->soft_bodies[i].id != soft_id) continue;
+    BodyInterface& bi = w->physics.GetBodyInterface();
+    bi.RemoveBody(w->soft_bodies[i].body);
+    bi.DestroyBody(w->soft_bodies[i].body);
+    w->soft_bodies.erase(w->soft_bodies.begin() + i);
+    w->dirty = true;
+    return (int)w->soft_bodies.size();
+  }
+  return kErrBadSoft;
+}
+
+// Number of live soft bodies in the world (>= 0) or a negative code.
+int joltb_soft_count(int handle) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  return (int)w->soft_bodies.size();
+}
+
+// Cache one soft body's vertex count/center/awake into owned scalars;
+// 0 or a negative code.
+int joltb_soft_state(int handle, int soft_id) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  return cache_soft_state(w, soft_id);
+}
+
+int joltb_soft_state_count(void) {
+  return g_soft_vertex_count;
+}
+
+int joltb_soft_state_pos(int axis) {
+  if (axis < 0 || axis > 2) return 0;
+  return g_soft_pos[axis];
+}
+
+int joltb_soft_state_awake(void) {
+  return g_soft_awake;
+}
+
+// Cache one particle's world-space position/velocity into owned scalars;
+// 0 or a negative code.
+int joltb_soft_vertex(int handle, int soft_id, int index) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  return cache_soft_vertex(w, soft_id, index);
+}
+
+int joltb_soft_vtx_pos(int axis) {
+  if (axis < 0 || axis > 2) return 0;
+  return g_soft_vtx_pos[axis];
+}
+
+int joltb_soft_vtx_vel(int axis) {
+  if (axis < 0 || axis > 2) return 0;
+  return g_soft_vtx_vel[axis];
+}
+
+// Write all particle world positions into the caller-owned int64 buffer
+// (`out_addr`, capacity in int64 entries): returns the vertex count (>= 0)
+// or a negative code (kErrBadBuffer when capacity < 3 * vertex count).
+int joltb_soft_vertices_into(int handle, int soft_id, int64_t out_addr, int capacity_entries) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  if (out_addr == 0) return kErrBadArg;
+  int64_t* out = reinterpret_cast<int64_t*>(out_addr);
+  return soft_vertices_into(w, soft_id, out, capacity_entries);
+}
+
+// ---- heightfield terrain (0.7.0, tier E5) -----------------------------------
+
+// Add a static heightfield body from a caller-owned int64 milli height
+// sample grid (square, row major; see add_heightfield_impl).  Returns the
+// body id (>= 0) or a negative code.
+int joltb_body_add_heightfield(int handle, int sx_milli, int sy_milli, int sz_milli,
+                               int px_milli, int py_milli, int pz_milli,
+                               int bits_per_sample, int64_t samples_addr, int sample_count) {
+  BridgeWorld* w = get_world(handle);
+  if (w == nullptr) return kErrBadWorld;
+  if (samples_addr == 0) return kErrBadArg;
+  const int64_t* samples = reinterpret_cast<const int64_t*>(samples_addr);
+  return add_heightfield_impl(w, sx_milli, sy_milli, sz_milli,
+                              px_milli, py_milli, pz_milli,
+                              bits_per_sample, samples, sample_count);
 }
 
 } // extern "C"

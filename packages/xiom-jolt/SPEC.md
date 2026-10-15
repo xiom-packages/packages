@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.jolt` |
-| Version | 0.6.0 |
+| Version | 0.7.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | JoltPhysics -- https://github.com/jrouwe/JoltPhysics |
 | Upstream version | tag **v5.6.0** |
@@ -38,7 +38,7 @@ this table + `README.md`/`AUDIT.md`/`PROVENANCE.md`.
 
 ## 3. Design and safe boundary (G5)
 
-`jolt.xi` is the only module with `unsafe`/`extern "C"`.  Eight caller
+`jolt.xi` is the only module with `unsafe`/`extern "C"`.  Ten caller
 layers over one integer-only bridge (`src/jolt_bridge.cpp`; floats cross as
 milli/micros, so XIOM never marshals structs or pointers):
 
@@ -139,6 +139,52 @@ milli/micros, so XIOM never marshals structs or pointers):
   body kinds take the usual mass/pose/static inputs, simulate like the
   primitive shapes (settle/contact/sleep) and participate in every E1 query
   and E7 contact/sensor surface with no extra code.
+- **0.7.0 soft bodies (tier E4):** `jolt_soft_add` creates a soft body from
+  a preset over caller-driven size parameters: `JOLT_SOFT_GRID` (cloth: nx
+  by nz particles in the x/z plane, spacing, triangle faces, structural +
+  shear edge constraints via `CreateConstraints` with compliance 0 and no
+  bend constraints; `pin_edge` pins the z=0 row), `JOLT_SOFT_ROPE` (nx
+  particles along +x, edge constraints only, no faces -- a rope constrains
+  but does not collide; `pin_edge` pins the first particle) or
+  `JOLT_SOFT_VOLUME` (Jolt's `sCreateCube`: nx^3 particles with edge,
+  volume and face constraints; always fully dynamic -- `pin_edge` is
+  rejected).  The bridge builds and owns the `SoftBodySharedSettings`
+  (vertices with inv mass 1, kinematic 0 for pinned anchors), calls
+  `CalculateEdgeLengths`/`CalculateVolumeConstraintVolumes`/`Optimize` as
+  the preset requires and creates the body with `CreateAndAddSoftBody` on
+  the moving layer.  Soft bodies simulate under the world gravity in the
+  same fixed steps as everything else (single-threaded, deterministic) and
+  grids/volumes collide with rigid bodies through their faces.
+  `jolt_soft_state` reads the particle count, body center and awake flag
+  back as owned scalars; `jolt_soft_vertex` reads one particle's
+  world-space position/velocity (vertices are stored relative to the body
+  center of mass and transformed on read-back); `jolt_soft_vertices_into`
+  writes every particle's world position (milli xyz triples, row order)
+  into a caller-owned `Vec[Int]` in one call -- the one out-buffer surface
+  in the package, capacity-checked against `3 * vertex_count` before any
+  write (the caller sizes it with push-growth); `jolt_soft_remove` /
+  `jolt_soft_count` manage the per-world soft registry (`BridgeSoft` holds
+  the soft id, BodyID and an owning `RefConst<SoftBodySharedSettings>`).
+  Typed errors: `kErrBadSoft` (unknown/removed id), `kErrBadSoftArgs`
+  (unknown preset, out-of-range dimensions/counts, zero spacing, pin on a
+  volume), `kErrBadBuffer` (short read-back buffer), `kErrBadArg`
+  (out-of-range particle index), plus the shared bad-world/full codes.
+- **0.7.0 heightfield terrain (tier E5):** `jolt_body_add_heightfield`
+  builds a static `HeightFieldShape` body from caller data: a square,
+  row-major grid of milli heights (`len` = n^2, n in [4, 257], each sample
+  in [0, sy_milli]; samples are normalized bridge-side against
+  `sy_milli` into Jolt's ratio form so a sample value of s is a world
+  height of exactly s milli), horizontal sample spacings `sx_milli`/
+  `sz_milli`, the body origin and a quantization choice
+  (`bits_per_sample` 8 or 16; 0 = Jolt's default 8).  The terrain is
+  static by construction (Jolt `MustBeStatic`) and joins every existing
+  surface with no extra code: rigid bodies settle on it and report
+  contacts (it is a registered body id like any other), and E1 raycasts
+  hit it with the terrain height and normal.  Invalid grids (empty, non-
+  square, n out of range, samples above `sy_milli` or negative), invalid
+  scales and invalid quantization are rejected with `kErrBadHeightfield`
+  / `kErrBadArg`.  The sample buffer is borrowed for the call only (copied
+  into the shape; build it with push-growth).
 
 Boundary discipline: handle lifetimes are bridge-owned (registry slots and
 Jolt packed body ids, never raw pointers -- B-25); no bare `null` crosses
@@ -157,7 +203,7 @@ by the suite.
 
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- **109 checks**, x2 required:
+Suite: `tests/test_conformance.xi` -- **159 checks**, x2 required:
 
 - 0.2.0 probes (unchanged): drop settles within [400, 600] milli on the
   ground (top at y=0), the body sleeps, the velocity hand-off stays within
@@ -220,6 +266,28 @@ Suite: `tests/test_conformance.xi` -- **109 checks**, x2 required:
   manifold with the ground; typed errors: too-few hull vertices, unknown
   part kind, out-of-range convex vertex slice, empty part table, wrong
   part-table stride.
+- 0.7.0 E4 soft bodies (31 checks): a 3^3 volume cube dropped on the
+  ground settles (center y=299 milli), sleeps and repeats bit-identically
+  (full particle dump equality); a 4x4 pinned cloth drapes under gravity
+  (pinned row held at y=2000, far corner draped to y=647, x span kept) and
+  repeats bit-identically; an 8-particle pinned rope swings down and hangs
+  (anchor held, tail low) and repeats bit-identically; read-back checks
+  (particle count, bulk buffer matching the scalar particle fetch at both
+  ends) and typed errors (unknown preset, grid dimension too small/large,
+  rope count too large, volume dimension too large, volume pin, zero
+  spacing, short read-back buffer, particle index out of range, unknown
+  id, removed id by state/vertex, double remove, count after remove).
+- 0.7.0 E5 heightfield (19 checks): a 9x9 terrain (flat plateau at
+  y=2000 + a ramp rising 500 per column) answers E1 raycasts -- plateau
+  hit on the terrain body at exactly y=2000 with an up normal and
+  fraction 800, ramp hit at y=3126 with the up-slope normal
+  (nx=-445, ny=895); a fresh identical world returns the bit-identical
+  hit; a 16-bit-quantized terrain hits the same ramp within tolerance; a
+  1 m dynamic box dropped over the plateau settles at y=2479, sleeps and
+  the repeated flow is bit-identical; typed errors: empty grid, non-square
+  grid, too-small grid, sample above vertical scale, zero vertical scale,
+  zero x spacing, invalid quantization, plus the minimal 4x4 grid
+  accepted.
 
 ```
 scripts/port.ps1 -Package xiom.jolt -TimeoutSec 600
@@ -233,11 +301,13 @@ The `--cxx-standard 17` flag and the 26-source list are carried by
 World/body v0 + external force/torque input + world queries (raycast,
 sphere/capsule sweep, sphere/capsule overlap with deterministic order) +
 capsule shape + contacts/sensors + typed joints (fixed/hinge/slider/point
-with motors, limits and state read-back) + convex/compound bodies: enough
-for the engine contract flow and its query/trigger/joint/shape asks.
-Character controllers (E4), soft bodies (E5), collision filtering on query
-paths and the deterministic save/restore state helper remain later tiers
-(`ROADMAP.md`).  The pre-pilot declaration-only module is preserved in git
-history.  The generated-tree hash above was re-verified read-only on
-2026-10-13 against the committed `vendor/` tree (unchanged by
-0.4.0/0.5.0/0.6.0 -- the vendored tree is not touched).
+with motors, limits and state read-back) + convex/compound bodies + soft
+bodies (cloth/rope/volume presets with particle read-back) + heightfield
+terrain: enough for the engine contract flow and its
+query/trigger/joint/shape/soft-body/terrain asks.  Character controllers,
+skinned soft bodies (bind-pose skin constraints) and the deterministic
+save/restore state helper remain later tiers (`ROADMAP.md`).  The
+pre-pilot declaration-only module is preserved in git history.  The
+generated-tree hash above was re-verified read-only on 2026-10-13 against
+the committed `vendor/` tree (unchanged by 0.4.0/0.5.0/0.6.0/0.7.0 -- the
+vendored tree is not touched).
