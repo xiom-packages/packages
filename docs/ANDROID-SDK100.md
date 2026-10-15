@@ -90,7 +90,10 @@ can be proven without the compiler target:
 
 - **W0 (DONE 2026-10-15)**: toolchain located + verified; this program
   doc; inquiry addendum; cross-smoke.
-- **W1**: vendor-C spike -- opus; x86_64 emulator run + aarch64 build.
+- **W1 (DONE 2026-10-15)**: vendor-C spike -- opus cross-built for
+  x86_64 + aarch64; harness `dlopen` roundtrip **PASSED on the API-36
+  x86_64 emulator** (repro: `docs/repro/bindings-pilot/android-ndk-spike/`;
+  findings: flat-vendor include dirs + required `-lm` DT_NEEDED).
 - **W2**: SKIP-safe prep surfaces for the A1/A2/A6 heads (window-core,
   lifecycle-glue, audio) authored against the NDK headers; suites SKIP
   on desktop.
@@ -105,3 +108,7 @@ can be proven without the compiler target:
 - 2026-10-15T11:55Z: oracles pinned -- header counts (android 68,
   vulkan 20, SLES 5, EGL 5, GLES3 5, aaudio 1, + jni.h) and the
   link-stub list (26 libs x2 arch; API dirs 21..35).
+- 2026-10-15T12:15Z: **W1 spike green** -- both arches built (ELF64;
+  aarch64 machine = AArch64); on-device (API-36 x86_64 emulator):
+  dlopen OK, encoder_size=31668, enc+dec create OK, encode 127 B,
+  decode 960 samples, SPIKE RESULT: PASS.

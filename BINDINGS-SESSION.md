@@ -1005,6 +1005,28 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 12:15Z (ANDROID W1 DONE -- opus vendor-C spike
+PASSES on the API-36 emulator)**: first on-device Android evidence:
+- Cross-built the EXACT xiom.opus units (opus_bridge + 4 vendor unity
+  units) with NDK r27b clang: x86_64-linux-android26 (run) +
+  aarch64-linux-android26 (build) -- both ELF64/DYN (aarch64 machine
+  = AArch64, readelf-verified).
+- Flags found during the spike (now in the repro + build-spike.ps1):
+  flat vendor tree needs `-I vendor/opus -I vendor/opus/float
+  -I vendor/opus/fixed`; the float build MUST link `-lm` (DT_NEEDED
+  libm.so) or on-device dlopen fails `cannot locate symbol "exp"`;
+  `-Wl,-soname,libopus.so` pinned.
+- Harness (dlopen by path = the xiom.ffi.dl load model + xo_* encode/
+  decode roundtrip) on the emulator: dlopen OK; encoder_size=31668;
+  encoder+decoder create OK; encode 127 bytes; decode 960 samples;
+  **SPIKE RESULT: PASS**.
+- Repro: `docs/repro/bindings-pilot/android-ndk-spike/` (README +
+  build-spike.ps1 + opus_harness.c). Emulator kept running headless
+  (session background process) for W2/W3; arm64 on-device run waits
+  on a device (build green).
+- Program doc `docs/ANDROID-SDK100.md` updated: W1 DONE. Next W2:
+  SKIP-safe surfaces (A1/A2/A6 heads) against the NDK headers.
+
 **UPDATE 2026-10-15 11:55Z (ANDROID SDK100 PROGRAM STARTED -- blocker
 map answered; oracles pinned)**: owner asked for the lane-by-lane
 blocker map + a path to 100% Android support:
