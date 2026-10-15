@@ -1003,6 +1003,22 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 11:30Z (CONTEXT-LIMIT HANDOFF -- owner directives;
+paste prompt rebuilt)**: session handoff written.
+- **Owner directives**: (1) the macOS/darwin legs fix is queued for the
+  NEXT compiler candidate (v0.64.5 remains HELD on the Cell[Int8]/aes
+  regression; watch for v0.64.5/v0.64.6); (2) **the next session starts
+  with the ANDROID SDK work** (read the reply to the cross-target
+  inquiry `REL-20261015-1109-bindings`, then the Android prep wave +
+  NDK cross-build spike); (3) open package bugs are expected to surface
+  in the new release's test runs -- no special sweep needed.
+- Paste prompt rebuilt (2026-10-15 11:30Z): E-family-complete state,
+  waves compressed, tag-gated RE-VERIFY WAVE with all current re-probes
+  (incl. B-29/30/31 + the re-vendored-stdlib retirement gate),
+  Android-first first actions.
+- Current live state unchanged: 98 releases through `eco-v0.1.182`;
+  no sessions in flight; relay tip `5b4a72f` (507 items).
+
 **UPDATE 2026-10-15 06:05Z (doorbell -- jolt 0.7.0 PUBLISHED
 `eco-v0.1.182`; E-FAMILY COMPLETE LIVE; v0.64.5 tag still held)**:
 - **jolt 0.7.0 (E4/E5) LIVE**: `eco-v0.1.182` (merge `afd93d4c` tip
@@ -1911,132 +1927,76 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-14 12:15Z;
-everything is LIVE through `eco-v0.1.177` (codec wave A + wave B
-first); **WAVE-2 integrated (12 pkgs: opus/ogg/lz4/ktx2/vdb/phonon/
-fidelityfx/nis/dlss/xess/nrd/oidn; tip `5bc15161`; publish batch
-`-1208-bindings-3`)**; ffmpeg 0.4.0 held pending the 0.4.1 fix
-(session in flight); new sessions running: jolt 0.4.0 forces, ozz
-0.4.0 caller-data, sdl3 0.19.0 device surface, path-tracer
-(rtxdi+rtxgi/rpr/openpgl).
-First action = process new relay items + integrate any finished agent
-deliveries; then check for the next compiler archive (v0.64.5+) for the
-re-verify wave + lifts.  Relay-driven otherwise).
+Bindings lane continuation -- seamless pickup (2026-10-15 11:30Z;
+CONTEXT-LIMIT HANDOFF.  Everything this lane shipped is LIVE through
+`eco-v0.1.182` (98 releases).  OWNER DIRECTIVES for this session:
+(1) the macOS/darwin legs fix is queued by the owner for the NEXT
+compiler candidate (v0.64.5 is still HELD on the Cell[Int8]/aes
+regression; watch `gh release list` for v0.64.5/v0.64.6);
+(2) plan and START THE ANDROID work FIRST (read the compiler's reply to
+the cross-target inquiry `REL-20261015-1109-bindings`, then the Android
+prep wave + an NDK cross-build spike);
+(3) any package bugs still open are expected to surface in the new
+release's test runs -- no special sweep needed before it).
 
-0. STATE (the 13:50Z handoff UPDATE block + STATUS above carry the
+0. STATE (compressed; the UPDATE blocks + STATUS above carry full
    evidence):
-   - v0.64.4 pin DONE (archive `44a41aea` verified; repin 532; validate
-     532/0).  **Fix batch staged on compiler main, NO archive yet**
-     (check `gh release list -R xiom-lang/xiom` + relay `release-checks/`):
-     m277 `29e35ef8` fixes **B-22** (+ `-1403`; probe9 42/42/42); m279
-     `1a8141fb` fixes **B-16 + B-17** (exact ptr-arith deltas;
-     ptr_write_sum=66); m280 `e1207485` fixes `-2230` + re-probes
-     `-1549-packages-3` green; m281 `77827766` fixes **B-23 + B-24**
-     (null -> `inttoptr 0`; raw `p[i]` typed load) + **B-20 + B-11
-     addendum (`-0304`)** + `-1548-bindings-2` codegen (RTX re-run
-     pending); m283 `3ef4d6a9` fixes **B-26** (nested payload monomorph
-     resolution) + re-probes **B-25 green** (cast fidelity) +
-     contract-cycle guard.  Release-check rows for all ride the next
-     archive.
-   - **RE-VERIFY WAVE at v0.64.5+ (prepared)**: `docs/repro/bindings-pilot/`
-     -- null-literal (4 paths = 0), ptr-read-stale (ffi_bad=0/400),
-     foreign-ptr-read (C-matching 1065353216/1073741824), ptr-slot-write +
-     ptr-arith (exact), cb-abi probe9 (42/42/42), sdl3 synthetic-event
-     raw-pointer readback variant, vulkan-slot-recycle (RTX host),
-     **nested-payload (probe + matrix: expect 2/2/2, failures=0; then
-     restore sqlite `Result[Option[SqliteRow]]` + retire `RowOutcome`)**,
-     **ptr-cast (expect `true_ptr == int_param == cast_ptr`; then revisit
-     the `Int`-typed dx12 COM params + close `-1309`)**, **B-05
-     alloc-guard-spin (watchdog! -- stdlib guard_free fix is in wave 124;
-     still red on v0.64.4 even with `XIOM_RUNTIME_DIR`
-     `E:\xiom-lang\stdlib\runtime` -- needs the compiler-side lowering in
-     the pin)**.  Then:
-     **glfw 0.6.0 lift** (18 dispatchers + registries removed -> direct
-     handoff), **sdl3 handler widening**, workaround retirement (B-24
-     byte-indexed reads relax where re-verified; `dx12_null_ptr` stays as
-     the documented API).
-   - **DX12 0.3.1 STABLE PUBLISHED -- FIRST sec.7 GATE PROMOTION**
-     (`eco-v0.1.169`, sha256 `355ecc6d...` @12:26:45Z; merge `46b45e76`,
-     record `261ba5f8`, wrap `1fd17353`; native x2 35/35; relay
-     `-1207-bindings` fixed). 0.1.0/0.2.0/0.3.0 remain live
-     (`eco-v0.1.166`/`167`/`168`). The promotion gate evidence is in
-     `SPEC.md` sec. 7 (35/35 x2 on `1a392b91`, trap-14 clean, contracts
-     1175/0, verify 0/0/33 unknown, G6 B-23/B-24 accepted, G7 none).
-   - **DX12 0.4.0 COMMAND RECORDING PUBLISHED**: allocator/list lifecycle
-     + `dx12_execute_one` + fence signal/`dx12_fence_wait`; suite **42/42
-     x2**; feat `fd9f2a4d`; LIVE as **`eco-v0.1.172`** (record
-     `93120d3f`, wrap `ef1b8894`, sha256 `38ff6d0b...` @13:25:27Z;
-     `-1313-bindings` fixed).  **B-25 found + fixed in-surface**: `Int as
-     *UInt8` is not value-preserving (B-20 family) -- COM object params
-     are typed `Int` (C `void*`, exact); repro
-     `docs/repro/bindings-pilot/ptr-cast/`; INFO to compiler
-     `-1309-bindings`.  Never cast handles to pointers.
-   - **B-23/B-24 FILED -> FIXED at m281 `77827766`**
-     (`REL-20261012-2051-bindings-2`; re-verify at v0.64.5+): B-23 =
-     `null` literal crossed to C as garbage (workaround `dx12_null_ptr()`
-     -- stays as the documented API); B-24 = ffi out-slot reads after a C
-     extern write were unreliable (`ffi_bad=2 byte_bad=0 of 400`;
-     byte-indexed reads meanwhile).  Repros
-     `docs/repro/bindings-pilot/null-literal/` + `ptr-read-stale/`.
-   - **opengl 0.5.0 WGL SURFACE PUBLISHED**: generated from the same
-     pinned registry (`6af574a1`), oracle `xml/wgl.xml` -- 146 commands /
-     298 enums, 0 skips; core-1.0 24/24 resolvable;
-     `wgl_cmds_01..02`/`wgl_consts_1..2`/`wgl_names` + `tools/gen_wgl.py`;
-     bridge `gdi32` resolver fallback + `opengl_session_dc`/`_hglrc`;
-     suite **28/28 x2** on `468b73d1`; LIVE as **`eco-v0.1.170`**
-     (record `d7714a92`, wrap `ee83ee45`, sha256 `daeb45a7...`
-     @12:40:11Z; `-1222-bindings` fixed).
-   - **NEW PACKAGE `xiom.gles` 0.1.0 PUBLISHED**: GLES 2.0->3.2 (358
-     commands / 1001 enums from `gl.xml`) + EGL 1.0-1.5 + extensions (158
-     commands / 694 enums from EGL-Registry pin `db3425b8`; CLEANUP row
-     added) via ANGLE (`libEGL.dll` + `libGLESv2.dll`, pbuffer session);
-     generators `gen_gles.py`/`gen_egl.py`; bridge `src/gles_probe.c`;
-     suite **18/18 x2** on `ee741d77` (record `b32596c1`) with ANGLE 2.1
-     (VS Code payload on PATH; 358/358 + 44/44 resolved live); LIVE as
-     **`eco-v0.1.171`** (sha256 `017b7664...` @13:06:06Z; scope `f8e284b`,
-     wrap `c106c10d`, README/STATUS `ed6bc4da`; scope + allowlist
-     520 -> 521).
-   - **sdl3 0.18.0 PUBLISHED -- ALL LIVE (B-11 addendum RETIRED on
-     v0.64.4)**: foreign-written event readback -- poll into an owned
-     buffer and decode exactly (user-event type=32768 + KEY_DOWN
-     decode); suite 59 -> 61, **x2 61/61 on `5a26dee8`** (feat
-     `75d8c339` + fix `5a26dee8`); LIVE as **`eco-v0.1.173`** (record
-     `05d5feda`, wrap `f70f02ae`, sha256 `544c59b8...` @13:55:09Z;
-     `REL-20261013-1338-bindings-2` **fixed**; README/STATUS
-     `5000800a`).  Merge note: keep package.xi at 0.18.0.  INFO items
-     `-1338-bindings` / `-1309-bindings` still open compiler-side (their
-     sweep).
-   - **xiom.sqlite 0.4.0 PUBLISHED -- ALL LIVE (PULSE SQL driver)**: NEW
-     `xiom.sqlite.driver` (DSN parse/open, execute/query/query_one,
-     explicit transactions + `in_transaction`, caps, `last_error`);
-     suite 16 -> 21, **x2 21/21 on `4ba13167`** (record `60a0b383` after
-     merge); **`eco-v0.1.174`** (merge `345c05ba`, wrap `7786a34c`,
-     sha256 `1e142acc...` @15:31:42Z; README/STATUS `2269eb76`); item
-     `-1524-bindings` fixed; PULSE co-verify pending (`-1540-packages`).
-     **B-26 filed**: nested enum payloads (`Result[Option[T]]`) corrupt
-     struct-with-Vec values -- flat `RowOutcome` workaround; repro
-     `docs/repro/bindings-pilot/nested-payload/`; INFO
-     `-1524-bindings-2` to compiler.
-   - Graphics drive: Vulkan 0.6.0 live + engine-green (GPU window + scene
-     tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
-     the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
-
-0b. FIRST ACTION: check for the **next compiler archive (v0.64.5+)**
-    carrying the m277-m281 fix batch --
-    `gh release list -R xiom-lang/xiom` + relay `release-checks/`.
-    If shipped: repin is the packages lane's queue item 3; THIS lane then
-    runs the RE-VERIFY WAVE (see 0.) and on green executes the lifts:
-    (a) **glfw 0.6.0 lift re-attempt + probe9** (B-22 fixed m277; delete
-    the 18 dispatchers + registries, direct handoff); (b) **sdl3
-    handler-shape widening** (multi-arg shapes once B-22 is pinned);
-    (c) workaround retirement the wave clears; record per-item
-    release-check rows + reply to compiler with evidence.
-    If NOT shipped: relay sweep (`git fetch origin` + `python
-    tools/relay.py view --lane bindings`) + packages SESSION.md check
-    only -- every other lane item is gated (glfw/sdl3 on the archive;
-    imgui P6 on the shared+dev build `-2012-engine-4` acked; PULSE
-    driver queued behind graphics on the packages side).
-    `-1403-packages` is fixed compiler-side (m277 `29e35ef8`).
+   - **E-FAMILY COMPLETE** (engine's top ask, all delivered overnight):
+     jolt 0.4.0 (E8 forces) -> 0.5.0 (E1 queries/E2 capsule/E7
+     contacts+sensors) -> 0.6.0 (E3 joints/E6 convex+compound) -> 0.7.0
+     (E4 soft bodies/E5 heightfield); suites 24 -> 67 -> 109 -> 159 x2;
+     0.5.0/0.6.0/0.7.0 LIVE (`eco-v0.1.180`/`181`/`182`); engine relayed
+     at each step (E1-E7 all wireable).
+   - Live waves: codec A (`eco-v0.1.176`: jolt 0.3.0/zstd 0.3.0/meshopt
+     0.5.0/ffmpeg 0.3.0); wave B first (`.177`: harfbuzz/basisu/spz);
+     wave 2 (`.178`: opus/ogg/lz4/ktx2/vdb/phonon 0.3.0/fidelityfx/nis/
+     dlss/xess/nrd/oidn); wave 3 + A05 (`.179`: ffmpeg 0.4.1 SHIP-only/
+     jolt 0.4.0/ozz 0.4.0/sdl3 0.19.0/rtxgi+rtxdi/rpr/openpgl/stb 0.3.0/
+     exr/photometrics); earlier: dx12 0.3.1 stable + 0.4.0, opengl
+     0.5.0, gles 0.1.0, sdl3 0.18.0, sqlite 0.4.0/0.4.1 -- all LIVE.
+   - **v0.64.5 HELD** (candidate regression Cell[Int8]/aes escalated
+     pre-pin; tag signal sent then held; installed compiler still
+     v0.64.4).  **On tag -> THE RE-VERIFY WAVE** + the 0.64.5
+     release-check rows; the macOS/darwin legs fix rides the NEXT
+     candidate (owner-queued).
+   - Fixes staged for that wave: m277 B-22 + `-1403`; m279 B-16/17;
+     m280 `-2230`; m281 B-23/24 + B-20 + `-0304` + `-1548`; m283 B-26 +
+     B-25 green; m309 `-2320` (B-30 family, parts 2+3); m314-m321
+     wide-int/constant-surface/parse families.  B-29/B-30/B-31 (our
+     findings) still OPEN compiler-side.
+   - **stdlib fixed B-27/B-28** (`45d0337`) but the v0.64.4 bundle
+     carries a STALE snapshot (stdlib `-1401` note) -> workaround
+     retirement gate = the pin that RE-VENDORS stdlib.
+   - **RE-VERIFY WAVE at the tag (prepared; bundles ready)**: repros
+     under `docs/repro/bindings-pilot/` -- null-literal (4 paths=0),
+     ptr-read-stale (ffi_bad=0/400), foreign-ptr-read (C-matching),
+     ptr-slot-write + ptr-arith (exact), cb-abi probe9 (42/42/42), sdl3
+     synthetic-event raw-pointer readback, vulkan-slot-recycle (RTX
+     host), nested-payload (2/2/2; then restore sqlite
+     `Result[Option[SqliteRow]]` + retire `RowOutcome`), ptr-cast (cast
+     fidelity; then revisit `Int`-typed dx12 COM params + close
+     `-1309`), bigint-bitops (B-29), owned-slot-cast (B-30),
+     const-alias-cycle (B-31), B-05 alloc-guard-spin (watchdog!; still
+     red pre-lowering).  Then: **glfw 0.6.0 lift** (18 dispatchers +
+     registries -> direct handoff), **sdl3 handler widening**,
+     workaround retirement where re-verified.
+   - Multi-session note: concurrent bindings sessions share this
+     worktree -- fetch before every commit; retry pushes on races;
+     keep ledger edits small (the doorbell fires on schedule).
+0b. FIRST ACTIONS: (1) **read the compiler reply to
+    `REL-20261015-1109-bindings`** (cross-target feasibility: android-
+    arm64 effort, darwin/macOS leg ETA, apple-ios proximity, runtime
+    gaps); (2) **plan/start the ANDROID work FIRST** per owner: a
+    SKIP-safe prep wave (surfaces against the NDK headers --
+    native_app_glue / ANativeWindow / ALooper / AAudio-OpenSL / asset
+    manager; naming per the inquiry reply) + an NDK cross-build spike
+    of one existing package (opus canary) once the compiler path is
+    agreed; (3) watch for the next archive (v0.64.5/v0.64.6): on tag
+    run the RE-VERIFY WAVE (section 0) + the 0.64.5 release-check rows
+    (+ macOS legs when the next candidate ships); (4) normal flow:
+    relay sweep each doorbell, integrate finished agent deliveries,
+    file per-package publish requests to packages with the standing
+    engine relay.
 
 1. RELAY: E:\xiom-lang\xiom-relays -- `git fetch origin` + compare (do
    NOT pull: "Cannot fast-forward to multiple branches"); `python
