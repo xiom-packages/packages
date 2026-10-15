@@ -1,8 +1,8 @@
 # xiom.postgres
 
 > **Status:** `incubating` -- conformance-tested (38/38), recorded x2 green
-> on the pinned toolchain (XIOM v0.64.5); not yet published
-> (registry/allowlist gate).
+> on the pinned toolchain (XIOM v0.64.5). Published in `eco-v0.1.183`
+> (sha256 `4363261c...`).
 > **Scope:** PostgreSQL wire-protocol (v3) client in pure XIOM: TCP via
 > `xiom.net.socket`, StartupMessage, cleartext / MD5 / SCRAM-SHA-256 auth,
 > simple Query, typed result sets and typed errors. No FFI, no libpq,
