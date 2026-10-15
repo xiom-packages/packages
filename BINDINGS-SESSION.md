@@ -3,10 +3,10 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: jolt 0.6.0 in
-`eco-v0.1.181` (97 eco releases; E3/E6; 109/109 x2); jolt 0.7.0
-integrated + publish-requested -- E-FAMILY COMPLETE (159/159 x2)** --
-LIVE: jolt 0.6.0
+**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: jolt 0.7.0 in
+`eco-v0.1.182` (98 eco releases; E4/E5; 159/159 x2) -- E-FAMILY COMPLETE
+(all E1-E7 wireable)** --
+LIVE: jolt 0.7.0 (E4 soft bodies + E5 heightfield) + jolt 0.6.0
 (E3 motors/limits + E6 convex/compound) + jolt 0.5.0 (E1 queries + E2
 capsule + E7 contacts/sensors; 67/67 x2) + wave 2 (`eco-v0.1.178`: opus/
 ogg/lz4/ktx2/vdb/phonon 0.3.0) + wave 3/A05 (`eco-v0.1.179`) + codec wave
@@ -1003,6 +1003,23 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 06:05Z (doorbell -- jolt 0.7.0 PUBLISHED
+`eco-v0.1.182`; E-FAMILY COMPLETE LIVE; v0.64.5 tag still held)**:
+- **jolt 0.7.0 (E4/E5) LIVE**: `eco-v0.1.182` (merge `afd93d4c` tip
+  `51601b52`; brace-glue fixes `f0e60f90`/`6a01201d`; validate 553/0;
+  native x2 **159/159** both runs -- E4 soft bodies (volume/grid/rope +
+  settle/drape + bulk out-buffer + 13 typed errors), E5 heightfield
+  (plateau/ramp + quantization + settle + 8 typed errors); record
+  `954dfcfb`, wrap `0780149d`; run 38684757867 green; live sha256
+  `b1d09efd...` @05:05:29Z; README/STATUS synced `651c238f`; item
+  `-0313-bindings` fixed). **Engaged relayed with the family-complete
+  notice** (`REL-20261015-0507-packages`; all E1-E7 wireable against
+  0.7.0). Tally **98 eco releases** (`eco-v0.1.86`..`182`).
+- The entire E-family workstream is DONE overnight (0.4.0 -> 0.7.0).
+- **v0.64.5 tag still HELD** (`-2123` fix in progress); agenda/upscaler
+  wave next after; on tag -> packages repin -> the lane's RE-VERIFY WAVE
+  (m275-m294).
+
 **UPDATE 2026-10-15 03:20Z (E-FAMILY COMPLETE -- jolt 0.6.0 LIVE in
 `eco-v0.1.181`; 0.7.0 integrated + publish-requested)**:
 - **0.6.0 PUBLISHED**: `eco-v0.1.181` (97 releases; engine relayed
@@ -1240,6 +1257,20 @@ green; live sha256 `e5c777f8...` @01:35:43Z); item `-0002-bindings` fixed
 (`eco-v0.1.86` -> `eco-v0.1.181`). **E4/E5 = the final E-family session
 (launched)**; **v0.64.5 tag still HELD** (`-2123` Cell[Int8]/aes fix in
 progress, escalated pre-pin). Zero open bindings relay items at 03:00Z.
+
+**UPDATE 2026-10-15 06:05Z (doorbell -- jolt 0.7.0 LIVE as `eco-v0.1.182`;
+E-FAMILY COMPLETE)**: `xiom.jolt` 0.7.0 (E4 soft bodies -- volume/grid/
+rope + settle/drape + bulk out-buffer + 13 typed errors; E5 heightfield --
+plateau/ramp + quantization + settle + 8 typed errors) -- merge `afd93d4c`
+(tip `51601b52`; brace-glue fixes `f0e60f90`/`6a01201d`; validate 553/0),
+native x2 **159/159** both runs (record `954dfcfb`), wrap `0780149d`,
+**`eco-v0.1.182`** (run 38684757867 green; live sha256 `b1d09efd...`
+@05:05:29Z); README/STATUS synced `651c238f`; item `-0313-bindings` fixed;
+engine relayed with the **family-complete notice** (`REL-20261015-0507-
+packages`; all E1-E7 wireable against 0.7.0). Tally **98 eco releases**
+(`eco-v0.1.86` -> `eco-v0.1.182`). **v0.64.5 tag still HELD** (`-2123` fix
+in progress); agenda/upscaler wave next. Zero open bindings relay items at
+06:00Z.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
