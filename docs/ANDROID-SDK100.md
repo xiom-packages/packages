@@ -94,9 +94,10 @@ can be proven without the compiler target:
   x86_64 + aarch64; harness `dlopen` roundtrip **PASSED on the API-36
   x86_64 emulator** (repro: `docs/repro/bindings-pilot/android-ndk-spike/`;
   findings: flat-vendor include dirs + required `-lm` DT_NEEDED).
-- **W2**: SKIP-safe prep surfaces for the A1/A2/A6 heads (window-core,
-  lifecycle-glue, audio) authored against the NDK headers; suites SKIP
-  on desktop.
+- **W2 (STARTED 2026-10-15)**: brief `docs/prep/android-wave.md`
+  (oracle sizes per head, SKIP semantics, naming gate, order W2a-d);
+  surfaces for the A1/A2/A5/A6 heads follow the brief; suites SKIP on
+  desktop.
 - **W3**: on G1 -- first end-to-end suite on the emulator, then fan out
   slices A1-A12 as parallel agent sessions.
 

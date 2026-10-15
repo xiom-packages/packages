@@ -1024,8 +1024,10 @@ PASSES on the API-36 emulator)**: first on-device Android evidence:
   build-spike.ps1 + opus_harness.c). Emulator kept running headless
   (session background process) for W2/W3; arm64 on-device run waits
   on a device (build green).
-- Program doc `docs/ANDROID-SDK100.md` updated: W1 DONE. Next W2:
-  SKIP-safe surfaces (A1/A2/A6 heads) against the NDK headers.
+- Program doc `docs/ANDROID-SDK100.md` updated: W1 DONE; W2 STARTED --
+  brief `docs/prep/android-wave.md` (oracle sizes per head + SKIP
+  semantics + naming gate + order W2a-d); the committed
+  `build-spike.ps1` re-run verified on Windows PowerShell 5.1.
 
 **UPDATE 2026-10-15 11:55Z (ANDROID SDK100 PROGRAM STARTED -- blocker
 map answered; oracles pinned)**: owner asked for the lane-by-lane
