@@ -28,9 +28,10 @@ requires C++17, carried by the pinned v0.64.4 toolchain (thread via
 > 0.2.0 published in `eco-v0.1.161` (sha256 `f08d65ca...`); 0.3.0 in
 > `eco-v0.1.176` (sha256 `3ac3df4e...`); 0.4.0 in `eco-v0.1.179`
 > (sha256 `9315bbc7...`); 0.5.0 in `eco-v0.1.180` (sha256 `1035c987...`);
-> 0.6.0 in `eco-v0.1.181` (sha256 `e5c777f8...`); **0.7.0 unpublished**.
+> 0.6.0 in `eco-v0.1.181` (sha256 `e5c777f8...`); **0.7.0 in `eco-v0.1.182`
+> (sha256 `b1d09efd...`)**.
 > **Lane:** bindings (`keywords: ["binding"]`).
-> **Published**: `0.6.0` in `eco-v0.1.181` (sha256 `e5c777f8...`).
+> **Published**: `0.7.0` in `eco-v0.1.182` (sha256 `b1d09efd...`).
 
 ## Quick start
 
