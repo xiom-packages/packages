@@ -191,6 +191,15 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   capture its WIP). Scopes: `-2138` (transport) + `-2216` (otel) both still open with ops; template
   needs none. Publish plan: when transport lands + scopes LIVE -> one batch (transport + otel +
   template) as `eco-v0.1.186`, else split per readiness.
+- **UPDATE 2026-10-15 23:05Z**: **enum-variant codegen finding FILED to compiler** --
+  `REL-20261015-2303-packages` (HIGH) with the 16-probe repro bundle
+  (`%TEMP%\kilo\otel-findings\enum-float\`; all three cases reproduce on v0.64.5): unqualified
+  enum + Float64 payload -> denormal bits (truncated int part); qualified construct + UNANNOTATED
+  let -> compiles but match takes NO arm; qualified + ANNOTATED let -> clang `%struct.Reverse`
+  layout collision (minimal 21-line repro, no Float64 needed); flat-struct Float64 = correct
+  (otel's shipped workaround). Suggested home: the v0.64.6 fixer wave (neighborhood of
+  `-1941-packages`). Repro bundle is read-only; nothing else pending in the lane until the
+  transport build completes (agent still running) + ops scope confirms.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
