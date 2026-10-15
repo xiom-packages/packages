@@ -1005,6 +1005,35 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 11:55Z (ANDROID SDK100 PROGRAM STARTED -- blocker
+map answered; oracles pinned)**: owner asked for the lane-by-lane
+blocker map + a path to 100% Android support:
+- New program ledger `docs/ANDROID-SDK100.md`: **"100% Android" = 100%
+  of the NDK native surface** (the Java SDK is out of scope by design;
+  reachable only via the JNI seam, slice A11). Oracles pinned: header
+  families (android/ 68, vulkan/ 20, SLES/ 5, EGL/ 5, GLES3/ 5,
+  aaudio/ 1, + media/camera/amidi/jni.h) + **26 link-stub libs for
+  BOTH aarch64 + x86_64** (r27b sysroot links up to API 35). 12 slices
+  A1-A12.
+- **Blocker map**: **G1 compiler = the hard gate** (android-arm64 /
+  x86_64 emission + bionic runtime; inquiry `-1109-bindings` still
+  OPEN -- addendum pushed 11:55Z with toolchain + emulator evidence and
+  the x86_64-first VALIDATE-vehicle note); G2 stdlib android runtime
+  gaps (rides the G1 reply); G3 packages/eco android artifacts +
+  `android-arm64`/`android-x86_64` platform tokens (coordination, not
+  a start-gate); G4 validation infra = **local already**: API-36
+  x86_64 emulator + AVD `Medium_Phone` + adb (arm64 = physical device,
+  no sdkmanager adds under the read-only rule); G5 ours, no blockers.
+- W1/W2 next: opus vendor-C spike (x86_64 emulator run + aarch64
+  build) + SKIP-safe prep surfaces (A1/A2/A6 heads). The vendor-C
+  half of Android is provable BEFORE the compiler target exists.
+- Compiler intel refresh (relay): **v0.64.5 signal IMMINENT** -- all
+  four `-2123` stdlib classes fixed (m323/m324/m325/m326) + m327
+  bug55 follow-up landed; full e2e re-gate running, archive signal
+  next. Darwin/macOS general fix OWNER-DECIDED to **v0.64.6**
+  (v0.64.5 does NOT wait; dry-run 38626737822 job-verifies both
+  macOS legs). On signal -> the RE-VERIFY WAVE (item 0) still stands.
+
 **UPDATE 2026-10-15 11:35Z (ANDROID TOOLCHAIN LOCATED + VERIFIED -- owner
 supplied path)**: owner pointed at `C:\Android\sdk` (his Unity/UE5/Flutter
 SDK). Verified READ-ONLY on this box, all green:
