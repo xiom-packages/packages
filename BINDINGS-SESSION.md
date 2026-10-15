@@ -1005,6 +1005,19 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 22:15Z (wave-2b + G3 filed -- 6 package units
+live/in flight)**: two more agent sessions requested
+(`am-1792101281743-6bucae`): **`android/android-sys`**
+(`xiom.android-sys` -- A12 starter: log FUNCTIONAL + sync head) and
+**`android/opensl`** (`xiom.opensl` -- A6 legacy tail: SLES/OMXAL/
+AMidi; slCreateEngine + realize + destroy via C-side vtable).  The
+family is now 1 live package + 6 agent units.  **G3 filed** to
+packages: `REL-20261015-2210-bindings` -- propose android-arm64/
+android-x86_64 platform tokens; NO artifacts needed (everything is a
+system lib at runtime).  Program doc gained a full Status section (the
+remaining map: A3/A4 serial to W2c, A9 generator-aware, A10 OWNER,
+A11 JNI seam, A12 remainder).
+
 **UPDATE 2026-10-15 22:05Z (ANDROID WAVE-2 LAUNCHED -- 4 agent
 worktrees)** per the owner's "agents to 100%" directive; each session
 owns disjoint files (integration at their completion via the normal

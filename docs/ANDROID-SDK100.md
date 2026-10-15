@@ -111,6 +111,34 @@ can be proven without the compiler target:
 - **W3**: on G1 -- first end-to-end suite on the emulator, then fan out
   slices A1-A12 as parallel agent sessions.
 
+## Status (2026-10-15, evening)
+
+- **A1 window-core**: DONE (`xiom.android` 0.1.0; on-device 27/27 +
+  HWB roundtrip).
+- **A5 assets-storage**: DONE (`xiom.android` 0.2.0; on-device 53/53 +
+  SHM roundtrip).
+- **A2 lifecycle-glue**: IN FLIGHT (`android/w2c-lifecycle`; looper
+  functional on-device).
+- **A6 audio**: AAudio head IN FLIGHT (`android/aaudio`);
+  legacy tail (AMidi/OpenSL ES/OMXAL) IN FLIGHT (`android/opensl`).
+- **A7 media**: core IN FLIGHT (`android/mediandk`).
+- **A8 camera**: head IN FLIGHT (`android/camera2ndk`).
+- **A12 starter (log+sync)**: IN FLIGHT (`android/android-sys`).
+- **A3 input + A4 sensors**: NEXT WAVE (serial to W2c -- same package).
+- **A9 graphics-gl**: NEXT WAVE (delta over `xiom.gles`: system lib
+  names + EGL_ANDROID_*; generated package -- needs a
+  generator-aware pass).
+- **A10 graphics-vk**: OWNER lane (android delta =
+  VK_KHR_android_surface).
+- **A11 JNI seam**: NEXT WAVE (design: env/object slots supplied by
+  the consumer app; gates every live Surface/Context/asset wrapper).
+- **A12 remainder** (binder_ndk / NNAPI / icu / z): later waves.
+- **G1 (compiler android target)**: OPEN -- owner call on the v0.64.6
+  roadmap; the true end-to-end gate for XIOM-on-Android.
+- **G3 (packages tokens)**: relay item filed (`REL-20261015-2210-bindings`)
+  -- android-arm64/x86_64 tokens; NO vendored artifacts needed (all
+  system libs).
+
 ## Evidence log
 
 - 2026-10-15T11:35Z: SDK `C:\Android\sdk` verified -- NDK r27b (clang
