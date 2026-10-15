@@ -423,7 +423,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb2 | False | publish pending: next scope delta |
 | xiom.jit-fw | xiom-jit-fw | incubating | tests/test_conformance.xi | pass 25/25 | c1e35d4f | False | category harmonization patch bump (registry metadata) |
-| xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 109/109 | a857a7f2 | False | published in eco-v0.1.181 (2026-10-15, 0.6.0 E3/E6; 0.5.0 in eco-v0.1.180; 0.4.0 in eco-v0.1.179; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161) |
+| xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 159/159 | 6a01201d | False | published in eco-v0.1.181 (2026-10-15, 0.6.0 E3/E6; 0.5.0 in eco-v0.1.180; 0.4.0 in eco-v0.1.179; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161) |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.ktx2 | xiom-ktx2 | incubating | tests/test_conformance.xi | pass 41/41 | 82e75e16 | False | not allowlisted: new package (0.1.0), awaiting publish-scope decision |
