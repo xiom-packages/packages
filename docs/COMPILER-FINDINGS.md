@@ -74,10 +74,34 @@ Packages-lane verdicts (full table on the bus, `release-checks/compiler-compiler
   `-7` (xiom-pkg fallback), `-8` (evaluator recursion), `-12` (tuple-ref destructure): not
   addressed in v0.64.3.
 
+## v0.64.5 repin matrix + re-verify (2026-10-15, native lane)
+
+Install: official `xiom-0.64.5-windows-x64.zip`, SHA256 `bd71e2d357b7a7218ad5e440396b7278767ed8bc080ba720192c60742b78907f`
+(verified against the published SHA256SUMS); canonical install (`%LOCALAPPDATA%\xiom.new`)
+**byte-identical 557/557**; `COMPILER_VERSION` bumped; repin **553 records** (`cb364af3`); validate
+**553/0**; guard **542/526/16/0** (after the wait-window trio allowlist append).
+
+Re-verify verdicts (filed on the bus 2026-10-15; all `fixed -> verified`):
+
+| Item | Result |
+| --- | --- |
+| `-1549-packages-5` (consumer port.args) | **VERIFIED** -- dependency port.args auto-applied at consumer build; links without manual `--c-source`; prints `3.53.4`, exit 0 |
+| `-1549-packages-7` (pkg local fallback + range specs) | **VERIFIED** -- fallback lands 10 files on disk; `>=0.2.0` range spec resolves + compiles/runs |
+| `-1549-packages-9` (bare `&mut Int` reads, m294) | **VERIFIED** -- compiler witness `failures=0`, exit 0 |
+| `-1549-packages-11` (Map/Set `==`, m293) | **VERIFIED** -- compiler witness compiles + runs, exit 0 |
+| `-1403-packages` (nested fn types, m277) | **VERIFIED** -- sdl3 suite 72/72 with **0 warnings**; retire the sdl3-site workaround at the next bindings touch |
+
+Not in v0.64.5: `-1509-engine` port.args repeated-scalar-flag merge (v0.64.6 queue); editor
+W1/W2 findings (v0.64.6); the wide-int witnesses (B-29 family) were re-run by the bindings reporter
+wave -- all probes GREEN except B-29.
+
 ## Open findings
 
 | Date | Finding | Evidence | Workaround in packages | Impact |
 |---|---|---|---|---|
+| 2026-10-15 (OPEN, v0.64.5; `REL-20261015-1941-packages`) | **Codegen: tuple mangling collision for `Result[(Str, Int), <struct-error>]` with an INLINE `Str::from_utf8(...)` as the Ok tuple's first component** -- clang: `'%tmp33' defined with type '%struct.Tuple__Int__Int' but expected '%struct.Tuple__Str__Int'`; distinct from the m256 match-arm shape | found by the `xiom.postgres` build; repro bundle `%TEMP%\kilo\pg-findings\tuple\` (`probe_tuple.xi` fails exit 1; `probe_tuple_ok.xi` control exit 0; `pkg\` module-boundary variant reproduces) | bind the tuple to a local before `Ok(...)` (avoid inline conversions inside tuple payloads); applied in the postgres suite | valid source fails codegen with an internal LLVM error naming no user code |
+| 2026-10-15 (OPEN, v0.64.5; `REL-20261015-1942-packages`, stdlib) | **`xiom.crypto.md5` produces wrong digests silently (exit 0)**: `md5('abc')` = `5aac66a4e204752757366266cfad9c14` (RFC 1321 expects `900150983cd24fb0d6963f7d28e17f72`); `md5('hello world')` = `6ae69585f23eddfd6770ca3cdfe7cbf4` (expected `5eb63bbbe01eeed093cb22bb8f5acdc3`) | repro `%TEMP%\kilo\pg-findings\md5\probe_md5.xi` + `result.txt`; found building `xiom.postgres` (its MD5 auth KATs diverged) | `xiom.postgres` ships its own RFC-anchored MD5 and documents it; do not trust `xiom.crypto.md5` | silently wrong digest -- every md5 consumer (incl. PostgreSQL MD5 auth) computes wrong values with no error; stdlib acked 2026-10-15 (`424148f`), queued behind the pin switch |
+| 2026-10-15 (OPEN, v0.64.5; `REL-20261015-1948-packages`, stdlib) | **`socket_connect` returns Ok on a refused TCP connection (Windows)**; the failure only surfaces at the first `socket_send_all` ('send failed') | witnessed by `xiom.redis` suite n17 + `xiom.postgres` + standalone probe `%TEMP%\kilo\pg-findings\socket-connect\probe_refused.xi` (v0.64.5: connect Ok, send Err) | classify connection failure at first send; both packages carry the typed error kind | misleading API (silent wrong-success at the connect call); stdlib acked 2026-10-15 (`424148f`), queued |
 | 2026-10-08 (OPEN, v0.64.0; bindings lane, cross-ref **B-09**) | **A large confined `unsafe` block that creates a Win32 window + WGL context poisons the whole binary**: builds exit `-1073740791` (0xC0000409) with no output at all (crash before the first `println`, deterministic 3/3); isolated sub-parts are green (window+`GetDC`+cleanup with the same 12-arg fn-pointer cast runs; folding `ChoosePixelFormat`/`SetPixelFormat`/`wglCreateContext`/`wglMakeCurrent`/string-query into the same function makes every build crash) | runnable repro + control `docs/repro/bindings-pilot/win32-gl-unsafe/` (`probe_q2.xi` crashes 3/3, `probe_q1.xi` control green); full row in `docs/BINDINGS-COMPILER-FINDINGS.md` (B-09), found building the pre-fix `xiom.opengl` pure-XIOM Win32 probe | `xiom.opengl` 0.2.0 moved the probe into the vendored C bridge `src/gl_probe.c` (`--c-source`, no `--link`); the XIOM side is ten one-line `extern` wrappers over safe functions | build-shaped pre-output crash; bounded q1/q2 pair isolates the trigger to the added WGL stage |
 | 2026-10-08 (OPEN, v0.64.0; batch #41 probe) | **`Result` equality is unusable in expressions on v0.64.0**: `result == helper(...)` traps at runtime when the payload is a `Vec` (fresh allocations compare unequal) and fails codegen for struct payloads (`icmp eq %struct`) | batch #41 `xiom.tftp` porter probe (2026-10-08), clauses re-expressed as status guard pairs (`helper(...) is Err => result is Err` + the `is Ok` twin) | never compare `Result` values directly; use tag/sentinel guard pairs; SPEC tables note it | silent runtime trap / compile failure on a natural contract shape. **RESOLVED on v0.64.2 (m239; native 2026-10-09): the `res_eq` acceptance probe exits 0 and the struct-clone/tuple-vec-set probes are green -- `Result ==` / `Ok(Vec)` content equality and Vec[Int]/Vec[Str] content equality are real. Map/Set `==` remains the one documented gap; the clause-shape ban is retired for Vec/container payloads.** |
 | 2026-10-08 (OPEN, v0.64.0; batch #41 probe) | **`expr is Ok(<literal>)` ignores the literal payload**: it compiles and matches any `Ok` (probe: `tftp_op(data) is Ok(1)` matched an `Ok(2)`-producing input) | batch #41 `xiom.tftp` porter probe (2026-10-08); dispatch clauses re-expressed as `data.len() >= 2 && _u16(data, 0) == N` | destructure or compare the underlying value explicitly; never rely on a payload literal inside an `is` pattern | silent wrong dispatch on legal-looking code. **RESOLVED on v0.64.2 (m229; native 2026-10-09): payload literals are compared again (probe: `Ok(2) is Ok(1)` false, `Ok(1) is Ok(1)` true, Err never Ok; exit 0); the clause-shape ban is retired.** |
