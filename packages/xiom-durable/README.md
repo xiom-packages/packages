@@ -1,8 +1,9 @@
 # xiom.durable
 
-> **Status:** `incubating` -- conformance green on the pin (v0.64.2):
-> **PASS 152/152 x2** via `scripts/port.ps1 -Package xiom-durable -TimeoutSec 120`
-> (2026-10-09); not yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance green on the pin (v0.64.5):
+> **PASS 152/152 x2** (last run 2026-10-15; harness uses
+> `XIOM_HOME=%TEMP%\kilo\consumer-home` so the `xiom.wal` dep root resolves).
+> Published in `eco-v0.1.183` (sha256 `9a5c9b4d...`).
 > **Deps:** `xiom.std`, `xiom.wal` `0.1.0` (single WAL home).
 > **Scope:** shared durable-systems substrate -- config, errors, IDs, limits,
 > metrics, storage pages, and transaction bookkeeping -- for `xiom-db` and

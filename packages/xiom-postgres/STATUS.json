@@ -13,5 +13,5 @@
                   "checked":  "2026-10-15T19:32:10Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: new name (pure-XIOM PG wire v3 phase 1); ops scope ask filed 2026-10-15"
+    "excluded_reason":  "published in eco-v0.1.183 (2026-10-15, 0.1.0 -- pure-XIOM PG wire v3 phase 1)"
 }
