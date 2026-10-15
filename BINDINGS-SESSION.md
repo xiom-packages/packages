@@ -1012,7 +1012,7 @@ E-family publish:
   (plateau/ramp + quantization + settle + 8 typed errors); record
   `954dfcfb`, wrap `0780149d`; run 38684757867 green; live sha256
   `b1d09efd...` @05:05:29Z; README/STATUS synced `651c238f`; item
-  `-0313-bindings` fixed). **Engaged relayed with the family-complete
+  `-0313-bindings` fixed). **Engine relayed with the family-complete
   notice** (`REL-20261015-0507-packages`; all E1-E7 wireable against
   0.7.0). Tally **98 eco releases** (`eco-v0.1.86`..`182`).
 - The entire E-family workstream is DONE overnight (0.4.0 -> 0.7.0).
