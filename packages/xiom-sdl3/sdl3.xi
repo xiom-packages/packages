@@ -1636,31 +1636,18 @@ pub fn sdl3_event_window_data2(buf: &Vec[UInt8]) -> Int
 
 // =========================================================================
 // 0.5.0: event filter + event watch (C callbacks into XIOM)
-//
-// SDL_EventFilter / SDL_EventWatcher are C callbacks (`bool/void (*)(void*
-// userdata, SDL_Event* event)`).  ABI (proven by docs/repro/bindings-pilot/
-// cb-abi; finding B-13): only a fixed top-level dispatcher's NAME may cross
-// into C -- fn-typed PARAM values marshal to 0.  So each registration hands
-// SDL ONE fixed dispatcher; user handlers live in a module-level `Vec[fn]`
-// registry (m130 element ABI, last set wins).  The dispatcher copies the
-// 128-byte event into an owned buffer (our memcpy, safe read direction) so
-// handlers use the 0.4.0 decode accessors; this avoids the B-11
-// foreign-write readback path entirely.
-//
-// v0.64.3 constraint (finding B-15): `Vec[fn]` element CALLS with >= 2
-// arguments type their result as `()` -- so handler types here take the
-// event only (1-arg calls, proven) and the caller's userdata is exposed via
-// `sdl3_filter_userdata()` / `sdl3_watch_userdata()`.  Dispatcher bodies
-// also avoid `return;` in explicitly `-> Unit` fns (finding B-14).
-//
-// SDL semantics: the filter runs as events are flushed (pump); returning
-// false DROPS the event.  Watches observe without consuming.
+// 0.20.0: DIRECT HANDOFF + shape widening -- handlers take the NATURAL C
+// shape `(userdata, event)` and are handed to SDL as-is (B-22 fixed, m277:
+// fn-typed param values marshal through cast-call positions exactly; B-15
+// fixed as well, so 2-arg shapes are no longer forced through a registry).
+// The 0.5.0 dispatchers, registries and userdata accessors are gone: each
+// handler receives its own registration userdata, so multiple watches each
+// route their own state.  The raw `SDL_Event*` address is only valid during
+// the call (SDL semantics); copy it into an owned buffer with the 0.4.0
+// decode accessors via `sdl3_event_copy`.  Filters: return 1 to keep the
+// event, 0 to drop it.  Watches observe without consuming.  Removal passes
+// the SAME handler fn + userdata (SDL matches the pair).
 // =========================================================================
-
-var sdl3_filter_handlers: Vec[fn(Vec[UInt8]) -> Bool] = Vec[fn(Vec[UInt8]) -> Bool].new();
-var sdl3_watch_handlers: Vec[fn(Vec[UInt8]) -> Unit] = Vec[fn(Vec[UInt8]) -> Unit].new();
-var sdl3_filter_user: Int = 0;
-var sdl3_watch_user: Int = 0;
 
 /// Copy the foreign SDL_Event into an owned 128-byte buffer.
 fn ev_copy_from(event: Int) -> Vec[UInt8]
@@ -1678,64 +1665,30 @@ fn ev_copy_from(event: Int) -> Vec[UInt8]
   return buf;
 }
 
-/// Fixed filter dispatcher (the address SDL keeps); last handler wins.
-fn sdl3_filter_dispatch(userdata: Int, event: Int) -> UInt8 {
+/// Copy the foreign SDL_Event -- passed to a filter/watch handler as its raw
+/// address -- into an owned 128-byte buffer for the decode accessors
+/// (null-safe: returns an empty buffer for 0).
+/// Complexity: O(1).
+pub fn sdl3_event_copy(event: Int) -> Vec[UInt8]
+  requires: true
+{
   if event == 0 {
-    return 1 as UInt8;
+    return Vec[UInt8].new();
   }
-  if sdl3_filter_handlers.len() == 0 {
-    return 1 as UInt8;
-  }
-  let buf = ev_copy_from(event);
-  let h = sdl3_filter_handlers[sdl3_filter_handlers.len() - 1];
-  let keep = h(buf);
-  if keep {
-    return 1 as UInt8;
-  }
-  return 0 as UInt8;
+  return ev_copy_from(event);
 }
 
-/// Fixed watch dispatcher; observers cannot consume.
-fn sdl3_watch_dispatch(userdata: Int, event: Int) -> Unit {
-  if event != 0 {
-    if sdl3_watch_handlers.len() != 0 {
-      let buf = ev_copy_from(event);
-      let h = sdl3_watch_handlers[sdl3_watch_handlers.len() - 1];
-      h(buf);
-    }
-  }
-}
-
-/// Userdata passed at filter registration (SDL hands it to the dispatcher;
-/// the 1-arg handler shape reads it here).
+/// SDL_SetEventFilter(handler, userdata) -- direct handoff.  The handler
+/// `fn(userdata: Int, event: Int) -> UInt8` decides per event: return 1 to
+/// keep it, 0 to drop it.  Read the event bytes with
+/// `sdl3_event_copy(event)`.  Handlers must be env-free (top-level fns).
 /// Complexity: O(1).
-pub fn sdl3_filter_userdata() -> Int
-  requires: true
-{
-  return sdl3_filter_user;
-}
-
-/// Userdata passed at watch registration.
-/// Complexity: O(1).
-pub fn sdl3_watch_userdata() -> Int
-  requires: true
-{
-  return sdl3_watch_user;
-}
-
-/// SDL_SetEventFilter(dispatcher, userdata).  The handler
-/// `fn(event: Vec[UInt8]) -> Bool` decides per event: true keeps it, false
-/// drops it (last registered wins; call `sdl3_clear_event_filter` to
-/// remove).  Read the registration userdata with `sdl3_filter_userdata()`.
-/// Complexity: O(1).
-pub fn sdl3_set_event_filter(lib: &Sdl3Library, filter: fn(Vec[UInt8]) -> Bool, userdata: Int) -> Bool
+pub fn sdl3_set_event_filter(lib: &Sdl3Library, filter: fn(Int, Int) -> UInt8, userdata: Int) -> Bool
   requires: lib.handle != 0
 {
-  sdl3_filter_handlers.push(filter);
-  sdl3_filter_user = userdata;
   unsafe {
     let f = lib.p_set_event_filter as fn(fn(Int, Int) -> UInt8, Int);
-    f(sdl3_filter_dispatch, userdata);
+    f(filter, userdata);
   }
   return true;
 }
@@ -1752,31 +1705,30 @@ pub fn sdl3_clear_event_filter(lib: &Sdl3Library) -> Bool
   return true;
 }
 
-/// SDL_AddEventWatch(dispatcher, userdata) -- observe events without
-/// consuming.  The handler is `fn(event: Vec[UInt8]) -> Unit` (last
-/// registered wins; read the userdata via `sdl3_watch_userdata`; remove
-/// with the same userdata via `sdl3_remove_event_watch`).
+/// SDL_AddEventWatch(handler, userdata) -- direct handoff; observes events
+/// without consuming.  The handler `fn(userdata: Int, event: Int) -> Unit`
+/// receives its own registration userdata (multiple watches each route
+/// their own state).  Remove with the SAME handler + userdata (SDL matches
+/// the pair).  Handlers must be env-free.
 /// Complexity: O(1).
-pub fn sdl3_add_event_watch(lib: &Sdl3Library, watch: fn(Vec[UInt8]) -> Unit, userdata: Int) -> Bool
+pub fn sdl3_add_event_watch(lib: &Sdl3Library, watch: fn(Int, Int) -> Unit, userdata: Int) -> Bool
   requires: lib.handle != 0
 {
-  sdl3_watch_handlers.push(watch);
-  sdl3_watch_user = userdata;
   unsafe {
     let f = lib.p_add_event_watch as fn(fn(Int, Int) -> Unit, Int) -> UInt8;
-    return (f(sdl3_watch_dispatch, userdata) as Int) != 0;
+    return (f(watch, userdata) as Int) != 0;
   }
 }
 
-/// SDL_RemoveEventWatch(dispatcher, userdata); pass the userdata used at
-/// registration (the registered handler is the fixed dispatcher).
+/// SDL_RemoveEventWatch(handler, userdata) -- pass the SAME handler fn and
+/// userdata used at registration (SDL matches the pair).
 /// Complexity: O(1).
-pub fn sdl3_remove_event_watch(lib: &Sdl3Library, userdata: Int) -> Bool
+pub fn sdl3_remove_event_watch(lib: &Sdl3Library, watch: fn(Int, Int) -> Unit, userdata: Int) -> Bool
   requires: lib.handle != 0
 {
   unsafe {
     let f = lib.p_remove_event_watch as fn(fn(Int, Int) -> Unit, Int);
-    f(sdl3_watch_dispatch, userdata);
+    f(watch, userdata);
   }
   return true;
 }

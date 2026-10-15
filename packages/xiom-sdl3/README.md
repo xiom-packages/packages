@@ -6,7 +6,7 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.19.0 device surface (engine ask
+> **Status:** `incubating` -- **0.20.0 callback direct handoff; 0.19.0 device surface (engine ask
 > `REL-20261013-2324-engine`)**: joystick **caps** as typed queries (the
 > five `SDL.joystick.cap.*` flags over the properties group + counts/type +
 > an aggregate caps record), **haptic wave forms** (validated
@@ -95,12 +95,13 @@ to `sdl3_create_texture` for `sdl3_update_texture` uploads).
 
 ## Engine event loop (typed events via the watch)
 
-SDL_Event data cannot be read back from a `SDL_PollEvent`-written buffer on
-v0.64.3 (B-11-family corruption), so the typed route is: register an event
-watch once; each queued event is COPIED into an owned buffer by the watch
-dispatcher and decoded with the 0.4.0 accessors. Drain with `poll(NULL)`
-for queue hygiene; `sdl3_filter_userdata()`/`sdl3_watch_userdata()` expose
-the registration userdata.
+SDL_Event data read back from a `SDL_PollEvent`-written buffer was corrupted
+on v0.64.3 (B-11 family; retired at v0.64.4), and the watch route stays the
+typed one: register an event watch once; each queued event arrives as its
+raw address (valid only during the call) and is COPIED into an owned buffer
+with `sdl3_event_copy(event)` for the 0.4.0 accessors. Drain with `poll(NULL)`
+for queue hygiene; handlers receive their own registration userdata
+(direct handoff, 0.20.0).
 
 ```xiom
 use xiom.io;
