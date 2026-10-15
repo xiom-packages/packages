@@ -1,0 +1,6 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/android_sys_bridge.c",
+  "--timeout",
+  "240"
+]
