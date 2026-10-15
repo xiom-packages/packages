@@ -163,6 +163,14 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   reviews + x2 + records + integrates). Scope ask filed `REL-20261015-2138-packages` (PROD-only);
   engine notified `REL-20261015-2139-packages` (shape + seam-adapter hint). On green: allowlist +
   publish (batch 88) + engine relay with counts/sha256.
+- **UPDATE 2026-10-15 22:15Z**: **PULSE TOP-TIER DIRECTIVE processed** (`REL-20261015-2202-pulse-3`,
+  acked with routes). Findings: `xiom.template` 0.1.2 is placeholder-only -> **template 0.2.0 build
+  queued** (sections/loops/conditionals + auto-escape; stable-tier minor path); **`xiom.otel` queued**
+  (OTLP/JSON + span model + pluggable sink); **zstd is already live for PULSE** (`xiom.zstd` 0.3.0,
+  real zstd 1.5.7 raw frames = Content-Encoding: zstd); **TLS context engine + real brotli FILED to
+  bindings** (`REL-20261015-2211-packages` / `-2`; xiom.tls 0.1.3 codec + xiom.openssl 0.2.0 crypto
+  are already live -- the missing libssl-class context loader is the ask). Build queue order now:
+  A08 transport (agent running) -> template 0.2.0 -> xiom.otel. All nodes: relays clean (552 valid).
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
