@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-15T04:35:53Z",
+    "updated":  "2026-10-15T08:03:29Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -3767,17 +3767,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.6.0",
+                         "version":  "0.7.0",
                          "name":  "xiom.jolt",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; probes + caller-usable world/body surface + external force/torque input + world queries (raycast/sweep/overlap) + capsule shape + contacts/sensors + typed joints (fixed/hinge/slider/point with motors/limits) + convex/compound bodies)",
+                         "description":  "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; probes + caller-usable world/body surface + external force/torque input + world queries (raycast/sweep/overlap) + capsule shape + contacts/sensors + typed joints (fixed/hinge/slider/point with motors/limits) + convex/compound bodies + soft bodies (cloth/rope/volume presets with particle read-back) + heightfield terrain)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jolt/v0.6.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jolt/v0.7.0/package.tar.gz",
                          "source_files":  [
                                               "jolt.xi",
                                               "package.xi"
