@@ -4,7 +4,9 @@ Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
 **STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: jolt 0.6.0 in
-`eco-v0.1.181` (97 eco releases; E3/E6; 109/109 x2)** -- LIVE: jolt 0.6.0
+`eco-v0.1.181` (97 eco releases; E3/E6; 109/109 x2); jolt 0.7.0
+integrated + publish-requested -- E-FAMILY COMPLETE (159/159 x2)** --
+LIVE: jolt 0.6.0
 (E3 motors/limits + E6 convex/compound) + jolt 0.5.0 (E1 queries + E2
 capsule + E7 contacts/sensors; 67/67 x2) + wave 2 (`eco-v0.1.178`: opus/
 ogg/lz4/ktx2/vdb/phonon 0.3.0) + wave 3/A05 (`eco-v0.1.179`) + codec wave
@@ -1000,6 +1002,22 @@ E-family publish:
 - **E4/E5 launched** = the final E-family session (strict sequential).
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
+
+**UPDATE 2026-10-15 03:20Z (E-FAMILY COMPLETE -- jolt 0.6.0 LIVE in
+`eco-v0.1.181`; 0.7.0 integrated + publish-requested)**:
+- **0.6.0 PUBLISHED**: `eco-v0.1.181` (97 releases; engine relayed
+  `REL-20261015-0158-packages`); my request `-0002` fixed.
+- **0.7.0 DONE + integrated** (`1087a5d7`; record `51601b52`): E4 soft
+  bodies (cloth/rope/volume presets; particle read-back incl. bulk
+  out-buffer) + E5 heightfield (samples+scale+quantization; settle +
+  E1 raycast); suite 109 -> **159/159 x2**.  Publish request
+  `REL-20261015-0313-bindings`.  **E8 + E1-E7 all delivered** -- the
+  engine's top dependency closes when 0.7.0 publishes.
+- **v0.64.5 still HELD** (candidate regression Cell[Int8]/aes escalated
+  pre-pin; candidate probes 310/315 otherwise green).  No archive yet;
+  the re-verify wave stays armed.
+- Relay tip `e8344e9`, validate 504 items.  No sessions in flight --
+  the jolt E-family workstream is DONE (0.4.0 -> 0.7.0 in one night).
 
 **UPDATE 2026-10-15 00:45Z (doorbell: jolt 0.6.0 integrated +
 publish-requested; E4/E5 session launched; v0.64.5 tag HELD)**:
