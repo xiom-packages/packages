@@ -514,7 +514,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.randomforest | xiom-randomforest | incubating | tests/test_conformance.xi | pass 24/24 | 3ff86363 | False | publish pending: next scope delta |
 | xiom.raylib | xiom-raylib | incubating | tests/test_conformance.xi | pass 12/12 | 843586a3 | False |  |
 | xiom.realtime | xiom-realtime | incubating | tests/test_conformance.xi | pass 10/10 | 57cdac5b | False | publish pending: eco-v0.1.42 |
-| xiom.redis | xiom-redis | incubating | tests/test_conformance.xi | pass 19/19 | 5c313832 | False | publish pending: new name (pure-XIOM RESP client); ops scope ask filed 2026-10-15 |
+| xiom.redis | xiom-redis | incubating | tests/test_conformance.xi | pass 19/19 | 5c313832 | False | published in eco-v0.1.184 (2026-10-15, 0.1.0 -- pure-XIOM RESP client) |
 | xiom.rest | xiom-rest | incubating | tests/test_conformance.xi | pass 10/10 | a2dc225d | False | publish pending: eco-v0.1.41 |
 | xiom.rocksdb | xiom-rocksdb | incubating | tests/test_conformance.xi | pass 24/24 | a69d2dd5 | False | publish pending: next scope delta |
 | xiom.ros2 | xiom-ros2 | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
