@@ -1,8 +1,8 @@
 # AUDIT: xiom.jolt
 
-## Status (2026-10-14)
+## Status (2026-10-15)
 
-Vendored C++ implementation at 0.6.0, **verified on the pinned v0.64.4
+Vendored C++ implementation at 0.7.0, **verified on the pinned v0.64.4
 toolchain** (`--cxx-standard 17`; the m258 flag now ships in the official
 pin, so the m258 gate that parked 0.2.0 is closed).  Jolt requires real
 C++17; the flag and the 26-source list are threaded into `port.args.json`.
@@ -11,12 +11,12 @@ C++17; the flag and the 26-source list are threaded into `port.args.json`.
 |------|-------|
 | Compiler | v0.64.4 (official pin; `--cxx-standard 17`) |
 | Upstream | JoltPhysics tag **v5.6.0** (tarball sha256 `6E069EE0...`, 19.4 MB) |
-| Generator | `tools/combine.py` -- mirrors `Jolt/**` (`<Jolt/...>` -> `"Jolt/..."`), 25 per-directory TUs + a bridge shim at the vendor root; tree sha256 `ea20c2d1f1f2a16e1fa62efeff5804c9d7b47f51812eefb8ed9ddb4330d6b69b` (re-verified read-only 2026-10-13; untouched by 0.4.0/0.5.0/0.6.0) |
-| Bridge | `src/jolt_bridge.cpp` via the generated `vendor/jolt_bridge.cpp` shim: probes (drop/impulse) + a 4-slot world registry with body add/remove/count (box/sphere/capsule/sensor/convex/compound), per-body apply_force/apply_torque, step/step_n, a bridge-owned state cache, world queries (raycast closest/any, sphere/capsule closest sweep, sphere/capsule overlap with canonical order), a per-step contact/sensor cache fed by a ContactListener, and a typed joint registry with motors/limits/state read-back (`Ref<Constraint>` per joint, body-world via `Body::sFixedToWorld`); single-threaded job system; integer-only ABI |
-| Suite | `tests/test_conformance.xi`, 109 checks |
-| Runs | **109/109 x2** on v0.64.4: 0.2.0 probes (drop settles at 479 milli, body asleep; impulse vx=4995) + world lifecycle, engine flows (box/sphere/capsule), between-step read-back, body add/remove/count, rotation round-trip, determinism, the 0.4.0 force/torque checks, the 0.5.0 tiers (E1 raycast/sweep/overlap with canonical order + cross-world bit-identical repeats, E2 capsule settle/rotation/query participation, E7 contact manifolds + sensor events) and the 0.6.0 tiers: E3 typed joints (motorized hinge reaches 999 milli rad in 60 steps and repeats bit-identically; position motor 699 vs target 700; limits clamp at exactly 250/200; weld under gravity holds + reaction impulse 163357 milli; point pivot holds; typed errors and body-removal auto-cleanup) and E6 convex/compound (hull + 4-part compound settle at 479 milli asleep, repeat bit-identically, are hit per part by raycasts, and report landing contacts) |
+| Generator | `tools/combine.py` -- mirrors `Jolt/**` (`<Jolt/...>` -> `"Jolt/..."`), 25 per-directory TUs + a bridge shim at the vendor root; tree sha256 `ea20c2d1f1f2a16e1fa62efeff5804c9d7b47f51812eefb8ed9ddb4330d6b69b` (re-verified read-only 2026-10-13; untouched by 0.4.0/0.5.0/0.6.0/0.7.0) |
+| Bridge | `src/jolt_bridge.cpp` via the generated `vendor/jolt_bridge.cpp` shim: probes (drop/impulse) + a 4-slot world registry with body add/remove/count (box/sphere/capsule/sensor/convex/compound/heightfield), per-body apply_force/apply_torque, step/step_n, a bridge-owned state cache, world queries (raycast closest/any, sphere/capsule closest sweep, sphere/capsule overlap with canonical order), a per-step contact/sensor cache fed by a ContactListener, a typed joint registry with motors/limits/state read-back (`Ref<Constraint>` per joint, body-world via `Body::sFixedToWorld`), a soft-body registry (cloth/rope/volume presets over caller size parameters; owned `RefConst<SoftBodySharedSettings>` per body; particle read-back scalars + one capacity-checked caller out-buffer) and the static heightfield terrain builder; single-threaded job system; integer-only ABI |
+| Suite | `tests/test_conformance.xi`, 159 checks |
+| Runs | **159/159 x2** on v0.64.4: 0.2.0 probes (drop settles at 479 milli, body asleep; impulse vx=4995) + world lifecycle, engine flows (box/sphere/capsule), between-step read-back, body add/remove/count, rotation round-trip, determinism, the 0.4.0 force/torque checks, the 0.5.0 tiers (E1 raycast/sweep/overlap with canonical order + cross-world bit-identical repeats, E2 capsule settle/rotation/query participation, E7 contact manifolds + sensor events), the 0.6.0 tiers: E3 typed joints (motorized hinge reaches 999 milli rad in 60 steps and repeats bit-identically; position motor 699 vs target 700; limits clamp at exactly 250/200; weld under gravity holds + reaction impulse 163357 milli; point pivot holds; typed errors and body-removal auto-cleanup) and E6 convex/compound (hull + 4-part compound settle at 479 milli asleep, repeat bit-identically, are hit per part by raycasts, and report landing contacts), and the 0.7.0 tiers: E4 soft bodies (3^3 volume settles at cy=299 asleep, 4x4 pinned cloth drapes to y=647 with the pinned row held, 8-particle rope hangs with its anchor held; full particle dumps repeat bit-identically; bulk read-back matches the scalar fetch; typed errors) and E5 heightfield (plateau ray at exactly y=2000 with an up normal, ramp ray at y=3126 with normal (-445, 895), fresh-world bit-identical, 16-bit quantization hits the same ramp, box settles on the plateau at y=2479 asleep and repeats bit-identically; malformed grids rejected) |
 | Manifest | `modules: ["xiom.jolt"]` + `PROVENANCE.md` retrofitted at the 0.3.0 touch (fleet -1721-2 / upstream-first) |
-| History | The v0.64.3 release-check "if constexpr probe green -> unblocked" verdict was a false positive (clang accepts constexpr if as a C++14 extension); corrected via bus items `REL-20261010-1815-bindings` / `-7`.  Jolt 0.2.0 shipped in `eco-v0.1.161`; 0.3.0 shipped in `eco-v0.1.176`; 0.4.0 external force/torque input (engine buoyancy ask REL-20261013-2115-engine) shipped in `eco-v0.1.179`; 0.5.0 (engine REL-20261014-1510-engine, tiers E1/E2/E7) is recorded; 0.6.0 (same engine family, tiers E3/E6) is current. |
+| History | The v0.64.3 release-check "if constexpr probe green -> unblocked" verdict was a false positive (clang accepts constexpr if as a C++14 extension); corrected via bus items `REL-20261010-1815-bindings` / `-7`.  Jolt 0.2.0 shipped in `eco-v0.1.161`; 0.3.0 shipped in `eco-v0.1.176`; 0.4.0 external force/torque input (engine buoyancy ask REL-20261013-2115-engine) shipped in `eco-v0.1.179`; 0.5.0 (engine REL-20261014-1510-engine, tiers E1/E2/E7) shipped in `eco-v0.1.180`; 0.6.0 (same engine family, tiers E3/E6) is recorded; 0.7.0 (tiers E4/E5, the final engine tiers) is current. |
 
 ## Design notes
 
@@ -47,6 +47,17 @@ C++17; the flag and the 26-source list are threaded into `port.args.json`.
   `Body::sFixedToWorld` sentinel; the XIOM side only ever sees the `-1`
   handling constant.  Hull/part vertex data is copied into bridge-owned
   shapes per call, so caller `Vec` buffers are borrowed for the call only.
+- Soft bodies (0.7.0) own their `SoftBodySharedSettings` through a
+  `RefConst` in the per-world soft registry; every preset ends with
+  `Optimize()` (Jolt asserts the update groups exist at simulation time).
+  Particle vertices are stored relative to the body center of mass and are
+  transformed by the body's COM transform on read-back; the only
+  out-param-style surface in the package is `joltb_soft_vertices_into`,
+  which validates `capacity >= 3 * vertex_count` before writing any int64
+  into the caller buffer.  The heightfield builder normalizes milli
+  samples against the declared vertical scale bridge-side (so the world
+  height equals the milli sample exactly), forces a static body (Jolt
+  `MustBeStatic`) and rejects malformed grids before touching Jolt.
 - Registration (RegisterDefaultAllocator + Factory + RegisterTypes) is
   ref-counted so probes and live worlds share it safely.
 

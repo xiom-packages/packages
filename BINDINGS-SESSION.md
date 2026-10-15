@@ -3,9 +3,11 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: jolt 0.5.0 in
-`eco-v0.1.180` (96 eco releases); jolt 0.6.0 integrated +
-publish-requested (E3/E6; 109/109 x2)** -- LIVE: jolt 0.5.0 (E1 queries + E2
+**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: jolt 0.6.0 in
+`eco-v0.1.181` (97 eco releases; E3/E6; 109/109 x2); jolt 0.7.0
+integrated + publish-requested -- E-FAMILY COMPLETE (159/159 x2)** --
+LIVE: jolt 0.6.0
+(E3 motors/limits + E6 convex/compound) + jolt 0.5.0 (E1 queries + E2
 capsule + E7 contacts/sensors; 67/67 x2) + wave 2 (`eco-v0.1.178`: opus/
 ogg/lz4/ktx2/vdb/phonon 0.3.0) + wave 3/A05 (`eco-v0.1.179`) + codec wave
 A (`eco-v0.1.176`: jolt 0.3.0/zstd 0.3.0/meshopt 0.5.0/ffmpeg 0.3.0) +
@@ -986,6 +988,37 @@ validate green. Promotion readiness (policy sec. 7) is the next DX12 step
 after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
 
+**UPDATE 2026-10-15 03:05Z (doorbell -- jolt 0.6.0 PUBLISHED
+`eco-v0.1.181`; v0.64.5 tag still held)**: packages confirms the second
+E-family publish:
+- **jolt 0.6.0 (E3/E6) LIVE**: `eco-v0.1.181` (merge `a857a7f2` tip
+  `569202c4`; validate 553/0; native x2 **109/109** both runs; record
+  `64a04549`, wrap `a68a8a93`; live sha256 `e5c777f8...` @01:35:43Z;
+  run 38666089475 green; guard 540/524/16/0). E3 = motors/limits/state
+  + full typed-error matrix; E6 = convex/compound + E1 query integration
+  + contact manifold; determinism bit-identical. **Engine relayed**.
+  Tally **97 eco releases** (`eco-v0.1.86`..`181`). Item `-0002-bindings`
+  fixed (raced by the concurrent session; note appended).
+- **E4/E5 launched** = the final E-family session (strict sequential).
+- **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
+  on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
+
+**UPDATE 2026-10-15 03:20Z (E-FAMILY COMPLETE -- jolt 0.6.0 LIVE in
+`eco-v0.1.181`; 0.7.0 integrated + publish-requested)**:
+- **0.6.0 PUBLISHED**: `eco-v0.1.181` (97 releases; engine relayed
+  `REL-20261015-0158-packages`); my request `-0002` fixed.
+- **0.7.0 DONE + integrated** (`1087a5d7`; record `51601b52`): E4 soft
+  bodies (cloth/rope/volume presets; particle read-back incl. bulk
+  out-buffer) + E5 heightfield (samples+scale+quantization; settle +
+  E1 raycast); suite 109 -> **159/159 x2**.  Publish request
+  `REL-20261015-0313-bindings`.  **E8 + E1-E7 all delivered** -- the
+  engine's top dependency closes when 0.7.0 publishes.
+- **v0.64.5 still HELD** (candidate regression Cell[Int8]/aes escalated
+  pre-pin; candidate probes 310/315 otherwise green).  No archive yet;
+  the re-verify wave stays armed.
+- Relay tip `e8344e9`, validate 504 items.  No sessions in flight --
+  the jolt E-family workstream is DONE (0.4.0 -> 0.7.0 in one night).
+
 **UPDATE 2026-10-15 00:45Z (doorbell: jolt 0.6.0 integrated +
 publish-requested; E4/E5 session launched; v0.64.5 tag HELD)**:
 - **jolt 0.6.0 DONE + integrated** (`2d1d3a0a`; record re-pointed
@@ -1193,6 +1226,20 @@ E3-E6 queued sequential follow-ons. Tally **96 eco releases**
 16 grandfathered / 0 failures**. **v0.64.5 tag still HELD** (stdlib
 candidate regressions `-2123` in triage; `d80bf1b`) -- no repin yet; zero
 open bindings relay items at 00:00Z.
+
+**UPDATE 2026-10-15 03:05Z (doorbell -- jolt 0.6.0 LIVE as `eco-v0.1.181`)**:
+E-family second delivery published: `xiom.jolt` 0.6.0 (E3 motors/limits
++ full typed-error matrix; E6 convex/compound + E1 query integration +
+contact manifold; determinism bit-identical) -- merge `a857a7f2` (tip
+`569202c4`; validate 553/0), native x2 **109/109** both runs, record
+`64a04549`, wrap `a68a8a93` (an interrupted earlier attempt had already
+tagged `8eef455b`; both pushed), **`eco-v0.1.181`** (run 38666089475
+green; live sha256 `e5c777f8...` @01:35:43Z); item `-0002-bindings` fixed
+(raced by the concurrent session; note appended); engine relayed
+(`REL-20261015-0158-packages`). Tally **97 eco releases**
+(`eco-v0.1.86` -> `eco-v0.1.181`). **E4/E5 = the final E-family session
+(launched)**; **v0.64.5 tag still HELD** (`-2123` Cell[Int8]/aes fix in
+progress, escalated pre-pin). Zero open bindings relay items at 03:00Z.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3

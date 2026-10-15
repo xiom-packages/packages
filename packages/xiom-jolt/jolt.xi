@@ -53,15 +53,31 @@
 //     triples; JOLT_SHAPE_COMPOUND bodies combine box/sphere/capsule/convex
 //     parts at relative transforms from a flat part table.  Both simulate
 //     (settle/contact) and take part in every E1/E7 query surface.
+//   * 0.7.0 soft bodies (tier E4): jolt_soft_add creates a cloth grid, a
+//     particle rope or a volume cube from caller-driven size parameters
+//     (the bridge owns vertices/faces/edge+volume constraints; nothing is
+//     marshalled); jolt_soft_state / jolt_soft_vertex read the particle
+//     count, center, awake flag and per-particle world position/velocity
+//     back as owned values; jolt_soft_vertices_into writes every particle
+//     position into a caller-owned Vec[Int] in one call (the one out-buffer
+//     surface, capacity-checked); jolt_soft_remove / jolt_soft_count manage
+//     the per-world soft registry.  Typed errors cover bad presets/sizes,
+//     unknown/removed ids, out-of-range particle indices and short buffers.
+//   * 0.7.0 heightfield terrain (tier E5): jolt_body_add_heightfield builds
+//     a static terrain body from a caller-owned square grid of milli height
+//     samples plus horizontal spacing, a vertical scale and an 8/16-bit
+//     quantization choice; the terrain simulates against rigid bodies
+//     (settle/contact) and answers E1 raycasts with its height and terrain
+//     normal.
 // All `unsafe`/`extern "C"` live in this single module (G5).
 //
 // G2 pin (SPEC.md): upstream tag v5.6.0 + generator + generated-tree sha256.
 //
 // API subset: probes + world/body v0 + external force/torque input + world
 // queries + capsule shape + contacts/sensors + typed joints + convex/compound
-// bodies.
-// Character controllers, soft bodies and deterministic save/restore are
-// later tiers (ROADMAP.md).
+// bodies + soft bodies + heightfield terrain.
+// Character controllers and deterministic save/restore are later tiers
+// (ROADMAP.md).
 
 module xiom.jolt
 
@@ -127,6 +143,18 @@ extern "C" {
   fn joltb_joint_state_impulse() -> Int32;
   fn joltb_joint_state_body_a() -> Int32;
   fn joltb_joint_state_body_b() -> Int32;
+  fn joltb_soft_add(handle: Int32, kind: Int32, nx: Int32, nz: Int32, spacing_milli: Int32, px_milli: Int32, py_milli: Int32, pz_milli: Int32, rx_milli: Int32, ry_milli: Int32, rz_milli: Int32, rw_milli: Int32, pin_edge: Int32) -> Int32;
+  fn joltb_soft_remove(handle: Int32, soft_id: Int32) -> Int32;
+  fn joltb_soft_count(handle: Int32) -> Int32;
+  fn joltb_soft_state(handle: Int32, soft_id: Int32) -> Int32;
+  fn joltb_soft_state_count() -> Int32;
+  fn joltb_soft_state_pos(axis: Int32) -> Int32;
+  fn joltb_soft_state_awake() -> Int32;
+  fn joltb_soft_vertex(handle: Int32, soft_id: Int32, index: Int32) -> Int32;
+  fn joltb_soft_vtx_pos(axis: Int32) -> Int32;
+  fn joltb_soft_vtx_vel(axis: Int32) -> Int32;
+  fn joltb_soft_vertices_into(handle: Int32, soft_id: Int32, out_addr: Int, capacity_entries: Int32) -> Int32;
+  fn joltb_body_add_heightfield(handle: Int32, sx_milli: Int32, sy_milli: Int32, sz_milli: Int32, px_milli: Int32, py_milli: Int32, pz_milli: Int32, bits_per_sample: Int32, samples_addr: Int, sample_count: Int32) -> Int32;
 }
 
 pub type JoltDropResult = {
@@ -187,6 +215,21 @@ pub const JOLT_MOTOR_VELOCITY: Int = 1;
 /// Motor state (0.6.0): drive to a target position (milli rad for a hinge,
 /// milli m for a slider; the target is clamped to the joint limits).
 pub const JOLT_MOTOR_POSITION: Int = 2;
+
+/// Soft-body preset (0.7.0, E4): cloth grid -- `nx` by `nz` particles in
+/// the x/z plane with triangle faces, structural + shear edge constraints
+/// (inextensible; no bend constraints); `pin_edge` pins the z=0 row.
+pub const JOLT_SOFT_GRID: Int = 0;
+
+/// Soft-body preset (0.7.0, E4): rope -- `nx` particles along +x with edge
+/// constraints only (no faces, so a rope does not collide); `pin_edge` pins
+/// the first particle.
+pub const JOLT_SOFT_ROPE: Int = 1;
+
+/// Soft-body preset (0.7.0, E4): volume cube -- `nx`^3 particles with edge,
+/// volume and face constraints (Jolt's `sCreateCube`); always fully dynamic
+/// (`pin_edge` is rejected).
+pub const JOLT_SOFT_VOLUME: Int = 2;
 
 /// A bridge-owned live world.  `handle` is a registry slot, never a raw
 /// pointer (B-25); it stays valid until `jolt_world_destroy`.
@@ -342,6 +385,50 @@ pub type JoltJointState = {
   impulse_milli: Int;
   body_a: Int;
   body_b: Int;
+}
+
+/// Soft-body creation inputs (0.7.0).  `kind` is a JOLT_SOFT_* preset;
+/// `nx`/`nz` are the caller-driven size parameters (grid: nx columns by nz
+/// rows, both 2..64; rope: nx particles, 2..256; volume: nx^3 grid, 2..8),
+/// `spacing_milli` is the particle distance (> 0).  The pose is the body
+/// origin in milli plus a rotation quaternion in milli (all-zero =
+/// identity).  `pin_edge` pins the anchor row (grid: z=0; rope: first
+/// particle) as kinematic vertices; it is rejected for the volume preset.
+pub type JoltSoftDesc = {
+  kind: Int;
+  nx: Int;
+  nz: Int;
+  spacing_milli: Int;
+  px_milli: Int;
+  py_milli: Int;
+  pz_milli: Int;
+  rx_milli: Int;
+  ry_milli: Int;
+  rz_milli: Int;
+  rw_milli: Int;
+  pin_edge: Bool;
+}
+
+/// Owned soft-body state read-back (0.7.0): the particle count, the body
+/// center position (milli) and the awake flag.
+pub type JoltSoftState = {
+  vertex_count: Int;
+  cx_milli: Int;
+  cy_milli: Int;
+  cz_milli: Int;
+  awake: Bool;
+}
+
+/// One soft-body particle (0.7.0), owned: world-space position and velocity
+/// in milli (particles are simulated relative to the body's center of mass;
+/// both values are transformed to world space on read-back).
+pub type JoltSoftVertex = {
+  px_milli: Int;
+  py_milli: Int;
+  pz_milli: Int;
+  vx_milli: Int;
+  vy_milli: Int;
+  vz_milli: Int;
 }
 
 /// Drop a 1 m dynamic box from y=5 onto a static ground and step 300 frames
@@ -922,6 +1009,148 @@ pub fn jolt_joint_state(w: JoltWorld, joint_id: Int) -> Result[JoltJointState, S
     body_a: unsafe { joltb_joint_state_body_a() as Int };
     body_b: unsafe { joltb_joint_state_body_b() as Int };
   });
+}
+
+// ---- soft bodies (0.7.0, tier E4) -------------------------------------------
+
+/// Create a soft body (0.7.0) from a preset and caller-driven size
+/// parameters (see `JoltSoftDesc`): a cloth grid, a particle rope or a
+/// volume cube.  The bridge builds and owns the shared settings (vertices,
+/// faces, edge/volume constraints), copies nothing from the caller and
+/// returns a bridge-assigned soft id.  Soft bodies simulate under the
+/// world's gravity together with constraints and interact with rigid bodies
+/// (grids and volumes have faces); they are deterministic like everything
+/// else (single-threaded, fixed step).  Bad preset/size parameters are
+/// rejected with typed errors.
+/// Complexity: O(particles + constraints).
+pub fn jolt_soft_add(w: JoltWorld, d: JoltSoftDesc) -> Result[Int, Str]
+  requires: true
+{
+  var pin: Int = 0;
+  if d.pin_edge { pin = 1; }
+  let rc = unsafe { joltb_soft_add(w.handle as Int32, d.kind as Int32, d.nx as Int32, d.nz as Int32, d.spacing_milli as Int32, d.px_milli as Int32, d.py_milli as Int32, d.pz_milli as Int32, d.rx_milli as Int32, d.ry_milli as Int32, d.rz_milli as Int32, d.rw_milli as Int32, pin as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("soft add", rc));
+  }
+  return Ok(rc);
+}
+
+/// Remove a soft body (0.7.0) by id; returns the number of soft bodies
+/// left.  The id is stale afterwards; unknown/removed ids are rejected.
+/// Complexity: O(soft bodies).
+pub fn jolt_soft_remove(w: JoltWorld, soft_id: Int) -> Result[Int, Str]
+  requires: soft_id >= 0
+{
+  let rc = unsafe { joltb_soft_remove(w.handle as Int32, soft_id as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("soft remove", rc));
+  }
+  return Ok(rc);
+}
+
+/// Number of live soft bodies in the world (0.7.0).  Complexity: O(1).
+pub fn jolt_soft_count(w: JoltWorld) -> Result[Int, Str]
+  requires: true
+{
+  let rc = unsafe { joltb_soft_count(w.handle as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("soft count", rc));
+  }
+  return Ok(rc);
+}
+
+/// Read one soft body's state as owned values (0.7.0): the particle count,
+/// the body center position (milli) and the awake flag.  Unknown/removed
+/// ids are rejected with a typed error.
+/// Complexity: O(1).
+pub fn jolt_soft_state(w: JoltWorld, soft_id: Int) -> Result[JoltSoftState, Str]
+  requires: soft_id >= 0
+{
+  let rc = unsafe { joltb_soft_state(w.handle as Int32, soft_id as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("soft state", rc));
+  }
+  return Ok(JoltSoftState{
+    vertex_count: unsafe { joltb_soft_state_count() as Int };
+    cx_milli: unsafe { joltb_soft_state_pos(0) as Int };
+    cy_milli: unsafe { joltb_soft_state_pos(1) as Int };
+    cz_milli: unsafe { joltb_soft_state_pos(2) as Int };
+    awake: unsafe { joltb_soft_state_awake() as Int } != 0;
+  });
+}
+
+/// Read one soft-body particle (0.7.0) as owned values: its world-space
+/// position and velocity in milli.  The index must be in
+/// [0, vertex_count); unknown/removed ids and out-of-range indices are
+/// rejected with typed errors.
+/// Complexity: O(1).
+pub fn jolt_soft_vertex(w: JoltWorld, soft_id: Int, index: Int) -> Result[JoltSoftVertex, Str]
+  requires: soft_id >= 0
+  requires: index >= 0
+{
+  let rc = unsafe { joltb_soft_vertex(w.handle as Int32, soft_id as Int32, index as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("soft vertex", rc));
+  }
+  return Ok(JoltSoftVertex{
+    px_milli: unsafe { joltb_soft_vtx_pos(0) as Int };
+    py_milli: unsafe { joltb_soft_vtx_pos(1) as Int };
+    pz_milli: unsafe { joltb_soft_vtx_pos(2) as Int };
+    vx_milli: unsafe { joltb_soft_vtx_vel(0) as Int };
+    vy_milli: unsafe { joltb_soft_vtx_vel(1) as Int };
+    vz_milli: unsafe { joltb_soft_vtx_vel(2) as Int };
+  });
+}
+
+/// Write every particle's world-space position (milli xyz triples, row
+/// order) of a soft body (0.7.0) into a caller-owned buffer in one call:
+/// `out_milli` must hold at least `3 * vertex_count` entries (build it with
+/// push-growth; the bridge writes through its address, the one out-buffer
+/// surface in this package).  Returns the number of positions written.
+/// A buffer that is too short, an unknown/removed id or a null/empty buffer
+/// is rejected with a typed error and the buffer is left untouched.
+/// Complexity: O(particles).
+pub fn jolt_soft_vertices_into(w: JoltWorld, soft_id: Int, out_milli: &mut Vec[Int]) -> Result[Int, Str]
+  requires: soft_id >= 0
+{
+  var out_addr = 0;
+  unsafe { out_addr = out_milli.as_mut_ptr() as Int; }
+  let rc = unsafe { joltb_soft_vertices_into(w.handle as Int32, soft_id as Int32, out_addr, out_milli.len() as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("soft vertices into", rc));
+  }
+  return Ok(rc);
+}
+
+// ---- heightfield terrain (0.7.0, tier E5) ------------------------------------
+
+/// Add a static heightfield terrain body (0.7.0) from caller data:
+/// `samples_milli` is a square, row-major grid of heights (n x n entries
+/// with n in 4..257; n = isqrt(len); heights in the milli range
+/// [0, sy_milli]); `sx_milli`/`sz_milli` are the world-space sample
+/// spacings, `sy_milli` is the height that corresponds to a full sample
+/// (samples are normalized against it bridge-side, so a sample value of
+/// `s` is a world height of exactly `s` milli above the origin); the body
+/// origin is (px, py, pz).  `bits_per_sample` selects the compression
+/// (8 or 16; 0 = Jolt's default 8).  Invalid grids (non-square, too small
+/// or large, samples above `sy_milli` or outside [0, sy]) and invalid
+/// scales/quantization are rejected with typed errors.  The terrain takes
+/// part in every surface: rigid bodies settle on it, E1 raycasts hit it
+/// (position = height, normal = terrain normal) and E7 contacts report
+/// against it.  Pass a fresh `Vec[Int]` (push-growth; never `Vec.with_len`).
+/// Complexity: O(samples).
+pub fn jolt_body_add_heightfield(w: JoltWorld, sx_milli: Int, sy_milli: Int, sz_milli: Int, px_milli: Int, py_milli: Int, pz_milli: Int, bits_per_sample: Int, samples_milli: &Vec[Int]) -> Result[Int, Str]
+  requires: bits_per_sample >= 0
+  requires: bits_per_sample <= 16
+{
+  if samples_milli.len() == 0 { return Err("jolt: heightfield samples empty"); }
+  var samples_addr = 0;
+  unsafe { samples_addr = samples_milli.as_ptr() as Int; }
+  let rc = unsafe { joltb_body_add_heightfield(w.handle as Int32, sx_milli as Int32, sy_milli as Int32, sz_milli as Int32, px_milli as Int32, py_milli as Int32, pz_milli as Int32, bits_per_sample as Int32, samples_addr, samples_milli.len() as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("heightfield add", rc));
+  }
+  return Ok(rc);
 }
 
 // ---- internals -----------------------------------------------------------
