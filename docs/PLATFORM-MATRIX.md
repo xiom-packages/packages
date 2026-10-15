@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-14T23:04:05Z.
+Toolchain pin: `v0.64.4` -- generated 2026-10-15T01:30:48Z.
 
 ## How to read this table
 
@@ -65,7 +65,7 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | xiom.basisu | 0.1.0 | incubating | compile | windows-x64 | - | pass 31/31 @ ccb62224 |
 | xiom.exr | 0.1.0 | incubating | compile | windows-x64 | - | pass 12/12 @ 50b65cee |
 | xiom.harfbuzz | 0.1.0 | incubating | compile | windows-x64 | - | pass 27/27 @ ccb62224 |
-| xiom.jolt | 0.5.0 | incubating | compile | windows-x64 | - | pass 67/67 @ 10167d9d |
+| xiom.jolt | 0.6.0 | incubating | compile | windows-x64 | - | pass 109/109 @ a857a7f2 |
 | xiom.ktx2 | 0.1.0 | incubating | compile | windows-x64 | - | pass 41/41 @ 3a22a083 |
 | xiom.lz4 | 0.1.0 | incubating | compile | windows-x64 | - | pass 81/81 @ 3a22a083 |
 | xiom.meshopt | 0.5.0 | incubating | compile | windows-x64 | - | pass 43/43 @ 11a58915 |

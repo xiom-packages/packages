@@ -8,14 +8,13 @@
                   "status":  "pass",
                   "passed":  109,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "2d1d3a0a",
-                  "checked":  "2026-10-15T00:02:05Z"
+                  "run_by":  "native-session",
+                  "commit":  "a857a7f2",
+                  "checked":  "2026-10-15T01:30:42Z"
               },
     "publish":  false,
     "excluded_reason":  "published in eco-v0.1.180 (2026-10-14, 0.5.0 E1/E2/E7; 0.4.0 in eco-v0.1.179; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161)",
     "platforms":  [
                       "windows-x64"
-                  ],
-    "runtime_deps":  []
+                  ]
 }
