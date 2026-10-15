@@ -1017,6 +1017,25 @@ live)**:
 - Engine lane's v0.64.5 packages sweep: 12/12 VERIFIED (34/34 registry
   re-probe).
 
+**UPDATE 2026-10-15 (doorbell tick; v0.64.5 wave closed; lifts now
+publish-requested)**: 
+- **v0.64.5 LIVE** (19:18Z) + compiler repinned (installed v0.64.5).
+- The evening wave (concurrent sessions) is CLOSED: all probes green
+  except B-29 (filed `REL-20261015-1955-bindings`); B-05 cleared by the
+  re-vendored stdlib; **glfw 0.6.0 lift DONE (37/37 LIVE)** + **sdl3
+  0.20.0 widening DONE (72/72 LIVE)**; dx12 revisit resolved (`-1309`
+  closed); sqlite nested restore BLOCKED in situ -> **B-32 filed**
+  (acked; rides the v0.64.6 fixer wave).
+- **GAP FILLED this tick: the two lifts had NO publish requests** ->
+  filed now: `REL-20261015-2105-bindings` (glfw 0.6.0) + `-2105-bindings-2`
+  (sdl3 0.20.0).  Relay tip `0d34121`, validate 536 items.
+- A02 box2d + A04 miniaudio: acked + queued (triage `-2102-bindings`).
+  PULSE `-2029` SQL artifact GREEN 24/24 on v0.64.5 (request satisfied;
+  item fixed).  Android program running (W2b A5 head landed,
+  `xiom.android` 0.2.0 4/4 SKIP leg; on-device 53/53 + SHM roundtrip
+  exact).  Eco: `.183` live (durable+postgres; other lanes), `.184`
+  armed (redis gate).
+
 **UPDATE 2026-10-15 21:50Z (ANDROID W2b DONE -- A5 assets-storage head
 lands, 53/53 on-device)**:
 - xiom.android 0.2.0: export set 27 -> 53 (asset_manager 17 +
