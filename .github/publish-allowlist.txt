@@ -598,6 +598,7 @@ xiom.openpgl
 # A05 HDR + photometric wave; ops scopes confirmed LIVE 2026-10-14 (eco-release 539; PROD-only)
 xiom.exr
 xiom.photometrics
-# Wait-window trio (pure-XIOM rebuilds); ops scopes confirmed LIVE 2026-10-15 (eco-release 541; PROD-only)
+# Wait-window trio (pure-XIOM rebuilds); ops scopes confirmed LIVE 2026-10-15 (eco-release 541/542; PROD-only)
 xiom.durable
 xiom.postgres
+xiom.redis
