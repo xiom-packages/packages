@@ -1005,6 +1005,25 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 21:30Z (sqlite nested restore ATTEMPTED -> BLOCKED;
+B-32 filed)**: the planned 0.5.0 restore (`Result[Option[SqliteRow]]`;
+retire RowOutcome) was applied and RED-ed **in situ** on the v0.64.5 pin:
+driver-memory test `q1 ok=true; out some=true; cols.len=140697731719824`
+then AV `0xC0000005` -- the B-26 pointer-garbage signature IN the real
+package context.
+- Isolation FAILED to reproduce: the nested-payload bundle (2/2/2) +
+  SEVEN near-miss variants (same/cross-module builders; query-one
+  shape; exact SqliteValueKind variant set; struct error type + Err
+  paths) are ALL GREEN -- compilation-unit-sensitive residual
+  (B-01 family).
+- **Actions**: restore PARKED; `xiom.sqlite` reverted clean (stays
+  0.4.1-flat; PULSE contract unchanged); repro bundle committed at
+  `docs/repro/bindings-pilot/b32-sqlite-nested/` (patch + probes +
+  recipe); **B-32 filed** to compiler (high); wave item corrected.
+- Corrects the 20:00Z block's "sqlite restore unblocked" line: it was
+  probe-level-unblocked only. Next queue: dx12 Int-typed revisit,
+  Android W2b (A02/A04 queued).
+
 **UPDATE 2026-10-15 21:05Z (sdl3 0.20.0 WIDENING DONE -- second lift
 landed live)**: same m277 direct-handoff family:
 - Filter/watch handlers now take the NATURAL C shape (userdata, event)
