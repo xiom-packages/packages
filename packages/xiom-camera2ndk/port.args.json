@@ -1,0 +1,6 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/camera2ndk_bridge.c",
+  "--timeout",
+  "240"
+]
