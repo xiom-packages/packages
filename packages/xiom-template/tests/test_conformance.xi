@@ -1,5 +1,8 @@
-// XIOM -- xiom.template conformance tests (22 checks)
+// XIOM -- xiom.template conformance tests (43 checks)
 // Port task: prove the pure-XIOM xiom.template module against its SPEC.
+// v0.2.0: t1-t22 pin the placeholder surface (xiom.template, unchanged);
+// t23-t43 pin the block surface (xiom.template.blocks): sections, loops,
+// inverted sections, dotted paths, auto-escaping, error offsets, caps.
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
@@ -8,8 +11,8 @@
 // below is routed through streq/ok_is/err_is instead of `==`.
 
 module template_tests
-use xiom.io; use xiom.test; use xiom.template;
-use xiom.string.compare;
+use xiom.io; use xiom.test; use xiom.template; use xiom.template.blocks;
+use xiom.string; use xiom.string.builder; use xiom.string.compare;
 
 fn streq(a: Str, b: Str) -> Bool {
   return compare.str_compare(a, b) == 0;
@@ -313,6 +316,314 @@ fn t22() -> TestResult {
   return assert(ok, "lone braces and stray }} are literal text");
 }
 
+// --------------------------------------------------
+//  v0.2.0 block surface (xiom.template.blocks)
+// --------------------------------------------------
+
+// `part` repeated `n` times as one Str (cap tests; builder-backed).
+fn rep(part: Str, n: Int) -> Str {
+  var sb = builder.sb_new();
+  var i = 0;
+  while i < n {
+    builder.sb_push_str(&mut sb, part);
+    i = i + 1;
+  }
+  return builder.sb_to_str(&sb);
+}
+
+fn t23() -> TestResult {
+  var d = template_data_new();
+  var items = v3("red", "green", "blue");
+  template_data_set_list(&mut d, "items", &items);
+  let r = template_render_blocks("<{{#items}}{{.}},{{/items}}>", &d, true);
+  var ok = ok_is(r, "<red,green,blue,>");
+  var one = v1("solo");
+  template_data_set_list(&mut d, "one", &one);
+  let r2 = template_render_blocks("[{{#one}}{{.}}{{/one}}]", &d, true);
+  if !ok_is(r2, "[solo]") { ok = false; }
+  return assert(ok, "list sections iterate and {{.}} is the item");
+}
+
+fn t24() -> TestResult {
+  var d = template_data_new();
+  var none = Vec[Str].new();
+  template_data_set_list(&mut d, "empty", &none);
+  template_data_set_str(&mut d, "blank", "");
+  template_data_set_bool(&mut d, "no", false);
+  let r = template_render_blocks("a{{#empty}}X{{/empty}}b{{#blank}}Y{{/blank}}c{{#no}}Z{{/no}}d", &d, true);
+  var ok = ok_is(r, "abcd");
+  let rl = template_render_blocks_lenient("a{{#empty}}X{{/empty}}b{{#blank}}Y{{/blank}}c{{#no}}Z{{/no}}d", &d, true);
+  if !streq(rl, "abcd") { ok = false; }
+  return assert(ok, "empty list, empty Str and false Bool sections are skipped");
+}
+
+fn t25() -> TestResult {
+  var d = template_data_new();
+  template_data_set_bool(&mut d, "yes", true);
+  template_data_set_str(&mut d, "word", "w");
+  template_data_set_str(&mut d, "grp.x", "1");
+  let r = template_render_blocks("{{#yes}}Y{{/yes}}{{#word}}W{{/word}}{{#grp}}{{x}}{{/grp}}", &d, true);
+  return assert(ok_is(r, "YW1"), "true Bool, non-empty Str and dotted group sections render once");
+}
+
+fn t26() -> TestResult {
+  var d = template_data_new();
+  template_data_set_bool(&mut d, "on", true);
+  template_data_set_bool(&mut d, "off", false);
+  var none = Vec[Str].new();
+  template_data_set_list(&mut d, "none", &none);
+  var some = v2("a", "b");
+  template_data_set_list(&mut d, "some", &some);
+  let r = template_render_blocks("{{^on}}1{{/on}}{{^off}}2{{/off}}{{^none}}3{{/none}}{{^some}}4{{/some}}", &d, true);
+  var ok = ok_is(r, "23");
+  let rl = template_render_blocks_lenient("{{^gone}}G{{/gone}}", &d, true);
+  if !streq(rl, "G") { ok = false; }
+  return assert(ok, "inverted sections render when falsy/empty and skip when truthy");
+}
+
+fn t27() -> TestResult {
+  var d = template_data_new();
+  template_data_set_str(&mut d, "user.name", "Ada");
+  template_data_set_str(&mut d, "user.address.city", "Athens");
+  template_data_set_str(&mut d, "site", "BLOG");
+  let r = template_render_blocks("{{#user}}{{#address}}{{city}}|{{name}}{{/address}}/{{site}}{{/user}}", &d, true);
+  return assert(ok_is(r, "Athens|Ada/BLOG"), "nested sections, dotted paths and ancestor fallback resolve in order");
+}
+
+fn t28() -> TestResult {
+  var d = template_data_new();
+  template_data_set_str(&mut d, "label", "L");
+  var items = v2("x", "y");
+  template_data_set_list(&mut d, "items", &items);
+  let r = template_render_blocks("{{#items}}{{label}}:{{.}};{{/items}}", &d, true);
+  var ok = ok_is(r, "L:x;L:y;");
+  template_data_set_str(&mut d, "meta.unit", "u");
+  let r2 = template_render_blocks("{{#items}}{{meta.unit}}{{.}}{{/items}}", &d, true);
+  if !ok_is(r2, "uxuy") { ok = false; }
+  return assert(ok, "non-dot keys inside a list section resolve against the parent context");
+}
+
+fn t29() -> TestResult {
+  var d = template_data_new();
+  var outer = v2("A", "B");
+  var inner = v2("1", "2");
+  template_data_set_list(&mut d, "outer", &outer);
+  template_data_set_list(&mut d, "inner", &inner);
+  let r = template_render_blocks("{{#outer}}{{#inner}}{{.}}{{/inner}}|{{/outer}}", &d, true);
+  return assert(ok_is(r, "12|12|"), "nested list sections iterate the inner list per outer item");
+}
+
+fn t30() -> TestResult {
+  var d = template_data_new();
+  template_data_set_str(&mut d, "v", "<&>\"'");
+  let r = template_render_blocks("{{v}}", &d, true);
+  var ok = ok_is(r, "&lt;&amp;&gt;&quot;&#39;");
+  let r2 = template_render_blocks("x{{v}}y", &d, true);
+  if !ok_is(r2, "x&lt;&amp;&gt;&quot;&#39;y") { ok = false; }
+  return assert(ok, "auto-escape escapes < > & \" ' in {{name}} substitutions");
+}
+
+fn t31() -> TestResult {
+  var d = template_data_new();
+  template_data_set_str(&mut d, "v", "<&>\"'");
+  let r = template_render_blocks("{{{v}}}|{{&v}}|{{ & v }}", &d, true);
+  return assert(ok_is(r, "<&>\"'|<&>\"'|<&>\"'"), "{{{name}}} and {{&name}} interpolate raw (never escaped)");
+}
+
+fn t32() -> TestResult {
+  var d = template_data_new();
+  template_data_set_str(&mut d, "v", "<&>\"'");
+  let r = template_render_blocks("{{v}}", &d, false);
+  var ok = ok_is(r, "<&>\"'");
+  var l = v1("<a>");
+  template_data_set_list(&mut d, "l", &l);
+  let r2 = template_render_blocks("{{#l}}{{.}}{{/l}}", &d, false);
+  if !ok_is(r2, "<a>") { ok = false; }
+  return assert(ok, "escape_html=false renders every value verbatim");
+}
+
+fn t33() -> TestResult {
+  var d = template_data_new();
+  template_data_set_str(&mut d, "w", "café");
+  var us = v3("é", "✓", "日本");
+  template_data_set_list(&mut d, "us", &us);
+  let r = template_render_blocks("{{w}}|{{#us}}{{.}},{{/us}}", &d, true);
+  var ok = ok_is(r, "café|é,✓,日本,");
+  let r2 = template_render_blocks("{{#us}}{{.}}={{w}};{{/us}}", &d, true);
+  if !ok_is(r2, "é=café;✓=café;日本=café;") { ok = false; }
+  return assert(ok, "multi-byte UTF-8 passes through byte-exact (escape mode included)");
+}
+
+fn t34() -> TestResult {
+  var d = template_data_new();
+  template_data_set_bool(&mut d, "a", true);
+  template_data_set_bool(&mut d, "b", true);
+  let r1 = template_render_blocks("{{#a}}x", &d, true);
+  var ok = err_is(r1, "template: unterminated section 'a' at byte 0");
+  let r2 = template_render_blocks("{{#a}}{{#b}}", &d, true);
+  if !err_is(r2, "template: unterminated section 'b' at byte 6") { ok = false; }
+  let r3 = template_render_blocks("{{#a}}{{#b}}x{{/b}}", &d, true);
+  if !err_is(r3, "template: unterminated section 'a' at byte 0") { ok = false; }
+  return assert(ok, "unterminated sections are strict Errs at the opening offset");
+}
+
+fn t35() -> TestResult {
+  var d = template_data_new();
+  template_data_set_bool(&mut d, "a", true);
+  let r1 = template_render_blocks("{{#a}}x{{/b}}", &d, true);
+  var ok = err_is(r1, "template: mismatched close 'b' at byte 7 (expected 'a')");
+  let r2 = template_render_blocks("{{/x}}", &d, true);
+  if !err_is(r2, "template: mismatched close 'x' at byte 0") { ok = false; }
+  return assert(ok, "mismatched and stray closes are strict Errs at the close offset");
+}
+
+fn t36() -> TestResult {
+  var d = template_data_new();
+  template_data_set_str(&mut d, "name", "N");
+  let r1 = template_render_blocks("abc{{name", &d, true);
+  var ok = err_is(r1, "template: unclosed interpolation at byte 3");
+  let r2 = template_render_blocks("a{{{x}}", &d, true);
+  if !err_is(r2, "template: unclosed interpolation at byte 1") { ok = false; }
+  let r3 = template_render_blocks("x{{! nope", &d, true);
+  if !err_is(r3, "template: unclosed interpolation at byte 1") { ok = false; }
+  return assert(ok, "an unclosed {{ (placeholder, triple, comment) is a strict Err at its offset");
+}
+
+fn t37() -> TestResult {
+  var d = template_data_new();
+  let r1 = template_render_blocks("{{missing}}", &d, true);
+  var ok = err_is(r1, "template: unknown key: missing at byte 0");
+  let r2 = template_render_blocks("ab{{#gone}}x{{/gone}}", &d, true);
+  if !err_is(r2, "template: unknown key: gone at byte 2") { ok = false; }
+  let r3 = template_render_blocks("{{.}}", &d, true);
+  if !err_is(r3, "template: unknown key: . at byte 0") { ok = false; }
+  let r4 = template_render_blocks("{{^gone}}x{{/gone}}", &d, true);
+  if !err_is(r4, "template: unknown key: gone at byte 0") { ok = false; }
+  return assert(ok, "strict mode reports unknown keys with byte offsets");
+}
+
+fn t38() -> TestResult {
+  var d = template_data_new();
+  var items = v2("a", "b");
+  template_data_set_list(&mut d, "items", &items);
+  template_data_set_bool(&mut d, "yes", true);
+  let r1 = template_render_blocks_lenient("x{{gone}}y", &d, true);
+  var ok = streq(r1, "xy");
+  let r2 = template_render_blocks_lenient("x{{#gone}}Z{{/gone}}y", &d, true);
+  if !streq(r2, "xy") { ok = false; }
+  let r3 = template_render_blocks_lenient("x{{^gone}}G{{/gone}}y", &d, true);
+  if !streq(r3, "xGy") { ok = false; }
+  let r4 = template_render_blocks_lenient("{{#items}}x{{/bogus}}", &d, true);
+  if !streq(r4, "xx") { ok = false; }
+  let r5 = template_render_blocks_lenient("{{#items}}x", &d, true);
+  if !streq(r5, "xx") { ok = false; }
+  let r6 = template_render_blocks_lenient("{{#items}}x{{/item", &d, true);
+  if !streq(r6, "x") { ok = false; }
+  let r7 = template_render_blocks_lenient("{{#yes}}w{{/yes}}{{#no}}k{{/no}}", &d, true);
+  if !streq(r7, "w") { ok = false; }
+  return assert(ok, "lenient mode skips unknown keys, ignores bad closes and virtual-closes at EOF");
+}
+
+fn t39() -> TestResult {
+  var d = template_data_new();
+  template_data_set_bool(&mut d, "a", true);
+  let deep = rep("{{#a}}", 65) + "Z" + rep("{{/a}}", 65);
+  let r = template_render_blocks(deep, &d, true);
+  var ok = err_is(r, "template: nesting exceeds 64 at byte 384");
+  let ok64 = rep("{{#a}}", 64) + "Z" + rep("{{/a}}", 64);
+  let r2 = template_render_blocks(ok64, &d, true);
+  if !ok_is(r2, "Z") { ok = false; }
+  let rl = template_render_blocks_lenient(deep, &d, true);
+  if !streq(rl, "") { ok = false; }
+  return assert(ok, "TEMPLATE_MAX_DEPTH=64: the 65th section is a strict Err / suppressed in lenient");
+}
+
+fn t40() -> TestResult {
+  if TEMPLATE_MAX_OUTPUT != 8388608 { return assert(false, "TEMPLATE_MAX_OUTPUT caps strict Errs and truncates lenient output"); }
+  var item = rep("x", 1024);
+  var big = Vec[Str].new();
+  var i = 0;
+  while i < 8194 {
+    big.push(item);
+    i = i + 1;
+  }
+  var d = template_data_new();
+  template_data_set_list(&mut d, "big", &big);
+  let r = template_render_blocks("{{#big}}{{.}}{{/big}}", &d, true);
+  var ok = err_is(r, "template: output exceeds 8388608 bytes at byte 8");
+  let rl = template_render_blocks_lenient("{{#big}}{{.}}{{/big}}", &d, true);
+  var lok = rl.len() == TEMPLATE_MAX_OUTPUT;
+  if rl.len() > 0 {
+    // str_slice reads through the raw pointer: string.byte_at clamps past
+    // 1 MiB in the runtime, so the tail is verified with a slice, not byte_at.
+    let head = string.str_slice(rl, 0, 4);
+    let tail = string.str_slice(rl, rl.len() - 4, rl.len());
+    if !streq(head, "xxxx") { lok = false; }
+    if !streq(tail, "xxxx") { lok = false; }
+  } else {
+    lok = false;
+  }
+  if !lok { ok = false; }
+  return assert(ok, "TEMPLATE_MAX_OUTPUT caps strict Errs and truncates lenient output");
+}
+
+fn t41() -> TestResult {
+  var d = template_data_new();
+  template_data_set_str(&mut d, "title", "Tea & \"Coffee\"");
+  var items = v2("<one>", "two & more");
+  template_data_set_list(&mut d, "items", &items);
+  template_data_set_str(&mut d, "foot", "<i>raw</i>");
+  let tmpl = "<h1>{{title}}</h1><ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>{{^items}}<p>empty</p>{{/items}}<footer>{{&foot}}</footer>";
+  let want = "<h1>Tea &amp; &quot;Coffee&quot;</h1><ul><li>&lt;one&gt;</li><li>two &amp; more</li></ul><footer><i>raw</i></footer>";
+  let r = template_render_blocks(tmpl, &d, true);
+  return assert(ok_is(r, want), "KAT: a mixed page renders to the hand-computed output");
+}
+
+fn t42() -> TestResult {
+  var d = template_data_new();
+  var arr = v1("one");
+  template_data_set_str(&mut d, "a", "1");
+  template_data_set_bool(&mut d, "b", true);
+  template_data_set_list(&mut d, "c", &arr);
+  var ok = template_data_len(&d) == 3;
+  if TEMPLATE_VALUE_STR != 0 { ok = false; }
+  if TEMPLATE_VALUE_BOOL != 1 { ok = false; }
+  if TEMPLATE_VALUE_LIST != 2 { ok = false; }
+  if !template_data_has(&d, "a") { ok = false; }
+  if template_data_has(&d, "zz") { ok = false; }
+  if template_data_kind(&d, "a") != TEMPLATE_VALUE_STR { ok = false; }
+  if template_data_kind(&d, "b") != TEMPLATE_VALUE_BOOL { ok = false; }
+  if template_data_kind(&d, "c") != TEMPLATE_VALUE_LIST { ok = false; }
+  if template_data_kind(&d, "zz") != -1 { ok = false; }
+  template_data_set_str(&mut d, "a", "2");
+  if template_data_len(&d) != 3 { ok = false; }
+  arr.push("late");
+  let r = template_render_blocks("{{#c}}{{.}}{{/c}}", &d, true);
+  if !ok_is(r, "one") { ok = false; }
+  let r2 = template_render_blocks("{{a}}", &d, true);
+  if !ok_is(r2, "2") { ok = false; }
+  return assert(ok, "data accessors, replace-in-place and list copy semantics");
+}
+
+fn t43() -> TestResult {
+  var d = template_data_new();
+  template_data_set_str(&mut d, "name", "N");
+  template_data_set_bool(&mut d, "flag", true);
+  let r1 = template_render_blocks("a{{! c }}b{{name}}", &d, true);
+  var ok = ok_is(r1, "abN");
+  let r2 = template_render_blocks("{{{{x}}", &d, true);
+  if !ok_is(r2, "{{x}}") { ok = false; }
+  let r3 = template_render_blocks("{{  name  }}", &d, true);
+  if !ok_is(r3, "N") { ok = false; }
+  let r4 = template_render_blocks("{{# flag }}ok{{/ flag }}", &d, true);
+  if !ok_is(r4, "ok") { ok = false; }
+  let r5 = template_render_blocks("a}}b{ c", &d, true);
+  if !ok_is(r5, "a}}b{ c") { ok = false; }
+  let r6 = template_render_blocks("{{name}}}", &d, true);
+  if !ok_is(r6, "N}") { ok = false; }
+  return assert(ok, "comments, quadruples, spaced tags and lone braces keep the v0.1 conventions");
+}
+
 fn main() -> Int {
   io.println("=== xiom.template conformance tests ===");
   var failed: Int = 0;
@@ -360,6 +671,48 @@ fn main() -> Int {
   if r21.passed { io.println("  [PASS] " + r21.name); } else { io.println("  [FAIL] " + r21.name); failed = failed + 1; }
   let r22 = t22();
   if r22.passed { io.println("  [PASS] " + r22.name); } else { io.println("  [FAIL] " + r22.name); failed = failed + 1; }
+  let r23 = t23();
+  if r23.passed { io.println("  [PASS] " + r23.name); } else { io.println("  [FAIL] " + r23.name); failed = failed + 1; }
+  let r24 = t24();
+  if r24.passed { io.println("  [PASS] " + r24.name); } else { io.println("  [FAIL] " + r24.name); failed = failed + 1; }
+  let r25 = t25();
+  if r25.passed { io.println("  [PASS] " + r25.name); } else { io.println("  [FAIL] " + r25.name); failed = failed + 1; }
+  let r26 = t26();
+  if r26.passed { io.println("  [PASS] " + r26.name); } else { io.println("  [FAIL] " + r26.name); failed = failed + 1; }
+  let r27 = t27();
+  if r27.passed { io.println("  [PASS] " + r27.name); } else { io.println("  [FAIL] " + r27.name); failed = failed + 1; }
+  let r28 = t28();
+  if r28.passed { io.println("  [PASS] " + r28.name); } else { io.println("  [FAIL] " + r28.name); failed = failed + 1; }
+  let r29 = t29();
+  if r29.passed { io.println("  [PASS] " + r29.name); } else { io.println("  [FAIL] " + r29.name); failed = failed + 1; }
+  let r30 = t30();
+  if r30.passed { io.println("  [PASS] " + r30.name); } else { io.println("  [FAIL] " + r30.name); failed = failed + 1; }
+  let r31 = t31();
+  if r31.passed { io.println("  [PASS] " + r31.name); } else { io.println("  [FAIL] " + r31.name); failed = failed + 1; }
+  let r32 = t32();
+  if r32.passed { io.println("  [PASS] " + r32.name); } else { io.println("  [FAIL] " + r32.name); failed = failed + 1; }
+  let r33 = t33();
+  if r33.passed { io.println("  [PASS] " + r33.name); } else { io.println("  [FAIL] " + r33.name); failed = failed + 1; }
+  let r34 = t34();
+  if r34.passed { io.println("  [PASS] " + r34.name); } else { io.println("  [FAIL] " + r34.name); failed = failed + 1; }
+  let r35 = t35();
+  if r35.passed { io.println("  [PASS] " + r35.name); } else { io.println("  [FAIL] " + r35.name); failed = failed + 1; }
+  let r36 = t36();
+  if r36.passed { io.println("  [PASS] " + r36.name); } else { io.println("  [FAIL] " + r36.name); failed = failed + 1; }
+  let r37 = t37();
+  if r37.passed { io.println("  [PASS] " + r37.name); } else { io.println("  [FAIL] " + r37.name); failed = failed + 1; }
+  let r38 = t38();
+  if r38.passed { io.println("  [PASS] " + r38.name); } else { io.println("  [FAIL] " + r38.name); failed = failed + 1; }
+  let r39 = t39();
+  if r39.passed { io.println("  [PASS] " + r39.name); } else { io.println("  [FAIL] " + r39.name); failed = failed + 1; }
+  let r40 = t40();
+  if r40.passed { io.println("  [PASS] " + r40.name); } else { io.println("  [FAIL] " + r40.name); failed = failed + 1; }
+  let r41 = t41();
+  if r41.passed { io.println("  [PASS] " + r41.name); } else { io.println("  [FAIL] " + r41.name); failed = failed + 1; }
+  let r42 = t42();
+  if r42.passed { io.println("  [PASS] " + r42.name); } else { io.println("  [FAIL] " + r42.name); failed = failed + 1; }
+  let r43 = t43();
+  if r43.passed { io.println("  [PASS] " + r43.name); } else { io.println("  [FAIL] " + r43.name); failed = failed + 1; }
   if failed == 0 {
     io.println("xiom.template: all tests passed");
   } else {
