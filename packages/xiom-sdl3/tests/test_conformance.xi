@@ -517,23 +517,24 @@ fn t_pen_decode() -> Bool {
   return ok;
 }
 
-// ---- 0.5.0: event filter + watch capture state ----------------------------
-// Handlers take the event only (B-15: Vec[fn] element calls with >= 2 args
-// type their result as ()); userdata comes back via the package getters.
+// ---- 0.5.0/0.20.0: event filter + watch capture state --------------------
+// Direct handoff (B-22/m277): handlers take the NATURAL C shape
+// (userdata, event) and read the event bytes via sdl3_event_copy.
 
 var flt_calls: Int = 0;
 var flt_last_type: Int = 0;
 var flt_userdata: Int = 0;
 var flt_drop_type: Int = 0;
 
-fn on_filter(ev: Vec[UInt8]) -> Bool {
+fn on_filter(userdata: Int, event: Int) -> UInt8 {
   flt_calls = flt_calls + 1;
+  let ev = sdl3_event_copy(event);
   flt_last_type = sdl3_event_type(&ev);
-  flt_userdata = sdl3_filter_userdata();
+  flt_userdata = userdata;
   if flt_drop_type != 0 && flt_last_type == flt_drop_type {
-    return false;
+    return 0 as UInt8;
   }
-  return true;
+  return 1 as UInt8;
 }
 
 var wtc_calls: Int = 0;
@@ -542,10 +543,11 @@ var wtc_userdata: Int = 0;
 var wtc_saw_resized: Bool = false;
 var wtc_saw_pixel: Bool = false;
 
-fn on_watch(ev: Vec[UInt8]) -> Unit {
+fn on_watch(userdata: Int, event: Int) -> Unit {
   wtc_calls = wtc_calls + 1;
+  let ev = sdl3_event_copy(event);
   wtc_last_type = sdl3_event_type(&ev);
-  wtc_userdata = sdl3_watch_userdata();
+  wtc_userdata = userdata;
   if sdl3_event_type(&ev) == SDL_EVENT_WINDOW_RESIZED {
     if sdl3_event_window_data1(&ev) == 300 && sdl3_event_window_data2(&ev) == 180 {
       wtc_saw_resized = true;
@@ -735,7 +737,7 @@ fn main() -> Int {
         + to_string(sdl3_event_pen_x(&pen_out) as Int) + " pushed=" + b2s(ppushed)
         + " consumed=" + b2s(pconsumed) + ")");
 
-    // 0.5.0: event filter (C callback -> dispatcher -> handler registry).
+    // 0.5.0/0.20.0: event filter (C callback -> direct handoff).
     // Drains keep the queue deterministic (SDL's filter/poll internals can
     // leave sentinel residue).  Keep-path: the filter sees the KEY_DOWN and
     // the event survives to the poll.  Drop-path proof: SDL refuses the
@@ -787,7 +789,7 @@ fn main() -> Int {
     sdl3_pump_events(&lib);
     let k3kept = sdl3_poll_event(&lib, 0);
     let wc_before = wtc_calls;
-    let wremoved = sdl3_remove_event_watch(&lib, 0x88);
+    let wremoved = sdl3_remove_event_watch(&lib, on_watch, 0x88);
     var kev4 = slot_new(128);
     wr_u32(&mut kev4, 0, SDL_EVENT_KEY_UP);
     let k4pushed = sdl3_push_event(&lib, kev4.as_mut_ptr() as Int);
@@ -844,7 +846,7 @@ fn main() -> Int {
       let szset = sdl3_set_window_size(&r, win, 300, 180);
       sdl3_pump_events(&lib);
       let sz2 = sdl3_window_size(&r, win);
-      let wrm = sdl3_remove_event_watch(&lib, 0x99);
+      let wrm = sdl3_remove_event_watch(&lib, on_watch, 0x99);
       failed = failed + report(rsz_off && rsz_on && wset && szset && wrm
           && sz2.width == 300 && sz2.height == 180 && wtc_saw_resized,
         "window: resizable false/true + resize to 300x180 (readback="

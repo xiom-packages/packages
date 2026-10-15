@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.19.0 |
+| Version | 0.20.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
@@ -115,23 +115,20 @@ in every shape (DLL-free) and injects a synthetic KEY_DOWN through the real
 queue (the true-consume route; the 0.19.0 correction below retires the
 old poll(NULL) "consume" wording -- NULL is a peek on 3.4.8).
 
-**0.5.0 addition (event filter + watch, 2026-10-11):** `SDL_SetEventFilter`,
-`SDL_AddEventWatch`, `SDL_RemoveEventWatch` joined the resolved symbol set
-(so the ABI-mismatch classification covers them).  Each registration hands
-SDL a FIXED top-level dispatcher (`sdl3_filter_dispatch` /
-`sdl3_watch_dispatch`; B-13: fn-typed param values cannot cross into C);
-user handlers live in module-level `Vec[fn]` registries (m130 element ABI,
-last registered wins).  The dispatcher copies the 128-byte `SDL_Event` into
-an owned buffer via our own `ffi.memcpy` (safe read direction) so handlers
-decode with the 0.4.0 accessors and the B-11 foreign-write readback path is
-never touched.  Handler shapes are 1-argument (event only) because
-`Vec[fn]` element calls with >= 2 arguments type their result as `()`
-(finding B-15); the registration userdata is exposed via
-`sdl3_filter_userdata()` / `sdl3_watch_userdata()`.  Dispatcher bodies avoid
-bare `return;` in explicitly `-> Unit` fns (finding B-14).  Semantics
-proven by the suite: a keep-filter passes a pushed KEY_DOWN to the poll; a
-rejecting filter makes `SDL_PushEvent` itself return false (drop proof);
-the watch observes without consuming and removal stops further firing.
+**0.5.0 addition (event filter + watch, 2026-10-11; lifted in 0.20.0):**
+`SDL_SetEventFilter`, `SDL_AddEventWatch`, `SDL_RemoveEventWatch` joined
+the resolved symbol set (so the ABI-mismatch classification covers them).
+0.20.0 hands handlers DIRECTLY to SDL (B-22 fixed, m277; the 0.5.0 fixed
+dispatchers + `Vec[fn]` registries + userdata accessors are gone; B-15
+fixed too, so the natural `(userdata, event)` shape is used).  Handlers
+copy the 128-byte `SDL_Event` from its raw address with our own
+`ffi.memcpy` via `sdl3_event_copy` (safe read direction; the B-11
+foreign-write readback path is never touched) and decode with the 0.4.0
+accessors.  Removal passes the SAME handler + userdata (SDL matches the
+pair).  Semantics proven by the suite: a keep-filter passes a pushed
+KEY_DOWN to the poll; a rejecting filter makes `SDL_PushEvent` itself
+return false (drop proof); the watch observes without consuming and
+removal stops further firing.
 
 **0.6.0 addition (displays + keyboard, 2026-10-11):** 11 symbols joined the
 core loader: `SDL_GetDisplays` (+ `SDL_free` of the returned array),

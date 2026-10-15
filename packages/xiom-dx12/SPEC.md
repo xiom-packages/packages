@@ -67,15 +67,16 @@
   `xd12_fence_wait(fence: Int64, value, timeout_ms)` (Win32 auto-reset
   event + `WaitForSingleObject`) plus the fidelity diagnostics
   `xd12_ptr_value`/`xd12_ptr_value_i`.
-- **B-25 (0.4.0, B-20 family)**: `Int as *UInt8` is **not
-  value-preserving** on v0.64.4: a casted pointer reaches C at a
-  different (heap-dependent) address, while the same value through an
-  `Int` param round-trips exactly (`true_ptr == int_param != cast_ptr`).
-  Found while wiring the recording handles (D3D12 `CreateCommandList`
-  returned `E_INVALIDARG`); repro
-  `docs/repro/bindings-pilot/ptr-cast/`, row B-25 in
-  `docs/BINDINGS-COMPILER-FINDINGS.md`.  Never cast handles to pointers:
-  object params are `Int`, bridge helpers take int64 and cast in C.
+- **B-25 (0.4.0 fix; compiler-fixed at v0.64.5)**: `Int as *UInt8` was
+  **not value-preserving** on v0.64.4 (a casted pointer reached C at a
+  different heap-dependent address; D3D12 `CreateCommandList` returned
+  `E_INVALIDARG`).  FIXED by the m280/m281/m283 pointer batch: on the
+  v0.64.5 pin both the `Int`-param path and the cast path are
+  value-preserving (`docs/repro/bindings-pilot/ptr-cast/`, re-run
+  green).  The 0.4.0 `Int`-typed COM surface is RETAINED by choice
+  (re-typing the generated corpus is parked; the workaround is exact
+  either way); item `REL-20261013-1309-bindings` closed on the
+  re-verified witness.
 
 ## 3. Design: vendored C bridge + staged probe
 

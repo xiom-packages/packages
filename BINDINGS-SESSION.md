@@ -3,10 +3,10 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: jolt 0.6.0 in
-`eco-v0.1.181` (97 eco releases; E3/E6; 109/109 x2); jolt 0.7.0
-integrated + publish-requested -- E-FAMILY COMPLETE (159/159 x2)** --
-LIVE: jolt 0.6.0
+**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: jolt 0.7.0 in
+`eco-v0.1.182` (98 eco releases; E4/E5; 159/159 x2) -- E-FAMILY COMPLETE
+(all E1-E7 wireable)** --
+LIVE: jolt 0.7.0 (E4 soft bodies + E5 heightfield) + jolt 0.6.0
 (E3 motors/limits + E6 convex/compound) + jolt 0.5.0 (E1 queries + E2
 capsule + E7 contacts/sensors; 67/67 x2) + wave 2 (`eco-v0.1.178`: opus/
 ogg/lz4/ktx2/vdb/phonon 0.3.0) + wave 3/A05 (`eco-v0.1.179`) + codec wave
@@ -17,8 +17,10 @@ dx12 0.4.0 (`eco-v0.1.172`), opengl 0.5.0 (`eco-v0.1.170`), gles 0.1.0
 (`eco-v0.1.171`), sdl3 0.18.0 (`eco-v0.1.173`), sqlite 0.4.0
 (`eco-v0.1.174`) + 0.4.1 modules fix (`eco-v0.1.175`; sha256
 `21c1f673...`; x2 21/21 on `c239b90e`); Vulkan 0.6.0 live (OWNER lane);
-SDK100 all slices live; v0.64.4 pin wave done.  **NEXT = next compiler
-archive (v0.64.5+) carrying the m277-m283 fix batch** (m277 B-22; m279
+SDK100 all slices live; v0.64.4 pin wave done.  **NEXT SESSION = ANDROID
+first** (owner 2026-10-15; SDK `C:\Android\sdk` verified -- NDK r27b,
+aarch64 cross-smoke green) **then the next compiler archive (v0.64.5+)
+carrying the m277-m283 fix batch** (m277 B-22; m279
 B-16/B-17; m280 `-2230`; m281 B-23/B-24/B-20/B-11 addendum; **m283
 `3ef4d6a9` B-26 FIXED + B-25 green + contract-cycle guard**; B-05 stdlib
 guard_free in wave 124 but still red on v0.64.4 even with
@@ -40,8 +42,8 @@ ignored"); sqlite 0.4.1 modules list published.  Ops clobber rules in
 force; per-touch PROVENANCE rule in effect (dx12/opengl/gles/sdl3/sqlite
 compliant; matrix declared=4, backlog 33; `modules:` retrofit at touch --
 41 published + 26 unpublished remain fleet-wide).  UPDATE 2026-10-13
-18:05Z (origin/bindings tip `9600ae26`)** (NEXT = watch v0.64.5+; the
-paste prompt below carries the wave).
+18:05Z (origin/bindings tip `9600ae26`)** (NEXT = Android first, then
+watch v0.64.5+; the paste prompt below carries the wave).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -1003,6 +1005,310 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 21:55Z (doorbell: B-32 acked for v0.64.6; eco .183
+live)**:
+- Compiler **acked B-32** (`8aba9fa`): queued for the **v0.64.6 fixer
+  wave**; no re-ask -- the sqlite restore re-tests from the bundle when
+  the fix ships.
+- **`eco-v0.1.183` LIVE** (20:15Z): `xiom.durable 0.1.0` (`9a5c9b4d...`)
+  + `xiom.postgres 0.1.0` (`4363261c...`); run 38798162630 green; sync
+  `a908563f`; tally 99 eco releases. **`.184` armed** (redis PROD-only
+  scope acked 20:35Z; publish gated on ops LIVE -> allowlist 543).
+- Engine lane's v0.64.5 packages sweep: 12/12 VERIFIED (34/34 registry
+  re-probe).
+
+**UPDATE 2026-10-15 (doorbell tick; v0.64.5 wave closed; lifts now
+publish-requested)**: 
+- **v0.64.5 LIVE** (19:18Z) + compiler repinned (installed v0.64.5).
+- The evening wave (concurrent sessions) is CLOSED: all probes green
+  except B-29 (filed `REL-20261015-1955-bindings`); B-05 cleared by the
+  re-vendored stdlib; **glfw 0.6.0 lift DONE (37/37 LIVE)** + **sdl3
+  0.20.0 widening DONE (72/72 LIVE)**; dx12 revisit resolved (`-1309`
+  closed); sqlite nested restore BLOCKED in situ -> **B-32 filed**
+  (acked; rides the v0.64.6 fixer wave).
+- **GAP FILLED this tick: the two lifts had NO publish requests** ->
+  filed now: `REL-20261015-2105-bindings` (glfw 0.6.0) + `-2105-bindings-2`
+  (sdl3 0.20.0).  Relay tip `0d34121`, validate 536 items.
+- A02 box2d + A04 miniaudio: acked + queued (triage `-2102-bindings`).
+  PULSE `-2029` SQL artifact GREEN 24/24 on v0.64.5 (request satisfied;
+  item fixed).  Android program running (W2b A5 head landed,
+  `xiom.android` 0.2.0 4/4 SKIP leg; on-device 53/53 + SHM roundtrip
+  exact).  Eco: `.183` live (durable+postgres; other lanes), `.184`
+  armed (redis gate).
+
+**UPDATE 2026-10-15 21:50Z (ANDROID W2b DONE -- A5 assets-storage head
+lands, 53/53 on-device)**:
+- xiom.android 0.2.0: export set 27 -> 53 (asset_manager 17 +
+  storage_manager 6 + sharedmem 3); the bridge gained the POSIX
+  ASharedMemory functional head (create/getSize/setProt + mmap probe
+  write/read + fd close; Windows stubs compile clean).
+- Suite green on Windows (SKIP leg) on the v0.64.5 pin; constants
+  extended (asset modes + PROT bits).
+- **On-device (API-36 emulator): 0 missing exports of 53; SHM
+  `fd=9 size=4096 read=287454020` exact; HWB roundtrip unchanged;
+  RESULT: PASS** (`docs/repro/bindings-pilot/android-core-probe/`).
+- Android program ledger + wave brief updated (W2b DONE). Next: W2c
+  (A2 lifecycle-glue; ALooper is shell-testable) or the A02/A04 asks.
+
+**UPDATE 2026-10-15 21:40Z (dx12 COM revisit resolved; `-1309` CLOSED)**:
+- Revisit verdict: the 0.4.0 `Int`-typed dx12 COM surface is RETAINED
+  (both crossing paths value-preserving on v0.64.5; re-typing the
+  780KB generated corpus parked -- no consumer breakage either way).
+- `REL-20261013-1309-bindings` **fixed -> closed** on the re-verified
+  witness (ptr-cast both FIDELITY OK in the wave); dx12 README/SPEC
+  B-25 notes updated to the v0.64.5 status.
+- `docs/BINDINGS-COMPILER-FINDINGS.md` gained a **v0.64.5 wave
+  verification stamp** (B-23/24/25 FIXED; B-26 probe green but B-32
+  residual -- restore parked; B-29 STILL RED; B-30/31 FIXED; B-05
+  FIXED by the re-vendor; B-13/15/18/22 closed via the direct-handoff
+  lifts).
+- Queue next: Android W2b (A5 assets-storage head); A02/A04 behind.
+
+**UPDATE 2026-10-15 21:30Z (sqlite nested restore ATTEMPTED -> BLOCKED;
+B-32 filed)**: the planned 0.5.0 restore (`Result[Option[SqliteRow]]`;
+retire RowOutcome) was applied and RED-ed **in situ** on the v0.64.5 pin:
+driver-memory test `q1 ok=true; out some=true; cols.len=140697731719824`
+then AV `0xC0000005` -- the B-26 pointer-garbage signature IN the real
+package context.
+- Isolation FAILED to reproduce: the nested-payload bundle (2/2/2) +
+  SEVEN near-miss variants (same/cross-module builders; query-one
+  shape; exact SqliteValueKind variant set; struct error type + Err
+  paths) are ALL GREEN -- compilation-unit-sensitive residual
+  (B-01 family).
+- **Actions**: restore PARKED; `xiom.sqlite` reverted clean (stays
+  0.4.1-flat; PULSE contract unchanged); repro bundle committed at
+  `docs/repro/bindings-pilot/b32-sqlite-nested/` (patch + probes +
+  recipe); **B-32 filed** to compiler (high); wave item corrected.
+- Corrects the 20:00Z block's "sqlite restore unblocked" line: it was
+  probe-level-unblocked only. Next queue: dx12 Int-typed revisit,
+  Android W2b (A02/A04 queued).
+
+**UPDATE 2026-10-15 21:05Z (sdl3 0.20.0 WIDENING DONE -- second lift
+landed live)**: same m277 direct-handoff family:
+- Filter/watch handlers now take the NATURAL C shape (userdata, event)
+  and go straight to SDL; dispatchers, registries and the
+  userdata-accessors are gone (B-15 closed via the same 2-arg shape).
+- New `sdl3_event_copy(event)` helper for the 128-byte owned-buffer copy
+  (0.4.0 decode accessors unchanged); removal passes the same
+  (handler, userdata) pair; env-free handlers documented.
+- Suite LIVE **72/72** on the pin (filter keep + drop proofs; watch
+  removal; userdata delivered directly -- 0x77/0x88 seen in handlers).
+- Commits `188e9ec7` + `5e4e966e`; relay history on the wave item.
+  Queue next: sqlite nested restore, dx12 revisit, Android W2b
+  (A02/A04 queued).
+
+**UPDATE 2026-10-15 20:40Z (glfw 0.6.0 LIFT DONE -- dispatcher lift
+landed live)**: first follow-up queue item cleared:
+- 20 dispatchers + 20 registries removed; setters hand the caller's
+  handler DIRECTLY to the DLL (B-22 fixed m277; probe9 witness; live
+  key round trip exact).
+- Raw-ABI adjustments: error handler `fn(Int32, *UInt8)` + helper
+  `glfw_error_desc_read`; content-scale handler f32; drop handler
+  `fn(Int, Int32, *UInt8)` + helper `glfw_drop_paths_read`; handlers
+  must be env-free (documented in README/SPEC/ROADMAP).
+- Suite LIVE **37/37** on the v0.64.5 pin with the GLFW 3.4 dll
+  (`C:\glfw-3.4.bin.WIN64\lib-vc2022` on PATH): 20/20 setters;
+  error/key/close round trips exact; allocator intact.
+- Commits `bff40cb0` + `14df948c`; relay history on
+  `REL-20261015-1955-bindings`. Next queue: sdl3 widening, sqlite
+  nested restore, dx12 revisit, Android W2b (A02 box2d + A04 miniaudio
+  asks still queued).
+
+**UPDATE 2026-10-15 20:00Z (RE-VERIFY WAVE COMPLETE -- all green except
+B-29; filed `REL-20261015-1955-bindings`)**: full wave on the v0.64.5
+pin (as-shipped; `XIOM_COMPILER=%LOCALAPPDATA%\xiom.new\bin\xiom.exe`):
+- Probes ALL GREEN: null-literal (4 paths=0); ptr-read-stale (0/400);
+  foreign-ptr-read (C-matching); ptr-slot-write (66/66 exact);
+  ptr-arith (d100=100 exact); cb-abi probe9 (42/42/42);
+  nested-payload (failures=0; nested 2/2 -- sqlite restore unblocked);
+  ptr-cast (BOTH fidelity paths OK -- the B-25 cast hazard is gone;
+  dx12 COM revisit unblocked); vulkan-slot-recycle
+  (`a=3 b=65536 c=1 rc=0` -- mini-RHI gate open); **B-05 guard-free
+  spin GONE** (re-vendored stdlib clears it; B-05 retirement gate
+  satisfied).
+- STILL RED: **B-29 only** (bigint bitops >=2^31; m314 does not cover
+  the class; boundary-arithmetic workaround stays shipped).
+- Suites on the pin: **sdl3 72/72** (B-19 + B-11 witnesses green;
+  sdl3+jolt runs recorded `68e5a6d3`), **jolt 159/159**; glfw
+  SKIP-leg green (no glfw3.dll on this box; live 37/37 leg rides the
+  0.6.0 lift).
+- **NOW UNBLOCKED (follow-up queue, in order)**: (1) glfw 0.6.0 lift
+  (B-22 fixed m277; 18 dispatchers + registries -> direct handoff);
+  (2) sdl3 handler-shape widening (B-22-gated); (3) sqlite nested
+  restore (`Result[Option[SqliteRow]]`) + RowOutcome retirement;
+  (4) dx12 Int-typed COM-param revisit + `-1309` close; (5) B-25/B-30/
+  B-31 workaround retirements at next touches; (6) Android W2b (A5
+  assets-storage head). New asks queued: A02 box2d + A04 miniaudio.
+
+**UPDATE 2026-10-15 19:45Z (v0.64.5 RELEASED + PINNED; RE-VERIFY WAVE
+STARTED -- B-29/30/31 witnesses filed)**: the archive landed 19:18Z
+(wrap 19:20Z: tag `84f761c5`, release run 38792051847 green, assets
+live). Wave under way:
+- **PIN DONE**: `xiom-0.64.5-windows-x64.zip` sha256 `bd71e2d3...`
+  verified; canonical slot `%LOCALAPPDATA%\xiom.new` = 557/557 files
+  (runs `XIOM Compiler v0.64.5`); `COMPILER_VERSION` -> v0.64.5;
+  `status.ps1 repin` **554/554 updated** + validate **554/0**; commit
+  `eedf6f53` pushed. Wave toolchain:
+  `XIOM_COMPILER=%LOCALAPPDATA%\xiom.new\bin\xiom.exe` (as-shipped;
+  no XIOM_STDLIB override).
+- **Witness re-runs filed on `REL-20261014-1208-bindings-2`** (the
+  compiler asked): **B-29 STILL RED** (shift20=2987 /
+  and_mask=0xBAC00000 / div20=2987; want 2989/3132620800/2989; exit 1)
+  -- m314 wide-int does NOT cover the big-int bitops class; workaround
+  stays shipped. **B-30 FIXED** (probe.xi compiles + runs green rc 0,
+  `ch=2`; probe_fixed green). **B-31 FIXED** (probe.xi `--emit-ir`
+  rc 0, no stack overflow; control green). B-30/B-31 workarounds are
+  retirement candidates at the next package touches.
+- Inquiry `-1109` answered: v0.64.5 carries NO android target;
+  cross-target scoping sits on the v0.64.6 roadmap (darwin is the
+  v0.64.6 headline); **android priority = owner call**. Emulator
+  evidence noted on the item; our Android prep continues in parallel.
+- New asks filed to bindings (`REL-20261015-1904-packages` x2): A02
+  box2d 2D-solver surface growth; A04 miniaudio audio-engine growth.
+  Queued behind the wave.
+- **WAVE CONTINUES**: remaining probes (null-literal, ptr-read-stale,
+  foreign-ptr-read, ptr-slot-write, ptr-arith, cb-abi probe9, sdl3
+  synthetic-event readback, vulkan-slot-recycle, nested-payload +
+  sqlite restore, ptr-cast + dx12 revisit, B-05 alloc-guard-spin
+  watcher) + package suites on the pin (sdl3/glfw/jolt) + the v0.64.5
+  release-check rows; THEN glfw 0.6.0 lift + sdl3 widening + B-27/B-28
+  re-vendor retirement.
+
+**UPDATE 2026-10-15 18:30Z (ANDROID W2a DONE -- xiom.android A1 head
+lands GREEN both ways)**: first Android package authored while the
+release holds; nothing release-gated was needed.
+- New package `packages/xiom-android` (candidate name `xiom.android`,
+  rename-safe per the brief): runtime bridge (dlopen on Android /
+  LoadLibraryA on Windows) + A1 window-core head = native_window.h
+  (15 non-inline exports) + hardware_buffer.h (12 exports) --
+  **27/27 resolved on-device**; functional AHardwareBuffer
+  (isSupported/allocate/describe/lock-write/lock-read/release;
+  pointers stay C-side per B-25).
+- Suite on Windows (v0.64.4): **4/4 green** (constants; deterministic
+  ABSENT skip path via bogus sonames; probe SKIP; unload).
+- On-device probe (API-36 emulator; W2a evidence): load rc=0,
+  missing_exports=0, is_supported=1, alloc OK, describe 64x64 / RGBA8
+  / stride 64 / layers 1, pixel roundtrip exact (0x11223344);
+  **RESULT: PASS**; repro
+  `docs/repro/bindings-pilot/android-core-probe/`.
+- JNI-surface exclusions documented (A11 seam). Next: W2b A5
+  assets-storage head. RE-VERIFY WAVE still arms on the archive tag
+  (signal pending on `-1739`; stdlib-v0.64.5 published 13:45Z).
+
+**UPDATE 2026-10-15 12:15Z (ANDROID W1 DONE -- opus vendor-C spike
+PASSES on the API-36 emulator)**: first on-device Android evidence:
+- Cross-built the EXACT xiom.opus units (opus_bridge + 4 vendor unity
+  units) with NDK r27b clang: x86_64-linux-android26 (run) +
+  aarch64-linux-android26 (build) -- both ELF64/DYN (aarch64 machine
+  = AArch64, readelf-verified).
+- Flags found during the spike (now in the repro + build-spike.ps1):
+  flat vendor tree needs `-I vendor/opus -I vendor/opus/float
+  -I vendor/opus/fixed`; the float build MUST link `-lm` (DT_NEEDED
+  libm.so) or on-device dlopen fails `cannot locate symbol "exp"`;
+  `-Wl,-soname,libopus.so` pinned.
+- Harness (dlopen by path = the xiom.ffi.dl load model + xo_* encode/
+  decode roundtrip) on the emulator: dlopen OK; encoder_size=31668;
+  encoder+decoder create OK; encode 127 bytes; decode 960 samples;
+  **SPIKE RESULT: PASS**.
+- Repro: `docs/repro/bindings-pilot/android-ndk-spike/` (README +
+  build-spike.ps1 + opus_harness.c). Emulator kept running headless
+  (session background process) for W2/W3; arm64 on-device run waits
+  on a device (build green).
+- Program doc `docs/ANDROID-SDK100.md` updated: W1 DONE; W2 STARTED --
+  brief `docs/prep/android-wave.md` (oracle sizes per head + SKIP
+  semantics + naming gate + order W2a-d); the committed
+  `build-spike.ps1` re-run verified on Windows PowerShell 5.1.
+
+**UPDATE 2026-10-15 11:55Z (ANDROID SDK100 PROGRAM STARTED -- blocker
+map answered; oracles pinned)**: owner asked for the lane-by-lane
+blocker map + a path to 100% Android support:
+- New program ledger `docs/ANDROID-SDK100.md`: **"100% Android" = 100%
+  of the NDK native surface** (the Java SDK is out of scope by design;
+  reachable only via the JNI seam, slice A11). Oracles pinned: header
+  families (android/ 68, vulkan/ 20, SLES/ 5, EGL/ 5, GLES3/ 5,
+  aaudio/ 1, + media/camera/amidi/jni.h) + **26 link-stub libs for
+  BOTH aarch64 + x86_64** (r27b sysroot links up to API 35). 12 slices
+  A1-A12.
+- **Blocker map**: **G1 compiler = the hard gate** (android-arm64 /
+  x86_64 emission + bionic runtime; inquiry `-1109-bindings` still
+  OPEN -- addendum pushed 11:55Z with toolchain + emulator evidence and
+  the x86_64-first VALIDATE-vehicle note); G2 stdlib android runtime
+  gaps (rides the G1 reply); G3 packages/eco android artifacts +
+  `android-arm64`/`android-x86_64` platform tokens (coordination, not
+  a start-gate); G4 validation infra = **local already**: API-36
+  x86_64 emulator + AVD `Medium_Phone` + adb (arm64 = physical device,
+  no sdkmanager adds under the read-only rule); G5 ours, no blockers.
+- W1/W2 next: opus vendor-C spike (x86_64 emulator run + aarch64
+  build) + SKIP-safe prep surfaces (A1/A2/A6 heads). The vendor-C
+  half of Android is provable BEFORE the compiler target exists.
+- Compiler intel refresh (relay): **v0.64.5 signal IMMINENT** -- all
+  four `-2123` stdlib classes fixed (m323/m324/m325/m326) + m327
+  bug55 follow-up landed; full e2e re-gate running, archive signal
+  next. Darwin/macOS general fix OWNER-DECIDED to **v0.64.6**
+  (v0.64.5 does NOT wait; dry-run 38626737822 job-verifies both
+  macOS legs). On signal -> the RE-VERIFY WAVE (item 0) still stands.
+
+**UPDATE 2026-10-15 11:35Z (ANDROID TOOLCHAIN LOCATED + VERIFIED -- owner
+supplied path)**: owner pointed at `C:\Android\sdk` (his Unity/UE5/Flutter
+SDK). Verified READ-ONLY on this box, all green:
+- `ANDROID_SDK_ROOT=C:\Android\sdk` (user-level + process); `ANDROID_HOME`
+  and `ANDROID_NDK_HOME` are NOT set (export `ANDROID_NDK_HOME`
+  per-invocation only).
+- NDK r27b `27.1.12297006` (`source.properties` Pkg.Revision) plus r27
+  `27.0.12077973` and `26.3.11579264`; clang 18.0.2 (`Android
+  (12285214, based on r522817b)`) at
+  `ndk\27.1.12297006\toolchains\llvm\prebuilt\windows-x86_64\bin`
+  (clang / llvm-ar / ld.lld / llvm-readelf present).
+- **CROSS-BUILD SMOKE PASSED**: `clang --target=aarch64-linux-android26
+  -fPIC -shared` on a trivial C file -> `libsmoke.so` (5176 bytes;
+  `llvm-readelf`: ELF64 / AArch64 / DYN). First cross-arch artifact this
+  lane has produced.
+- Prep-wave headers (r27b sysroot `usr\include`): `android\`
+  (native_window.h / looper.h / asset_manager.h / bitmap.h /
+  configuration.h), `aaudio\AAudio.h`, `SLES\OpenSLES.h`; native_app_glue
+  is a SOURCE at `ndk\27.1.12297006\sources\android\native_app_glue\`
+  (NOT in the sysroot -- compile it into the app).
+- CMake 3.22.1 + ninja at `C:\Android\sdk\cmake\3.22.1\bin`; platforms
+  android-33/35/36; build-tools through 36.0.0; PATH java is 1.8 (use
+  Android Studio JBR `C:\Program Files\Android\Android Studio\jbr` if
+  cmdline-tools are ever needed).
+- **Shared toolchain (Unity/UE5/Flutter) -> READ-ONLY rule: no sdkmanager
+  installs/upgrades without owner OK.** The next session's Android prep
+  wave + opus NDK spike can run off this as-is.
+
+**UPDATE 2026-10-15 11:30Z (CONTEXT-LIMIT HANDOFF -- owner directives;
+paste prompt rebuilt)**: session handoff written.
+- **Owner directives**: (1) the macOS/darwin legs fix is queued for the
+  NEXT compiler candidate (v0.64.5 remains HELD on the Cell[Int8]/aes
+  regression; watch for v0.64.5/v0.64.6); (2) **the next session starts
+  with the ANDROID SDK work** (read the reply to the cross-target
+  inquiry `REL-20261015-1109-bindings`, then the Android prep wave +
+  NDK cross-build spike); (3) open package bugs are expected to surface
+  in the new release's test runs -- no special sweep needed.
+- Paste prompt rebuilt (2026-10-15 11:30Z): E-family-complete state,
+  waves compressed, tag-gated RE-VERIFY WAVE with all current re-probes
+  (incl. B-29/30/31 + the re-vendored-stdlib retirement gate),
+  Android-first first actions.
+- Current live state unchanged: 98 releases through `eco-v0.1.182`;
+  no sessions in flight; relay tip `5b4a72f` (507 items).
+
+**UPDATE 2026-10-15 06:05Z (doorbell -- jolt 0.7.0 PUBLISHED
+`eco-v0.1.182`; E-FAMILY COMPLETE LIVE; v0.64.5 tag still held)**:
+- **jolt 0.7.0 (E4/E5) LIVE**: `eco-v0.1.182` (merge `afd93d4c` tip
+  `51601b52`; brace-glue fixes `f0e60f90`/`6a01201d`; validate 553/0;
+  native x2 **159/159** both runs -- E4 soft bodies (volume/grid/rope +
+  settle/drape + bulk out-buffer + 13 typed errors), E5 heightfield
+  (plateau/ramp + quantization + settle + 8 typed errors); record
+  `954dfcfb`, wrap `0780149d`; run 38684757867 green; live sha256
+  `b1d09efd...` @05:05:29Z; README/STATUS synced `651c238f`; item
+  `-0313-bindings` fixed). **Engine relayed with the family-complete
+  notice** (`REL-20261015-0507-packages`; all E1-E7 wireable against
+  0.7.0). Tally **98 eco releases** (`eco-v0.1.86`..`182`).
+- The entire E-family workstream is DONE overnight (0.4.0 -> 0.7.0).
+- **v0.64.5 tag still HELD** (`-2123` fix in progress); agenda/upscaler
+  wave next after; on tag -> packages repin -> the lane's RE-VERIFY WAVE
+  (m275-m294).
+
 **UPDATE 2026-10-15 03:20Z (E-FAMILY COMPLETE -- jolt 0.6.0 LIVE in
 `eco-v0.1.181`; 0.7.0 integrated + publish-requested)**:
 - **0.6.0 PUBLISHED**: `eco-v0.1.181` (97 releases; engine relayed
@@ -1240,6 +1546,38 @@ green; live sha256 `e5c777f8...` @01:35:43Z); item `-0002-bindings` fixed
 (`eco-v0.1.86` -> `eco-v0.1.181`). **E4/E5 = the final E-family session
 (launched)**; **v0.64.5 tag still HELD** (`-2123` Cell[Int8]/aes fix in
 progress, escalated pre-pin). Zero open bindings relay items at 03:00Z.
+
+**UPDATE 2026-10-15 06:05Z (doorbell -- jolt 0.7.0 LIVE as `eco-v0.1.182`;
+E-FAMILY COMPLETE)**: `xiom.jolt` 0.7.0 (E4 soft bodies -- volume/grid/
+rope + settle/drape + bulk out-buffer + 13 typed errors; E5 heightfield --
+plateau/ramp + quantization + settle + 8 typed errors) -- merge `afd93d4c`
+(tip `51601b52`; brace-glue fixes `f0e60f90`/`6a01201d`; validate 553/0),
+native x2 **159/159** both runs (record `954dfcfb`), wrap `0780149d`,
+**`eco-v0.1.182`** (run 38684757867 green; live sha256 `b1d09efd...`
+@05:05:29Z); README/STATUS synced `651c238f`; item `-0313-bindings` fixed;
+engine relayed with the **family-complete notice** (`REL-20261015-0507-
+packages`; all E1-E7 wireable against 0.7.0). Tally **98 eco releases**
+(`eco-v0.1.86` -> `eco-v0.1.182`). **v0.64.5 tag still HELD** (`-2123` fix
+in progress); agenda/upscaler wave next. Zero open bindings relay items at
+06:00Z.
+
+**UPDATE 2026-10-15 21:05Z (doorbell -- v0.64.5 repin + batch 85
+recorded)**: **v0.64.5 RELEASED 19:18Z**; repin `cb364af3`:
+COMPILER_VERSION + **553 records** @ v0.64.5; archive SHA256 `bd71e2d3`
+verified; canonical install `%LOCALAPPDATA%\xiom.new` byte-identical
+**557/557**; validate **553/0** (packages block; `-1403` sdl3 re-verify
+**72/72, 0 warnings** -- retire the sdl3 workaround at the next binds
+touch; `-1549-packages-5/-7/-9/-11` all fixed->verified). **Batch 85 =
+`eco-v0.1.183`**: `xiom.durable` 0.1.0 (`9a5c9b4d...`) + `xiom.postgres`
+0.1.0 (`4363261c...`) LIVE (wrap `223d71db`; guard 542/526/16/0; index
+559; run 38798162630 green); **`xiom.redis`** built 19/19 x2
+(`5c313832`/`93918eff`) gate-pending on its scope confirm. Bindings-side
+wave notes: **B-32 filed** (sqlite nested-shape restore blocked in situ;
+parked for the v0.64.6 fixer wave; package stays 0.4.1-flat), `-1309`
+closed (v0.64.5 witness green), B-25 notes value-preserving. Engine **A02
+(box2d growth)** + **A04 (miniaudio growth)** accepted into the queue
+(`-1904-packages(-2)` acked); PULSE artifact chain satisfied
+(`-2029-pulse` noted).
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
@@ -1880,132 +2218,83 @@ Applied from the next touch onward (nothing shipped needs retraction).
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
 
 ```
-Bindings lane continuation -- seamless pickup (2026-10-14 12:15Z;
-everything is LIVE through `eco-v0.1.177` (codec wave A + wave B
-first); **WAVE-2 integrated (12 pkgs: opus/ogg/lz4/ktx2/vdb/phonon/
-fidelityfx/nis/dlss/xess/nrd/oidn; tip `5bc15161`; publish batch
-`-1208-bindings-3`)**; ffmpeg 0.4.0 held pending the 0.4.1 fix
-(session in flight); new sessions running: jolt 0.4.0 forces, ozz
-0.4.0 caller-data, sdl3 0.19.0 device surface, path-tracer
-(rtxdi+rtxgi/rpr/openpgl).
-First action = process new relay items + integrate any finished agent
-deliveries; then check for the next compiler archive (v0.64.5+) for the
-re-verify wave + lifts.  Relay-driven otherwise).
+Bindings lane continuation -- seamless pickup (2026-10-15 11:30Z;
+CONTEXT-LIMIT HANDOFF.  Everything this lane shipped is LIVE through
+`eco-v0.1.182` (98 releases).  OWNER DIRECTIVES for this session:
+(1) the macOS/darwin legs fix is queued by the owner for the NEXT
+compiler candidate (v0.64.5 is still HELD on the Cell[Int8]/aes
+regression; watch `gh release list` for v0.64.5/v0.64.6);
+(2) plan and START THE ANDROID work FIRST (read the compiler's reply to
+the cross-target inquiry `REL-20261015-1109-bindings`, then the Android
+prep wave + an NDK cross-build spike);
+(3) any package bugs still open are expected to surface in the new
+release's test runs -- no special sweep needed before it).
 
-0. STATE (the 13:50Z handoff UPDATE block + STATUS above carry the
+0. STATE (compressed; the UPDATE blocks + STATUS above carry full
    evidence):
-   - v0.64.4 pin DONE (archive `44a41aea` verified; repin 532; validate
-     532/0).  **Fix batch staged on compiler main, NO archive yet**
-     (check `gh release list -R xiom-lang/xiom` + relay `release-checks/`):
-     m277 `29e35ef8` fixes **B-22** (+ `-1403`; probe9 42/42/42); m279
-     `1a8141fb` fixes **B-16 + B-17** (exact ptr-arith deltas;
-     ptr_write_sum=66); m280 `e1207485` fixes `-2230` + re-probes
-     `-1549-packages-3` green; m281 `77827766` fixes **B-23 + B-24**
-     (null -> `inttoptr 0`; raw `p[i]` typed load) + **B-20 + B-11
-     addendum (`-0304`)** + `-1548-bindings-2` codegen (RTX re-run
-     pending); m283 `3ef4d6a9` fixes **B-26** (nested payload monomorph
-     resolution) + re-probes **B-25 green** (cast fidelity) +
-     contract-cycle guard.  Release-check rows for all ride the next
-     archive.
-   - **RE-VERIFY WAVE at v0.64.5+ (prepared)**: `docs/repro/bindings-pilot/`
-     -- null-literal (4 paths = 0), ptr-read-stale (ffi_bad=0/400),
-     foreign-ptr-read (C-matching 1065353216/1073741824), ptr-slot-write +
-     ptr-arith (exact), cb-abi probe9 (42/42/42), sdl3 synthetic-event
-     raw-pointer readback variant, vulkan-slot-recycle (RTX host),
-     **nested-payload (probe + matrix: expect 2/2/2, failures=0; then
-     restore sqlite `Result[Option[SqliteRow]]` + retire `RowOutcome`)**,
-     **ptr-cast (expect `true_ptr == int_param == cast_ptr`; then revisit
-     the `Int`-typed dx12 COM params + close `-1309`)**, **B-05
-     alloc-guard-spin (watchdog! -- stdlib guard_free fix is in wave 124;
-     still red on v0.64.4 even with `XIOM_RUNTIME_DIR`
-     `E:\xiom-lang\stdlib\runtime` -- needs the compiler-side lowering in
-     the pin)**.  Then:
-     **glfw 0.6.0 lift** (18 dispatchers + registries removed -> direct
-     handoff), **sdl3 handler widening**, workaround retirement (B-24
-     byte-indexed reads relax where re-verified; `dx12_null_ptr` stays as
-     the documented API).
-   - **DX12 0.3.1 STABLE PUBLISHED -- FIRST sec.7 GATE PROMOTION**
-     (`eco-v0.1.169`, sha256 `355ecc6d...` @12:26:45Z; merge `46b45e76`,
-     record `261ba5f8`, wrap `1fd17353`; native x2 35/35; relay
-     `-1207-bindings` fixed). 0.1.0/0.2.0/0.3.0 remain live
-     (`eco-v0.1.166`/`167`/`168`). The promotion gate evidence is in
-     `SPEC.md` sec. 7 (35/35 x2 on `1a392b91`, trap-14 clean, contracts
-     1175/0, verify 0/0/33 unknown, G6 B-23/B-24 accepted, G7 none).
-   - **DX12 0.4.0 COMMAND RECORDING PUBLISHED**: allocator/list lifecycle
-     + `dx12_execute_one` + fence signal/`dx12_fence_wait`; suite **42/42
-     x2**; feat `fd9f2a4d`; LIVE as **`eco-v0.1.172`** (record
-     `93120d3f`, wrap `ef1b8894`, sha256 `38ff6d0b...` @13:25:27Z;
-     `-1313-bindings` fixed).  **B-25 found + fixed in-surface**: `Int as
-     *UInt8` is not value-preserving (B-20 family) -- COM object params
-     are typed `Int` (C `void*`, exact); repro
-     `docs/repro/bindings-pilot/ptr-cast/`; INFO to compiler
-     `-1309-bindings`.  Never cast handles to pointers.
-   - **B-23/B-24 FILED -> FIXED at m281 `77827766`**
-     (`REL-20261012-2051-bindings-2`; re-verify at v0.64.5+): B-23 =
-     `null` literal crossed to C as garbage (workaround `dx12_null_ptr()`
-     -- stays as the documented API); B-24 = ffi out-slot reads after a C
-     extern write were unreliable (`ffi_bad=2 byte_bad=0 of 400`;
-     byte-indexed reads meanwhile).  Repros
-     `docs/repro/bindings-pilot/null-literal/` + `ptr-read-stale/`.
-   - **opengl 0.5.0 WGL SURFACE PUBLISHED**: generated from the same
-     pinned registry (`6af574a1`), oracle `xml/wgl.xml` -- 146 commands /
-     298 enums, 0 skips; core-1.0 24/24 resolvable;
-     `wgl_cmds_01..02`/`wgl_consts_1..2`/`wgl_names` + `tools/gen_wgl.py`;
-     bridge `gdi32` resolver fallback + `opengl_session_dc`/`_hglrc`;
-     suite **28/28 x2** on `468b73d1`; LIVE as **`eco-v0.1.170`**
-     (record `d7714a92`, wrap `ee83ee45`, sha256 `daeb45a7...`
-     @12:40:11Z; `-1222-bindings` fixed).
-   - **NEW PACKAGE `xiom.gles` 0.1.0 PUBLISHED**: GLES 2.0->3.2 (358
-     commands / 1001 enums from `gl.xml`) + EGL 1.0-1.5 + extensions (158
-     commands / 694 enums from EGL-Registry pin `db3425b8`; CLEANUP row
-     added) via ANGLE (`libEGL.dll` + `libGLESv2.dll`, pbuffer session);
-     generators `gen_gles.py`/`gen_egl.py`; bridge `src/gles_probe.c`;
-     suite **18/18 x2** on `ee741d77` (record `b32596c1`) with ANGLE 2.1
-     (VS Code payload on PATH; 358/358 + 44/44 resolved live); LIVE as
-     **`eco-v0.1.171`** (sha256 `017b7664...` @13:06:06Z; scope `f8e284b`,
-     wrap `c106c10d`, README/STATUS `ed6bc4da`; scope + allowlist
-     520 -> 521).
-   - **sdl3 0.18.0 PUBLISHED -- ALL LIVE (B-11 addendum RETIRED on
-     v0.64.4)**: foreign-written event readback -- poll into an owned
-     buffer and decode exactly (user-event type=32768 + KEY_DOWN
-     decode); suite 59 -> 61, **x2 61/61 on `5a26dee8`** (feat
-     `75d8c339` + fix `5a26dee8`); LIVE as **`eco-v0.1.173`** (record
-     `05d5feda`, wrap `f70f02ae`, sha256 `544c59b8...` @13:55:09Z;
-     `REL-20261013-1338-bindings-2` **fixed**; README/STATUS
-     `5000800a`).  Merge note: keep package.xi at 0.18.0.  INFO items
-     `-1338-bindings` / `-1309-bindings` still open compiler-side (their
-     sweep).
-   - **xiom.sqlite 0.4.0 PUBLISHED -- ALL LIVE (PULSE SQL driver)**: NEW
-     `xiom.sqlite.driver` (DSN parse/open, execute/query/query_one,
-     explicit transactions + `in_transaction`, caps, `last_error`);
-     suite 16 -> 21, **x2 21/21 on `4ba13167`** (record `60a0b383` after
-     merge); **`eco-v0.1.174`** (merge `345c05ba`, wrap `7786a34c`,
-     sha256 `1e142acc...` @15:31:42Z; README/STATUS `2269eb76`); item
-     `-1524-bindings` fixed; PULSE co-verify pending (`-1540-packages`).
-     **B-26 filed**: nested enum payloads (`Result[Option[T]]`) corrupt
-     struct-with-Vec values -- flat `RowOutcome` workaround; repro
-     `docs/repro/bindings-pilot/nested-payload/`; INFO
-     `-1524-bindings-2` to compiler.
-   - Graphics drive: Vulkan 0.6.0 live + engine-green (GPU window + scene
-     tiers; vkCmdPushConstants item `REL-20261012-1948-engine` routed to
-     the owner Vulkan lane). OpenGL 0.4.0 LIVE (`eco-v0.1.164`).
-
-0b. FIRST ACTION: check for the **next compiler archive (v0.64.5+)**
-    carrying the m277-m281 fix batch --
-    `gh release list -R xiom-lang/xiom` + relay `release-checks/`.
-    If shipped: repin is the packages lane's queue item 3; THIS lane then
-    runs the RE-VERIFY WAVE (see 0.) and on green executes the lifts:
-    (a) **glfw 0.6.0 lift re-attempt + probe9** (B-22 fixed m277; delete
-    the 18 dispatchers + registries, direct handoff); (b) **sdl3
-    handler-shape widening** (multi-arg shapes once B-22 is pinned);
-    (c) workaround retirement the wave clears; record per-item
-    release-check rows + reply to compiler with evidence.
-    If NOT shipped: relay sweep (`git fetch origin` + `python
-    tools/relay.py view --lane bindings`) + packages SESSION.md check
-    only -- every other lane item is gated (glfw/sdl3 on the archive;
-    imgui P6 on the shared+dev build `-2012-engine-4` acked; PULSE
-    driver queued behind graphics on the packages side).
-    `-1403-packages` is fixed compiler-side (m277 `29e35ef8`).
+   - **E-FAMILY COMPLETE** (engine's top ask, all delivered overnight):
+     jolt 0.4.0 (E8 forces) -> 0.5.0 (E1 queries/E2 capsule/E7
+     contacts+sensors) -> 0.6.0 (E3 joints/E6 convex+compound) -> 0.7.0
+     (E4 soft bodies/E5 heightfield); suites 24 -> 67 -> 109 -> 159 x2;
+     0.5.0/0.6.0/0.7.0 LIVE (`eco-v0.1.180`/`181`/`182`); engine relayed
+     at each step (E1-E7 all wireable).
+   - Live waves: codec A (`eco-v0.1.176`: jolt 0.3.0/zstd 0.3.0/meshopt
+     0.5.0/ffmpeg 0.3.0); wave B first (`.177`: harfbuzz/basisu/spz);
+     wave 2 (`.178`: opus/ogg/lz4/ktx2/vdb/phonon 0.3.0/fidelityfx/nis/
+     dlss/xess/nrd/oidn); wave 3 + A05 (`.179`: ffmpeg 0.4.1 SHIP-only/
+     jolt 0.4.0/ozz 0.4.0/sdl3 0.19.0/rtxgi+rtxdi/rpr/openpgl/stb 0.3.0/
+     exr/photometrics); earlier: dx12 0.3.1 stable + 0.4.0, opengl
+     0.5.0, gles 0.1.0, sdl3 0.18.0, sqlite 0.4.0/0.4.1 -- all LIVE.
+   - **v0.64.5 HELD** (candidate regression Cell[Int8]/aes escalated
+     pre-pin; tag signal sent then held; installed compiler still
+     v0.64.4).  **On tag -> THE RE-VERIFY WAVE** + the 0.64.5
+     release-check rows; the macOS/darwin legs fix rides the NEXT
+     candidate (owner-queued).
+   - Fixes staged for that wave: m277 B-22 + `-1403`; m279 B-16/17;
+     m280 `-2230`; m281 B-23/24 + B-20 + `-0304` + `-1548`; m283 B-26 +
+     B-25 green; m309 `-2320` (B-30 family, parts 2+3); m314-m321
+     wide-int/constant-surface/parse families.  B-29/B-30/B-31 (our
+     findings) still OPEN compiler-side.
+   - **stdlib fixed B-27/B-28** (`45d0337`) but the v0.64.4 bundle
+     carries a STALE snapshot (stdlib `-1401` note) -> workaround
+     retirement gate = the pin that RE-VENDORS stdlib.
+   - **RE-VERIFY WAVE at the tag (prepared; bundles ready)**: repros
+     under `docs/repro/bindings-pilot/` -- null-literal (4 paths=0),
+     ptr-read-stale (ffi_bad=0/400), foreign-ptr-read (C-matching),
+     ptr-slot-write + ptr-arith (exact), cb-abi probe9 (42/42/42), sdl3
+     synthetic-event raw-pointer readback, vulkan-slot-recycle (RTX
+     host), nested-payload (2/2/2; then restore sqlite
+     `Result[Option[SqliteRow]]` + retire `RowOutcome`), ptr-cast (cast
+     fidelity; then revisit `Int`-typed dx12 COM params + close
+     `-1309`), bigint-bitops (B-29), owned-slot-cast (B-30),
+     const-alias-cycle (B-31), B-05 alloc-guard-spin (watchdog!; still
+     red pre-lowering).  Then: **glfw 0.6.0 lift** (18 dispatchers +
+     registries -> direct handoff), **sdl3 handler widening**,
+     workaround retirement where re-verified.
+   - Multi-session note: concurrent bindings sessions share this
+     worktree -- fetch before every commit; retry pushes on races;
+     keep ledger edits small (the doorbell fires on schedule).
+0b. FIRST ACTIONS: (1) **read the compiler reply to
+    `REL-20261015-1109-bindings`** (cross-target feasibility: android-
+    arm64 effort, darwin/macOS leg ETA, apple-ios proximity, runtime
+    gaps); (2) **plan/start the ANDROID work FIRST** per owner: a
+    SKIP-safe prep wave (surfaces against the NDK headers --
+    native_app_glue / ANativeWindow / ALooper / AAudio-OpenSL / asset
+    manager; naming per the inquiry reply) + an NDK cross-build spike
+    of one existing package (opus canary) once the compiler path is
+    agreed; **SDK LOCATED: `C:\Android\sdk`, verified read-only
+    (probe-grade evidence in the 11:35Z UPDATE): `ANDROID_SDK_ROOT`
+    set; NDK r27b `27.1.12297006`; clang
+    `--target=aarch64-linux-android26` smoke GREEN (ELF64/AArch64);
+    headers in NDK sysroot `usr\include\{android,aaudio,SLES}`; glue
+    at `sources\android\native_app_glue`; CMake+ninja
+    `sdk\cmake\3.22.1\bin`; `ANDROID_NDK_HOME` per-invocation only**;
+    (3) watch for the next archive (v0.64.5/v0.64.6): on tag
+    run the RE-VERIFY WAVE (section 0) + the 0.64.5 release-check rows
+    (+ macOS legs when the next candidate ships); (4) normal flow:
+    relay sweep each doorbell, integrate finished agent deliveries,
+    file per-package publish requests to packages with the standing
+    engine relay.
 
 1. RELAY: E:\xiom-lang\xiom-relays -- `git fetch origin` + compare (do
    NOT pull: "Cannot fast-forward to multiple branches"); `python
@@ -2035,6 +2324,23 @@ re-verify wave + lifts.  Relay-driven otherwise).
      the installer WIPES non-archive dirs there (ops `-1852-ops`); use
      lane-local dirs + `tools/home-snapshot.ps1`; restore from snapshot
      after a clobber.
+   - **Android toolchain (READ-ONLY; owner's Unity/UE5/Flutter SDK)**:
+     `C:\Android\sdk` (`ANDROID_SDK_ROOT` set user-level; `ANDROID_HOME`/
+     `ANDROID_NDK_HOME` unset -- export `ANDROID_NDK_HOME` per
+     invocation). NDK r27b `27.1.12297006` (clang 18.0.2 Android
+     r522817b; `toolchains\llvm\prebuilt\windows-x86_64\bin`; r27 +
+     26.3 also installed). Verified pattern (11:35Z smoke, green):
+     `clang --target=aarch64-linux-android26 -fPIC -shared` ->
+     ELF64/AArch64 `libsmoke.so` (5176 B). Headers in the NDK sysroot
+     (`usr\include\android\` + `aaudio\AAudio.h` +
+     `SLES\OpenSLES.h`); native_app_glue = `sources\android\
+     native_app_glue\` under the NDK root (NOT sysroot -- it is a
+     source; compile it into the app). CMake 3.22.1 + ninja at
+     `sdk\cmake\3.22.1\bin`; platforms android-33/35/36. PATH java is
+     1.8 -- use Android Studio JBR (`C:\Program Files\Android\Android
+     Studio\jbr\bin\java.exe`) for cmdline-tools/sdkmanager IF ever
+     needed; NO sdkmanager installs/upgrades (shared toolchain -- ask
+     the owner).
    - Package traps: assimp `-TimeoutSec 600`; glfw needs `--link user32`
      when run manually; meshopt `-TimeoutSec 900`; opengl/dx12 suites
      compile their C bridges via port.args.json; heavy full-surface

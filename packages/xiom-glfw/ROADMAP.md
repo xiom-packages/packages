@@ -14,6 +14,9 @@
 - [x] 0.5.0: event-callback setters (20) + `glfwInitAllocator` -- 124/124
       exports; fixed-dispatcher + fn-registry ABI (probe:
       `docs/repro/bindings-pilot/cb-abi/`)
+- [x] 0.6.0: callback DISPATCHER LIFT -- direct handoff (B-22 fixed m277;
+      probe9; suite live 37/37 with 20/20 setters + key/close/error round
+      trips); handlers now env-free (top-level fns)
 
 ## Phase 4 (Planned)
 - [ ] POSIX soname (`libglfw.so.3`) resolution path

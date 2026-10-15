@@ -1,6 +1,6 @@
 package xiom_glfw {
   name: "xiom.glfw";
-  version: "0.5.0";
+  version: "0.6.0";
   description: "GLFW bindings for XIOM via dynamic loader (glfw3.dll at runtime, SKIP when absent); full 124/124 surface: engine + gamma ramps, cursors, window icons, joystick/gamepad polling, 20 event-callback setters, glfwInitAllocator, Vulkan helpers";
   categories: ["graphics"];
   keywords: ["glfw", "windowing", "input", "monitors", "binding"];

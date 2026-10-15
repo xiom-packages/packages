@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.glfw` |
-| Version | 0.5.0 |
+| Version | 0.6.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | GLFW -- https://github.com/glfw/glfw |
 | Upstream version pinned | **3.4** (tag `3.4`) |
@@ -27,7 +27,7 @@ there is no link-time dependency and nothing vendored.
 |--------|-------|--------|
 | `GLFW/glfw3.h` | 241,826 | `AA370985F6B493BBE0358A36AB49F5780A6397C0209C6D98A62143DEA595B73C` |
 
-**Resolved symbol set (0.5.0):** **124 fail-closed core exports** --
+**Resolved symbol set (0.6.0):** **124 fail-closed core exports** --
 complete GLFW 3.4 public surface (init, version, error, platform, hints,
 window lifecycle/attrs/props, events, input, monitors/video modes/gamma,
 clipboard, time, GL-context basics, Win32 native, the 20 event-callback
@@ -65,13 +65,13 @@ return explicit errors).
   read back byte-wise (no compiler out-slots, no malloc/free in confined
   blocks). Foreign memory is copied with `ffi.memcpy` into slots
   (`copy_from`) -- no pointer arithmetic.
-- **Known compiler issues dodged by design (v0.64.3):**
-  - floating-point RETURNS through cast calls are miscompiled
-    (0/garbage) -- `glfw_get_time` / `glfw_get_window_opacity` are callable
-    but their values are unverifiable; the suite labels the skip; repro in
-    `docs/repro/bindings-pilot/glfw-fp-return/` (B-12).
-  - fn-typed PARAM values cannot be used as C callbacks (0; finding B-13) --
-    the dispatcher + registry design avoids the path entirely.
+- **Known compiler issues dodged by design (status on the v0.64.5 pin):**
+  - floating-point RETURNS through cast calls were miscompiled on v0.64.3
+    (0/garbage); FIXED at v0.64.4 (B-12/1904) -- `glfw_get_time` /
+    `glfw_get_window_opacity` verified green. Repro:
+    `docs/repro/bindings-pilot/glfw-fp-return/`.
+  - fn-typed PARAM values are EXACT as C callbacks since v0.64.5 (B-22
+    fixed, m277) -- 0.6.0 hands handlers directly to the DLL.
   - Vec-of-struct element extraction (AV) -- monitors are returned as
     `Vec[Int]` handles and video modes as a raw 24-byte-record buffer
     (`glfw_vidmode_count`/`glfw_vidmode_at`).
@@ -80,14 +80,13 @@ return explicit errors).
   - f32/f64 slots are decoded with pure bit arithmetic
     (`f32_from_bits`/`f64_from_bits`) after a `Result[Float*]` payload
     miscompile surfaced in the first build.
-- **Callback ABI (0.5.0)**: each event type has ONE fixed top-level
-  dispatcher whose address (`dispatch as Int`) is handed to the DLL; user
-  handlers are stored in module-level `Vec[fn]` registries and invoked by
-  the dispatcher (last set wins; window handlers receive the window handle).
-  Basis: probe evidence in `docs/repro/bindings-pilot/cb-abi/` -- bare
-  top-level fn names marshal correctly through extern and cast-call paths,
-  while fn-typed PARAM values marshal to 0 (B-13); registry element push +
-  call follows the m130 fn-value ABI.
+- **Callback ABI (0.6.0, direct handoff)**: setters hand the caller's
+  handler directly to the DLL; the 0.5.0 dispatcher + registry design is
+  retired. Basis: B-22 fixed in the v0.64.5 toolchain (m277) -- fn-typed
+  PARAM values now marshal through cast-call positions exactly (probe9
+  `via_param_arg=42` in `docs/repro/bindings-pilot/cb-abi/`; live key round
+  trip in this suite). Handlers must be env-free (top-level fns): the C
+  side receives the code address only.
 - **glfwInitAllocator**: `glfw_init_allocator_raw` builds the 32-byte
   `GLFWallocator` struct (allocate/reallocate/deallocate/user) in an
   XIOM-owned byte slot; callbacks are top-level fns cast with `as Int`.
