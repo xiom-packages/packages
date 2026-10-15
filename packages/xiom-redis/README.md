@@ -1,7 +1,7 @@
 # xiom.redis
 
 > **Status:** `incubating` -- conformance-tested (19/19), recorded x2 green
-> on XIOM v0.64.5; not yet published (registry/allowlist gate).
+> on XIOM v0.64.5. Published in `eco-v0.1.184` (sha256 `215a95c1...`).
 > **Scope:** Redis client, pure XIOM: RESP2 wire codec, TCP transport over
 > `xiom.net.socket`, typed command wrappers, pipelines and pub/sub basics.
 > No FFI, no bridge C, no hiredis.
