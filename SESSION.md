@@ -119,6 +119,15 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   next**: allowlist 540 -> 542 (durable+postgres; +redis on its confirm) + export-namespaces +
   generate_index -> wrap commit -> tag `eco-v0.1.183` -> approve env -> watch -> live-verify sha256s
   -> README/STATUS sync -> bus loop-closes.
+- **UPDATE 2026-10-15 20:15Z**: **BATCH 85 PUBLISHED -- durable + postgres LIVE; redis gate-pending.**
+  Wrap `223d71db` (allowlist 540->542; guard 542/526/16/0; namespaces 553 pkgs/1013 modules; index
+  559); tag `eco-v0.1.183`; run `38798162630` green (published=2 failed=0); live sha256s verified:
+  `xiom.durable 0.1.0` `9a5c9b4d...` + `xiom.postgres 0.1.0` `4363261c...`; sync `a908563f` (READMEs +
+  STATUS + PACKAGE_STATUS). **`xiom.redis`**: built + recorded (`5c313832`/`93918eff`, 19/19 x2 on
+  v0.64.5) but its scope ask `REL-20261015-1948-packages-2` is still open on ops -- on LIVE: allowlist
+  543 + wrap + tag **`eco-v0.1.184`** + publish + verify + sync. Findings filed this window:
+  `REL-20261015-1941` (compiler: tuple mangling collision), `-1942` (stdlib: md5 wrong digests),
+  `-1948` (stdlib: socket_connect refused-Ok).
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
