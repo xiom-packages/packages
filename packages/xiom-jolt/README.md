@@ -14,17 +14,24 @@ requires C++17, carried by the pinned v0.64.4 toolchain (thread via
 > unknown/removed id rejection), the 0.5.0 tiers (E1 raycast/any-hit,
 > sphere/capsule sweeps, sphere/capsule overlaps with canonical
 > deterministic order; E2 capsule bodies; E7 contact manifolds and
-> non-physical sensor volumes with per-step overlap events), and the 0.6.0
+> non-physical sensor volumes with per-step overlap events), the 0.6.0
 > tiers (E3 typed joints -- fixed/hinge/slider/point to a body or the
 > world, motors (velocity/position targets), limits, owned state read-back
 > and joint-driven determinism; E6 convex hull bodies from caller vertex
-> buffers and compound bodies combining box/sphere/capsule/convex parts);
-> run record in `STATUS.json`. 0.2.0 published in `eco-v0.1.161`
-> (sha256 `f08d65ca...`); 0.3.0 in `eco-v0.1.176` (sha256 `3ac3df4e...`);
-> 0.4.0 in `eco-v0.1.179` (sha256 `9315bbc7...`); 0.5.0 in `eco-v0.1.180`
-> (sha256 `1035c987...`); **0.6.0 in `eco-v0.1.181` (sha256 `e5c777f8...`)**.
+> buffers and compound bodies combining box/sphere/capsule/convex parts),
+> and the 0.7.0 tiers (E4 soft bodies -- cloth grid / rope / volume presets
+> over caller-driven size parameters, simulate under gravity with
+> constraint solving, particle state read-back into owned scalars and a
+> caller-owned buffer, settle/drape + determinism; E5 heightfield terrain
+> -- collider from caller samples + scale/quantization, a box settling on
+> it, E1 raycasts hitting height/normal); run record in `STATUS.json`.
+> 0.2.0 published in `eco-v0.1.161` (sha256 `f08d65ca...`); 0.3.0 in
+> `eco-v0.1.176` (sha256 `3ac3df4e...`); 0.4.0 in `eco-v0.1.179`
+> (sha256 `9315bbc7...`); 0.5.0 in `eco-v0.1.180` (sha256 `1035c987...`);
+> 0.6.0 in `eco-v0.1.181` (sha256 `e5c777f8...`); **0.7.0 in `eco-v0.1.182`
+> (sha256 `b1d09efd...`)**.
 > **Lane:** bindings (`keywords: ["binding"]`).
-> **Published**: `0.6.0` in `eco-v0.1.181` (sha256 `e5c777f8...`).
+> **Published**: `0.7.0` in `eco-v0.1.182` (sha256 `b1d09efd...`).
 
 ## Quick start
 
