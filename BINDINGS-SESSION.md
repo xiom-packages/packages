@@ -17,8 +17,10 @@ dx12 0.4.0 (`eco-v0.1.172`), opengl 0.5.0 (`eco-v0.1.170`), gles 0.1.0
 (`eco-v0.1.171`), sdl3 0.18.0 (`eco-v0.1.173`), sqlite 0.4.0
 (`eco-v0.1.174`) + 0.4.1 modules fix (`eco-v0.1.175`; sha256
 `21c1f673...`; x2 21/21 on `c239b90e`); Vulkan 0.6.0 live (OWNER lane);
-SDK100 all slices live; v0.64.4 pin wave done.  **NEXT = next compiler
-archive (v0.64.5+) carrying the m277-m283 fix batch** (m277 B-22; m279
+SDK100 all slices live; v0.64.4 pin wave done.  **NEXT SESSION = ANDROID
+first** (owner 2026-10-15; SDK `C:\Android\sdk` verified -- NDK r27b,
+aarch64 cross-smoke green) **then the next compiler archive (v0.64.5+)
+carrying the m277-m283 fix batch** (m277 B-22; m279
 B-16/B-17; m280 `-2230`; m281 B-23/B-24/B-20/B-11 addendum; **m283
 `3ef4d6a9` B-26 FIXED + B-25 green + contract-cycle guard**; B-05 stdlib
 guard_free in wave 124 but still red on v0.64.4 even with
@@ -40,8 +42,8 @@ ignored"); sqlite 0.4.1 modules list published.  Ops clobber rules in
 force; per-touch PROVENANCE rule in effect (dx12/opengl/gles/sdl3/sqlite
 compliant; matrix declared=4, backlog 33; `modules:` retrofit at touch --
 41 published + 26 unpublished remain fleet-wide).  UPDATE 2026-10-13
-18:05Z (origin/bindings tip `9600ae26`)** (NEXT = watch v0.64.5+; the
-paste prompt below carries the wave).
+18:05Z (origin/bindings tip `9600ae26`)** (NEXT = Android first, then
+watch v0.64.5+; the paste prompt below carries the wave).
 
 **UPDATE 2026-10-12 00:00Z (doorbell)**: `xiom.sdl3` **0.16.1 (B-19
 SDL_WasInit width fix) PUBLISHED in `eco-v0.1.160`** (batch 62; tally **76
@@ -1002,6 +1004,34 @@ E-family publish:
 - **E4/E5 launched** = the final E-family session (strict sequential).
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
+
+**UPDATE 2026-10-15 11:35Z (ANDROID TOOLCHAIN LOCATED + VERIFIED -- owner
+supplied path)**: owner pointed at `C:\Android\sdk` (his Unity/UE5/Flutter
+SDK). Verified READ-ONLY on this box, all green:
+- `ANDROID_SDK_ROOT=C:\Android\sdk` (user-level + process); `ANDROID_HOME`
+  and `ANDROID_NDK_HOME` are NOT set (export `ANDROID_NDK_HOME`
+  per-invocation only).
+- NDK r27b `27.1.12297006` (`source.properties` Pkg.Revision) plus r27
+  `27.0.12077973` and `26.3.11579264`; clang 18.0.2 (`Android
+  (12285214, based on r522817b)`) at
+  `ndk\27.1.12297006\toolchains\llvm\prebuilt\windows-x86_64\bin`
+  (clang / llvm-ar / ld.lld / llvm-readelf present).
+- **CROSS-BUILD SMOKE PASSED**: `clang --target=aarch64-linux-android26
+  -fPIC -shared` on a trivial C file -> `libsmoke.so` (5176 bytes;
+  `llvm-readelf`: ELF64 / AArch64 / DYN). First cross-arch artifact this
+  lane has produced.
+- Prep-wave headers (r27b sysroot `usr\include`): `android\`
+  (native_window.h / looper.h / asset_manager.h / bitmap.h /
+  configuration.h), `aaudio\AAudio.h`, `SLES\OpenSLES.h`; native_app_glue
+  is a SOURCE at `ndk\27.1.12297006\sources\android\native_app_glue\`
+  (NOT in the sysroot -- compile it into the app).
+- CMake 3.22.1 + ninja at `C:\Android\sdk\cmake\3.22.1\bin`; platforms
+  android-33/35/36; build-tools through 36.0.0; PATH java is 1.8 (use
+  Android Studio JBR `C:\Program Files\Android\Android Studio\jbr` if
+  cmdline-tools are ever needed).
+- **Shared toolchain (Unity/UE5/Flutter) -> READ-ONLY rule: no sdkmanager
+  installs/upgrades without owner OK.** The next session's Android prep
+  wave + opus NDK spike can run off this as-is.
 
 **UPDATE 2026-10-15 11:30Z (CONTEXT-LIMIT HANDOFF -- owner directives;
 paste prompt rebuilt)**: session handoff written.
@@ -1991,7 +2021,14 @@ release's test runs -- no special sweep needed before it).
     native_app_glue / ANativeWindow / ALooper / AAudio-OpenSL / asset
     manager; naming per the inquiry reply) + an NDK cross-build spike
     of one existing package (opus canary) once the compiler path is
-    agreed; (3) watch for the next archive (v0.64.5/v0.64.6): on tag
+    agreed; **SDK LOCATED: `C:\Android\sdk`, verified read-only
+    (probe-grade evidence in the 11:35Z UPDATE): `ANDROID_SDK_ROOT`
+    set; NDK r27b `27.1.12297006`; clang
+    `--target=aarch64-linux-android26` smoke GREEN (ELF64/AArch64);
+    headers in NDK sysroot `usr\include\{android,aaudio,SLES}`; glue
+    at `sources\android\native_app_glue`; CMake+ninja
+    `sdk\cmake\3.22.1\bin`; `ANDROID_NDK_HOME` per-invocation only**;
+    (3) watch for the next archive (v0.64.5/v0.64.6): on tag
     run the RE-VERIFY WAVE (section 0) + the 0.64.5 release-check rows
     (+ macOS legs when the next candidate ships); (4) normal flow:
     relay sweep each doorbell, integrate finished agent deliveries,
@@ -2026,6 +2063,23 @@ release's test runs -- no special sweep needed before it).
      the installer WIPES non-archive dirs there (ops `-1852-ops`); use
      lane-local dirs + `tools/home-snapshot.ps1`; restore from snapshot
      after a clobber.
+   - **Android toolchain (READ-ONLY; owner's Unity/UE5/Flutter SDK)**:
+     `C:\Android\sdk` (`ANDROID_SDK_ROOT` set user-level; `ANDROID_HOME`/
+     `ANDROID_NDK_HOME` unset -- export `ANDROID_NDK_HOME` per
+     invocation). NDK r27b `27.1.12297006` (clang 18.0.2 Android
+     r522817b; `toolchains\llvm\prebuilt\windows-x86_64\bin`; r27 +
+     26.3 also installed). Verified pattern (11:35Z smoke, green):
+     `clang --target=aarch64-linux-android26 -fPIC -shared` ->
+     ELF64/AArch64 `libsmoke.so` (5176 B). Headers in the NDK sysroot
+     (`usr\include\android\` + `aaudio\AAudio.h` +
+     `SLES\OpenSLES.h`); native_app_glue = `sources\android\
+     native_app_glue\` under the NDK root (NOT sysroot -- it is a
+     source; compile it into the app). CMake 3.22.1 + ninja at
+     `sdk\cmake\3.22.1\bin`; platforms android-33/35/36. PATH java is
+     1.8 -- use Android Studio JBR (`C:\Program Files\Android\Android
+     Studio\jbr\bin\java.exe`) for cmdline-tools/sdkmanager IF ever
+     needed; NO sdkmanager installs/upgrades (shared toolchain -- ask
+     the owner).
    - Package traps: assimp `-TimeoutSec 600`; glfw needs `--link user32`
      when run manually; meshopt `-TimeoutSec 900`; opengl/dx12 suites
      compile their C bridges via port.args.json; heavy full-surface
