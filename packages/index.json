@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-15T08:03:44Z",
+    "updated":  "2026-10-15T22:57:10Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -6436,7 +6436,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.postgres",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "PostgreSQL database bindings for XIOM via libpq",
+                         "description":  "PostgreSQL wire-protocol (v3) client in pure XIOM: startup, cleartext/MD5/SCRAM-SHA-256 auth, simple queries, typed errors",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
@@ -6445,9 +6445,10 @@
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-postgres/v0.1.0/package.tar.gz",
                          "source_files":  [
-                                              "client.xi",
-                                              "package.xi",
-                                              "postgres.xi"
+                                              "auth.xi",
+                                              "postgres.xi",
+                                              "wire.xi",
+                                              "package.xi"
                                           ]
                      },
                      {
@@ -6888,7 +6889,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.redis",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Redis database bindings for XIOM via hiredis",
+                         "description":  "Pure-XIOM Redis RESP2 client and protocol codec (TCP socket transport; no FFI, no hiredis)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
@@ -6898,6 +6899,9 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-redis/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "client.xi",
+                                              "resp.xi",
+                                              "value.xi",
+                                              "verbs.xi",
                                               "package.xi",
                                               "redis.xi"
                                           ]
