@@ -25,6 +25,7 @@ is not installed.
 > `eco-v0.1.173` (sha256 `544c59b8...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 > **Published**: `0.19.0` in `eco-v0.1.179` (sha256 `d0be440a...`).
+> **Published**: `0.20.0` in `eco-v0.1.185` (sha256 `b04a0ae4...`).
 
 ## Quick start
 
