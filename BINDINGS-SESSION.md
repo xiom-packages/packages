@@ -1005,6 +1005,20 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 21:40Z (dx12 COM revisit resolved; `-1309` CLOSED)**:
+- Revisit verdict: the 0.4.0 `Int`-typed dx12 COM surface is RETAINED
+  (both crossing paths value-preserving on v0.64.5; re-typing the
+  780KB generated corpus parked -- no consumer breakage either way).
+- `REL-20261013-1309-bindings` **fixed -> closed** on the re-verified
+  witness (ptr-cast both FIDELITY OK in the wave); dx12 README/SPEC
+  B-25 notes updated to the v0.64.5 status.
+- `docs/BINDINGS-COMPILER-FINDINGS.md` gained a **v0.64.5 wave
+  verification stamp** (B-23/24/25 FIXED; B-26 probe green but B-32
+  residual -- restore parked; B-29 STILL RED; B-30/31 FIXED; B-05
+  FIXED by the re-vendor; B-13/15/18/22 closed via the direct-handoff
+  lifts).
+- Queue next: Android W2b (A5 assets-storage head); A02/A04 behind.
+
 **UPDATE 2026-10-15 21:30Z (sqlite nested restore ATTEMPTED -> BLOCKED;
 B-32 filed)**: the planned 0.5.0 restore (`Result[Option[SqliteRow]]`;
 retire RowOutcome) was applied and RED-ed **in situ** on the v0.64.5 pin:

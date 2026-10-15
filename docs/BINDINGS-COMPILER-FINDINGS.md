@@ -53,6 +53,41 @@ avoids the shape; **MERGED** = recorded in the shared findings doc.
 | B-30 | **OPEN (v0.64.4; found 2026-10-13 building the `xiom.phonon` 0.3.0 owned-buffer layer) -- compiler defect** | **An `unsafe` block that combines a pointer-to-Int cast of one local `Vec` with a second statement that mutates another local (`let pa = ptrs.as_mut_ptr() as Int;` + `s_w64(&mut slot, 8, pa);`) fails codegen with `use of undefined value '%tmpNN'` (`load %struct.Vec, %struct.Vec* %undef`).** No XIOM-level diagnostic. Bisect (one edit per run): cast alone in its own block -> green; second block deleted -> green; plain assignment/direct byte-index writes/call not using the casted value -> green; the combined block fails even with the earlier (data) cast block kept. Same family as B-21/B-17 (confined-block SSA/lifetime lowering). | `docs/repro/bindings-pilot/owned-slot-cast/` (`probe.xi` fails; `probe_fixed.xi` green; pure XIOM, no C, no DLL) | `xiom.phonon` 0.3.0 ships the workaround: every `ptr as Int` cast isolated in its own `unsafe` block, never combined with another statement; two-phase pointer builds (collect addresses, then write slot bytes). | Compile-time IR failure for the construct-then-publish owned-buffer shape; blocks any FFI binding that materializes owned pointer arrays in one confined block |
 | B-31 | **OPEN (v0.64.4; found 2026-10-13 building the `xiom.phonon` 0.3.0 generated-constants layer) -- compiler defect** | **A module-level const alias to a const of the same name in another module (`pub const K: Int = cyc_part.K;` in `cyc`, `cyc_part` declaring `K`) makes the compiler recurse until the stack overflows whenever both modules are in the compilation unit.** No diagnostic; `thread '<unknown>' has overflowed its stack`. Trigger needs the alias module loaded: importing only `cyc_part` stays green; referencing names that have no alias is green. Ship-blocking for the initial generator layout (root module re-declared `IPL_*` aliases next to `xiom.phonon.abi`). | `docs/repro/bindings-pilot/const-alias-cycle/` (`part.xi` + `cyc.xi` + `probe.xi`; pure XIOM, no C) | `xiom.phonon` 0.3.0 keeps **one canonical home per constant name** across the package: no aliases; generated `xiom.phonon.abi` / `xiom.phonon.exports` own every name; code refers to `abi.X` / `exports.X`. | Compiler crash (stack overflow) for alias-chains of same-named consts across modules -- any binding package that re-exports constants from a generated module by alias |
 
+## v0.64.5 wave verification (2026-10-15, pin sha256 bd71e2d3)
+
+Re-run of every bundle on the released v0.64.5 archive (slot 557/557;
+details: `BINDINGS-SESSION.md` 19:45Z/20:00Z blocks and
+`REL-20261015-1955-bindings`):
+
+- **B-23 (null literal)**: FIXED -- 4/4 paths = 0 (`null-literal`).
+- **B-24 (out-slot reads)**: FIXED -- `ffi_bad=0 byte_bad=0 of 400`;
+  `foreign-ptr-read` C-matching; `ptr-slot-write` 66/66 exact;
+  `ptr-arith` `d100=100` exact.
+- **B-25 (`Int as *UInt8`)**: FIXED -- both FIDELITY paths OK
+  (`ptr-cast`); the `Int`-typed dx12 COM surface is RETAINED (re-typing
+  the generated corpus parked); `REL-20261013-1309-bindings` CLOSED on
+  the re-verified witness.
+- **B-26 (nested payloads)**: the probe bundle is 2/2/2 GREEN, but the
+  sqlite restore RED-ed IN SITU on the same pin (compilation-unit
+  sensitivity) -- **B-32 filed** with a full repro bundle
+  (`docs/repro/bindings-pilot/b32-sqlite-nested/`); the sqlite restore
+  stays parked (package unchanged at the flat `RowOutcome`).
+- **B-29 (big-int bitops >= 2^31)**: STILL RED on v0.64.5
+  (`shift20=2987 and_mask=0xBAC00000 div20=2987`); m314's wide-int
+  family does not cover the class; the boundary-arithmetic workaround
+  stays (filed on `REL-20261014-1208-bindings-2`).
+- **B-30 (confined-block cast)**: FIXED -- the combined-unsafe-block
+  shape compiles + runs green (`ch=2`).
+- **B-31 (const alias cycle)**: FIXED -- `--emit-ir` rc 0, no stack
+  overflow.
+- **B-05 (stdlib guard-free spin)**: FIXED by the re-vendored stdlib --
+  no spin (`before` / `after v=ok`); the retirement gate is satisfied.
+- **B-13/B-15/B-18/B-22 (callback ABI family)**: CLOSED in-lane via the
+  direct-handoff lifts and the cast-call fix -- `cb-abi` probe9
+  42/42/42; glfw 0.6.0 (20 setters, 37/37 live) and sdl3 0.20.0
+  (filter/watch, 72/72 live) ran with dispatchers/registries retired.
+- Suites on the pin: sdl3 72/72, jolt 159/159, glfw 37/37 live.
+
 ## Notes for the compiler lane
 
 - **B-11 discovered during `xiom.vma` (v0.64.2, 2026-10-09)**: out-param slot

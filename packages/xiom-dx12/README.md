@@ -32,8 +32,9 @@ but broken exports -> **FAIL**. CI stays green without a GPU.
 > invalid queue priority / buffer layout rejected, out-of-range adapter
 > index), plus probe/SKIP classification on all three runtimes.  B-23/B-24
 > workarounds are accepted with expiry = next compiler pin (see
-> `docs/repro/bindings-pilot/`); B-25 makes COM object params cross as
-> `Int`; callback-param methods take a raw handler address (B-22).
+> `docs/repro/bindings-pilot/`); COM object params cross as `Int`
+> (value-preserving on both paths since v0.64.5; B-25 fixed, cast path
+> re-verified); callback-param methods take a raw handler address (B-22).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -121,9 +122,10 @@ d3d12_command_queue_signal(queue, fence, 1 as UInt64);
 let r = dx12_fence_wait(fence, 1 as UInt64, 5000);   // 0 = signaled
 ```
 
-COM object handles cross as **`Int`** (the generated params are typed so
--- B-25: `Int as *UInt8` is not value-preserving on v0.64.4; the
-`Int`-param path is exact, witnessed by the suite's fidelity check).
+COM object handles cross as **`Int`** (the generated params are typed so;
+B-25 is FIXED on v0.64.5 -- both the `Int`-param path and the
+`Int as *UInt8` cast path are value-preserving (ptr-cast bundle re-run
+green); the re-typing revisit retains the `Int` surface by choice).
 `dx12_execute_one` builds the single-entry `ID3D12CommandList* const*`
 array in an owned slot (B-24 discipline); `dx12_fence_wait` blocks on the
 fence inside the bridge (Win32 event + `WaitForSingleObject`) and returns
