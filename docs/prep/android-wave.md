@@ -89,5 +89,6 @@ and modules are authored so the rename is mechanical (module name in
 W2a: A1 window-core -- DONE 2026-10-15 (`packages/xiom-android`
 0.1.0; suite 4/4 + on-device 27/27 export set; see
 `docs/ANDROID-SDK100.md`).
-W2b: A5 assets-storage.  W2c: A2 lifecycle-glue (+ native_app_glue C
+W2b: A5 assets-storage -- DONE 2026-10-15 (xiom.android 0.2.0;
+53-symbol export set; SHM functional on-device).  W2c: A2 lifecycle-glue (+ native_app_glue C
 unit).  W2d: A6 audio (AAudio first; AMidi; OpenSL ES last).

@@ -1005,6 +1005,20 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 21:50Z (ANDROID W2b DONE -- A5 assets-storage head
+lands, 53/53 on-device)**:
+- xiom.android 0.2.0: export set 27 -> 53 (asset_manager 17 +
+  storage_manager 6 + sharedmem 3); the bridge gained the POSIX
+  ASharedMemory functional head (create/getSize/setProt + mmap probe
+  write/read + fd close; Windows stubs compile clean).
+- Suite green on Windows (SKIP leg) on the v0.64.5 pin; constants
+  extended (asset modes + PROT bits).
+- **On-device (API-36 emulator): 0 missing exports of 53; SHM
+  `fd=9 size=4096 read=287454020` exact; HWB roundtrip unchanged;
+  RESULT: PASS** (`docs/repro/bindings-pilot/android-core-probe/`).
+- Android program ledger + wave brief updated (W2b DONE). Next: W2c
+  (A2 lifecycle-glue; ALooper is shell-testable) or the A02/A04 asks.
+
 **UPDATE 2026-10-15 21:40Z (dx12 COM revisit resolved; `-1309` CLOSED)**:
 - Revisit verdict: the 0.4.0 `Int`-typed dx12 COM surface is RETAINED
   (both crossing paths value-preserving on v0.64.5; re-typing the

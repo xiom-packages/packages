@@ -1,7 +1,7 @@
 # xiom.android
 
-Android platform-core bindings for XIOM -- the A1 window-core head of
-the Android SDK100 program.
+Android platform-core bindings for XIOM -- the A1 (window-core) + A5
+(assets-storage) heads of the Android SDK100 program.
 
 - Runtime probe for `libandroid.so` + `libnativewindow.so` with SKIP
   semantics (absent runtime -> `ANDROID_LOAD_ABSENT`; broken exports ->
@@ -9,6 +9,10 @@ the Android SDK100 program.
 - Functional `AHardwareBuffer` head: `hwb_is_supported`, `hwb_alloc`,
   describe accessors, `hwb_write_pixel`/`hwb_read_pixel` (safe lock
   roundtrip), `hwb_acquire`/`hwb_release`.
+- Functional `ASharedMemory` head: `shm_create`, size + `shm_set_prot`,
+  exact map-probe write/read roundtrip, `shm_close` (on-device
+  verified); asset_manager/storage_manager surfaces are export-set
+  ABI-checked (live wrappers join at the A11 JNI seam).
 - `ANativeWindow_*` export set bound + ABI-checked (live window ops
   ride the A11 JNI seam).
 

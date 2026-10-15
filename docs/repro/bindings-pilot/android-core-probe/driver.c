@@ -23,6 +23,12 @@ int32_t xa_hwb_layers(int64_t);
 int32_t xa_hwb_write_pixel(int64_t, int32_t, int32_t, int32_t);
 int64_t xa_hwb_read_pixel(int64_t, int32_t, int32_t);
 void xa_hwb_release(int64_t);
+int64_t xa_shm_create(const char*, int64_t);
+int64_t xa_shm_get_size(int64_t);
+int32_t xa_shm_set_prot(int64_t, int32_t);
+int32_t xa_shm_write_probe(int64_t, int32_t);
+int64_t xa_shm_read_probe(int64_t);
+int32_t xa_fd_close(int64_t);
 void xa_unload(void);
 
 int main(void) {
@@ -78,6 +84,37 @@ int main(void) {
         fails++;
     }
     xa_hwb_release(h);
+
+    /* ASharedMemory roundtrip (W2b): memfd 4096, RW, probe write/read. */
+    int64_t fd = xa_shm_create("xiom-core-probe", 4096);
+    printf("INFO shm fd=%lld\n", (long long)fd);
+    if (fd < 0) {
+        printf("FAIL shm create: %s\n", xa_error());
+        fails++;
+    } else {
+        int64_t sz = xa_shm_get_size(fd);
+        printf("INFO shm size=%lld\n", (long long)sz);
+        if (sz != 4096) {
+            printf("FAIL shm size\n");
+            fails++;
+        }
+        if (xa_shm_set_prot(fd, 3) != 0) {
+            printf("FAIL shm setProt: %s\n", xa_error());
+            fails++;
+        }
+        if (xa_shm_write_probe(fd, 0x11223344) != 0) {
+            printf("FAIL shm write: %s\n", xa_error());
+            fails++;
+        }
+        int64_t got2 = xa_shm_read_probe(fd);
+        printf("INFO shm read=%lld\n", (long long)got2);
+        if (got2 != 0x11223344) {
+            printf("FAIL shm roundtrip\n");
+            fails++;
+        }
+        xa_fd_close(fd);
+    }
+
     xa_unload();
 
     if (fails) {

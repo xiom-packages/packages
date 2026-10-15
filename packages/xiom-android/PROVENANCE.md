@@ -32,3 +32,6 @@
 ## Touch log
 
 - 2026-10-15: created (W2a head; per-touch PROVENANCE rule).
+- 2026-10-15: W2b A5 head -- asset_manager.h (17) / storage_manager.h
+  (6) / sharedmem.h (3) added to the oracle + export set (53 symbols);
+  sharedmem exercised functionally (suite + on-device probe).

@@ -47,6 +47,12 @@ extern "C" {
   fn xa_hwb_read_pixel(handle: Int64, x: Int32, y: Int32) -> Int64;
   fn xa_hwb_acquire(handle: Int64);
   fn xa_hwb_release(handle: Int64);
+  fn xa_shm_create(name: *UInt8, size: Int64) -> Int64;
+  fn xa_shm_get_size(fd: Int64) -> Int64;
+  fn xa_shm_set_prot(fd: Int64, prot: Int32) -> Int32;
+  fn xa_shm_write_probe(fd: Int64, value: Int32) -> Int32;
+  fn xa_shm_read_probe(fd: Int64) -> Int64;
+  fn xa_fd_close(fd: Int64) -> Int32;
   fn xa_unload();
 }
 
@@ -141,6 +147,22 @@ pub const AHARDWAREBUFFER_USAGE_GPU_CUBE_MAP: Int = 0x2000000;
 pub const AHARDWAREBUFFER_USAGE_GPU_MIPMAP_COMPLETE: Int = 0x4000000;
 pub const AHARDWAREBUFFER_USAGE_VENDOR_0: Int = 0x10000000;
 pub const AHARDWAREBUFFER_USAGE_FRONT_BUFFER: Int = 0x100000000;
+
+// =========================================================================
+// A5 assets-storage head (W2b): asset modes + shared-memory protection
+// =========================================================================
+
+// AAssetManager open modes (asset_manager.h)
+pub const AASSET_MODE_UNKNOWN: Int = 0;
+pub const AASSET_MODE_RANDOM: Int = 1;
+pub const AASSET_MODE_STREAMING: Int = 2;
+pub const AASSET_MODE_BUFFER: Int = 3;
+
+// ASharedMemory_setProt flags (POSIX PROT_*)
+pub const PROT_NONE: Int = 0;
+pub const PROT_READ: Int = 1;
+pub const PROT_WRITE: Int = 2;
+pub const PROT_EXEC: Int = 4;
 
 // =========================================================================
 // Probe API
@@ -300,4 +322,74 @@ pub fn hwb_release(buf: HwbBuffer)
   requires: true
 {
   unsafe { xa_hwb_release(buf.handle as Int64); }
+}
+
+// =========================================================================
+// ASharedMemory functional head (W2b; POSIX/Android memfd-backed)
+//
+// The AAsset_* / AAssetManager_* / AStorageManager_* surfaces are
+// declared + ABI-checked in the bridge export set (27 -> 53 symbols);
+// live wrappers need an app context (A11 JNI seam) and join then.
+// =========================================================================
+
+pub type ShmRegion = {
+  fd: Int;
+}
+
+/// Create a shared memory region (ASharedMemory_create; memfd-backed on
+/// Android).  Close with `shm_close`.
+/// Complexity: O(1).
+pub fn shm_create(name: Str, size: Int) -> Result[ShmRegion, AndroidProbeError]
+  requires: size > 0
+{
+  let fd = unsafe { xa_shm_create(name.c_str(), size as Int64) as Int };
+  if fd < 0 {
+    return Err(AndroidProbeError{ kind: ANDROID_LOAD_ABI; message: android_error() });
+  }
+  return Ok(ShmRegion{ fd: fd });
+}
+
+/// Size of the region in bytes (-1 on error).
+/// Complexity: O(1).
+pub fn shm_get_size(region: &ShmRegion) -> Int
+  requires: true
+{
+  unsafe { return xa_shm_get_size(region.fd as Int64) as Int; }
+}
+
+/// Restrict/extend fd protections (ASharedMemory_setProt; POSIX PROT_*).
+/// Complexity: O(1).
+pub fn shm_set_prot(region: &ShmRegion, prot: Int) -> Bool
+  requires: true
+{
+  let rc = unsafe { xa_shm_set_prot(region.fd as Int64, prot as Int32) as Int };
+  return rc == 0;
+}
+
+/// Write a 32-bit probe value at offset 0 through a MAP_SHARED RW mapping
+/// (the bridge keeps the mapping local).
+/// Complexity: O(map + msync + unmap).
+pub fn shm_write_probe(region: &ShmRegion, value: Int) -> Bool
+  requires: true
+{
+  let rc = unsafe { xa_shm_write_probe(region.fd as Int64, value as Int32) as Int };
+  return rc == 0;
+}
+
+/// Read the 32-bit probe value at offset 0 through a MAP_SHARED READ
+/// mapping; negative values are errors (see android_error).
+/// Complexity: O(map + load + unmap).
+pub fn shm_read_probe(region: &ShmRegion) -> Int
+  requires: true
+{
+  unsafe { return xa_shm_read_probe(region.fd as Int64) as Int; }
+}
+
+/// Close the region's file descriptor.
+/// Complexity: O(1).
+pub fn shm_close(region: ShmRegion) -> Bool
+  requires: true
+{
+  let rc = unsafe { xa_fd_close(region.fd as Int64) as Int };
+  return rc == 0;
 }

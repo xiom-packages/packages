@@ -103,6 +103,11 @@ can be proven without the compiler target:
   emulator: load rc=0, **0 missing exports of 27**, HWB 64x64 RGBA8
   allocate/describe/lock-write/lock-read roundtrip exact (0x11223344);
   repro `docs/repro/bindings-pilot/android-core-probe/`.
+- **W2b (DONE 2026-10-15)**: `xiom.android` 0.2.0 A5 assets-storage head
+  -- export set 27 -> 53 (asset_manager 17 + storage_manager 6 +
+  sharedmem 3); suite green on Windows (SKIP leg); on-device:
+  **0 missing exports of 53**, ASharedMemory 4096 memfd
+  create/setProt/map-probe roundtrip exact (0x11223344).
 - **W3**: on G1 -- first end-to-end suite on the emulator, then fan out
   slices A1-A12 as parallel agent sessions.
 
@@ -121,3 +126,6 @@ can be proven without the compiler target:
 - 2026-10-15T18:30Z: **W2a on-device** -- xiom.android bridge PASS on
   the API-36 x86_64 emulator (export set 27/27 resolved; HWB roundtrip
   exact); package suite 4/4 on v0.64.4 (SKIP path).
+- 2026-10-15T21:10Z: **W2b on-device** -- xiom.android 0.2.0: 53/53
+  exports resolved; ASharedMemory roundtrip exact; HWB evidence
+  unchanged.

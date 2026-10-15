@@ -11,6 +11,13 @@ window-core head**.
   frame-rate compatibility/change-strategy enums.
 - `android/hardware_buffer.h` -- 12 exports (`AHardwareBuffer_*`) +
   the FORMAT_* and USAGE_* families.
+- `android/asset_manager.h` (17 non-JNI exports: `AAssetManager_*`,
+  `AAssetDir_*`, `AAsset_*` + `AASSET_MODE_*`), `android/storage_manager.h`
+  (6: `AStorageManager_*` OBB surface) and `android/sharedmem.h`
+  (3: `ASharedMemory_*`) -- the **A5 assets-storage head (0.2.0)**;
+  sharedmem is exercised FUNCTIONALLY (create/size/setProt/map probe/
+  close), the asset/storage surfaces are export-set ABI-checked (live
+  wrappers need an app context -> A11).
 - Struct ABI facts pinned from the headers: `AHardwareBuffer_Desc`
   (width, height, layers, format `u32`; usage `u64`; stride, rfu0 `u32`;
   rfu1 `u64`), `ARect` (`i32` x4).
@@ -38,12 +45,14 @@ window-core head**.
 |---|---|---|
 | libs absent (Windows, bogus pair) | `ANDROID_LOAD_ABSENT` | SKIP (green) |
 | exports missing / broken install | `ANDROID_LOAD_ABI` | FAIL |
-| full export set + working HWB | Ok | live checks |
+| full export set + working HWB/SHM | Ok | live checks |
 
 ## Documented exclusions (for this head)
 
 - `native_window_jni.h` / `hardware_buffer_jni.h` (fromSurface /
   toSurface / fromHardwareBuffer): JNI seam, slice A11.
+- `asset_manager_jni.h` / `sharedmem_jni.h` (fromJava / dupFromJava):
+  JNI seam, slice A11 (live asset/storage wrappers join with it).
 - Inline-only helpers (`ANativeWindow_clearFrameRate`): no export; the
   underlying `setFrameRateWithChangeStrategy` is bound.
 - Window ops requiring a live Surface (lock/unlockAndPost/geometry

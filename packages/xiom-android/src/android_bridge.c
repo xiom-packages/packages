@@ -49,6 +49,8 @@ static void* xa_dlsym(xa_lib_t h, const char* name) {
 static void xa_dlclose(xa_lib_t h) { if (h) FreeLibrary(h); }
 #else
 #include <dlfcn.h>
+#include <sys/mman.h>
+#include <unistd.h>
 typedef void* xa_lib_t;
 static xa_lib_t xa_dlopen(const char* name) { return dlopen(name, RTLD_NOW | RTLD_LOCAL); }
 static void* xa_dlsym(xa_lib_t h, const char* name) { return h ? dlsym(h, name) : 0; }
@@ -125,6 +127,35 @@ static const char* k_export_set[] = {
     "AHardwareBuffer_getId",
     "AHardwareBuffer_sendHandleToUnixSocket",
     "AHardwareBuffer_recvHandleFromUnixSocket",
+    /* A5 assets-storage head (W2b): asset_manager.h (17 non-JNI) */
+    "AAssetManager_openDir",
+    "AAssetManager_open",
+    "AAssetDir_getNextFileName",
+    "AAssetDir_rewind",
+    "AAssetDir_close",
+    "AAsset_read",
+    "AAsset_seek",
+    "AAsset_seek64",
+    "AAsset_close",
+    "AAsset_getBuffer",
+    "AAsset_getLength",
+    "AAsset_getLength64",
+    "AAsset_getRemainingLength",
+    "AAsset_getRemainingLength64",
+    "AAsset_openFileDescriptor",
+    "AAsset_openFileDescriptor64",
+    "AAsset_isAllocated",
+    /* storage_manager.h (6; the fromJava route is A11) */
+    "AStorageManager_new",
+    "AStorageManager_delete",
+    "AStorageManager_mountObb",
+    "AStorageManager_unmountObb",
+    "AStorageManager_isObbMounted",
+    "AStorageManager_getMountedObbPath",
+    /* sharedmem.h (3; dupFromJava is A11) */
+    "ASharedMemory_create",
+    "ASharedMemory_getSize",
+    "ASharedMemory_setProt",
 };
 #define XA_EXPORT_COUNT (sizeof(k_export_set) / sizeof(k_export_set[0]))
 
@@ -146,6 +177,14 @@ static PFN_lock p_lock = 0;
 static PFN_unlock p_unlock = 0;
 static PFN_is_supported p_is_supported = 0;
 
+typedef int (*PFN_shm_create)(const char*, size_t);
+typedef size_t (*PFN_shm_get_size)(int);
+typedef int (*PFN_shm_set_prot)(int, int);
+
+static PFN_shm_create p_shm_create = 0;
+static PFN_shm_get_size p_shm_get_size = 0;
+static PFN_shm_set_prot p_shm_set_prot = 0;
+
 /* -- load / classify ----------------------------------------------------- */
 
 static int xa_finish_load(void) {
@@ -166,6 +205,9 @@ static int xa_finish_load(void) {
     p_lock = (PFN_lock)xa_resolve("AHardwareBuffer_lock");
     p_unlock = (PFN_unlock)xa_resolve("AHardwareBuffer_unlock");
     p_is_supported = (PFN_is_supported)xa_resolve("AHardwareBuffer_isSupported");
+    p_shm_create = (PFN_shm_create)xa_resolve("ASharedMemory_create");
+    p_shm_get_size = (PFN_shm_get_size)xa_resolve("ASharedMemory_getSize");
+    p_shm_set_prot = (PFN_shm_set_prot)xa_resolve("ASharedMemory_setProt");
     if (g_missing_count != 0) {
         xa_set_error(g_missing);
         return 2;
@@ -341,6 +383,65 @@ void xa_hwb_release(int64_t handle) {
     if (p_release && handle) p_release(xa_hwb_from_handle(handle));
 }
 
+/* -- functional ASharedMemory surface (POSIX hosts only) ------------------ */
+
+#if !defined(_WIN32)
+int64_t xa_shm_create(const char* name, int64_t size) {
+    if (!p_shm_create) { xa_set_error("shm create unresolved"); return -1; }
+    if (size <= 0) { xa_set_error("shm size must be > 0"); return -1; }
+    int fd = p_shm_create(name ? name : "xiom-shm", (size_t)size);
+    if (fd < 0) { snprintf(g_error, sizeof(g_error), "ASharedMemory_create rc=%d", fd); return -1; }
+    return (int64_t)fd;
+}
+
+int64_t xa_shm_get_size(int64_t fd) {
+    if (!p_shm_get_size) { xa_set_error("shm getSize unresolved"); return -1; }
+    if (fd < 0) { xa_set_error("null shm fd"); return -1; }
+    return (int64_t)p_shm_get_size((int)fd);
+}
+
+int32_t xa_shm_set_prot(int64_t fd, int32_t prot) {
+    if (!p_shm_set_prot) { xa_set_error("shm setProt unresolved"); return -1; }
+    if (fd < 0) { xa_set_error("null shm fd"); return -1; }
+    int rc = p_shm_set_prot((int)fd, (int)prot);
+    if (rc != 0) { snprintf(g_error, sizeof(g_error), "ASharedMemory_setProt rc=%d", rc); }
+    return (int32_t)rc;
+}
+
+int32_t xa_shm_write_probe(int64_t fd, int32_t value) {
+    if (fd < 0) { xa_set_error("null shm fd"); return -1; }
+    void* p = mmap(0, 4, PROT_READ | PROT_WRITE, MAP_SHARED, (int)fd, 0);
+    if (p == MAP_FAILED) { xa_set_error("shm write mmap failed"); return -1; }
+    uint32_t v = (uint32_t)value;
+    memcpy(p, &v, 4);
+    msync(p, 4, MS_SYNC);
+    munmap(p, 4);
+    return 0;
+}
+
+int64_t xa_shm_read_probe(int64_t fd) {
+    if (fd < 0) { xa_set_error("null shm fd"); return -1; }
+    void* p = mmap(0, 4, PROT_READ, MAP_SHARED, (int)fd, 0);
+    if (p == MAP_FAILED) { xa_set_error("shm read mmap failed"); return -1; }
+    uint32_t v = 0;
+    memcpy(&v, p, 4);
+    munmap(p, 4);
+    return (int64_t)v;
+}
+
+int32_t xa_fd_close(int64_t fd) {
+    if (fd < 0) { xa_set_error("null fd"); return -1; }
+    return (int32_t)close((int)fd);
+}
+#else /* _WIN32: POSIX-only surface (the Android libs never load here) */
+int64_t xa_shm_create(const char* name, int64_t size) { (void)name; (void)size; xa_set_error("posix-only"); return -1; }
+int64_t xa_shm_get_size(int64_t fd) { (void)fd; xa_set_error("posix-only"); return -1; }
+int32_t xa_shm_set_prot(int64_t fd, int32_t prot) { (void)fd; (void)prot; xa_set_error("posix-only"); return -1; }
+int32_t xa_shm_write_probe(int64_t fd, int32_t value) { (void)fd; (void)value; xa_set_error("posix-only"); return -1; }
+int64_t xa_shm_read_probe(int64_t fd) { (void)fd; xa_set_error("posix-only"); return -1; }
+int32_t xa_fd_close(int64_t fd) { (void)fd; xa_set_error("posix-only"); return -1; }
+#endif
+
 /* -- teardown ------------------------------------------------------------ */
 
 void xa_unload(void) {
@@ -348,6 +449,7 @@ void xa_unload(void) {
     if (g_nativewindow) { xa_dlclose(g_nativewindow); g_nativewindow = 0; }
     p_allocate = 0; p_acquire = 0; p_release = 0; p_describe = 0;
     p_lock = 0; p_unlock = 0; p_is_supported = 0;
+    p_shm_create = 0; p_shm_get_size = 0; p_shm_set_prot = 0;
     g_missing_count = 0;
     g_missing[0] = 0;
 }

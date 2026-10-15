@@ -3,7 +3,7 @@
 Android SDK100 program: `docs/ANDROID-SDK100.md`; wave brief:
 `docs/prep/android-wave.md`.
 
-## 0.1.0 -- A1 window-core head (current)
+## 0.1.0 -- A1 window-core head
 
 - [x] Runtime probe (libandroid.so + libnativewindow.so) with
   ABSENT/ABI classification + export-set verification (27 exports).
@@ -11,10 +11,15 @@ Android SDK100 program: `docs/ANDROID-SDK100.md`; wave brief:
   roundtrip/release).
 - [x] Suite: constants + deterministic SKIP path + live path.
 
-## Next
+## 0.2.0 -- A5 assets-storage head (current)
 
-- A5 assets-storage head in this package (`asset_manager.h`,
-  `storage_manager.h`, `sharedmem.h`; 34 protos measured).
+- [x] Export set extended 27 -> 53 (asset_manager 17 + storage_manager
+  6 + sharedmem 3); ABI-checked on-device (0 missing).
+- [x] Functional ASharedMemory head (create/size/setProt/map probe/
+  close); on-device roundtrip exact (0x11223344).
+- [x] Suite: asset-mode + PROT constants; SHM functional block.
+
+## Next
 - A2 lifecycle-glue head (`looper.h`, `native_activity.h`,
   `configuration.h`; 87 protos) + the native_app_glue C unit.
 - Live window ops: ANativeWindow lock/geometry flows once a Surface is

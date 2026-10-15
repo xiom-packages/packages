@@ -1,5 +1,6 @@
 // xiom.android conformance suite -- platform-core (libandroid.so +
-// libnativewindow.so) loader/probe for the A1 window-core head.
+// libnativewindow.so) loader/probe for the A1 window-core + A5
+// assets-storage heads.
 //
 // The probe never FAILs on a missing runtime:
 //   present runtime -> export-set ABI check + functional AHardwareBuffer
@@ -42,6 +43,8 @@ fn t_constants() -> Bool {
   if AHARDWAREBUFFER_FORMAT_R16G16B16A16_FLOAT != 0x16 || AHARDWAREBUFFER_FORMAT_BLOB != 0x21 { ok = false; }
   if AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN != 3 || AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN != 0x30 { ok = false; }
   if AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE != 0x100 || AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER != 0x200 { ok = false; }
+  if AASSET_MODE_UNKNOWN != 0 || AASSET_MODE_RANDOM != 1 || AASSET_MODE_STREAMING != 2 || AASSET_MODE_BUFFER != 3 { ok = false; }
+  if PROT_NONE != 0 || PROT_READ != 1 || PROT_WRITE != 2 || PROT_EXEC != 4 { ok = false; }
   return ok;
 }
 
@@ -74,6 +77,24 @@ fn t_hwb_functional() -> Int {
   return failed;
 }
 
+fn t_shm_functional() -> Int {
+  var failed: Int = 0;
+  let a = shm_create("xiom-shm-probe", 4096);
+  if a.is_ok {
+    let reg: ShmRegion = a.value;
+    failed = failed + report(shm_get_size(&reg) == 4096,
+      "shm: create 4096 bytes (got " + to_string(shm_get_size(&reg)) + ")");
+    failed = failed + report(shm_set_prot(&reg, PROT_READ + PROT_WRITE), "shm: setProt READ|WRITE");
+    failed = failed + report(shm_write_probe(&reg, 0x11223344), "shm: write probe at 0");
+    let got = shm_read_probe(&reg);
+    failed = failed + report(got == 0x11223344, "shm: read probe roundtrip (got " + to_string(got) + ")");
+    failed = failed + report(shm_close(reg), "shm: closed");
+  } else {
+    failed = failed + report(false, "shm: create failed -- " + a.error.message);
+  }
+  return failed;
+}
+
 fn main() -> Int {
   io.println("=== xiom.android conformance tests (platform-core loader/probe) ===");
   io.flush_stdout();
@@ -97,6 +118,7 @@ fn main() -> Int {
     failed = failed + report(rt.missing_exports == 0,
       "abi: declared export set fully resolved (" + to_string(rt.missing_exports) + " missing)");
     failed = failed + t_hwb_functional();
+    failed = failed + t_shm_functional();
   } else {
     if p.error.kind == ANDROID_LOAD_ABSENT {
       failed = failed + report(true, "probe: SKIP -- android runtime not present (" + p.error.message + ")");
