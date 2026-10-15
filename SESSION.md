@@ -128,6 +128,13 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   543 + wrap + tag **`eco-v0.1.184`** + publish + verify + sync. Findings filed this window:
   `REL-20261015-1941` (compiler: tuple mangling collision), `-1942` (stdlib: md5 wrong digests),
   `-1948` (stdlib: socket_connect refused-Ok).
+- **UPDATE 2026-10-15 20:45Z**: wakeup check -- `xiom.redis` scope **staged PROD-only (eco-release
+  541->542)**; ops `REL-20261015-1948-packages-2` **acked 20:35Z** ("live confirmation follows") --
+  publish stays gated on LIVE. Path armed: allowlist 542->543 + guard + export-namespaces +
+  generate_index + wrap commit + tag **`eco-v0.1.184`** + approve env + watch + live-verify +
+  README/STATUS/PACKAGE_STATUS sync + bus fix + this doc. Ops also catalog-verified batch 85
+  (528 entries; durable/postgres live). Engine v0.64.5 release-check packages rows swept: **12/12
+  VERIFIED** (`85ccec1` + `ddac087`; 34/34 registry re-probe). Next wakeup re-checks the redis gate.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
