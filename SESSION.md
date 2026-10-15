@@ -144,6 +144,17 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   socket_connect -> stdlib "behind the pin switch"; tuple collision -> compiler v0.64.6 fixer wave).
   Queue back to the standing set: bindings manifest asks (sdl3 0.20.0 / glfw 0.6.0 follow-ups likely
   next), promotions (bindings prep), next-archive re-verify for v0.64.6.
+- **UPDATE 2026-10-15 21:40Z**: **BATCH 87 (WAVE 4) PUBLISHED -- 101 eco releases.** `xiom.glfw 0.6.0`
+  (dispatcher lift, B-22) + `xiom.sdl3 0.20.0` (filter/watch direct handoff, B-15) live in
+  `eco-v0.1.185` (sha256s `e0acf0cc...` / `b04a0ae4...`; x2 37/37 + 72/72 on v0.64.5, 0 warnings; run
+  38810046611 green). Merge `15077563` -- **STATUS conflicts resolved to OURS** (main carries the
+  publish-sync reasons + platform/runtime rows; theirs were staler; the two lift packages re-recorded
+  fresh anyway). **`xiom.android` joined the tree** (554 packages; NOT in this batch -- not
+  allowlisted/scoped yet; expect a bindings publish request). Record `1681dc2d`; wrap `84ab71bf`; sync
+  `4c7f42fb`; bus `-2105`/`-2105-2` fixed; **engine shape-changed relay** `REL-20261015-2134-packages`
+  (sdl3/glfw handlers now direct + env-free -- engine wiring must adjust). **Tool learning**: the shared
+  live stdlib (`E:\xiom-lang\stdlib`) is edited concurrently by the stdlib lane -- a mid-save
+  `fp128_helpers.c` produced a transient compile failure; re-run, don't chase package bugs.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
