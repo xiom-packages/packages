@@ -4,7 +4,8 @@ Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
 **STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: jolt 0.5.0 in
-`eco-v0.1.180` (96 eco releases)** -- LIVE: jolt 0.5.0 (E1 queries + E2
+`eco-v0.1.180` (96 eco releases); jolt 0.6.0 integrated +
+publish-requested (E3/E6; 109/109 x2)** -- LIVE: jolt 0.5.0 (E1 queries + E2
 capsule + E7 contacts/sensors; 67/67 x2) + wave 2 (`eco-v0.1.178`: opus/
 ogg/lz4/ktx2/vdb/phonon 0.3.0) + wave 3/A05 (`eco-v0.1.179`) + codec wave
 A (`eco-v0.1.176`: jolt 0.3.0/zstd 0.3.0/meshopt 0.5.0/ffmpeg 0.3.0) +
@@ -984,6 +985,22 @@ wrappers) -- is now LIVE (packages fixed `REL-20261012-2051-bindings`,
 validate green. Promotion readiness (policy sec. 7) is the next DX12 step
 after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
+
+**UPDATE 2026-10-15 00:45Z (doorbell: jolt 0.6.0 integrated +
+publish-requested; E4/E5 session launched; v0.64.5 tag HELD)**:
+- **jolt 0.6.0 DONE + integrated** (`2d1d3a0a`; record re-pointed
+  `569202c4`): E3 typed joints (fixed/hinge/slider/point + motors/
+  limits/state reads) and E6 convex/compound; suite 67 ->
+  **109/109 x2**.  Publish request `REL-20261015-0002-bindings`.
+- **Final E session launched**: `feat/jolt-e4-e5`
+  (`am-1792022598613-tp5dqu`) = 0.7.0: E4 particles/soft bodies + E5
+  heightfield -- the last two tiers of E1-E7.
+- **v0.64.5 tag HELD** (stdlib `d80bf1b`: candidate regressions filed as
+  item 2123; tag held on 1739; candidate probes 310/315 OK) -- release
+  not out; `gh` still v0.64.4, installed compiler still v0.64.4.  The
+  re-verify wave stays armed for the tag.
+- Relay tip `8964a3d`, validate 502 items.  (Push race with the
+  concurrent session resolved; shared tip `569202c4`.)
 
 **UPDATE 2026-10-15 00:05Z (doorbell -- jolt 0.5.0 PUBLISHED
 `eco-v0.1.180`; v0.64.5 tag still held)**: packages confirms the publish
