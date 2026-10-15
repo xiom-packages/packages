@@ -9,8 +9,8 @@
                   "passed":  4,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "e5d1a15c",
-                  "checked":  "2026-10-15T17:55:15Z"
+                  "commit":  "912081de",
+                  "checked":  "2026-10-15T21:00:47Z"
               },
     "publish":  false,
     "excluded_reason":  "new package (Android SDK100 W2a head); publish gate after the naming decision + first on-device run (G1)"
