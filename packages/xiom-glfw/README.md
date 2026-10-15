@@ -4,7 +4,8 @@ GLFW **3.4** bindings for XIOM via a **dynamic loader** (no link-time
 dependency; `glfw3.dll` resolved at runtime; the suite SKIPs green when the
 backend is absent).
 
-> **Status:** `incubating` -- **full surface (0.5.0, 124/124 core exports)**:
+> **Status:** `incubating` -- **full surface (0.6.0, 124/124 core exports;
+> callback direct handoff)**:
 > init/hints, window lifecycle + attributes, events (poll/wait), input
 > polling, monitors + video modes, clipboard, time, GL-context basics,
 > gamma ramps, cursors, window icons, joystick/gamepad polling, the **20
@@ -65,23 +66,21 @@ fn main() {
 | Allocator | `glfw_init_allocator_raw` (`GLFWallocator` struct built in an XIOM slot; callbacks are top-level fns cast with `as Int`) |
 | Native + Vulkan | `glfw_get_win32_adapter/monitor/window` (HWND), `glfw_vulkan_supported`, `glfw_get_required_instance_extensions`, `glfw_get_instance_proc_address`, `glfw_get_physical_device_presentation_support`, `glfw_create_window_surface` |
 
-**Callback model:** each event type has one fixed top-level dispatcher whose
-address crosses into the DLL; user handlers live in a registry and are
-invoked by the dispatcher (the XIOM-fn -> C-pointer ABI is only reliable for
-bare top-level fn names on v0.64.3 -- finding B-13). Handlers are
-process-global per event type (last set wins); multi-window callers route on
-the window handle passed to the handler.
+**Callback model (0.6.0, direct handoff):** setters pass the caller's
+handler straight into the DLL (B-22 fixed in the v0.64.5 toolchain: fn-typed
+parameter values now marshal exactly through cast-call positions). Handlers
+must be ENV-FREE (top-level fns): the C side receives the code address only.
+Multi-window callers route on the window handle passed to the handler.
 
-**Known limitations (compiler v0.64.3):** floating-point RETURNS through
-fn-pointer cast calls are miscompiled (0/garbage), so `glfwGetTime` /
-`glfwGetWindowOpacity` values are unverifiable (the call path is still
-exercised; the suite labels the skip). Repro + filing:
+**Compiler-ABI notes:** floating-point RETURNS through fn-pointer cast calls
+were miscompiled on v0.64.3; FIXED at v0.64.4 (probe 1904; `glfwGetTime` /
+`glfwGetWindowOpacity` verified green on the v0.64.5 pin). Repro:
 `docs/repro/bindings-pilot/glfw-fp-return/`. Vec-of-struct element
-extraction also miscompiles (AV), so monitors/video modes use `Int` handles
-and raw byte buffers. fn-typed function PARAMETER values cannot be used as C
-callbacks (`0`; finding B-13, repro in
-`docs/repro/bindings-pilot/cb-abi/`) -- the dispatcher + registry design
-above avoids the path entirely.
+extraction also miscompiled on v0.64.3 (AV), so monitors/video modes use
+`Int` handles and raw byte buffers. fn-typed function PARAMETER values are
+EXACT as C callbacks since the v0.64.5 toolchain (B-22 fixed, m277; probe9
+`via_param_arg=42` in `docs/repro/bindings-pilot/cb-abi/`) -- the 0.6.0
+direct handoff relies on it.
 
 ## Tests
 

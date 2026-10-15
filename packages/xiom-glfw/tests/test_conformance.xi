@@ -25,8 +25,8 @@ use xiom.glfw;
 use xiom.ffi;
 
 // =========================================================================
-// 0.5.0 callback capture + test allocator (top-level fns: only a bare
-// top-level fn NAME marshals to a C function pointer -- finding B-13).
+// 0.6.0 callback capture + test allocator (direct handoff: fn-typed param
+// values marshal since B-22/m277; handlers are top-level env-free fns).
 // =========================================================================
 
 // Captured event state.
@@ -41,10 +41,10 @@ var ev_key_calls: Int = 0;
 var ev_key_code: Int = 0;
 var ev_key_action: Int = 0;
 
-fn on_error(code: Int32, desc: Str) -> Unit {
+fn on_error(code: Int32, desc: *UInt8) -> Unit {
   ev_err_calls = ev_err_calls + 1;
   ev_err_code = code as Int;
-  ev_err_desc = desc;
+  ev_err_desc = glfw_error_desc_read(desc);
 }
 
 fn on_close(win: Int) -> Unit {
@@ -66,10 +66,11 @@ fn on_joystick(jid: Int32, event: Int32) -> Unit { ev_stub_calls = ev_stub_calls
 fn on_pos(win: Int, a: Int32, b: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
 fn on_flag(win: Int, v: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
 fn on_scale(win: Int, a: Float64, b: Float64) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+fn on_scale32(win: Int, a: Float32, b: Float32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
 fn on_char(win: Int, codepoint: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
 fn on_char_mods(win: Int, codepoint: Int32, mods: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
 fn on_mouse(win: Int, button: Int32, action: Int32, mods: Int32) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
-fn on_drop(win: Int, count: Int32, paths: Vec[Str]) -> Unit { ev_stub_calls = ev_stub_calls + 1; }
+fn on_drop(win: Int, count: Int32, paths: *UInt8) -> Unit { ev_stub_calls = ev_stub_calls + 1; let _ = glfw_drop_paths_read(paths, count as Int); }
 
 // ---- test allocator: 1 MiB bump arena, 16-byte aligned, size header at -8 --
 
@@ -421,7 +422,7 @@ fn main() -> Int {
       cb_reg = cb_reg + 1;
       if glfw_set_framebuffer_size_callback(&lib, &w, on_pos) != 0 { cb_reg_ok = false; }
       cb_reg = cb_reg + 1;
-      if glfw_set_window_content_scale_callback(&lib, &w, on_scale) != 0 { cb_reg_ok = false; }
+      if glfw_set_window_content_scale_callback(&lib, &w, on_scale32) != 0 { cb_reg_ok = false; }
       cb_reg = cb_reg + 1;
       if glfw_set_key_callback(&lib, &w, on_key) != 0 { cb_reg_ok = false; }
       cb_reg = cb_reg + 1;
