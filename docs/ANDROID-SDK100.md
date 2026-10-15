@@ -98,6 +98,11 @@ can be proven without the compiler target:
   (oracle sizes per head, SKIP semantics, naming gate, order W2a-d);
   surfaces for the A1/A2/A5/A6 heads follow the brief; suites SKIP on
   desktop.
+- **W2a (DONE 2026-10-15)**: `xiom.android` 0.1.0 A1 window-core head
+  -- suite 4/4 on Windows (SKIP path); on-device probe on the API-36
+  emulator: load rc=0, **0 missing exports of 27**, HWB 64x64 RGBA8
+  allocate/describe/lock-write/lock-read roundtrip exact (0x11223344);
+  repro `docs/repro/bindings-pilot/android-core-probe/`.
 - **W3**: on G1 -- first end-to-end suite on the emulator, then fan out
   slices A1-A12 as parallel agent sessions.
 
@@ -113,3 +118,6 @@ can be proven without the compiler target:
   aarch64 machine = AArch64); on-device (API-36 x86_64 emulator):
   dlopen OK, encoder_size=31668, enc+dec create OK, encode 127 B,
   decode 960 samples, SPIKE RESULT: PASS.
+- 2026-10-15T18:30Z: **W2a on-device** -- xiom.android bridge PASS on
+  the API-36 x86_64 emulator (export set 27/27 resolved; HWB roundtrip
+  exact); package suite 4/4 on v0.64.4 (SKIP path).

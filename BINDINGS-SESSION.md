@@ -1005,6 +1005,27 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 18:30Z (ANDROID W2a DONE -- xiom.android A1 head
+lands GREEN both ways)**: first Android package authored while the
+release holds; nothing release-gated was needed.
+- New package `packages/xiom-android` (candidate name `xiom.android`,
+  rename-safe per the brief): runtime bridge (dlopen on Android /
+  LoadLibraryA on Windows) + A1 window-core head = native_window.h
+  (15 non-inline exports) + hardware_buffer.h (12 exports) --
+  **27/27 resolved on-device**; functional AHardwareBuffer
+  (isSupported/allocate/describe/lock-write/lock-read/release;
+  pointers stay C-side per B-25).
+- Suite on Windows (v0.64.4): **4/4 green** (constants; deterministic
+  ABSENT skip path via bogus sonames; probe SKIP; unload).
+- On-device probe (API-36 emulator; W2a evidence): load rc=0,
+  missing_exports=0, is_supported=1, alloc OK, describe 64x64 / RGBA8
+  / stride 64 / layers 1, pixel roundtrip exact (0x11223344);
+  **RESULT: PASS**; repro
+  `docs/repro/bindings-pilot/android-core-probe/`.
+- JNI-surface exclusions documented (A11 seam). Next: W2b A5
+  assets-storage head. RE-VERIFY WAVE still arms on the archive tag
+  (signal pending on `-1739`; stdlib-v0.64.5 published 13:45Z).
+
 **UPDATE 2026-10-15 12:15Z (ANDROID W1 DONE -- opus vendor-C spike
 PASSES on the API-36 emulator)**: first on-device Android evidence:
 - Cross-built the EXACT xiom.opus units (opus_bridge + 4 vendor unity
