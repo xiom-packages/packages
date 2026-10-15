@@ -69,6 +69,15 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   the concurrent session; note appended); **engine relayed** (`REL-20261015-0158-packages`). Tally
   **97 eco releases** (`eco-v0.1.86` -> `eco-v0.1.181`). **E4/E5 = final E-family session
   (launched)**; v0.64.5 tag still HELD (`-2123` regression fix in progress).
+- **UPDATE 2026-10-15 05:15Z**: **`xiom.jolt` 0.7.0 (E4/E5) SHIPPED -- E-FAMILY COMPLETE** -- merge
+  `afd93d4c` (tip `51601b52`; brace-glue fixes `f0e60f90`/`6a01201d`); validate 553/0; native x2
+  **159/159** both runs (E4 soft bodies volume/grid/rope + settle/drape + bulk out-buffer + 13 typed
+  errors; E5 heightfield plateau/ramp + quantization + settle + 8 typed errors; record `954dfcfb`);
+  wrap `0780149d`; tag **`eco-v0.1.182`**; run 38684757867 green; live sha256 `b1d09efd...`
+  @05:05:29Z; README/STATUS synced `651c238f`; item `-0313-bindings` fixed; **engine relayed with the
+  family-complete notice** (`REL-20261015-0507-packages`; all E1-E7 wireable against 0.7.0). Tally
+  **98 eco releases** (`eco-v0.1.86` -> `eco-v0.1.182`). v0.64.5 tag still HELD (`-2123` fix in
+  progress); agenda/upscaler wave next after.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
