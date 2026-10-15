@@ -1005,6 +1005,32 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 20:00Z (RE-VERIFY WAVE COMPLETE -- all green except
+B-29; filed `REL-20261015-1955-bindings`)**: full wave on the v0.64.5
+pin (as-shipped; `XIOM_COMPILER=%LOCALAPPDATA%\xiom.new\bin\xiom.exe`):
+- Probes ALL GREEN: null-literal (4 paths=0); ptr-read-stale (0/400);
+  foreign-ptr-read (C-matching); ptr-slot-write (66/66 exact);
+  ptr-arith (d100=100 exact); cb-abi probe9 (42/42/42);
+  nested-payload (failures=0; nested 2/2 -- sqlite restore unblocked);
+  ptr-cast (BOTH fidelity paths OK -- the B-25 cast hazard is gone;
+  dx12 COM revisit unblocked); vulkan-slot-recycle
+  (`a=3 b=65536 c=1 rc=0` -- mini-RHI gate open); **B-05 guard-free
+  spin GONE** (re-vendored stdlib clears it; B-05 retirement gate
+  satisfied).
+- STILL RED: **B-29 only** (bigint bitops >=2^31; m314 does not cover
+  the class; boundary-arithmetic workaround stays shipped).
+- Suites on the pin: **sdl3 72/72** (B-19 + B-11 witnesses green;
+  sdl3+jolt runs recorded `68e5a6d3`), **jolt 159/159**; glfw
+  SKIP-leg green (no glfw3.dll on this box; live 37/37 leg rides the
+  0.6.0 lift).
+- **NOW UNBLOCKED (follow-up queue, in order)**: (1) glfw 0.6.0 lift
+  (B-22 fixed m277; 18 dispatchers + registries -> direct handoff);
+  (2) sdl3 handler-shape widening (B-22-gated); (3) sqlite nested
+  restore (`Result[Option[SqliteRow]]`) + RowOutcome retirement;
+  (4) dx12 Int-typed COM-param revisit + `-1309` close; (5) B-25/B-30/
+  B-31 workaround retirements at next touches; (6) Android W2b (A5
+  assets-storage head). New asks queued: A02 box2d + A04 miniaudio.
+
 **UPDATE 2026-10-15 19:45Z (v0.64.5 RELEASED + PINNED; RE-VERIFY WAVE
 STARTED -- B-29/30/31 witnesses filed)**: the archive landed 19:18Z
 (wrap 19:20Z: tag `84f761c5`, release run 38792051847 green, assets
