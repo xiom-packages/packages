@@ -1005,6 +1005,20 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 21:05Z (sdl3 0.20.0 WIDENING DONE -- second lift
+landed live)**: same m277 direct-handoff family:
+- Filter/watch handlers now take the NATURAL C shape (userdata, event)
+  and go straight to SDL; dispatchers, registries and the
+  userdata-accessors are gone (B-15 closed via the same 2-arg shape).
+- New `sdl3_event_copy(event)` helper for the 128-byte owned-buffer copy
+  (0.4.0 decode accessors unchanged); removal passes the same
+  (handler, userdata) pair; env-free handlers documented.
+- Suite LIVE **72/72** on the pin (filter keep + drop proofs; watch
+  removal; userdata delivered directly -- 0x77/0x88 seen in handlers).
+- Commits `188e9ec7` + `5e4e966e`; relay history on the wave item.
+  Queue next: sqlite nested restore, dx12 revisit, Android W2b
+  (A02/A04 queued).
+
 **UPDATE 2026-10-15 20:40Z (glfw 0.6.0 LIFT DONE -- dispatcher lift
 landed live)**: first follow-up queue item cleared:
 - 20 dispatchers + 20 registries removed; setters hand the caller's
