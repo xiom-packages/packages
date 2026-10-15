@@ -4,8 +4,8 @@
 
 package xiom_jolt {
   name: "xiom.jolt";
-  version: "0.5.0";
-  description: "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; probes + caller-usable world/body surface + external force/torque input + world queries (raycast/sweep/overlap) + capsule shape + contacts/sensors)";
+  version: "0.6.0";
+  description: "Jolt Physics rigid-body dynamics bindings for XIOM (vendored v5.6.0 core; probes + caller-usable world/body surface + external force/torque input + world queries (raycast/sweep/overlap) + capsule shape + contacts/sensors + typed joints (fixed/hinge/slider/point with motors/limits) + convex/compound bodies)";
   categories: ["graphics"];
   keywords: ["jolt", "physics", "collision", "rigid-body", "binding"];
   license: "MIT OR Apache-2.0";

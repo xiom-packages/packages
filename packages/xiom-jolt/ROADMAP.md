@@ -43,9 +43,21 @@
 - [x] 0.5.0 **E7 contacts + sensors**: last-step contact manifolds (pair,
       points, normal, penetration depth) and non-physical sensor volumes
       with per-step overlap events; typed errors for unknown/removed ids
-- [ ] **E3** joints (hinge/slider/fixed/cone) -- remains
+- [x] 0.6.0 **E3 typed joints**: fixed/hinge/slider/point joints between two
+      bodies or body-world (`JOLT_WORLD`); world-space anchors/axes; motors
+      (velocity/position targets) configured per joint; limits (min/max
+      angle/translation, validated against Jolt's ranges); owned state
+      read-back (hinge angle / slider position + applied impulse); typed
+      errors (bad ids, unsupported combos, invalid limits); joint-driven
+      determinism covered by the suite (motorized hinge angle bit-identical
+      across repeated runs)
+- [x] 0.6.0 **E6 convex/compound bodies**: convex hull bodies from a
+      caller-owned Vec of milli xyz triples (4..256 vertices, interior
+      points allowed); compound bodies combining box/sphere/capsule/convex
+      parts at relative transforms (flat `JOLT_PART_STRIDE` table + shared
+      vertex buffer); both settle/sleep and are queryable through E1 + E7
 - [ ] **E4** character controller -- remains
 - [ ] **E5** soft bodies -- remains
-- [ ] **E6** deterministic save/restore state helper -- remains
+- [ ] Deterministic save/restore state helper -- remains
 - [ ] Collision filtering surface (layers/masks on query paths)
 - [ ] Re-pin when the drift guard flags a new Jolt tag

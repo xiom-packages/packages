@@ -40,14 +40,28 @@
 //     points, normal, penetration depth).  Every list surface is
 //     canonicalized to ascending packed body id, so repeated runs are
 //     bit-identical; unknown/removed ids yield typed errors.
+//   * 0.6.0 typed joints + convex/compound bodies (tiers E3/E6):
+//     jolt_joint_add creates FIXED/HINGE/SLIDER/POINT joints between two
+//     live bodies or between a body and JOLT_WORLD (the fixed world) with
+//     world-space anchors/axes, limits (min/max angle or translation) and
+//     per-joint motor configuration; jolt_joint_set_motor drives a motor to
+//     a velocity or position target; jolt_joint_state reads the hinge angle
+//     / slider position and the applied impulse back as owned values;
+//     jolt_joint_remove / jolt_joint_count manage the per-world joint
+//     registry (removing a body removes its joints).  JOLT_SHAPE_CONVEX
+//     bodies are hulls built from a caller-owned Vec[Int] of milli xyz
+//     triples; JOLT_SHAPE_COMPOUND bodies combine box/sphere/capsule/convex
+//     parts at relative transforms from a flat part table.  Both simulate
+//     (settle/contact) and take part in every E1/E7 query surface.
 // All `unsafe`/`extern "C"` live in this single module (G5).
 //
 // G2 pin (SPEC.md): upstream tag v5.6.0 + generator + generated-tree sha256.
 //
 // API subset: probes + world/body v0 + external force/torque input + world
-// queries + capsule shape + contacts/sensors.
-// Joints, character controllers, soft bodies and deterministic save/restore
-// are later tiers (ROADMAP.md).
+// queries + capsule shape + contacts/sensors + typed joints + convex/compound
+// bodies.
+// Character controllers, soft bodies and deterministic save/restore are
+// later tiers (ROADMAP.md).
 
 module xiom.jolt
 
@@ -101,6 +115,18 @@ extern "C" {
   fn joltb_sensor_event_sensor() -> Int32;
   fn joltb_sensor_event_other() -> Int32;
   fn joltb_sensor_overlap_count(handle: Int32, sensor_id: Int32) -> Int32;
+  fn joltb_body_add_convex(handle: Int32, mass_milli: Int32, px_milli: Int32, py_milli: Int32, pz_milli: Int32, rx_milli: Int32, ry_milli: Int32, rz_milli: Int32, rw_milli: Int32, is_static: Int32, verts_addr: Int, vert_count: Int32) -> Int32;
+  fn joltb_body_add_compound(handle: Int32, mass_milli: Int32, px_milli: Int32, py_milli: Int32, pz_milli: Int32, rx_milli: Int32, ry_milli: Int32, rz_milli: Int32, rw_milli: Int32, is_static: Int32, parts_addr: Int, part_count: Int32, verts_addr: Int, vert_count: Int32) -> Int32;
+  fn joltb_joint_add(handle: Int32, kind: Int32, body_a: Int32, body_b: Int32, px_milli: Int32, py_milli: Int32, pz_milli: Int32, ax_milli: Int32, ay_milli: Int32, az_milli: Int32, auto_anchor: Int32, has_limits: Int32, limits_min_milli: Int32, limits_max_milli: Int32, motor_frequency_milli: Int32, motor_damping_milli: Int32, motor_max_force_milli: Int32, motor_max_torque_milli: Int32) -> Int32;
+  fn joltb_joint_remove(handle: Int32, joint_id: Int32) -> Int32;
+  fn joltb_joint_count(handle: Int32) -> Int32;
+  fn joltb_joint_set_motor(handle: Int32, joint_id: Int32, state: Int32, target_milli: Int32) -> Int32;
+  fn joltb_joint_state(handle: Int32, joint_id: Int32) -> Int32;
+  fn joltb_joint_state_kind() -> Int32;
+  fn joltb_joint_state_primary() -> Int32;
+  fn joltb_joint_state_impulse() -> Int32;
+  fn joltb_joint_state_body_a() -> Int32;
+  fn joltb_joint_state_body_b() -> Int32;
 }
 
 pub type JoltDropResult = {
@@ -118,6 +144,49 @@ pub const JOLT_SHAPE_SPHERE: Int = 1;
 /// the cylinder segment, so the total height is 2*(ey + ex); ez ignored).
 /// The capsule's local axis is +Y before the body rotation is applied.
 pub const JOLT_SHAPE_CAPSULE: Int = 2;
+
+/// Shape kind (0.6.0): convex hull built from a caller vertex set (see
+/// `jolt_body_add_convex`); a `JoltBodyDesc` with this shape ignores the
+/// extent fields.  Also the part kind for hull parts inside a compound.
+pub const JOLT_SHAPE_CONVEX: Int = 3;
+
+/// Shape kind (0.6.0): compound of box/sphere/capsule/convex parts at
+/// relative transforms (see `jolt_body_add_compound`); a `JoltBodyDesc`
+/// with this shape ignores the extent fields.
+pub const JOLT_SHAPE_COMPOUND: Int = 4;
+
+/// Entries per compound part in the flat part table consumed by
+/// `jolt_body_add_compound`: kind, ex, ey, ez (milli), vertex offset, vertex
+/// count (convex parts only), local position (3, milli), local rotation
+/// quaternion (4, milli; all-zero = identity).  Build the table with
+/// push-growth (never `Vec.with_len`).
+pub const JOLT_PART_STRIDE: Int = 13;
+
+/// Joint kind (0.6.0): fixed (weld) -- removes all relative motion.
+pub const JOLT_JOINT_FIXED: Int = 0;
+
+/// Joint kind (0.6.0): hinge -- single rotational axis.
+pub const JOLT_JOINT_HINGE: Int = 1;
+
+/// Joint kind (0.6.0): slider -- single translational axis (no rotation).
+pub const JOLT_JOINT_SLIDER: Int = 2;
+
+/// Joint kind (0.6.0): point -- shared anchor, free rotation.
+pub const JOLT_JOINT_POINT: Int = 3;
+
+/// Body-id sentinel (0.6.0): the fixed world, for one-sided joints.
+pub const JOLT_WORLD: Int = -1;
+
+/// Motor state (0.6.0): off.
+pub const JOLT_MOTOR_OFF: Int = 0;
+
+/// Motor state (0.6.0): drive to a target velocity (milli rad/s for a
+/// hinge, milli m/s for a slider).
+pub const JOLT_MOTOR_VELOCITY: Int = 1;
+
+/// Motor state (0.6.0): drive to a target position (milli rad for a hinge,
+/// milli m for a slider; the target is clamped to the joint limits).
+pub const JOLT_MOTOR_POSITION: Int = 2;
 
 /// A bridge-owned live world.  `handle` is a registry slot, never a raw
 /// pointer (B-25); it stays valid until `jolt_world_destroy`.
@@ -226,6 +295,53 @@ pub type JoltContact = {
 pub type JoltSensorEvent = {
   sensor_id: Int;
   other_id: Int;
+}
+
+/// Joint creation inputs (0.6.0).  `kind` is a JOLT_JOINT_* value; `body_a`/
+/// `body_b` are packed body ids or JOLT_WORLD (at least one side must be a
+/// live body, and at least one of the two must be dynamic).  The anchor
+/// (px/py/pz) and axis (ax/ay/az) are world-space milli; the axis is only
+/// read for hinge/slider joints and must be non-zero there.  `auto_anchor`
+/// (fixed/slider only) welds/zeroes at the bodies' current relative pose and
+/// ignores the explicit anchor.  `has_limits` enables min/max limits (milli
+/// rad for hinge: [-3142, 0]..[0, 3142]; milli m for slider), which must
+/// satisfy min <= 0 <= max.  The motor fields configure a hinge/slider
+/// motor: `motor_frequency_milli` and `motor_damping_milli` (milli Hz /
+/// damping; 0/0 keeps Jolt's default 2 Hz critical spring), and
+/// `motor_max_force_milli` / `motor_max_torque_milli` (0 = unlimited).
+/// Motor fields on fixed/point joints and limits on fixed/point joints are
+/// rejected with typed errors.
+pub type JoltJointDesc = {
+  kind: Int;
+  body_a: Int;
+  body_b: Int;
+  px_milli: Int;
+  py_milli: Int;
+  pz_milli: Int;
+  ax_milli: Int;
+  ay_milli: Int;
+  az_milli: Int;
+  auto_anchor: Bool;
+  has_limits: Bool;
+  limits_min_milli: Int;
+  limits_max_milli: Int;
+  motor_frequency_milli: Int;
+  motor_damping_milli: Int;
+  motor_max_force_milli: Int;
+  motor_max_torque_milli: Int;
+}
+
+/// Owned joint state read-back (0.6.0): the kind, the body pair, the primary
+/// motion value (`primary_milli`: hinge angle in milli rad, slider position
+/// in milli m, 0 for fixed/point) and the applied impulse in milli units
+/// (`impulse_milli`: the motor's total lambda for hinge/slider, the reaction
+/// impulse magnitude for fixed/point; 0 when nothing is applied).
+pub type JoltJointState = {
+  kind: Int;
+  primary_milli: Int;
+  impulse_milli: Int;
+  body_a: Int;
+  body_b: Int;
 }
 
 /// Drop a 1 m dynamic box from y=5 onto a static ground and step 300 frames
@@ -660,6 +776,152 @@ pub fn jolt_sensor_overlap_count(w: JoltWorld, sensor_id: Int) -> Result[Int, St
     return Err(jolt_err("sensor overlap count", rc));
   }
   return Ok(rc);
+}
+
+// ---- convex + compound bodies (0.6.0, tier E6) -----------------------------
+
+/// Add a convex hull body (0.6.0) from a caller-owned vertex buffer:
+/// `verts_milli` holds xyz triples in milli (so `len` must be a non-zero
+/// multiple of 3; at least 4 vertices, at most 256).  The points are copied
+/// into a bridge-owned hull, so the Vec is borrowed for the call only and
+/// stays owned by the caller (interior points are fine; the hull builder
+/// uses them to compute the hull).  The body's mass/pose/static flag come
+/// from `d` (extents are ignored; `d.shape` must be `JOLT_SHAPE_CONVEX`).
+/// Build the buffer with push-growth (never `Vec.with_len`).
+/// Complexity: O(vertices).
+pub fn jolt_body_add_convex(w: JoltWorld, d: JoltBodyDesc, verts_milli: &Vec[Int]) -> Result[Int, Str]
+  requires: d.shape == JOLT_SHAPE_CONVEX
+{
+  if verts_milli.len() == 0 { return Err("jolt: convex vertices empty"); }
+  if verts_milli.len() % 3 != 0 { return Err("jolt: convex vertices not xyz triples"); }
+  var verts_addr = 0;
+  unsafe { verts_addr = verts_milli.as_ptr() as Int; }
+  var static_flag: Int = 0;
+  if d.is_static { static_flag = 1; }
+  let rc = unsafe { joltb_body_add_convex(w.handle as Int32, d.mass_milli as Int32, d.px_milli as Int32, d.py_milli as Int32, d.pz_milli as Int32, d.rx_milli as Int32, d.ry_milli as Int32, d.rz_milli as Int32, d.rw_milli as Int32, static_flag as Int32, verts_addr, (verts_milli.len() / 3) as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("convex add", rc));
+  }
+  return Ok(rc);
+}
+
+/// Add a compound body (0.6.0) combining box/sphere/capsule/convex parts at
+/// relative transforms.  `parts` is a flat table of `JOLT_PART_STRIDE` Int
+/// entries per part (see the constant for the layout); `verts_milli` is the
+/// shared xyz-triple buffer that convex parts slice via their vertex
+/// offset/count (pass an empty Vec when no part is convex).  Both buffers
+/// are borrowed for the call only.  The parts are validated bridge-side
+/// (kind, extents, vertex ranges) and rejected with a typed error; the
+/// body's mass/pose/static flag come from `d` (`d.shape` must be
+/// `JOLT_SHAPE_COMPOUND`).  Build both buffers with push-growth.
+/// Complexity: O(parts + vertices).
+pub fn jolt_body_add_compound(w: JoltWorld, d: JoltBodyDesc, parts: &Vec[Int], verts_milli: &Vec[Int]) -> Result[Int, Str]
+  requires: d.shape == JOLT_SHAPE_COMPOUND
+{
+  if parts.len() == 0 { return Err("jolt: compound parts empty"); }
+  if parts.len() % JOLT_PART_STRIDE != 0 { return Err("jolt: compound parts not JOLT_PART_STRIDE-strided"); }
+  if verts_milli.len() % 3 != 0 { return Err("jolt: compound vertices not xyz triples"); }
+  var parts_addr = 0;
+  unsafe { parts_addr = parts.as_ptr() as Int; }
+  var verts_addr = 0;
+  unsafe { verts_addr = verts_milli.as_ptr() as Int; }
+  var static_flag: Int = 0;
+  if d.is_static { static_flag = 1; }
+  let rc = unsafe { joltb_body_add_compound(w.handle as Int32, d.mass_milli as Int32, d.px_milli as Int32, d.py_milli as Int32, d.pz_milli as Int32, d.rx_milli as Int32, d.ry_milli as Int32, d.rz_milli as Int32, d.rw_milli as Int32, static_flag as Int32, parts_addr, (parts.len() / JOLT_PART_STRIDE) as Int32, verts_addr, (verts_milli.len() / 3) as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("compound add", rc));
+  }
+  return Ok(rc);
+}
+
+// ---- typed joints (0.6.0, tier E3) -----------------------------------------
+
+/// Create a typed joint (0.6.0): fixed/hinge/slider/point between two live
+/// bodies or between a body and `JOLT_WORLD`; see `JoltJointDesc` for the
+/// anchor/axis/limits/motor inputs.  Motors start off (drive them with
+/// `jolt_joint_set_motor`).  Returns the joint id on success; bad body ids,
+/// unsupported kind/limit/motor combos and degenerate axes are rejected
+/// with typed errors (the code is in the message).  At least one side must
+/// be a live body and at least one of the two must be dynamic.
+/// Complexity: O(bodies).
+pub fn jolt_joint_add(w: JoltWorld, d: JoltJointDesc) -> Result[Int, Str]
+  requires: d.kind >= 0
+  requires: d.kind <= 3
+  requires: d.body_a >= JOLT_WORLD
+  requires: d.body_b >= JOLT_WORLD
+{
+  var auto_anchor: Int = 0;
+  if d.auto_anchor { auto_anchor = 1; }
+  var has_limits: Int = 0;
+  if d.has_limits { has_limits = 1; }
+  let rc = unsafe { joltb_joint_add(w.handle as Int32, d.kind as Int32, d.body_a as Int32, d.body_b as Int32, d.px_milli as Int32, d.py_milli as Int32, d.pz_milli as Int32, d.ax_milli as Int32, d.ay_milli as Int32, d.az_milli as Int32, auto_anchor as Int32, has_limits as Int32, d.limits_min_milli as Int32, d.limits_max_milli as Int32, d.motor_frequency_milli as Int32, d.motor_damping_milli as Int32, d.motor_max_force_milli as Int32, d.motor_max_torque_milli as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("joint add", rc));
+  }
+  return Ok(rc);
+}
+
+/// Remove a joint by id (0.6.0); returns the number of joints left.  The id
+/// is stale afterwards.  Removing a body removes its joints first.
+/// Complexity: O(joints).
+pub fn jolt_joint_remove(w: JoltWorld, joint_id: Int) -> Result[Int, Str]
+  requires: joint_id >= 0
+{
+  let rc = unsafe { joltb_joint_remove(w.handle as Int32, joint_id as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("joint remove", rc));
+  }
+  return Ok(rc);
+}
+
+/// Number of live joints in the world (0.6.0).  Complexity: O(1).
+pub fn jolt_joint_count(w: JoltWorld) -> Result[Int, Str]
+  requires: true
+{
+  let rc = unsafe { joltb_joint_count(w.handle as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("joint count", rc));
+  }
+  return Ok(rc);
+}
+
+/// Drive a joint motor (0.6.0): `state` is `JOLT_MOTOR_VELOCITY` (target in
+/// milli rad/s for hinge, milli m/s for slider) or `JOLT_MOTOR_POSITION`
+/// (target in milli rad / milli m; clamped to the joint limits).  Wakes the
+/// joint bodies; fixed/point joints (no motor) and unknown ids are rejected
+/// with typed errors.  Returns the applied state.
+/// Complexity: O(bodies).
+pub fn jolt_joint_set_motor(w: JoltWorld, joint_id: Int, state: Int, target_milli: Int) -> Result[Int, Str]
+  requires: joint_id >= 0
+  requires: state >= JOLT_MOTOR_OFF
+  requires: state <= JOLT_MOTOR_POSITION
+{
+  let rc = unsafe { joltb_joint_set_motor(w.handle as Int32, joint_id as Int32, state as Int32, target_milli as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("joint set motor", rc));
+  }
+  return Ok(rc);
+}
+
+/// Read one joint's state as owned values (0.6.0): kind, the primary motion
+/// value (hinge angle / slider position, milli; 0 for fixed/point) and the
+/// applied impulse in milli (motor lambda where a motor exists, reaction
+/// impulse magnitude otherwise).  Unknown/removed joint ids are rejected.
+/// Complexity: O(joints).
+pub fn jolt_joint_state(w: JoltWorld, joint_id: Int) -> Result[JoltJointState, Str]
+  requires: joint_id >= 0
+{
+  let rc = unsafe { joltb_joint_state(w.handle as Int32, joint_id as Int32) as Int };
+  if rc < 0 {
+    return Err(jolt_err("joint state", rc));
+  }
+  return Ok(JoltJointState{
+    kind: unsafe { joltb_joint_state_kind() as Int };
+    primary_milli: unsafe { joltb_joint_state_primary() as Int };
+    impulse_milli: unsafe { joltb_joint_state_impulse() as Int };
+    body_a: unsafe { joltb_joint_state_body_a() as Int };
+    body_b: unsafe { joltb_joint_state_body_b() as Int };
+  });
 }
 
 // ---- internals -----------------------------------------------------------
