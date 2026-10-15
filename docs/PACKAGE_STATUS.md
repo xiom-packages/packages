@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-15T05:07:59Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-15T20:04:41Z.
 
 ## Summary
 
@@ -373,7 +373,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.dlss | xiom-dlss | incubating | tests/test_conformance.xi | pass 21/21 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- NGX declared surface) |
 | xiom.docker | xiom-docker | incubating | tests/test_conformance.xi | pass 26/26 | ee890e25 | False | publish pending: next scope delta |
 | xiom.docx | xiom-docx | incubating | tests/test_conformance.xi | pass 27/27 | f0f7743d | False | category harmonization patch bump (registry metadata) |
-| xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | pass 152/152 | 88b51d96 | False | port done 2026-10-09 (WAL reconciled to xiom.wal); not on the publish scope |
+| xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | pass 152/152 | 22df7bdd | False | published in eco-v0.1.183 (2026-10-15, 0.1.0 -- durable-systems core; first publish) |
 | xiom.dxc | xiom-dxc | incubating | tests/test_conformance.xi | pass 20/20 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12) |
 | xiom.dynamo | xiom-dynamo | incubating | tests/test_conformance.xi | pass 21/21 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.eigen | xiom-eigen | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -503,7 +503,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.pki | xiom-pki | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.plugin | xiom-plugin | incubating | tests/test_conformance.xi | pass 25/25 | f789b952 | False | publish pending: next scope delta |
 | xiom.portaudio | xiom-portaudio | incubating | tests/test_conformance.xi | pass 2/2 | 15040752 | False | publish pending: bindings batch 18 (eco-v0.1.115) |
-| xiom.postgres | xiom-postgres | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
+| xiom.postgres | xiom-postgres | incubating | tests/test_conformance.xi | pass 38/38 | 7c8a2883 | False | published in eco-v0.1.183 (2026-10-15, 0.1.0 -- pure-XIOM PG wire v3 phase 1) |
 | xiom.pptx | xiom-pptx | incubating | tests/test_conformance.xi | pass 26/26 | 6b9a614d | False | publish pending: next scope delta |
 | xiom.protobuf | xiom-protobuf | incubating | tests/test_conformance.xi | pass 49/49 | 84140793 | False | publish pending: eco-v0.1.43 |
 | xiom.proxy | xiom-proxy | incubating | tests/test_conformance.xi | pass 20/20 | d85a0ee6 | False | category harmonization patch bump (registry metadata) |
@@ -513,7 +513,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.randomforest | xiom-randomforest | incubating | tests/test_conformance.xi | pass 24/24 | 3ff86363 | False | publish pending: next scope delta |
 | xiom.raylib | xiom-raylib | incubating | tests/test_conformance.xi | pass 12/12 | 843586a3 | False |  |
 | xiom.realtime | xiom-realtime | incubating | tests/test_conformance.xi | pass 10/10 | 57cdac5b | False | publish pending: eco-v0.1.42 |
-| xiom.redis | xiom-redis | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
+| xiom.redis | xiom-redis | incubating | tests/test_conformance.xi | pass 19/19 | 5c313832 | False | publish pending: new name (pure-XIOM RESP client); ops scope ask filed 2026-10-15 |
 | xiom.rest | xiom-rest | incubating | tests/test_conformance.xi | pass 10/10 | a2dc225d | False | publish pending: eco-v0.1.41 |
 | xiom.rocksdb | xiom-rocksdb | incubating | tests/test_conformance.xi | pass 24/24 | a69d2dd5 | False | publish pending: next scope delta |
 | xiom.ros2 | xiom-ros2 | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |

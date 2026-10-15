@@ -13,5 +13,5 @@
                   "checked":  "2026-10-15T19:06:37Z"
               },
     "publish":  false,
-    "excluded_reason":  "port done 2026-10-09 (WAL reconciled to xiom.wal); not on the publish scope"
+    "excluded_reason":  "published in eco-v0.1.183 (2026-10-15, 0.1.0 -- durable-systems core; first publish)"
 }
