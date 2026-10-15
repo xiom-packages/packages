@@ -108,6 +108,17 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   -- HIGH; distinct from the m256 shape; blocked the first postgres suite build). `xiom.redis` build
   agent still running; durable/postgres ops confirms pending (allowlist appends at wrap; **wrap held
   until the agents land** so regenerated namespaces/index never capture WIP).
+- **UPDATE 2026-10-15 20:05Z**: **BOTH BUILD AGENTS LANDED -- wait-window trio ready to publish.**
+  `xiom.redis` integrated: pure-XIOM RESP client, **19/19 x2 on v0.64.5** (`5c313832`; record
+  `93918eff`); ops scope ask `REL-20261015-1948-packages-2`. **Ops LIVE confirmations (PROD-only,
+  eco-release 541)**: `xiom.durable` (`-1906` fixed) + `xiom.postgres` (`-1932` fixed); redis scope
+  confirm follows. NEW third finding filed: `REL-20261015-1948-packages` (to stdlib) --
+  `socket_connect` returns OK on
+  a refused connection (Windows; failure only at first `socket_send_all`); witnessed by redis n17 +
+  postgres + a standalone probe (`%TEMP%\kilo\pg-findings\socket-connect\probe_refused.xi`). **Wrap
+  next**: allowlist 540 -> 542 (durable+postgres; +redis on its confirm) + export-namespaces +
+  generate_index -> wrap commit -> tag `eco-v0.1.183` -> approve env -> watch -> live-verify sha256s
+  -> README/STATUS sync -> bus loop-closes.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
