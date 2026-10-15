@@ -155,6 +155,14 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   (sdl3/glfw handlers now direct + env-free -- engine wiring must adjust). **Tool learning**: the shared
   live stdlib (`E:\xiom-lang\stdlib`) is edited concurrently by the stdlib lane -- a mid-save
   `fp128_helpers.c` produced a transient compile failure; re-run, don't chase package bugs.
+- **UPDATE 2026-10-15 21:45Z**: **`xiom.transport` (A08) BUILD STARTED (owner-greenlit).** The
+  transport-class package (reliable-datagram/QUIC-class base) from the engine ledger: capability
+  facts + frame codec/fragmentation + per-channel reliability (injected clock, typed verdicts) +
+  session lifecycle/version handshake + the deterministic sim harness at the seam + loopback/null/
+  UDP backends. Background build agent running (task `ses_ebe7eae5...`; does not commit; main lane
+  reviews + x2 + records + integrates). Scope ask filed `REL-20261015-2138-packages` (PROD-only);
+  engine notified `REL-20261015-2139-packages` (shape + seam-adapter hint). On green: allowlist +
+  publish (batch 88) + engine relay with counts/sha256.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
