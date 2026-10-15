@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-15T23:56:05Z",
+    "updated":  "2026-10-16T00:26:58Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -174,6 +174,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-analyzer/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "analyzer.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.2.0",
+                         "name":  "xiom.android",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Android platform-core bindings (NDK r27b A1 window-core + A5 assets-storage heads: native_window.h + hardware_buffer.h + asset_manager.h + storage_manager.h + sharedmem.h) via a runtime libandroid.so/libnativewindow.so bridge with SKIP semantics; functional AHardwareBuffer + ASharedMemory heads; 53-symbol export set bound + ABI-checked (window/asset ops need a live Surface/Context -\u003e A11 seam)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-android/v0.2.0/package.tar.gz",
+                         "source_files":  [
+                                              "android.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3060,7 +3077,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.5.0",
+                         "version":  "0.6.0",
                          "name":  "xiom.glfw",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "GLFW bindings for XIOM via dynamic loader (glfw3.dll at runtime, SKIP when absent); full 124/124 surface: engine + gamma ramps, cursors, window icons, joystick/gamepad polling, 20 event-callback setters, glfwInitAllocator, Vulkan helpers",
@@ -3070,7 +3087,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glfw/v0.5.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glfw/v0.6.0/package.tar.gz",
                          "source_files":  [
                                               "glfw.xi",
                                               "package.xi"
@@ -7494,7 +7511,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.19.0",
+                         "version":  "0.20.0",
                          "name":  "xiom.sdl3",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors incl. mouse wheel + drag-drop + pen/tablet motion/touch/button/proximity payloads) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit + mouse state + window contract + audio/joystick enumeration + push audio streaming + capture streams + pointer capture/relative mouse + joystick open/axis/button reads (virtual-joystick instrumented) + joystick caps queries (rumble/LED flags + counts/type) + haptic wave-form effects (periodic encode/create/run/stop, typed errors) + full source-generated constant tables",
@@ -7504,7 +7521,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.19.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.20.0/package.tar.gz",
                          "source_files":  [
                                               "sdl3_full_assert.xi",
                                               "sdl3_full_asyncio.xi",
