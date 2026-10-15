@@ -30,7 +30,7 @@ requires C++17, carried by the pinned v0.64.4 toolchain (thread via
 > (sha256 `9315bbc7...`); 0.5.0 in `eco-v0.1.180` (sha256 `1035c987...`);
 > 0.6.0 and 0.7.0 not yet published.
 > **Lane:** bindings (`keywords: ["binding"]`).
-> **Published**: `0.6.0` in `eco-v0.1.181` (sha256 `e5c777f8...`).
+> **Published**: `0.7.0` in `eco-v0.1.182` (sha256 `b1d09efd...`).
 
 ## Quick start
 
