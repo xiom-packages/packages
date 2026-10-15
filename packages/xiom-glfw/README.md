@@ -17,6 +17,7 @@ backend is absent).
 > (sha256 `c393b079...`); 0.5.0 published in `eco-v0.1.137` (sha256
 > `04ad5ed2...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.6.0` in `eco-v0.1.185` (sha256 `e0acf0cc...`).
 
 ## Quick start
 

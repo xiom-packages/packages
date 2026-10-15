@@ -404,7 +404,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.geom3d | xiom-geom3d | incubating | tests/test_conformance.xi | pass 27/27 | a3fb80eb | False | publish pending: next scope delta |
 | xiom.git2 | xiom-git2 | incubating | tests/test_conformance.xi | pass 24/24 | fd38977f | False | publish pending: next scope delta |
 | xiom.gles | xiom-gles | incubating | tests/test_conformance.xi | pass 18/18 | 779ac140 | False | published in eco-v0.1.171 (2026-10-13, new ANGLE package; GLES 2.0/3.2 + EGL 1.5) |
-| xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | bff40cb0 | False | published in eco-v0.1.137 (2026-10-11; 0.4.0 in eco-v0.1.136) |
+| xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | b0391d1b | False | published in eco-v0.1.185 (2026-10-15, 0.6.0 dispatcher lift; 0.5.0 in eco-v0.1.137; 0.4.0 in eco-v0.1.136) |
 | xiom.glslang | xiom-glslang | incubating | tests/test_conformance.xi | pass 29/29 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.golden | xiom-golden | incubating | tests/test_conformance.xi | pass 35/35 | fd38977f | False | publish pending: next scope delta |
 | xiom.gpio | xiom-gpio | incubating | tests/test_conformance.xi | pass 21/21 | 9dde8219 | False | category harmonization patch bump (registry metadata) |
@@ -527,7 +527,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.saml | xiom-saml | incubating | tests/test_conformance.xi | pass 28/28 | fcadeee8 | False | publish pending: next scope delta |
 | xiom.scipy | xiom-scipy | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.sdl2 | xiom-sdl2 | incubating | tests/test_conformance.xi | pass 16/16 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
-| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 72/72 | 50b65cee | False | published in eco-v0.1.179 (2026-10-14, 0.19.0 device surface; 0.18.0 in eco-v0.1.173; 0.17.0 in eco-v0.1.162) |
+| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 72/72 | b0391d1b | False | published in eco-v0.1.185 (2026-10-15, 0.20.0 filter/watch direct handoff; 0.19.0 in eco-v0.1.179; 0.18.0 in eco-v0.1.173; 0.17.0 in eco-v0.1.162) |
 | xiom.sectest | xiom-sectest | incubating | tests/test_conformance.xi | pass 22/22 | fc1702a9 | False | publish pending: next scope delta |
 | xiom.semaphore | xiom-semaphore | incubating | tests/test_conformance.xi | pass 23/23 | df934ed2 | False | publish pending: next scope delta |
 | xiom.serverless | xiom-serverless | incubating | tests/test_conformance.xi | pass 23/23 | 628a9502 | False | publish pending: next scope delta |
