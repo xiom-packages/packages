@@ -21,7 +21,9 @@ Toolchain pin: `v0.64.4` -- generated 2026-10-13T21:53:41Z.
   - `pure` -- no native boundary detected; runs wherever the pinned
     toolchain runs (derived, not yet declared per package).
 - Platform tokens: `windows-x64`, `linux-x64`, `macos-x64`,
-  `macos-arm64`. `any` means no platform-specific boundary (pure XIOM).
+  `macos-arm64`, `android-arm64`, `android-x86_64`. `any` means no
+  platform-specific boundary (pure XIOM). android-* tokens: the android family
+  vendors nothing -- every target library is a system lib resolved at runtime.
 - Evidence is the recorded conformance run (status passed/total @ commit)
   on the lane's Windows x64 box against the pinned compiler; it is not a
   claim about other platforms.
@@ -68,7 +70,7 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12
 | xiom.zstd | 0.3.0 | incubating | compile | windows-x64 | - | pass 24/24 @ 11a58915 |
 | xiom.dlss | 0.1.0 | incubating | runtime-load | windows-x64 | NVIDIA NGX runtime modules (nvngx_dlss.dll + nvngx.dll core; dynamic loader, typed SKIP when absent) | pass 21/21 @ 3a22a083 |
 | xiom.phonon | 0.3.0 | incubating | runtime-load | windows-x64 | steam-audio runtime (phonon.dll; dynamic loader; SKIP when absent) | pass 6/6 @ 3a22a083 |
-| xiom.sdl3 | 0.20.0 | incubating | runtime-load | windows-x64 | SDL3 runtime (SDL3.dll; dynamic loader; SKIP when absent) | pass 72/72 @ 50b65cee |
+| xiom.sdl3 | 0.20.0 | incubating | runtime-load | windows-x64 | SDL3 runtime (SDL3.dll; dynamic loader; SKIP when absent) | pass 72/72 @ b0391d1b |
 | xiom.xess | 0.1.0 | incubating | runtime-load | windows-x64 | libxess.dll (Intel XeSS SR core; runtime loader; SKIP when absent); libxess_dx11.dll (XeSS D3D11 companion; optional; typed CANT_LOAD_LIBRARY when absent) | pass 24/24 @ 3a22a083 |
 | xiom.photometrics | 0.1.0 | incubating | pure | windows-x64 | - | pass 43/43 @ 50b65cee |
 | xiom.vdb | 0.1.0 | incubating | pure | windows-x64 | - | pass 30/30 @ 3a22a083 |
@@ -87,7 +89,7 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12
 | xiom.lzfse | 0.2.0 | incubating | compile | undeclared | - | pass 7/7 @ 07f5bd2f |
 | xiom.miniaudio | 0.3.0 | incubating | compile | undeclared | - | pass 6/6 @ ab8dc89e |
 | xiom.spirv-reflect | 0.1.0 | incubating | compile | undeclared | - | pass 40/40 @ 674dea9d |
-| xiom.glfw | 0.6.0 | incubating | runtime-load | undeclared | glfw3.dll (runtime, derived) | pass 37/37 @ bff40cb0 |
+| xiom.glfw | 0.6.0 | incubating | runtime-load | undeclared | glfw3.dll (runtime, derived) | pass 37/37 @ b0391d1b |
 | xiom.glslang | 0.1.0 | incubating | runtime-load | undeclared | glslang.dll, glslang-default-resource-limits.dll (runtime, derived) | pass 29/29 @ 674dea9d |
 | xiom.libpq | 0.2.0 | incubating | runtime-load | undeclared | libpq.dll (runtime, derived) | pass 2/2 @ 104bbfc4 |
 | xiom.odbc | 0.2.0 | incubating | runtime-load | undeclared | odbc32.dll (runtime, derived) | pass 5/5 @ 31d0cc0e |
@@ -389,6 +391,7 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12
 | xiom.oracle | 0.1.0 | incubating | pure | any (derived) | - | pass 22/22 @ f487102b |
 | xiom.orc | 0.1.2 | stable | pure | any (derived) | - | pass 33/33 @ 1909cc00 |
 | xiom.osrelease | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ 394e1e39 |
+| xiom.otel | 0.1.0 | incubating | pure | any (derived) | - | pass 30/30 @ 4d4fe157 |
 | xiom.pack | 0.1.2 | stable | pure | any (derived) | - | pass 22/22 @ ff37373d |
 | xiom.packet | 0.1.2 | stable | pure | any (derived) | - | pass 24/24 @ 4d21ea23 |
 | xiom.pagination | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ f367cd1e |
@@ -523,7 +526,7 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12
 | xiom.tar | 0.1.3 | stable | pure | any (derived) | - | pass 22/22 @ 80b94336 |
 | xiom.tcx | 0.1.3 | stable | pure | any (derived) | - | pass 23/23 @ a51f5b6b |
 | xiom.telnet | 0.1.3 | stable | pure | any (derived) | - | pass 18/18 @ a931e97a |
-| xiom.template | 0.1.2 | stable | pure | any (derived) | - | pass 22/22 @ 8dd05320 |
+| xiom.template | 0.2.0 | stable | pure | any (derived) | - | pass 43/43 @ 1e05751a |
 | xiom.tensor | 0.1.0 | incubating | pure | any (derived) | - | pass 29/29 @ cd0604a4 |
 | xiom.tensorflow | 0.1.0 | incubating | pure | any (derived) | - | unknown |
 | xiom.term | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ 4e8bf506 |
@@ -548,6 +551,7 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12
 | xiom.translate | 0.1.0 | incubating | pure | any (derived) | - | pass 28/28 @ 5f469ee5 |
 | xiom.translation | 0.1.2 | stable | pure | any (derived) | - | pass 22/22 @ fdbc02a8 |
 | xiom.transliteration | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ 5f2ac0f9 |
+| xiom.transport | 0.1.0 | (none) | pure | any (derived) | - | - |
 | xiom.tsv | 0.1.2 | stable | pure | any (derived) | - | pass 22/22 @ 7986ca8a |
 | xiom.ttl | 0.1.2 | stable | pure | any (derived) | - | pass 14/14 @ ab206c98 |
 | xiom.typography | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ b878d230 |
