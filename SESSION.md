@@ -171,6 +171,16 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   bindings** (`REL-20261015-2211-packages` / `-2`; xiom.tls 0.1.3 codec + xiom.openssl 0.2.0 crypto
   are already live -- the missing libssl-class context loader is the ask). Build queue order now:
   A08 transport (agent running) -> template 0.2.0 -> xiom.otel. All nodes: relays clean (552 valid).
+- **UPDATE 2026-10-15 22:20Z**: **THREE PARALLEL BUILDS IN FLIGHT (owner: "continue in parallel").**
+  Background agents, each scoped to its package dir, no commits:
+  (1) `xiom.transport` 0.1.0 (A08) -- task `ses_ebe7eae5...`; scope ask `-2138-packages` (open).
+  (2) `xiom.template` **0.2.0** (PULSE item 1: sections/loops/conditionals + auto-escape; stable-tier
+  minor; existing 22 checks kept + >=14 new) -- task `ses_ebe5cbc0...` (already allowlisted; rides
+  the next batch).
+  (3) `xiom.otel` 0.1.0 (PULSE item 3: resource/span model + OTLP JSON encoder + sink seam) -- task
+  `ses_ebe5c886...`; scope ask `-2216-packages` (open).
+  Integration order on completion: review -> official x2 (v0.64.5) -> record -> commit; then batches
+  per ops scope confirms (transport + otel need LIVE; template can ride). SESSION updated.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
