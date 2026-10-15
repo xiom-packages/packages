@@ -315,6 +315,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.actor | xiom-actor | incubating | tests/test_conformance.xi | pass 28/28 | 761842c9 | False | publish pending: next scope delta |
 | xiom.algo | xiom-algo | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.analyzer | xiom-analyzer | incubating | tests/test_conformance.xi | pass 23/23 | a0d17c7b | False | publish pending: next scope delta |
+| xiom.android | xiom-android | incubating |  | pass 4/4 | 912081de | False | new package (Android SDK100 W2a head); publish gate after the naming decision + first on-device run (G1) |
 | xiom.ann | xiom-ann | incubating | tests/test_conformance.xi | pass 24/24 | 934d9fd3 | False | published in eco-v0.1.144 (2026-10-11; 0.1.0 in eco-v0.1.139) |
 | xiom.ansible | xiom-ansible | incubating | tests/test_conformance.xi | pass 26/26 | 973754e8 | False | publish pending: next scope delta |
 | xiom.apple | xiom-apple | incubating | tests/test_conformance.xi | pass 21/21 | 23b01b82 | False | publish pending: next scope delta |
@@ -403,7 +404,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.geom3d | xiom-geom3d | incubating | tests/test_conformance.xi | pass 27/27 | a3fb80eb | False | publish pending: next scope delta |
 | xiom.git2 | xiom-git2 | incubating | tests/test_conformance.xi | pass 24/24 | fd38977f | False | publish pending: next scope delta |
 | xiom.gles | xiom-gles | incubating | tests/test_conformance.xi | pass 18/18 | 779ac140 | False | published in eco-v0.1.171 (2026-10-13, new ANGLE package; GLES 2.0/3.2 + EGL 1.5) |
-| xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | 5a213f30 | False | published in eco-v0.1.137 (2026-10-11; 0.4.0 in eco-v0.1.136) |
+| xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | bff40cb0 | False | published in eco-v0.1.137 (2026-10-11; 0.4.0 in eco-v0.1.136) |
 | xiom.glslang | xiom-glslang | incubating | tests/test_conformance.xi | pass 29/29 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.golden | xiom-golden | incubating | tests/test_conformance.xi | pass 35/35 | fd38977f | False | publish pending: next scope delta |
 | xiom.gpio | xiom-gpio | incubating | tests/test_conformance.xi | pass 21/21 | 9dde8219 | False | category harmonization patch bump (registry metadata) |
