@@ -3,10 +3,12 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED TODAY IS LIVE -- last: wave B
-first in `eco-v0.1.177`** -- LIVE: codec wave A (`eco-v0.1.176`: jolt
-0.3.0 / zstd 0.3.0 / meshopt 0.5.0 / ffmpeg 0.3.0) + wave B first
-(`eco-v0.1.177`: harfbuzz 0.1.0 / basisu 0.1.0 / spz 0.1.0); dx12 0.3.1
+**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: jolt 0.5.0 in
+`eco-v0.1.180` (96 eco releases)** -- LIVE: jolt 0.5.0 (E1 queries + E2
+capsule + E7 contacts/sensors; 67/67 x2) + wave 2 (`eco-v0.1.178`: opus/
+ogg/lz4/ktx2/vdb/phonon 0.3.0) + wave 3/A05 (`eco-v0.1.179`) + codec wave
+A (`eco-v0.1.176`: jolt 0.3.0/zstd 0.3.0/meshopt 0.5.0/ffmpeg 0.3.0) +
+wave B first (`eco-v0.1.177`: harfbuzz/basisu/spz 0.1.0); dx12 0.3.1
 stable (`eco-v0.1.169`) +
 dx12 0.4.0 (`eco-v0.1.172`), opengl 0.5.0 (`eco-v0.1.170`), gles 0.1.0
 (`eco-v0.1.171`), sdl3 0.18.0 (`eco-v0.1.173`), sqlite 0.4.0
@@ -983,6 +985,22 @@ validate green. Promotion readiness (policy sec. 7) is the next DX12 step
 after the settle window; B-23/B-24 remain the compiler-side workarounds to
 retire when a pin ships.
 
+**UPDATE 2026-10-15 00:05Z (doorbell -- jolt 0.5.0 PUBLISHED
+`eco-v0.1.180`; v0.64.5 tag still held)**: packages confirms the publish
+queue drained for this lane's top ask:
+- **jolt 0.5.0 LIVE**: `eco-v0.1.180` (wrap `f5f899c5`, record
+  `e8c6bf67`; native x2 **67/67** both runs; validate 553/0; engine
+  relayed by packages at 96 eco releases, `eco-v0.1.86`..`180`). E3-E6
+  stay queued as strict sequential follow-ons in `feat/jolt-e3-e6`.
+- **v0.64.5 tag HELD** (packages 23:15Z): stdlib candidate regressions
+  `-2123` gate the cut; the release wave (`1e4a444e`) + dry-run are
+  green and the pre-repin home snapshot was refreshed
+  (`20261015-000115`, 5019 files). Next archive carries m275-m294
+  (incl. m281 B-23/B-24/B-20/B-11-addendum, m277 B-22) -> the lane's
+  RE-VERIFY WAVE runs on tag.
+- Relay: `-2101-bindings` (jolt publish request) fixed; no new
+  bindings-addressed items this tick.
+
 **UPDATE 2026-10-14 21:35Z (v0.64.5 TAG SIGNAL SENT; jolt E-family
 moving -- 0.5.0 integrated + publish-requested; E3/E6 session up)**:
 doorbell tick.
@@ -1145,6 +1163,19 @@ re-pointed; platform rows restored; validate 547/0.
 - Tally **93 eco releases** (`eco-v0.1.86` -> `eco-v0.1.177`); validate
   **537/0**; guard **538 allowlisted / 508 ready / 30 grandfathered / 0
   failures**. No open relay items addressed to bindings at 12:00Z.
+
+**UPDATE 2026-10-15 00:05Z (doorbell -- jolt 0.5.0 LIVE as `eco-v0.1.180`)**:
+E-family first delivery published: `xiom.jolt` 0.5.0 (E1 world queries +
+E2 capsule shape + E7 contacts/sensors; engine `-1510` priority 1) --
+merge `10167d9d` (tip `73ea38a5`; validate 553/0), native x2 **67/67**
+both runs (record `e8c6bf67`), wrap `f5f899c5`, **`eco-v0.1.180`** (run
+38651812029 green; live sha256 `1035c987...` @23:06:27Z); item
+`-2101-bindings` fixed; engine relayed (`REL-20261014-2310-packages`);
+E3-E6 queued sequential follow-ons. Tally **96 eco releases**
+(`eco-v0.1.86` -> `eco-v0.1.180`); guard **540 allowlisted / 524 ready /
+16 grandfathered / 0 failures**. **v0.64.5 tag still HELD** (stdlib
+candidate regressions `-2123` in triage; `d80bf1b`) -- no repin yet; zero
+open bindings relay items at 00:00Z.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
