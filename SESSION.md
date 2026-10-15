@@ -181,6 +181,16 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   `ses_ebe5c886...`; scope ask `-2216-packages` (open).
   Integration order on completion: review -> official x2 (v0.64.5) -> record -> commit; then batches
   per ops scope confirms (transport + otel need LIVE; template can ride). SESSION updated.
+- **UPDATE 2026-10-15 22:52Z**: **otel + template LANDED; transport still building; otel repro
+  re-launched.** `xiom.otel` 0.1.0 integrated: **30/30 x2** on v0.64.5 (`4d4fe157`; record `ca42abc2`);
+  its build reported a Float64-in-enum mislowering finding -- a simple repro came back GREEN in-lane,
+  so the otel agent was resumed (same task) to rebuild the exact failing shapes into
+  `%TEMP%\kilo\otel-findings\enum-float\` before any cross-lane filing. `xiom.template` **0.2.0**
+  integrated: **43/43 x2** (`1e05751a`; record `e5a44b37`; blocks/auto-escape/flat data model; v0.1
+  surface byte-identical). **Wrap held until the transport agent lands** (so namespaces/index never
+  capture its WIP). Scopes: `-2138` (transport) + `-2216` (otel) both still open with ops; template
+  needs none. Publish plan: when transport lands + scopes LIVE -> one batch (transport + otel +
+  template) as `eco-v0.1.186`, else split per readiness.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
