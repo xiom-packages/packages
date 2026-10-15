@@ -1,23 +1,17 @@
 {
-    "package": "xiom.fidelityfx",
-    "stage": "incubating",
-    "compiler": "v0.64.4",
-    "stdlib": ">=0.60.0 <1.0.0",
-    "tests": {
-        "suite": "tests/test_conformance.xi",
-        "status": "pass",
-        "passed": 43,
-        "failed": 0,
-        "run_by": "bindings-session",
-        "commit": "03dc31d2",
-        "checked": "2026-10-14T12:05:25Z"
-    },
-    "publish": false,
-    "excluded_reason": null,
-    "platforms": [
-        "windows-x64"
-    ],
-    "runtime_deps": [
-        "amd_fidelityfx_loader_dx12.dll / amd_fidelityfx_upscaler_dx12.dll / amd_fidelityfx_framegeneration_dx12.dll (signed FidelityFX-SDK 2.3.0 effect modules; multi-soname runtime loader; SKIP when absent)"
-    ]
+    "package":  "xiom.fidelityfx",
+    "stage":  "incubating",
+    "compiler":  "v0.64.5",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  43,
+                  "failed":  0,
+                  "run_by":  "bindings-session",
+                  "commit":  "03dc31d2",
+                  "checked":  "2026-10-14T12:05:25Z"
+              },
+    "publish":  false,
+    "excluded_reason":  null
 }
