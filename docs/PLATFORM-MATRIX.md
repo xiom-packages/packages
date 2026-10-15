@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-15T05:03:39Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-15T21:17:11Z.
 
 ## How to read this table
 
@@ -40,17 +40,17 @@ preserved by `-Action repin`/`-Action update`:
 
 ## Summary
 
-- packages: 553
+- packages: 554
 - declared rows: 32
 - compile: 27
-- compile+runtime-load: 13
+- compile+runtime-load: 14
 - pure: 498
 - runtime-load: 15
-- native packages pending declaration: 25
+- native packages pending declaration: 26
 
 ## Declaration backlog (native)
 
-xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.libpq, xiom.lzfse, xiom.miniaudio, xiom.odbc, xiom.openssl, xiom.portaudio, xiom.raylib, xiom.sdl2, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.vma, xiom.vulkan
+xiom.android, xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.libpq, xiom.lzfse, xiom.miniaudio, xiom.odbc, xiom.openssl, xiom.portaudio, xiom.raylib, xiom.sdl2, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.vma, xiom.vulkan
 
 ## Matrix
 
@@ -84,10 +84,11 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | xiom.zstd | 0.3.0 | incubating | compile | windows-x64 | - | pass 24/24 @ 11a58915 |
 | xiom.dlss | 0.1.0 | incubating | runtime-load | windows-x64 | NVIDIA NGX runtime modules (nvngx_dlss.dll + nvngx.dll core; dynamic loader, typed SKIP when absent) | pass 21/21 @ 3a22a083 |
 | xiom.phonon | 0.3.0 | incubating | runtime-load | windows-x64 | steam-audio runtime (phonon.dll; dynamic loader; SKIP when absent) | pass 6/6 @ 3a22a083 |
-| xiom.sdl3 | 0.19.0 | incubating | runtime-load | windows-x64 | SDL3 runtime (SDL3.dll; dynamic loader; SKIP when absent) | pass 72/72 @ 50b65cee |
+| xiom.sdl3 | 0.20.0 | incubating | runtime-load | windows-x64 | SDL3 runtime (SDL3.dll; dynamic loader; SKIP when absent) | pass 72/72 @ 50b65cee |
 | xiom.xess | 0.1.0 | incubating | runtime-load | windows-x64 | libxess.dll (Intel XeSS SR core; runtime loader; SKIP when absent); libxess_dx11.dll (XeSS D3D11 companion; optional; typed CANT_LOAD_LIBRARY when absent) | pass 24/24 @ 3a22a083 |
 | xiom.photometrics | 0.1.0 | incubating | pure | windows-x64 | - | pass 43/43 @ 50b65cee |
 | xiom.vdb | 0.1.0 | incubating | pure | windows-x64 | - | pass 30/30 @ 3a22a083 |
+| xiom.android | 0.2.0 | incubating | compile+runtime-load | undeclared | libandroid.so, libnativewindow.so (runtime, derived) | pass 4/4 @ 912081de |
 | xiom.cuda | 0.2.0 | incubating | compile+runtime-load | undeclared | nvcuda.dll (runtime, derived) | pass 5/5 @ 4bb65d14 |
 | xiom.directx11 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d11.dll, dxgi.dll (runtime, derived) | pass 5/5 @ cce33ecb |
 | xiom.directx12 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d12.dll, dxgi.dll (runtime, derived) | pass 5/5 @ 3e0c2384 |
@@ -102,7 +103,7 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | xiom.lzfse | 0.2.0 | incubating | compile | undeclared | - | pass 7/7 @ 07f5bd2f |
 | xiom.miniaudio | 0.3.0 | incubating | compile | undeclared | - | pass 6/6 @ ab8dc89e |
 | xiom.spirv-reflect | 0.1.0 | incubating | compile | undeclared | - | pass 40/40 @ 674dea9d |
-| xiom.glfw | 0.5.0 | incubating | runtime-load | undeclared | glfw3.dll (runtime, derived) | pass 37/37 @ 5a213f30 |
+| xiom.glfw | 0.6.0 | incubating | runtime-load | undeclared | glfw3.dll (runtime, derived) | pass 37/37 @ bff40cb0 |
 | xiom.glslang | 0.1.0 | incubating | runtime-load | undeclared | glslang.dll, glslang-default-resource-limits.dll (runtime, derived) | pass 29/29 @ 674dea9d |
 | xiom.libpq | 0.2.0 | incubating | runtime-load | undeclared | libpq.dll (runtime, derived) | pass 2/2 @ 104bbfc4 |
 | xiom.odbc | 0.2.0 | incubating | runtime-load | undeclared | odbc32.dll (runtime, derived) | pass 5/5 @ 31d0cc0e |
@@ -218,7 +219,7 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | xiom.docx | 0.1.1 | incubating | pure | any (derived) | - | pass 27/27 @ f0f7743d |
 | xiom.dotenv | 0.1.2 | stable | pure | any (derived) | - | pass 18/18 @ ee7080c4 |
 | xiom.dtb | 0.1.3 | stable | pure | any (derived) | - | pass 18/18 @ 3daa4787 |
-| xiom.durable | 0.1.0 | incubating | pure | any (derived) | - | pass 152/152 @ 88b51d96 |
+| xiom.durable | 0.1.0 | incubating | pure | any (derived) | - | pass 152/152 @ 22df7bdd |
 | xiom.duration | 0.1.2 | stable | pure | any (derived) | - | pass 22/22 @ 676fc4cb |
 | xiom.dynamo | 0.1.2 | incubating | pure | any (derived) | - | pass 21/21 @ 77d7ec35 |
 | xiom.ean | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ 4422ca91 |
@@ -439,7 +440,7 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | xiom.png | 0.1.2 | stable | pure | any (derived) | - | pass 17/17 @ a3cb6e78 |
 | xiom.pool | 0.1.2 | stable | pure | any (derived) | - | pass 22/22 @ 100ba6e8 |
 | xiom.pop3 | 0.1.2 | stable | pure | any (derived) | - | pass 27/27 @ 1c166cd0 |
-| xiom.postgres | 0.1.0 | incubating | pure | any (derived) | - | unknown |
+| xiom.postgres | 0.1.0 | incubating | pure | any (derived) | - | pass 38/38 @ 7c8a2883 |
 | xiom.ppm | 0.1.2 | stable | pure | any (derived) | - | pass 18/18 @ c483515c |
 | xiom.pptx | 0.1.0 | incubating | pure | any (derived) | - | pass 26/26 @ 6b9a614d |
 | xiom.preprocess | 0.1.2 | stable | pure | any (derived) | - | pass 21/21 @ ee520b4f |
@@ -464,7 +465,7 @@ xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xi
 | xiom.rate | 0.2.0 | stable | pure | any (derived) | - | pass 30/30 @ 957a336b |
 | xiom.rbac | 0.1.2 | stable | pure | any (derived) | - | pass 22/22 @ 71aaf0e8 |
 | xiom.realtime | 0.1.0 | incubating | pure | any (derived) | - | pass 10/10 @ 57cdac5b |
-| xiom.redis | 0.1.0 | incubating | pure | any (derived) | - | unknown |
+| xiom.redis | 0.1.0 | incubating | pure | any (derived) | - | pass 19/19 @ 5c313832 |
 | xiom.refactor | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ dc5b4c29 |
 | xiom.relativity | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ b4b1eed5 |
 | xiom.report | 0.1.2 | stable | pure | any (derived) | - | pass 24/24 @ 061caa75 |
