@@ -210,6 +210,13 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   template together; template rides already-allowlisted if a split is preferred). Findings tally on
   v0.64.5 this window: enum-variant (`-2303`), mixed tuples + assert (`-2309`), plus earlier md5 /
   socket_connect / tuple-namer -- all with the owning lane. Hourly watch continues.
+- **WATCH 2026-10-15 23:20Z (pass 1)**: scopes `-2138`/`-2216` still OPEN with ops (no publish;
+  everything parked green). **A SECOND packages window is active** (created `-2210-bindings` handling
+  + a duplicate TLS/brotli routing `-2302-packages` at 23:02; its relay commits interleave with
+  ours) -- deduped via an INFO to bindings (`-2313-packages`: canonical = `-2211`/`-2211-2`; `-2302`
+  = duplicate; noted there that the MAIN window is the single writer for wraps/publishes). Attention
+  owner: consider ensuring only one packages window runs wraps to avoid a publish race; the cron
+  watch keeps checking scopes hourly.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
