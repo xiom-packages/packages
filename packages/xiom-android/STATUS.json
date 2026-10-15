@@ -3,6 +3,15 @@
     "stage":  "incubating",
     "compiler":  "v0.64.4",
     "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  null,
+                  "status":  "pass",
+                  "passed":  4,
+                  "failed":  0,
+                  "run_by":  "bindings-session",
+                  "commit":  "e5d1a15c",
+                  "checked":  "2026-10-15T17:55:15Z"
+              },
     "publish":  false,
     "excluded_reason":  "new package (Android SDK100 W2a head); publish gate after the naming decision + first on-device run (G1)"
 }
