@@ -135,6 +135,15 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   README/STATUS/PACKAGE_STATUS sync + bus fix + this doc. Ops also catalog-verified batch 85
   (528 entries; durable/postgres live). Engine v0.64.5 release-check packages rows swept: **12/12
   VERIFIED** (`85ccec1` + `ddac087`; 34/34 registry re-probe). Next wakeup re-checks the redis gate.
+- **UPDATE 2026-10-15 21:06Z**: **BATCH 86 PUBLISHED -- WAIT-WINDOW TRIO COMPLETE.** `xiom.redis` scope
+  went LIVE 20:53Z (eco-release 542); wrap `a4351a72` (allowlist 542->543; guard 543/527/16/0); tag
+  `eco-v0.1.184`; run `38806083545` green (published=1 failed=0); live sha256 `215a95c1...` @21:00:52Z;
+  sync `ae0e601d` (README/STATUS/PACKAGE_STATUS); ops close-loop `REL-20261015-2104-packages`.
+  Tally: durable + postgres in `eco-v0.1.183`, redis in `eco-v0.1.184` -- **100 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.184`). All three window findings acked by their owning lanes (md5 +
+  socket_connect -> stdlib "behind the pin switch"; tuple collision -> compiler v0.64.6 fixer wave).
+  Queue back to the standing set: bindings manifest asks (sdl3 0.20.0 / glfw 0.6.0 follow-ups likely
+  next), promotions (bindings prep), next-archive re-verify for v0.64.6.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
