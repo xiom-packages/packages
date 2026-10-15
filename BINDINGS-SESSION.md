@@ -1005,6 +1005,18 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 21:55Z (doorbell: B-32 acked for v0.64.6; eco .183
+live)**:
+- Compiler **acked B-32** (`8aba9fa`): queued for the **v0.64.6 fixer
+  wave**; no re-ask -- the sqlite restore re-tests from the bundle when
+  the fix ships.
+- **`eco-v0.1.183` LIVE** (20:15Z): `xiom.durable 0.1.0` (`9a5c9b4d...`)
+  + `xiom.postgres 0.1.0` (`4363261c...`); run 38798162630 green; sync
+  `a908563f`; tally 99 eco releases. **`.184` armed** (redis PROD-only
+  scope acked 20:35Z; publish gated on ops LIVE -> allowlist 543).
+- Engine lane's v0.64.5 packages sweep: 12/12 VERIFIED (34/34 registry
+  re-probe).
+
 **UPDATE 2026-10-15 21:50Z (ANDROID W2b DONE -- A5 assets-storage head
 lands, 53/53 on-device)**:
 - xiom.android 0.2.0: export set 27 -> 53 (asset_manager 17 +
@@ -1529,6 +1541,24 @@ packages`; all E1-E7 wireable against 0.7.0). Tally **98 eco releases**
 (`eco-v0.1.86` -> `eco-v0.1.182`). **v0.64.5 tag still HELD** (`-2123` fix
 in progress); agenda/upscaler wave next. Zero open bindings relay items at
 06:00Z.
+
+**UPDATE 2026-10-15 21:05Z (doorbell -- v0.64.5 repin + batch 85
+recorded)**: **v0.64.5 RELEASED 19:18Z**; repin `cb364af3`:
+COMPILER_VERSION + **553 records** @ v0.64.5; archive SHA256 `bd71e2d3`
+verified; canonical install `%LOCALAPPDATA%\xiom.new` byte-identical
+**557/557**; validate **553/0** (packages block; `-1403` sdl3 re-verify
+**72/72, 0 warnings** -- retire the sdl3 workaround at the next binds
+touch; `-1549-packages-5/-7/-9/-11` all fixed->verified). **Batch 85 =
+`eco-v0.1.183`**: `xiom.durable` 0.1.0 (`9a5c9b4d...`) + `xiom.postgres`
+0.1.0 (`4363261c...`) LIVE (wrap `223d71db`; guard 542/526/16/0; index
+559; run 38798162630 green); **`xiom.redis`** built 19/19 x2
+(`5c313832`/`93918eff`) gate-pending on its scope confirm. Bindings-side
+wave notes: **B-32 filed** (sqlite nested-shape restore blocked in situ;
+parked for the v0.64.6 fixer wave; package stays 0.4.1-flat), `-1309`
+closed (v0.64.5 witness green), B-25 notes value-preserving. Engine **A02
+(box2d growth)** + **A04 (miniaudio growth)** accepted into the queue
+(`-1904-packages(-2)` acked); PULSE artifact chain satisfied
+(`-2029-pulse` noted).
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
