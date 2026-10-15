@@ -200,6 +200,16 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   (otel's shipped workaround). Suggested home: the v0.64.6 fixer wave (neighborhood of
   `-1941-packages`). Repro bundle is read-only; nothing else pending in the lane until the
   transport build completes (agent still running) + ops scope confirms.
+- **UPDATE 2026-10-15 23:15Z**: **ALL THREE WAVES LANDED (in-tree, recorded); publish gated on ops
+  scopes only.** `xiom.transport` 0.1.0: **36/36 x2** (`1c8fbf11`; record `02a3489d`); its build filed
+  TWO toolchain findings to compiler (HIGH: mixed-element tuples miscompiled -- stdlib
+  `socket_recv_from` wrapper unusable on the pin (runtime primitive sound; udp.xi declares it
+  directly), same family as `-1941`/m256; MEDIUM: bare `assert` mis-binds to `xiom.core.assert` in
+  some package namespaces) -- `REL-20261015-2309-packages`/`-2`. Wrap signal sent to ops
+  (`-2309-3`): on LIVE -> allowlist 543 -> 545 + wrap + **`eco-v0.1.186`** (transport + otel +
+  template together; template rides already-allowlisted if a split is preferred). Findings tally on
+  v0.64.5 this window: enum-variant (`-2303`), mixed tuples + assert (`-2309`), plus earlier md5 /
+  socket_connect / tuple-namer -- all with the owning lane. Hourly watch continues.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
