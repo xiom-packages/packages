@@ -1005,6 +1005,25 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-15 22:30Z (relay check: PULSE top-tier directive; SQL
+alias re-verified)**:
+- `REL-20261015-2202-pulse-5` (to ALL, awareness; **no responses
+  required**): PULSE escalated to top-tier #1-class; headline gap =
+  **no TLS anywhere in-tree** (gates native HTTPS / wss:// / ALPN /
+  ACME). Per-lane asks to stdlib/compiler/packages/ops -- **none to
+  bindings**; two relevance notes: (a) the TLS route is a
+  "schannel/OpenSSL binding via FFI" -- a vendored-C package event
+  that would slot into the wave queue if it lands with bindings;
+  (b) the compiler's `xiom-ffigen` C-header parsing ask would serve
+  our own generator passes (A9 gles leg / future heads).
+  Roadmap: PULSE repo `docs/ROADMAP-TOP-TIER.md`.
+- `REL-20261015-2029-pulse`: **FIXED** -- SQL artifact rerun **GREEN
+  24/24 on released v0.64.5** (xiom.sqlite 0.4.1 live); corroborates
+  the parked B-32 decision: the flat RowOutcome state IS the live,
+  verified artifact.
+- Nothing new addressed to bindings needs action; A02/A04 stay queued
+  behind the Android waves.
+
 **UPDATE 2026-10-15 22:15Z (wave-2b + G3 filed -- 6 package units
 live/in flight)**: two more agent sessions requested
 (`am-1792101281743-6bucae`): **`android/android-sys`**
