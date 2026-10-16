@@ -1244,6 +1244,22 @@ A9/A11/A12 wave launched)**:
   http rider).  Compiler: stdlib pin ask for the v0.64.6 cut.
 - **A12** (`xiom.android-sys` 0.2.0) still working (no push yet).
 
+**UPDATE 2026-10-16 15:45Z (A12 LANDED -- EVERY ANDROID SLICE IN)**:
+- **`xiom.android-sys 0.2.0` LANDED** (A12 remainder; land `62201d7e`
+  + record `04f4ee1a`): binder_ndk + NNAPI + zlib + icu-subset heads
+  as per-lib runtime-load units with own SKIP classifications;
+  integration **x2 16/16** on v0.64.5; on-device five-bridge probe
+  PASS (per-lib export scans + functional smokes, recorded under
+  docs/repro); validate **562/0**.  Publish request
+  `REL-20261016-1545-bindings` (existing name).
+- **The Android SDK100 program is landed lane-side**: A1-A9, A11,
+  A12 all in-package (A10 = owner lane).  `docs/ANDROID-SDK100.md`
+  status rows all current.
+- Open now: publishes in flight at packages (brotli+ssl batch,
+  android family -1305/-1322, gles -1510 acked, jni -1410, sys
+  -1545) and the compiler v0.64.6 watch (B-32 fixer wave; m337/m338
+  already in local main per the relay).
+
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
 state (`cdbbca63`; clean + pushed; validate 561/0).
