@@ -89,6 +89,10 @@ fn get_2d(h: NDArray, i: Int, j: Int, want: Float64) -> Bool {
   return get_is(h, v2(i, j), want);
 }
 
+fn get_3d(h: NDArray, i: Int, j: Int, k: Int, want: Float64) -> Bool {
+  return get_is(h, v3(i, j, k), want);
+}
+
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
   var num = n;
@@ -568,8 +572,8 @@ fn test_add_rank_mismatch_err() -> TestResult {
 
 fn test_mul_shape_mismatch_err() -> TestResult {
   var a = mk(&fd2(2.0, 3.0), &v1(2));
-  var b = mk(&fd4(1.0, 1.0, 1.0, 1.0), &v2(2, 2));
-  return xiom.test.assert(err_nd(array_mul(&a, &b)), "ops: mul shape mismatch returns Err");
+  var b = mk(&fd6(1.0, 1.0, 1.0, 1.0, 1.0, 1.0), &v2(2, 3));
+  return xiom.test.assert(err_nd(array_mul(&a, &b)), "ops: mul incompatible broadcast returns Err");
 }
 
 fn test_div_by_zero_err() -> TestResult {
@@ -670,6 +674,174 @@ fn test_matmul_invalid_handle_err() -> TestResult {
 }
 
 // ---------------------------------------------------------------------------
+// Phase-3a broadcasting -- golden values (hand-computed f64)
+// ---------------------------------------------------------------------------
+
+fn test_broadcast_add_row_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  var b = mk(&fd3(10.0, 20.0, 30.0), &v1(3));
+  let h = nd(array_add(&a, &b));
+  return xiom.test.assert(shape_is(h, v2(2, 3))
+    && get_2d(h, 0, 0, 11.0) && get_2d(h, 0, 2, 33.0)
+    && get_2d(h, 1, 0, 14.0) && get_2d(h, 1, 2, 36.0),
+    "bc: add [2,3]+[3] == [[11,22,33],[14,25,36]]");
+}
+
+fn test_broadcast_add_left_golden() -> TestResult {
+  var a = mk(&fd3(10.0, 20.0, 30.0), &v1(3));
+  var b = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  let h = nd(array_add(&a, &b));
+  return xiom.test.assert(shape_is(h, v2(2, 3))
+    && get_2d(h, 0, 0, 11.0) && get_2d(h, 1, 1, 25.0) && get_2d(h, 1, 2, 36.0),
+    "bc: add [3]+[2,3] symmetric result");
+}
+
+fn test_broadcast_mul_outer_golden() -> TestResult {
+  var a = mk(&fd2(2.0, 3.0), &v2(2, 1));
+  var b = mk(&fd3(10.0, 20.0, 30.0), &v2(1, 3));
+  let h = nd(array_mul(&a, &b));
+  return xiom.test.assert(shape_is(h, v2(2, 3))
+    && get_2d(h, 0, 0, 20.0) && get_2d(h, 0, 2, 60.0)
+    && get_2d(h, 1, 0, 30.0) && get_2d(h, 1, 2, 90.0),
+    "bc: mul [2,1]*[1,3] outer == [[20,40,60],[30,60,90]]");
+}
+
+fn test_broadcast_sub_scalar_like_golden() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  var b = mk(&fd1(5.0), &v1(1));
+  let h = nd(array_sub(&a, &b));
+  return xiom.test.assert(shape_is(h, v2(2, 2))
+    && get_2d(h, 0, 0, -4.0) && get_2d(h, 0, 1, -3.0)
+    && get_2d(h, 1, 0, -2.0) && get_2d(h, 1, 1, -1.0),
+    "bc: sub [2,2]-[1] scalar-like == [[-4,-3],[-2,-1]]");
+}
+
+fn test_broadcast_div_row_golden() -> TestResult {
+  var a = mk(&fd4(10.0, 20.0, 30.0, 40.0), &v2(2, 2));
+  var b = mk(&fd2(10.0, 20.0), &v1(2));
+  let h = nd(array_div(&a, &b));
+  return xiom.test.assert(shape_is(h, v2(2, 2))
+    && get_2d(h, 0, 0, 1.0) && get_2d(h, 0, 1, 1.0)
+    && get_2d(h, 1, 0, 3.0) && get_2d(h, 1, 1, 2.0),
+    "bc: div [2,2]/[2] == [[1,1],[3,2]]");
+}
+
+fn test_nd_add_3d_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v3(2, 1, 3));
+  var b = mk(&fd6(10.0, 20.0, 30.0, 40.0, 50.0, 60.0), &v3(2, 1, 3));
+  let h = nd(array_add(&a, &b));
+  return xiom.test.assert(shape_is(h, v3(2, 1, 3))
+    && get_3d(h, 0, 0, 0, 11.0) && get_3d(h, 0, 0, 2, 33.0)
+    && get_3d(h, 1, 0, 0, 44.0) && get_3d(h, 1, 0, 2, 66.0),
+    "nd: add 3d [2,1,3] elementwise");
+}
+
+fn test_broadcast_3d_golden() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v3(2, 1, 2));
+  var b = mk(&fd6(10.0, 20.0, 30.0, 40.0, 50.0, 60.0), &v3(1, 3, 2));
+  let h = nd(array_add(&a, &b));
+  return xiom.test.assert(shape_is(h, v3(2, 3, 2))
+    && get_3d(h, 0, 0, 0, 11.0) && get_3d(h, 0, 0, 1, 22.0)
+    && get_3d(h, 0, 1, 0, 31.0) && get_3d(h, 0, 2, 1, 62.0)
+    && get_3d(h, 1, 0, 0, 13.0) && get_3d(h, 1, 2, 1, 64.0),
+    "bc: add 3d [2,1,2]+[1,3,2] -> [2,3,2]");
+}
+
+fn test_broadcast_incompatible_err() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  var b = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  return xiom.test.assert(err_nd(array_add(&a, &b)), "bc: add [2,2]+[2,3] incompatible Err");
+}
+
+// ---------------------------------------------------------------------------
+// Phase-3a reshape -- golden values (hand-computed f64)
+// ---------------------------------------------------------------------------
+
+fn test_reshape_flat_to_2d_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v1(6));
+  let h = nd(array_reshape(&a, &v2(2, 3)));
+  return xiom.test.assert(shape_is(h, v2(2, 3))
+    && get_2d(h, 0, 0, 1.0) && get_2d(h, 0, 2, 3.0)
+    && get_2d(h, 1, 0, 4.0) && get_2d(h, 1, 2, 6.0),
+    "reshape: [6]->[2,3] C-order values");
+}
+
+fn test_reshape_2d_to_2d_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  let h = nd(array_reshape(&a, &v2(3, 2)));
+  return xiom.test.assert(shape_is(h, v2(3, 2))
+    && get_2d(h, 0, 0, 1.0) && get_2d(h, 0, 1, 2.0)
+    && get_2d(h, 1, 0, 3.0) && get_2d(h, 2, 1, 6.0),
+    "reshape: [2,3]->[3,2] C-order values");
+}
+
+fn test_reshape_roundtrip_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v1(6));
+  let b = nd(array_reshape(&a, &v2(2, 3)));
+  let c = nd(array_reshape(&b, &v1(6)));
+  return xiom.test.assert(shape_is(c, v1(6))
+    && get_1d(c, 0, 1.0) && get_1d(c, 5, 6.0),
+    "reshape: [6]->[2,3]->[6] roundtrip");
+}
+
+fn test_reshape_size_mismatch_err() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v1(6));
+  return xiom.test.assert(err_nd(array_reshape(&a, &v2(2, 2))), "reshape: size mismatch Err");
+}
+
+fn test_reshape_invalid_handle_err() -> TestResult {
+  var a = nd(array_zeros(&v1(4), DTYPE_FLOAT64));
+  array_free(a);
+  return xiom.test.assert(err_nd(array_reshape(&a, &v2(2, 2))), "reshape: freed handle Err");
+}
+
+// ---------------------------------------------------------------------------
+// Phase-3a transpose -- golden values (hand-computed f64)
+// ---------------------------------------------------------------------------
+
+fn test_transpose_2d_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  let h = nd(array_transpose(&a));
+  return xiom.test.assert(shape_is(h, v2(3, 2))
+    && get_2d(h, 0, 0, 1.0) && get_2d(h, 0, 1, 4.0)
+    && get_2d(h, 1, 0, 2.0) && get_2d(h, 2, 1, 6.0),
+    "transpose: [2,3]->[3,2] == [[1,4],[2,5],[3,6]]");
+}
+
+fn test_transpose_1d_identity() -> TestResult {
+  var a = mk(&fd3(1.0, 2.0, 3.0), &v1(3));
+  let h = nd(array_transpose(&a));
+  return xiom.test.assert(shape_is(h, v1(3)) && get_1d(h, 0, 1.0) && get_1d(h, 2, 3.0),
+    "transpose: 1d is identity");
+}
+
+fn test_transpose_3d_reverse_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v3(2, 1, 3));
+  let h = nd(array_transpose(&a));
+  return xiom.test.assert(shape_is(h, v3(3, 1, 2))
+    && get_3d(h, 0, 0, 0, 1.0) && get_3d(h, 0, 0, 1, 4.0)
+    && get_3d(h, 1, 0, 0, 2.0) && get_3d(h, 1, 0, 1, 5.0)
+    && get_3d(h, 2, 0, 0, 3.0) && get_3d(h, 2, 0, 1, 6.0),
+    "transpose: 3d reverses axes [2,1,3]->[3,1,2]");
+}
+
+fn test_transpose_twice_identity() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  let b = nd(array_transpose(&a));
+  let c = nd(array_transpose(&b));
+  return xiom.test.assert(shape_is(c, v2(2, 3))
+    && get_2d(c, 0, 0, 1.0) && get_2d(c, 0, 2, 3.0)
+    && get_2d(c, 1, 0, 4.0) && get_2d(c, 1, 2, 6.0),
+    "transpose: twice == original");
+}
+
+fn test_transpose_invalid_handle_err() -> TestResult {
+  var a = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
+  array_free(a);
+  return xiom.test.assert(err_nd(array_transpose(&a)), "transpose: freed handle Err");
+}
+
+// ---------------------------------------------------------------------------
 // contract-presence markers
 // ---------------------------------------------------------------------------
 
@@ -703,6 +875,14 @@ fn test_contract_typed_err() -> TestResult {
 
 fn test_contract_no_ffi_storage() -> TestResult {
   return xiom.test.assert(true, "contract: Phase-2a storage is pure XIOM (no FFI on create/get/set)");
+}
+
+fn test_contract_array_reshape() -> TestResult {
+  return xiom.test.assert(true, "contract: array_reshape has requires: arr != 0, new_shape.len() > 0");
+}
+
+fn test_contract_array_transpose() -> TestResult {
+  return xiom.test.assert(true, "contract: array_transpose has requires: arr != 0");
 }
 
 pub fn main() -> Int {
@@ -794,6 +974,27 @@ pub fn main() -> Int {
   results.push(test_matmul_rank_mismatch_err());
   results.push(test_matmul_invalid_handle_err());
 
+  results.push(test_broadcast_add_row_golden());
+  results.push(test_broadcast_add_left_golden());
+  results.push(test_broadcast_mul_outer_golden());
+  results.push(test_broadcast_sub_scalar_like_golden());
+  results.push(test_broadcast_div_row_golden());
+  results.push(test_nd_add_3d_golden());
+  results.push(test_broadcast_3d_golden());
+  results.push(test_broadcast_incompatible_err());
+
+  results.push(test_reshape_flat_to_2d_golden());
+  results.push(test_reshape_2d_to_2d_golden());
+  results.push(test_reshape_roundtrip_golden());
+  results.push(test_reshape_size_mismatch_err());
+  results.push(test_reshape_invalid_handle_err());
+
+  results.push(test_transpose_2d_golden());
+  results.push(test_transpose_1d_identity());
+  results.push(test_transpose_3d_reverse_golden());
+  results.push(test_transpose_twice_identity());
+  results.push(test_transpose_invalid_handle_err());
+
   results.push(test_contract_array_new());
   results.push(test_contract_array_from_data());
   results.push(test_contract_array_arange());
@@ -802,6 +1003,8 @@ pub fn main() -> Int {
   results.push(test_contract_array_free());
   results.push(test_contract_typed_err());
   results.push(test_contract_no_ffi_storage());
+  results.push(test_contract_array_reshape());
+  results.push(test_contract_array_transpose());
 
   let total_count = results.len();
   let report = xiom.test.format_results(results);

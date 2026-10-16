@@ -369,51 +369,117 @@ pub fn is_valid_dtype(dtype: DType) -> Bool {
 // aborts the whole op with Err("numpy: array_div division by zero"); no partial
 // result is committed or returned.
 
-// True when slots ia and ib have equal ndim and equal extents on every axis.
-fn _nd_shape_eq(ia: Int, ib: Int) -> Bool {
-  let nd = _nd_ndim[ia];
-  if nd != _nd_ndim[ib] { return false; };
-  let so = _nd_shape_off[ia];
-  let sp = _nd_shape_off[ib];
-  var k = 0;
-  while k < nd {
-    if _nd_shape[so + k] != _nd_shape[sp + k] { return false; };
-    k = k + 1;
+// Extent of slot `i` on `axis`; a negative axis is a missing leading axis and
+// therefore broadcasts as extent 1.
+fn _nd_dim_at(i: Int, axis: Int) -> Int {
+  if axis < 0 { return 1; };
+  return _nd_shape[_nd_shape_off[i] + axis];
+}
+
+// Row-major strides of `shape` appended to `out` (out[j] = product of extents
+// to the right of axis j). N-D stride handling built on the flat f64 arena.
+fn _nd_strides_of_shape(shape: &Vec[Int], out: &mut Vec[Int]) {
+  let n = shape.len();
+  var j = 0;
+  while j < n {
+    var s = 1;
+    var t = j + 1;
+    while t < n {
+      s = s * shape[t];
+      t = t + 1;
+    };
+    out.push(s);
+    j = j + 1;
+  };
+}
+
+// Broadcast result shape of slots ia and ib appended to `out`; false when an
+// axis is incompatible (NumPy rule: extents equal, or one of them is 1).
+fn _nd_broadcast_shape(ia: Int, ib: Int, out: &mut Vec[Int]) -> Bool {
+  let nda = _nd_ndim[ia];
+  let ndb = _nd_ndim[ib];
+  var maxnd = nda;
+  if ndb > maxnd { maxnd = ndb; };
+  var j = 0;
+  while j < maxnd {
+    let da = _nd_dim_at(ia, nda - maxnd + j);
+    let db = _nd_dim_at(ib, ndb - maxnd + j);
+    if da != db && da != 1 && db != 1 { return false; };
+    var rd = da;
+    if db > rd { rd = db; };
+    out.push(rd);
+    j = j + 1;
   };
   return true;
 }
 
-// Append a fresh slot copying `shape` of slot `src` and the values in `vals`.
-fn _nd_like(src: Int, vals: &Vec[Float64]) -> NDArray {
-  var sh: Vec[Int] = Vec[Int].new();
-  let nd = _nd_ndim[src];
-  let so = _nd_shape_off[src];
-  var k = 0;
-  while k < nd {
-    sh.push(_nd_shape[so + k]);
-    k = k + 1;
+// Stride of slot `i` (extent `ndi`) along result axis `j` of an `nd`-axis
+// broadcast: 0 when the axis is stretched (missing axis or extent 1), else the
+// operand's own row-major stride.
+fn _nd_bc_stride(i: Int, ndi: Int, nd: Int, j: Int) -> Int {
+  let a = ndi - nd + j;
+  if a < 0 { return 0; };
+  let d = _nd_shape[_nd_shape_off[i] + a];
+  if d == 1 { return 0; };
+  var s = 1;
+  var t = a + 1;
+  while t < ndi {
+    s = s * _nd_shape[_nd_shape_off[i] + t];
+    t = t + 1;
   };
-  return _nd_alloc_from(vals, &sh, _nd_dtype[src]);
+  return s;
 }
 
 // kind: 0 = add, 1 = sub, 2 = mul, 3 = div (fail-closed on zero divisor).
+// NumPy broadcasting: operands align from the right and stretch along axes
+// where an extent is 1 (or the axis is missing). The result keeps the broadcast
+// shape and the left operand's dtype; operands are never aliased or mutated.
+// With identical shapes this is exactly the Phase-2b same-shape loop.
 fn _nd_elementwise(ha: Int, hb: Int, kind: Int, op: Str) -> Result[NDArray, Str] {
   if !_nd_valid(ha) || !_nd_valid(hb) {
     return Err("numpy: " + op + " invalid handle");
   };
   let ia = ha - 1;
   let ib = hb - 1;
-  if !_nd_shape_eq(ia, ib) {
+  var rshape: Vec[Int] = Vec[Int].new();
+  if !_nd_broadcast_shape(ia, ib, &mut rshape) {
     return Err("numpy: " + op + " shape mismatch");
   };
-  let n = _nd_size[ia];
+  let nd = rshape.len();
+  let numel = _nd_numel(&rshape);
+  if numel < 0 {
+    return Err("numpy: " + op + " result too large");
+  };
+  var rstr: Vec[Int] = Vec[Int].new();
+  _nd_strides_of_shape(&rshape, &mut rstr);
+  let nda = _nd_ndim[ia];
+  let ndb = _nd_ndim[ib];
+  var astr: Vec[Int] = Vec[Int].new();
+  var bstr: Vec[Int] = Vec[Int].new();
+  var j = 0;
+  while j < nd {
+    astr.push(_nd_bc_stride(ia, nda, nd, j));
+    bstr.push(_nd_bc_stride(ib, ndb, nd, j));
+    j = j + 1;
+  };
   let ba = _nd_base[ia];
   let bb = _nd_base[ib];
   var out: Vec[Float64] = Vec[Float64].new();
-  var k = 0;
-  while k < n {
-    let x = _nd_data[ba + k];
-    let y = _nd_data[bb + k];
+  var p = 0;
+  while p < numel {
+    var rem = p;
+    var ao = 0;
+    var bo = 0;
+    var k = 0;
+    while k < nd {
+      let idx = rem / rstr[k];
+      rem = rem - idx * rstr[k];
+      ao = ao + idx * astr[k];
+      bo = bo + idx * bstr[k];
+      k = k + 1;
+    };
+    let x = _nd_data[ba + ao];
+    let y = _nd_data[bb + bo];
     if kind == 0 {
       out.push(x + y);
     } elif kind == 1 {
@@ -426,9 +492,9 @@ fn _nd_elementwise(ha: Int, hb: Int, kind: Int, op: Str) -> Result[NDArray, Str]
       };
       out.push(x / y);
     };
-    k = k + 1;
+    p = p + 1;
   };
-  return Ok(_nd_like(ia, &out));
+  return Ok(_nd_alloc_from(&out, &rshape, _nd_dtype[ia]));
 }
 
 pub fn array_add(a: &NDArray, b: &NDArray) -> Result[NDArray, Str]
@@ -588,4 +654,74 @@ pub fn array_matmul(a: &NDArray, b: &NDArray) -> Result[NDArray, Str]
     return Err("numpy: array_matmul rank mismatch (requires 2-D)");
   };
   return _nd_matmul_2d(ia, ib);
+}
+
+// ---------------------------------------------------------------------------
+// Phase 3a: reshape + transpose over the flat f64 arena.
+// ---------------------------------------------------------------------------
+// reshape copies the row-major values of `arr` into a fresh slot carrying the
+// requested shape. The element count must match exactly (C-order reshape);
+// anything else fails closed. transpose reverses the axis order (NumPy
+// semantics) and copies values into a fresh slot, so it works for any rank and
+// keeps 2-D transpose exact: [r, c] -> [c, r] with out[j, i] = in[i, j].
+
+pub fn array_reshape(arr: &NDArray, new_shape: &Vec[Int]) -> Result[NDArray, Str]
+  requires: arr != 0
+  requires: new_shape.len() > 0
+{
+  let h: Int = *arr;
+  if !_nd_valid(h) {
+    return Err("numpy: array_reshape invalid handle");
+  };
+  let i = h - 1;
+  let nnew = _nd_numel(new_shape);
+  if nnew < 0 {
+    return Err("numpy: array_reshape invalid shape");
+  };
+  if nnew != _nd_size[i] {
+    return Err("numpy: array_reshape size mismatch");
+  };
+  let flat = _nd_flat(i);
+  return Ok(_nd_alloc_from(&flat, new_shape, _nd_dtype[i]));
+}
+
+pub fn array_transpose(arr: &NDArray) -> Result[NDArray, Str]
+  requires: arr != 0
+{
+  let h: Int = *arr;
+  if !_nd_valid(h) {
+    return Err("numpy: array_transpose invalid handle");
+  };
+  let i = h - 1;
+  let nd = _nd_ndim[i];
+  let so = _nd_shape_off[i];
+  var sshape: Vec[Int] = Vec[Int].new();
+  var rshape: Vec[Int] = Vec[Int].new();
+  var j = 0;
+  while j < nd {
+    sshape.push(_nd_shape[so + j]);
+    rshape.push(_nd_shape[so + nd - 1 - j]);
+    j = j + 1;
+  };
+  var sstr: Vec[Int] = Vec[Int].new();
+  var rstr: Vec[Int] = Vec[Int].new();
+  _nd_strides_of_shape(&sshape, &mut sstr);
+  _nd_strides_of_shape(&rshape, &mut rstr);
+  let numel = _nd_size[i];
+  var out: Vec[Float64] = Vec[Float64].new();
+  var p = 0;
+  while p < numel {
+    var rem = p;
+    var off = 0;
+    var k = 0;
+    while k < nd {
+      let idx = rem / rstr[k];
+      rem = rem - idx * rstr[k];
+      off = off + idx * sstr[nd - 1 - k];
+      k = k + 1;
+    };
+    out.push(_nd_data[_nd_base[i] + off]);
+    p = p + 1;
+  };
+  return Ok(_nd_alloc_from(&out, &rshape, _nd_dtype[i]));
 }

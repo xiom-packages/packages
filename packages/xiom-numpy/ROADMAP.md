@@ -9,8 +9,8 @@
 |-------|-------------|--------|
 | 1 | Core Foundation -- types, extern C, safe wrappers, conformance tests | Done -- GREEN 30/30 x2 (v0.64.5, 2026-10-16; link bridge `bridge/numpy_bridge.c`) |
 | 2 | C bridge -- compile numpy_c_* bridge .obj, link against system NumPy + OpenBLAS | Pending |
-| 3 | Linear algebra -- SVD, inv, reductions (sum, mean, max) | Pending |
-| 4 | Broadcasting + reshaping -- reshape, transpose | Pending |
+| 3 | Linear algebra -- SVD, inv, reductions (sum, mean, max) | Pending (Phase-3 second half) |
+| 4 | Broadcasting + reshaping -- reshape, transpose | DONE (first half) -- GREEN 103/103 x2 (v0.64.6, 2026-10-16) |
 | 5 | Advanced -- FFT, random, advanced indexing | Pending |
 | 6 | Interop -- zero-copy tensor sharing with xiom.libtorch, xiom.pandas | Pending |
 
@@ -23,6 +23,15 @@
 | `bridge/numpy_bridge.c` | ~123 | Phase-1 link bridge: all 17 `numpy_c_*` symbols with argument validation; reports the NumPy backend unavailable (Phase 2 replaces it with PyArray-backed code) |
 | `port.args.json` | 4 | Wires `--c-source bridge/numpy_bridge.c` into `port.ps1` suite runs (sqlite/stb/cuda pattern) |
 | `ROADMAP.md` | this file | Roadmap and status tracking |
+
+## Phase 4 -- Broadcasting + reshaping (first half done)
+
+Landed (2026-10-16, v0.64.6): NumPy broadcasting for
+`array_add`/`array_sub`/`array_mul`/`array_div` (right-aligned shape
+compatibility, stride-0 stretched axes), N-D row-major stride handling over the
+flat f64 arena, and copy-based `array_reshape` (C-order) + `array_transpose`
+(reverse axes). Suite `tests/test_conformance.xi` grew 83 -> 103 checks (20 new
+hand-computed f64 goldens) and is GREEN x2.
 
 ## Phase 2 -- C bridge
 

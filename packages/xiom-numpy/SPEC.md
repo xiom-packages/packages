@@ -1,7 +1,7 @@
 # xiom.numpy -- SPEC
 
 **Phase**: 2a (Core Storage) | **Priority**: CRITICAL
-**Status**: Phase 2b GREEN -- 83/83 conformance checks x2 (compiler v0.64.5, 2026-10-16); Phase-1 link bridge retained at `bridge/numpy_bridge.c` as the acceleration seam (not called by the module)
+**Status**: Phase 3a GREEN -- 103/103 conformance checks x2 (compiler v0.64.6, 2026-10-16); broadcasting + N-D strides + reshape/transpose landed (Phase-2b 83/83 was v0.64.5); Phase-1 link bridge retained at `bridge/numpy_bridge.c` as the acceleration seam (not called by the module)
 **Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend) -- consumed as a PATH dep (`xiom.toml`) for the Phase-2b `dot`/`matmul` compute path.
 
 ## What it wraps
@@ -70,6 +70,27 @@ We compile a thin C bridge that calls `PyArray_*` functions (which are C, not Py
   `array_dtype` is exposed so the stored dtype metadata is observable.
 - Shape guard: a negative dimension, or an element product above the
   documented `ND_MAX_ELEMS` (1000000), fails closed with `Err`.
+
+## Phase-3a design note: broadcasting, N-D strides, reshape/transpose (2026-10-16)
+- Element-wise `array_add`/`array_sub`/`array_mul`/`array_div` now broadcast
+  (NumPy rule: operands align from the right; on each axis the extents must be
+  equal or one of them is 1, else typed
+  `Err("numpy: <op> shape mismatch")`). The result carries the broadcast shape
+  and the left operand's dtype; identical-shape operands reduce exactly to the
+  Phase-2b same-shape loop. The div fail-closed policy is unchanged.
+- N-D over the flat f64 arena: row-major strides are derived per axis
+  (`_nd_strides_of_shape`); a broadcast operand uses stride 0 on stretched axes
+  (`_nd_bc_stride`). No new storage mode is added -- reshape/transpose copy into
+  fresh arena slots, so no operated array is aliased or mutated.
+- `array_reshape(arr, new_shape)`: C-order reshape; the element count must match
+  exactly, else `Err`. `array_transpose(arr)`: reverses the axis order (NumPy
+  semantics); 2-D gives `out[j, i] == in[i, j]`, 1-D is identity, N-D reverses
+  all axes. Both return copies (view semantics deferred).
+- Surface additions: `array_reshape`, `array_transpose` (typed
+  `Result[NDArray, Str]`). The Phase-2b same-shape-only misfit assertion in the
+  suite was replaced by a broadcast-incompatible case, because broadcasting now
+  makes `[2]` with `[2,2]` legal.
+- Suite: 103/103 conformance checks GREEN x2 (v0.64.6, 2026-10-16).
 
 ## Phase-1 status and provenance (2026-10-16)
 - The conformance suite (`tests/test_conformance.xi`, 30 checks) links the
