@@ -1005,6 +1005,27 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-16 11:15Z (doorbell: A02/A04 records re-pointed + their
+publish requests filed; TLS/brotli sessions launched)**: 
+- **A02 box2d 0.4.0 + A04 miniaudio 0.4.0** were landed by the morning
+  pass but had **no publish requests** -> filed now
+  (`REL-20261016-1112-bindings` box2d 26/26; `-1112-bindings-2`
+  miniaudio 27/27) and their records re-pointed to the land commits
+  (`d19090cc`/`c11b7ac2`) with platform rows restored; validate 559/0;
+  tip `c7d9a968`.
+- `-2302-packages` (TLS/brotli duplicate) closed as fixed per the dedupe
+  note; canonical = `-2211-packages` + `-2211-packages-2` (both acked).
+- **Launched the two PULSE top-tier builds** (`am-1792149214471-230ba6`):
+  `feat/tls-binding` (libssl-class multi-soname loader composing with
+  xiom.openssl; memory-BIO handshake headliner) + `feat/brotli-binding`
+  (google/brotli pinned + vendored; 100% declared surface; quality 0-11
+  round trips).  Publish requests follow as they land.
+- Eco: **101 releases through `eco-v0.1.185`** (glfw 0.6.0 + sdl3 0.20.0
+  lifts live; run green, 0 warnings).  Relay tip `8d4efae`; validate
+  flags a pre-existing non-ASCII char in `REL-20261010-1549-registry-3`
+  (other lane -- noted, not ours to edit).
+- v0.64.6 (darwin fix) not out yet; installed compiler v0.64.5.
+
 **UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
 PAUSED per owner directive)**:
 - Remaining 3 branches landed (path-scoped; trees safety-verified to
