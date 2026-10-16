@@ -1,0 +1,6 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/v4l2_bridge.c",
+  "--timeout",
+  "300"
+]
