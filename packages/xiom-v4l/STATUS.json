@@ -9,8 +9,8 @@
                   "passed":  14,
                   "failed":  0,
                   "run_by":  "am:feat-v4l-binding",
-                  "commit":  "db08d746",
-                  "checked":  "2026-10-16T21:10:42Z"
+                  "commit":  "18eaf107",
+                  "checked":  "2026-10-16T21:14:43Z"
               },
     "publish":  false,
     "excluded_reason":  "new package (V4L2 UAPI camera capture head; Linux-only device layer; Windows suite takes the recorded SKIP path; Raspberry Pi arm64 runtime leg documented in PROVENANCE/ROADMAP); publish gate after the naming decision + first live camera run (G1)"
