@@ -1,6 +1,7 @@
 # xiom.transport
 
 > **Status:** `incubating` -- conformance-tested (36/36) on XIOM v0.64.5.
+> Published: `0.1.0` in `eco-v0.1.188` (sha256 `6638577d...`).
 > **Scope:** transport-class seam, pure XIOM: capability facts, compact
 > little-endian wire codec, a pure reliability engine over an injected
 > clock, a session/channel layer with a mandatory version handshake,
