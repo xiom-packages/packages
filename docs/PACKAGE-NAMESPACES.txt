@@ -2,10 +2,11 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-16T14:03:57+03:00
-# packages: 556  modules: 1026
+# generated: 2026-10-16T14:18:28+03:00
+# packages: 561  modules: 1033
 
 ## package names
+xiom.aaudio
 xiom.acpi
 xiom.activation
 xiom.actor
@@ -17,6 +18,7 @@ xiom.algo
 xiom.amqp
 xiom.analyzer
 xiom.android
+xiom.android-sys
 xiom.ann
 xiom.ansible
 xiom.apple
@@ -62,6 +64,7 @@ xiom.btree
 xiom.bullet
 xiom.cab
 xiom.cache
+xiom.camera2ndk
 xiom.can
 xiom.cancel
 xiom.cassandra
@@ -270,6 +273,7 @@ xiom.materials
 xiom.mbox
 xiom.mbr
 xiom.mechanics
+xiom.mediandk
 xiom.memcached
 xiom.merkle
 xiom.meshopt
@@ -324,6 +328,7 @@ xiom.openblas
 xiom.opencv
 xiom.opengl
 xiom.openpgl
+xiom.opensl
 xiom.openssl
 xiom.optimizer
 xiom.optimizer-fw
@@ -564,6 +569,7 @@ xiom.zookeeper
 xiom.zstd
 
 ## module namespaces
+xiom.aaudio
 xiom.acpi
 xiom.activation
 xiom.actor
@@ -574,6 +580,10 @@ xiom.alerting
 xiom.algo
 xiom.amqp
 xiom.analyzer
+xiom.android
+xiom.android.configuration
+xiom.android.lifecycle
+xiom.android_sys
 xiom.ann
 xiom.ann.hnsw
 xiom.ansible
@@ -981,6 +991,7 @@ xiom.materials
 xiom.mbox
 xiom.mbr
 xiom.mechanics
+xiom.mediandk
 xiom.memcached
 xiom.merkle
 xiom.meshopt
@@ -994,6 +1005,7 @@ xiom.micro
 xiom.microscopy
 xiom.midi
 xiom.mime
+xiom.miniaudio
 xiom.miniseed
 xiom.mkv
 xiom.ml
