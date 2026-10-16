@@ -1335,6 +1335,24 @@ packages; handled this pass.
   ops legacy re-grant); v0.64.6 cut gate green (B-32 re-verify paths
   pinned); no open relay items after this pass.
 
+**UPDATE 2026-10-16 19:35Z (ML/AI + robotics parallel wave LAUNCHED -- 6
+agents; light-clone protocol; first picks serial + onnx)**: owner go
+("start in parallel agents") -- requested 6 Agent Manager worktree
+sessions (`am-1792178818502-r7skkf`):
+- `feat/serial-binding` (**first pick**) -- xiom.serial UART core;
+  `feat/onnx-coverage` (**first pick**) -- xiom.onnx 0.1.0 -> full C-API
+  coverage + delivery (native-lane unblock); `feat/v4l-binding` --
+  xiom.v4l V4L2 UAPI; `feat/gps-binding` -- xiom.gps gpsd-JSON + NMEA
+  (pure-XIOM preferred); `feat/epos-binding` -- xiom.epos closed-SDK
+  loader; `feat/ros2-coverage` -- xiom.ros2 rcl C surface completion.
+- Protocol in every brief: LIGHT clones (`--depth 1`, no history) into
+  `E:\repos\<name>`; license check first (MIT-or-compatible; closed ->
+  loader pattern, nothing vendored); commit pinned in PROVENANCE; 100%
+  declared-surface coverage; v0.64.5 pin; suite x2; path-scoped landing;
+  start from origin/bindings.
+- Landings via the standing recipe as branches go green; R1 fleet
+  publish + android 0.4.0 re-grant remain with packages/ops.
+
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
 state (`cdbbca63`; clean + pushed; validate 561/0).
