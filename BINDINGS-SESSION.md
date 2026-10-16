@@ -1294,7 +1294,10 @@ LIVE)**:
   **v0.64.6 archive IMMINENT** (packages will coordinate ordering if
   it lands before the family batch wraps).  On release: B-32
   re-verify wave (nested `Result[Option]` restore probes) is the
-  prepared lane action; no unilateral repin.
+  prepared lane action; no unilateral repin.  Probe paths ready:
+  `docs/repro/bindings-pilot/nested-payload/` (probe.xi + matrix.xi)
+  + `docs/repro/bindings-pilot/b32-sqlite-nested/`; on green, the
+  xiom.sqlite nested restore (flat `RowOutcome` stays until then).
 
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
