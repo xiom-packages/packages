@@ -129,9 +129,14 @@ can be proven without the compiler target:
   JNIEnv function table + android/bitmap.h cluster via libjnigraphics;
   9-export loader set; x2 90/90; on-device shell + app_process probes
   PASS).
-- **A9 graphics-gl**: IN FLIGHT (`android/a9-gl-leg` agent;
-  generator-aware pass over `xiom.gles`: system sonames +
-  EGL_ANDROID_* delta).
+- **A9 graphics-gl**: DONE (**`xiom.gles` 0.2.0**; android leg
+  through both generators: loader candidate pairs (Windows ANGLE
+  DLLs + android system sonames libEGL.so/libGLESv2.so/libGLESv3.so/
+  libGLESv1_CM.so), NDK r27b android delta (494 extension wrappers +
+  1225 constants; ES1 + 279 guard/token macros documented exclusions),
+  EGL android family measured 0-delta; x2 20/20 on v0.64.5 -- ANGLE
+  live 358/358 + 44/44 core resolved -- + on-device SwiftShader PASS
+  (ES2 context + glClear err=0)).
 - **A12 remainder** (binder_ndk / NNAPI / icu / z): IN FLIGHT
   (`android/a12-sys` agent; `xiom.android-sys` 0.2.0).
 - **A10 graphics-vk**: OWNER lane (android delta =

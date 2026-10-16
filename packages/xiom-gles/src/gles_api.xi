@@ -16,7 +16,7 @@ pub fn gles_api_new() -> GlesApi
 }
 
 /// Resolve a GLES command name through the live session (eglGetProcAddress
-/// first, then the libGLESv2/libEGL export tables).  0 = unresolved.
+/// first, then the runtime GLES/EGL export tables).  0 = unresolved.
 pub fn gles_api_resolve(api: &GlesApi, name: *UInt8) -> Int
   requires: api.active != 0
 {

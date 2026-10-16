@@ -6,12 +6,22 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  18,
+                  "passed":  20,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "ee741d77",
-                  "checked":  "2026-10-13T12:31:05Z"
+                  "run_by":  "am:android-a9-gl-leg",
+                  "commit":  "a294a3b0",
+                  "checked":  "2026-10-16T14:49:34Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package; 0.1.0 publish requested (REL-20261013-1231-bindings; registry scope needed)"
+    "excluded_reason":  "published in eco-v0.1.171 (2026-10-13, 0.1.0 ANGLE surface); 0.2.0 android leg (A9) pending publish",
+    "platforms":  [
+                      "windows-x64",
+                      "android-arm64",
+                      "android-x86_64"
+                  ],
+    "runtime_deps":  [
+                         "libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent)",
+                         "libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent)",
+                         "libEGL.so + libGLESv2.so/libGLESv3.so/libGLESv1_CM.so (Android system libraries; SKIP when absent)"
+                     ]
 }
