@@ -78,6 +78,14 @@ pub fn state_json(doc: JsonValue) -> State {
 ///                the level number rendered as text ("0", "1", ...);
 ///   KIND_NOUL:   instructions is the yes/no question; noul_yes/noul_no are
 ///                the optional criteria descriptions ("" = absent).
+///
+/// Structured forms (S3/S4/S5): `instructions` and each criteria entry may be
+/// a string, an object or an array. The `*_doc` / `criterion_docs` fields
+/// carry those forms: when a doc is not JSON null it is emitted verbatim in
+/// place of the string, so the string builders and the string byte-exact
+/// fixtures are untouched. For Choice/Score, criterion_docs is parallel to
+/// labels/texts (index j is option/level j); for a Choice a JSON-null doc
+/// falls back to the string rule ("" -> null).
 pub type Question = {
   kind: Int;
   id: Str;
@@ -86,6 +94,18 @@ pub type Question = {
   texts: Vec[Str];
   noul_yes: Str;
   noul_no: Str;
+  instructions_doc: JsonValue;
+  criterion_docs: Vec[JsonValue];
+  noul_yes_doc: JsonValue;
+  noul_no_doc: JsonValue;
+}
+
+/// doc_is_set is 1 when `doc` is a structured value (not JSON null), i.e.
+/// the caller supplied an object/array/string form to emit verbatim.
+/// Complexity: O(1). Pure.
+pub fn doc_is_set(doc: JsonValue) -> Int {
+  if compare.str_compare(json.json_type(doc), "null") == 0 { return 0; }
+  return 1;
 }
 
 /// question_choice starts a Choice question (add options with
@@ -99,6 +119,10 @@ pub fn question_choice(id: Str, instructions: Str) -> Question {
     texts: Vec[Str].new(),
     noul_yes: "",
     noul_no: "",
+    instructions_doc: json.json_null(),
+    criterion_docs: Vec[JsonValue].new(),
+    noul_yes_doc: json.json_null(),
+    noul_no_doc: json.json_null(),
   };
 }
 
@@ -108,6 +132,24 @@ pub fn question_choice(id: Str, instructions: Str) -> Question {
 pub fn question_add_option(q: &mut Question, label: Str, description: Str) {
   q.labels.push(label);
   q.texts.push(description);
+  q.criterion_docs.push(json.json_null());
+}
+
+/// question_add_option_json appends one Choice option whose criterion value
+/// is a structured JSON value (object, array or string; S3). `label` is the
+/// option name. Pass json_null to mean "no description" (emitted as null).
+/// Complexity: O(1) amortized. Mutates q.
+pub fn question_add_option_json(q: &mut Question, label: Str, doc: JsonValue) {
+  q.labels.push(label);
+  q.texts.push("");
+  q.criterion_docs.push(doc);
+}
+
+/// question_set_instructions_json sets a structured `instructions` value
+/// (object or array, S3/S4/S5) to be emitted verbatim in place of the plain
+/// string. Complexity: O(1). Mutates q.
+pub fn question_set_instructions_json(q: &mut Question, doc: JsonValue) {
+  q.instructions_doc = doc;
 }
 
 /// question_score starts a Score question (add levels with
@@ -121,6 +163,10 @@ pub fn question_score(id: Str, instructions: Str) -> Question {
     texts: Vec[Str].new(),
     noul_yes: "",
     noul_no: "",
+    instructions_doc: json.json_null(),
+    criterion_docs: Vec[JsonValue].new(),
+    noul_yes_doc: json.json_null(),
+    noul_no_doc: json.json_null(),
   };
 }
 
@@ -131,6 +177,17 @@ pub fn question_add_level(q: &mut Question, description: Str) {
   let level: Int = q.texts.len();
   q.labels.push(convert.to_string(level));
   q.texts.push(description);
+  q.criterion_docs.push(json.json_null());
+}
+
+/// question_add_level_json appends one Score rubric level whose description
+/// is a structured JSON value (object or array; S4). The level number is its
+/// position. Complexity: O(1) amortized. Mutates q.
+pub fn question_add_level_json(q: &mut Question, doc: JsonValue) {
+  let level: Int = q.texts.len();
+  q.labels.push(convert.to_string(level));
+  q.texts.push("");
+  q.criterion_docs.push(doc);
 }
 
 /// question_noul starts a Noul (yes/no) question.
@@ -144,6 +201,10 @@ pub fn question_noul(id: Str, instructions: Str) -> Question {
     texts: Vec[Str].new(),
     noul_yes: "",
     noul_no: "",
+    instructions_doc: json.json_null(),
+    criterion_docs: Vec[JsonValue].new(),
+    noul_yes_doc: json.json_null(),
+    noul_no_doc: json.json_null(),
   };
 }
 
@@ -153,6 +214,18 @@ pub fn question_noul(id: Str, instructions: Str) -> Question {
 pub fn question_set_noul_criteria(q: &mut Question, yes_means: Str, no_means: Str) {
   q.noul_yes = yes_means;
   q.noul_no = no_means;
+  q.noul_yes_doc = json.json_null();
+  q.noul_no_doc = json.json_null();
+}
+
+/// question_set_noul_criteria_json sets the optional Noul true/false criteria
+/// to structured JSON values (object, array or string; S5) emitted verbatim.
+/// Pass json_null to omit a side. Complexity: O(1). Mutates q.
+pub fn question_set_noul_criteria_json(q: &mut Question, yes_means: JsonValue, no_means: JsonValue) {
+  q.noul_yes = "";
+  q.noul_no = "";
+  q.noul_yes_doc = yes_means;
+  q.noul_no_doc = no_means;
 }
 
 // --------------------------------------------------

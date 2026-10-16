@@ -59,7 +59,7 @@ Fixture map (tests/test_conformance.xi):
 | Module | M1 public surface |
 |---|---|
 | `xiom.jev` | `default_model`, `default_base_url`, `version`, `systemone_endpoint` |
-| `xiom.jev.types` | `state_text`, `state_json`, `question_choice`, `question_add_option`, `question_score`, `question_add_level`, `question_noul`, `question_set_noul_criteria`, `answers_new`, `response_new`, accessors (`response_count/id/kind/find/choice/confidence_micro/score_micro/noul_micro/prob_count/prob_label/prob_micro/prob_find/prob_total_micro/has_usage/input_tokens/output_tokens`), `kind_name`, `micro_text`, constants `MICRO`, `KIND_CHOICE`, `KIND_SCORE`, `KIND_NOUL` |
+| `xiom.jev.types` | `state_text`, `state_json`, `question_choice`, `question_add_option`, `question_add_option_json`, `question_score`, `question_add_level`, `question_add_level_json`, `question_noul`, `question_set_noul_criteria`, `question_set_noul_criteria_json`, `question_set_instructions_json`, `doc_is_set`, `answers_new`, `response_new`, accessors (`response_count/id/kind/find/choice/confidence_micro/score_micro/noul_micro/prob_count/prob_label/prob_micro/prob_find/prob_total_micro/has_usage/input_tokens/output_tokens`), `kind_name`, `micro_text`, constants `MICRO`, `KIND_CHOICE`, `KIND_SCORE`, `KIND_NOUL` |
 | `xiom.jev.request` | `build_request` |
 | `xiom.jev.response` | `parse_response`, `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_argmax_label`, `answer_max_micro`, `answer_count_at_or_above`, `answer_labels_at_or_above`, `answer_sample_index`, `answer_sample_label`, `choice_answer_covers_question`, `score_round_level`, `score_normalized_micro`, `noul_yes`, `noul_confidence_micro` |
@@ -92,6 +92,16 @@ array of level descriptions; Noul criteria = object emitted only when at
 least one of true/false is non-empty, keys in order `true`, `false` (S5).
 Question ids are never sent to the model (S2/S3) but are the answer keys.
 
+Structured forms (M2 chunk 2, S3/S4/S5): `instructions` and each criteria
+entry may be a string, an object or an array. The `*_json` builders in
+`xiom.jev.types` set a `JsonValue` doc that is emitted verbatim in place of
+the string (a JSON-null doc means "not set"); `criterion_docs` stays
+parallel to the option/level vectors, so string and structured entries can
+be mixed in one question. An instruction counts as present when its string
+is non-empty or its doc is set; a Score level likewise (a structured level
+carries no string). A Choice criterion's JSON-null doc falls back to the
+string rule ("" -> `null`).
+
 Rejections (BadRequest). Order: model -> state -> question count -> per
 question (id, duplicates, instructions, kind-specific):
 
@@ -111,6 +121,10 @@ question (id, duplicates, instructions, kind-specific):
 | `request: question '<id>': score has more than 10 levels` |
 | `request: question '<id>': score level <j>: description is empty` |
 | `request: question '<id>': unknown question kind` |
+
+`instructions is empty` and `score level <j>: description is empty` fire
+only when BOTH the string is empty and no structured doc is set for that
+position.
 
 ## 6. Error catalog
 
@@ -220,9 +234,10 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
    micro).
 3. **`box` answers rejected** as unknown type in M1 (danger-zone API, needs
    `TypeSafe-Danger-Zone-Images` and vision models; S8).
-4. **Structured instructions/criteria not built**: M1 accepts string
-   instructions and string criteria entries only; S3/S4/S5 document object/
-   array forms.
+4. ~~**Structured instructions/criteria not built**~~ RESOLVED 2026-10-16
+   (M2 chunk 2): object/array/string forms are accepted through the `*_json`
+   builders (see section 5 and section 13); the plain-string builders and the
+   M1 byte-exact fixtures are unchanged.
 5. **No retry policy**: S9 retries 429/529/503 with backoff; M1 returns the
    typed `HttpStatus` and leaves retry to the caller (ROADMAP).
 6. **No base_url/API-key whitespace normalization**: S2's SDK trims keys and
@@ -231,10 +246,12 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
 
 ## 10. Test strategy and evidence
 
-- Suite: `tests/test_conformance.xi` -- 26 test functions, **82/82 checks
-  passed, x2** (two consecutive runs) via
-  `& .\scripts\port.ps1 -Package xiom-jev -TimeoutSec 180` on compiler
-  `v0.64.5` (native-session, 2026-10-16); `program_exit=0` both runs.
+- Suite: `tests/test_conformance.xi` -- 35 test functions, **91/91 checks
+  passed, x2** (two consecutive runs at the end of the M2-chunk-2 lane) via
+  `& .\scripts\port.ps1 -Package xiom.jev -TimeoutSec 240` on compiler
+  `v0.64.6` (native-session, 2026-10-16); `program_exit=0` both runs. History:
+  26 functions/82 checks at M1; +4 functions (retry) -> 86; +5 functions
+  (structured instructions/criteria) -> 91.
 - Offline/deterministic: no API key, no network, no randomness; selection
   uses hand-supplied entropy; request fixtures are compared byte-exact.
 - Link-free: the suite never imports `xiom.jev.client` (the transport links
@@ -286,3 +303,37 @@ surface immediately. The non-2xx `HttpStatus` mapping and the decoded
 The retry core is fully offline-golden-tested (suite t27..t30, 4 checks,
 exact values including the doubling/cap sequence and the overflow bound); no
 live network is involved.
+
+## 13. M2 progress (increment 2: structured instructions/criteria)
+
+Second M2 chunk (ROADMAP M2 bullet 3, "structured instructions and criteria
+(object/array forms, S3/S4/S5) in the question builders"). The question
+builders gained structured setters and the request builder emits them
+verbatim:
+
+- `xiom.jev.types.question_set_instructions_json(q, doc)` -- sets an
+  object/array `instructions` value (S3/S4/S5).
+- `xiom.jev.types.question_add_option_json(q, label, doc)` -- Choice
+  criterion as object/array/string (S3); `criterion_docs` stays parallel to
+  the label/text vectors.
+- `xiom.jev.types.question_add_level_json(q, doc)` -- Score level as
+  object/array (S4).
+- `xiom.jev.types.question_set_noul_criteria_json(q, yes, no)` -- Noul
+  true/false criteria as object/array/string (S5); either side may be
+  JSON-null (omitted).
+- `xiom.jev.types.doc_is_set(doc)` -- 1 when the doc is not JSON null (the
+  "string form is used" sentinel).
+
+A set doc is emitted verbatim and overrides the string form, so the M1
+string fixtures stay byte-exact. Validation treats an instruction/level as
+present when either the string is non-empty or a doc is set. The client path
+is unchanged: `system_one` calls `build_request`, so structured questions
+travel the existing offline encoder and live-capable transport.
+
+Fully offline-golden-tested (suite t31..t35, 5 checks): the S3 structured
+choice example (object instructions + object option criteria), the S4
+structured score example (array of object levels), the S5 structured noul
+instructions example (object with a nested `potential_duplicate` record and
+an array-form instruction variant), structured true/false noul criteria, and
+a mixed string/object/array/null choice + score fixture. No live network is
+involved.

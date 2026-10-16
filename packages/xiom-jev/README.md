@@ -61,6 +61,16 @@ core is float-free and deterministic; `types.micro_text(610000)` renders
 `"0.61"`. Tie rules, rounding and the exact entropy interval semantics are
 pinned in `SPEC.md` section 7.
 
+**Structured instructions/criteria (M2, 2026-10-16):** `instructions` and
+every criteria entry may be an object or array, not just a string
+(S3/S4/S5). Use the `*_json` builders with a parsed `JsonValue`:
+`question_set_instructions_json`, `question_add_option_json`,
+`question_add_level_json`, `question_set_noul_criteria_json`. A set doc is
+emitted verbatim and overrides the string form, so string questions and
+their byte-exact fixtures are unchanged; string, object and array entries
+can be mixed in one question. Validation counts an instruction/level as
+present when its string is non-empty or its doc is set.
+
 ## Transport (xiom.http 0.1.8 headers surface)
 
 `xiom.jev.client.system_one(base_url, api_key, model, state, questions)`

@@ -19,8 +19,14 @@
 // question; per question: non-empty id, no duplicate ids, non-empty
 // instructions; Choice: 1..255 options, non-empty option labels, labels and
 // descriptions aligned; Score: 2..10 levels, non-empty descriptions.
-// Structured instructions/criteria (objects and arrays) are out of M1
-// scope (see ROADMAP.md): instructions and criteria entries are strings.
+//
+// Structured instructions/criteria (S3/S4/S5, M2 chunk 2): `instructions`
+// and each criteria entry accept an object/array/string via the
+// `*_json` builders in xiom.jev.types; a set doc is emitted verbatim and
+// overrides the string form, so the string fixtures stay byte-exact. An
+// instruction is "present" when either the string is non-empty or a doc is
+// set; a Score level is present when its string is non-empty or its doc is
+// set (a structured level carries no string).
 
 module xiom.jev.request
 
@@ -58,7 +64,7 @@ fn _validate_question(questions: &Vec[Question], i: Int) -> Str {
     return "request: duplicate question id '" + id + "'";
   }
   let instructions: Str = q.instructions;
-  if instructions.len() == 0 {
+  if instructions.len() == 0 && types.doc_is_set(q.instructions_doc) == 0 {
     return "request: question '" + id + "': instructions is empty";
   }
   let kind: Int = q.kind;
@@ -94,7 +100,11 @@ fn _validate_question(questions: &Vec[Question], i: Int) -> Str {
     var j: Int = 0;
     while j < n {
       let level: Str = q.texts[j];
-      if level.len() == 0 {
+      var doc_set: Int = 0;
+      if j < q.criterion_docs.len() {
+        doc_set = types.doc_is_set(q.criterion_docs[j]);
+      }
+      if level.len() == 0 && doc_set == 0 {
         return "request: question '" + id + "': score level " + convert.to_string(j) + ": description is empty";
       }
       j = j + 1;
@@ -116,12 +126,22 @@ fn _choice_criteria(q: &Question) -> JsonValue {
   var j: Int = 0;
   while j < q.labels.len() {
     let label: Str = q.labels[j];
-    let description: Str = q.texts[j];
-    if description.len() == 0 {
-      crit = json.json_set(crit, label, json.json_null());
-    } else {
-      crit = json.json_set(crit, label, json.json_string(description));
+    var emitted: JsonValue = json.json_null();
+    var use_doc: Int = 0;
+    if j < q.criterion_docs.len() {
+      let d: JsonValue = q.criterion_docs[j];
+      if types.doc_is_set(d) == 1 {
+        emitted = d;
+        use_doc = 1;
+      }
     }
+    if use_doc == 0 {
+      let description: Str = q.texts[j];
+      if description.len() > 0 {
+        emitted = json.json_string(description);
+      }
+    }
+    crit = json.json_set(crit, label, emitted);
     j = j + 1;
   }
   return crit;
@@ -131,17 +151,29 @@ fn _score_criteria(q: &Question) -> JsonValue {
   var arr: JsonValue = json.json_array_new();
   var j: Int = 0;
   while j < q.texts.len() {
-    let description: Str = q.texts[j];
-    arr = json.json_array_push(arr, json.json_string(description));
+    var emitted: JsonValue = json.json_string(q.texts[j]);
+    if j < q.criterion_docs.len() {
+      let d: JsonValue = q.criterion_docs[j];
+      if types.doc_is_set(d) == 1 {
+        emitted = d;
+      }
+    }
+    arr = json.json_array_push(arr, emitted);
     j = j + 1;
   }
   return arr;
 }
 
+fn _instructions_value(q: &Question) -> JsonValue {
+  let d: JsonValue = q.instructions_doc;
+  if types.doc_is_set(d) == 1 { return d; }
+  return json.json_string(q.instructions);
+}
+
 fn _question_object(q: &Question) -> JsonValue {
   var qobj: JsonValue = json.json_object_new();
   qobj = json.json_set(qobj, "type", json.json_string(types.kind_name(q.kind)));
-  qobj = json.json_set(qobj, "instructions", json.json_string(q.instructions));
+  qobj = json.json_set(qobj, "instructions", _instructions_value(q));
   if q.kind == types.KIND_CHOICE {
     qobj = json.json_set(qobj, "criteria", _choice_criteria(q));
     return qobj;
@@ -152,12 +184,20 @@ fn _question_object(q: &Question) -> JsonValue {
   }
   let yes: Str = q.noul_yes;
   let no: Str = q.noul_no;
-  if yes.len() > 0 || no.len() > 0 {
+  let yes_doc: JsonValue = q.noul_yes_doc;
+  let no_doc: JsonValue = q.noul_no_doc;
+  let yes_set: Int = types.doc_is_set(yes_doc);
+  let no_set: Int = types.doc_is_set(no_doc);
+  if yes.len() > 0 || no.len() > 0 || yes_set == 1 || no_set == 1 {
     var crit: JsonValue = json.json_object_new();
-    if yes.len() > 0 {
+    if yes_set == 1 {
+      crit = json.json_set(crit, "true", yes_doc);
+    } elif yes.len() > 0 {
       crit = json.json_set(crit, "true", json.json_string(yes));
     }
-    if no.len() > 0 {
+    if no_set == 1 {
+      crit = json.json_set(crit, "false", no_doc);
+    } elif no.len() > 0 {
       crit = json.json_set(crit, "false", json.json_string(no));
     }
     qobj = json.json_set(qobj, "criteria", crit);

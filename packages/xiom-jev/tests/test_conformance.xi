@@ -53,6 +53,16 @@ fn str_eq(a: Str, b: Str) -> Bool {
   return compare.str_compare(a, b) == 0;
 }
 
+// jv parses a JSON literal into a JsonValue for the structured-instruction
+// fixtures (callers pass known-good literals; json_null on a malformed one so
+// a regression shows up as a byte mismatch, never a crash).
+fn jv(s: Str) -> JsonValue {
+  let r: Result[JsonValue, Str] = json.json_parse(s);
+  if !r.is_ok { return json.json_null(); }
+  let v: JsonValue = r.value;
+  return v;
+}
+
 fn expect_bad(r: Result[Str, JevError], want: Str, name: Str) -> Int {
   match r {
     Ok(_v) => {
@@ -215,7 +225,7 @@ fn t5() -> Int {
   badlevel.push(sq2);
   failed = failed + expect_bad(request.build_request("m", types.state_text("x"), badlevel), "request: question 'q': score level 1: description is empty", "empty score level rejected");
   var badkind: Vec[Question] = Vec[Question].new();
-  badkind.push(Question{ kind: 9, id: "q", instructions: "x", labels: Vec[Str].new(), texts: Vec[Str].new(), noul_yes: "", noul_no: "" });
+  badkind.push(Question{ kind: 9, id: "q", instructions: "x", labels: Vec[Str].new(), texts: Vec[Str].new(), noul_yes: "", noul_no: "", instructions_doc: json.json_null(), criterion_docs: Vec[JsonValue].new(), noul_yes_doc: json.json_null(), noul_no_doc: json.json_null() });
   failed = failed + expect_bad(request.build_request("m", types.state_text("x"), badkind), "request: question 'q': unknown question kind", "unknown question kind rejected");
   return report(failed == 0, "request BadRequest catalog (11 cases)");
 }
@@ -710,6 +720,94 @@ fn t30() -> Int {
 }
 
 // --------------------------------------------------
+//  M2 chunk 2: structured instructions and criteria (S3/S4/S5)
+// --------------------------------------------------
+
+fn t31() -> Int {
+  var qs: Vec[Question] = Vec[Question].new();
+  var q: Question = types.question_choice("return_topic", "");
+  types.question_set_instructions_json(&mut q, jv("{\"question\":\"Which returns topic is the customer asking about?\",\"focus\":\"Classify the information the customer wants.\"}"));
+  types.question_add_option_json(&mut q, "return_policy", jv("{\"what\":\"Whether and how an item can be returned\",\"not_for\":\"Progress of a return already sent\",\"examples\":[\"Can I return shoes I've worn once?\",\"How long do I have to return an order?\"]}"));
+  types.question_add_option_json(&mut q, "return_status", jv("{\"what\":\"Progress of a return already sent\",\"not_for\":\"Whether and how an item can be returned\",\"examples\":[\"Has my return arrived yet?\",\"When will my refund be paid?\"]}"));
+  qs.push(q);
+  let state: State = types.state_text("I sent the shoes back a week ago. When do I get my money?");
+  let built: Result[Str, JevError] = request.build_request("jev-latest", state, qs);
+  if !built.is_ok { return report(false, "S3 structured choice request builds"); }
+  let got: Str = built.value;
+  let want: Str = "{\"state\":\"I sent the shoes back a week ago. When do I get my money?\",\"model\":\"jev-latest\",\"questions\":{\"return_topic\":{\"type\":\"choice\",\"instructions\":{\"question\":\"Which returns topic is the customer asking about?\",\"focus\":\"Classify the information the customer wants.\"},\"criteria\":{\"return_policy\":{\"what\":\"Whether and how an item can be returned\",\"not_for\":\"Progress of a return already sent\",\"examples\":[\"Can I return shoes I've worn once?\",\"How long do I have to return an order?\"]},\"return_status\":{\"what\":\"Progress of a return already sent\",\"not_for\":\"Whether and how an item can be returned\",\"examples\":[\"Has my return arrived yet?\",\"When will my refund be paid?\"]}}}}}";
+  return report(str_eq(got, want), "S3 structured choice instructions/criteria byte-exact");
+}
+
+fn t32() -> Int {
+  var qs: Vec[Question] = Vec[Question].new();
+  var q: Question = types.question_score("bug_severity", "How severe is the reported issue?");
+  types.question_add_level_json(&mut q, jv("{\"what\":\"Cosmetic; no impact to functionality\",\"examples\":[\"typo in a label\",\"misaligned icon\"]}"));
+  types.question_add_level_json(&mut q, jv("{\"what\":\"Broken or degraded feature, but workaround exists\",\"examples\":[\"export fails in one browser but works in another\"]}"));
+  types.question_add_level_json(&mut q, jv("{\"what\":\"Blocking issue; no workaround exists\",\"examples\":[\"cannot log in\",\"data loss\"]}"));
+  qs.push(q);
+  let state: State = types.state_text("Export to PDF fails with a spinner that never finishes. Some of our team say CSV export still works for them, others say it fails too.");
+  let built: Result[Str, JevError] = request.build_request("jev-latest", state, qs);
+  if !built.is_ok { return report(false, "S4 structured score levels build"); }
+  let got: Str = built.value;
+  let want: Str = "{\"state\":\"Export to PDF fails with a spinner that never finishes. Some of our team say CSV export still works for them, others say it fails too.\",\"model\":\"jev-latest\",\"questions\":{\"bug_severity\":{\"type\":\"score\",\"instructions\":\"How severe is the reported issue?\",\"criteria\":[{\"what\":\"Cosmetic; no impact to functionality\",\"examples\":[\"typo in a label\",\"misaligned icon\"]},{\"what\":\"Broken or degraded feature, but workaround exists\",\"examples\":[\"export fails in one browser but works in another\"]},{\"what\":\"Blocking issue; no workaround exists\",\"examples\":[\"cannot log in\",\"data loss\"]}]}}}";
+  return report(str_eq(got, want), "S4 structured score levels byte-exact (object array form)");
+}
+
+fn t33() -> Int {
+  let state: State = types.state_json(jv("{\"resume\":{\"name\":\"John Smith\",\"location\":\"Oakland, CA\",\"summary\":\"Backend engineer with eight years of Python and Go experience.\",\"experience\":[{\"employer\":\"Google\",\"title\":\"Senior Backend Engineer\",\"years\":\"2021-2025\"},{\"employer\":\"Microsoft\",\"title\":\"Software Engineer\",\"years\":\"2017-2021\"}]}}"));
+  var qs: Vec[Question] = Vec[Question].new();
+  var q: Question = types.question_noul("same_as_record_18", "");
+  types.question_set_instructions_json(&mut q, jv("{\"potential_duplicate\":{\"name\":\"Jon Smith\",\"location\":\"Oakland, CA\",\"last_employer\":\"Google\"},\"question\":\"Is the resume for the same person as `potential_duplicate`?\"}"));
+  qs.push(q);
+  let built: Result[Str, JevError] = request.build_request("jev-latest", state, qs);
+  if !built.is_ok { return report(false, "S5 structured noul instructions build"); }
+  let got: Str = built.value;
+  let want: Str = "{\"state\":{\"resume\":{\"name\":\"John Smith\",\"location\":\"Oakland, CA\",\"summary\":\"Backend engineer with eight years of Python and Go experience.\",\"experience\":[{\"employer\":\"Google\",\"title\":\"Senior Backend Engineer\",\"years\":\"2021-2025\"},{\"employer\":\"Microsoft\",\"title\":\"Software Engineer\",\"years\":\"2017-2021\"}]}},\"model\":\"jev-latest\",\"questions\":{\"same_as_record_18\":{\"type\":\"noul\",\"instructions\":{\"potential_duplicate\":{\"name\":\"Jon Smith\",\"location\":\"Oakland, CA\",\"last_employer\":\"Google\"},\"question\":\"Is the resume for the same person as `potential_duplicate`?\"}}}}";
+  return report(str_eq(got, want), "S5 structured noul instructions byte-exact (object form)");
+}
+
+fn t34() -> Int {
+  var qs: Vec[Question] = Vec[Question].new();
+  var q: Question = types.question_noul("escalate", "");
+  types.question_set_instructions_json(&mut q, jv("[\"Is the customer asking for a human agent?\",\"Consider explicit requests only.\"]"));
+  types.question_set_noul_criteria_json(&mut q, jv("{\"what\":\"Mentions a prior attempt\",\"examples\":[\"asked three times\"]}"), jv("[\"No sign of any previous contact\"]"));
+  qs.push(q);
+  let built: Result[Str, JevError] = request.build_request("m", types.state_text("x"), qs);
+  if !built.is_ok { return report(false, "S5 array instructions + structured criteria build"); }
+  let got: Str = built.value;
+  let want: Str = "{\"state\":\"x\",\"model\":\"m\",\"questions\":{\"escalate\":{\"type\":\"noul\",\"instructions\":[\"Is the customer asking for a human agent?\",\"Consider explicit requests only.\"],\"criteria\":{\"true\":{\"what\":\"Mentions a prior attempt\",\"examples\":[\"asked three times\"]},\"false\":[\"No sign of any previous contact\"]}}}}";
+  return report(str_eq(got, want), "S5 array instructions + structured true/false criteria byte-exact");
+}
+
+fn t35() -> Int {
+  var qs: Vec[Question] = Vec[Question].new();
+  var q: Question = types.question_choice("mixed", "pick one");
+  types.question_add_option(&mut q, "a", "plain text");
+  types.question_add_option_json(&mut q, "b", jv("{\"what\":\"object form\"}"));
+  types.question_add_option(&mut q, "c", "");
+  types.question_add_option_json(&mut q, "d", jv("[\"array\",\"form\"]"));
+  types.question_add_option_json(&mut q, "e", json.json_null());
+  qs.push(q);
+  let built: Result[Str, JevError] = request.build_request("m", types.state_text("x"), qs);
+  if !built.is_ok { return report(false, "mixed string/object/array choice criteria builds"); }
+  let got: Str = built.value;
+  let want: Str = "{\"state\":\"x\",\"model\":\"m\",\"questions\":{\"mixed\":{\"type\":\"choice\",\"instructions\":\"pick one\",\"criteria\":{\"a\":\"plain text\",\"b\":{\"what\":\"object form\"},\"c\":null,\"d\":[\"array\",\"form\"],\"e\":null}}}}";
+  if !str_eq(got, want) {
+    return report(false, "mixed criteria byte-exact (got: " + got + ")");
+  }
+  var qs2: Vec[Question] = Vec[Question].new();
+  var s: Question = types.question_score("s", "rate");
+  types.question_add_level(&mut s, "text level");
+  types.question_add_level_json(&mut s, jv("{\"what\":\"structured level\"}"));
+  qs2.push(s);
+  let built2: Result[Str, JevError] = request.build_request("m", types.state_text("x"), qs2);
+  if !built2.is_ok { return report(false, "mixed string/object score levels build"); }
+  let got2: Str = built2.value;
+  let want2: Str = "{\"state\":\"x\",\"model\":\"m\",\"questions\":{\"s\":{\"type\":\"score\",\"instructions\":\"rate\",\"criteria\":[\"text level\",{\"what\":\"structured level\"}]}}}";
+  return report(str_eq(got2, want2), "mixed string/object score levels byte-exact");
+}
+
+// --------------------------------------------------
 //  Entry point
 // --------------------------------------------------
 
@@ -746,6 +844,11 @@ fn main() -> Int {
   failed = failed + t28();
   failed = failed + t29();
   failed = failed + t30();
+  failed = failed + t31();
+  failed = failed + t32();
+  failed = failed + t33();
+  failed = failed + t34();
+  failed = failed + t35();
   if failed == 0 {
     io.println("xiom.jev: all tests passed");
   } else {

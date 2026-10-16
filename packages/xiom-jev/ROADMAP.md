@@ -25,8 +25,11 @@
       exponential backoff, 4 attempts / 500 ms base / 30 s cap) and the
       `xiom.jev.client.system_one` retry loop (`xiom.time.sleep_ms`). Policy
       core is offline-golden-tested; the client stays `--check`-clean.
-- [ ] structured instructions and criteria (object/array forms, S3/S4/S5)
-      in the question builders.
+- [x] structured instructions and criteria (object/array forms, S3/S4/S5)
+      in the question builders -- DONE 2026-10-16: `*_json` builders in
+      `xiom.jev.types` (instructions, choice options, score levels, noul
+      true/false), emitted verbatim by `build_request`; string fixtures stay
+      byte-exact; offline-golden-tested (suite t31..t35).
 - [ ] expose `legend` (level -> description, string or structured) on score
       answers instead of validating-only.
 - [ ] confidence formula helpers (S6 choice/score exact formulas) for
