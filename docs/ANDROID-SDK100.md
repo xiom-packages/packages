@@ -39,7 +39,7 @@ UPDATE carries the full trail).
 | A6 | audio | `aaudio/AAudio.h`, `SLES/*`, `OMXAL/*`, `amidi/AMidi.h` -> libaaudio, libOpenSLES, libOpenMAXAL, libamidi | new (miniaudio/portaudio are desktop APIs) | G1 |
 | A7 | media | `media/NdkMedia*.h`, `NdkImage*.h` -> libmediandk | new | G1 |
 | A8 | camera | `camera/NdkCamera*.h` -> libcamera2ndk | new | G1 |
-| A9 | graphics-gl | `EGL/`, `GLES/2/3`, `KHR/`, EGL_ANDROID_* -> libEGL, libGLESv1_CM/v2/v3 | `xiom.gles` 0.1.0 (ANGLE/Windows); android leg = system lib names + android extensions | G1 |
+| A9 | graphics-gl | `EGL/`, `GLES/2/3`, `KHR/`, EGL_ANDROID_* -> libEGL, libGLESv1_CM/v2/v3 | `xiom.gles` 0.2.0 (loader system sonames + NDK r27b delta 494/1225; EGL android complete; on-device PASS -- lane `android/a9-gl-leg`) | G1 |
 | A10 | graphics-vk | `vulkan/`, `vk_video/` -> libvulkan | `xiom.vulkan` 0.6.0+ (OWNER lane); android delta = VK_KHR_android_surface | G1 + OWNER |
 | A11 | jni-seam | `jni.h`, `android/bitmap.h` -> libnativehelper, libjnigraphics | new | G1 |
 | A12 | system-misc | `android/log.h`, `sync.h`, `zlib.h`, binder surfaces, NNAPI, icu subset -> liblog, libsync, libz, libbinder_ndk, libneuralnetworks, libicu | partial (new) | G1 |
@@ -124,10 +124,16 @@ can be proven without the compiler target:
 - **A7 media**: core IN FLIGHT (`android/mediandk`).
 - **A8 camera**: head IN FLIGHT (`android/camera2ndk`).
 - **A12 starter (log+sync)**: IN FLIGHT (`android/android-sys`).
-- **A3 input + A4 sensors**: NEXT WAVE (serial to W2c -- same package).
-- **A9 graphics-gl**: NEXT WAVE (delta over `xiom.gles`: system lib
-  names + EGL_ANDROID_*; generated package -- needs a
-  generator-aware pass).
+- **A3 input + A4 sensors**: LANDED (`xiom.android` 0.4.0; land
+  `f8ba590a`).
+- **A9 graphics-gl**: LANDED on the lane branch (`android/a9-gl-leg`;
+  `xiom.gles` 0.2.0): loader candidate pairs (Windows ANGLE retained +
+  Android system sonames `libEGL.so`/`libGLESv2.so`/`libGLESv3.so`/
+  `libGLESv1_CM.so`), generated NDK r27b android delta (494 extension
+  commands + 1225 consts; ES1 + guards documented exclusions), EGL
+  android family measured complete (delta 0); suite x2 20/20 +
+  on-device PASS (x86_64-linux-android26 emulator/SwiftShader); repro
+  in `packages/xiom-gles/docs/repro/` -- awaiting land by the session.
 - **A10 graphics-vk**: OWNER lane (android delta =
   VK_KHR_android_surface).
 - **A11 JNI seam**: NEXT WAVE (design: env/object slots supplied by
