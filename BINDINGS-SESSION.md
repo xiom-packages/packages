@@ -1485,6 +1485,14 @@ in-situ; filed to compiler; restore stays parked)**:
   is file-locked (sweep later, same as a3-a4).  NO duplicate session
   existed.  The README docs-commit GO-AHEAD was delivered to the
   evidence session (`ses_eb96482b9ffe...`) on the re-send.
+- 23:40Z close-out: **B-32 evidence LANDED** (`3623f895` on the
+  branch -> path-scoped `186555e1` on bindings; docs-only; package
+  untouched) and the compiler **ACKED the residual as `m358`**
+  (next fixer wave; stdlib cut note: pin PR -> `8d95815` per 1559;
+  i128 division AV -> `m360`).  Sibling wins: **`xiom.miniaudio 0.5.0`
+  handle surface LANDED** (x2 44/44 on v0.64.6; publish request +
+  merge cue `a8902f4`) -- the engine's long-lived-handle ask is
+  DELIVERED; compiler wave m347-m349 integrated (locks 39/39).
 
 **UPDATE 2026-10-16 23:30Z (miniaudio 0.5.0 handle surface LANDED --
 engine ask delivered; merge+publish relayed; wave parked overnight)**:
