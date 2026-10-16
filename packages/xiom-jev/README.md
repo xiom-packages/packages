@@ -26,7 +26,7 @@ coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
 | `xiom.jev.response` | `parse_response` -- typed answers + confidence + usage; `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_labels_at_or_above`, `answer_sample_index` (caller-supplied entropy), score/noul helpers |
 | `xiom.jev.errors` | `JevError` (BadRequest / Transport / HttpStatus / Parse) + `jev_error_text` |
-| `xiom.jev.client` | `system_one` -- transport over the xiom.http 0.1.7 client surface |
+| `xiom.jev.client` | `system_one` -- transport over the xiom.http 0.1.8 headers surface |
 
 ## Quick start (offline shape)
 
@@ -60,19 +60,18 @@ core is float-free and deterministic; `types.micro_text(610000)` renders
 `"0.61"`. Tie rules, rounding and the exact entropy interval semantics are
 pinned in `SPEC.md` section 7.
 
-## Transport (xiom.http 0.1.7 client surface)
+## Transport (xiom.http 0.1.8 headers surface)
 
 `xiom.jev.client.system_one(base_url, api_key, model, state, questions)`
-builds the body, `http_post`s it to `<base_url>/v1/systemone` through
-`xiom.http.client` (NO new FFI; TLS is the consumer's libcurl bridge), and
-parses the response. Failures map onto the typed `JevError` catalog.
+builds the body, attaches `Authorization: Bearer <api_key>` +
+`Content-Type: application/json` via `xiom.http.headers`, and sends it to
+`<base_url>/v1/systemone` through `xiom.http.http_request` (NO new FFI; TLS
+is the consumer's libcurl bridge). Failures map onto the typed `JevError`
+catalog.
 
-**Known gap (upstream):** the xiom.http 0.1.7 client surface cannot attach
-custom request headers, so the API's `Authorization: Bearer` header is not
-sent; the call is wire-correct and reaches the API, which answers 401 until
-custom-header support lands in xiom.http (tracked in `ROADMAP.md` /
-`SPEC.md` section 8). `api_key` is validated and reserved for that handover;
-it is never logged or stored.
+**Live leg (resolved 2026-10-16):** xiom.http 0.1.8 ships the custom-headers
+surface, so the API receives the bearer token; a valid key now yields a 2xx
+([PASS] in the probe). `api_key` is validated and never logged or stored.
 
 ## Live probe
 

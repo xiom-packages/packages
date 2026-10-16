@@ -16,9 +16,10 @@
 
 ## M2 -- transport completion and structured surface
 
-- [ ] custom request headers in xiom.http (upstream): attach
-      `Authorization: Bearer` and enable the probe's live [PASS] leg; then
-      re-run the probe against the real API and record it.
+- [x] custom request headers in xiom.http (upstream) -- DONE 2026-10-16:
+      xiom.http 0.1.8 `http_headers_blob` + `http_request`; `system_one`
+      attaches `Authorization: Bearer`. Probe re-run with a real key still
+      pending (no key in this lane).
 - [ ] retry policy for 429/529/503 with bounded backoff (mirror S9).
 - [ ] structured instructions and criteria (object/array forms, S3/S4/S5)
       in the question builders.
@@ -44,8 +45,8 @@
 
 ## Tracking notes
 
-- Upstream dependencies: `xiom.http` custom headers (M2 blocker for a live
-  2xx), `xiom.ssl` eventually for a pluggable TLS story. The libcurl bridge
-  (consumer-side, per the xiom.http recipe) remains the transport until then.
+- Upstream dependencies: `xiom.ssl` eventually for a pluggable TLS story.
+  The libcurl bridge (consumer-side, per the xiom.http recipe) remains the
+  transport.
 - Pairing: `xiom.llm` is the System Two (text) tier; systems combine both --
   Jev for the typed decision, the runner for generated text.

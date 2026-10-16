@@ -181,19 +181,18 @@ are ignored (forward compatibility). Answer order follows wire order.
 
 `system_one(base_url, api_key, model, state, questions)` composes
 `<base_url>/v1/systemone` (trailing slashes collapsed), builds the body,
-converts it to UTF-8 bytes, calls `xiom.http.client.http_post(..., 
-"application/json")`, and parses 2xx bodies. No new FFI; TLS is the
+builds the header blob (`Authorization: Bearer <api_key>` +
+`Content-Type: application/json` via `xiom.http.headers`), calls
+`xiom.http.http_request(endpoint, "POST", body, blob)` (the xiom.http 0.1.8
+headers-capable entry), and parses 2xx bodies. No new FFI; TLS is the
 consumer's libcurl bridge.
 
-**KNOWN GAP -- Authorization (upstream):** the xiom.http 0.1.7 client
-surface (`packages/xiom-http/README.md` "Client surface") cannot attach
-custom request headers: `http_post`/`http_get`/`http_put`/`http_delete` take
-no header parameter and `http_send` only forwards Content-Type from
-`HttpRequest.headers`. The API requires `Authorization: Bearer <key>`
-(S2/S8, HTTPBearer). The call implemented here is wire-correct and reaches
-the API, which answers 401; `api_key` is validated and reserved. The probe
-reports that typed 401 as `[SKIP]` with its decoded detail (never as PASS)
-until custom-header support lands in xiom.http.
+**RESOLVED 2026-10-16 -- Authorization:** the xiom.http 0.1.8 surface ships
+custom request headers (`http_headers_blob` + `http_request`; commit
+`249f1d61`), so the `Authorization: Bearer <key>` header (S2/S8, HTTPBearer)
+now goes out on the wire. A live 2xx needs only a valid key; a typed 401
+with its decoded detail is reported by the probe as `[SKIP]` (key/permission
+trouble, never as PASS). `api_key` is validated and never logged or stored.
 
 Probe invocation (documented in README and tests/probe_live.xi; read the key
 from the environment only, never store it):
@@ -246,10 +245,11 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
 
 ## 11. Unresolved items
 
-1. **Custom request headers in xiom.http** (blocker for a live 2xx): needs a
-   header-capable `http_post`/`http_send` (or a consumer bridge) -- then
-   `system_one` can attach `Authorization` and the probe's [PASS] leg becomes
-   reachable. Owner: xiom.http lane (0.1.7 surface note; see ROADMAP).
+1. ~~Custom request headers in xiom.http~~ RESOLVED 2026-10-16: xiom.http
+   0.1.8 ships `http_headers_blob` + `http_request` (commit 249f1d61);
+   `system_one` attaches `Authorization: Bearer` -- the probe's [PASS] leg is
+   reachable with a valid key (item 2 below still applies: none available
+   here).
 2. **Live verification** of the 401 detail decode and of a real 2xx parse
    could not be exercised here: no `TYPESAFE_API_KEY` is available in this
    session (by design none is stored).

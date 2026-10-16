@@ -21,12 +21,11 @@
 // scratch dir holding curl.lib (copy libcurl.dll.a / curl.lib there; put
 // libcurl-x64.dll on PATH and set CURL_CA_BUNDLE for TLS at runtime).
 //
-// KNOWN GAP (SPEC.md section 8): the xiom.http 0.1.7 client surface cannot
-// attach custom request headers, so the Authorization: Bearer header the API
-// requires is not sent. When a key is present the call reaches the API and
-// the typed 401 HttpStatus is reported as [SKIP] with its decoded detail
-// (never as [PASS]); a transport failure [SKIP]s as network-unreachable; a
-// 2xx answer [PASS]es. Anything else is a [FAIL].
+// Live leg (resolved 2026-10-16): system_one now attaches
+// Authorization: Bearer through the xiom.http 0.1.8 headers path. With a
+// valid key a 2xx answer [PASS]es; a typed 401 with its decoded detail
+// [SKIP]s (treat as key/permission trouble, never as PASS); a transport
+// failure [SKIP]s as network-unreachable. Anything else is a [FAIL].
 //
 // Typed type-check without any link (dependency-free surface check):
 //   xiom --check packages\xiom-jev\tests\probe_live.xi

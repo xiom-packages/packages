@@ -3,11 +3,11 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
 // system_one is the one-call client: build the request body
-// (xiom.jev.request), POST it to <base_url>/v1/systemone with
-// {"Content-Type": "application/json"} through the xiom.http 0.1.7 client
-// surface (xiom.http.client.http_post; TLS is the consumer's libcurl bridge
-// -- this package adds no FFI), then parse the response
-// (xiom.jev.response). Failures map onto the typed Err catalog:
+// (xiom.jev.request), build the header blob (via xiom.http.headers), POST it
+// to <base_url>/v1/systemone through the xiom.http 0.1.8 headers-capable
+// entry (xiom.http.http_request; TLS is the consumer's libcurl bridge -- this
+// package adds no FFI), then parse the response (xiom.jev.response). Failures
+// map onto the typed Err catalog:
 //
 //   BadRequest  -- empty base_url / api_key, or request validation
 //   Transport   -- the libcurl bridge failed (no HTTP response)
@@ -16,12 +16,10 @@
 //                  characters of the raw body when decoding fails
 //   Parse       -- the endpoint answered 2xx with an invalid body
 //
-// KNOWN GAP (documented in SPEC.md section 8, tracked in ROADMAP.md): the
-// xiom.http 0.1.7 client surface cannot attach custom request headers, so
-// the Authorization: Bearer header required by the API is NOT sent. The call
-// is wire-correct and reaches the endpoint; the API answers 401 until
-// custom-header support lands in xiom.http. api_key is validated (non-empty)
-// and reserved for that handover -- it is never logged or stored.
+// LIVE LEG (resolved 2026-10-16): the Authorization: Bearer header now goes
+// out through the xiom.http 0.1.8 custom-headers surface (see SPEC.md
+// section 8). api_key is validated (non-empty); it is never logged, stored
+// or echoed in errors.
 
 module xiom.jev.client
 
@@ -30,8 +28,9 @@ use xiom.jev.errors;
 use xiom.jev.request;
 use xiom.jev.response;
 use xiom.jev.types;
-use xiom.http.client;
-use xiom.encoding;
+use xiom.http;
+use xiom.http.headers;
+use xiom.http.types;
 use xiom.string;
 
 // --------------------------------------------------
@@ -68,20 +67,6 @@ fn _preview(s: Str, n: Int) -> Str {
   return string.str_slice(s, 0, n);
 }
 
-// _body_bytes widens the UTF-8 encoding of `s` into the Vec[Int] the
-// xiom.http client surface takes.
-fn _body_bytes(s: Str) -> Vec[Int] {
-  var out: Vec[Int] = Vec[Int].new();
-  let enc: Vec[UInt8] = encoding.utf8_encode(s);
-  var i: Int = 0;
-  while i < enc.len() {
-    let b: UInt8 = enc[i];
-    out.push((b as Int) & 0xFF);
-    i = i + 1;
-  }
-  return out;
-}
-
 // --------------------------------------------------
 //  system_one
 // --------------------------------------------------
@@ -89,8 +74,8 @@ fn _body_bytes(s: Str) -> Vec[Int] {
 /// system_one evaluates `state` against `questions` on `model` at
 /// `base_url` (e.g. "https://api.typesafe.ai"), returning the typed
 /// Response or a typed JevError (see the module header for the mapping).
-/// `api_key` must be non-empty; see the KNOWN GAP note above for the
-/// Authorization status on the xiom.http 0.1.7 surface.
+/// `api_key` must be non-empty; it is sent as `Authorization: Bearer` on the
+/// wire via the xiom.http 0.1.8 headers path and never logged.
 /// Complexity: O(body + network). Effector: performs one HTTP request when
 /// reached; pure up to the transport call.
 pub fn system_one(base_url: Str, api_key: Str, model: Str, state: State, questions: Vec[Question]) -> Result[Response, JevError] {
@@ -107,7 +92,14 @@ pub fn system_one(base_url: Str, api_key: Str, model: Str, state: State, questio
     return _err_response(e);
   }
   let body: Str = built.value;
-  let res: Result[HttpClientResponse, Str] = xiom.http.client.http_post(endpoint, _body_bytes(body), "application/json");
+  var hdrs: Vec[HttpHeader] = Vec[HttpHeader].new();
+  hdrs.push(HttpHeader{ name: "Authorization", value: "Bearer " + api_key });
+  hdrs.push(HttpHeader{ name: "Content-Type", value: "application/json" });
+  let blob: Result[Str, Str] = xiom.http.headers.http_headers_blob(hdrs);
+  if !blob.is_ok {
+    return _err_bad("client: header build failed: " + blob.error);
+  }
+  let res: Result[HttpClientResponse, Str] = xiom.http.http_request(endpoint, "POST", body, blob.value);
   if !res.is_ok {
     let why: Str = res.error;
     return _err_transport(why);
