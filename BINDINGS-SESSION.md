@@ -1353,6 +1353,32 @@ sessions (`am-1792178818502-r7skkf`):
 - Landings via the standing recipe as branches go green; R1 fleet
   publish + android 0.4.0 re-grant remain with packages/ops.
 
+**UPDATE 2026-10-16 20:20Z (R2 ros2 LANDED -- `feat/ros2-coverage`
+`3dff5c3a`)**: **xiom.ros2 0.2.0 delivered** -- the rcl C surface behind the
+multi-soname loader (init/shutdown, context, node, publisher, subscription,
+clock, timers, wait sets, callback-free spin, typesupport resolve), zero
+vendored C. x2 **82/82** through `port.ps1` on v0.64.5 (SKIP arm: no ROS 2
+on this host; the live arm -- context/node/std_msgs pub-sub roundtrip/timer/
+wait-set/spin -- is written and runs on the Pi/Windows+ROS 2 legs). Coverage
+table in the package AUDIT.md covers 100% of the declared surface (63 fns /
+63 consts / 11 types). Docs: README/SPEC (ABI layout pin + distro matrix)/
+ROADMAP/AUDIT/PROVENANCE; STATUS.json recorded (run_by am:feat-ros2-coverage,
+commit 6fb11903). Clones registered: rcl roll `e5754f0d`
+(+humble/iron/jazzy refs), rcutils `0f55f24e`, rmw `4158e1ed` (all
+Apache-2.0, CLEANUP.md).
+- **NEW FINDING B-33 (OPEN, v0.64.5, compiler lane)**: record params/returns
+  BY VALUE through fn-cast calls fault the process at the call and the
+  confinement trampoline does not recover -- **silent exit 0, no report**
+  (CI-invisible); repro `docs/repro/bindings-pilot/ros2-abi/` with a real
+  clang DLL + the pointer-pretend workaround proof (1/2/3/7/9-arg shapes
+  exact). ros2 passes rcl's by-value `rcl_allocator_t` via pointer-pretend
+  (correct on MS x64/AAPCS64; typed `ROS2_ABI_HOST` refusal on x86-64
+  SysV). **B-29 re-confirmed STILL RED on the pin**; ros2 routes all slot
+  I/O through `ffi.ptr_*_le` and pins `0xBAD00000` round-trips in-suite.
+- Next in-lane: the remaining R2 lanes (v4l/gps/epos) + M1/M2 as queued;
+  ros2 follow-ups (callbacks -> services/actions/QoS remainder) are in the
+  package ROADMAP v0.3.0+.
+
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
 state (`cdbbca63`; clean + pushed; validate 561/0).
