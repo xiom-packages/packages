@@ -13,5 +13,5 @@
                   "checked":  "2026-10-15T22:52:35Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: 0.2.0 sections/loops/auto-escape (PULSE top-tier); 0.1.2 stable published"
+    "excluded_reason":  "published in eco-v0.1.186 (2026-10-16, 0.2.0 blocks/auto-escape; 0.1.2 stable reference)"
 }
