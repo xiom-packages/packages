@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  29,
                   "failed":  0,
-                  "run_by":  "am:feat-epos-binding",
-                  "commit":  "85b0d9ee",
-                  "checked":  "2026-10-16T22:12:56Z"
+                  "run_by":  "native-session",
+                  "commit":  "3c472618",
+                  "checked":  "2026-10-16T23:22:08Z"
               },
     "publish":  false,
     "excluded_reason":  "new package (R2 wave closed-SDK loader slice); publish gate after the Linux libEposCmd.so lane + a hardware bring-up run"
