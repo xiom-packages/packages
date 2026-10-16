@@ -1316,6 +1316,25 @@ LIVE)**:
   release imminent; XVC-C-18 recon launched.  Eco through `.192`;
   PULSE already consumer-verified ssl+brotli x2 both platforms.
 
+**UPDATE 2026-10-16 19:25Z (ML/AI + robotics program -- acked + queue
+folded; 20 built names confirmed)**: owner directive (19:16Z) relayed by
+packages; handled this pass.
+- **`-1917-packages-3` acked + replied** (`REL-20261016-1921-bindings`;
+  relay `794063b`): bindings half CONFIRMED against tip `2ba5854d` --
+  **13 fleet names** (gpio/i2c/spi/adc/pwm/sensor/can/ble/zigbee/hid/usb
+  + modbus + mqtt; all present in both trees, 0.1.3 line) + **7 in-tree
+  ML/ros2 bodies** (blas/openblas/libtorch/torch/tensorflow/onnx 0.1.0,
+  ros2 0.1.0) = **20 built names** (matches the bulk scope queue);
+  serial/v4l/gps/epos = new work; no name/ownership corrections.
+- **QUEUE FOLDED** (agents pick directly): R1 fleet publish (packages
+  pipeline) -> R2 serial/v4l/gps/epos/ros2 (**serial FIRST**) -> M1
+  foundation -> M2 runtimes (**onnx FIRST**; previously parked on the
+  native-lane go-ahead -- now unblocked) -> M3 LLM runner.  Clone
+  protocol: light `--depth 1`, license first, pin in PROVENANCE.
+- Live context: family **7/8 in `eco-v0.1.192`** (android 0.4.0 on the
+  ops legacy re-grant); v0.64.6 cut gate green (B-32 re-verify paths
+  pinned); no open relay items after this pass.
+
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
 state (`cdbbca63`; clean + pushed; validate 561/0).
