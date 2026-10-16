@@ -33,6 +33,16 @@ use xiom.gles.gles_consts_2;
 use xiom.gles.gles_consts_3;
 use xiom.gles.gles_consts_4;
 use xiom.gles.gles_consts_5;
+use xiom.gles.gles_android_cmds_01;
+use xiom.gles.gles_android_cmds_02;
+use xiom.gles.gles_android_cmds_03;
+use xiom.gles.gles_android_cmds_04;
+use xiom.gles.gles_android_cmds_05;
+use xiom.gles.gles_android_consts_1;
+use xiom.gles.gles_android_consts_2;
+use xiom.gles.gles_android_consts_3;
+use xiom.gles.gles_android_consts_4;
+use xiom.gles.gles_android_consts_5;
 use xiom.gles.egl_cmds_01;
 use xiom.gles.egl_cmds_02;
 use xiom.gles.egl_consts_1;
@@ -50,6 +60,15 @@ fn report(ok: Bool, name: Str) -> Int {
   return 1;
 }
 
+fn has_str(v: Vec[Str], s: Str) -> Bool {
+  var i = 0;
+  while i < v.len() {
+    if v[i] == s { return true; }
+    i = i + 1;
+  }
+  return false;
+}
+
 fn t_constants() -> Bool {
   var ok = true;
   if GLES_LOAD_ABSENT != 0 || GLES_LOAD_NO_CONTEXT != 1 || GLES_LOAD_ABI != 2 { ok = false; }
@@ -62,12 +81,56 @@ fn t_constants() -> Bool {
   return ok;
 }
 
+// The android leg: generated runtime-load candidates + the measured NDK
+// r27b delta (GLES2/GLES3/KHR extension surface) + the EGL android family
+// (measured complete over the NDK EGL headers; see docs/COVERAGE.md).
+fn t_android_delta() -> Bool {
+  var ok = true;
+
+  // Runtime-load candidates (Windows ANGLE DLLs retained + Android system).
+  let egl_c = egl_load_candidates();
+  let gles_c = gles_load_candidates();
+  if egl_c.len() != EGL_LOAD_CANDIDATE_COUNT || EGL_LOAD_CANDIDATE_COUNT != 3 { ok = false; }
+  if gles_c.len() != GLES_LOAD_CANDIDATE_COUNT || GLES_LOAD_CANDIDATE_COUNT != 5 { ok = false; }
+  if !has_str(egl_c, "libEGL.dll") || !has_str(egl_c, "EGL.dll") { ok = false; }
+  if !has_str(egl_c, "libEGL.so") { ok = false; }
+  if !has_str(gles_c, "libGLESv2.dll") || !has_str(gles_c, "GLESv2.dll") { ok = false; }
+  if !has_str(gles_c, "libGLESv2.so") || !has_str(gles_c, "libGLESv3.so") { ok = false; }
+  if !has_str(gles_c, "libGLESv1_CM.so") { ok = false; }
+
+  // Android delta command surface (NDK r27b GLES2/GLES3/KHR beyond core).
+  let anc = gles_android_cmd_names();
+  if anc.len() != GLES_ANDROID_CMD_COUNT || GLES_ANDROID_CMD_COUNT != 494 { ok = false; }
+  if !has_str(anc, "glBlendBarrierKHR") || !has_str(anc, "glDebugMessageCallbackKHR") { ok = false; }
+  if !has_str(anc, "glEGLImageTargetTexture2DOES") || !has_str(anc, "glGetObjectLabelKHR") { ok = false; }
+
+  // Android delta constants (spot values from the pinned dispatch).
+  if GLES_ANDROID_CONST_COUNT != 1225 { ok = false; }
+  if GL_TEXTURE_EXTERNAL_OES != 0x8D65 || GL_SAMPLER_EXTERNAL_OES != 0x8D66 { ok = false; }
+  if GL_ETC1_RGB8_OES != 0x8D64 { ok = false; }
+  if GL_DEBUG_OUTPUT_KHR != 0x92E0 || GL_MAX_LABEL_LENGTH_KHR != 0x82E8 { ok = false; }
+  if GL_TEXTURE_MAX_ANISOTROPY_EXT != 0x84FE || GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT != 0x84FF { ok = false; }
+
+  // EGL android family (carried by the EGL 1.5 + extensions surface).
+  let en = egl_cmd_names();
+  if !has_str(en, "eglCreateNativeClientBufferANDROID") || !has_str(en, "eglGetNativeClientBufferANDROID") { ok = false; }
+  if !has_str(en, "eglGetFrameTimestampsANDROID") || !has_str(en, "eglPresentationTimeANDROID") { ok = false; }
+  if !has_str(en, "eglDupNativeFenceFDANDROID") || !has_str(en, "eglSetBlobCacheFuncsANDROID") { ok = false; }
+  if EGL_NATIVE_BUFFER_ANDROID != 0x3140 || EGL_PLATFORM_ANDROID_KHR != 0x3141 { ok = false; }
+  if EGL_RECORDABLE_ANDROID != 0x3142 || EGL_FRAMEBUFFER_TARGET_ANDROID != 0x3147 { ok = false; }
+  if EGL_SYNC_NATIVE_FENCE_FD_ANDROID != 0x3145 || EGL_NO_NATIVE_FENCE_FD_ANDROID != -1 { ok = false; }
+  if EGL_FRONT_BUFFER_AUTO_REFRESH_ANDROID != 0x314C { ok = false; }
+  return ok;
+}
+
 fn main() -> Int {
   io.println("=== xiom.gles conformance tests (ANGLE loader/probe) ===");
   io.flush_stdout();
   var failed: Int = 0;
 
   failed = failed + report(t_constants(), "constants: kinds + GL/EGL enums (generated)");
+  failed = failed + report(t_android_delta(),
+    "android delta: loader candidates + NDK r27b surface (" + to_string(GLES_ANDROID_CMD_COUNT) + " cmds + " + to_string(GLES_ANDROID_CONST_COUNT) + " consts + EGL android family)");
 
   // SKIP-path classification, deterministic on every host (bogus pair).
   let missing = gles_probe_named("xiom-absent-egl-xyz.dll", "xiom-absent-gles-xyz.dll");
@@ -136,6 +199,20 @@ fn main() -> Int {
       }
       failed = failed + report(enames.len() == EGL_CORE_COUNT && eunresolved == 0,
         "egl: " + to_string(EGL_CORE_COUNT) + " core commands resolved (unresolved=" + to_string(eunresolved) + ")");
+
+      // Android delta commands: extension-conditional by nature (the live
+      // runtime advertises a subset); report the count, never fail on it.
+      let anames = gles_android_cmd_names();
+      var aresolved: Int = 0;
+      var ai = 0;
+      while ai < anames.len() {
+        if gles_api_resolve(&api, anames[ai].c_str()) != 0 {
+          aresolved = aresolved + 1;
+        }
+        ai = ai + 1;
+      }
+      failed = failed + report(true,
+        "android delta: " + to_string(aresolved) + "/" + to_string(GLES_ANDROID_CMD_COUNT) + " extension commands resolved on the live runtime (extension-conditional)");
 
       // Oracle counts (emitted == registry).
       failed = failed + report(gles_cmd_names().len() == GLES_CMD_COUNT && egl_cmd_names().len() == EGL_CMD_COUNT,

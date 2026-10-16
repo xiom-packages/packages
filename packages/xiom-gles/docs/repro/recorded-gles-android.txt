@@ -1,0 +1,60 @@
+﻿xiom.gles A9 android leg -- recorded on-device run (build-and-run-android.ps1)
+NDK: r27b 27.1.12297006; clang: Android (12285214, based on r522817b) clang version 18.0.2 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)
+
+--- aarch64-linux-android26 cross-build (build-only; no arm64 device) ---
+artifact: C:\Users\lefte\AppData\Local\Temp\kilo\gles-android-probe\gles_android_probe_arm64 (19736 bytes)
+Class:                             ELF64 | Type:                              DYN (Shared object file) | Machine:                           AArch64
+
+--- x86_64-linux-android26 cross-build ---
+artifact: C:\Users\lefte\AppData\Local\Temp\kilo\gles-android-probe\gles_android_probe (19456 bytes)
+
+--- on-device run (adb shell) ---
+=== xiom.gles A9 android leg probe (x86_64-linux-android26) ===
+--- bridge: src/gles_probe.c (runtime-load, no link deps) ---
+load.rc=0
+load.error=
+load.pair=libEGL.so+libGLESv2.so
+  [PASS] loader resolved libEGL.so + a GLES system library
+  [PASS] loaded pair is an Android system soname pair (candidate leg proven)
+query.rc=0
+egl.version=1.4 Android META-EGL
+egl.vendor=Android
+gles.vendor=Google (Google Inc.)
+gles.renderer=Android Emulator OpenGL ES Translator (Google SwiftShader)
+gles.version=OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)
+gles.glsl=OpenGL ES GLSL ES 3.00
+  [PASS] display + strings stage (EGL_VERSION / GL_VERSION / GL_RENDERER live)
+  [PASS] GL_VERSION resolved on-device
+  [PASS] GL_RENDERER resolved on-device
+session.rc=0
+session.error=
+session.active=1
+session.display=123386754134048
+  [PASS] live GLES2 context current (client_version=2)
+  [PASS] EGLDisplay resolved and live
+  [PASS] eglQueryString resolved through xgs_egl_proc
+egl.extensions.count=16
+egl.extensions=EGL_ANDROID_front_buffer_auto_refresh EGL_ANDROID_get_native_client_buffer EGL_ANDROID_presentation_time EGL_EXT_surface_CTA861_3_metadata EGL_EXT_surface_SMPTE2086_metadata EGL_KHR_get_all_proc_addresses EGL_KHR_swap_buffers_with_damage EGL_ANDROID_get_frame_timestamps EGL_ANDROID_image_native_buffer EGL_ANDROID_native_fence_sync EGL_ANDROID_recordable EGL_KHR_create_context EGL_KHR_fence_sync EGL_KHR_gl_texture_2D_image EGL_KHR_image EGL_KHR_image_base 
+  [PASS] eglQueryString(EGL_EXTENSIONS) returned the device extension list
+  [PASS] extensions contain EGL_KHR_fence_sync
+  [PASS] extensions contain EGL_ANDROID_native_fence_sync
+  [PASS] extensions contain EGL_ANDROID_presentation_time
+  [PASS] extensions contain EGL_ANDROID_recordable
+  [PASS] extensions contain EGL_ANDROID_front_buffer_auto_refresh
+  [PASS] extensions contain EGL_ANDROID_get_frame_timestamps
+  [PASS] extensions contain EGL_ANDROID_get_native_client_buffer
+egl.extensions.khr_surfaceless_context=absent
+egl.extensions.khr_no_config_context=absent
+  [PASS] glGetString resolved through xgs_get_proc
+gl.version.via.proc=OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)
+gl.extensions.count=50
+  [PASS] glGetString(GL_VERSION) through the per-call resolver
+  [PASS] glClearColor/glClear/glGetError resolved through the per-call resolver
+gl.clear.error=0
+  [PASS] one real GL call on the live context (glClear -> glGetError==0)
+session.closed.active=0
+  [PASS] session closed cleanly
+RESULT: PASS
+probe exit code: 0
+
+verdict: PASS

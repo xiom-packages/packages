@@ -1,12 +1,12 @@
 # xiom.android
 
 Android platform-core bindings for XIOM -- the A1 (window-core) + A5
-(assets-storage) + A2 (lifecycle-glue) heads of the Android SDK100
-program.
+(assets-storage) + A2 (lifecycle-glue) + A3 (input) + A4 (sensors)
+heads of the Android SDK100 program.
 
 - Runtime probe for `libandroid.so` + `libnativewindow.so` with SKIP
   semantics (absent runtime -> `ANDROID_LOAD_ABSENT`; broken exports ->
-  `ANDROID_LOAD_ABI` FAIL); 117-symbol declared export set.
+  `ANDROID_LOAD_ABI` FAIL); 209-symbol declared export set.
 - Functional `AHardwareBuffer` head: `hwb_is_supported`, `hwb_alloc`,
   describe accessors, `hwb_write_pixel`/`hwb_read_pixel` (safe lock
   roundtrip), `hwb_acquire`/`hwb_release`.
@@ -29,7 +29,25 @@ program.
   ABI-checked (live window/activity ops ride the A11 JNI seam); the
   NDK `native_app_glue` C unit (source, not vendored) is the reference
   consumer -- `docs/repro/check-glue-closure.ps1` proves its imports
-  close over this package + the documented future slices.
+  close over this package + the documented future slices (its six
+  `AInputQueue_*`/`AInputEvent_*` imports resolve inside the A3 head
+  since 0.4.0).
+- Functional `AInputQueue`/`AInputEvent`/`AKeyEvent`/`AMotionEvent`
+  head (`xiom.android.input`): attachLooper (callback + ident
+  variants) / detachLooper / hasEvents / getEvent / preDispatchEvent /
+  finishEvent + every AKeyEvent/AMotionEvent accessor (42) and the
+  full 161-value `input.h` + 317-entry `AKEYCODE_*` constant tables;
+  float accessors are rebuilt from binary32 bits (B-12-safe).  The
+  queue is framework-delivered to an app -- the live path is proven by
+  the on-device app probe (`docs/repro/`).
+- Functional `ASensorManager`/`ASensorEventQueue`/`ASensor` head
+  (`xiom.android.sensors`): getInstance(+ForPackage) / sensor list
+  enumeration + description / default sensor (Ex) / create+destroy
+  event queue (callback + ident variants) / register/enable/disable/
+  setEventRate / hasEvents / getEvents into owned slots + the
+  direct-channel trio + the 60-value `ASENSOR_*` table; on-device
+  verified (18 emulator sensors enumerated, queue events read back
+  exact).
 
 ```xiom
 use xiom.android;

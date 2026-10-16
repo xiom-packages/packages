@@ -6,14 +6,14 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  18,
+                  "passed":  20,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "779ac140",
-                  "checked":  "2026-10-13T12:36:05Z"
+                  "run_by":  "am:android-a9-gl-leg",
+                  "commit":  "87763cbf",
+                  "checked":  "2026-10-16T15:07:21Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.171 (2026-10-13, new ANGLE package; GLES 2.0/3.2 + EGL 1.5)",
+    "excluded_reason":  "published in eco-v0.1.171 (2026-10-13, 0.1.0 ANGLE surface); 0.2.0 android leg (A9) pending publish",
     "platforms":  [
                       "windows-x64"
                   ],
@@ -21,4 +21,5 @@
                          "libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent)",
                          "libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent)"
                      ]
+}
 }

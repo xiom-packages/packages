@@ -1,0 +1,61 @@
+﻿JNI_PROBE_DONE rc=0 pixel75=0xff443322 pixel00=0xffefbead
+JNI_PROBE JAVA SIDE: PASS
+
+== logcat (XIOM-A11) ==
+--------- beginning of main
+10-16 17:04:43.685 20043 20043 I XIOM-A11: JNI_OnLoad: consumer app supplied vm=0x7ec8b697e390
+10-16 17:04:43.685 20043 20043 I XIOM-A11:   [PASS] loader: xj_load rc == 0 (libjnigraphics + libnativehelper)
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] loader: 0 missing exports of 9
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] loader: export count == 9
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: xj_vm_get_env(vm) -> env
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: FindClass com/xiom/jniprobe/Probe
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: env GetVersion == JNI_VERSION_1_6
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: GetJavaVM == the JNI_OnLoad vm
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: JNI_GetCreatedJavaVMs(0) == the live vm
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: GetStaticMethodID Probe.inc(I)I
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: CallStaticIntMethodA inc(1) == 2
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: GetStaticMethodID Probe.tick()J
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: CallStaticLongMethodA tick() == 1234567890123
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: GetStaticMethodID Probe.ratio()D
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: CallStaticDoubleMethodA ratio() bits == 1.5 exactly
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: GetStaticFieldID Probe.tag
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: GetStaticObjectField tag -> jstring
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: tag UTF length == 9
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: tag UTF readback == "probe-tag"
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: NewStringUTF("31337")
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: FindClass java/lang/Integer
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: GetStaticMethodID Integer.parseInt(String)I
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: CallStaticIntMethodA parseInt("31337") == 31337
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: NewIntArray(4)
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: GetArrayLength == 4
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: SetIntArrayRegion from owned slots
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: GetIntArrayRegion into owned slots
+10-16 17:04:43.686 20043 20043 I XIOM-A11:   [PASS] seam: array roundtrip 10/20/30/40 exact
+10-16 17:04:43.687 20043 20043 I XIOM-A11:   [PASS] seam: FindClass(missing) -> 0
+10-16 17:04:43.687 20043 20043 I XIOM-A11:   [PASS] seam: ExceptionCheck == 1 (pending)
+10-16 17:04:43.687 20043 20043 I XIOM-A11:   [PASS] seam: ExceptionClear -> no pending
+10-16 17:04:43.687 20043 20043 I XIOM-A11:   [PASS] seam: RegisterNatives runProbe via bridge
+10-16 17:04:43.687 20043 20053 I XIOM-A11:   [PASS] thread: AttachCurrentThread -> env
+10-16 17:04:43.688 20043 20053 I XIOM-A11:   [PASS] thread: attached env GetVersion == JNI_VERSION_1_6
+10-16 17:04:43.688 20043 20053 I XIOM-A11:   [PASS] thread: DetachCurrentThread rc == 0
+10-16 17:04:43.688 20043 20043 I XIOM-A11: A11_SEAM fail=0
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: info width == 64
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: info height == 64
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: info stride >= 256 bytes
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: info format == RGBA_8888 (1)
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [INFO] bitmap: getDataSpace = 142671872
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: getDataSpace >= 0
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: isHardware == 0 (software bitmap)
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: lockPixels (manual window)
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: writePixel(7,5,0xFF223344) inside manual lock
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: readPixel(7,5) roundtrip exact (0xFF223344)
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: unlockPixels
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: writePixel(0,0,0xFFADBEEF) auto-locked
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: readPixel(0,0) == 0xFFADBEEF (as u32)
+10-16 17:04:43.692 20043 20043 I XIOM-A11:   [PASS] bitmap: writePixel out of range -> explicit error
+10-16 17:04:43.693 20043 20043 I XIOM-A11:   [PASS] bitmap: compress PNG -> bytes in owned buffer
+10-16 17:04:43.693 20043 20043 I XIOM-A11:   [PASS] bitmap: compressed buffer starts with PNG signature
+10-16 17:04:43.694 20043 20043 I XIOM-A11:   [INFO] bitmap: compressed 142 bytes (PNG)
+10-16 17:04:43.694 20043 20043 I XIOM-A11:   [PASS] bitmap: compressed_byte(out of range) -> -1
+10-16 17:04:43.694 20043 20043 I XIOM-A11:   [PASS] bitmap: compressed_ptr() exposes the owned buffer
+10-16 17:04:43.694 20043 20043 I XIOM-A11: A11_BITMAP fail=0

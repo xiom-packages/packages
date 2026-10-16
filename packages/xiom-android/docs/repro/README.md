@@ -1,4 +1,56 @@
-# xiom.android -- on-device evidence (A2 lifecycle-glue head, W2c)
+# xiom.android -- on-device evidence
+
+## A3 input + A4 sensors heads (W2d, 0.4.0)
+
+Two binaries prove the A3/A4 heads on the API-36 x86_64 emulator
+(`emulator-5554`; AVD `Medium_Phone_API_36.0`):
+
+**Shell probe** (`input_head_probe.c`; push+run in
+`/data/local/tmp/xiom-spike/`; recorded: `recorded-input-shell.txt`):
+
+| Evidence | Result |
+|---|---|
+| constant transcription gate | the generated `gen/a3a4_const_asserts.h` gates all **538** transcribed constants (input.h 161 + keycodes.h 317 + sensor.h 60) against the REAL NDK r27b headers AT BUILD TIME: 534 int `_Static_assert`s + 3 float asserts + the `ASENSOR_RESOLUTION_INVALID` nanf("") sentinel runtime-checked (`bits == 0x7FC00000`); `sizeof(ASensorEvent)==104` / offsets 16/24/88 static-asserted |
+| export set | **209/209 resolved, 0 missing** on the device's `libandroid.so` (117 A1/A2/A5 + 60 A3 + 32 A4) |
+| A3 explicit-error contract | null queue -> explicit error on every head (never a silent zero); a shell process cannot own an `AInputQueue` by design (framework-delivered) |
+| A4 enumeration | `ASensorManager_getInstance` -> **18 sensors** listed + described (handle/type/name/vendor/string-type/min-delay/FIFO/reporting-mode/wake-up/direct-rate/resolution) |
+| A4 event queue (ident variant) | `createEventQueue(ident=7)` -> `registerSensor(accel, 20000us)` -> `ALooper_pollOnce` -> `getEvents` **1 event**: `type=1` (ACCELEROMETER), `ts>0`, `x=0 y=9.77632 z=0.812345` (gravity, exact f32 bits decoded) -> disable -> destroy |
+| A4 event queue (callback variant) | `createEventQueue(callback)` -> callback fires, `pollOnce` returns **ALOOPER_POLL_CALLBACK (-2)** |
+| A4 queue management | `requestAdditionalInfoEvents(disable)` -> 0; `enableSensor`/`setEventRate(40000us)` -> 0 |
+| A4 direct channels | `createSharedMemoryDirectChannel` / `createHardwareBufferDirectChannel` -> **rc=-12** (goldfish HAL does not offer direct channels; recorded honestly, not papered over); `configureDirectReport(STOP)` -> -22 |
+
+**App probe** (`input_app_probe.c`; a C-only NativeActivity APK --
+`hasCode="false"`, native_app_glue drives the lifecycle; built, signed
+(debug keystore), installed, launched, fed with
+`input keyevent 29/30/31`; recorded: `recorded-input-app.txt`):
+
+| Evidence | Result |
+|---|---|
+| export set in an app process | **209 resolved, 0 missing** (`A3 load rc=0`) |
+| framework-delivered queue | the glue-delivered `AInputQueue` decoded through `xiom.android.input` accessors |
+| **AInputQueue detach + attach** | `AInputQueue_detachLooper` **rc=0** (removed from the glue looper) then `AInputQueue_attachLooper` (callback variant) **rc=0** -- on the LIVE queue; a second detach/re-attach cycle repeats both rc=0 mid-stream |
+| keycode proof | `AKEYCODE_A (29)` and `AKEYCODE_B (30)` events decoded: action DOWN/UP, `key_event_key_code`, down/event times, meta/repeat -- `A3 keycode decoded` x4 |
+| event-read proof | `getEvent` -> `preDispatchEvent` (honoring the abandon-on-nonzero contract) -> `finishEvent` on every kept event; `A3_RESULT fail=0 events=4` |
+| sensor sanity in-app | `sensor manager=ok sensors=18` |
+
+**Documented block (recorded in `recorded-input-app.txt`)**: injected
+TOUCH events are not deliverable to this probe window -- the dispatcher's
+`InputWindowInfo` for the C-only NativeActivity window carries
+`frame=[0,0][0,0] / touchableRegion=<empty>`, so `input tap` /
+`input motionevent` are refused (touches DO reach Java apps in the same
+session).  The motion side is therefore proven by the export set (all 42
+`AMotionEvent_*` symbols resolved) + the ABI-gated accessor surface; the
+same accessors decode motion the moment a device delivers it to the
+queue.  No evidence is faked.
+
+## Run
+
+```
+powershell -File build-and-run-input.ps1          # both probes (emulator must be up)
+powershell -File build-and-run-input.ps1 -SkipApp # shell probe only
+```
+
+## A2 lifecycle-glue head (W2c)
 
 Proves the A2 head on the API-36 x86_64 emulator (`emulator-5554`; AVD
 `Medium_Phone_API_36.0`):

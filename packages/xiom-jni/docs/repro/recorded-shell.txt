@@ -1,0 +1,34 @@
+﻿=== xiom.jni A11 shell probe (JNI seam mechanics) ===
+  [PASS] bridge table sizeof == header (233 slots)
+  [PASS] bridge jvalue sizeof == header
+  [PASS] bridge JNINativeMethod sizeof == header
+  [PASS] bridge AndroidBitmapInfo sizeof == header
+  [PASS] bridge JNIInvokeInterface sizeof == header
+  [PASS] all 56 JNINativeInterface offsets identical (bridge vs header)
+  [PASS] JNIInvokeInterface offsets identical (Attach/Detach/GetEnv)
+  [PASS] AndroidBitmapInfo offsets identical (width/height/stride/format/flags)
+  [PASS] JNINativeMethod offsets identical (name/signature/fnPtr)
+  [PASS] dlopen libjnigraphics.so
+  [PASS] dlopen libnativehelper.so
+  resolve AndroidBitmap_getInfo            -> jnigraphics
+  resolve AndroidBitmap_getDataSpace       -> jnigraphics
+  resolve AndroidBitmap_lockPixels         -> jnigraphics
+  resolve AndroidBitmap_unlockPixels       -> jnigraphics
+  resolve AndroidBitmap_compress           -> jnigraphics
+  resolve AndroidBitmap_getHardwareBuffer  -> jnigraphics
+  resolve JNI_GetDefaultJavaVMInitArgs     -> both
+  resolve JNI_CreateJavaVM                 -> both
+  resolve JNI_GetCreatedJavaVMs            -> both
+  [PASS] all 9 declared exports resolve on the device libs
+  [PASS] bridge xj_load() rc == 0 (pair present)
+  [PASS] bridge ABI: 0 missing exports of 9
+  [PASS] bridge export count == 9
+  vm_from_created(0) in shell -> none (expected: no Java host) (no JavaVM at index 0 (created count 0))
+  [PASS] plain shell owns no JavaVM (honest: env needs a Java host)
+  [PASS] null-safety: env_version(0) -> -1 + typed error
+  [PASS] null-safety: find_class(0 env) -> 0 + typed error
+  [PASS] null-safety: bitmap_get_info(0, 0) -> non-zero + typed error
+  [PASS] null-safety: bitmap_write_pixel(0, 0) -> non-zero + typed error
+  [PASS] null-safety: bitmap_read_pixel(0, 0) -> -1 + typed error
+  [PASS] unload path exercised
+XJ_PROBE RESULT: PASS (fail=0)

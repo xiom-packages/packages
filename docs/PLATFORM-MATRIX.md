@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-16T15:06:02Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T14:50:09Z.
 
 ## How to read this table
 
@@ -42,11 +42,11 @@ preserved by `-Action repin`/`-Action update`:
 
 ## Summary
 
-- packages: 564
+- packages: 563
 - declared rows: 37
 - compile: 28
 - compile+runtime-load: 19
-- pure: 501
+- pure: 500
 - runtime-load: 16
 - native packages pending declaration: 28
 
@@ -60,10 +60,10 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx1
 |---|---|---|---|---|---|---|
 | xiom.aaudio | 0.1.0 | incubating | compile+runtime-load | windows-x64, android-arm64, android-x86_64 | libaaudio.so | pass 13/13 @ 366d80ab |
 | xiom.android-sys | 0.1.0 | incubating | compile+runtime-load | windows-x64, android-x86_64, android-arm64 | liblog.so (runtime loader; SKIP when absent); libsync.so (runtime loader; SKIP when absent) | pass 4/4 @ 2032a60c |
-| xiom.dx12 | 0.4.0 | stable | compile+runtime-load | windows-x64 | d3d12.dll (runtime loader; SKIP when absent); dxgi.dll (runtime loader; SKIP when absent) | pass 42/42 @ fd90ebf3 |
+| xiom.dx12 | 0.3.0 | stable | compile+runtime-load | windows-x64 | d3d12.dll (runtime loader; SKIP when absent); dxgi.dll (runtime loader; SKIP when absent) | pass 42/42 @ fd90ebf3 |
 | xiom.ffmpeg | 0.4.1 | incubating | compile+runtime-load | windows-x64 | avcodec/avformat/avutil/swresample shared libraries (multi-soname runtime loader; SKIP when absent) | pass 23/23 @ 50b65cee |
 | xiom.fidelityfx | 0.1.0 | incubating | compile+runtime-load | windows-x64 | amd_fidelityfx_loader_dx12.dll / amd_fidelityfx_upscaler_dx12.dll / amd_fidelityfx_framegeneration_dx12.dll (signed FidelityFX-SDK 2.3.0 effect modules; multi-soname runtime loader; SKIP when absent) | pass 35/35 @ 3a22a083 |
-| xiom.gles | 0.1.0 | incubating | compile+runtime-load | windows-x64 | libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent); libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent) | pass 18/18 @ 779ac140 |
+| xiom.gles | 0.2.0 | incubating | compile+runtime-load | windows-x64, android-arm64, android-x86_64 | libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent); libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent); libEGL.so + libGLESv2.so/libGLESv3.so/libGLESv1_CM.so (Android system libraries; SKIP when absent) | pass 20/20 @ a294a3b0 |
 | xiom.mediandk | 0.1.0 | incubating | compile+runtime-load | windows-x64, android-arm64, android-x86_64 | libmediandk.so (Android platform media library; SKIP when absent; Windows: absent by design) | pass 5/5 @ 43c492f8 |
 | xiom.oidn | 0.1.0 | incubating | compile+runtime-load | windows-x64 | OpenImageDenoise.dll + OpenImageDenoise_core.dll + OpenImageDenoise_device_cpu.dll + tbb12.dll (OIDN v2.5.1 runtime, loader-resolved; SKIP when absent) | pass 4/4 @ 3a22a083 |
 | xiom.opengl | 0.5.0 | incubating | compile+runtime-load | windows-x64 | opengl32.dll (runtime loader; SKIP when absent; WGL needs a Win32 device context) | pass 28/28 @ 779ac140 |
@@ -90,12 +90,12 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx1
 | xiom.zstd | 0.3.0 | incubating | compile | windows-x64 | - | pass 24/24 @ 11a58915 |
 | xiom.dlss | 0.1.0 | incubating | runtime-load | windows-x64 | NVIDIA NGX runtime modules (nvngx_dlss.dll + nvngx.dll core; dynamic loader, typed SKIP when absent) | pass 21/21 @ 3a22a083 |
 | xiom.phonon | 0.3.0 | incubating | runtime-load | windows-x64 | steam-audio runtime (phonon.dll; dynamic loader; SKIP when absent) | pass 6/6 @ 3a22a083 |
-| xiom.sdl3 | 0.20.0 | incubating | runtime-load | windows-x64 | SDL3 runtime (SDL3.dll; dynamic loader; SKIP when absent) | pass 72/72 @ b0391d1b |
+| xiom.sdl3 | 0.17.0 | incubating | runtime-load | windows-x64 | SDL3 runtime (SDL3.dll; dynamic loader; SKIP when absent) | pass 72/72 @ b0391d1b |
 | xiom.ssl | 0.1.0 | incubating | runtime-load | windows-x64 | libssl-3-x64.dll (multi-soname loader: libssl-1_1-x64.dll / libssl-1_1.dll / libssl.dll fallback; SKIP when absent) | pass 23/23 @ 5a22868a |
 | xiom.xess | 0.1.0 | incubating | runtime-load | windows-x64 | libxess.dll (Intel XeSS SR core; runtime loader; SKIP when absent); libxess_dx11.dll (XeSS D3D11 companion; optional; typed CANT_LOAD_LIBRARY when absent) | pass 24/24 @ 3a22a083 |
 | xiom.photometrics | 0.1.0 | incubating | pure | windows-x64 | - | pass 43/43 @ 50b65cee |
 | xiom.vdb | 0.1.0 | incubating | pure | windows-x64 | - | pass 30/30 @ 3a22a083 |
-| xiom.android | 0.3.0 | incubating | compile+runtime-load | undeclared | libandroid.so, libnativewindow.so (runtime, derived) | pass 8/8 @ 17ef7223 |
+| xiom.android | 0.4.0 | incubating | compile+runtime-load | undeclared | libandroid.so, libnativewindow.so (runtime, derived) | pass 14/14 @ f8ba590a |
 | xiom.camera2ndk | 0.1.0 | incubating | compile+runtime-load | undeclared | libcamera2ndk.so (runtime, derived) | pass 5/5 @ 4dba927c |
 | xiom.cuda | 0.2.0 | incubating | compile+runtime-load | undeclared | nvcuda.dll (runtime, derived) | pass 5/5 @ 4bb65d14 |
 | xiom.directx11 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d11.dll, dxgi.dll (runtime, derived) | pass 5/5 @ cce33ecb |
@@ -107,7 +107,7 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx1
 | xiom.vulkan | 0.6.0 | incubating | compile+runtime-load | undeclared | vulkan-1.dll (runtime, derived) | pass 22/22 @ 1aa5be5b |
 | xiom.assimp | 0.8.0 | incubating | compile | undeclared | - | pass 16/16 @ a76bdef4 |
 | xiom.box2d | 0.4.0 | incubating | compile | undeclared | - | pass 26/26 @ 43173d68 |
-| xiom.http | 0.1.7 | stable | compile | undeclared | - | pass 42/42 @ b0cd82c5 |
+| xiom.http | 0.1.6 | stable | compile | undeclared | - | pass 42/42 @ d45a106d |
 | xiom.imgui | 0.3.0 | incubating | compile | undeclared | - | pass 7/7 @ 05c30982 |
 | xiom.lzfse | 0.2.0 | incubating | compile | undeclared | - | pass 7/7 @ 07f5bd2f |
 | xiom.miniaudio | 0.4.0 | incubating | compile | undeclared | - | pass 27/27 @ 43173d68 |
@@ -461,7 +461,6 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx1
 | xiom.proxy | 0.1.3 | incubating | pure | any (derived) | - | pass 20/20 @ d85a0ee6 |
 | xiom.psf | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ 83669bfa |
 | xiom.pulsar | 0.1.3 | incubating | pure | any (derived) | - | pass 27/27 @ 00c21919 |
-| xiom.pulse | 0.1.0 | incubating | pure | any (derived) | - | unknown |
 | xiom.punycode | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ 30d6d9bf |
 | xiom.puppet | 0.1.0 | incubating | pure | any (derived) | - | pass 26/26 @ 8c0ac311 |
 | xiom.pwm | 0.1.0 | incubating | pure | any (derived) | - | pass 20/20 @ 599f89c9 |

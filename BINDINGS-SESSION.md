@@ -1157,6 +1157,161 @@ and passed the integration gates on the landed state:
   `android/a3-a4` worktree gets removed once its never-started
   session is confirmed dead.
 
+**UPDATE 2026-10-16 13:10Z (batch-188 assembly visible; A3/A4 branch
+green + pushed; awaiting session idle to land)**:
+- A3/A4 branch state (pushed to origin): **`xiom.android 0.4.0`**
+  export set **117 -> 209** (input.h 60 + sensor.h 32; generated const
+  tables 538 values); record `02db287f` = **suite x2 14/14 on v0.64.5**
+  (SKIP leg; run_by android-input-sensors @ c647aa86); docs regen
+  `070d9082`; on-device app-probe re-captured `a16513b5` (live
+  dispatcher block, probe window entry).  Session still active
+  (detached-busy on an extra pass) -> LAND when idle (path-scoped;
+  port x2; record re-point; validate; push).
+- Packages batch plan (relay): `-1302-packages` x2 = ops scope asks
+  for **xiom.brotli 0.1.0** (stacks with xiom.ssl into ONE batch,
+  both held green); `-1150-packages-7` = ops scope queue:
+  transport/otel hold `eco-v0.1.188`; android family (5 new names) +
+  xiom.ssl queued.  `-1304-packages` (http 0.1.7 rider) = info.
+- Sibling session filed the **android family first-publish request**
+  (`REL-20261016-1305-bindings`: xiom.android 0.3.0 + five new names
+  0.1.0, scopes staged).  NOTE: our A3/A4 land is **0.4.0** -- once
+  landed, file the supersede note so packages publishes 0.4.0.
+
+**UPDATE 2026-10-16 13:25Z (A3/A4 LANDED; family 0.4.0 update filed;
+A9/A11/A12 wave launched)**:
+- **A3/A4 LANDED**: land `f8ba590a` (23 files; xiom.android 0.4.0;
+  export set 117 -> 209 = input.h 60 + sensor.h 32; generated const
+  tables 538 values; docs/repro input + app probes + recorded
+  app-probe output), record re-pointed `d0d85113`; integration
+  **x2 14/14** on v0.64.5 (SKIP leg; namespace 5 modules OK);
+  validate **561/0**; branch `android/input-sensors` pushed (session
+  idle after final record re-point `34064e2c`).
+- Family first-publish update filed: `REL-20261016-1322-bindings` --
+  publish **xiom.android 0.4.0** (supersedes 0.3.0) in the -1305
+  family batch; the five new names unchanged.
+- **NEXT WAVE LAUNCHED** (`am-1792157066997-6uc3rf`): A9 gl leg
+  (`android/a9-gl-leg`; generator-aware xiom.gles android pass),
+  A11 JNI seam (`android/a11-jni`; new `xiom.jni`), A12 system-misc
+  remainder (`android/a12-sys`; binder_ndk + NNAPI + z + icu subset
+  in xiom.android-sys 0.2.0).
+- 13:35Z follow-up: A9 + A11 sessions attached
+  (`ses_ebb1a2334ffe...` / `ses_ebb165967ffe...`); A12's worktree
+  never materialized -> relaunch requested
+  (`am-1792157647638-q9o9o7`).  **Packages acked brotli + ssl publish
+  execution** (`REL-20261016-1220-bindings` + `-2`): ssl scope LIVE at
+  eco-release 550; brotli scope check in the same pass; both stacked
+  into ONE eco batch (pipeline: merge tip -> validate -> x2 -> wrap ->
+  publish -> PULSE relay).
+- 13:47Z update: **A9 + A11 + A12 all WORKING** (A9
+  `android/a9-gl-leg` active mid-rebase ~+6.4k; A11 `android/a11-jni`
+  ~+5.7k; A12 relaunch `android/a12-sys` ~+5.7k ahead 9); the original
+  A12 session materialized LATE -> stopped as duplicate (worktree
+  removed).  Engine ask `REL-20261016-1341-engine-3` (vulkan campaign
+  checklist) **ANSWERED**: raw surface 100% at 0.6.0
+  (compute/bindless/mesh-shader/multi-draw-indirect/timestamps all
+  present at the vk* level; per-area evidence in
+  `REL-20261016-1347-bindings`); the engine-facing wrapper tier folds
+  into the OWNER session's mini-RHI extended wave per the lane split
+  (item acked).
+- 14:12Z update: **`xiom.jni 0.1.0` LANDED** (A11 jni-seam; land
+  `ea8dcc0e` + record `0a5e1aaf`; 97 helpers over the JNIEnv table +
+  bitmap cluster via libjnigraphics; 9-export loader set;
+  integration **x2 90/90**; on-device shell + app_process probes
+  PASS; validate **562/0**; publish request
+  `REL-20261016-1410-bindings`).  Eco: **batch 90 = `eco-v0.1.188` =
+  transport + otel** (packages lane, own packages).  A9 + A12 still
+  working (nothing pushed yet).
+- 14:30Z: ops scoped **brotli + xiom.jni LIVE (eco-release 552)**;
+  packages executing both the brotli+ssl batch and the android-family
+  batch (`jni scope ask filed`; family batch continues with the
+  sibling session).  A9 + A12 worktrees both active mid-op at 14:28Z.
+
+**UPDATE 2026-10-16 15:10Z (doorbell 15:00Z + A9 LANDED)**:
+- **`xiom.gles 0.2.0` LANDED** (A9 graphics-gl android leg; land
+  `87763cbf` + record `7db2691a`): loader candidate pairs emitted by
+  both generators (Windows ANGLE DLLs + android system sonames),
+  generated NDK r27b delta (494 extension wrappers + 1225 constants;
+  ES1 + 279 guard/token macros documented exclusions), EGL android
+  family 0-delta.  Integration **x2 20/20** (ANGLE live: 358/358 ES +
+  44/44 EGL resolved; 236/494 delta ext-conditional) + on-device
+  SwiftShader PASS (ES2 context + glClear err=0).  validate **562/0**.
+  Publish request `REL-20261016-1510-bindings` (existing name) --
+  relay commit pending an index.lock window.
+- `docs/ANDROID-SDK100.md` status refreshed (A9 row -> DONE; A3/A4/A11
+  landings recorded; G3 scopes 550/552).
+- Relay sweep: no new items addressed to bindings; info-only noise
+  (-1429 pulse-extraction claim, -1446 codenames convention, -1304
+  http rider).  Compiler: stdlib pin ask for the v0.64.6 cut.
+- **A12** (`xiom.android-sys` 0.2.0) still working (no push yet).
+
+**UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
+first-publish requested; brotli scope ask open)**: fresh pass on the live
+state (`cdbbca63`; clean + pushed; validate 561/0).
+- **Ops scope queue LIVE** (ops `f383c39`; registry restarted healthy
+  12:58Z; eco-release **550**): production set verified for **transport +
+  otel + the five android names + `xiom.ssl`**; `xiom.brotli` NOT yet
+  present.  PULSE provenance (`REL-20261015-2137`) fixed + re-verified
+  live.  Unblocks: packages transport/otel wrap (`.188`), the ssl publish
+  path, and the family's five new names.
+- **Android family first-publish requested**: `REL-20261016-1305-bindings`
+  (`xiom.android` 0.3.0 + aaudio/mediandk/camera2ndk/android-sys/opensl
+  0.1.0; docs/repro evidence per package; A3/A4 -> 0.4.0 follow-up noted;
+  batching choice left to packages).
+- **`xiom.brotli` scope ask already OPEN with ops** (`-1302-packages` +
+  `-1302-packages-2`, filed 13:02Z; stacks with the ssl batch) -- no
+  duplicate filed; watch for the fix before the `-1220-bindings` publish.
+- `REL-20261016-1304-packages` (to all): xiom.http 0.1.7 bump rider for
+  the brotli+ssl batch; our pass had cleared (clean + pushed), so the
+  packages coverage session owns the bump per the note's fallback -- no
+  bindings-side write taken.
+- A3/A4 session still busy (`android/input-sensors`; compiling); no
+  unprocessed to-bindings relay items; next doorbell 15:00Z (continuation
+  cron).  Relay tip after this pass: `9446ed9`.
+
+**UPDATE 2026-10-16 13:55Z (relay check -- USD wishlist accepted + queued;
+A9/A11/A12 in flight; batch 90 live)**: sweep after the A3/A4 landing burst.
+- **`REL-20261016-1346-packages-2`** (engine import campaign -- USD/
+  openusd-class importer, routed by packages) -- **ACCEPTED + queued**:
+  assimp-class treatment (upstream-first clone at pin; PROVENANCE/AUDIT;
+  suite x2); slot after the in-flight Android remainder; no timeline
+  commitment (engine noted none).  Acked; reply filed
+  (`REL-20261016-1350-bindings`; relay `7dee615`).
+- Wave: **A9 gl / A11 jni / A12 sys sessions all BUSY** (launched
+  13:27-13:40Z; stale sessionless stubs `android/a3-a4` +
+  `android/a12-sys` await cleanup once their sessions are confirmed dead).
+- Eco: **batch 90 LIVE -- `eco-v0.1.188`** (transport 0.1.0 + otel 0.1.0;
+  allowlist 543->545; ops PROD-only 550); xiom.http 0.1.7 rider applied by
+  packages (`3489b7d0`); family publish riding the 0.4.0 supersede
+  (`-1322-bindings`); brotli scope still open with ops (`-1302`).
+- No other unprocessed to-bindings items; doorbell next 15:00Z.
+
+**UPDATE 2026-10-16 14:05Z (relay check + WAVE FREEZE observed -- all
+managed sessions offline; A9/A12 frozen mid-rebase)**: relay verified
+clean; the wave hit an environment-level disconnect.
+- Relay: engine batch all handled (transport-ext -> packages answered;
+  USD accepted by us `-1350` + ack; Vulkan answered `-1347` -- awaiting
+  engine's ack, their move).  No open items from engine for bindings;
+  no new to-bindings items (only the to-all http rider `-1304`).
+  Family publish still with packages (`-1322` refs `-1305`); brotli
+  scope open with ops (`-1302` pair).
+- **FREEZE (observed 14:00-14:05Z)**: every Agent Manager session reports
+  `offline` (extension answers; sessions detached) -- including the
+  continuation, so the doorbell is dark until it re-attaches.  Wave
+  worktree state at the freeze:
+  - **A11 jni: DONE + pushed** (`android/a11-jni` @ `07cad93b`; xiom-jni
+    0.1.0 seam + bitmap, suite 89/89 x2 recorded; clean) -- ready to land
+    path-scoped.
+  - **A9 gl leg: frozen mid-interactive-rebase** (detached @ a92edf2a;
+    onto 474cd291; 103/300 done; 0 unmerged at the freeze).
+  - **A12 sys: frozen mid-interactive-rebase** (detached @ 7556d92f;
+    onto 2a163255; 106/301 done; 1 unmerged -- docs/PACKAGE_STATUS.md).
+  - Sessionless stubs `android/a3-a4` + `android/a12-sys` remain.
+- Recovery notes for the next pass: re-attach the sessions first; A11
+  lands (validate + record); A9/A12 either finish the rebase in-session
+  or ABORT and land their package dirs path-scoped per the standing
+  recipe (never wholesale).  Main worktree untouched by the freeze:
+  clean at `52c23263`.
+
 **UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
 PAUSED per owner directive)**:
 - Remaining 3 branches landed (path-scoped; trees safety-verified to
