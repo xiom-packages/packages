@@ -1,7 +1,7 @@
 module xiom.numpy
 
-pub type NDArray = Int
-pub type DType = Int
+pub type NDArray = Int;
+pub type DType = Int;
 
 pub const DTYPE_INT32: Int = 0;
 pub const DTYPE_INT64: Int = 1;

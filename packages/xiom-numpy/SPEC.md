@@ -1,8 +1,8 @@
 # xiom.numpy -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
-**Status**: Phase 1 implemented -- types, extern C FFI, safe wrappers with contracts, 30 conformance tests
-**Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend)
+**Status**: Phase 1 GREEN -- 30/30 conformance checks x2 (compiler v0.64.5, 2026-10-16); Phase-1 link bridge at `bridge/numpy_bridge.c`
+**Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend) -- both Phase 2+ only; the Phase-1 suite runs without either.
 
 ## What it wraps
 NumPy C API -- the fundamental array computing library for scientific Python.
@@ -23,6 +23,27 @@ bypassing Python entirely. This is what Cython/C extensions do internally.
 **Headers only from NumPy source.** Compile the C API bridge against system OpenBLAS.
 NumPy's `numpy/core/include/numpy/` contains the public C API headers.
 We compile a thin C bridge that calls `PyArray_*` functions (which are C, not Python).
+
+## Phase-1 status and provenance (2026-10-16)
+- The conformance suite (`tests/test_conformance.xi`, 30 checks) links the
+  package-local Phase-1 bridge `bridge/numpy_bridge.c` via `port.args.json`
+  (`--c-source ${PACKAGE_DIR}/bridge/numpy_bridge.c`; the sqlite/stb/cuda
+  house pattern). The bridge defines all 17 `numpy_c_*` symbols (ABI:
+  Int = i64, Float64 = double), validates arguments, and reports the NumPy
+  backend unavailable until the Phase-2 `PyArray_*` linkage lands; the safe
+  wrappers collapse every `<= 0` handle to `Err`, which is exactly what the
+  twelve wrapper error-path checks assert.
+- No third-party code is vendored for Phase 1: nothing was cloned or
+  extracted, no NumPy headers, no Python runtime, no OpenBLAS binaries. The
+  bridge is first-party C under the package license (MIT OR Apache-2.0),
+  calls no NumPy/Python/OpenBLAS entry points, and allocates no memory.
+- NumPy headers (Phase 2 only): `numpy/core/include/numpy/` ships under
+  BSD-3-Clause (compatible with this package's license). When Phase 2 starts,
+  use a shallow clone, record the exact commit hash in this file, and stay
+  within the house bundling policy (headers only, never the full tree).
+- BLAS: no Phase-1 check requires xiom.openblas. The later linear-algebra
+  surface from the API section (`dot`, `matmul` in Phase 2; `svd`, `inv` in
+  Phase 3) is where xiom.openblas and the NumPy C API become hard dependencies.
 
 ## API surface
 

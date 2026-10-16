@@ -1,7 +1,21 @@
+// xiom.numpy conformance suite -- Phase 1 (see SPEC.md).
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
+// 30 checks:
+//   10 dtype-logic checks (constants, is_valid_dtype, dtype_to_str)
+//   12 safe-wrapper error-path checks (the Phase-1 bridge in
+//      bridge/numpy_bridge.c resolves the extern symbols and reports the
+//      NumPy backend unavailable; the wrappers collapse <= 0 to Err)
+//    8 contract-presence markers (assert-true documentation checks)
+//
+// The bridge C source rides in port.args.json:
+//   scripts/port.ps1 -Package xiom.numpy -TimeoutSec 180
+
 module numpy_conformance
 
-use xiom.test;
 use xiom.io;
+use xiom.test;
 
 extern "C" {
   fn numpy_c_array_new(shape_ptr: Int, ndim: Int, dtype: Int) -> Int;
@@ -164,80 +178,82 @@ fn local_array_get(arr: &NDArray, ndim: Int) -> Float64 {
   return unsafe { numpy_c_array_get(arr, 0, ndim) };
 }
 
-fn local_array_free(arr: NDArray) {
+fn local_array_free(arr: NDArray)
+  requires: arr != 0
+{
   unsafe { numpy_c_array_free(arr) };
 }
 
-fn test_dtype_int32_constant() -> TestCase {
-  return xiom.test.assert_eq(DTYPE_INT32, 0, "dtype: DTYPE_INT32 == 0");
+fn test_dtype_int32_constant() -> TestResult {
+  return xiom.test.assert_eq_int(DTYPE_INT32, 0, "dtype: DTYPE_INT32 == 0");
 }
 
-fn test_dtype_int64_constant() -> TestCase {
-  return xiom.test.assert_eq(DTYPE_INT64, 1, "dtype: DTYPE_INT64 == 1");
+fn test_dtype_int64_constant() -> TestResult {
+  return xiom.test.assert_eq_int(DTYPE_INT64, 1, "dtype: DTYPE_INT64 == 1");
 }
 
-fn test_dtype_float32_constant() -> TestCase {
-  return xiom.test.assert_eq(DTYPE_FLOAT32, 2, "dtype: DTYPE_FLOAT32 == 2");
+fn test_dtype_float32_constant() -> TestResult {
+  return xiom.test.assert_eq_int(DTYPE_FLOAT32, 2, "dtype: DTYPE_FLOAT32 == 2");
 }
 
-fn test_dtype_float64_constant() -> TestCase {
-  return xiom.test.assert_eq(DTYPE_FLOAT64, 3, "dtype: DTYPE_FLOAT64 == 3");
+fn test_dtype_float64_constant() -> TestResult {
+  return xiom.test.assert_eq_int(DTYPE_FLOAT64, 3, "dtype: DTYPE_FLOAT64 == 3");
 }
 
-fn test_is_valid_dtype_float64() -> TestCase {
-  return xiom.test.assert_true(is_valid_dtype(DTYPE_FLOAT64), "dtype: is_valid_dtype(FLOAT64) == true");
+fn test_is_valid_dtype_float64() -> TestResult {
+  return xiom.test.assert(is_valid_dtype(DTYPE_FLOAT64), "dtype: is_valid_dtype(FLOAT64) == true");
 }
 
-fn test_is_valid_dtype_int32() -> TestCase {
-  return xiom.test.assert_true(is_valid_dtype(DTYPE_INT32), "dtype: is_valid_dtype(INT32) == true");
+fn test_is_valid_dtype_int32() -> TestResult {
+  return xiom.test.assert(is_valid_dtype(DTYPE_INT32), "dtype: is_valid_dtype(INT32) == true");
 }
 
-fn test_is_valid_dtype_invalid() -> TestCase {
+fn test_is_valid_dtype_invalid() -> TestResult {
   return xiom.test.assert_false(is_valid_dtype(99), "dtype: is_valid_dtype(99) == false");
 }
 
-fn test_dtype_to_str_float32() -> TestCase {
-  return xiom.test.assert_eq_str(dtype_to_str(DTYPE_FLOAT32), "float32", "dtype: dtype_to_str(FLOAT32) == 'float32'");
+fn test_dtype_to_str_float32() -> TestResult {
+  return xiom.test.assert(dtype_to_str(DTYPE_FLOAT32) == "float32", "dtype: dtype_to_str(FLOAT32) == 'float32'");
 }
 
-fn test_dtype_to_str_int64() -> TestCase {
-  return xiom.test.assert_eq_str(dtype_to_str(DTYPE_INT64), "int64", "dtype: dtype_to_str(INT64) == 'int64'");
+fn test_dtype_to_str_int64() -> TestResult {
+  return xiom.test.assert(dtype_to_str(DTYPE_INT64) == "int64", "dtype: dtype_to_str(INT64) == 'int64'");
 }
 
-fn test_dtype_to_str_unknown() -> TestCase {
-  return xiom.test.assert_eq_str(dtype_to_str(99), "unknown", "dtype: dtype_to_str(99) == 'unknown'");
+fn test_dtype_to_str_unknown() -> TestResult {
+  return xiom.test.assert(dtype_to_str(99) == "unknown", "dtype: dtype_to_str(99) == 'unknown'");
 }
 
-fn test_array_new_valid_shape_1d() -> TestCase {
+fn test_array_new_valid_shape_1d() -> TestResult {
   var shape = make_shape(10);
   var result = local_array_new(&shape, DTYPE_FLOAT64);
   return xiom.test.assert_err(result, "create: array_new 1d returns Err (FFI not linked)");
 }
 
-fn test_array_new_valid_shape_2d() -> TestCase {
+fn test_array_new_valid_shape_2d() -> TestResult {
   var shape = make_shape_2d(3, 4);
   var result = local_array_new(&shape, DTYPE_FLOAT32);
   return xiom.test.assert_err(result, "create: array_new 2d returns Err (FFI not linked)");
 }
 
-fn test_array_zeros_returns_err() -> TestCase {
+fn test_array_zeros_returns_err() -> TestResult {
   var shape = make_shape(5);
   var result = local_array_zeros(&shape, DTYPE_FLOAT64);
   return xiom.test.assert_err(result, "create: array_zeros returns Err (FFI not linked)");
 }
 
-fn test_array_ones_returns_err() -> TestCase {
+fn test_array_ones_returns_err() -> TestResult {
   var shape = make_shape(3);
   var result = local_array_ones(&shape, DTYPE_INT32);
   return xiom.test.assert_err(result, "create: array_ones returns Err (FFI not linked)");
 }
 
-fn test_array_arange_returns_err() -> TestCase {
+fn test_array_arange_returns_err() -> TestResult {
   var result = local_array_arange(0.0, 10.0, 1.0);
   return xiom.test.assert_err(result, "create: array_arange(0,10,1) returns Err (FFI not linked)");
 }
 
-fn test_array_from_data_returns_err() -> TestCase {
+fn test_array_from_data_returns_err() -> TestResult {
   var data = Vec[Float64].new();
   data.push(1.0);
   data.push(2.0);
@@ -247,151 +263,140 @@ fn test_array_from_data_returns_err() -> TestCase {
   return xiom.test.assert_err(result, "create: array_from_data returns Err (FFI not linked)");
 }
 
-fn test_array_add_returns_err() -> TestCase {
+fn test_array_add_returns_err() -> TestResult {
   var a: NDArray = 1;
   var b: NDArray = 2;
   var result = local_array_add(&a, &b);
   return xiom.test.assert_err(result, "ops: array_add returns Err (FFI not linked)");
 }
 
-fn test_array_sub_returns_err() -> TestCase {
+fn test_array_sub_returns_err() -> TestResult {
   var a: NDArray = 1;
   var b: NDArray = 2;
   var result = local_array_sub(&a, &b);
   return xiom.test.assert_err(result, "ops: array_sub returns Err (FFI not linked)");
 }
 
-fn test_array_mul_returns_err() -> TestCase {
+fn test_array_mul_returns_err() -> TestResult {
   var a: NDArray = 1;
   var b: NDArray = 2;
   var result = local_array_mul(&a, &b);
   return xiom.test.assert_err(result, "ops: array_mul returns Err (FFI not linked)");
 }
 
-fn test_array_div_returns_err() -> TestCase {
+fn test_array_div_returns_err() -> TestResult {
   var a: NDArray = 1;
   var b: NDArray = 2;
   var result = local_array_div(&a, &b);
   return xiom.test.assert_err(result, "ops: array_div returns Err (FFI not linked)");
 }
 
-fn test_array_dot_returns_err() -> TestCase {
+fn test_array_dot_returns_err() -> TestResult {
   var a: NDArray = 1;
   var b: NDArray = 2;
   var result = local_array_dot(&a, &b);
   return xiom.test.assert_err(result, "linalg: array_dot returns Err (FFI not linked)");
 }
 
-fn test_array_matmul_returns_err() -> TestCase {
+fn test_array_matmul_returns_err() -> TestResult {
   var a: NDArray = 1;
   var b: NDArray = 2;
   var result = local_array_matmul(&a, &b);
   return xiom.test.assert_err(result, "linalg: array_matmul returns Err (FFI not linked)");
 }
 
-fn test_contract_array_new() -> TestCase {
-  return xiom.test.assert_true(true, "contract: array_new has requires: shape.len() > 0");
+fn test_contract_array_new() -> TestResult {
+  return xiom.test.assert(true, "contract: array_new has requires: shape.len() > 0");
 }
 
-fn test_contract_array_from_data() -> TestCase {
-  return xiom.test.assert_true(true, "contract: array_from_data has requires: data.len() > 0, shape.len() > 0");
+fn test_contract_array_from_data() -> TestResult {
+  return xiom.test.assert(true, "contract: array_from_data has requires: data.len() > 0, shape.len() > 0");
 }
 
-fn test_contract_array_arange() -> TestCase {
-  return xiom.test.assert_true(true, "contract: array_arange has requires: step != 0.0");
+fn test_contract_array_arange() -> TestResult {
+  return xiom.test.assert(true, "contract: array_arange has requires: step != 0.0");
 }
 
-fn test_contract_array_get() -> TestCase {
-  return xiom.test.assert_true(true, "contract: array_get has requires: arr != 0, indices.len() > 0");
+fn test_contract_array_get() -> TestResult {
+  return xiom.test.assert(true, "contract: array_get has requires: arr != 0, indices.len() > 0");
 }
 
-fn test_contract_array_set() -> TestCase {
-  return xiom.test.assert_true(true, "contract: array_set has requires: arr != 0, indices.len() > 0");
+fn test_contract_array_set() -> TestResult {
+  return xiom.test.assert(true, "contract: array_set has requires: arr != 0, indices.len() > 0");
 }
 
-fn test_contract_array_add() -> TestCase {
-  return xiom.test.assert_true(true, "contract: array_add has requires: a != 0, b != 0");
+fn test_contract_array_add() -> TestResult {
+  return xiom.test.assert(true, "contract: array_add has requires: a != 0, b != 0");
 }
 
-fn test_contract_array_free() -> TestCase {
-  return xiom.test.assert_true(true, "contract: array_free has requires: arr != 0");
+fn test_contract_array_free() -> TestResult {
+  return xiom.test.assert(true, "contract: array_free has requires: arr != 0");
 }
 
-fn test_contract_array_matmul() -> TestCase {
-  return xiom.test.assert_true(true, "contract: array_matmul has requires: a != 0, b != 0");
+fn test_contract_array_matmul() -> TestResult {
+  return xiom.test.assert(true, "contract: array_matmul has requires: a != 0, b != 0");
 }
 
 pub fn main() -> Int {
   io.println("=== XIOM xiom.numpy Conformance Tests ===");
   io.println("");
 
-  var suite = xiom.test.TestSuite.new("NumPy Conformance");
+  var results = Vec[TestResult].new();
 
-  suite.add(test_dtype_int32_constant());
-  suite.add(test_dtype_int64_constant());
-  suite.add(test_dtype_float32_constant());
-  suite.add(test_dtype_float64_constant());
-  suite.add(test_is_valid_dtype_float64());
-  suite.add(test_is_valid_dtype_int32());
-  suite.add(test_is_valid_dtype_invalid());
-  suite.add(test_dtype_to_str_float32());
-  suite.add(test_dtype_to_str_int64());
-  suite.add(test_dtype_to_str_unknown());
+  results.push(test_dtype_int32_constant());
+  results.push(test_dtype_int64_constant());
+  results.push(test_dtype_float32_constant());
+  results.push(test_dtype_float64_constant());
+  results.push(test_is_valid_dtype_float64());
+  results.push(test_is_valid_dtype_int32());
+  results.push(test_is_valid_dtype_invalid());
+  results.push(test_dtype_to_str_float32());
+  results.push(test_dtype_to_str_int64());
+  results.push(test_dtype_to_str_unknown());
 
-  suite.add(test_array_new_valid_shape_1d());
-  suite.add(test_array_new_valid_shape_2d());
-  suite.add(test_array_zeros_returns_err());
-  suite.add(test_array_ones_returns_err());
-  suite.add(test_array_arange_returns_err());
-  suite.add(test_array_from_data_returns_err());
+  results.push(test_array_new_valid_shape_1d());
+  results.push(test_array_new_valid_shape_2d());
+  results.push(test_array_zeros_returns_err());
+  results.push(test_array_ones_returns_err());
+  results.push(test_array_arange_returns_err());
+  results.push(test_array_from_data_returns_err());
 
-  suite.add(test_array_add_returns_err());
-  suite.add(test_array_sub_returns_err());
-  suite.add(test_array_mul_returns_err());
-  suite.add(test_array_div_returns_err());
-  suite.add(test_array_dot_returns_err());
-  suite.add(test_array_matmul_returns_err());
+  results.push(test_array_add_returns_err());
+  results.push(test_array_sub_returns_err());
+  results.push(test_array_mul_returns_err());
+  results.push(test_array_div_returns_err());
+  results.push(test_array_dot_returns_err());
+  results.push(test_array_matmul_returns_err());
 
-  suite.add(test_contract_array_new());
-  suite.add(test_contract_array_from_data());
-  suite.add(test_contract_array_arange());
-  suite.add(test_contract_array_get());
-  suite.add(test_contract_array_set());
-  suite.add(test_contract_array_add());
-  suite.add(test_contract_array_free());
-  suite.add(test_contract_array_matmul());
+  results.push(test_contract_array_new());
+  results.push(test_contract_array_from_data());
+  results.push(test_contract_array_arange());
+  results.push(test_contract_array_get());
+  results.push(test_contract_array_set());
+  results.push(test_contract_array_add());
+  results.push(test_contract_array_free());
+  results.push(test_contract_array_matmul());
 
-  let results = suite.run();
-  let report = xiom.test.report(&results);
+  let total_count = results.len();
+  let report = xiom.test.format_results(results);
   io.println(report);
 
-  if results.failed > 0 {
-    io.println("");
-    io.println("Failures:");
-    var i: Int = 0;
-    while i < results.failures.len() {
-      var f = results.failures[i];
-      io.println("  - " + f.name + ": " + f.message);
-      i = i + 1;
-    }
-  }
+  let fail_count = xiom.test.test_count_failures(results);
+  let pass_count = total_count - fail_count;
 
   io.println("");
-  let pass_count = results.passed;
-  let fail_count = results.failed;
-  let total_count = pass_count + fail_count;
   io.println(int_to_str(pass_count) + "/" + int_to_str(total_count) + " tests passed");
 
   if fail_count == 0 {
     io.println("ALL " + int_to_str(total_count) + " TESTS PASSED");
     io.println("Path: packages\\xiom-numpy\\tests\\test_conformance.xi");
-    io.println("Contracts: 9 (across 8 public functions)");
+    io.println("Contracts (src/numpy.xi): 28 requires clauses; 8 contract checks in this suite");
     return 0;
   } else {
     io.println("Path: packages\\xiom-numpy\\tests\\test_conformance.xi");
     io.println("Tests: " + int_to_str(total_count));
-    io.println("Contracts: 9 (across 8 public functions)");
+    io.println("Contracts (src/numpy.xi): 28 requires clauses; 8 contract checks in this suite");
     io.println("SOME TESTS FAILED");
     return 1;
-  }
+  };
 }

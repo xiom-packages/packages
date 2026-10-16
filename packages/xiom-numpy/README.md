@@ -1,6 +1,6 @@
 # xiom.numpy
 
-> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
+> **Status:** `incubating` -- Phase-1 conformance GREEN (30/30 x2, v0.64.5, 2026-10-16; link bridge `bridge/numpy_bridge.c`); Phase-2 NumPy C API backend pending; not yet published to the XIOM registry.
 > **Scope:** NumPy-compatible array computing API.
 > **Deps:** stdlib; may wrap C (FFI).
 

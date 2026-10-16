@@ -1,13 +1,13 @@
 # xiom.numpy -- Roadmap
 
 **Module**: `xiom.numpy`
-**Last updated**: 2026-07-21
+**Last updated**: 2026-10-16
 
 ## Status
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 1 | Core Foundation -- types, extern C, safe wrappers, conformance tests | Done |
+| 1 | Core Foundation -- types, extern C, safe wrappers, conformance tests | Done -- GREEN 30/30 x2 (v0.64.5, 2026-10-16; link bridge `bridge/numpy_bridge.c`) |
 | 2 | C bridge -- compile numpy_c_* bridge .obj, link against system NumPy + OpenBLAS | Pending |
 | 3 | Linear algebra -- SVD, inv, reductions (sum, mean, max) | Pending |
 | 4 | Broadcasting + reshaping -- reshape, transpose | Pending |
@@ -18,15 +18,19 @@
 
 | File | Lines | Description |
 |------|-------|-------------|
-| `src/numpy.xi` | ~230 | Module with 4 dtype constants, 17 extern C FFI declarations, 17 safe wrappers with `requires` contracts |
-| `tests/test_conformance.xi` | ~310 | 30 conformance tests: dtype constants, creation ops, element-wise ops, linear algebra ops, contract verification |
+| `src/numpy.xi` | ~224 | Module with 4 dtype constants, 17 extern C FFI declarations, 17 safe wrappers with `requires` contracts |
+| `tests/test_conformance.xi` | ~402 | 30 conformance checks: dtype constants, creation ops, element-wise ops, linear algebra ops, contract verification (rewritten to the v0.64.5 `xiom.test` API) |
+| `bridge/numpy_bridge.c` | ~123 | Phase-1 link bridge: all 17 `numpy_c_*` symbols with argument validation; reports the NumPy backend unavailable (Phase 2 replaces it with PyArray-backed code) |
+| `port.args.json` | 4 | Wires `--c-source bridge/numpy_bridge.c` into `port.ps1` suite runs (sqlite/stb/cuda pattern) |
 | `ROADMAP.md` | this file | Roadmap and status tracking |
 
 ## Phase 2 -- C bridge
 
-- Compile NumPy C API bridge (`numpy_c_bridge.c`) against NumPy headers and OpenBLAS
+- Replace `bridge/numpy_bridge.c` (same 17 symbols, same signatures) with the
+  PyArray-backed `numpy_c_bridge.c` against NumPy headers and OpenBLAS
 - Ensure all 17 extern C symbols resolve at link time
-- Update `tests/test_conformance.xi` to validate runtime results
+- Update `tests/test_conformance.xi`: flip the twelve "returns Err" checks to
+  validate runtime results (creation, element-wise, linear algebra)
 
 ## Phase 3 -- Linear algebra
 
