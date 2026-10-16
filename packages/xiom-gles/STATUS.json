@@ -13,12 +13,15 @@
                   "checked":  "2026-10-13T12:36:05Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.171 (2026-10-13, new ANGLE package; GLES 2.0/3.2 + EGL 1.5)",
+    "excluded_reason":  "published in eco-v0.1.171 (2026-10-13, 0.1.0 ANGLE surface); 0.2.0 android leg (A9) pending publish",
     "platforms":  [
-                      "windows-x64"
+                      "windows-x64",
+                      "android-arm64",
+                      "android-x86_64"
                   ],
     "runtime_deps":  [
                          "libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent)",
-                         "libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent)"
+                         "libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent)",
+                         "libEGL.so + libGLESv2.so/libGLESv3.so/libGLESv1_CM.so (Android system libraries; SKIP when absent)"
                      ]
 }

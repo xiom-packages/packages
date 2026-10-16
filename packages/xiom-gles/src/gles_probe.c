@@ -1,18 +1,31 @@
-/* XIOM -- xiom.gles: ANGLE runtime bridge (libEGL.dll + libGLESv2.dll).
- * Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+/* XIOM -- xiom.gles: EGL + GLES runtime bridge (Windows ANGLE pair or the
+ * Android system libraries; nothing is linked -- everything is resolved at
+ * runtime).  Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
  * Licensed under the MIT or Apache-2.0 license, at your option.
  *
  * DESIGN: runtime loader/probe for OpenGL ES + EGL, resolved with
- * LoadLibraryA/GetProcAddress + eglGetProcAddress.  No link-time dependency;
- * ANGLE must be on the search path (libEGL.dll + libGLESv2.dll; e.g. the
- * payload directory of an Electron app).  The session uses a PBUFFER surface
- * (no window system dependency).
+ * LoadLibraryA/GetProcAddress (Windows) or dlopen/dlsym (Android/POSIX) +
+ * eglGetProcAddress.  No link-time dependency; the runtime must be on the
+ * search path (Windows: an ANGLE pair such as an Electron app payload;
+ * Android: the platform's system libraries).  The session uses a PBUFFER
+ * surface (no window system dependency).
+ *
+ * Runtime-load candidate pairs (see xgs_pairs below; the two name lists are
+ * mirrored by the generated modules `xiom.gles.egl_names`
+ * (`egl_load_candidates()`) and `xiom.gles.gles_names`
+ * (`gles_load_candidates()`), emitted by tools/gen_egl.py /
+ * tools/gen_gles.py from the same source list):
+ *   Windows ANGLE : libEGL.dll + libGLESv2.dll   (fallback EGL.dll + GLESv2.dll)
+ *   Android system: libEGL.so + libGLESv2.so     (android leg; the GLES side
+ *                   falls back to libGLESv3.so, then libGLESv1_CM.so when a
+ *                   device only publishes those names)
  *
  * Contract (flat extern "C", called from module xiom.gles):
  *   int  xgs_load_named(const char* egl_soname, const char* gles_soname)
  *                                           0=ok 1=absent 2=abi
- *   int  xgs_load(void)                      libEGL.dll/libGLESv2.dll
+ *   int  xgs_load(void)                      the candidate pairs above
  *   const char* xgs_error(void)
+ *   const char* xgs_loaded_pair(void)        e.g. "libEGL.so+libGLESv2.so"
  *   int  xgs_query(void)                     staged probe (strings)
  *                                            0=ok 1=no-context 2=abi
  *   const char* xgs_egl_version/vendor(void)
@@ -29,14 +42,32 @@
  *   void xgs_unload(void)                    (closes a live session first)
  *
  * Classification (the suite maps it to markers):
- *   XGS_LOAD_ABSENT     -> SKIP  (ANGLE libs missing)
+ *   XGS_LOAD_ABSENT     -> SKIP  (runtime libs missing)
  *   XGS_LOAD_NO_CONTEXT -> SKIP  (no display/config/context)
  *   XGS_LOAD_ABI        -> FAIL  (present but exports missing; never silent)
  */
 
-#include <windows.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+
+#if defined(_WIN32)
+#include <windows.h>
+#define XGS_LIB_HANDLE HMODULE
+#define XGS_LIB_OPEN(name)   ((HMODULE)LoadLibraryA(name))
+#define XGS_LIB_SYM(h, name) ((void*)GetProcAddress((h), (name)))
+#define XGS_LIB_CLOSE(h)     FreeLibrary(h)
+#define XGS_APICALL WINAPI
+#define XGS_LINKAGE __cdecl
+#else
+#include <dlfcn.h>
+#define XGS_LIB_HANDLE void*
+#define XGS_LIB_OPEN(name)   dlopen((name), RTLD_NOW | RTLD_LOCAL)
+#define XGS_LIB_SYM(h, name) dlsym((h), (name))
+#define XGS_LIB_CLOSE(h)     dlclose(h)
+#define XGS_APICALL
+#define XGS_LINKAGE
+#endif
 
 /* -- EGL manual declarations (no egl.h include; the ABI is pinned) ------- */
 
@@ -50,25 +81,25 @@ typedef int EGLint;
 typedef unsigned int EGLenum;
 typedef intptr_t EGLAttrib;
 
-typedef EGLDisplay (WINAPI *PFN_eglGetDisplay)(void* native_display);
-typedef EGLBoolean (WINAPI *PFN_eglInitialize)(EGLDisplay dpy, EGLint* major, EGLint* minor);
-typedef EGLBoolean (WINAPI *PFN_eglTerminate)(EGLDisplay dpy);
-typedef const char* (WINAPI *PFN_eglQueryString)(EGLDisplay dpy, EGLint name);
-typedef EGLint (WINAPI *PFN_eglGetError)(void);
-typedef EGLBoolean (WINAPI *PFN_eglBindAPI)(EGLenum api);
-typedef EGLBoolean (WINAPI *PFN_eglChooseConfig)(EGLDisplay dpy, const EGLint* attrib_list,
-                                                 EGLConfig* configs, EGLint config_size, EGLint* num_config);
-typedef EGLSurface (WINAPI *PFN_eglCreatePbufferSurface)(EGLDisplay dpy, EGLConfig config,
-                                                         const EGLint* attrib_list);
-typedef EGLContext (WINAPI *PFN_eglCreateContext)(EGLDisplay dpy, EGLConfig config,
-                                                  EGLContext share_context, const EGLint* attrib_list);
-typedef EGLBoolean (WINAPI *PFN_eglMakeCurrent)(EGLDisplay dpy, EGLSurface draw,
-                                                EGLSurface read, EGLContext ctx);
-typedef EGLBoolean (WINAPI *PFN_eglDestroySurface)(EGLDisplay dpy, EGLSurface surface);
-typedef EGLBoolean (WINAPI *PFN_eglDestroyContext)(EGLDisplay dpy, EGLContext ctx);
-typedef void* (WINAPI *PFN_eglGetProcAddress)(const char* procname);
+typedef EGLDisplay (XGS_APICALL *PFN_eglGetDisplay)(void* native_display);
+typedef EGLBoolean (XGS_APICALL *PFN_eglInitialize)(EGLDisplay dpy, EGLint* major, EGLint* minor);
+typedef EGLBoolean (XGS_APICALL *PFN_eglTerminate)(EGLDisplay dpy);
+typedef const char* (XGS_APICALL *PFN_eglQueryString)(EGLDisplay dpy, EGLint name);
+typedef EGLint (XGS_APICALL *PFN_eglGetError)(void);
+typedef EGLBoolean (XGS_APICALL *PFN_eglBindAPI)(EGLenum api);
+typedef EGLBoolean (XGS_APICALL *PFN_eglChooseConfig)(EGLDisplay dpy, const EGLint* attrib_list,
+                                                      EGLConfig* configs, EGLint config_size, EGLint* num_config);
+typedef EGLSurface (XGS_APICALL *PFN_eglCreatePbufferSurface)(EGLDisplay dpy, EGLConfig config,
+                                                              const EGLint* attrib_list);
+typedef EGLContext (XGS_APICALL *PFN_eglCreateContext)(EGLDisplay dpy, EGLConfig config,
+                                                       EGLContext share_context, const EGLint* attrib_list);
+typedef EGLBoolean (XGS_APICALL *PFN_eglMakeCurrent)(EGLDisplay dpy, EGLSurface draw,
+                                                     EGLSurface read, EGLContext ctx);
+typedef EGLBoolean (XGS_APICALL *PFN_eglDestroySurface)(EGLDisplay dpy, EGLSurface surface);
+typedef EGLBoolean (XGS_APICALL *PFN_eglDestroyContext)(EGLDisplay dpy, EGLContext ctx);
+typedef void* (XGS_APICALL *PFN_eglGetProcAddress)(const char* procname);
 
-typedef const unsigned char* (WINAPI *PFN_glGetString)(unsigned int name);
+typedef const unsigned char* (XGS_APICALL *PFN_glGetString)(unsigned int name);
 
 /* EGL constants (pinned) */
 #define XGS_EGL_DEFAULT_DISPLAY 0
@@ -106,8 +137,8 @@ typedef const unsigned char* (WINAPI *PFN_glGetString)(unsigned int name);
 
 /* -- module state -------------------------------------------------------- */
 
-static HMODULE m_egl = 0;
-static HMODULE m_gles = 0;
+static XGS_LIB_HANDLE m_egl = 0;
+static XGS_LIB_HANDLE m_gles = 0;
 
 static PFN_eglGetDisplay p_eglGetDisplay = 0;
 static PFN_eglInitialize p_eglInitialize = 0;
@@ -125,6 +156,7 @@ static PFN_eglGetProcAddress p_eglGetProcAddress = 0;
 static PFN_glGetString p_glGetString = 0;
 
 static char s_error[512];
+static char s_pair[128];
 static char s_egl_version[256];
 static char s_egl_vendor[256];
 static char s_gles_vendor[256];
@@ -150,7 +182,8 @@ static void copy_str(char* dst, size_t cap, const char* src) {
   dst[cap - 1] = 0;
 }
 
-const char* __cdecl xgs_error(void) { return s_error; }
+const char* XGS_LINKAGE xgs_error(void) { return s_error; }
+const char* XGS_LINKAGE xgs_loaded_pair(void) { return s_pair; }
 
 static void clear_state(void) {
   m_egl = 0; m_gles = 0;
@@ -159,70 +192,94 @@ static void clear_state(void) {
   p_eglChooseConfig = 0; p_eglCreatePbufferSurface = 0; p_eglCreateContext = 0;
   p_eglMakeCurrent = 0; p_eglDestroySurface = 0; p_eglDestroyContext = 0;
   p_eglGetProcAddress = 0; p_glGetString = 0;
+  s_pair[0] = 0;
   s_egl_version[0] = 0; s_egl_vendor[0] = 0;
   s_gles_vendor[0] = 0; s_gles_renderer[0] = 0;
   s_gles_version[0] = 0; s_gles_glsl[0] = 0;
   s_dpy = 0; s_surf = 0; s_ctx = 0; s_active = 0;
 }
 
+typedef struct { const char* egl; const char* gles; } xgs_soname_pair;
+
+/* The default candidate pairs.  Windows ANGLE first (stream 0.x behavior on
+ * the Windows leg), then the Android system sonames: libGLESv2.so carries
+ * ES 2.0/3.x on every device, libGLESv3.so is a legacy alias some devices
+ * publish, and libGLESv1_CM.so is the last-resort name (ES1-era CM --
+ * enough for the loader/probe classification, never for an ES2 context).
+ * Mirrored by `egl_load_candidates()` / `gles_load_candidates()` in the
+ * generated name modules (tools/gen_egl.py, tools/gen_gles.py). */
+static const xgs_soname_pair xgs_pairs[] = {
+  { "libEGL.dll", "libGLESv2.dll" },
+  { "EGL.dll",    "GLESv2.dll" },
+  { "libEGL.so",  "libGLESv2.so" },
+  { "libEGL.so",  "libGLESv3.so" },
+  { "libEGL.so",  "libGLESv1_CM.so" },
+};
+#define XGS_PAIR_COUNT ((int)(sizeof(xgs_pairs) / sizeof(xgs_pairs[0])))
+
 static int try_load_pair(const char* egl_name, const char* gles_name) {
-  HMODULE egl = LoadLibraryA(egl_name);
+  XGS_LIB_HANDLE egl = XGS_LIB_OPEN(egl_name);
   if (!egl) return 0;
-  HMODULE gles = LoadLibraryA(gles_name);
-  if (!gles) { FreeLibrary(egl); return 0; }
+  XGS_LIB_HANDLE gles = XGS_LIB_OPEN(gles_name);
+  if (!gles) { XGS_LIB_CLOSE(egl); return 0; }
   m_egl = egl; m_gles = gles;
   return 1;
 }
 
-int __cdecl xgs_load_named(const char* egl_name, const char* gles_name) {
+int XGS_LINKAGE xgs_load_named(const char* egl_name, const char* gles_name) {
   clear_state();
   if (!egl_name || !egl_name[0] || !gles_name || !gles_name[0]) {
     set_err("empty soname"); return 1;
   }
   if (!try_load_pair(egl_name, gles_name)) {
-    set_err("LoadLibrary failed for the EGL/GLES pair"); return 1;
+    set_err("runtime library open failed for the EGL/GLES pair"); return 1;
   }
 
-  p_eglGetDisplay = (PFN_eglGetDisplay)GetProcAddress(m_egl, "eglGetDisplay");
-  p_eglInitialize = (PFN_eglInitialize)GetProcAddress(m_egl, "eglInitialize");
-  p_eglTerminate = (PFN_eglTerminate)GetProcAddress(m_egl, "eglTerminate");
-  p_eglQueryString = (PFN_eglQueryString)GetProcAddress(m_egl, "eglQueryString");
-  p_eglGetError = (PFN_eglGetError)GetProcAddress(m_egl, "eglGetError");
-  p_eglBindAPI = (PFN_eglBindAPI)GetProcAddress(m_egl, "eglBindAPI");
-  p_eglChooseConfig = (PFN_eglChooseConfig)GetProcAddress(m_egl, "eglChooseConfig");
-  p_eglCreatePbufferSurface = (PFN_eglCreatePbufferSurface)GetProcAddress(m_egl, "eglCreatePbufferSurface");
-  p_eglCreateContext = (PFN_eglCreateContext)GetProcAddress(m_egl, "eglCreateContext");
-  p_eglMakeCurrent = (PFN_eglMakeCurrent)GetProcAddress(m_egl, "eglMakeCurrent");
-  p_eglDestroySurface = (PFN_eglDestroySurface)GetProcAddress(m_egl, "eglDestroySurface");
-  p_eglDestroyContext = (PFN_eglDestroyContext)GetProcAddress(m_egl, "eglDestroyContext");
-  p_eglGetProcAddress = (PFN_eglGetProcAddress)GetProcAddress(m_egl, "eglGetProcAddress");
+  p_eglGetDisplay = (PFN_eglGetDisplay)XGS_LIB_SYM(m_egl, "eglGetDisplay");
+  p_eglInitialize = (PFN_eglInitialize)XGS_LIB_SYM(m_egl, "eglInitialize");
+  p_eglTerminate = (PFN_eglTerminate)XGS_LIB_SYM(m_egl, "eglTerminate");
+  p_eglQueryString = (PFN_eglQueryString)XGS_LIB_SYM(m_egl, "eglQueryString");
+  p_eglGetError = (PFN_eglGetError)XGS_LIB_SYM(m_egl, "eglGetError");
+  p_eglBindAPI = (PFN_eglBindAPI)XGS_LIB_SYM(m_egl, "eglBindAPI");
+  p_eglChooseConfig = (PFN_eglChooseConfig)XGS_LIB_SYM(m_egl, "eglChooseConfig");
+  p_eglCreatePbufferSurface = (PFN_eglCreatePbufferSurface)XGS_LIB_SYM(m_egl, "eglCreatePbufferSurface");
+  p_eglCreateContext = (PFN_eglCreateContext)XGS_LIB_SYM(m_egl, "eglCreateContext");
+  p_eglMakeCurrent = (PFN_eglMakeCurrent)XGS_LIB_SYM(m_egl, "eglMakeCurrent");
+  p_eglDestroySurface = (PFN_eglDestroySurface)XGS_LIB_SYM(m_egl, "eglDestroySurface");
+  p_eglDestroyContext = (PFN_eglDestroyContext)XGS_LIB_SYM(m_egl, "eglDestroyContext");
+  p_eglGetProcAddress = (PFN_eglGetProcAddress)XGS_LIB_SYM(m_egl, "eglGetProcAddress");
 
   if (!p_eglGetDisplay || !p_eglInitialize || !p_eglQueryString || !p_eglGetProcAddress) {
     set_err("missing libEGL exports");
-    FreeLibrary(m_gles); FreeLibrary(m_egl); clear_state();
+    XGS_LIB_CLOSE(m_gles); XGS_LIB_CLOSE(m_egl); clear_state();
     return 2;
   }
 
   p_glGetString = (PFN_glGetString)p_eglGetProcAddress("glGetString");
-  if (!p_glGetString) p_glGetString = (PFN_glGetString)GetProcAddress(m_gles, "glGetString");
+  if (!p_glGetString) p_glGetString = (PFN_glGetString)XGS_LIB_SYM(m_gles, "glGetString");
   if (!p_glGetString) {
     set_err("missing glGetString (libGLESv2/eglGetProcAddress)");
-    FreeLibrary(m_gles); FreeLibrary(m_egl); clear_state();
+    XGS_LIB_CLOSE(m_gles); XGS_LIB_CLOSE(m_egl); clear_state();
     return 2;
   }
+  snprintf(s_pair, sizeof(s_pair), "%s+%s", egl_name, gles_name);
+  set_err("");
   return 0;
 }
 
-int __cdecl xgs_load(void) {
-  int r1 = xgs_load_named("libEGL.dll", "libGLESv2.dll");
-  if (r1 == 0) return 0;
-  int r2 = xgs_load_named("EGL.dll", "GLESv2.dll");
-  if (r2 == 0) return 0;
-  if (r1 == 2 || r2 == 2) {
-    set_err("ANGLE pair present but exports missing");
+int XGS_LINKAGE xgs_load(void) {
+  int abi = 0;
+  int i;
+  for (i = 0; i < XGS_PAIR_COUNT; i++) {
+    int r = xgs_load_named(xgs_pairs[i].egl, xgs_pairs[i].gles);
+    if (r == 0) return 0;
+    if (r == 2) abi = 1;
+  }
+  if (abi) {
+    set_err("EGL/GLES pair present but exports missing");
     return 2;
   }
-  set_err("ANGLE libraries not found (libEGL.dll/libGLESv2.dll)");
+  set_err("EGL/GLES libraries not found (Windows ANGLE pair or Android system sonames)");
   return 1;
 }
 
@@ -295,7 +352,7 @@ static int make_context(int client_version, EGLDisplay* out_dpy, EGLSurface* out
   return 0;
 }
 
-int __cdecl xgs_query(void) {
+int XGS_LINKAGE xgs_query(void) {
   if (!p_eglGetDisplay) { set_err("not loaded"); return 2; }
   EGLDisplay dpy = 0; EGLSurface surf = 0; EGLContext ctx = 0;
   int r = make_context(3, &dpy, &surf, &ctx);
@@ -310,7 +367,7 @@ int __cdecl xgs_query(void) {
   return 0;
 }
 
-int __cdecl xgs_session_open(int client_version) {
+int XGS_LINKAGE xgs_session_open(int client_version) {
   if (s_active) return 0;
   if (!p_eglGetDisplay) { set_err("not loaded"); return 2; }
   if (client_version < 2) { set_err("client version must be >= 2"); return 2; }
@@ -322,27 +379,27 @@ int __cdecl xgs_session_open(int client_version) {
   return 0;
 }
 
-int __cdecl xgs_session_active(void) { return s_active; }
-long long __cdecl xgs_session_display(void) { return (long long)(intptr_t)s_dpy; }
+int XGS_LINKAGE xgs_session_active(void) { return s_active; }
+long long XGS_LINKAGE xgs_session_display(void) { return (long long)(intptr_t)s_dpy; }
 
-long long __cdecl xgs_get_proc(const char* name) {
+long long XGS_LINKAGE xgs_get_proc(const char* name) {
   if (!name || !name[0]) return 0;
   void* p = 0;
   if (p_eglGetProcAddress) p = p_eglGetProcAddress(name);
-  if (!p && m_gles) p = (void*)GetProcAddress(m_gles, name);
-  if (!p && m_egl) p = (void*)GetProcAddress(m_egl, name);
+  if (!p && m_gles) p = XGS_LIB_SYM(m_gles, name);
+  if (!p && m_egl) p = XGS_LIB_SYM(m_egl, name);
   return (long long)(intptr_t)p;
 }
 
-long long __cdecl xgs_egl_proc(const char* name) {
+long long XGS_LINKAGE xgs_egl_proc(const char* name) {
   if (!name || !name[0]) return 0;
   void* p = 0;
   if (p_eglGetProcAddress) p = p_eglGetProcAddress(name);
-  if (!p && m_egl) p = (void*)GetProcAddress(m_egl, name);
+  if (!p && m_egl) p = XGS_LIB_SYM(m_egl, name);
   return (long long)(intptr_t)p;
 }
 
-void __cdecl xgs_session_close(void) {
+void XGS_LINKAGE xgs_session_close(void) {
   if (!s_active) return;
   if (p_eglMakeCurrent) p_eglMakeCurrent(s_dpy, XGS_EGL_NO_SURFACE, XGS_EGL_NO_SURFACE, XGS_EGL_NO_CONTEXT);
   if (p_eglDestroyContext) p_eglDestroyContext(s_dpy, s_ctx);
@@ -352,16 +409,16 @@ void __cdecl xgs_session_close(void) {
 }
 
 /* accessors */
-const char* __cdecl xgs_egl_version(void) { return s_egl_version; }
-const char* __cdecl xgs_egl_vendor(void) { return s_egl_vendor; }
-const char* __cdecl xgs_gles_vendor(void) { return s_gles_vendor; }
-const char* __cdecl xgs_gles_renderer(void) { return s_gles_renderer; }
-const char* __cdecl xgs_gles_version(void) { return s_gles_version; }
-const char* __cdecl xgs_gles_glsl(void) { return s_gles_glsl; }
+const char* XGS_LINKAGE xgs_egl_version(void) { return s_egl_version; }
+const char* XGS_LINKAGE xgs_egl_vendor(void) { return s_egl_vendor; }
+const char* XGS_LINKAGE xgs_gles_vendor(void) { return s_gles_vendor; }
+const char* XGS_LINKAGE xgs_gles_renderer(void) { return s_gles_renderer; }
+const char* XGS_LINKAGE xgs_gles_version(void) { return s_gles_version; }
+const char* XGS_LINKAGE xgs_gles_glsl(void) { return s_gles_glsl; }
 
-void __cdecl xgs_unload(void) {
+void XGS_LINKAGE xgs_unload(void) {
   if (s_active) xgs_session_close();
-  if (m_gles) FreeLibrary(m_gles);
-  if (m_egl) FreeLibrary(m_egl);
+  if (m_gles) XGS_LIB_CLOSE(m_gles);
+  if (m_egl) XGS_LIB_CLOSE(m_egl);
   clear_state();
 }

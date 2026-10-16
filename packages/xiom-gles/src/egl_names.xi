@@ -3,6 +3,7 @@ module xiom.gles.egl_names
 
 pub const EGL_CMD_COUNT: Int = 158;
 pub const EGL_CORE_COUNT: Int = 44;
+pub const EGL_LOAD_CANDIDATE_COUNT: Int = 3;
 
 pub fn egl_cmd_names() -> Vec[Str] {
   var v: Vec[Str] = Vec[Str].new();
@@ -214,5 +215,16 @@ pub fn egl_core_names() -> Vec[Str] {
   v.push("eglWaitGL");
   v.push("eglWaitNative");
   v.push("eglWaitSync");
+  return v;
+}
+
+// Runtime-load candidate sonames (EGL side), probed in order by the
+// bridge: the Windows ANGLE DLLs (retained) then the Android system
+// library.  Mirrors the xgs_pairs table in src/gles_probe.c.
+pub fn egl_load_candidates() -> Vec[Str] {
+  var v: Vec[Str] = Vec[Str].new();
+  v.push("libEGL.dll");
+  v.push("EGL.dll");
+  v.push("libEGL.so");
   return v;
 }

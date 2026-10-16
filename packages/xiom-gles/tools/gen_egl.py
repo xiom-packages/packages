@@ -3,11 +3,20 @@
 
 Oracle: E:/repos/EGL-Registry/api/egl.xml (KhronosGroup/EGL-Registry, pinned
 commit; see PROVENANCE.md).  Emits into packages/xiom-gles/src/:
-  egl_names.xi      -- egl_cmd_names() + count + egl_core_names() + count
+  egl_names.xi      -- egl_cmd_names() + count + egl_core_names() + count +
+                       egl_load_candidates() (runtime-load sonames)
   egl_cmds_<grp>.xi -- one typed wrapper per EGL command
   egl_consts_<n>.xi -- EGL enum values as `pub const ... : Int`
   egl_api.xi        -- EglApi + egl_api_resolve (module xiom.gles.egl_api)
-  gen_egl_manifest.json (packages/xiom-gles/docs/) -- oracle vs emitted + skips
+  gen_egl_manifest.json (packages/xiom-gles/docs/) -- oracle vs emitted +
+    skips + the runtime-load candidate list + the android-delta measurement
+
+The manifest also MEASURES the android delta over the NDK r27b EGL headers
+(same pin as the Android wave): every declared EGL constant and entry point
+not already carried by the generated surface.  At the r27b pin the measured
+delta is empty (the pin `27.1.12297006` declares nothing beyond the pinned
+registry surface) -- the generator fails loudly when that changes so the
+delta gets declared instead of drifting by.
 
 Deterministic; no hand-maintained lists. Uses only the Python stdlib.
 Commands are resolved through the live session (`egl_api_resolve` ->
@@ -25,6 +34,20 @@ DOCS = os.path.join(ROOT, "docs")
 EGL_XML = r"E:\repos\EGL-Registry\api\egl.xml"
 CMDS_PER_FILE = 100
 CONSTS_PER_FILE = 250
+
+# The NDK r27b oracle (same pin as the Android wave; XIOM_ANDROID_NDK
+# overrides the root for non-standard SDK layouts).
+ANDROID_NDK = os.environ.get("XIOM_ANDROID_NDK", r"C:\Android\sdk\ndk\27.1.12297006")
+ANDROID_VERSION = "r27b 27.1.12297006"
+ANDROID_INCLUDE = os.path.join(
+    ANDROID_NDK, "toolchains", "llvm", "prebuilt", "windows-x86_64",
+    "sysroot", "usr", "include")
+ANDROID_HEADERS = ["EGL/egl.h", "EGL/eglext.h"]
+
+# Runtime-load candidate sonames (EGL side; the GLES side lives in
+# gen_gles.py).  Mirrored by the xgs_pairs table in src/gles_probe.c --
+# keep both in sync (the suite asserts this list exactly).
+EGL_LOAD_CANDIDATES = ["libEGL.dll", "EGL.dll", "libEGL.so"]
 
 XIOM_KEYWORDS = {
     "as", "break", "const", "continue", "else", "enum", "extern", "false",
@@ -219,6 +242,65 @@ def parse_int(v):
     return n
 
 
+EGL_ANDROID_DEFINE_RE = re.compile(
+    r"^#define\s+(EGL_[A-Za-z0-9_]+)\s+([^\n/]+)", re.M)
+EGL_ANDROID_PROTO_RE = re.compile(r"\b(egl[A-Za-z0-9_]+)\s*\(")
+
+
+def measure_android(generated_consts, generated_names):
+    """Measure the android delta over the NDK r27b EGL headers.
+
+    Returns (const_delta, cmd_delta, guards, version_macros, const_skips).
+    Any real delta means the NDK declares EGL surface beyond the pinned
+    registry -- it must be declared (extend the emission) instead of
+    drifting; main() fails loudly on a non-empty delta."""
+    missing = [h for h in ANDROID_HEADERS
+               if not os.path.isfile(os.path.join(ANDROID_INCLUDE, h.replace("/", os.sep)))]
+    if missing:
+        raise SystemExit(
+            "android oracle headers missing under %s: %s\n"
+            "set XIOM_ANDROID_NDK to the NDK root (pin %s)"
+            % (ANDROID_INCLUDE, ", ".join(missing), ANDROID_VERSION))
+
+    const_delta = {}
+    cmd_delta = set()
+    guards = []
+    version_macros = []
+    const_skips = []
+
+    for rel in ANDROID_HEADERS:
+        path = os.path.join(ANDROID_INCLUDE, rel.replace("/", os.sep))
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            text = fh.read()
+        for m in EGL_ANDROID_DEFINE_RE.finditer(text):
+            name, raw = m.group(1), m.group(2).strip()
+            if name in generated_consts or name in const_delta:
+                continue
+            if name == "EGL_EGLEXT_VERSION":
+                version_macros.append(name)
+                continue
+            try:
+                n = parse_int(raw)
+            except ValueError:
+                const_skips.append({"name": name, "reason": "unparsed value %r" % raw})
+                continue
+            # A value-1 define the registry does not carry as an enum value
+            # is a guard/extension token (`EGL_KHR_debug 1`,
+            # `EGL_VERSION_1_5 1`, ...); never an ABI constant.
+            if n == 1 and name not in generated_consts:
+                guards.append(name)
+                continue
+            const_delta[name] = raw
+        for m in EGL_ANDROID_PROTO_RE.finditer(text):
+            cname = m.group(1)
+            if cname in generated_names:
+                continue
+            cmd_delta.add(cname)
+
+    return (dict(sorted(const_delta.items())), sorted(cmd_delta),
+            sorted(set(guards)), sorted(set(version_macros)), const_skips)
+
+
 def fmt_int(n):
     if n < 0:
         return str(n)
@@ -231,10 +313,31 @@ def zero_of(t):
     return "0"
 
 
+def clean_generated(patterns):
+    """Remove stale generated files (group counts can shrink on re-pin)."""
+    for fn in os.listdir(SRC):
+        for pat in patterns:
+            if re.match(pat, fn):
+                os.remove(os.path.join(SRC, fn))
+                break
+
+
 def main():
     commands, core_cmds, features_used, extensions, ext_cmds, enum_value, all_enums = load_registry()
 
+    clean_generated([
+        r"^egl_cmds_\d+\.xi$", r"^egl_consts_\d+\.xi$",
+        r"^egl_names\.xi$", r"^egl_api\.xi$",
+    ])
+
     all_names = sorted(set(commands) | set(core_cmds) | set(ext_cmds))
+
+    # android-delta measurement (NDK r27b EGL headers, clamped to the
+    # generated surface; see measure_android).
+    generated_consts = set(n for n in all_enums if enum_value(n) is not None)
+    (android_consts, android_cmds, android_guards, android_version_macros,
+     android_const_skips) = measure_android(generated_consts, set(all_names))
+
     manifest = {
         "oracle": EGL_XML,
         "registry_pin": "EGL-Registry db3425b8246136faccb5e2782b5694960bd6edf1",
@@ -249,6 +352,23 @@ def main():
         "command_skips": [],
         "const_skips": [],
         "groups": [],
+        "runtime_load": {
+            "candidates": EGL_LOAD_CANDIDATES,
+            "note": ("mirrored by the xgs_pairs table in src/gles_probe.c; "
+                     "Windows ANGLE DLLs retained, Android system soname added"),
+        },
+        "android_delta": {
+            "oracle_root": ANDROID_INCLUDE,
+            "ndk_version": ANDROID_VERSION,
+            "headers": ANDROID_HEADERS,
+            "const_delta": sorted(android_consts),
+            "cmd_delta": android_cmds,
+            "guards_excluded": android_guards,
+            "version_macros_excluded": android_version_macros,
+            "const_skips": android_const_skips,
+            "note": ("empty delta = the r27b EGL headers declare nothing beyond "
+                     "the pinned registry surface (measured)"),
+        },
     }
 
     # ---- emit commands (grouped) ----
@@ -343,6 +463,7 @@ def main():
         "",
         "pub const EGL_CMD_COUNT: Int = %d;" % len(all_names),
         "pub const EGL_CORE_COUNT: Int = %d;" % len(core_cmds),
+        "pub const EGL_LOAD_CANDIDATE_COUNT: Int = %d;" % len(EGL_LOAD_CANDIDATES),
         "",
         "pub fn egl_cmd_names() -> Vec[Str] {",
         "  var v: Vec[Str] = Vec[Str].new();",
@@ -356,6 +477,16 @@ def main():
     lines.append("pub fn egl_core_names() -> Vec[Str] {")
     lines.append("  var v: Vec[Str] = Vec[Str].new();")
     for name in sorted(core_cmds):
+        lines.append("  v.push(\"%s\");" % name)
+    lines.append("  return v;")
+    lines.append("}")
+    lines.append("")
+    lines.append("// Runtime-load candidate sonames (EGL side), probed in order by the")
+    lines.append("// bridge: the Windows ANGLE DLLs (retained) then the Android system")
+    lines.append("// library.  Mirrors the xgs_pairs table in src/gles_probe.c.")
+    lines.append("pub fn egl_load_candidates() -> Vec[Str] {")
+    lines.append("  var v: Vec[Str] = Vec[Str].new();")
+    for name in EGL_LOAD_CANDIDATES:
         lines.append("  v.push(\"%s\");" % name)
     lines.append("  return v;")
     lines.append("}")
@@ -404,10 +535,20 @@ def main():
     print("egl enums:    %d (emitted %d, skipped %d)" % (
         manifest["enum_count"], manifest["emitted_consts"],
         len(manifest["const_skips"])))
+    ad = manifest["android_delta"]
+    print("android delta: consts %d, commands %d (measured over the NDK %s EGL headers; guards %d, version macros %d excluded)" % (
+        len(ad["const_delta"]), len(ad["cmd_delta"]), ANDROID_VERSION,
+        len(ad["guards_excluded"]), len(ad["version_macros_excluded"])))
     for sk in manifest["command_skips"][:10]:
         print("  skip cmd: %s -- %s" % (sk["name"], sk["reason"]))
     for sk in manifest["const_skips"][:10]:
         print("  skip const: %s -- %s" % (sk["name"], sk["reason"]))
+    if ad["const_delta"] or ad["cmd_delta"]:
+        print("ERROR: the NDK %s EGL headers declare surface beyond the generated set." % ANDROID_VERSION)
+        print("       Declare it (extend the emission or document an exclusion) before re-pinning.")
+        print("       consts: %s" % ", ".join(ad["const_delta"][:20]))
+        print("       commands: %s" % ", ".join(ad["cmd_delta"][:20]))
+        return 1
     return 0
 
 
