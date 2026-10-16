@@ -1,0 +1,5 @@
+# Vendored brotli bytes must stay byte-identical to the pins in PROVENANCE.md
+# (the only deltas vs upstream are the 24 documented angle-include rewrites).
+vendor/** -text
+# Golden test vectors imported from the pinned clone (binary fixtures).
+tests/fixtures/** -text
