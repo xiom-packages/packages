@@ -5,8 +5,9 @@
 # xiom.llm -- roadmap
 
 Lane: llama.cpp-family runner tier of the ML/AI coverage program.
-Current: v0.1.0, milestones M1 + M2 complete, M3 first half (generation loop
-+ sampling) complete and conformance-green (129/129 x2); `publish: false`
+Current: v0.1.0, milestones M1 + M2 complete, M3 first and second halves
+(generation loop + sampling, and the append-only KV cache + longer-context
+attention) complete and conformance-green (163/163 x2); `publish: false`
 pending ops scope + allowlist.
 
 ## M1 -- vocab + byte-level BPE (DONE, 2026-10-16)
@@ -68,17 +69,23 @@ first, fixture dims chosen so every oracle value is exact.
 
 ## M3 -- generation loop, sampling, KV cache, Q4_K
 
-1. Generate loop -- **FIRST HALF DONE (M3a, 2026-10-16)**:
-   `llm_greedy_next` (argmax, lowest-index tie) + `llm_generate` with
-   stop-token handling and a single-position-per-step loop over the new
-   `llm_forward_token` entry point. The append-only KV cache and
-   longer-context attention remain for the second half.
+1. Generate loop -- **DONE (M3a first half + M3b second half,
+   2026-10-16)**: `llm_greedy_next` (argmax, lowest-index tie) +
+   `llm_generate` with stop-token handling and a single-position-per-step
+   loop over the new `llm_forward_token` entry point (M3a); the append-only
+   per-layer KV cache (`llm_kv_cache_new`/`_append`/`_len`/`_key`/`_val`),
+   the multi-position `llm_attention_i32`, the cached forward
+   `llm_forward_cache` and the cached generation loop `llm_generate_cached`
+   (M3b). A one-position cache reproduces the single-position path exactly.
 2. Sampling beyond greedy -- **FIRST HALF DONE (M3a)**: temperature (integer
    `t_num/t_den` scale), top-k, top-p (nucleus) and a deterministic seeded
    32-bit LCG PRNG (`llm_rng_seed` / `llm_rng_next` / `llm_rng_below`), all
    declared in SPEC.md 10.5. Golden seeded id sequence pinned in the suite.
-3. KV cache growth policy and attention on longer contexts; benchmark
-   harness (package-local, `xiom bench` compatible) -- **REMAINS**.
+3. KV cache growth policy and attention on longer contexts -- **DONE (M3b)**:
+   append-only `LlmKvCache` (flat `[layer][position][n_kv]`), exact
+   append/read goldens, `llm_attention_i32` over all cached positions and the
+   cached forward/loop. Benchmark harness (package-local, `xiom bench`
+   compatible) -- **REMAINS**.
 4. Q4_K-class dequant (`llm_dequant_q4_k`) + Q4_0/Q5_0/Q5_1/Q6_K as
    sized; block-table conformance + error-bound pins -- **REMAINS**.
 5. Tokenizer: GPT-2 `bytes_to_unicode` escape/unescape and the GPT-2
@@ -90,7 +97,8 @@ first, fixture dims chosen so every oracle value is exact.
 6. Acceptance: prompt -> generated ids -> decode roundtrip on the tiny
    fixture; escape-layer golden vectors (hand-computed byte-unicode
    table values). **PARTIAL**: greedy and seeded prompt -> ids -> decode
-   roundtrips are green (129/129 x2); escape-layer vectors remain.
+   roundtrips are green and the cached multi-position loop adds a
+   two-token-prompt roundtrip (163/163 x2); escape-layer vectors remain.
 
 ## Maintenance / cross-lane items
 

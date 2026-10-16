@@ -31,12 +31,18 @@ Implemented in 0.1.0 (M1 + M2):
   whose single-token golden logits are asserted exactly (M2b, section 10.4);
 * generation loop (M3a, section 10.5): deterministic seeded integer PRNG,
   greedy / temperature / top-k / top-p sampling, stop-token handling and a
-  single-position generate loop + the `llm_forward_token` entry point.
+  single-position generate loop + the `llm_forward_token` entry point;
+* append-only per-layer KV cache and longer-context (multi-position)
+  attention (M3b, section 10.5): `llm_kv_cache_*` allocation / append /
+  length / read, `llm_attention_i32`, the cached forward `llm_forward_cache`
+  and the cached generation loop `llm_generate_cached`. The M3a
+  single-position path is unchanged and a one-position cache reproduces it
+  exactly.
 
 Declared for later milestones (section 10):
 
-* KV cache, longer-context attention, benchmark harness, Q4_K-class
-  dequantization and quantization breadth (M3 second half);
+* benchmark harness, Q4_K-class dequantization and quantization breadth
+  (M3 second half remainder);
 * tokenizer completion: escape layer, regex pre-tokenizer, SPM/WPM
   (section 10.6).
 
@@ -52,8 +58,9 @@ Declared for later milestones (section 10):
   in M1/M2; whole-buffer parsing in memory.
 * No sampling strategies beyond greedy argmax until the generation-loop
   milestone declares them. M3a implements greedy argmax plus a deterministic
-  integer sampler (temperature / top-k / top-p over a seeded LCG); the KV
-  cache and longer-context attention remain deferred.
+  integer sampler (temperature / top-k / top-p over a seeded LCG); M3b adds
+  the append-only KV cache and longer-context attention. Quantization
+  breadth (Q4_K-class) remains deferred.
 * No UTF-8 vocabularies in M1: `xiom.gguf` parses printable-ASCII strings
   only (see section 4).
 
@@ -234,6 +241,25 @@ Generation, sampling and forward entry point (M3a):
 * `llm: sampler zero mass` (choice with no kept probability)
 * `llm: generate empty prompt` (`llm_generate` with an empty prompt list)
 
+KV cache and longer-context attention (M3b):
+
+* `llm: kv cache size mismatch` (`llm_kv_cache_append` with a step of the
+  wrong length; `llm_forward_cache` with a cache whose `n_layer < 1` or
+  `n_kv != emb`)
+* `llm: kv cache full` (`llm_kv_cache_append` or `llm_forward_cache` beyond
+  `cap`)
+* `llm: kv cache index out of range` (`llm_kv_cache_key` / `llm_kv_cache_val`
+  with a layer or position outside the cache)
+* `llm: kv cache rope table too small` (`llm_forward_cache` when the
+  position's cosine/sine table slice is missing)
+* `llm: attention size mismatch` (`llm_attention_i32` with an empty query,
+  non-positive `n_kv`, or flat key/value sizes that are not `n_kv * emb`)
+* `llm: attention overflow` (`llm_attention_i32` weighted-sum overflow;
+  fail closed)
+* `llm: generate empty prompt` (also `llm_generate_cached`)
+* `llm: model tensor missing`, `llm: model tensor extent invalid`
+  (`llm_generate_cached` reading the embedding dimension)
+
 ## 8. Documented deviations from llama.cpp (M1)
 
 1. **Fail-closed symbol lookup.** llama.cpp's BPE session falls back to
@@ -406,7 +432,8 @@ The representation:
 
 ### 10.5 Generation loop
 
-**[IMPLEMENTED in M3a, 2026-10-16 -- first half: greedy + sampling]**
+**[IMPLEMENTED in M3a, 2026-10-16 -- first half: greedy + sampling;
+IMPLEMENTED in M3b, 2026-10-16 -- second half: KV cache + longer context]**
 
 * `llm_greedy_next(logits: &Vec[Int]) -> Result[Int, Str]` -- argmax with
   lowest-index tie-break. Error: `llm: sampler empty logits`.
@@ -442,11 +469,45 @@ The representation:
   M2b single-position forward (section 10.4) as a library entry point, used
   per step by `llm_generate`.
 
-**Deferred (M3 second half):** append-only per-layer KV cache and attention
-over longer contexts (multi-position forward), a package-local benchmark
+**M3b additions (append-only KV cache + longer-context attention):**
+
+* `LlmKvCache` (n_layer, n_kv, cap, len, keys, vals) -- flat
+  `[layer][position][n_kv]` append-only store.
+* `llm_kv_cache_new(n_layer, n_kv, cap) -> LlmKvCache` -- zero-filled
+  allocation; negative arguments clamp to 0.
+* `llm_kv_cache_len(c) -> Int` / `llm_kv_cache_cap(c) -> Int`.
+* `llm_kv_cache_append(c, keys_step, vals_step) -> Result[Int, Str]` --
+  appends one flat `[layer][n_kv]` step at position `len` and returns the new
+  length; errors on wrong step length and on overflow of `cap`.
+* `llm_kv_cache_key(c, layer, pos) -> Result[Vec[Int], Str]` /
+  `llm_kv_cache_val(c, layer, pos)` -- read back an `n_kv`-wide vector;
+  out-of-range indices fail closed.
+* `llm_attention_i32(q, keys, vals, n_kv, shift) -> Result[Vec[Int], Str]` --
+  integer multi-position attention: scores `dot(q, key_j) / 2` (the
+  single-position scaling), integer softmax at `shift`, and the value
+  mixture `out[i] = round(sum_j w_j * val_j[i] / 2^shift)`. With one position
+  this is EXACTLY `val_0` (softmax `[2^shift]`), so it reduces to the M3a
+  single-position path where shapes permit.
+* `llm_forward_cache(model, buf, token_id, cos_tab, sin_tab, rshift, c) ->
+  Result[Vec[Int], Str]` -- multi-position forward: computes q/k/v, applies
+  the position's RoPE table (`cos_tab`/`sin_tab` hold `cap * head_dim/2`
+  fixed-point values indexed by position), appends the roped key and the
+  value to the cache, then attends over EVERY cached position (0..len)
+  through `llm_attention_i32` before the shared FFN/logits tail. The shared
+  weight-loading (`LlmWeights`) and tail (`_forward_tail`) are factored out
+  of `llm_forward_token`, whose behavior is unchanged.
+* `llm_generate_cached(model, buf, prompt_ids, max_new, stop_id, s, out_ids)
+  -> Result[Int, Str]` -- prefills every prompt id into a KV cache (so each
+  generated step conditions on the whole prompt context, not just the last
+  token), then samples -> forwards -> appends, with the same stop-token and
+  `max_new` semantics as `llm_generate`. The convenience loop uses the
+  identity RoPE table for every position (valid over the fixture domain);
+  caller-supplied per-position tables are `llm_forward_cache`'s contract.
+
+**Deferred (M3 second half remainder):** the package-local benchmark
 harness, Q4_K-class dequantization, and the tokenizer escape/regex/SPM/WPM
-work (section 10.6). The M3a loop has no KV cache, so each step conditions
-only on the current token.
+work (section 10.6). No multi-layer attention kernel beyond the single-layer
+fixture is implemented (the M3 fixture is 1 layer).
 
 ### 10.6 Tokenizer milestones (deferred pieces)
 
@@ -457,7 +518,7 @@ only on the current token.
 * SPM (`tokenizer.ggml.model == "llama"`) and WPM (`"bert"`)
   vocabulary extraction + their tokenize paths.
 
-## 11. Test matrix (129 checks, `tests/test_conformance.xi`)
+## 11. Test matrix (163 checks, `tests/test_conformance.xi`)
 
 All checks run against a synthetic deterministic fixture built with
 `xiom.gguf`'s builder: 6 metadata KVs, one tensor info
@@ -534,6 +595,27 @@ prompt / `max_new=0` edge cases, and the `llm_forward_token` golden
 the greedy-selected token 0 forwards without tripping the RMSNorm zero-norm
 guard; the M2b golden-logit provenance (rows for token 1) is unchanged.
 
+M3b additions (checks 130-163): the append-only KV cache -- allocation
+length/capacity, negative-cap clamping, two-step append returning
+`1`/`2`/`3`, exact key/value read-back (`[1,2]`, `[5,6]`, `[7,8]`),
+out-of-range read rejects (position and layer), step-size-mismatch reject and
+the `kv cache full` reject at capacity; `llm_attention_i32` goldens -- uniform
+weights over two equal keys mixing distinct values (`[4,0]`/`[0,8]` ->
+`[2,4]`), a single position returning exactly its value (`[5,7]`), the
+hand-computed `513`/`511` weight split for scores `4`/`0` isolated on each
+value, and the size-mismatch reject; the cached forward equivalence (a
+one-position cache reproduces `llm_forward_token` logits EXACTLY) plus the
+hand-computed two-position anchor `-19*i` on a distinct-embedding fixture
+(`mp_container`, row 1 `[3,0,0,0]`, pos-1 stretch RoPE table
+`(cos,sin)=(4096,2048)`) and the mp single-position all-zero control; and the
+`llm_generate_cached` loop -- greedy `[0,0,0]`, equality with `llm_generate`
+for a one-token prompt, a two-token prompt (context > 1 position),
+determinism, stop-token handling, empty-prompt and `max_new=0` edges. Cached
+forward error arms: cap-0, wrong `n_kv`, token-id range and a short RoPE
+table. Every cache/attention/forward golden is derived by hand from the
+integer algorithm above (softmax `[513,511]`, value mixture `2561/1024 -> 3`,
+then the shared tail), not from a float reference.
+
 Golden-logit provenance (checks 75-78). The fixture is built so every integer
 step is exact: token 1 embedding row `[4,4,0,0]` (mean square 8, rms 2) ->
 `xn=[2,2,0,0]`; `Wq/Wk/Wv` select column 1 -> `q=k=v=[2,2,2,2]`; position-0
@@ -556,7 +638,10 @@ passed where a `&Vec[...]` parameter is expected; test Result values are
 unwrapped through locals (`let r = f(); let v = r.value;`), never by
 chaining `.value` on a call. `LlmModel` carries the parsed `Gguf` by value
 and is only produced by `llm_model_open`. No contracts are declared on any
-function (lane policy for new names, M1 and M2 alike).
+function (lane policy for new names, M1 and M2 alike). In-place `Vec`
+element writes (`c.keys[off] = v`) on a `&mut` struct field compile and are
+used by `llm_kv_cache_append`; no fresh compiler defect was encountered in
+M3b.
 
 ## 13. Reference notes
 

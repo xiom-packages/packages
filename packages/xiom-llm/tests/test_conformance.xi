@@ -1273,7 +1273,11 @@ fn push_q8_padded(dst: &mut Vec[UInt8], quants: &Vec<Int>) -> Int {
 // tensor infos (token_embd, attn_norm, wq/wk/wv/wo, ffn_norm, ffn_gate/up/down,
 // output); Q8_0 for the 8x4 / 4x8 FFN matrices, f32 elsewhere. `w1_first` is
 // the ffn_gate first quant (4 normally, 3 in the sensitivity variant).
-fn model_container(w1_first: Int) -> Vec[UInt8] {
+// Build the fixture model with explicit token-embedding row values: row 0 =
+// [e00,e01,0,0], row 1 = [e10,e11,0,0] (rows 2..19 zero). `model_container`
+// keeps the M2/M3a values (4,4,4,4); `mp_container` uses (4,4,3,0) so the two
+// forwardable tokens normalize to different q/k/v (multi-position goldens).
+fn model_container_emb(e00: Int, e01: Int, e10: Int, e11: Int, w1_first: Int) -> Vec[UInt8] {
   let tokens = vocab_tokens();
   let merges = vocab_merges();
   let types = vocab_types();
@@ -1317,11 +1321,21 @@ fn model_container(w1_first: Int) -> Vec[UInt8] {
   while r < 20 {
     var c = 0;
     while c < 4 {
-      if (r == 0 || r == 1) && (c == 0 || c == 1) {
-        let z = push_f32(&mut buf, 4);
-      } else {
-        let z2 = push_f32(&mut buf, 0);
+      var ev = 0;
+      if r == 0 {
+        if c == 0 {
+          ev = e00;
+        } else if c == 1 {
+          ev = e01;
+        }
+      } else if r == 1 {
+        if c == 0 {
+          ev = e10;
+        } else if c == 1 {
+          ev = e11;
+        }
       }
+      let z = push_f32(&mut buf, ev);
       c = c + 1;
     }
     r = r + 1;
@@ -1395,6 +1409,17 @@ fn model_container(w1_first: Int) -> Vec[UInt8] {
     ro = ro + 1;
   }
   return buf;
+}
+
+// M2/M3a fixture (rows 0 and 1 both [4,4,0,0]).
+fn model_container(w1_first: Int) -> Vec[UInt8] {
+  return model_container_emb(4, 4, 4, 4, w1_first);
+}
+
+// Multi-position fixture: row 0 = [4,4,0,0] (xn0 = 2), row 1 = [3,0,0,0]
+// (xn0 = 3), so the two forwardable tokens produce different q/k/v.
+fn mp_container() -> Vec[UInt8] {
+  return model_container_emb(4, 4, 3, 0, 4);
 }
 
 // Load an f32 tensor as plain Ints (each value must be an exact integer).
@@ -1922,10 +1947,203 @@ fn t63() -> Int {
   return sum;
 }
 
+// M3b: append-only KV cache -- allocation, append, length and read-back.
+fn t64() -> Int {
+  var sum = 0;
+  var c = llm_kv_cache_new(1, 2, 3);
+  sum = sum + report(llm_kv_cache_len(&c) == 0 && llm_kv_cache_cap(&c) == 3, "kv new: len 0 cap 3");
+  var cn = llm_kv_cache_new(1, 2, -1);
+  sum = sum + report(llm_kv_cache_cap(&cn) == 0, "kv new: negative cap clamped to 0");
+  var k1 = want2(1, 2);
+  var v1 = want2(3, 4);
+  let a1 = llm_kv_cache_append(&mut c, &k1, &v1);
+  sum = sum + report(a1.value == 1 && llm_kv_cache_len(&c) == 1, "kv append step -> len 1");
+  var k2 = want2(5, 6);
+  var v2 = want2(7, 8);
+  let a2 = llm_kv_cache_append(&mut c, &k2, &v2);
+  sum = sum + report(a2.value == 2 && llm_kv_cache_len(&c) == 2, "kv append step -> len 2");
+  let kr0 = llm_kv_cache_key(&c, 0, 0);
+  let kk0: Vec[Int] = kr0.value;
+  let w20 = want2(1, 2);
+  sum = sum + report(ids_eq(&kk0, &w20), "kv key pos0 [1,2]");
+  let kr1 = llm_kv_cache_key(&c, 0, 1);
+  let kk1: Vec[Int] = kr1.value;
+  let w21 = want2(5, 6);
+  sum = sum + report(ids_eq(&kk1, &w21), "kv key pos1 [5,6]");
+  let vr1 = llm_kv_cache_val(&c, 0, 1);
+  let vv1: Vec[Int] = vr1.value;
+  let wv1 = want2(7, 8);
+  sum = sum + report(ids_eq(&vv1, &wv1), "kv val pos1 [7,8]");
+  sum = sum + expect_ids_err(llm_kv_cache_key(&c, 0, 2), "llm: kv cache index out of range", "kv key pos2 rejected");
+  sum = sum + expect_ids_err(llm_kv_cache_val(&c, 1, 0), "llm: kv cache index out of range", "kv val layer1 rejected");
+  var kbad = want3(1, 2, 3);
+  sum = sum + expect_int_err(llm_kv_cache_append(&mut c, &kbad, &v1), "llm: kv cache size mismatch", "kv append size mismatch rejected");
+  let a3 = llm_kv_cache_append(&mut c, &k1, &v1);
+  sum = sum + report(a3.value == 3, "kv append step -> len 3 (cap)");
+  sum = sum + expect_int_err(llm_kv_cache_append(&mut c, &k1, &v1), "llm: kv cache full", "kv append beyond cap rejected");
+  return sum;
+}
+
+// M3b: multi-position attention goldens (exact weights and value mixtures).
+fn t65() -> Int {
+  var sum = 0;
+  let q = want2(2, 2);
+  // uniform weights (two equal keys) mix two distinct values.
+  let keys = want4(2, 2, 2, 2);
+  let vals = want4(4, 0, 0, 8);
+  let r = llm_attention_i32(&q, &keys, &vals, 2, 10);
+  let w = want2(2, 4);
+  sum = sum + report(ids_eq(&r.value, &w), "attention uniform weights -> [2,4]");
+  // a single position is exactly the value (softmax [1024]).
+  let k1 = want2(2, 2);
+  let v1 = want2(5, 7);
+  let r1 = llm_attention_i32(&q, &k1, &v1, 1, 10);
+  let w1 = want2(5, 7);
+  sum = sum + report(ids_eq(&r1.value, &w1), "attention single position -> value");
+  // distinct scores: keys [2,2],[0,0] -> weights [513,511]; isolate each.
+  let keys2 = want4(2, 2, 0, 0);
+  let vals_a = want4(1024, 0, 0, 0);
+  let ra = llm_attention_i32(&q, &keys2, &vals_a, 2, 10);
+  let wa = want2(513, 0);
+  sum = sum + report(ids_eq(&ra.value, &wa), "attention weights 513/511 -> high key yields 513");
+  let vals_b = want4(0, 0, 1024, 0);
+  let rb = llm_attention_i32(&q, &keys2, &vals_b, 2, 10);
+  let wb = want2(511, 0);
+  sum = sum + report(ids_eq(&rb.value, &wb), "attention weights 513/511 -> low key yields 511");
+  let badv = want3(1, 2, 3);
+  sum = sum + expect_ids_err(llm_attention_i32(&q, &keys2, &badv, 2, 10), "llm: attention size mismatch", "attention size mismatch rejected");
+  return sum;
+}
+
+// M3b: cached multi-position forward. (A) a one-position cache reproduces the
+// single-position forward exactly; (B) a hand-computed two-position anchor
+// (-19*i) on the distinct-embedding fixture; (C) the single-position mp
+// forward is all zeros (token 1 saturates SiLU).
+fn t66() -> Int {
+  var sum = 0;
+  let cbuf = model_container(4);
+  let model = open_model(&cbuf);
+  var cos = Vec[Int].new();
+  var sin = Vec[Int].new();
+  var t = 0;
+  while t < 4 * 2 {
+    cos.push(1 << 12);
+    sin.push(0);
+    t = t + 1;
+  }
+  var c = llm_kv_cache_new(1, 4, 4);
+  let cr = llm_forward_cache(&model, &cbuf, 1, &cos, &sin, 12, &mut c);
+  let clogits: Vec[Int] = cr.value;
+  let src = llm_forward_token(&model, &cbuf, 1);
+  let slogits: Vec[Int] = src.value;
+  sum = sum + report(ids_eq(&clogits, &slogits), "cached forward 1 pos == single forward");
+  sum = sum + report(llm_kv_cache_len(&c) == 1, "cached forward appended 1 position");
+
+  // (B) mp fixture: token 1 at pos0, token 0 at pos1 (pos-1 stretch table).
+  let mbuf = mp_container();
+  let mmodel = open_model(&mbuf);
+  var cos2 = Vec[Int].new();
+  var sin2 = Vec[Int].new();
+  cos2.push(4096); sin2.push(0);
+  cos2.push(4096); sin2.push(0);
+  cos2.push(4096); sin2.push(2048);
+  cos2.push(4096); sin2.push(2048);
+  var c2 = llm_kv_cache_new(1, 4, 4);
+  let f1 = llm_forward_cache(&mmodel, &mbuf, 1, &cos2, &sin2, 12, &mut c2);
+  let f1l: Vec[Int] = f1.value;
+  sum = sum + report(llm_kv_cache_len(&c2) == 1, "mp cached forward pos0 appended");
+  let f2 = llm_forward_cache(&mmodel, &mbuf, 0, &cos2, &sin2, 12, &mut c2);
+  let f2l: Vec[Int] = f2.value;
+  sum = sum + report(llm_kv_cache_len(&c2) == 2, "mp cached forward pos1 appended");
+  var bad2 = 0;
+  var k = 0;
+  while k < 20 {
+    let got2: Int = f2l[k];
+    if got2 != (0 - 19) * k {
+      bad2 = bad2 + 1;
+    }
+    k = k + 1;
+  }
+  sum = sum + report(f2l.len() == 20 && bad2 == 0, "mp 2-position attention golden (-19*i)");
+
+  // (C) mp single-position forward of token 1 is all zeros.
+  let single = llm_forward_token(&mmodel, &mbuf, 1);
+  let sl: Vec[Int] = single.value;
+  var bad3 = 0;
+  var m = 0;
+  while m < 20 {
+    let got3: Int = sl[m];
+    if got3 != 0 {
+      bad3 = bad3 + 1;
+    }
+    m = m + 1;
+  }
+  sum = sum + report(sl.len() == 20 && bad3 == 0, "mp single forward token 1 -> all zero");
+  return sum;
+}
+
+// M3b: cached generation loop conditions on every prefilled prompt position.
+fn t67() -> Int {
+  var sum = 0;
+  let cbuf = model_container(4);
+  let model = open_model(&cbuf);
+  let s = llm_sampler_greedy();
+  var p1 = want1(1);
+  var o1 = Vec[Int].new();
+  let g1 = llm_generate_cached(&model, &cbuf, &p1, 3, -1, &s, &mut o1);
+  var o2 = Vec[Int].new();
+  let g2 = llm_generate(&model, &cbuf, &p1, 3, -1, &s, &mut o2);
+  let w3 = want3(0, 0, 0);
+  sum = sum + report(g1.value == 3 && ids_eq(&o1, &w3), "cached generate greedy 3 -> [0,0,0]");
+  sum = sum + report(g2.value == 3 && ids_eq(&o1, &o2), "cached generate == single generate (1-token prompt)");
+  var p2 = want2(1, 0);
+  var o3 = Vec[Int].new();
+  let g3 = llm_generate_cached(&model, &cbuf, &p2, 3, -1, &s, &mut o3);
+  sum = sum + report(g3.value == 3 && ids_eq(&o3, &w3), "cached generate 2-token prompt -> [0,0,0]");
+  var o4 = Vec[Int].new();
+  let g4 = llm_generate_cached(&model, &cbuf, &p2, 3, -1, &s, &mut o4);
+  sum = sum + report(ids_eq(&o3, &o4), "cached generate deterministic");
+  var o5 = Vec[Int].new();
+  let g5 = llm_generate_cached(&model, &cbuf, &p1, 5, 0, &s, &mut o5);
+  let w1 = want1(0);
+  sum = sum + report(g5.value == 1 && ids_eq(&o5, &w1), "cached generate stops at token 0 (appended)");
+  var o6 = Vec[Int].new();
+  var pe = Vec[Int].new();
+  sum = sum + expect_int_err(llm_generate_cached(&model, &cbuf, &pe, 3, -1, &s, &mut o6), "llm: generate empty prompt", "cached generate empty prompt rejected");
+  var o7 = Vec[Int].new();
+  let z = llm_generate_cached(&model, &cbuf, &p1, 0, -1, &s, &mut o7);
+  sum = sum + report(z.value == 0 && o7.len() == 0, "cached generate max_new=0 -> no ids");
+  return sum;
+}
+
+// M3b: cached-forward error arms (capacity, width, token range, rope table).
+fn t68() -> Int {
+  var sum = 0;
+  let cbuf = model_container(4);
+  let model = open_model(&cbuf);
+  var cos = Vec[Int].new();
+  var sin = Vec[Int].new();
+  var t = 0;
+  while t < 2 {
+    cos.push(4096);
+    sin.push(0);
+    t = t + 1;
+  }
+  var c0 = llm_kv_cache_new(1, 4, 0);
+  sum = sum + expect_ids_err(llm_forward_cache(&model, &cbuf, 1, &cos, &sin, 12, &mut c0), "llm: kv cache full", "cached forward cap 0 rejected");
+  var cw = llm_kv_cache_new(1, 3, 4);
+  sum = sum + expect_ids_err(llm_forward_cache(&model, &cbuf, 1, &cos, &sin, 12, &mut cw), "llm: kv cache size mismatch", "cached forward wrong n_kv rejected");
+  var c1 = llm_kv_cache_new(1, 4, 4);
+  sum = sum + expect_ids_err(llm_forward_cache(&model, &cbuf, 99, &cos, &sin, 12, &mut c1), "llm: token id out of range", "cached forward token id rejected");
+  var c2 = llm_kv_cache_new(1, 4, 4);
+  var short = want1(4096);
+  sum = sum + expect_ids_err(llm_forward_cache(&model, &cbuf, 1, &short, &short, 12, &mut c2), "llm: kv cache rope table too small", "cached forward short rope rejected");
+  return sum;
+}
+
 // --------------------------------------------------
 //  Main
 // --------------------------------------------------
-
 fn main() -> Int {
   var failed = 0;
   failed = failed + t1();
@@ -1991,6 +2209,11 @@ fn main() -> Int {
   failed = failed + t61();
   failed = failed + t62();
   failed = failed + t63();
+  failed = failed + t64();
+  failed = failed + t65();
+  failed = failed + t66();
+  failed = failed + t67();
+  failed = failed + t68();
   if failed == 0 {
     io.println("xiom.llm: all tests passed");
   }

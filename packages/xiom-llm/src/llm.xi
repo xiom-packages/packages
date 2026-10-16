@@ -48,8 +48,11 @@
 // suite). The M3 first half (M3a) adds the deterministic seeded PRNG,
 // sampling (temperature / top-k / top-p), stop-token handling, the
 // `llm_forward_token` single-position entry point and the `llm_generate`
-// loop (SPEC.md 10.5); the KV cache, longer-context attention, benchmark
-// harness and quant breadth (Q4_K etc.) remain for the M3 second half.
+// loop (SPEC.md 10.5); the M3 second half (M3b) adds the append-only
+// per-layer KV cache, longer-context multi-position attention, the cached
+// forward `llm_forward_cache` and the cached loop `llm_generate_cached`. The
+// benchmark harness and quant breadth (Q4_K etc.) remain for the M3
+// second-half remainder.
 
 module xiom.llm
 
@@ -1545,6 +1548,197 @@ fn _load_q8_block(g: &Gguf, buf: &Vec[UInt8], name: Str) -> Result[Vec[Int], Str
   return _ok_ids(out);
 }
 
+// Complete weight set of the fixture model, loaded once per forward pass.
+// Shared by the single-position (`llm_forward_token`) and the cached
+// multi-position (`llm_forward_cache`) paths so the weight-loading and the
+// FFN/logits tail exist in exactly one place.
+type LlmWeights = {
+  embed: Vec[Int];
+  gamma1: Vec[Int];
+  wq: Vec[Int];
+  wk: Vec[Int];
+  wv: Vec[Int];
+  wo: Vec[Int];
+  gamma2: Vec[Int];
+  w1: Vec[Int];
+  w3: Vec[Int];
+  w2: Vec[Int];
+  wout: Vec[Int];
+  emb: Int;
+  ffn: Int;
+  vsz: Int;
+}
+
+// Ok(v) for Result[LlmWeights, Str].
+fn _ok_weights(v: LlmWeights) -> Result[LlmWeights, Str] {
+  return Ok(v);
+}
+
+// Err(m) for Result[LlmWeights, Str].
+fn _err_weights(m: Str) -> Result[LlmWeights, Str] {
+  return Err(m);
+}
+
+// Load every fixture weight as a plain-int vector plus the emb/ffn/vocab
+// dimensions. The three FFN matrices are read as one Q8_0 block (fixture
+// convention). Error cases: `llm: model tensor missing`,
+// `llm: model tensor extent invalid`, `llm: model tensor missing`.
+fn _load_weights(model: &LlmModel, buf: &Vec[UInt8]) -> Result[LlmWeights, Str] {
+  let g: Gguf = model.g;
+  let v: LlmVocab = model.vocab;
+  let vsz = llm_vocab_size(&v);
+  let embr = _load_f32_tensor(&g, buf, "token_embd.weight");
+  if !embr.is_ok {
+    let e0: Str = embr.error;
+    return _err_weights(e0);
+  }
+  let embed: Vec[Int] = embr.value;
+  let g1r = _load_f32_tensor(&g, buf, "attn_norm.weight");
+  if !g1r.is_ok {
+    let e1: Str = g1r.error;
+    return _err_weights(e1);
+  }
+  let gamma1: Vec[Int] = g1r.value;
+  let wqr = _load_f32_tensor(&g, buf, "wq.weight");
+  if !wqr.is_ok {
+    let e2: Str = wqr.error;
+    return _err_weights(e2);
+  }
+  let wq: Vec[Int] = wqr.value;
+  let wkr = _load_f32_tensor(&g, buf, "wk.weight");
+  if !wkr.is_ok {
+    let e3: Str = wkr.error;
+    return _err_weights(e3);
+  }
+  let wk: Vec[Int] = wkr.value;
+  let wvr = _load_f32_tensor(&g, buf, "wv.weight");
+  if !wvr.is_ok {
+    let e4: Str = wvr.error;
+    return _err_weights(e4);
+  }
+  let wv: Vec[Int] = wvr.value;
+  let wor = _load_f32_tensor(&g, buf, "wo.weight");
+  if !wor.is_ok {
+    let e5: Str = wor.error;
+    return _err_weights(e5);
+  }
+  let wo: Vec[Int] = wor.value;
+  let g2r = _load_f32_tensor(&g, buf, "ffn_norm.weight");
+  if !g2r.is_ok {
+    let e6: Str = g2r.error;
+    return _err_weights(e6);
+  }
+  let gamma2: Vec[Int] = g2r.value;
+  let w1r = _load_q8_block(&g, buf, "ffn_gate.weight");
+  if !w1r.is_ok {
+    let e7: Str = w1r.error;
+    return _err_weights(e7);
+  }
+  let w1: Vec[Int] = w1r.value;
+  let w3r = _load_q8_block(&g, buf, "ffn_up.weight");
+  if !w3r.is_ok {
+    let e8: Str = w3r.error;
+    return _err_weights(e8);
+  }
+  let w3: Vec[Int] = w3r.value;
+  let w2r = _load_q8_block(&g, buf, "ffn_down.weight");
+  if !w2r.is_ok {
+    let e9: Str = w2r.error;
+    return _err_weights(e9);
+  }
+  let w2: Vec[Int] = w2r.value;
+  let woutr = _load_f32_tensor(&g, buf, "output.weight");
+  if !woutr.is_ok {
+    let e10: Str = woutr.error;
+    return _err_weights(e10);
+  }
+  let wout: Vec[Int] = woutr.value;
+  let eidx = gguf_find_tensor(&g, "token_embd.weight");
+  let embidx: Int = eidx.value;
+  let dd = gguf_tensor_dim(&g, embidx, 1);
+  let emb: Int = dd.value;
+  let fidx = gguf_find_tensor(&g, "ffn_gate.weight");
+  let ffi: Int = fidx.value;
+  let fd = gguf_tensor_dim(&g, ffi, 0);
+  let ffn: Int = fd.value;
+  let w = LlmWeights{ embed: embed; gamma1: gamma1; wq: wq; wk: wk; wv: wv; wo: wo; gamma2: gamma2; w1: w1; w3: w3; w2: w2; wout: wout; emb: emb; ffn: ffn; vsz: vsz; };
+  return _ok_weights(w);
+}
+
+// Output residual -> FFN RMSNorm -> SwiGLU FFN with residual -> output
+// projection, shared by both forward paths; `attn` is the attention output
+// already computed by the caller (single position: exactly `v`).
+fn _forward_tail(w: &LlmWeights, x: &Vec[Int], attn: &Vec[Int]) -> Result[Vec[Int], Str] {
+  let emb = w.emb;
+  let ffn = w.ffn;
+  let vsz = w.vsz;
+  let wo: Vec[Int] = w.wo;
+  let gamma2: Vec[Int] = w.gamma2;
+  let w1: Vec[Int] = w.w1;
+  let w3: Vec[Int] = w.w3;
+  let w2: Vec[Int] = w.w2;
+  let wout: Vec[Int] = w.wout;
+  let wovr = llm_matmul_i32(&wo, emb, emb, attn, 1);
+  if !wovr.is_ok {
+    let t0: Str = wovr.error;
+    return _err_ids(t0);
+  }
+  let wov: Vec[Int] = wovr.value;
+  var h = Vec[Int].new();
+  var hi = 0;
+  while hi < emb {
+    let hx: Int = x[hi];
+    let hw: Int = wov[hi];
+    h.push(hx + hw);
+    hi = hi + 1;
+  }
+  let hnr = llm_rmsnorm_i32(&h, &gamma2, 0, 0);
+  if !hnr.is_ok {
+    let t1: Str = hnr.error;
+    return _err_ids(t1);
+  }
+  let hn: Vec[Int] = hnr.value;
+  let gr = llm_matmul_i32(&w1, ffn, emb, &hn, 1);
+  if !gr.is_ok {
+    let t2: Str = gr.error;
+    return _err_ids(t2);
+  }
+  let gate: Vec[Int] = gr.value;
+  let ur = llm_matmul_i32(&w3, ffn, emb, &hn, 1);
+  if !ur.is_ok {
+    let t3: Str = ur.error;
+    return _err_ids(t3);
+  }
+  let up: Vec[Int] = ur.value;
+  let ar = llm_swiglu_i32(&gate, &up, 0);
+  if !ar.is_ok {
+    let t4: Str = ar.error;
+    return _err_ids(t4);
+  }
+  let a: Vec[Int] = ar.value;
+  let fr = llm_matmul_i32(&w2, emb, ffn, &a, 1);
+  if !fr.is_ok {
+    let t5: Str = fr.error;
+    return _err_ids(t5);
+  }
+  let ffnv: Vec[Int] = fr.value;
+  var h2 = Vec[Int].new();
+  var hj = 0;
+  while hj < emb {
+    let hx2: Int = h[hj];
+    let hf: Int = ffnv[hj];
+    h2.push(hx2 + hf);
+    hj = hj + 1;
+  }
+  let lr = llm_matmul_i32(&wout, vsz, emb, &h2, 1);
+  if !lr.is_ok {
+    let t6: Str = lr.error;
+    return _err_ids(t6);
+  }
+  let logits: Vec[Int] = lr.value;
+  return _ok_ids(logits);
+}
+
 /// Single-position forward pass for the M3 fixture model (emb=4, heads=1,
 /// ffn=8, 1 layer): gather the `token_id` embedding row, RMSNorm -> Q/K/V ->
 /// position-0 RoPE (identity) -> single-position attention -> output residual
@@ -1555,87 +1749,23 @@ fn _load_q8_block(g: &Gguf, buf: &Vec[UInt8], name: Str) -> Result[Vec[Int], Str
 /// `llm: token id out of range`, `llm: model tensor missing`,
 /// `llm: model tensor extent invalid`, and any kernel error.
 pub fn llm_forward_token(model: &LlmModel, buf: &Vec[UInt8], token_id: Int) -> Result[Vec[Int], Str] {
-  let g: Gguf = model.g;
   let v: LlmVocab = model.vocab;
   let vsz = llm_vocab_size(&v);
   if token_id < 0 || token_id >= vsz {
     return _err_ids("llm: token id out of range");
   }
-  let embr = _load_f32_tensor(&g, buf, "token_embd.weight");
-  if !embr.is_ok {
-    let e: Str = embr.error;
-    return _err_ids(e);
+  let wr = _load_weights(model, buf);
+  if !wr.is_ok {
+    let ew: Str = wr.error;
+    return _err_ids(ew);
   }
-  let embed: Vec[Int] = embr.value;
-  let g1r = _load_f32_tensor(&g, buf, "attn_norm.weight");
-  if !g1r.is_ok {
-    let e1: Str = g1r.error;
-    return _err_ids(e1);
-  }
-  let gamma1: Vec[Int] = g1r.value;
-  let wqr = _load_f32_tensor(&g, buf, "wq.weight");
-  if !wqr.is_ok {
-    let e2: Str = wqr.error;
-    return _err_ids(e2);
-  }
-  let wq: Vec[Int] = wqr.value;
-  let wkr = _load_f32_tensor(&g, buf, "wk.weight");
-  if !wkr.is_ok {
-    let e3: Str = wkr.error;
-    return _err_ids(e3);
-  }
-  let wk: Vec[Int] = wkr.value;
-  let wvr = _load_f32_tensor(&g, buf, "wv.weight");
-  if !wvr.is_ok {
-    let e4: Str = wvr.error;
-    return _err_ids(e4);
-  }
-  let wv: Vec[Int] = wvr.value;
-  let wor = _load_f32_tensor(&g, buf, "wo.weight");
-  if !wor.is_ok {
-    let e5: Str = wor.error;
-    return _err_ids(e5);
-  }
-  let wo: Vec[Int] = wor.value;
-  let g2r = _load_f32_tensor(&g, buf, "ffn_norm.weight");
-  if !g2r.is_ok {
-    let e6: Str = g2r.error;
-    return _err_ids(e6);
-  }
-  let gamma2: Vec[Int] = g2r.value;
-  let w1r = _load_q8_block(&g, buf, "ffn_gate.weight");
-  if !w1r.is_ok {
-    let e7: Str = w1r.error;
-    return _err_ids(e7);
-  }
-  let w1: Vec[Int] = w1r.value;
-  let w3r = _load_q8_block(&g, buf, "ffn_up.weight");
-  if !w3r.is_ok {
-    let e8: Str = w3r.error;
-    return _err_ids(e8);
-  }
-  let w3: Vec[Int] = w3r.value;
-  let w2r = _load_q8_block(&g, buf, "ffn_down.weight");
-  if !w2r.is_ok {
-    let e9: Str = w2r.error;
-    return _err_ids(e9);
-  }
-  let w2: Vec[Int] = w2r.value;
-  let woutr = _load_f32_tensor(&g, buf, "output.weight");
-  if !woutr.is_ok {
-    let e10: Str = woutr.error;
-    return _err_ids(e10);
-  }
-  let wout: Vec[Int] = woutr.value;
-  // Dims from the declared tensors: token_embd = [vocab, emb], ffn_gate = [ffn, emb].
-  let eidx = gguf_find_tensor(&g, "token_embd.weight");
-  let embidx: Int = eidx.value;
-  let dd = gguf_tensor_dim(&g, embidx, 1);
-  let emb: Int = dd.value;
-  let fidx = gguf_find_tensor(&g, "ffn_gate.weight");
-  let ffi: Int = fidx.value;
-  let fd = gguf_tensor_dim(&g, ffi, 0);
-  let ffn: Int = fd.value;
+  let w: LlmWeights = wr.value;
+  let embed: Vec[Int] = w.embed;
+  let gamma1: Vec[Int] = w.gamma1;
+  let wq: Vec[Int] = w.wq;
+  let wk: Vec[Int] = w.wk;
+  let wv: Vec[Int] = w.wv;
+  let emb = w.emb;
 
   var x = Vec[Int].new();
   var c = 0;
@@ -1704,65 +1834,343 @@ pub fn llm_forward_token(model: &LlmModel, buf: &Vec[UInt8], token_id: Int) -> R
     let esm: Str = smr.error;
     return _err_ids(esm);
   }
-  // Single-position attention: the softmax weight is 1 -> attn = v0.
-  let wovr = llm_matmul_i32(&wo, emb, emb, &v0, 1);
-  if !wovr.is_ok {
-    let ewo: Str = wovr.error;
-    return _err_ids(ewo);
+  // Single-position attention: the one attention position has softmax weight
+  // 1, so attn = v0 exactly (matching the M2b hand-computed composition).
+  let tailr = _forward_tail(&w, &x, &v0);
+  if !tailr.is_ok {
+    let et: Str = tailr.error;
+    return _err_ids(et);
   }
-  let wov: Vec[Int] = wovr.value;
-  var h = Vec[Int].new();
-  var hi = 0;
-  while hi < emb {
-    let hx: Int = x[hi];
-    let hw: Int = wov[hi];
-    h.push(hx + hw);
-    hi = hi + 1;
+  let logits: Vec[Int] = tailr.value;
+  return _ok_ids(logits);
+}
+
+// --------------------------------------------------
+//  M3b: append-only KV cache + longer-context attention (SPEC.md 10.5)
+// --------------------------------------------------
+
+/// Append-only per-layer key/value cache for the fixture model. Layout is
+/// flat `[layer][position][n_kv]`; positions are appended in order at index
+/// `len` and only ever read back. `cap` bounds the number of positions;
+/// `n_kv` is the key/value width (== `emb` for the M3 fixture). Produced by
+/// `llm_kv_cache_new` and grown by `llm_kv_cache_append`.
+pub type LlmKvCache = {
+  n_layer: Int;
+  n_kv: Int;
+  cap: Int;
+  len: Int;
+  keys: Vec[Int];
+  vals: Vec[Int];
+}
+
+/// Allocate a zero-filled append-only KV cache for `n_layer` layers, `n_kv`
+/// wide, holding up to `cap` positions. Negative arguments are clamped to 0.
+pub fn llm_kv_cache_new(n_layer: Int, n_kv: Int, cap: Int) -> LlmKvCache {
+  var nl = n_layer;
+  if nl < 0 {
+    nl = 0;
   }
-  let hnr = llm_rmsnorm_i32(&h, &gamma2, 0, 0);
-  if !hnr.is_ok {
-    let ehn: Str = hnr.error;
-    return _err_ids(ehn);
+  var nk = n_kv;
+  if nk < 0 {
+    nk = 0;
   }
-  let hn: Vec[Int] = hnr.value;
-  let gr = llm_matmul_i32(&w1, ffn, emb, &hn, 1);
-  if !gr.is_ok {
-    let eg: Str = gr.error;
-    return _err_ids(eg);
+  var cp = cap;
+  if cp < 0 {
+    cp = 0;
   }
-  let gate: Vec[Int] = gr.value;
-  let ur = llm_matmul_i32(&w3, ffn, emb, &hn, 1);
-  if !ur.is_ok {
-    let eu: Str = ur.error;
-    return _err_ids(eu);
+  var keys = Vec[Int].new();
+  var vals = Vec[Int].new();
+  let total = nl * cp * nk;
+  var i = 0;
+  while i < total {
+    keys.push(0);
+    vals.push(0);
+    i = i + 1;
   }
-  let up: Vec[Int] = ur.value;
-  let ar = llm_swiglu_i32(&gate, &up, 0);
+  return LlmKvCache{ n_layer: nl; n_kv: nk; cap: cp; len: 0; keys: keys; vals: vals; };
+}
+
+/// Number of cached positions (`0..cap`).
+pub fn llm_kv_cache_len(c: &LlmKvCache) -> Int {
+  return c.len;
+}
+
+/// Position capacity of the cache.
+pub fn llm_kv_cache_cap(c: &LlmKvCache) -> Int {
+  return c.cap;
+}
+
+/// Append one step of keys/values at position `len` and advance `len`.
+/// `keys_step`/`vals_step` are flat `[layer][n_kv]` (`n_layer * n_kv` values).
+/// Returns the new length. Error cases: `llm: kv cache size mismatch` (wrong
+/// step length), `llm: kv cache full` (len == cap).
+pub fn llm_kv_cache_append(c: &mut LlmKvCache, keys_step: &Vec[Int], vals_step: &Vec[Int]) -> Result[Int, Str] {
+  let want = c.n_layer * c.n_kv;
+  if keys_step.len() != want || vals_step.len() != want {
+    return _err_int("llm: kv cache size mismatch");
+  }
+  if c.len >= c.cap {
+    return _err_int("llm: kv cache full");
+  }
+  var l = 0;
+  while l < c.n_layer {
+    var d = 0;
+    while d < c.n_kv {
+      let base = (l * c.cap + c.len) * c.n_kv;
+      let kv: Int = keys_step[l * c.n_kv + d];
+      let vv: Int = vals_step[l * c.n_kv + d];
+      c.keys[base + d] = kv;
+      c.vals[base + d] = vv;
+      d = d + 1;
+    }
+    l = l + 1;
+  }
+  c.len = c.len + 1;
+  return _ok_int(c.len);
+}
+
+/// Read the key vector of `layer` at cached position `pos` (`n_kv` values).
+/// Error: `llm: kv cache index out of range`.
+pub fn llm_kv_cache_key(c: &LlmKvCache, layer: Int, pos: Int) -> Result[Vec[Int], Str] {
+  if layer < 0 || layer >= c.n_layer || pos < 0 || pos >= c.len {
+    return _err_ids("llm: kv cache index out of range");
+  }
+  let base = (layer * c.cap + pos) * c.n_kv;
+  var out = Vec[Int].new();
+  var d = 0;
+  while d < c.n_kv {
+    let x: Int = c.keys[base + d];
+    out.push(x);
+    d = d + 1;
+  }
+  return _ok_ids(out);
+}
+
+/// Read the value vector of `layer` at cached position `pos`. Error:
+/// `llm: kv cache index out of range`.
+pub fn llm_kv_cache_val(c: &LlmKvCache, layer: Int, pos: Int) -> Result[Vec[Int], Str] {
+  if layer < 0 || layer >= c.n_layer || pos < 0 || pos >= c.len {
+    return _err_ids("llm: kv cache index out of range");
+  }
+  let base = (layer * c.cap + pos) * c.n_kv;
+  var out = Vec[Int].new();
+  var d = 0;
+  while d < c.n_kv {
+    let x: Int = c.vals[base + d];
+    out.push(x);
+    d = d + 1;
+  }
+  return _ok_ids(out);
+}
+
+/// Integer multi-position attention: scores `s_j = dot(q, key_j) / 2` (the
+/// single-position scaling), integer softmax weights at `shift`, and the
+/// value mixture `out[i] = round(sum_j w_j * val_j[i] / 2^shift)`. With a
+/// single position this is EXACTLY `val_0` (softmax is `[2^shift]`), so the
+/// cached path reduces to the single-position forward where shapes permit.
+/// Error cases: `llm: attention size mismatch` (wrong flat sizes or non-empty
+/// query required), `llm: attention overflow`, plus any dot/softmax error.
+pub fn llm_attention_i32(q: &Vec[Int], keys: &Vec[Int], vals: &Vec[Int], n_kv: Int, shift: Int) -> Result[Vec[Int], Str] {
+  let emb = q.len();
+  if emb == 0 || n_kv < 1 || keys.len() != n_kv * emb || vals.len() != n_kv * emb {
+    return _err_ids("llm: attention size mismatch");
+  }
+  var scores = Vec[Int].new();
+  var j = 0;
+  while j < n_kv {
+    var kv = Vec[Int].new();
+    var d = 0;
+    while d < emb {
+      let kx: Int = keys[j * emb + d];
+      kv.push(kx);
+      d = d + 1;
+    }
+    let dr = llm_dot_i32(q, &kv);
+    if !dr.is_ok {
+      let ed: Str = dr.error;
+      return _err_ids(ed);
+    }
+    let dot: Int = dr.value;
+    scores.push(dot / 2);
+    j = j + 1;
+  }
+  let smr = llm_softmax_i32(&scores, shift);
+  if !smr.is_ok {
+    let es: Str = smr.error;
+    return _err_ids(es);
+  }
+  let wts: Vec[Int] = smr.value;
+  let one = 1 << shift;
+  var out = Vec[Int].new();
+  var i = 0;
+  while i < emb {
+    var acc = 0;
+    var t = 0;
+    while t < n_kv {
+      let wv: Int = wts[t];
+      let xv: Int = vals[t * emb + i];
+      if _mul_ovf(wv, xv) {
+        return _err_ids("llm: attention overflow");
+      }
+      let p = wv * xv;
+      if _add_ovf(acc, p) {
+        return _err_ids("llm: attention overflow");
+      }
+      acc = acc + p;
+      t = t + 1;
+    }
+    out.push(_idiv_round(acc, one));
+    i = i + 1;
+  }
+  return _ok_ids(out);
+}
+
+/// Multi-position forward pass over the fixture model: computes the token's
+/// query/key/value, applies the position's RoPE table (`cos_tab`/`sin_tab`
+/// hold `cap * head_dim/2` fixed-point values indexed by position), appends
+/// the roped key and the value to the append-only cache at the current
+/// position, then attends over EVERY cached position (0..len) with the
+/// existing attention primitives before the shared FFN/logits tail. A cache
+/// holding a single position reproduces `llm_forward_token` exactly. Error
+/// cases: `llm: token id out of range`, `llm: kv cache full`,
+/// `llm: kv cache size mismatch`, `llm: kv cache rope table too small`, plus
+/// any kernel/weight error.
+pub fn llm_forward_cache(model: &LlmModel, buf: &Vec[UInt8], token_id: Int, cos_tab: &Vec[Int], sin_tab: &Vec[Int], rshift: Int, c: &mut LlmKvCache) -> Result[Vec[Int], Str] {
+  let v: LlmVocab = model.vocab;
+  let vsz = llm_vocab_size(&v);
+  if token_id < 0 || token_id >= vsz {
+    return _err_ids("llm: token id out of range");
+  }
+  let wr = _load_weights(model, buf);
+  if !wr.is_ok {
+    let ew: Str = wr.error;
+    return _err_ids(ew);
+  }
+  let w: LlmWeights = wr.value;
+  let emb = w.emb;
+  if c.n_layer < 1 || c.n_kv != emb {
+    return _err_ids("llm: kv cache size mismatch");
+  }
+  let pos = c.len;
+  if pos >= c.cap {
+    return _err_ids("llm: kv cache full");
+  }
+  let half = emb / 2;
+  if cos_tab.len() < (pos + 1) * half || sin_tab.len() < (pos + 1) * half {
+    return _err_ids("llm: kv cache rope table too small");
+  }
+  let embed: Vec[Int] = w.embed;
+  let gamma1: Vec[Int] = w.gamma1;
+  let wq: Vec[Int] = w.wq;
+  let wk: Vec[Int] = w.wk;
+  let wv: Vec[Int] = w.wv;
+  var x = Vec[Int].new();
+  var c2 = 0;
+  while c2 < emb {
+    let xv: Int = embed[token_id * emb + c2];
+    x.push(xv);
+    c2 = c2 + 1;
+  }
+  let xnr = llm_rmsnorm_i32(&x, &gamma1, 0, 0);
+  if !xnr.is_ok {
+    let en: Str = xnr.error;
+    return _err_ids(en);
+  }
+  let xn: Vec[Int] = xnr.value;
+  let qr = llm_matmul_i32(&wq, emb, emb, &xn, 1);
+  if !qr.is_ok {
+    let eq: Str = qr.error;
+    return _err_ids(eq);
+  }
+  let q0: Vec[Int] = qr.value;
+  let kr = llm_matmul_i32(&wk, emb, emb, &xn, 1);
+  if !kr.is_ok {
+    let ek: Str = kr.error;
+    return _err_ids(ek);
+  }
+  let k0: Vec[Int] = kr.value;
+  let vvr = llm_matmul_i32(&wv, emb, emb, &xn, 1);
+  if !vvr.is_ok {
+    let ev: Str = vvr.error;
+    return _err_ids(ev);
+  }
+  let v0: Vec[Int] = vvr.value;
+  var cq = Vec[Int].new();
+  var sq = Vec[Int].new();
+  var hp = 0;
+  while hp < half {
+    let cv: Int = cos_tab[pos * half + hp];
+    let sv: Int = sin_tab[pos * half + hp];
+    cq.push(cv);
+    sq.push(sv);
+    hp = hp + 1;
+  }
+  let qrr = llm_rope_i32(&q0, emb, &cq, &sq, rshift);
+  if !qrr.is_ok {
+    let eqr: Str = qrr.error;
+    return _err_ids(eqr);
+  }
+  let q: Vec[Int] = qrr.value;
+  let krr = llm_rope_i32(&k0, emb, &cq, &sq, rshift);
+  if !krr.is_ok {
+    let ekr: Str = krr.error;
+    return _err_ids(ekr);
+  }
+  let k: Vec[Int] = krr.value;
+  var kstep = Vec[Int].new();
+  var vstep = Vec[Int].new();
+  var si = 0;
+  while si < emb {
+    let kkv: Int = k[si];
+    let vvv: Int = v0[si];
+    kstep.push(kkv);
+    vstep.push(vvv);
+    si = si + 1;
+  }
+  let ar = llm_kv_cache_append(c, &kstep, &vstep);
   if !ar.is_ok {
     let ea: Str = ar.error;
     return _err_ids(ea);
   }
-  let a: Vec[Int] = ar.value;
-  let fr = llm_matmul_i32(&w2, emb, ffn, &a, 1);
-  if !fr.is_ok {
-    let ef: Str = fr.error;
-    return _err_ids(ef);
+  let npos = pos + 1;
+  var keys = Vec[Int].new();
+  var vals = Vec[Int].new();
+  var p = 0;
+  while p < npos {
+    let kpr = llm_kv_cache_key(c, 0, p);
+    if !kpr.is_ok {
+      let ekp: Str = kpr.error;
+      return _err_ids(ekp);
+    }
+    let kk: Vec[Int] = kpr.value;
+    let vpr = llm_kv_cache_val(c, 0, p);
+    if !vpr.is_ok {
+      let evp: Str = vpr.error;
+      return _err_ids(evp);
+    }
+    let vv2: Vec[Int] = vpr.value;
+    var d = 0;
+    while d < emb {
+      let kx: Int = kk[d];
+      let vx: Int = vv2[d];
+      keys.push(kx);
+      vals.push(vx);
+      d = d + 1;
+    }
+    p = p + 1;
   }
-  let ffnv: Vec[Int] = fr.value;
-  var h2 = Vec[Int].new();
-  var hj = 0;
-  while hj < emb {
-    let hx2: Int = h[hj];
-    let hf: Int = ffnv[hj];
-    h2.push(hx2 + hf);
-    hj = hj + 1;
+  let atr = llm_attention_i32(&q, &keys, &vals, npos, 10);
+  if !atr.is_ok {
+    let eat: Str = atr.error;
+    return _err_ids(eat);
   }
-  let lr = llm_matmul_i32(&wout, vsz, emb, &h2, 1);
-  if !lr.is_ok {
-    let el: Str = lr.error;
-    return _err_ids(el);
+  let attn: Vec[Int] = atr.value;
+  let tailr = _forward_tail(&w, &x, &attn);
+  if !tailr.is_ok {
+    let et: Str = tailr.error;
+    return _err_ids(et);
   }
-  let logits: Vec[Int] = lr.value;
+  let logits: Vec[Int] = tailr.value;
   return _ok_ids(logits);
 }
 
@@ -2126,6 +2534,82 @@ pub fn llm_generate(model: &LlmModel, buf: &Vec[UInt8], prompt_ids: &Vec[Int], m
     }
     state = llm_rng_next(state);
     cur = id;
+  }
+  return _ok_int(step);
+}
+
+/// Cached generation loop: prefill EVERY prompt id into an append-only KV
+/// cache (so each generated step conditions on the whole prompt context, not
+/// just the last token), then repeatedly sample -> forward -> append, stopping
+/// when the sampled id equals `stop_id` (appended) or after `max_new` steps.
+/// The RoPE table is the identity for every position (valid for the fixture
+/// domain; caller-supplied per-position tables are `llm_forward_cache`'s
+/// contract). Returns the number of generated ids. Error: `llm: generate
+/// empty prompt`, `llm: model tensor missing`, `llm: model tensor extent
+/// invalid`, plus any forward or sampler error.
+pub fn llm_generate_cached(model: &LlmModel, buf: &Vec[UInt8], prompt_ids: &Vec[Int], max_new: Int, stop_id: Int, s: &LlmSampler, out_ids: &mut Vec[Int]) -> Result[Int, Str] {
+  if prompt_ids.len() == 0 {
+    return _err_int("llm: generate empty prompt");
+  }
+  if max_new <= 0 {
+    return _ok_int(0);
+  }
+  let g: Gguf = model.g;
+  let eidx = gguf_find_tensor(&g, "token_embd.weight");
+  if !eidx.is_ok {
+    return _err_int("llm: model tensor missing");
+  }
+  let embidx: Int = eidx.value;
+  let dd = gguf_tensor_dim(&g, embidx, 1);
+  if !dd.is_ok {
+    return _err_int("llm: model tensor extent invalid");
+  }
+  let emb: Int = dd.value;
+  let cap = prompt_ids.len() + max_new;
+  var cache = llm_kv_cache_new(1, emb, cap);
+  let rshift = 12;
+  let half = emb / 2;
+  var cos_tab = Vec[Int].new();
+  var sin_tab = Vec[Int].new();
+  var t = 0;
+  while t < cap * half {
+    cos_tab.push(1 << rshift);
+    sin_tab.push(0);
+    t = t + 1;
+  }
+  var logits = Vec[Int].new();
+  var pi = 0;
+  while pi < prompt_ids.len() {
+    let pv: Int = prompt_ids[pi];
+    let pr = llm_forward_cache(model, buf, pv, &cos_tab, &sin_tab, rshift, &mut cache);
+    if !pr.is_ok {
+      let e0: Str = pr.error;
+      return _err_int(e0);
+    }
+    logits = pr.value;
+    pi = pi + 1;
+  }
+  var state = llm_rng_seed(s.seed);
+  var step = 0;
+  while step < max_new {
+    let idr = llm_sample_next(&logits, s, state);
+    if !idr.is_ok {
+      let e1: Str = idr.error;
+      return _err_int(e1);
+    }
+    let id: Int = idr.value;
+    out_ids.push(id);
+    step = step + 1;
+    if llm_is_stop(id, stop_id) {
+      return _ok_int(step);
+    }
+    state = llm_rng_next(state);
+    let nr = llm_forward_cache(model, buf, id, &cos_tab, &sin_tab, rshift, &mut cache);
+    if !nr.is_ok {
+      let e2: Str = nr.error;
+      return _err_int(e2);
+    }
+    logits = nr.value;
   }
   return _ok_int(step);
 }
