@@ -4,6 +4,8 @@ Android system bindings for XIOM -- the A12 (system) head of the Android
 SDK100 program: per-lib runtime-load units with independent SKIP
 classification over the NDK r27b oracle.
 
+> **Published:** `0.2.0` in `eco-v0.1.192` (2026-10-16; sha256 `9d611a16...`).
+
 ## 0.2.0 -- A12 remainder surface (5 runtime-load units)
 
 | Unit | Module | Library | Declared set | Classification |

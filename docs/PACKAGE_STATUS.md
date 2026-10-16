@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-16T18:01:11Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T18:12:13Z.
 
 ## Summary
 
@@ -311,13 +311,13 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.yaml | xiom-yaml | stable | tests/test_conformance.xi | pass 25/25 | 1e9fe6be | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.zonefile | xiom-zonefile | stable | tests/test_conformance.xi | pass 20/20 | e46d4899 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.kafka | xiom-kafka | ported | tests/test_conformance.xi | pass 22/22 | ed680f75 | False | ported only: librdkafka FFI stubs remain (handle -1, poll None, admin Err(-999)); not publishable |
-| xiom.aaudio | xiom-aaudio | incubating | tests/test_conformance.xi | pass 13/13 | 366d80ab | False | new package (Android SDK100 A6 AAudio head); publish gate after the G1 android emission target + first on-device suite run |
+| xiom.aaudio | xiom-aaudio | incubating | tests/test_conformance.xi | pass 13/13 | 366d80ab | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 A6 AAudio head) |
 | xiom.activation | xiom-activation | incubating | tests/test_conformance.xi | pass 24/24 | 8601a49b | False | publish pending: next scope delta |
 | xiom.actor | xiom-actor | incubating | tests/test_conformance.xi | pass 28/28 | 761842c9 | False | publish pending: next scope delta |
 | xiom.algo | xiom-algo | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.analyzer | xiom-analyzer | incubating | tests/test_conformance.xi | pass 23/23 | a0d17c7b | False | publish pending: next scope delta |
-| xiom.android | xiom-android | incubating | tests/test_conformance.xi | pass 14/14 | f8ba590a | False | new package (Android SDK100 W2d A3 input + A4 sensors heads); publish gate after the naming decision + first on-device run (G1) |
-| xiom.android-sys | xiom-android-sys | incubating | tests/test_conformance.xi | pass 16/16 | 9e11a3a7 | False | new package (Android SDK100 A12 system head: log + sync + binder + nnapi + zlib + icu subset; per-lib runtime-load units); publish gate after the naming decision + first end-to-end suite run (G1) |
+| xiom.android | xiom-android | incubating | tests/test_conformance.xi | pass 14/14 | f8ba590a | False | publish pending: legacy-name registry scope re-grant (ops asked 2026-10-16; batch 94 scope_denied); allowlisted + ready |
+| xiom.android-sys | xiom-android-sys | incubating | tests/test_conformance.xi | pass 16/16 | 9e11a3a7 | False | published in eco-v0.1.192 (2026-10-16, 0.2.0 A12 system head) |
 | xiom.ann | xiom-ann | incubating | tests/test_conformance.xi | pass 24/24 | 934d9fd3 | False | published in eco-v0.1.144 (2026-10-11; 0.1.0 in eco-v0.1.139) |
 | xiom.ansible | xiom-ansible | incubating | tests/test_conformance.xi | pass 26/26 | 973754e8 | False | publish pending: next scope delta |
 | xiom.apple | xiom-apple | incubating | tests/test_conformance.xi | pass 21/21 | 23b01b82 | False | publish pending: next scope delta |
@@ -343,7 +343,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.btree | xiom-btree | incubating | tests/test_conformance.xi | pass 23/23 | 5be4adeb | False | published in eco-v0.1.141 (2026-10-11; 0.1.0 in eco-v0.1.121) |
 | xiom.bullet | xiom-bullet | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.cache | xiom-cache | incubating | tests/test_conformance.xi | pass 26/26 | 23b01b82 | False | publish pending: next scope delta |
-| xiom.camera2ndk | xiom-camera2ndk | incubating | tests/test_conformance.xi | pass 5/5 | 4dba927c | False | new package (Android SDK100 A8 camera head); publish gate after the naming decision + first full on-device run (G1) |
+| xiom.camera2ndk | xiom-camera2ndk | incubating | tests/test_conformance.xi | pass 5/5 | 4dba927c | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 A8 camera head) |
 | xiom.cancel | xiom-cancel | incubating | tests/test_conformance.xi | pass 24/24 | b3305ef6 | False | publish pending: next scope delta |
 | xiom.cassandra | xiom-cassandra | incubating | tests/test_conformance.xi | pass 24/24 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.cfn | xiom-cfn | incubating | tests/test_conformance.xi | pass 26/26 | 70f9ce09 | False | publish pending: next scope delta |
@@ -427,7 +427,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb2 | False | publish pending: next scope delta |
 | xiom.jit-fw | xiom-jit-fw | incubating | tests/test_conformance.xi | pass 25/25 | c1e35d4f | False | category harmonization patch bump (registry metadata) |
-| xiom.jni | xiom-jni | incubating | tests/test_conformance.xi | pass 90/90 | ea8dcc0e | False | new package (Android SDK100 A11 jni-seam head: jni.h interface + android/bitmap.h); publish gate after the G1 android emission target + first end-to-end suite run |
+| xiom.jni | xiom-jni | incubating | tests/test_conformance.xi | pass 90/90 | ea8dcc0e | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 A11 jni-seam head) |
 | xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 159/159 | 6a01201d | False | published in eco-v0.1.182 (2026-10-15, 0.7.0 E4/E5 -- E-family complete; 0.6.0 in eco-v0.1.181; 0.5.0 in eco-v0.1.180; 0.4.0 in eco-v0.1.179; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161) |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
@@ -460,7 +460,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.macro | xiom-macro | incubating | tests/test_conformance.xi | pass 25/25 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.materials | xiom-materials | incubating | tests/test_conformance.xi | pass 26/26 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.mechanics | xiom-mechanics | incubating | tests/test_conformance.xi | pass 24/24 | f0933894 | False | publish pending: next scope delta |
-| xiom.mediandk | xiom-mediandk | incubating | tests/test_conformance.xi | pass 5/5 | 43c492f8 | False | new package (Android SDK100 A7 core media head); publish gate after the naming decision + on-device runs (G1) |
+| xiom.mediandk | xiom-mediandk | incubating | tests/test_conformance.xi | pass 5/5 | 43c492f8 | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 A7 core media head) |
 | xiom.memcached | xiom-memcached | incubating | tests/test_conformance.xi | pass 22/22 | ef1c057a | False | category harmonization patch bump (registry metadata) |
 | xiom.merkle | xiom-merkle | incubating | tests/test_conformance.xi | pass 22/22 | 425d4cb2 | False | publish pending: next scope delta |
 | xiom.meshopt | xiom-meshopt | incubating | tests/test_conformance.xi | pass 43/43 | 11a58915 | False | published in eco-v0.1.176 (2026-10-13, 0.5.0 XMC1 cooked container; 0.4.0 in eco-v0.1.159) |
@@ -493,7 +493,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.opencv | xiom-opencv | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.opengl | xiom-opengl | incubating | tests/test_conformance.xi | pass 28/28 | 779ac140 | False | published in eco-v0.1.170 (2026-10-13, 0.5.0 WGL wave; 0.4.0 in eco-v0.1.164; 0.3.0 earlier) |
 | xiom.openpgl | xiom-openpgl | incubating | tests/test_conformance.xi | pass 14/14 | 50b65cee | False | published in eco-v0.1.179 (2026-10-14, 0.1.0 Open PGL v0.7.1) |
-| xiom.opensl | xiom-opensl | incubating |  | pass 4/4 | 0bb6c374 | False | new package (Android SDK100 A6 legacy tail); publish gate after the naming decision + first on-device run (G1) |
+| xiom.opensl | xiom-opensl | incubating |  | pass 4/4 | 0bb6c374 | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 A6 legacy audio tail) |
 | xiom.openssl | xiom-openssl | incubating | tests/test_conformance.xi | pass 4/4 | ec7a7e2e | False | publish pending: bindings batch 20 (eco-v0.1.119) |
 | xiom.optimizer-fw | xiom-optimizer-fw | incubating | tests/test_conformance.xi | pass 25/25 | ecf76d12 | False | publish pending: next scope delta |
 | xiom.opus | xiom-opus | incubating | tests/test_conformance.xi | pass 26/26 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- libopus 1.6.1 streaming audio) |
@@ -517,7 +517,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.protobuf | xiom-protobuf | incubating | tests/test_conformance.xi | pass 49/49 | 84140793 | False | publish pending: eco-v0.1.43 |
 | xiom.proxy | xiom-proxy | incubating | tests/test_conformance.xi | pass 20/20 | d85a0ee6 | False | category harmonization patch bump (registry metadata) |
 | xiom.pulsar | xiom-pulsar | incubating | tests/test_conformance.xi | pass 27/27 | 00c21919 | False | category harmonization patch bump (registry metadata) |
-| xiom.pulse | xiom-pulse | incubating | tests/test_conformance.xi | pass 125/125 | 053cab87 | False | new name: pending ops scope + allowlist append (Beacon registry tier) |
+| xiom.pulse | xiom-pulse | incubating | tests/test_conformance.xi | pass 125/125 | 053cab87 | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 Beacon protocol core) |
 | xiom.puppet | xiom-puppet | incubating | tests/test_conformance.xi | pass 26/26 | 8c0ac311 | False | publish pending: next scope delta |
 | xiom.pwm | xiom-pwm | incubating | tests/test_conformance.xi | pass 20/20 | 599f89c9 | False | publish pending: next scope delta |
 | xiom.randomforest | xiom-randomforest | incubating | tests/test_conformance.xi | pass 24/24 | 3ff86363 | False | publish pending: next scope delta |

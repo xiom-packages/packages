@@ -13,7 +13,7 @@
                   "checked":  "2026-10-16T13:20:51Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (Android SDK100 W2d A3 input + A4 sensors heads); publish gate after the naming decision + first on-device run (G1)",
+    "excluded_reason":  "publish pending: legacy-name registry scope re-grant (ops asked 2026-10-16; batch 94 scope_denied); allowlisted + ready",
     "platforms":  [
                       "windows-x64",
                       "android-arm64",

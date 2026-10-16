@@ -13,7 +13,7 @@
                   "checked":  "2026-10-16T17:04:02Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (Android SDK100 A12 system head: log + sync + binder + nnapi + zlib + icu subset; per-lib runtime-load units); publish gate after the naming decision + first end-to-end suite run (G1)",
+    "excluded_reason":  "published in eco-v0.1.192 (2026-10-16, 0.2.0 A12 system head)",
     "platforms":  [
                       "android-arm64",
                       "android-x86_64"

@@ -1,8 +1,8 @@
 # xiom.pulse -- PULSE Beacon (embeddable core)
 
 > **Status:** `incubating` -- conformance-tested (125/125), recorded x2 green
-> on XIOM v0.64.5. Not yet published (new name: pending ops scope +
-> allowlist append).
+> on XIOM v0.64.5. Published: `0.1.0` in `eco-v0.1.192`
+> (sha256 `53fcc56e...`).
 > **Scope:** the frozen PULSE protocol core (Beacon extraction): HTTP/1.1
 > request parser + response builders, the keep-alive A/B connection loop
 > with named deadlines, the route matching mechanism and the uniform JSON

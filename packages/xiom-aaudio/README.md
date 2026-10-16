@@ -3,6 +3,8 @@
 Android AAudio bindings for XIOM -- the A6 AAudio head of the Android
 SDK100 program (`aaudio/AAudio.h`, NDK r27b).
 
+> **Published:** `0.1.0` in `eco-v0.1.192` (2026-10-16; sha256 `ab97fe2e...`).
+
 - Runtime probe for `libaaudio.so` with SKIP semantics (absent runtime
   -> `AAUDIO_LOAD_ABSENT`; broken exports -> `AAUDIO_LOAD_ABI` FAIL).
 - Full declared surface bound + ABI-checked: 67 `AAUDIO_API` functions;

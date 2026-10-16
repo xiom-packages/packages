@@ -3,6 +3,8 @@
 Android NDK media bindings for XIOM -- the **A7 core media head** of the
 Android SDK100 program.
 
+> **Published:** `0.1.0` in `eco-v0.1.192` (2026-10-16; sha256 `a18abb38...`).
+
 - Runtime probe for `libmediandk.so` with SKIP semantics (absent
   runtime -> `MEDIANDK_LOAD_ABSENT`; broken exports ->
   `MEDIANDK_LOAD_ABI` FAIL).

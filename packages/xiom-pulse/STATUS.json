@@ -13,5 +13,5 @@
                   "checked":  "2026-10-16T15:15:26Z"
               },
     "publish":  false,
-    "excluded_reason":  "new name: pending ops scope + allowlist append (Beacon registry tier)"
+    "excluded_reason":  "published in eco-v0.1.192 (2026-10-16, 0.1.0 Beacon protocol core)"
 }
