@@ -1005,6 +1005,36 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
+PAUSED per owner directive)**:
+- Remaining 3 branches landed (path-scoped; trees safety-verified to
+  include current content): **`xiom.android 0.3.0`** (W2c A2: looper 9
+  + native_activity 5 + configuration 50; export set 53->117; ALooper
+  pipe/addFd/pollOnce on-device proof; native_app_glue closure check)
+  `17ef7223`; **`xiom.box2d 0.4.0`** (A02 caller solver: world/bodies/
+  step/state/raycast/overlap/contacts/joints) `d19090cc`;
+  **`xiom.miniaudio 0.4.0`** (A04: device/engine/node-graph/capture/
+  streamed decode) `c11b7ac2`.
+- **Integration gates re-run on the landed state (all GREEN)**:
+  xiom.android **8/8**; xiom.box2d **26/26** (raycast f=375; contacts
+  begin/hit/end; weld/distance/wheel/motor); xiom.miniaudio **27/27**
+  live WASAPI (mix-pull 5280 frames; engine lifecycle; graph mixes
+  exact 0.375/0.25/0.375; capture 2400 frames; WAV/FLAC sample-exact +
+  MP3) -- recorded `4247d3da`.
+- **All 8 waves of this session are landed**: 6 Android units
+  (xiom.android 0.3.0 + camera2ndk + aaudio + mediandk + android-sys +
+  opensl) + box2d 0.4.0 + miniaudio 0.4.0; validate **559/0**.
+- **PAUSED per owner directive** (land waves -> pause -> relay watch).
+  Overnight main-session work queued two accepted high asks for a
+  FUTURE wave: **TLS context binding** (`REL-20261015-2211-packages`;
+  libssl-class loader composing with xiom.tls + xiom.openssl crypto)
+  and **real brotli RFC 7932** (`-2211-packages-2`; libbrotli);
+  `-2302` deduped into them. Android remaining: A3/A4 input+sensors,
+  A9 gl leg, A11 JNI seam, A12 remainder; publishes gated on the G3
+  token reply.
+- Eco: `.185` live (glfw 0.6.0 + sdl3 0.20.0); `.186` armed (transport
+  + otel + template; ops gate).
+
 **UPDATE 2026-10-15 23:00Z (WAVE-2 LANDING PASS 1 -- 5 of 8 landed;
 overnight watch armed)**:
 - **LANDED**: `xiom.camera2ndk` (merge `ae7a72c3`; 70-export surface,
