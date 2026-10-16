@@ -9,18 +9,9 @@
                   "passed":  29,
                   "failed":  0,
                   "run_by":  "bindings-r2",
-                  "commit":  "PENDING",
-                  "checked":  "2026-10-16T21:22:25Z",
-                  "notes":  "SKIP x2 (29/29) + present x2 against the public EposCmd64.dll 6.6 sample on PATH (177/177 table + 177/177 GetProcAddress sweep; live VCS_GetDriverInfo/VCS_GetErrorInfo; typed helper EPOS_NOT_AVAILABLE); v0.64.5; run port.ps1 with -TimeoutSec 300 (suite ~127s, above the 120s default)"
+                  "commit":  "1a128850",
+                  "checked":  "2026-10-16T21:24:26Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (R2 wave closed-SDK loader slice); publish gate after the Linux libEposCmd.so lane + a hardware bring-up run",
-    "platforms":  [
-                      "windows-x64"
-                  ],
-    "runtime_deps":  [
-                         "EposCmd64.dll (x64; closed maxon EPOS Command Library, loaded from the OS search path, nothing vendored; absent -> typed SKIP)",
-                         "EposCmd.dll (legacy x86 candidate; 32-bit targets out of scope in 0.1.0)",
-                         "libEposCmd.so (Linux candidate; LP64 SPEC delta, not exercised in 0.1.0)"
-                     ]
+    "excluded_reason":  "new package (R2 wave closed-SDK loader slice); publish gate after the Linux libEposCmd.so lane + a hardware bring-up run"
 }
