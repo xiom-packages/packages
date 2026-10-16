@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T21:53:01Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T11:23:40Z.
 
 ## Summary
 
-- packages tracked: 535
-- incubating: 253
+- packages tracked: 561
+- incubating: 279
 - ported: 1
 - stable: 281
 - publish enabled: 0
@@ -377,8 +377,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.dlss | xiom-dlss | incubating | tests/test_conformance.xi | pass 21/21 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- NGX declared surface) |
 | xiom.docker | xiom-docker | incubating | tests/test_conformance.xi | pass 26/26 | ee890e25 | False | publish pending: next scope delta |
 | xiom.docx | xiom-docx | incubating | tests/test_conformance.xi | pass 27/27 | f0f7743d | False | category harmonization patch bump (registry metadata) |
-| xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | pass 152/152 | 88b51d96 | False | port done 2026-10-09 (WAL reconciled to xiom.wal); not on the publish scope |
-| xiom.dx12 | xiom-dx12 | incubating | tests/test_conformance.xi | pass 31/31 | 3fcb92aa | False | published in eco-v0.1.167 (2026-10-12; 0.1.0 in eco-v0.1.166) |
+| xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | pass 152/152 | 22df7bdd | False | published in eco-v0.1.183 (2026-10-15, 0.1.0 -- durable-systems core; first publish) |
 | xiom.dxc | xiom-dxc | incubating | tests/test_conformance.xi | pass 20/20 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12) |
 | xiom.dynamo | xiom-dynamo | incubating | tests/test_conformance.xi | pass 21/21 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.eigen | xiom-eigen | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -430,7 +429,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 159/159 | 6a01201d | False | published in eco-v0.1.182 (2026-10-15, 0.7.0 E4/E5 -- E-family complete; 0.6.0 in eco-v0.1.181; 0.5.0 in eco-v0.1.180; 0.4.0 in eco-v0.1.179; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161) |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
-| xiom.ktx2 | xiom-ktx2 | incubating | tests/test_conformance.xi | pass 41/41 | 82e75e16 | False | not allowlisted: new package (0.1.0), awaiting publish-scope decision |
+| xiom.ktx2 | xiom-ktx2 | incubating | tests/test_conformance.xi | pass 41/41 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- KTX-Software 4.4.2) |
 | xiom.kv | xiom-kv | incubating | tests/test_conformance.xi | pass 30/30 | 603f87ef | False | tests-only touch 2026-10-09 (rides the next source version bump) |
 | xiom.l10n-address | xiom-l10n-address | incubating | tests/test_conformance.xi | pass 22/22 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.l10n-currency | xiom-l10n-currency | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
@@ -590,5 +589,5 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.zigbee | xiom-zigbee | incubating | tests/test_conformance.xi | pass 26/26 | 2c6a7b88 | False | category harmonization patch bump (registry metadata) |
 | xiom.zkp | xiom-zkp | incubating | tests/test_conformance.xi | pass 20/20 | e295e6fc | False | publish pending: next scope delta |
 | xiom.zookeeper | xiom-zookeeper | incubating | tests/test_conformance.xi | pass 24/24 | 0535dc8e | False | publish pending: next scope delta |
-| xiom.zstd | xiom-zstd | incubating | tests/test_conformance.xi | pass 8/8 | ba754abf | False | publish pending: bindings batch 12 (eco-v0.1.106) |
+| xiom.zstd | xiom-zstd | incubating | tests/test_conformance.xi | pass 24/24 | 11a58915 | False | published in eco-v0.1.176 (2026-10-13, 0.3.0 ZSTC container; 0.2.0 in eco-v0.1.106) |
 

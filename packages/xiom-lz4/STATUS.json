@@ -8,10 +8,13 @@
                   "status":  "pass",
                   "passed":  81,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "49aeddff",
-                  "checked":  "2026-10-14T12:05:17Z"
+                  "run_by":  "native-session",
+                  "commit":  "3a22a083",
+                  "checked":  "2026-10-14T12:42:24Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: new package batch (bindings lane)"
+    "excluded_reason":  "published in eco-v0.1.178 (2026-10-14, 0.1.0 -- lz4 1.10.0)",
+    "platforms":  [
+                      "windows-x64"
+                  ]
 }

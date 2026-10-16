@@ -11,9 +11,9 @@
 #   tests { suite, status, passed, failed, run_by, commit, checked },
 #   publish, excluded_reason
 # Optional platform-matrix declarations (docs/PLATFORM-MATRIX.md; retrofit at
-# each package's next touch): platforms [] and runtime_deps [] -- both must
-# be non-empty arrays of non-empty strings when present. Every rewrite path
-# preserves them.
+# each package's next touch): platforms [] and runtime_deps [] -- arrays of
+# non-empty strings when present; an empty array means "none explicitly".
+# Every rewrite path preserves them.
 #
 # Rules enforced:
 #   - stage in: incubating | ported | stable | deprecated
@@ -213,7 +213,7 @@ function Test-StatusObject {
         $prop = $s.PSObject.Properties[$f]
         if ($null -ne $prop -and $null -ne $prop.Value) {
             $vals = @($prop.Value)
-            if ($vals.Count -eq 0) { $problems += "'$f' present but empty" }
+            if ($vals.Count -eq 0) { continue }  # explicit none
             foreach ($v in $vals) {
                 if ([string]::IsNullOrWhiteSpace([string]$v)) { $problems += "'$f' entries must be non-empty strings" }
             }

@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.4` -- generated 2026-10-13T21:53:41Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T11:14:36Z.
 
 ## How to read this table
 
@@ -42,11 +42,11 @@ preserved by `-Action repin`/`-Action update`:
 
 ## Summary
 
-- packages: 535
-- declared rows: 5
-- compile: 14
-- compile+runtime-load: 10
-- pure: 497
+- packages: 561
+- declared rows: 35
+- compile: 27
+- compile+runtime-load: 19
+- pure: 500
 - runtime-load: 15
 - native packages pending declaration: 28
 
@@ -67,7 +67,23 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx1
 | xiom.mediandk | 0.1.0 | incubating | compile+runtime-load | windows-x64, android-arm64, android-x86_64 | libmediandk.so (Android platform media library; SKIP when absent; Windows: absent by design) | pass 5/5 @ 43c492f8 |
 | xiom.oidn | 0.1.0 | incubating | compile+runtime-load | windows-x64 | OpenImageDenoise.dll + OpenImageDenoise_core.dll + OpenImageDenoise_device_cpu.dll + tbb12.dll (OIDN v2.5.1 runtime, loader-resolved; SKIP when absent) | pass 4/4 @ 3a22a083 |
 | xiom.opengl | 0.5.0 | incubating | compile+runtime-load | windows-x64 | opengl32.dll (runtime loader; SKIP when absent; WGL needs a Win32 device context) | pass 28/28 @ 779ac140 |
-| xiom.ktx2 | 0.1.0 | incubating | compile | windows-x64 | - | pass 41/41 @ 82e75e16 |
+| xiom.basisu | 0.1.0 | incubating | compile | windows-x64 | - | pass 31/31 @ ccb62224 |
+| xiom.exr | 0.1.0 | incubating | compile | windows-x64 | - | pass 12/12 @ 50b65cee |
+| xiom.harfbuzz | 0.1.0 | incubating | compile | windows-x64 | - | pass 27/27 @ ccb62224 |
+| xiom.jolt | 0.7.0 | incubating | compile | windows-x64 | - | pass 159/159 @ 6a01201d |
+| xiom.ktx2 | 0.1.0 | incubating | compile | windows-x64 | - | pass 41/41 @ 3a22a083 |
+| xiom.lz4 | 0.1.0 | incubating | compile | windows-x64 | - | pass 81/81 @ 3a22a083 |
+| xiom.meshopt | 0.5.0 | incubating | compile | windows-x64 | - | pass 43/43 @ 11a58915 |
+| xiom.nis | 0.1.0 | incubating | compile | windows-x64 | - | pass 28/28 @ 3a22a083 |
+| xiom.nrd | 0.1.0 | incubating | compile | windows-x64 | NRD.dll (user-built from the pinned clone; dynamic loader; SKIP when absent) | pass 29/29 @ 3a22a083 |
+| xiom.ogg | 0.2.0 | stable | compile | windows-x64 | - | pass 34/34 @ 3a22a083 |
+| xiom.openpgl | 0.1.0 | incubating | compile | windows-x64 | - | pass 14/14 @ 50b65cee |
+| xiom.opus | 0.1.0 | incubating | compile | windows-x64 | - | pass 26/26 @ 3a22a083 |
+| xiom.ozz | 0.4.0 | incubating | compile | windows-x64 | - | pass 9/9 @ 50b65cee |
+| xiom.rpr | 0.1.0 | incubating | compile | windows-x64 | RadeonProRender64.dll + backend plugin (Northstar64/Tahoe64/HybridPro) via runtime loader; SKIP when absent | pass 35/35 @ 50b65cee |
+| xiom.rtxdi | 0.1.0 | incubating | compile | windows-x64 | xiom_rtxdi_shim.dll (user-built from the pinned RTXDI runtime; dynamic loader; SKIP when absent) | pass 33/33 @ 50b65cee |
+| xiom.rtxgi | 0.1.0 | incubating | compile | windows-x64 | xiom_rtxgi_shim.dll (user-built from the pinned RTXGI-DDGI clone; dynamic loader; SKIP when absent) | pass 28/28 @ 50b65cee |
+| xiom.spz | 0.1.0 | incubating | compile | windows-x64 | - | pass 74/74 @ ccb62224 |
 | xiom.sqlite | 0.4.1 | incubating | compile | windows-x64 | - | pass 21/21 @ 88a45273 |
 | xiom.stb | 0.3.0 | incubating | compile | windows-x64 | - | pass 18/18 @ 50b65cee |
 | xiom.zstd | 0.3.0 | incubating | compile | windows-x64 | - | pass 24/24 @ 11a58915 |

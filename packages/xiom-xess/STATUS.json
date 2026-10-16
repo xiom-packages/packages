@@ -6,12 +6,19 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  29,
+                  "passed":  24,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "f42852f2",
-                  "checked":  "2026-10-14T12:05:32Z"
+                  "run_by":  "native-session",
+                  "commit":  "3a22a083",
+                  "checked":  "2026-10-14T12:42:24Z"
               },
     "publish":  false,
-    "excluded_reason":  null
+    "excluded_reason":  "published in eco-v0.1.178 (2026-10-14, 0.1.0 -- XeSS 3.0.2 surface)",
+    "platforms":  [
+                      "windows-x64"
+                  ],
+    "runtime_deps":  [
+                         "libxess.dll (Intel XeSS SR core; runtime loader; SKIP when absent)",
+                         "libxess_dx11.dll (XeSS D3D11 companion; optional; typed CANT_LOAD_LIBRARY when absent)"
+                     ]
 }

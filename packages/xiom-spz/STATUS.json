@@ -13,5 +13,8 @@
                   "checked":  "2026-10-13T21:58:27Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: new package batch (bindings lane)"
+    "excluded_reason":  "published in eco-v0.1.177 (2026-10-13, 0.1.0 -- new package; splat compression)",
+    "platforms":  [
+                      "windows-x64"
+                  ]
 }

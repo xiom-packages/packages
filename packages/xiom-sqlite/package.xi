@@ -7,6 +7,6 @@ package xiom_sqlite {
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["XIOM Team"];
-  modules: ["xiom.sqlite", "xiom.sqlite.ffi", "xiom.sqlite.types", "xiom.sqlite.rows", "xiom.sqlite.query", "xiom.sqlite.schema", "xiom.sqlite.migration", "xiom.sqlite.driver"];
+  modules: ["xiom.sqlite", "xiom.sqlite.driver", "xiom.sqlite.ffi", "xiom.sqlite.migration", "xiom.sqlite.query", "xiom.sqlite.rows", "xiom.sqlite.schema", "xiom.sqlite.types"];
   deps: { "xiom.std": ">=0.60.0 <1.0.0" };
 }
