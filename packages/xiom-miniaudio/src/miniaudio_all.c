@@ -42,6 +42,32 @@
  *                                      the decoder data source: 1=in-memory
  *                                      WAV, 2=FLAC fixture, 3=MP3 fixture.
  *                                      0=ok.
+ *
+ * 0.5.0 (long-lived handle surface -- open once -> register render callbacks /
+ * run the stream over time -> close once, alongside the lifecycle bridge):
+ *   int  xma_handle_open(int which, unsigned char* slot);
+ *                                      which: -1 = default priority list,
+ *                                      else an explicit ma_backend id.
+ *                                      0=ok (slot gets 5 u32 LE fields:
+ *                                      handle/backend/rate/channels/period),
+ *                                      1=no context, 2=no device,
+ *                                      3=registry exhausted (4 live handles).
+ *   int  xma_handle_set_render(int handle, void (*render)(unsigned char*, int));
+ *   int  xma_handle_clear_render(int handle);
+ *   int  xma_handle_start(int handle); / xma_handle_stop(int handle);
+ *   int  xma_handle_wait(int handle, int targetCallbacks, int timeoutMs);
+ *   int  xma_handle_info(int handle, unsigned char* slot);
+ *                                      0=ok (slot gets 12 u32 LE fields:
+ *                                      handle/backend/rate/channels/period/
+ *                                      callbacks/frames/started/render_set/
+ *                                      starts/stops/marked), 1=bad handle.
+ *   int  xma_handle_close(int handle);
+ *                                      stop when running, then uninit; the
+ *                                      slot is freed (stale handle -> 1).
+ *   int  xma_handle_rc(void);          ma_result of the last failed call.
+ *                                      Step calls return 1=bad handle,
+ *                                      2=state error, 4=device stop/start
+ *                                      failed (rc getter).
  */
 
 #define MINIAUDIO_IMPLEMENTATION
@@ -1040,3 +1066,260 @@ int xma_stream_format(void) { return g_stream_format; }
 int xma_stream_peak(void) { return g_stream_peak; }
 int xma_stream_exact(void) { return g_stream_exact; }
 int xma_stream_first(void) { return g_stream_first; }
+
+/* ======================================================================== */
+/* 0.5.0: long-lived device handles.                                        */
+/* Open once -> register a render callback / run the stream over time ->    */
+/* close once.  A fixed 4-slot registry; the handle token is a monotonic    */
+/* id, so a closed handle can never alias a newer one (typed BAD_HANDLE     */
+/* instead of a stale device).  The render callback is a XIOM top-level fn  */
+/* handed over once (the direct-handoff shape proven on the v0.64.5 pin)    */
+/* and invoked from the device thread -- the audio-thread contract.  It     */
+/* writes interleaved f32 stereo frames at the requested 48 kHz (miniaudio  */
+/* converts to the internal shape); the buffer arrives pre-silenced.  The   */
+/* callback may be set/replaced/cleared while the stream runs: the          */
+/* trampoline reads the pointer once per buffer, so at most one in-flight   */
+/* invocation observes the previous value.  callbacks/frames/marked are     */
+/* counters written on the device thread, read by the owner thread.         */
+/* ======================================================================== */
+
+#define XMA_HANDLE_SLOTS 4
+#define XMA_HANDLE_RATE 48000
+#define XMA_HANDLE_CHANNELS 2
+#define XMA_HANDLE_PERIOD 480
+#define XMA_HANDLE_MARK0 0x5A
+#define XMA_HANDLE_MARK1 0xA5
+
+typedef struct {
+  int used;
+  int id;
+  ma_context context;
+  ma_device device;
+  /* read-back / negotiated shape */
+  int backend;
+  int rate;
+  int channels;
+  int period;
+  volatile int started;
+  /* the registered XIOM render callback (device-thread read, owner-thread write) */
+  void (*volatile render)(unsigned char*, int);
+  /* device-thread counters */
+  volatile int callbacks;
+  volatile int frames;
+  volatile int marked;
+  volatile int starts;
+  volatile int stops;
+} xma_handle_slot;
+
+static xma_handle_slot g_handle_slots[XMA_HANDLE_SLOTS];
+static int g_handle_next_id = 1;
+static int g_handle_rc = 0;
+
+static xma_handle_slot* xma_handle_find(int handle) {
+  int i;
+  if (handle <= 0) return NULL;
+  for (i = 0; i < XMA_HANDLE_SLOTS; i++) {
+    if (g_handle_slots[i].used && g_handle_slots[i].id == handle) {
+      return &g_handle_slots[i];
+    }
+  }
+  return NULL;
+}
+
+static void xma_handle_data_cb(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount) {
+  xma_handle_slot* pSlot = (xma_handle_slot*)pDevice->pUserData;
+  void (*render)(unsigned char*, int);
+  unsigned char* pOut;
+  (void)pInput;
+  if (pSlot == NULL) return;
+  pSlot->callbacks++;
+  pSlot->frames += (int)frameCount;
+  render = pSlot->render;   /* one read per buffer (registration handoff) */
+  if (render == NULL) {
+    return;                 /* no render registered: the buffer stays pre-silenced */
+  }
+  pOut = (unsigned char*)pOutput;
+  render(pOut, (int)frameCount);   /* XIOM code runs on the device thread */
+  /* marker evidence: the XIOM render wrote two known bytes into the buffer */
+  if (pOut[0] == XMA_HANDLE_MARK0 && pOut[16] == XMA_HANDLE_MARK1) {
+    pSlot->marked++;
+  }
+}
+
+/* which: -1 = default priority list, else an explicit ma_backend id.
+ * slot: 20 bytes -> handle(0) backend(4) rate(8) channels(12) period(16). */
+int xma_handle_open(int which, unsigned char* slot) {
+  xma_handle_slot* pSlot = NULL;
+  ma_backend backends[1];
+  ma_device_config config;
+  ma_result result;
+  int i;
+
+  g_handle_rc = 0;
+  for (i = 0; i < XMA_HANDLE_SLOTS; i++) {
+    if (!g_handle_slots[i].used) {
+      pSlot = &g_handle_slots[i];
+      break;
+    }
+  }
+  if (pSlot == NULL) {
+    return 3;   /* registry exhausted */
+  }
+
+  if (which < 0) {
+    result = ma_context_init(NULL, 0, NULL, &pSlot->context);   /* default priority list */
+  } else {
+    backends[0] = (ma_backend)which;
+    result = ma_context_init(backends, 1, NULL, &pSlot->context);
+  }
+  if (result != MA_SUCCESS) {
+    g_handle_rc = (int)result;
+    return 1;   /* no context */
+  }
+
+  config = ma_device_config_init(ma_device_type_playback);
+  config.playback.format = ma_format_f32;
+  config.playback.channels = XMA_HANDLE_CHANNELS;
+  config.sampleRate = XMA_HANDLE_RATE;
+  config.periodSizeInFrames = XMA_HANDLE_PERIOD;
+  config.dataCallback = xma_handle_data_cb;
+  config.pUserData = pSlot;
+
+  result = ma_device_init(&pSlot->context, &config, &pSlot->device);
+  if (result != MA_SUCCESS) {
+    ma_context_uninit(&pSlot->context);
+    g_handle_rc = (int)result;
+    return 2;   /* no device */
+  }
+
+  pSlot->backend = (int)pSlot->context.backend;
+  pSlot->rate = (int)pSlot->device.sampleRate;
+  pSlot->channels = (int)pSlot->device.playback.channels;
+  pSlot->period = (int)pSlot->device.playback.internalPeriodSizeInFrames;
+  pSlot->started = 0;
+  pSlot->render = NULL;
+  pSlot->callbacks = 0;
+  pSlot->frames = 0;
+  pSlot->marked = 0;
+  pSlot->starts = 0;
+  pSlot->stops = 0;
+  pSlot->id = g_handle_next_id++;
+  pSlot->used = 1;
+
+  if (slot) {
+    put_u32(slot + 0, (unsigned int)pSlot->id);
+    put_u32(slot + 4, (unsigned int)pSlot->backend);
+    put_u32(slot + 8, (unsigned int)pSlot->rate);
+    put_u32(slot + 12, (unsigned int)pSlot->channels);
+    put_u32(slot + 16, (unsigned int)pSlot->period);
+  }
+  return 0;
+}
+
+int xma_handle_set_render(int handle, void (*render)(unsigned char*, int)) {
+  xma_handle_slot* pSlot = xma_handle_find(handle);
+  g_handle_rc = 0;
+  if (pSlot == NULL) return 1;
+  pSlot->render = render;
+  return 0;
+}
+
+int xma_handle_clear_render(int handle) {
+  xma_handle_slot* pSlot = xma_handle_find(handle);
+  g_handle_rc = 0;
+  if (pSlot == NULL) return 1;
+  pSlot->render = NULL;
+  return 0;
+}
+
+int xma_handle_start(int handle) {
+  xma_handle_slot* pSlot = xma_handle_find(handle);
+  ma_result result;
+  g_handle_rc = 0;
+  if (pSlot == NULL) return 1;
+  if (pSlot->started) return 2;   /* state: already started */
+  result = ma_device_start(&pSlot->device);
+  if (result != MA_SUCCESS) {
+    g_handle_rc = (int)result;
+    return 4;
+  }
+  pSlot->started = 1;
+  pSlot->starts++;
+  return 0;
+}
+
+int xma_handle_stop(int handle) {
+  xma_handle_slot* pSlot = xma_handle_find(handle);
+  ma_result result;
+  g_handle_rc = 0;
+  if (pSlot == NULL) return 1;
+  if (!pSlot->started) return 2;   /* state: not started */
+  result = ma_device_stop(&pSlot->device);
+  if (result != MA_SUCCESS) {
+    g_handle_rc = (int)result;
+    return 4;
+  }
+  pSlot->started = 0;
+  pSlot->stops++;
+  return 0;
+}
+
+/* Bounded wait until at least targetCallbacks render callbacks accumulated
+ * (1 ms sleeps); returns 0 either way -- the caller reads the counters. */
+int xma_handle_wait(int handle, int targetCallbacks, int timeoutMs) {
+  xma_handle_slot* pSlot = xma_handle_find(handle);
+  ma_timer timer;
+  g_handle_rc = 0;
+  if (pSlot == NULL) return 1;
+  if (targetCallbacks <= pSlot->callbacks) return 0;
+  ma_timer_init(&timer);
+  while (pSlot->callbacks < targetCallbacks) {
+    if (ma_timer_get_time_in_seconds(&timer) * 1000.0 >= (double)timeoutMs) {
+      break;
+    }
+    ma_sleep(1);
+  }
+  return 0;
+}
+
+/* slot: 48 bytes -> handle(0) backend(4) rate(8) channels(12) period(16)
+ * callbacks(20) frames(24) started(28) render_set(32) starts(36) stops(40)
+ * marked(44). */
+int xma_handle_info(int handle, unsigned char* slot) {
+  xma_handle_slot* pSlot = xma_handle_find(handle);
+  g_handle_rc = 0;
+  if (pSlot == NULL) return 1;
+  if (slot) {
+    put_u32(slot + 0, (unsigned int)pSlot->id);
+    put_u32(slot + 4, (unsigned int)pSlot->backend);
+    put_u32(slot + 8, (unsigned int)pSlot->rate);
+    put_u32(slot + 12, (unsigned int)pSlot->channels);
+    put_u32(slot + 16, (unsigned int)pSlot->period);
+    put_u32(slot + 20, (unsigned int)pSlot->callbacks);
+    put_u32(slot + 24, (unsigned int)pSlot->frames);
+    put_u32(slot + 28, (unsigned int)(pSlot->started ? 1 : 0));
+    put_u32(slot + 32, (unsigned int)(pSlot->render != NULL ? 1 : 0));
+    put_u32(slot + 36, (unsigned int)pSlot->starts);
+    put_u32(slot + 40, (unsigned int)pSlot->stops);
+    put_u32(slot + 44, (unsigned int)pSlot->marked);
+  }
+  return 0;
+}
+
+int xma_handle_close(int handle) {
+  xma_handle_slot* pSlot = xma_handle_find(handle);
+  g_handle_rc = 0;
+  if (pSlot == NULL) return 1;
+  if (pSlot->started) {
+    ma_device_stop(&pSlot->device);   /* close while running: stop first */
+    pSlot->started = 0;
+    pSlot->stops++;
+  }
+  pSlot->render = NULL;
+  ma_device_uninit(&pSlot->device);
+  ma_context_uninit(&pSlot->context);
+  pSlot->used = 0;   /* the id is never reused: stale handles stay typed */
+  return 0;
+}
+
+int xma_handle_rc(void) { return g_handle_rc; }
