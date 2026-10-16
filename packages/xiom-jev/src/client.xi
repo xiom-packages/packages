@@ -16,6 +16,11 @@
 //                  characters of the raw body when decoding fails
 //   Parse       -- the endpoint answered 2xx with an invalid body
 //
+// M2 chunk 1: transient non-2xx statuses (429/503/529) are retried up to
+// xiom.jev.retry.default_max_attempts() total attempts with the deterministic
+// bounded backoff of xiom.jev.retry (xiom.time.sleep_ms between attempts). No
+// retry policy lives here; the client only drives the pure policy module.
+//
 // LIVE LEG (resolved 2026-10-16): the Authorization: Bearer header now goes
 // out through the xiom.http 0.1.8 custom-headers surface (see SPEC.md
 // section 8). api_key is validated (non-empty); it is never logged, stored
@@ -27,11 +32,13 @@ use xiom.jev;
 use xiom.jev.errors;
 use xiom.jev.request;
 use xiom.jev.response;
+use xiom.jev.retry;
 use xiom.jev.types;
 use xiom.http;
 use xiom.http.headers;
 use xiom.http.types;
 use xiom.string;
+use xiom.time;
 
 // --------------------------------------------------
 //  Result leaf constructors
@@ -99,24 +106,37 @@ pub fn system_one(base_url: Str, api_key: Str, model: Str, state: State, questio
   if !blob.is_ok {
     return _err_bad("client: header build failed: " + blob.error);
   }
-  let res: Result[HttpClientResponse, Str] = xiom.http.http_request(endpoint, "POST", body, blob.value);
-  if !res.is_ok {
-    let why: Str = res.error;
-    return _err_transport(why);
-  }
-  let resp: HttpClientResponse = res.value;
-  let status: Int = resp.status;
-  if status < 200 || status >= 300 {
-    let decoded: Str = response.api_error_detail(resp.body);
-    if decoded.len() > 0 {
-      return _err_status(status, decoded);
+  let header_blob: Str = blob.value;
+  let max_attempts: Int = retry.default_max_attempts();
+  var attempt: Int = 1;
+  while attempt <= max_attempts {
+    let res: Result[HttpClientResponse, Str] = xiom.http.http_request(endpoint, "POST", body, header_blob);
+    if !res.is_ok {
+      let why: Str = res.error;
+      return _err_transport(why);
     }
-    return _err_status(status, _preview(resp.body, 200));
+    let resp: HttpClientResponse = res.value;
+    let status: Int = resp.status;
+    if status < 200 || status >= 300 {
+      let decoded: Str = response.api_error_detail(resp.body);
+      var detail: Str = decoded;
+      if detail.len() == 0 {
+        detail = _preview(resp.body, 200);
+      }
+      if retry.retry_is_retryable(status) == 1 && attempt < max_attempts {
+        let delay: Int = retry.retry_backoff_millis(attempt, retry.default_base_millis(), retry.default_cap_millis());
+        time.sleep_ms(delay);
+        attempt = attempt + 1;
+        continue;
+      }
+      return _err_status(status, detail);
+    }
+    let parsed: Result[Response, JevError] = response.parse_response(resp.body);
+    if !parsed.is_ok {
+      let e2: JevError = parsed.error;
+      return _err_response(e2);
+    }
+    return _ok_response(parsed.value);
   }
-  let parsed: Result[Response, JevError] = response.parse_response(resp.body);
-  if !parsed.is_ok {
-    let e2: JevError = parsed.error;
-    return _err_response(e2);
-  }
-  return _ok_response(parsed.value);
+  return _err_transport("client: retry loop exhausted");
 }

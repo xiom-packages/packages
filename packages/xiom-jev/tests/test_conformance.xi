@@ -33,6 +33,7 @@ use xiom.jev.errors;
 use xiom.jev.types;
 use xiom.jev.request;
 use xiom.jev.response;
+use xiom.jev.retry;
 use xiom.jev.selection;
 
 // --------------------------------------------------
@@ -655,6 +656,60 @@ fn t26() -> Int {
 }
 
 // --------------------------------------------------
+//  M2 chunk 1: retry policy (429/503/529, bounded backoff)
+// --------------------------------------------------
+
+fn t27() -> Int {
+  var ok: Bool = true;
+  if retry.retry_is_retryable(429) != 1 { ok = false; }
+  if retry.retry_is_retryable(503) != 1 { ok = false; }
+  if retry.retry_is_retryable(529) != 1 { ok = false; }
+  if retry.retry_is_retryable(500) != 0 { ok = false; }
+  if retry.retry_is_retryable(528) != 0 { ok = false; }
+  if retry.retry_is_retryable(530) != 0 { ok = false; }
+  if retry.retry_is_retryable(401) != 0 { ok = false; }
+  if retry.retry_is_retryable(200) != 0 { ok = false; }
+  if retry.retry_is_retryable(0) != 0 { ok = false; }
+  return report(ok, "retry classification (429/503/529 transient)");
+}
+
+fn t28() -> Int {
+  var ok: Bool = true;
+  if retry.retry_backoff_millis(1, 500, 30000) != 500 { ok = false; }
+  if retry.retry_backoff_millis(2, 500, 30000) != 1000 { ok = false; }
+  if retry.retry_backoff_millis(3, 500, 30000) != 2000 { ok = false; }
+  if retry.retry_backoff_millis(4, 500, 30000) != 4000 { ok = false; }
+  if retry.retry_backoff_millis(5, 500, 30000) != 8000 { ok = false; }
+  if retry.retry_backoff_millis(6, 500, 30000) != 16000 { ok = false; }
+  if retry.retry_backoff_millis(7, 500, 30000) != 30000 { ok = false; }
+  if retry.retry_backoff_millis(8, 500, 30000) != 30000 { ok = false; }
+  if retry.retry_backoff_millis(99, 500, 30000) != 30000 { ok = false; }
+  return report(ok, "retry backoff doubling and cap (500ms base, 30s cap)");
+}
+
+fn t29() -> Int {
+  var ok: Bool = true;
+  if retry.retry_backoff_millis(0, 500, 30000) != 0 { ok = false; }
+  if retry.retry_backoff_millis(-3, 500, 30000) != 0 { ok = false; }
+  if retry.retry_backoff_millis(1, 0, 30000) != 0 { ok = false; }
+  if retry.retry_backoff_millis(1, -10, 30000) != 0 { ok = false; }
+  if retry.retry_backoff_millis(1, 100, 50) != 50 { ok = false; }
+  if retry.retry_backoff_millis(5, 100, 250) != 250 { ok = false; }
+  if retry.retry_backoff_millis(1, 500, 0) != 500 { ok = false; }
+  if retry.retry_backoff_millis(3, 500, 0) != 2000 { ok = false; }
+  if retry.retry_backoff_millis(100, 1, 0) != 549755813888 { ok = false; }
+  return report(ok, "retry backoff edges (guards, no-cap, overflow bound)");
+}
+
+fn t30() -> Int {
+  var ok: Bool = true;
+  if retry.default_max_attempts() != 4 { ok = false; }
+  if retry.default_base_millis() != 500 { ok = false; }
+  if retry.default_cap_millis() != 30000 { ok = false; }
+  return report(ok, "retry defaults (4 attempts, 500ms base, 30s cap)");
+}
+
+// --------------------------------------------------
 //  Entry point
 // --------------------------------------------------
 
@@ -687,6 +742,10 @@ fn main() -> Int {
   failed = failed + t24();
   failed = failed + t25();
   failed = failed + t26();
+  failed = failed + t27();
+  failed = failed + t28();
+  failed = failed + t29();
+  failed = failed + t30();
   if failed == 0 {
     io.println("xiom.jev: all tests passed");
   } else {

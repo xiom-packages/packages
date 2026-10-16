@@ -4,7 +4,7 @@
 
 TypeSafe Jev client tier: **System One** structured decisions for XIOM.
 
-> **Status:** `incubating` -- 0.1.0. Offline conformance suite **82/82 x2** on
+> **Status:** `incubating` -- 0.1.0. Offline conformance suite **86/86 x2** on
 > compiler `v0.64.6` (native-session, 2026-10-16). Live probe is SKIP-safe and
 > link-gated (see "Live probe"). Published in `eco-v0.1.193` (sha256
 > `ed212ee6...`, 2026-10-16).
@@ -25,6 +25,7 @@ coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
 | `xiom.jev.request` | `build_request` -- validated JSON body (exact bytes, insertion order) |
 | `xiom.jev.response` | `parse_response` -- typed answers + confidence + usage; `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_labels_at_or_above`, `answer_sample_index` (caller-supplied entropy), score/noul helpers |
+| `xiom.jev.retry` | `retry_is_retryable`, `retry_backoff_millis`, `default_max_attempts/base_millis/cap_millis` -- pure bounded-backoff policy |
 | `xiom.jev.errors` | `JevError` (BadRequest / Transport / HttpStatus / Parse) + `jev_error_text` |
 | `xiom.jev.client` | `system_one` -- transport over the xiom.http 0.1.8 headers surface |
 
@@ -72,6 +73,12 @@ catalog.
 **Live leg (resolved 2026-10-16):** xiom.http 0.1.8 ships the custom-headers
 surface, so the API receives the bearer token; a valid key now yields a 2xx
 ([PASS] in the probe). `api_key` is validated and never logged or stored.
+
+**Retry (M2, 2026-10-16):** transient non-2xx statuses (429 / 503 / 529) are
+retried up to `xiom.jev.retry.default_max_attempts()` total attempts with the
+deterministic bounded backoff of `xiom.jev.retry` (500 ms base doubling to a
+30 s cap, no jitter); the client sleeps via `xiom.time.sleep_ms`. Transport
+failures are not retried. The policy core is offline-golden-tested.
 
 ## Live probe
 

@@ -20,7 +20,11 @@
       xiom.http 0.1.8 `http_headers_blob` + `http_request`; `system_one`
       attaches `Authorization: Bearer`. Probe re-run with a real key still
       pending (no key in this lane).
-- [ ] retry policy for 429/529/503 with bounded backoff (mirror S9).
+- [x] retry policy for 429/529/503 with bounded backoff (mirror S9) --
+      DONE 2026-10-16: `xiom.jev.retry` (pure classification + deterministic
+      exponential backoff, 4 attempts / 500 ms base / 30 s cap) and the
+      `xiom.jev.client.system_one` retry loop (`xiom.time.sleep_ms`). Policy
+      core is offline-golden-tested; the client stays `--check`-clean.
 - [ ] structured instructions and criteria (object/array forms, S3/S4/S5)
       in the question builders.
 - [ ] expose `legend` (level -> description, string or structured) on score

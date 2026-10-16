@@ -260,3 +260,29 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
    that reads `r.value` crashes with an access violation on `v0.64.5`,
    reproduced in scratch probes during this build); the package and suite
    follow the safe patterns everywhere.
+
+## 12. M2 progress (increment 1: retry policy)
+
+First M2 chunk (ROADMAP M2 bullet 2, "retry policy for 429/529/503 with
+bounded backoff (mirror S9)"). New module `xiom.jev.retry`:
+
+- `retry_is_retryable(status)` -- 1 for the transient statuses 429 / 503 /
+  529, else 0 (pure).
+- `retry_backoff_millis(attempt, base_millis, cap_millis)` -- `base *
+  2^(attempt-1)` clamped to `cap`; `attempt` is the 1-based retry number, so
+  the first retry is `base`. `attempt < 1` or `base < 1` -> 0; `cap < 1`
+  means no cap (growth still bounded to 2^39 * base to avoid overflow). No
+  clock, no randomness, no jitter -- a pure integer function.
+- `default_max_attempts()` = 4 (initial + 3 retries), `default_base_millis()`
+  = 500, `default_cap_millis()` = 30000.
+
+`xiom.jev.client.system_one` drives the policy: the POST is attempted up to
+`default_max_attempts()` times; a retryable non-2xx sleeps
+`retry_backoff_millis(attempt, base, cap)` via `xiom.time.sleep_ms` and
+retries; transport failures (no HTTP response) and non-retryable statuses
+surface immediately. The non-2xx `HttpStatus` mapping and the decoded
+`detail` are unchanged (section 6). The client stays `xiom --check`-clean.
+
+The retry core is fully offline-golden-tested (suite t27..t30, 4 checks,
+exact values including the doubling/cap sequence and the overflow bound); no
+live network is involved.
