@@ -1407,6 +1407,124 @@ LANDED; B-32 restore session launched)**:
 - Publishes in queue: serial, ros2, v4l, onnx, gps (5 items) + the
     earlier family closes.
 
+**UPDATE 2026-10-16 22:15Z (R2 COMPLETE -- epos LANDED; all six in;
+validate 566/0)**:
+- **`xiom.epos 0.1.0` LANDED** (land `85b0d9ee` + record `0944ff81`):
+  closed-SDK loader -- 179/179 declared `VCS_*` wrapper shapes across
+  system/config/operate/motion/io clusters, typed
+  EPOS_LOAD_ABSENT/ABI classifications, acquisition contract in
+  PROVENANCE (nothing vendored).  Integration **x2 29/29** (SKIP path
+  on this box; suite runs ~127s -- needs `-TimeoutSec 300`).
+  Publish **gated by the package's own terms** (Linux libEposCmd.so
+  lane + a hardware bring-up run) -- NO request filed yet.
+- **R2 WAVE FULLY LANDED**: serial (52/52), ros2 (82/82), v4l (14/14),
+  onnx (56/56 live ORT), gps (28/28), epos (29/29) -- validate
+  **566/0**.
+- Engine ask folded: `REL-20261016-2139-packages-2` (miniaudio
+  long-lived handle surface) ACKED -> next miniaudio wave.
+- Publishes: serial/ros2/v4l ACKED by packages; onnx/gps in queue.
+  B-32 restore session NOT yet producing commits (watching; relaunch
+  if it stayed sessionless).  Repin: still v0.64.5 (owner).
+
+**UPDATE 2026-10-16 22:45Z (batch 95 LIVE; v0.64.6 slot active;
+sibling's 4-agent wave; B-32 relaunch + nudge)**:
+- **`eco-v0.1.193` LIVE** (batch 95; run 38973537205 green; all
+  registry live-verified): `xiom.serial 0.1.0` (`fdd4dde3`),
+  `xiom.ros2 0.2.0` (`f510bb42`), `xiom.v4l 0.1.0` (`0e3d5390`),
+  `xiom.onnx 0.1.0` (`1c1c599b`; first registry entry carries the
+  full landed surface -- no 0.2.0 bump needed).  Items `-2031` x2 +
+  `-2115` + `-2144` all fixed.
+- **`xiom.gps`**: landed + verified in-tree by packages (merge
+  `84bdc431`; x2 28/28 **on v0.64.6**; record `329aadfd`); NOT
+  published (no allowlist/scope yet); our request `-2144-bindings-2`
+  open with them -- publish rides the next batch after the scope ask.
+- **v0.64.6 repin wave landed machine-wide** (packages repin
+  `b0ba2a6b`; merge `84bdc431`; wrap `94ebce30`): the machine slot
+  `%LOCALAPPDATA%\xiom.new\bin\xiom.exe` now IS **v0.64.6**
+  (verified); packages re-ran our suites on .6 -- **no
+  regressions** (52/52, 82/82, 14/14, 28/28).  NOTE: the
+  bindings-branch `COMPILER_VERSION` file still reads v0.64.5 --
+  the branch-side repin bump is PENDING (owner/sibling step; not
+  done unilaterally here).
+- v4l category warn fixed + family sweep (`8c9493c1`: media+systems
+  / systems; kv/lz4/raylib/slang queued) -- sibling.
+- **Sibling wave**: 4 more agents launched (`8baf0dc7`): miniaudio
+  handle, torch+libtorch, tensorflow, blas fold (all visible busy
+  at 22:39Z).
+- **B-32**: the original restore session stalled (idle 75 min, zero
+  work) -> relaunch requested (`am-1792190420316-3wr9px`, branch
+  `feat/sqlite-nested-restore-2`) AND the stalled session NUDGED
+  with the slot update (slot = .6 -> no scratch download needed).
+  Whichever branch lands green first takes the restore; the other
+  gets stopped.
+
+**UPDATE 2026-10-16 23:05Z (B-32 re-attempt on v0.64.6: STILL RED
+in-situ; filed to compiler; restore stays parked)**:
+- The (nudged) restore session ran the briefed flow on the **v0.64.6
+  slot** (exe sha256 `EB1F46C2ACBA5B95D46124FA7BB52426508BE5B81256E3ED1819CBFDA6979150`):
+  **17/17 PASS then t18 `cols.len=140702801265104` -> 0xC0000005** --
+  identical to the documented v0.64.5 signature.  Controls GREEN on
+  the SAME slot (nested-payload probe + matrix all shapes) =>
+  **m346 fixed the ISOLATED shapes only; the in-situ unit still
+  miscompiles**.  Restore stays **PARKED** (flat `RowOutcome` 0.4.1;
+  package untouched).
+- Evidence: `%TEMP%\kilo\b32\` (attempt-1.log, tested-tree.diff,
+  probe-1.log, matrix-1.log, slot-exe.sha256).  Docs-only README
+  result section approved -> landing via the restore branch.
+- **Compiler relay filed: `REL-20261016-2303-bindings`** -- fold the
+  residual into the v0.64.7 fixer wave as an extension of the
+  m346/XVC-C-18 class; re-verify = the same two commands + README.
+- Bundle caveats for the next attempt: `restore-0.5.0-attempt.patch`
+  is UTF-16LE (convert to UTF-8 before `git apply`); its README hunk
+  predates the 0.4.1 modules-list paragraph (manual re-apply); the
+  other 7 files apply cleanly.
+- Duplicate restore session (`feat/sqlite-nested-restore-2`) to be
+  stopped at the next sweep (Agent Manager timeouts this pass).
+- 23:12Z cleanup: the restore-2 worktree turned out SESSIONLESS (the
+  attach flake again) -> deregistered + its branch deleted; the dir
+  is file-locked (sweep later, same as a3-a4).  NO duplicate session
+  existed.  The README docs-commit GO-AHEAD was delivered to the
+  evidence session (`ses_eb96482b9ffe...`) on the re-send.
+
+**UPDATE 2026-10-16 22:40Z (queue execution wave LAUNCHED -- 4 agents;
+category sweep completed)**: acted on every accepted/queued bindings
+item; no open relay items were pending.
+- **`-2139-packages-2` (engine audio, miniaudio handle surface)** ->
+  EXECUTION launched: `feat/miniaudio-handle` (open once ->
+  callbacks/streams over time -> close, alongside the lifecycle bridge,
+  0.4.x/0.5).
+- **ML program remainder (`-1917-packages-3` queue)** -> EXECUTION
+  launched: `feat/torch-libtorch` (xiom.libtorch + xiom.torch -> 100%
+  coverage, pytorch BSD-3 sparse clone); `feat/tensorflow-coverage`
+  (TF C API, Apache-2.0 sparse clone); `feat/blas-fold` (safe-linalg
+  build-out -- openblas LIVE in .193 unblocks the parked fold).
+  Request `am-1792190033460-61atj4`; all with the light-clone protocol,
+  v0.64.5 pin, x2 suites, origin/bindings base, path-scoped landings.
+- Category vocabulary now 100% clean: kv storage -> database; lz4
+  compression -> data; raylib gamedev -> media; slang tools -> tooling
+  (on top of the 9-manifest family fix `8c9493c1`); validate 566/0.
+- Standing context: publishes with packages (gps -2144-2 open;
+  serial/ros2/v4l/onnx live .193); v0.64.6 repin owner-gated (still on
+  the v0.64.5 slot).
+
+**UPDATE 2026-10-16 22:30Z (relay sweep -- category vocabulary fix;
+gps request already out; audio fold confirmed)**: sweep + fix pass.
+- **`-2220-packages` processed**: `.193` noted (serial/ros2/v4l/onnx
+  live; sha256s listed); **gps publish request was already filed**
+  (`REL-20261016-2144-bindings-2`, open -- awaiting packages ack); the
+  requested **v4l category fix applied**, plus the same-bug siblings:
+  **9 family manifests** moved to the controlled vocabulary
+  (v4l/camera2ndk/mediandk/aaudio/opensl -> `["media","systems"]`;
+  android/android-sys/jni/epos -> `["systems"]`).  Remaining
+  out-of-vocabulary values flagged for future touches (not fixed
+  now): `xiom-kv -> storage`, `xiom-lz4 -> compression`,
+  `xiom-raylib -> gamedev`, `xiom-slang -> tools`.  validate **566/0**
+  after the fix.
+- Engine audio ask confirmed ours: `-2139-packages-2` (miniaudio
+  long-lived handle surface) accepted -> next miniaudio wave; engine
+  keeps the null-tier fallback meanwhile.
+- No other open relay items addressed to bindings.
+
 **UPDATE 2026-10-16 19:25Z (ML/AI + robotics program -- acked + queue
 folded; 20 built names confirmed)**: owner directive (19:16Z) relayed by
 packages; handled this pass.

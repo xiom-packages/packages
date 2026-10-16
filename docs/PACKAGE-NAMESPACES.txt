@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-17T01:03:08+03:00
-# packages: 569  modules: 1079
+# generated: 2026-10-17T02:18:42+03:00
+# packages: 570  modules: 1086
 
 ## package names
 xiom.aaudio
@@ -140,6 +140,7 @@ xiom.eml
 xiom.ensemble
 xiom.environment
 xiom.envsubst
+xiom.epos
 xiom.escape
 xiom.etcd
 xiom.ethereum
@@ -801,6 +802,12 @@ xiom.eml
 xiom.ensemble
 xiom.environment
 xiom.envsubst
+xiom.epos
+xiom.epos.config
+xiom.epos.io
+xiom.epos.motion
+xiom.epos.operate
+xiom.epos.system
 xiom.escape
 xiom.etcd
 xiom.ethereum
@@ -967,6 +974,7 @@ xiom.jev.client
 xiom.jev.errors
 xiom.jev.request
 xiom.jev.response
+xiom.jev.retry
 xiom.jev.selection
 xiom.jev.types
 xiom.jit_fw
