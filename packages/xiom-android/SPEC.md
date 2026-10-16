@@ -1,8 +1,9 @@
 # xiom.android -- SPEC
 
 Android platform-core bindings for XIOM.  First package of the Android
-SDK100 program (`docs/ANDROID-SDK100.md`); 0.3.0 carries the **A1
-window-core + A5 assets-storage + A2 lifecycle-glue heads**.
+SDK100 program (`docs/ANDROID-SDK100.md`); 0.4.0 carries the **A1
+window-core + A5 assets-storage + A2 lifecycle-glue + A3 input + A4
+sensors heads**.
 
 ## Scope (NDK r27b oracle)
 
@@ -61,10 +62,47 @@ window-core + A5 assets-storage + A2 lifecycle-glue heads**.
     exact), and `match(base, requested)` follows the NDK doc -- 0 when
     a value in `base` conflicts with `requested` (populated base vs
     all-unset requested = 0; fresh base matches anything).
+- **A3 input (0.4.0)**: `android/input.h` (63 prototypes = **60
+  platform exports** + the 3 `*_fromJava` JNI constructors -> A11)
+  and `android/keycodes.h` (the frozen 317-entry `AKEYCODE_*` enum).
+  Exports: `AInputEvent_*` 4, `AInputQueue_*` 6 (the native_app_glue
+  integration point), `AKeyEvent_*` 8, `AMotionEvent_*` 42 -- all
+  wrapped in `xiom.android.input` with the 161-value `input.h` +
+  317-value `keycodes.h` constant tables.  The queue is
+  framework-delivered to an app (never fabricated by the bridge); the
+  live attach/detach + keycode/event-read path is proven by the
+  on-device **app probe** (C-only NativeActivity APK), the shell probe
+  proves the explicit-error contract.  Float-valued accessors cross
+  the boundary as IEEE-754 binary32 BIT PATTERNS (B-12: fp cast-call
+  returns are miscompiled on the pinned toolchain); `android_f32_from_bits`
+  rebuilds them in pure arithmetic.  One platform quirk recorded:
+  `AInputEvent_release` is scoped by the header to the `fromJava`
+  objects -- releasing a queue event double-frees (Scudo abort),
+  witnessed during probing; the module documents the release scope.
+- **A4 sensors (0.4.0)**: `android/sensor.h` -- **32 platform
+  exports** (`ASensorManager_*` 12, `ASensorEventQueue_*` 7,
+  `ASensor_*` 13) + the 60-value `ASENSOR_*` table, all wrapped in
+  `xiom.android.sensors`.  `getSensorList`/`getDynamicSensorList`
+  hand back PLATFORM-owned lists (stable out-pointers, indexed
+  through `xa_sensor_list_at`); `getEvents` fills **bridge-owned
+  ASensorEvent slots** (sizeof 104, timestamp @16, data @24, flags
+  @88 -- `_Static_assert`-gated at probe build against the real
+  header) with typed per-slot accessors; float payloads also ride
+  the binary32-bits path.  On-device LIVE: manager -> 18 sensors ->
+  ident + callback event queues -> `registerSensor` ->
+  `getEvents` with exact x/y/z; direct-channel creation is offered by
+  the API but rejected by the emulator's goldfish HAL (rc=-12,
+  recorded, never papered over).
 - Declared export set: 27 (A1) + 26 (A5) + 64 (A2: looper 9 +
-  activity 5 + config 50) = **117**.  A compile-time guard in the
-  bridge pins the count; the suite asserts
-  `android_export_count() == 117` on every host.
+  activity 5 + config 50) + 60 (A3) + 32 (A4) = **209**.  A
+  compile-time guard in the bridge pins the count; the suite asserts
+  `android_export_count() == 209` on every host.
+- Constant transcription: all 538 input.h/keycodes.h/sensor.h
+  constants (161 + 317 + 60) are GENERATED from the NDK r27b headers
+  by `docs/repro/gen-a3a4-consts.ps1` (values evaluated by the NDK
+  compiler on the API-36 emulator) and re-gated at probe build time
+  by `_Static_assert` against the real headers (534 int + 3 float
+  asserts; the `nanf("")` sentinel rides a bit-pattern runtime check).
 - Minimum API floor for the FULL declared set: API 34
   (`get/setGrammaticalGender`; `getScreenRound` is API 30).  The ABI
   check is strict: an older system image reports the honest delta
@@ -95,7 +133,17 @@ window-core + A5 assets-storage + A2 lifecycle-glue heads**.
   stay C-side; handles cross as `Int`.  Looper handlers are top-level
   fns -- the C side receives the code address only (no environment).
 - The A2 heads live in submodules: `xiom.android.lifecycle` (looper +
-  activity flags) and `xiom.android.configuration` (config).
+  activity flags) and `xiom.android.configuration` (config); the A3/A4
+  heads likewise: `xiom.android.input` (queue + key/motion + the
+  538-constant input/keycode tables) and `xiom.android.sensors`
+  (manager/queue/sensor + the ASENSOR_* table).  Both sit on the same
+  runtime bridge; every call without a loaded runtime errors
+  explicitly.
+- A3 float accessors return `Float64` rebuilt from binary32 bits
+  (`android_f32_from_bits`; negative sentinel = bridge error recorded
+  in `android_error()`); A4 event slots stay C-side -- index-typed
+  `SensorEvent` values address the last `queue_read` batch (B-25:
+  no pointers on the XIOM side).
 
 ## Classification
 
@@ -112,6 +160,12 @@ silent zero handle); the suite exercises that path on every host.
 
 - `native_window_jni.h` / `hardware_buffer_jni.h` (fromSurface /
   toSurface / fromHardwareBuffer): JNI seam, slice A11.
+- `AInputQueue_fromJava` / `AKeyEvent_fromJava` / `AMotionEvent_fromJava`
+  (input.h's 3 JNI constructors): JNI seam, slice A11.  The header
+  scopes `AInputEvent_release` to the objects THEY create -- queue
+  events are owned by the getEvent/finishEvent pair; releasing a
+  queue event double-frees (Scudo abort, witnessed while probing and
+  documented in the module).
 - `asset_manager_jni.h` / `sharedmem_jni.h` (fromJava / dupFromJava):
   JNI seam, slice A11 (live asset/storage wrappers join with it);
   `AConfiguration_fromAssetManager` likewise.
@@ -126,6 +180,18 @@ silent zero handle); the suite exercises that path on every host.
   the header deprecates it (may miss wakes) -- prefer `pollOnce`.
 - Window ops requiring a live Surface and activity ops requiring a
   live activity: bound for ABI; functional runs join at A11/G1.
+- A4 direct channels: `createSharedMemoryDirectChannel` /
+  `createHardwareBufferDirectChannel` / `configureDirectReport` are
+  bound + exercised; the API-36 emulator's goldfish sensor HAL
+  rejects channel creation (rc=-12/-22 recorded in the probe output).
+  Behavior is platform-dependent, never masked.
+- Injected TOUCH events on the emulator: refused for the C-only
+  NativeActivity probe window (dispatcher `InputWindowInfo` frame
+  0x0 / empty touchable region; keyboard events deliver via the
+  focused path).  The 42 `AMotionEvent_*` exports are ABI-checked and
+  the accessor surface is exercised; motion decoding needs a device
+  that delivers motion to the queue (documented in
+  `docs/repro/README.md`; no faked evidence).
 
 ## Build
 

@@ -3,13 +3,16 @@
 #
 # The NDK's native_app_glue C unit (sources/android/native_app_glue/
 # android_native_app_glue.c, shipped in r27b) is the reference CONSUMER of
-# the A2 lifecycle-glue surface.  It is not vendored; this script compiles
-# it for both Android ABIs and proves that every symbol it leaves
-# undefined is either
+# the A2 lifecycle-glue + A3 input surfaces.  It is not vendored; this
+# script compiles it for both Android ABIs and proves that every symbol it
+# leaves undefined is either
 #   - declared in this package's export set (src/android_bridge.c), or
-#   - a documented FUTURE-slice import (A3 input, A12 log), or
+#   - a documented FUTURE-slice import (A12 log), or
 #   - bionic/compiler runtime.
-# An UNKNOWN symbol fails the check.
+# An UNKNOWN symbol fails the check.  Since W2d (0.4.0) the glue's six
+# AInputQueue_*/AInputEvent_* imports resolve inside the 209-export set
+# (the A3 head), so they classify as COVERED -- the A3 integration point
+# the A2 head predicted.
 #
 # Usage: powershell -File check-glue-closure.ps1
 $ErrorActionPreference = "Stop"
@@ -27,16 +30,21 @@ New-Item -ItemType Directory -Path $out -Force | Out-Null
 # 1. Declared export set: the quoted names of k_export_set[] in the bridge.
 $declared = @(Select-String -Path $bridge -Pattern '^\s+"([A-Za-z_][A-Za-z0-9_]*)",\s*$' |
     ForEach-Object { $_.Matches[0].Groups[1].Value })
-if ($declared.Count -ne 117) {
-    Write-Host "FAIL export-set extraction: got $($declared.Count) names, expected 117"
+if ($declared.Count -ne 209) {
+    Write-Host "FAIL export-set extraction: got $($declared.Count) names, expected 209"
     exit 1
 }
 
-# 2. Documented non-package imports (observed, not assumed).
-$futureInput = @(
+# The glue's A3 input imports (AInputQueue_attachLooper/detachLooper/
+# getEvent/preDispatchEvent/finishEvent + AInputEvent_getType) are part
+# of the 209-set since W2d and MUST classify as covered -- a regression
+# there would surface as UNKNOWN below.
+$mustCoverInput = @(
     "AInputQueue_attachLooper", "AInputQueue_detachLooper", "AInputQueue_getEvent",
     "AInputQueue_preDispatchEvent", "AInputQueue_finishEvent", "AInputEvent_getType"
 )
+
+# 2. Documented non-package imports (observed, not assumed).
 $futureLog = @("__android_log_print")
 # The glue's contract with the CONSUMER app: the app defines this entry
 # point (declared in android_native_app_glue.h).
@@ -68,10 +76,11 @@ foreach ($target in @("x86_64-linux-android26", "aarch64-linux-android26")) {
     foreach ($s in $undef) {
         if ($declared -contains $s) {
             $covered++
-            Write-Host "  covered   $s"
-        } elseif ($futureInput -contains $s) {
-            $future++
-            Write-Host "  A3-input  $s (documented future slice)"
+            if ($mustCoverInput -contains $s) {
+                Write-Host "  covered   $s (A3 head)"
+            } else {
+                Write-Host "  covered   $s"
+            }
         } elseif ($futureLog -contains $s) {
             $future++
             Write-Host "  A12-log   $s (documented; live as xiom.android-sys)"

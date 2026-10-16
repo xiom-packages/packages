@@ -33,8 +33,8 @@ UPDATE carries the full trail).
 |---|---|---|---|---|
 | A1 | window-core | `android/native_window*.h`, `hardware_buffer*.h` -> libnativewindow, libandroid | new | G1 |
 | A2 | lifecycle-glue | `android/native_activity.h` / `configuration.h` / `looper.h` + native_app_glue (source) -> libandroid | new | G1 |
-| A3 | input | `android/input.h`, `keycodes.h`, looper event integration -> libandroid | new | G1 |
-| A4 | sensors | `android/sensor.h` -> libandroid | new | G1 |
+| A3 | input | `android/input.h`, `keycodes.h`, looper event integration -> libandroid | DONE 0.4.0 (W2d; on-device app probe) | G1 |
+| A4 | sensors | `android/sensor.h` -> libandroid | DONE 0.4.0 (W2d; on-device LIVE) | G1 |
 | A5 | assets-storage | `android/asset_manager*.h`, `storage_manager.h`, `sharedmem.h` -> libandroid | new | G1 |
 | A6 | audio | `aaudio/AAudio.h`, `SLES/*`, `OMXAL/*`, `amidi/AMidi.h` -> libaaudio, libOpenSLES, libOpenMAXAL, libamidi | new (miniaudio/portaudio are desktop APIs) | G1 |
 | A7 | media | `media/NdkMedia*.h`, `NdkImage*.h` -> libmediandk | new | G1 |
@@ -124,7 +124,11 @@ can be proven without the compiler target:
 - **A7 media**: core IN FLIGHT (`android/mediandk`).
 - **A8 camera**: head IN FLIGHT (`android/camera2ndk`).
 - **A12 starter (log+sync)**: IN FLIGHT (`android/android-sys`).
-- **A3 input + A4 sensors**: NEXT WAVE (serial to W2c -- same package).
+- **A3 input + A4 sensors**: DONE 2026-10-16 (`xiom.android` 0.4.0,
+  W2d; export set 209; A4 LIVE on-device incl. 18-sensor enumerate +
+  event-queue read; A3 queue proven by the C-only NativeActivity app
+  probe: attach/detach + keycode/event-read; touch injection documented
+  blocked for the probe window, see docs/repro/README.md).
 - **A9 graphics-gl**: NEXT WAVE (delta over `xiom.gles`: system lib
   names + EGL_ANDROID_*; generated package -- needs a
   generator-aware pass).
@@ -157,3 +161,18 @@ can be proven without the compiler target:
 - 2026-10-15T21:10Z: **W2b on-device** -- xiom.android 0.2.0: 53/53
   exports resolved; ASharedMemory roundtrip exact; HWB evidence
   unchanged.
+- 2026-10-16T15:35Z: **W2d-A3/A4 shell probe green** -- xiom.android
+  0.4.0 on the API-36 x86_64 emulator: export set **209/209 (0
+  missing)**; constant gate (538 transcribed values vs NDK r27b
+  headers) compiled in; A4 LIVE: 18 sensors enumerated + described,
+  `registerSensor` -> `getEvents` event with exact f32 x/y/z
+  (0 / 9.77632 / 0.812345), ident + callback queues both fire,
+  direct-channel trio rc=-12 (goldfish HAL, documented).
+- 2026-10-16T15:55Z: **W2d-A3 app probe green** -- C-only NativeActivity
+  APK (hasCode=false): 209/209 in an app process; live `AInputQueue`
+  detach rc=0 + attach rc=0 (twice, mid-stream); AKEYCODE_A/B events
+  decoded via the accessors; `A3_RESULT fail=0 events=4`.  Documented
+  block: injected touch is refused for the probe window (dispatcher
+  `InputWindowInfo` frame 0x0 / empty region); Java apps in the same
+  session receive touches; motion side covered by the 42-symbol
+  `AMotionEvent_*` export set (no faked evidence).
