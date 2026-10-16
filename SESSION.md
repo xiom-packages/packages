@@ -228,6 +228,17 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   parked green (36/36, 30/30), wrap signal `-2309-3` sent; owner: chase ops or authorize an alternate
   scope route. Bus health: `REL-20261010-1549-registry-3` carries a non-ASCII char (registry lane's
   `088143b`) so `relay.py validate` is red bus-wide -- foreign item, left for its lane to patch.
+- **WATCH 2026-10-16 11:25Z (mid-morning pass -- A02/A04 wave processed)**: **BATCH 89 PUBLISHED** --
+  `xiom.box2d 0.4.0` (A02 caller 2D-solver surface; `04fe2147...`) + `xiom.miniaudio 0.4.0` (A04 audio
+  growth; `382a16f0...`) LIVE in **`eco-v0.1.187`** (run 38892953795 green; published=2). Merge
+  `80879547` (box2d/miniaudio conflicts -> bindings: fresh records + platform rows kept); validate
+  **561/0** (android family joined the tree); regen `43173d68`; official x2 26/26 + 27/27; record
+  `e32965dd`; wrap `17533975`; sync `6811518e`; both requests fixed; **engine wave-5 relay**
+  `REL-20261016-1124-packages` (A02/A04 ledger rows adoption-ready: physics2d TD5 + audio tiers
+  A1-A5). Pulse-sails acked (`-1108-pulse`: name slot + porter-flow feedback; opens at their
+  keep-alive A+B); bindings ack `-1107` closed. **Scopes `-2138`/`-2216` still OPEN (ops quiet since
+  10-15 19:45)** -- the only remaining gate; transport + otel parked green. Totals: batch 88
+  (template 0.2.0, `eco-v0.1.186`) + batch 89 this morning.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
