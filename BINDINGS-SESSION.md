@@ -1255,6 +1255,33 @@ A9/A11/A12 in flight; batch 90 live)**: sweep after the A3/A4 landing burst.
   (`-1322-bindings`); brotli scope still open with ops (`-1302`).
 - No other unprocessed to-bindings items; doorbell next 15:00Z.
 
+**UPDATE 2026-10-16 14:05Z (relay check + WAVE FREEZE observed -- all
+managed sessions offline; A9/A12 frozen mid-rebase)**: relay verified
+clean; the wave hit an environment-level disconnect.
+- Relay: engine batch all handled (transport-ext -> packages answered;
+  USD accepted by us `-1350` + ack; Vulkan answered `-1347` -- awaiting
+  engine's ack, their move).  No open items from engine for bindings;
+  no new to-bindings items (only the to-all http rider `-1304`).
+  Family publish still with packages (`-1322` refs `-1305`); brotli
+  scope open with ops (`-1302` pair).
+- **FREEZE (observed 14:00-14:05Z)**: every Agent Manager session reports
+  `offline` (extension answers; sessions detached) -- including the
+  continuation, so the doorbell is dark until it re-attaches.  Wave
+  worktree state at the freeze:
+  - **A11 jni: DONE + pushed** (`android/a11-jni` @ `07cad93b`; xiom-jni
+    0.1.0 seam + bitmap, suite 89/89 x2 recorded; clean) -- ready to land
+    path-scoped.
+  - **A9 gl leg: frozen mid-interactive-rebase** (detached @ a92edf2a;
+    onto 474cd291; 103/300 done; 0 unmerged at the freeze).
+  - **A12 sys: frozen mid-interactive-rebase** (detached @ 7556d92f;
+    onto 2a163255; 106/301 done; 1 unmerged -- docs/PACKAGE_STATUS.md).
+  - Sessionless stubs `android/a3-a4` + `android/a12-sys` remain.
+- Recovery notes for the next pass: re-attach the sessions first; A11
+  lands (validate + record); A9/A12 either finish the rebase in-session
+  or ABORT and land their package dirs path-scoped per the standing
+  recipe (never wholesale).  Main worktree untouched by the freeze:
+  clean at `52c23263`.
+
 **UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
 PAUSED per owner directive)**:
 - Remaining 3 branches landed (path-scoped; trees safety-verified to
