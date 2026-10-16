@@ -1026,6 +1026,22 @@ publish requests filed; TLS/brotli sessions launched)**:
   (other lane -- noted, not ours to edit).
 - v0.64.6 (darwin fix) not out yet; installed compiler v0.64.5.
 
+**UPDATE 2026-10-16 11:30Z (CONTEXT-LIMIT HANDOFF -- all waves landed;
+next session starts on TLS/brotli + the Android remainder)**: this
+session hands off on context.  Everything is landed, pushed, and the
+worktree is clean.  The NEW paste prompt below (at the
+`### NEXT-SESSION PASTE PROMPT` section; the 2026-10-15 11:30Z block is
+SUPERSEDED) carries the full state.  One-paragraph state: v0.64.5
+pinned + RE-VERIFY WAVE complete (only B-29 open; B-32 acked for the
+v0.64.6 fixer wave); glfw 0.6.0 + sdl3 0.20.0 lifts live in
+`eco-v0.1.185` (101 releases; `.186` armed); all 8 owner-directed agent
+waves landed (6 Android units + box2d 0.4.0 + miniaudio 0.4.0; validate
+559/0; gates 8/8 + 26/26 + 27/27); publish requests filed
+(`REL-20261016-1125-bindings`); QUEUED HIGH for the next session: PULSE
+TLS context binding + real brotli, then Android A3/A4 (serial), A9,
+A11, A12 remainder.  Doorbell: THIS session's cron is removed at
+handoff -- the continuation session re-arms its own (first action).
+
 **UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
 PAUSED per owner directive)**:
 - Remaining 3 branches landed (path-scoped; trees safety-verified to
@@ -2380,6 +2396,69 @@ Applied from the next touch onward (nothing shipped needs retraction).
    main (`470e13f3`); vulkan 0.5.0 live (`eco-v0.1.138`).
 
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
+
+```
+Bindings lane continuation -- seamless pickup (2026-10-16 11:30Z;
+CONTEXT-LIMIT HANDOFF).  Everything this lane shipped is LIVE through
+`eco-v0.1.185` (101 releases; our lifts glfw 0.6.0 + sdl3 0.20.0 in
+.185; redis in .184; `.186` armed: transport+otel+template).
+
+STATE (2026-10-16; trust the UPDATE stack + this block):
+- Toolchain: v0.64.5 PINNED -- `XIOM_COMPILER=%LOCALAPPDATA%\xiom.new\
+  bin\xiom.exe` (slot byte-identical to release bd71e2d3; 557/557);
+  suites: `.\scripts\port.ps1 -Package <pkg> -TimeoutSec 300`.
+- RE-VERIFY WAVE COMPLETE: all probes green EXCEPT B-29 (big-int
+  bitops >= 2^31; boundary-arithmetic workaround stays shipped);
+  B-30/B-31 FIXED; B-05 FIXED (re-vendored stdlib); glfw 0.6.0
+  dispatcher lift + sdl3 0.20.0 filter/watch widening landed LIVE and
+  published.  B-32 (B-26 residual inside the xiom.sqlite compilation
+  unit; nested restore PARKED -- flat RowOutcome stays) ACKED by the
+  compiler -> v0.64.6 fixer wave.  `-1309` CLOSED (dx12 Int-typed COM
+  surface retained by choice).  v0.64.6 headline = darwin fix.
+- ANDROID SDK100: 6 units LANDED, gate-green, validate 559/0:
+  `xiom.android 0.3.0` (A1+A5+A2; export set 117; ALooper functional
+  on-device) + `xiom.camera2ndk` + `xiom.aaudio` + `xiom.mediandk` +
+  `xiom.android-sys` + `xiom.opensl` (0.1.0 each; on-device evidence
+  in each package's docs/repro).  REMAINING: A3 input + A4 sensors
+  (serial -- same package; next agent wave), A9 gl leg
+  (generator-aware pass over xiom.gles), A11 JNI seam, A12 remainder;
+  G1 compiler android target = owner call; G3 tokens asked
+  (`REL-20261015-2210-bindings`; no artifacts needed -- system libs).
+- ENGINE ASKS LANDED: `xiom.box2d 0.4.0` (A02; 26/26 x2) +
+  `xiom.miniaudio 0.4.0` (A04; 27/27 x2, live WASAPI); publish
+  requests filed (`REL-20261016-1125-bindings`) -- watch SESSION.md
+  for confirmation, then packages relays engine adoption.
+- QUEUED HIGH (accepted; NOT started): PULSE top-tier -- **TLS
+  context binding** (`-2211-packages`; libssl-class loader composing
+  with live xiom.tls + xiom.openssl) and **real brotli RFC 7932**
+  (`-2211-packages-2`; libbrotli); `-2302` deduped into them.
+  Clone-protocol prep first.
+- METHODOLOGY: agent branches may sit on DIVERGENT bases -- land via
+  path-scoped `git checkout <branch> -- packages/<dir>` + commit
+  (NEVER wholesale-merge: old STATUS.json histories conflict); for
+  edits to an existing package have the session rebase onto
+  origin/bindings first, then re-run the suite, record, validate.
+
+FIRST ACTIONS:
+1. Re-arm the doorbell (`0 */3 * * *`): relay fetch + `python
+   tools/relay.py view --lane bindings`; SESSION.md eco record; land
+   any in-flight branch per the recipe above.
+2. Relay sweep: read `-2211` x2 + `REL-20261016-1125` + replies;
+   process (reply via new items; stage only this lane's files).
+3. START THE NEXT WAVE (owner: continue): (a) real brotli (libbrotli;
+   vendored C -- can start immediately as an agent wave, follow the
+   clone-protocol prep pattern) + TLS context binding (libssl-class
+   loader; sync naming/scope with packages first); (b) the Android
+   A3/A4 agent wave on `xiom.android` (serial -- only if no
+   xiom.android edit is in flight); then A9/A11/A12 remainder.
+4. Standing rules: XIOM_COMPILER always the v0.64.5 slot; emulator
+   `C:\Android\sdk\emulator\emulator.exe -avd Medium_Phone_API_36.0
+   -no-window -no-audio -no-boot-anim -no-snapshot -gpu
+   swiftshader_indirect`; provenance per touch; no silent failures;
+   atomic commits + push with rebase-retry (shared worktree).
+```
+
+**SUPERSEDED prompt (2026-10-15 11:30Z, kept for history):**
 
 ```
 Bindings lane continuation -- seamless pickup (2026-10-15 11:30Z;
