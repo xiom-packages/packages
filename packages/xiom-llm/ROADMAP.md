@@ -5,8 +5,9 @@
 # xiom.llm -- roadmap
 
 Lane: llama.cpp-family runner tier of the ML/AI coverage program.
-Current: v0.1.0, milestones M1 + M2 complete and conformance-green (79/79
-x2); `publish: false` pending ops scope + allowlist.
+Current: v0.1.0, milestones M1 + M2 complete, M3 first half (generation loop
++ sampling) complete and conformance-green (129/129 x2); `publish: false`
+pending ops scope + allowlist.
 
 ## M1 -- vocab + byte-level BPE (DONE, 2026-10-16)
 
@@ -67,23 +68,29 @@ first, fixture dims chosen so every oracle value is exact.
 
 ## M3 -- generation loop, sampling, KV cache, Q4_K
 
-1. Generate loop: `llm_greedy_next` (argmax, lowest-index tie) +
-   `llm_generate` with append-only KV cache; stop at EOS/max_new.
-2. Sampling beyond greedy (temperature/top-k/top-p) with a deterministic
-   integer PRNG (seeded, reproducible), declared in SPEC.
+1. Generate loop -- **FIRST HALF DONE (M3a, 2026-10-16)**:
+   `llm_greedy_next` (argmax, lowest-index tie) + `llm_generate` with
+   stop-token handling and a single-position-per-step loop over the new
+   `llm_forward_token` entry point. The append-only KV cache and
+   longer-context attention remain for the second half.
+2. Sampling beyond greedy -- **FIRST HALF DONE (M3a)**: temperature (integer
+   `t_num/t_den` scale), top-k, top-p (nucleus) and a deterministic seeded
+   32-bit LCG PRNG (`llm_rng_seed` / `llm_rng_next` / `llm_rng_below`), all
+   declared in SPEC.md 10.5. Golden seeded id sequence pinned in the suite.
 3. KV cache growth policy and attention on longer contexts; benchmark
-   harness (package-local, `xiom bench` compatible).
+   harness (package-local, `xiom bench` compatible) -- **REMAINS**.
 4. Q4_K-class dequant (`llm_dequant_q4_k`) + Q4_0/Q5_0/Q5_1/Q6_K as
-   sized; block-table conformance + error-bound pins.
+   sized; block-table conformance + error-bound pins -- **REMAINS**.
 5. Tokenizer: GPT-2 `bytes_to_unicode` escape/unescape and the GPT-2
    regex pre-tokenizer, **blocked on non-ASCII GGUF strings** (see
    maintenance item); BOS/EOS insertion flags
    (`tokenizer.ggml.add_bos_token` / `add_eos_token`); SPM (`"llama"`)
    and WPM (`"bert"`) extraction + tokenize paths,
-   `tokenizer.ggml.scores` handling.
+   `tokenizer.ggml.scores` handling -- **REMAINS**.
 6. Acceptance: prompt -> generated ids -> decode roundtrip on the tiny
    fixture; escape-layer golden vectors (hand-computed byte-unicode
-   table values).
+   table values). **PARTIAL**: greedy and seeded prompt -> ids -> decode
+   roundtrips are green (129/129 x2); escape-layer vectors remain.
 
 ## Maintenance / cross-lane items
 

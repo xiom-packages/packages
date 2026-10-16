@@ -127,6 +127,16 @@ fn want4(a: Int, b: Int, c: Int, d: Int) -> Vec[Int] {
   return v;
 }
 
+fn want5(a: Int, b: Int, c: Int, d: Int, e: Int) -> Vec[Int] {
+  var v = Vec[Int].new();
+  v.push(a);
+  v.push(b);
+  v.push(c);
+  v.push(d);
+  v.push(e);
+  return v;
+}
+
 fn check_encode(v: &LlmVocab, text: Str, want: &Vec[Int], name: Str) -> Int {
   let r = llm_bpe_encode(v, text);
   if !r.is_ok {
@@ -1300,12 +1310,14 @@ fn model_container(w1_first: Int) -> Vec[UInt8] {
   let fr = gguf_builder_finish(&b);
   var buf = fr.value;
 
-  // 1. token_embd [20,4] f32: row 1 = [4,4,0,0], all other rows zero.
+  // 1. token_embd [20,4] f32: rows 0 and 1 = [4,4,0,0], all other rows zero.
+  // Row 0 is given a non-degenerate embedding so the M3 generation loop can
+  // forward the greedy-selected token 0 (rows 2..19 stay zero).
   var r = 0;
   while r < 20 {
     var c = 0;
     while c < 4 {
-      if r == 1 && (c == 0 || c == 1) {
+      if (r == 0 || r == 1) && (c == 0 || c == 1) {
         let z = push_f32(&mut buf, 4);
       } else {
         let z2 = push_f32(&mut buf, 0);
@@ -1654,6 +1666,263 @@ fn t52() -> Int {
 }
 
 // --------------------------------------------------
+//  M3a: PRNG, sampling, generation loop
+// --------------------------------------------------
+
+// Deterministic 32-bit LCG: seed normalization, exact hand-computed steps and
+// the uniform-below reduction.
+fn t53() -> Int {
+  var sum = 0;
+  sum = sum + report(llm_rng_seed(42) == 42, "rng seed(42) = 42");
+  sum = sum + report(llm_rng_seed(-1) == 4294967295, "rng seed(-1) normalized to 2^32-1");
+  // next(42) = 1664525*42 + 1013904223 = 1083814273
+  sum = sum + report(llm_rng_next(42) == 1083814273, "rng next(42) = 1083814273");
+  // next(1083814273) = 378494188 (hand-computed mod 2^32)
+  sum = sum + report(llm_rng_next(1083814273) == 378494188, "rng next(1083814273) = 378494188");
+  // 1083814273 mod 1024 = 385, mod 10 = 3
+  sum = sum + report(llm_rng_below(1083814273, 1024) == 385, "rng below(1083814273,1024) = 385");
+  sum = sum + report(llm_rng_below(1083814273, 10) == 3, "rng below(1083814273,10) = 3");
+  sum = sum + report(llm_rng_below(12345, 0) == 0, "rng below(_,0) = 0");
+  return sum;
+}
+
+// Greedy argmax with lowest-index tie-break and the empty-input reject.
+fn t54() -> Int {
+  var sum = 0;
+  var a = want4(3, 5, 5, 2);
+  let r = llm_greedy_next(&a);
+  sum = sum + report(r.value == 1, "greedy [3,5,5,2] -> 1 (lowest tie)");
+  var b = want1(7);
+  let r2 = llm_greedy_next(&b);
+  sum = sum + report(r2.value == 0, "greedy [7] -> 0");
+  var c = want3(-5, -3, -9);
+  let r3 = llm_greedy_next(&c);
+  sum = sum + report(r3.value == 1, "greedy [-5,-3,-9] -> 1");
+  var d = want3(2, 2, 2);
+  let r4 = llm_greedy_next(&d);
+  sum = sum + report(r4.value == 0, "greedy ties -> first index");
+  var e = Vec[Int].new();
+  sum = sum + expect_int_err(llm_greedy_next(&e), "llm: sampler empty logits", "greedy empty rejected");
+  return sum;
+}
+
+// Temperature scaling: identity, flatten (T=2), sharpen (T=1/2), rounding and
+// the non-positive reject.
+fn t55() -> Int {
+  var sum = 0;
+  let base = want3(100, -100, 0);
+  let idr = llm_apply_temperature(&base, 1, 1);
+  sum = sum + report(ids_eq(&idr.value, &base), "temperature 1/1 identity");
+  let fl = llm_apply_temperature(&base, 2, 1);
+  let wf = want3(50, -50, 0);
+  sum = sum + report(ids_eq(&fl.value, &wf), "temperature 2/1 halves logits");
+  let sh = llm_apply_temperature(&base, 1, 2);
+  let ws = want3(200, -200, 0);
+  sum = sum + report(ids_eq(&sh.value, &ws), "temperature 1/2 doubles logits");
+  let rd = llm_apply_temperature(&base, 3, 2);
+  let wr = want3(67, -67, 0);
+  sum = sum + report(ids_eq(&rd.value, &wr), "temperature 3/2 rounds half away");
+  sum = sum + expect_ids_err(llm_apply_temperature(&base, 0, 1), "llm: sampler temperature not positive", "temperature t_num 0 rejected");
+  sum = sum + expect_ids_err(llm_apply_temperature(&base, 1, 0), "llm: sampler temperature not positive", "temperature t_den 0 rejected");
+  return sum;
+}
+
+// Top-k membership mask: exact selection and disabled/oversize arms.
+fn t56() -> Int {
+  var sum = 0;
+  let logits = want4(10, 30, 20, 30);
+  var k2 = Vec[Int].new();
+  let r = llm_top_k_keep(&logits, 2, &mut k2);
+  let w2 = want4(0, 1, 0, 1);
+  sum = sum + report(r.value == 2 && ids_eq(&k2, &w2), "top_k k=2 keeps {1,3}");
+  var k1 = Vec[Int].new();
+  let r1 = llm_top_k_keep(&logits, 1, &mut k1);
+  let w1 = want4(0, 1, 0, 0);
+  sum = sum + report(ids_eq(&k1, &w1), "top_k k=1 keeps lowest-index max");
+  var k4 = Vec[Int].new();
+  let r4 = llm_top_k_keep(&logits, 4, &mut k4);
+  let w4 = want4(1, 1, 1, 1);
+  sum = sum + report(ids_eq(&k4, &w4), "top_k k=n keeps all");
+  var k0 = Vec[Int].new();
+  let r0 = llm_top_k_keep(&logits, 0, &mut k0);
+  sum = sum + report(ids_eq(&k0, &w4), "top_k k=0 disabled (keeps all)");
+  var k9 = Vec[Int].new();
+  let r9 = llm_top_k_keep(&logits, 9, &mut k9);
+  sum = sum + report(ids_eq(&k9, &w4), "top_k k>n keeps all");
+  var e = Vec[Int].new();
+  var ke = Vec[Int].new();
+  sum = sum + expect_int_err(llm_top_k_keep(&e, 2, &mut ke), "llm: sampler empty logits", "top_k empty rejected");
+  return sum;
+}
+
+// Top-p nucleus membership: exact prefix selection, p=0 top-1, p>total all,
+// and the empty-input reject.
+fn t57() -> Int {
+  var sum = 0;
+  let probs = want4(512, 256, 256, 0);
+  var p100 = Vec[Int].new();
+  let r1 = llm_top_p_keep(&probs, 100, &mut p100);
+  let w0 = want4(1, 0, 0, 0);
+  sum = sum + report(ids_eq(&p100, &w0), "top_p p=100 keeps top-1");
+  var p768 = Vec[Int].new();
+  let r2 = llm_top_p_keep(&probs, 768, &mut p768);
+  let w768 = want4(1, 1, 0, 0);
+  sum = sum + report(ids_eq(&p768, &w768), "top_p p=768 keeps {0,1}");
+  var p1024 = Vec[Int].new();
+  let r3 = llm_top_p_keep(&probs, 1024, &mut p1024);
+  let w1024 = want4(1, 1, 1, 0);
+  sum = sum + report(ids_eq(&p1024, &w1024), "top_p p=1024 keeps nonzero mass");
+  var p0 = Vec[Int].new();
+  let r4 = llm_top_p_keep(&probs, 0, &mut p0);
+  sum = sum + report(ids_eq(&p0, &w0), "top_p p=0 keeps top-1");
+  var pbig = Vec[Int].new();
+  let r5 = llm_top_p_keep(&probs, 2000, &mut pbig);
+  let wbig = want4(1, 1, 1, 1);
+  sum = sum + report(ids_eq(&pbig, &wbig), "top_p p>total keeps all");
+  var e = Vec[Int].new();
+  var pe = Vec[Int].new();
+  sum = sum + expect_int_err(llm_top_p_keep(&e, 1, &mut pe), "llm: sampler empty logits", "top_p empty rejected");
+  return sum;
+}
+
+// Category draw from a probability vector: exact bucket boundaries, a
+// restricted mask, the zero-mass fallback and the size-mismatch reject.
+fn t58() -> Int {
+  var sum = 0;
+  let probs = want4(512, 256, 256, 0);
+  let keepall = want4(1, 1, 1, 1);
+  let d0 = llm_sample_choice(&probs, &keepall, 100);
+  sum = sum + report(d0.value == 0, "choice state 100 -> 0");
+  let d1 = llm_sample_choice(&probs, &keepall, 600);
+  sum = sum + report(d1.value == 1, "choice state 600 -> 1");
+  let d2 = llm_sample_choice(&probs, &keepall, 900);
+  sum = sum + report(d2.value == 2, "choice state 900 -> 2");
+  let keep02 = want4(1, 0, 1, 0);
+  let d3 = llm_sample_choice(&probs, &keep02, 600);
+  sum = sum + report(d3.value == 2, "choice masked {0,2} state 600 -> 2");
+  let z = want2(0, 0);
+  let zk = want2(1, 1);
+  let d4 = llm_sample_choice(&z, &zk, 7);
+  sum = sum + report(d4.value == 0, "choice zero mass falls back to argmax");
+  let bad = want3(1, 1, 1);
+  sum = sum + expect_int_err(llm_sample_choice(&probs, &bad, 1), "llm: sampler keep size mismatch", "choice keep mismatch rejected");
+  return sum;
+}
+
+// Composed sampler: greedy arm plus a seeded arm whose uniform draw is
+// verified against hand-computed bucket boundaries; determinism and the
+// temperature reject propagate.
+fn t59() -> Int {
+  var sum = 0;
+  let g = llm_sampler_greedy();
+  let lg = want3(1, 9, 3);
+  let gr = llm_sample_next(&lg, &g, 12345);
+  sum = sum + report(gr.value == 1, "sample_next greedy -> 1");
+  let uni = want4(0, 0, 0, 0);
+  let s600 = llm_sampler_seeded(600, 1, 1, 0, 1024, 10);
+  let a = llm_sample_next(&uni, &s600, 600);
+  let b = llm_sample_next(&uni, &s600, 600);
+  sum = sum + report(a.value == 2 && b.value == 2, "sample_next seeded state 600 -> 2, deterministic");
+  let s100 = llm_sampler_seeded(100, 1, 1, 0, 1024, 10);
+  let c = llm_sample_next(&uni, &s100, 100);
+  sum = sum + report(c.value == 0, "sample_next seeded state 100 -> 0");
+  let sbad = llm_sampler_seeded(1, 0, 1, 0, 0, 10);
+  sum = sum + expect_int_err(llm_sample_next(&uni, &sbad, 1), "llm: sampler temperature not positive", "sample_next bad temperature rejected");
+  return sum;
+}
+
+// Open the fixture model; shared by the generation tests (assumes ok).
+fn open_model(cbuf: &Vec[UInt8]) -> LlmModel {
+  var empty = Vec[UInt8].new();
+  let mr = llm_model_open(cbuf, &empty);
+  return mr.value;
+}
+
+// Greedy generation over the tiny fixture: constant deterministic sequence
+// (the forward of any supported token yields argmax 0), then decode roundtrip.
+fn t60() -> Int {
+  var sum = 0;
+  let cbuf = model_container(4);
+  let model = open_model(&cbuf);
+  let prompt = want1(1);
+  let s = llm_sampler_greedy();
+  var out = Vec[Int].new();
+  let gr = llm_generate(&model, &cbuf, &prompt, 3, -1, &s, &mut out);
+  let w = want3(0, 0, 0);
+  sum = sum + report(gr.value == 3 && ids_eq(&out, &w), "generate greedy 3 steps -> [0,0,0]");
+  let v: LlmVocab = model.vocab;
+  let dr = llm_bpe_decode(&v, &out);
+  sum = sum + report(str_eq(dr.value, "hhh"), "generated [0,0,0] decodes to \"hhh\"");
+  return sum;
+}
+
+// Stop-token handling: generation halts on the sampled stop id (appended).
+fn t61() -> Int {
+  var sum = 0;
+  let cbuf = model_container(4);
+  let model = open_model(&cbuf);
+  let prompt = want1(1);
+  let s = llm_sampler_greedy();
+  var out = Vec[Int].new();
+  let gr = llm_generate(&model, &cbuf, &prompt, 5, 0, &s, &mut out);
+  let w = want1(0);
+  sum = sum + report(gr.value == 1 && ids_eq(&out, &w), "generate stops at token 0 (appended)");
+  return sum;
+}
+
+// Seeded sampling through the loop is reproducible and yields an exact golden
+// id sequence. top_k=2 restricts the draw to tokens {0,1}, both of which the
+// fixture forwards (rows 2..19 are zero embeddings). With seed 7 the kept mass
+// is 110 (probs[0]=probs[1]=55), so r = state mod 110 selects index 0 while
+// r < 55; the LCG states 7, 1025555898, 3923423697, 2630631676 give r =
+// 7, 48, 17, 46 -> [0,0,0,0], and the next state 3981355051 gives r = 91 -> 1.
+fn t62() -> Int {
+  var sum = 0;
+  let cbuf = model_container(4);
+  let model = open_model(&cbuf);
+  let prompt = want1(1);
+  let s = llm_sampler_seeded(7, 1, 1, 2, 1024, 10);
+  var out1 = Vec[Int].new();
+  var out2 = Vec[Int].new();
+  let r1 = llm_generate(&model, &cbuf, &prompt, 5, -1, &s, &mut out1);
+  let r2 = llm_generate(&model, &cbuf, &prompt, 5, -1, &s, &mut out2);
+  let w = want5(0, 0, 0, 0, 1);
+  sum = sum + report(r1.value == 5 && r2.value == 5, "generate seeded runs 5 steps");
+  sum = sum + report(ids_eq(&out1, &w), "generate seeded golden ids [0,0,0,0,1]");
+  sum = sum + report(ids_eq(&out1, &out2), "generate seeded deterministic (same seed)");
+  return sum;
+}
+
+// Generation edge cases and the src forward-pass entry point.
+fn t63() -> Int {
+  var sum = 0;
+  let cbuf = model_container(4);
+  let model = open_model(&cbuf);
+  let s = llm_sampler_greedy();
+  var out = Vec[Int].new();
+  var prompt = Vec[Int].new();
+  sum = sum + expect_int_err(llm_generate(&model, &cbuf, &prompt, 3, -1, &s, &mut out), "llm: generate empty prompt", "generate empty prompt rejected");
+  let p2 = want1(1);
+  var out2 = Vec[Int].new();
+  let z = llm_generate(&model, &cbuf, &p2, 0, -1, &s, &mut out2);
+  sum = sum + report(z.value == 0 && out2.len() == 0, "generate max_new=0 -> no ids");
+  sum = sum + expect_ids_err(llm_forward_token(&model, &cbuf, 99), "llm: token id out of range", "forward token id out of range rejected");
+  let lr = llm_forward_token(&model, &cbuf, 1);
+  let logits: Vec[Int] = lr.value;
+  var bad = 0;
+  var i = 0;
+  while i < 20 {
+    let got: Int = logits[i];
+    if got != (0 - 8) * i {
+      bad = bad + 1;
+    }
+    i = i + 1;
+  }
+  sum = sum + report(logits.len() == 20 && bad == 0, "src forward token 1 logits exact (-8*i)");
+  return sum;
+}
+
+// --------------------------------------------------
 //  Main
 // --------------------------------------------------
 
@@ -1711,6 +1980,17 @@ fn main() -> Int {
   failed = failed + t50();
   failed = failed + t51();
   failed = failed + t52();
+  failed = failed + t53();
+  failed = failed + t54();
+  failed = failed + t55();
+  failed = failed + t56();
+  failed = failed + t57();
+  failed = failed + t58();
+  failed = failed + t59();
+  failed = failed + t60();
+  failed = failed + t61();
+  failed = failed + t62();
+  failed = failed + t63();
   if failed == 0 {
     io.println("xiom.llm: all tests passed");
   }

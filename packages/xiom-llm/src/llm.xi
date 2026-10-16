@@ -45,7 +45,11 @@
 // `llm_softmax_i32`, `llm_silu_q`/`llm_swiglu_i32` and `llm_shape_dump`
 // (M2b). Each numeric kernel documents its integer error bound; the M2
 // fixture is built so every step is exact (golden logits pinned in the
-// suite). The generation loop (SPEC.md 10.5) remains declared for M3.
+// suite). The M3 first half (M3a) adds the deterministic seeded PRNG,
+// sampling (temperature / top-k / top-p), stop-token handling, the
+// `llm_forward_token` single-position entry point and the `llm_generate`
+// loop (SPEC.md 10.5); the KV cache, longer-context attention, benchmark
+// harness and quant breadth (Q4_K etc.) remain for the M3 second half.
 
 module xiom.llm
 
@@ -929,6 +933,24 @@ pub type LlmModel = {
   n_tensors: Int;
 }
 
+/// Sampler configuration for the M3 generation loop (SPEC.md 10.5). All
+/// fields are plain Ints (no floats). `greedy != 0` selects argmax and ignores
+/// the sampling fields. Otherwise the pipeline is: temperature scale by
+/// `t_num / t_den`, integer softmax at `shift`, top-k by adjusted logit rank,
+/// top-p nucleus over the softmax mass (`top_p_q` in units of `2^shift`), and
+/// a uniform draw from a deterministic LCG seeded with `seed`. `top_k <= 0`
+/// or `top_k >= vocab` disables top-k; `top_p_q <= 0` keeps the single
+/// highest-probability token.
+pub type LlmSampler = {
+  greedy: Int;
+  t_num: Int;
+  t_den: Int;
+  top_k: Int;
+  top_p_q: Int;
+  shift: Int;
+  seed: Int;
+}
+
 /// llm_model_open-equivalent assembly of tensor data: concatenate `header`
 /// and `payload` (callers may instead pass one concatenated container buffer
 /// as `header` and an empty `payload`), parse it with xiom.gguf, extract the
@@ -1432,4 +1454,678 @@ pub fn llm_shape_dump(rows: Int, cols: Int, values: &Vec[Int]) -> Str {
   }
   let tv: Tensor = tr.value;
   return tensor_dump(&tv);
+}
+
+// --------------------------------------------------
+//  M3a: deterministic PRNG, sampling, generation loop (SPEC.md 10.5)
+// --------------------------------------------------
+
+// --- forward pass over the M3 fixture model ---
+
+// Product of a tensor's declared dims, or -1 when any accessor fails.
+fn _tensor_elem_count(g: &Gguf, idx: Int) -> Int {
+  let ndr = gguf_tensor_ndims(g, idx);
+  if !ndr.is_ok {
+    return -1;
+  }
+  let nd: Int = ndr.value;
+  var cnt = 1;
+  var d = 0;
+  while d < nd {
+    let dr = gguf_tensor_dim(g, idx, d);
+    if !dr.is_ok {
+      return -1;
+    }
+    let dv: Int = dr.value;
+    cnt = cnt * dv;
+    d = d + 1;
+  }
+  return cnt;
+}
+
+// Load an f32 tensor as plain Ints (every value must be an exact integer;
+// llm_f32_at fails closed otherwise). Error: `llm: model tensor missing`,
+// `llm: model tensor extent invalid`.
+fn _load_f32_tensor(g: &Gguf, buf: &Vec[UInt8], name: Str) -> Result[Vec[Int], Str] {
+  let fir = gguf_find_tensor(g, name);
+  if !fir.is_ok {
+    return _err_ids("llm: model tensor missing");
+  }
+  let idx: Int = fir.value;
+  let cnt = _tensor_elem_count(g, idx);
+  if cnt < 0 {
+    return _err_ids("llm: model tensor extent invalid");
+  }
+  let tdr = llm_tensor_data(g, buf, idx);
+  if !tdr.is_ok {
+    return _err_ids("llm: model tensor extent invalid");
+  }
+  let pay: Vec[UInt8] = tdr.value;
+  var out = Vec[Int].new();
+  var i = 0;
+  while i < cnt {
+    let vr = llm_f32_at(&pay, i * 4);
+    if !vr.is_ok {
+      return _err_ids("llm: model tensor extent invalid");
+    }
+    let vv: Int = vr.value;
+    out.push(vv);
+    i = i + 1;
+  }
+  return _ok_ids(out);
+}
+
+// Load the FIRST Q8_0 block of a tensor as plain Ints. The M3 fixture stores
+// the three FFN matrices as f32-declared slices whose leading 34 bytes are one
+// Q8_0 block (SPEC.md section 8 item 7), so this reads exactly those bytes.
+fn _load_q8_block(g: &Gguf, buf: &Vec[UInt8], name: Str) -> Result[Vec[Int], Str] {
+  let fir = gguf_find_tensor(g, name);
+  if !fir.is_ok {
+    return _err_ids("llm: model tensor missing");
+  }
+  let idx: Int = fir.value;
+  let tdr = llm_tensor_data(g, buf, idx);
+  if !tdr.is_ok {
+    return _err_ids("llm: model tensor extent invalid");
+  }
+  let pay: Vec[UInt8] = tdr.value;
+  let blen = _q8_0_block_bytes();
+  var blk = Vec[UInt8].new();
+  var k = 0;
+  while k < blen && k < pay.len() {
+    let b: UInt8 = pay[k];
+    blk.push(b);
+    k = k + 1;
+  }
+  var out = Vec[Int].new();
+  let sr = llm_q8_0_ints(&blk, &mut out);
+  if !sr.is_ok {
+    return _err_ids("llm: model tensor extent invalid");
+  }
+  return _ok_ids(out);
+}
+
+/// Single-position forward pass for the M3 fixture model (emb=4, heads=1,
+/// ffn=8, 1 layer): gather the `token_id` embedding row, RMSNorm -> Q/K/V ->
+/// position-0 RoPE (identity) -> single-position attention -> output residual
+/// -> SwiGLU FFN with residual -> output projection. This mirrors the M2b
+/// hand-computed composition (SPEC.md section 10.4) and is the per-step core of
+/// `llm_generate`; there is no KV cache yet (one position per step). The three
+/// FFN matrices are read as one Q8_0 block (fixture convention). Error cases:
+/// `llm: token id out of range`, `llm: model tensor missing`,
+/// `llm: model tensor extent invalid`, and any kernel error.
+pub fn llm_forward_token(model: &LlmModel, buf: &Vec[UInt8], token_id: Int) -> Result[Vec[Int], Str] {
+  let g: Gguf = model.g;
+  let v: LlmVocab = model.vocab;
+  let vsz = llm_vocab_size(&v);
+  if token_id < 0 || token_id >= vsz {
+    return _err_ids("llm: token id out of range");
+  }
+  let embr = _load_f32_tensor(&g, buf, "token_embd.weight");
+  if !embr.is_ok {
+    let e: Str = embr.error;
+    return _err_ids(e);
+  }
+  let embed: Vec[Int] = embr.value;
+  let g1r = _load_f32_tensor(&g, buf, "attn_norm.weight");
+  if !g1r.is_ok {
+    let e1: Str = g1r.error;
+    return _err_ids(e1);
+  }
+  let gamma1: Vec[Int] = g1r.value;
+  let wqr = _load_f32_tensor(&g, buf, "wq.weight");
+  if !wqr.is_ok {
+    let e2: Str = wqr.error;
+    return _err_ids(e2);
+  }
+  let wq: Vec[Int] = wqr.value;
+  let wkr = _load_f32_tensor(&g, buf, "wk.weight");
+  if !wkr.is_ok {
+    let e3: Str = wkr.error;
+    return _err_ids(e3);
+  }
+  let wk: Vec[Int] = wkr.value;
+  let wvr = _load_f32_tensor(&g, buf, "wv.weight");
+  if !wvr.is_ok {
+    let e4: Str = wvr.error;
+    return _err_ids(e4);
+  }
+  let wv: Vec[Int] = wvr.value;
+  let wor = _load_f32_tensor(&g, buf, "wo.weight");
+  if !wor.is_ok {
+    let e5: Str = wor.error;
+    return _err_ids(e5);
+  }
+  let wo: Vec[Int] = wor.value;
+  let g2r = _load_f32_tensor(&g, buf, "ffn_norm.weight");
+  if !g2r.is_ok {
+    let e6: Str = g2r.error;
+    return _err_ids(e6);
+  }
+  let gamma2: Vec[Int] = g2r.value;
+  let w1r = _load_q8_block(&g, buf, "ffn_gate.weight");
+  if !w1r.is_ok {
+    let e7: Str = w1r.error;
+    return _err_ids(e7);
+  }
+  let w1: Vec[Int] = w1r.value;
+  let w3r = _load_q8_block(&g, buf, "ffn_up.weight");
+  if !w3r.is_ok {
+    let e8: Str = w3r.error;
+    return _err_ids(e8);
+  }
+  let w3: Vec[Int] = w3r.value;
+  let w2r = _load_q8_block(&g, buf, "ffn_down.weight");
+  if !w2r.is_ok {
+    let e9: Str = w2r.error;
+    return _err_ids(e9);
+  }
+  let w2: Vec[Int] = w2r.value;
+  let woutr = _load_f32_tensor(&g, buf, "output.weight");
+  if !woutr.is_ok {
+    let e10: Str = woutr.error;
+    return _err_ids(e10);
+  }
+  let wout: Vec[Int] = woutr.value;
+  // Dims from the declared tensors: token_embd = [vocab, emb], ffn_gate = [ffn, emb].
+  let eidx = gguf_find_tensor(&g, "token_embd.weight");
+  let embidx: Int = eidx.value;
+  let dd = gguf_tensor_dim(&g, embidx, 1);
+  let emb: Int = dd.value;
+  let fidx = gguf_find_tensor(&g, "ffn_gate.weight");
+  let ffi: Int = fidx.value;
+  let fd = gguf_tensor_dim(&g, ffi, 0);
+  let ffn: Int = fd.value;
+
+  var x = Vec[Int].new();
+  var c = 0;
+  while c < emb {
+    let xv: Int = embed[token_id * emb + c];
+    x.push(xv);
+    c = c + 1;
+  }
+  let xnr = llm_rmsnorm_i32(&x, &gamma1, 0, 0);
+  if !xnr.is_ok {
+    let en: Str = xnr.error;
+    return _err_ids(en);
+  }
+  let xn: Vec[Int] = xnr.value;
+  let qr = llm_matmul_i32(&wq, emb, emb, &xn, 1);
+  if !qr.is_ok {
+    let eq: Str = qr.error;
+    return _err_ids(eq);
+  }
+  let q0: Vec[Int] = qr.value;
+  let kr = llm_matmul_i32(&wk, emb, emb, &xn, 1);
+  if !kr.is_ok {
+    let ek: Str = kr.error;
+    return _err_ids(ek);
+  }
+  let k0: Vec[Int] = kr.value;
+  let vr = llm_matmul_i32(&wv, emb, emb, &xn, 1);
+  if !vr.is_ok {
+    let ev: Str = vr.error;
+    return _err_ids(ev);
+  }
+  let v0: Vec[Int] = vr.value;
+  // Position-0 RoPE: the exact identity table (2^shift, 0).
+  let s = 12;
+  var cq = Vec[Int].new();
+  var sq = Vec[Int].new();
+  var hp = 0;
+  while hp < emb / 2 {
+    cq.push(1 << s);
+    sq.push(0);
+    hp = hp + 1;
+  }
+  let qrr = llm_rope_i32(&q0, emb, &cq, &sq, s);
+  if !qrr.is_ok {
+    let eqr: Str = qrr.error;
+    return _err_ids(eqr);
+  }
+  let q: Vec[Int] = qrr.value;
+  let krr = llm_rope_i32(&k0, emb, &cq, &sq, s);
+  if !krr.is_ok {
+    let ekr: Str = krr.error;
+    return _err_ids(ekr);
+  }
+  let k: Vec[Int] = krr.value;
+  let dr = llm_dot_i32(&q, &k);
+  if !dr.is_ok {
+    let ed: Str = dr.error;
+    return _err_ids(ed);
+  }
+  let dot: Int = dr.value;
+  let score = dot / 2;
+  var sc = Vec[Int].new();
+  sc.push(score);
+  let smr = llm_softmax_i32(&sc, 10);
+  if !smr.is_ok {
+    let esm: Str = smr.error;
+    return _err_ids(esm);
+  }
+  // Single-position attention: the softmax weight is 1 -> attn = v0.
+  let wovr = llm_matmul_i32(&wo, emb, emb, &v0, 1);
+  if !wovr.is_ok {
+    let ewo: Str = wovr.error;
+    return _err_ids(ewo);
+  }
+  let wov: Vec[Int] = wovr.value;
+  var h = Vec[Int].new();
+  var hi = 0;
+  while hi < emb {
+    let hx: Int = x[hi];
+    let hw: Int = wov[hi];
+    h.push(hx + hw);
+    hi = hi + 1;
+  }
+  let hnr = llm_rmsnorm_i32(&h, &gamma2, 0, 0);
+  if !hnr.is_ok {
+    let ehn: Str = hnr.error;
+    return _err_ids(ehn);
+  }
+  let hn: Vec[Int] = hnr.value;
+  let gr = llm_matmul_i32(&w1, ffn, emb, &hn, 1);
+  if !gr.is_ok {
+    let eg: Str = gr.error;
+    return _err_ids(eg);
+  }
+  let gate: Vec[Int] = gr.value;
+  let ur = llm_matmul_i32(&w3, ffn, emb, &hn, 1);
+  if !ur.is_ok {
+    let eu: Str = ur.error;
+    return _err_ids(eu);
+  }
+  let up: Vec[Int] = ur.value;
+  let ar = llm_swiglu_i32(&gate, &up, 0);
+  if !ar.is_ok {
+    let ea: Str = ar.error;
+    return _err_ids(ea);
+  }
+  let a: Vec[Int] = ar.value;
+  let fr = llm_matmul_i32(&w2, emb, ffn, &a, 1);
+  if !fr.is_ok {
+    let ef: Str = fr.error;
+    return _err_ids(ef);
+  }
+  let ffnv: Vec[Int] = fr.value;
+  var h2 = Vec[Int].new();
+  var hj = 0;
+  while hj < emb {
+    let hx2: Int = h[hj];
+    let hf: Int = ffnv[hj];
+    h2.push(hx2 + hf);
+    hj = hj + 1;
+  }
+  let lr = llm_matmul_i32(&wout, vsz, emb, &h2, 1);
+  if !lr.is_ok {
+    let el: Str = lr.error;
+    return _err_ids(el);
+  }
+  let logits: Vec[Int] = lr.value;
+  return _ok_ids(logits);
+}
+
+// --- deterministic seeded PRNG (32-bit LCG; SPEC.md 10.5) ---
+
+/// Normalize a seed into the PRNG state domain [0, 2^32).
+pub fn llm_rng_seed(seed: Int) -> Int {
+  let m = 4294967296;
+  var v = seed % m;
+  if v < 0 {
+    v = v + m;
+  }
+  return v;
+}
+
+/// Advance the LCG state: `s -> (1664525*s + 1013904223) mod 2^32`. Exact on
+/// the stated domain (the product stays far below the Int ceiling).
+pub fn llm_rng_next(state: Int) -> Int {
+  let m = 4294967296;
+  var s = state % m;
+  if s < 0 {
+    s = s + m;
+  }
+  let prod = 1664525 * s + 1013904223;
+  return prod % m;
+}
+
+/// Uniform integer in [0, bound) from a state; 0 when `bound <= 0`.
+pub fn llm_rng_below(state: Int, bound: Int) -> Int {
+  if bound <= 0 {
+    return 0;
+  }
+  let m = 4294967296;
+  var s = state % m;
+  if s < 0 {
+    s = s + m;
+  }
+  return s % bound;
+}
+
+// --- samplers ---
+
+/// Argmax with lowest-index tie-break. Error: `llm: sampler empty logits`.
+pub fn llm_greedy_next(logits: &Vec[Int]) -> Result[Int, Str] {
+  if logits.len() == 0 {
+    return _err_int("llm: sampler empty logits");
+  }
+  var best = 0;
+  var bv: Int = logits[0];
+  var i = 1;
+  while i < logits.len() {
+    let v: Int = logits[i];
+    if v > bv {
+      bv = v;
+      best = i;
+    }
+    i = i + 1;
+  }
+  return _ok_int(best);
+}
+
+/// Temperature scale: `out[i] = round_half_away(logits[i] * t_den / t_num)`,
+/// i.e. divide the logits by `T = t_num / t_den` (T > 1 flattens the
+/// distribution, T < 1 sharpens it); `t_num == t_den` is the identity.
+/// Errors: `llm: sampler temperature not positive`, `llm: sampler overflow`.
+pub fn llm_apply_temperature(logits: &Vec[Int], t_num: Int, t_den: Int) -> Result[Vec[Int], Str] {
+  if t_num <= 0 || t_den <= 0 {
+    return _err_ids("llm: sampler temperature not positive");
+  }
+  var out = Vec[Int].new();
+  var i = 0;
+  while i < logits.len() {
+    let v: Int = logits[i];
+    if _mul_ovf(v, t_den) {
+      return _err_ids("llm: sampler overflow");
+    }
+    out.push(_idiv_round(v * t_den, t_num));
+    i = i + 1;
+  }
+  return _ok_ids(out);
+}
+
+/// Top-k membership mask over `logits`, written in index order into `keep`
+/// (which callers pass empty). The k largest logits are kept, ties broken to
+/// the lower index. `k <= 0` or `k >= n` keeps all. Returns the kept count.
+/// Error: `llm: sampler empty logits`.
+pub fn llm_top_k_keep(logits: &Vec[Int], k: Int, keep: &mut Vec[Int]) -> Result[Int, Str] {
+  let n = logits.len();
+  if n == 0 {
+    return _err_int("llm: sampler empty logits");
+  }
+  if k <= 0 || k >= n {
+    var a = 0;
+    while a < n {
+      keep.push(1);
+      a = a + 1;
+    }
+    return _ok_int(n);
+  }
+  var kept = 0;
+  var i = 0;
+  while i < n {
+    let vi: Int = logits[i];
+    var greater = 0;
+    var j = 0;
+    while j < n {
+      let vj: Int = logits[j];
+      if vj > vi {
+        greater = greater + 1;
+      } else if vj == vi && j < i {
+        greater = greater + 1;
+      }
+      j = j + 1;
+    }
+    if greater < k {
+      keep.push(1);
+      kept = kept + 1;
+    } else {
+      keep.push(0);
+    }
+    i = i + 1;
+  }
+  return _ok_int(kept);
+}
+
+/// Top-p (nucleus) membership mask over `probs` (softmax mass summing to
+/// `2^shift`): rank tokens by probability (descending, lower index on ties)
+/// and keep the shortest prefix whose cumulative mass reaches `p_q`. Always
+/// keeps at least the single highest-probability token; `p_q <= 0` keeps only
+/// that token. The mask is written in index order into `keep` (passed empty).
+/// Returns the kept count. Error: `llm: sampler empty logits`.
+pub fn llm_top_p_keep(probs: &Vec[Int], p_q: Int, keep: &mut Vec[Int]) -> Result[Int, Str] {
+  let n = probs.len();
+  if n == 0 {
+    return _err_int("llm: sampler empty logits");
+  }
+  // rank[i] = number of strictly better entries (prob desc, lower-index tie).
+  var rank = Vec[Int].new();
+  var i = 0;
+  while i < n {
+    let vi: Int = probs[i];
+    var r = 0;
+    var j = 0;
+    while j < n {
+      let vj: Int = probs[j];
+      if vj > vi {
+        r = r + 1;
+      } else if vj == vi && j < i {
+        r = r + 1;
+      }
+      j = j + 1;
+    }
+    rank.push(r);
+    i = i + 1;
+  }
+  // Minimal prefix count whose cumulative probability reaches p_q (>= 1).
+  var count = 1;
+  var cum = 0;
+  var c = 0;
+  while c < n && cum < p_q {
+    var idx = -1;
+    var k = 0;
+    while k < n {
+      let rk: Int = rank[k];
+      if rk == c {
+        idx = k;
+      }
+      k = k + 1;
+    }
+    if idx >= 0 {
+      let pv: Int = probs[idx];
+      cum = cum + pv;
+      count = c + 1;
+    }
+    c = c + 1;
+  }
+  var kept = 0;
+  var t = 0;
+  while t < n {
+    let rt: Int = rank[t];
+    if rt < count {
+      keep.push(1);
+      kept = kept + 1;
+    } else {
+      keep.push(0);
+    }
+    t = t + 1;
+  }
+  return _ok_int(kept);
+}
+
+/// Draw one token id from `probs` restricted to the `keep` mask, using a
+/// uniform integer draw from `state` (advance the state with `llm_rng_next`
+/// between steps). When the kept mass is zero it falls back to the highest
+/// kept probability. Errors: `llm: sampler empty logits`,
+/// `llm: sampler keep size mismatch`, `llm: sampler zero mass`.
+pub fn llm_sample_choice(probs: &Vec[Int], keep: &Vec[Int], state: Int) -> Result[Int, Str] {
+  let n = probs.len();
+  if n == 0 {
+    return _err_int("llm: sampler empty logits");
+  }
+  if keep.len() != n {
+    return _err_int("llm: sampler keep size mismatch");
+  }
+  var total = 0;
+  var i = 0;
+  while i < n {
+    let kv: Int = keep[i];
+    if kv != 0 {
+      let pv: Int = probs[i];
+      if pv > 0 {
+        total = total + pv;
+      }
+    }
+    i = i + 1;
+  }
+  if total <= 0 {
+    var best = -1;
+    var bv = 0;
+    var j = 0;
+    while j < n {
+      let kv2: Int = keep[j];
+      if kv2 != 0 {
+        let pv2: Int = probs[j];
+        if best < 0 || pv2 > bv {
+          bv = pv2;
+          best = j;
+        }
+      }
+      j = j + 1;
+    }
+    if best < 0 {
+      return _err_int("llm: sampler zero mass");
+    }
+    return _ok_int(best);
+  }
+  let r = llm_rng_below(state, total);
+  var cum = 0;
+  var k = 0;
+  while k < n {
+    let kv3: Int = keep[k];
+    if kv3 != 0 {
+      let pv3: Int = probs[k];
+      if pv3 > 0 {
+        cum = cum + pv3;
+        if r < cum {
+          return _ok_int(k);
+        }
+      }
+    }
+    k = k + 1;
+  }
+  return _err_int("llm: sampler zero mass");
+}
+
+/// Greedy sampler configuration (argmax; deterministic, seed unused).
+pub fn llm_sampler_greedy() -> LlmSampler {
+  return LlmSampler{ greedy: 1; t_num: 1; t_den: 1; top_k: 0; top_p_q: 0; shift: 10; seed: 0; };
+}
+
+/// Seeded sampler configuration: temperature `t_num / t_den`, top-k and
+/// top-p filters, softmax shift and RNG seed (see `LlmSampler`).
+pub fn llm_sampler_seeded(seed: Int, t_num: Int, t_den: Int, top_k: Int, top_p_q: Int, shift: Int) -> LlmSampler {
+  return LlmSampler{ greedy: 0; t_num: t_num; t_den: t_den; top_k: top_k; top_p_q: top_p_q; shift: shift; seed: seed; };
+}
+
+/// Sample the next token id from `logits` under sampler `s`, using the RNG
+/// `state` for the uniform draw. Greedy (`s.greedy != 0`) is argmax; otherwise
+/// temperature -> softmax -> top-k -> top-p -> draw. Errors: `llm: sampler
+/// empty logits`, any temperature overflow, any softmax error.
+pub fn llm_sample_next(logits: &Vec[Int], s: &LlmSampler, state: Int) -> Result[Int, Str] {
+  if logits.len() == 0 {
+    return _err_int("llm: sampler empty logits");
+  }
+  if s.greedy != 0 {
+    return llm_greedy_next(logits);
+  }
+  let tr = llm_apply_temperature(logits, s.t_num, s.t_den);
+  if !tr.is_ok {
+    let e: Str = tr.error;
+    return _err_int(e);
+  }
+  let adj: Vec[Int] = tr.value;
+  let sr = llm_softmax_i32(&adj, s.shift);
+  if !sr.is_ok {
+    let e2: Str = sr.error;
+    return _err_int(e2);
+  }
+  let probs: Vec[Int] = sr.value;
+  var kk = Vec[Int].new();
+  let kr = llm_top_k_keep(&adj, s.top_k, &mut kk);
+  if !kr.is_ok {
+    let e3: Str = kr.error;
+    return _err_int(e3);
+  }
+  var pk = Vec[Int].new();
+  let pr = llm_top_p_keep(&probs, s.top_p_q, &mut pk);
+  if !pr.is_ok {
+    let e4: Str = pr.error;
+    return _err_int(e4);
+  }
+  var keep = Vec[Int].new();
+  var i = 0;
+  while i < probs.len() {
+    let a: Int = kk[i];
+    let b: Int = pk[i];
+    if a != 0 && b != 0 {
+      keep.push(1);
+    } else {
+      keep.push(0);
+    }
+    i = i + 1;
+  }
+  return llm_sample_choice(&probs, &keep, state);
+}
+
+/// True when `id` equals the stop token `stop_id`; a negative `stop_id`
+/// disables stopping.
+pub fn llm_is_stop(id: Int, stop_id: Int) -> Bool {
+  if stop_id < 0 {
+    return false;
+  }
+  return id == stop_id;
+}
+
+/// Generation loop over the single-position forward pass: starting from the
+/// last prompt id, repeatedly forward -> sample -> append, stopping when the
+/// sampled id equals `stop_id` (the stop token is appended) or after `max_new`
+/// steps. `out_ids` receives the generated ids (passed in, appended to).
+/// Returns the number of generated ids. Error: `llm: generate empty prompt`
+/// plus any forward or sampler error. Note: no KV cache in this milestone, so
+/// each step conditions only on the current token (SPEC.md 10.5).
+pub fn llm_generate(model: &LlmModel, buf: &Vec[UInt8], prompt_ids: &Vec[Int], max_new: Int, stop_id: Int, s: &LlmSampler, out_ids: &mut Vec[Int]) -> Result[Int, Str] {
+  if prompt_ids.len() == 0 {
+    return _err_int("llm: generate empty prompt");
+  }
+  if max_new <= 0 {
+    return _ok_int(0);
+  }
+  let lastp = prompt_ids.len() - 1;
+  var cur: Int = prompt_ids[lastp];
+  var state = llm_rng_seed(s.seed);
+  var step = 0;
+  while step < max_new {
+    let lr = llm_forward_token(model, buf, cur);
+    if !lr.is_ok {
+      let e: Str = lr.error;
+      return _err_int(e);
+    }
+    let logits: Vec[Int] = lr.value;
+    let idr = llm_sample_next(&logits, s, state);
+    if !idr.is_ok {
+      let e2: Str = idr.error;
+      return _err_int(e2);
+    }
+    let id: Int = idr.value;
+    out_ids.push(id);
+    step = step + 1;
+    if llm_is_stop(id, stop_id) {
+      return _ok_int(step);
+    }
+    state = llm_rng_next(state);
+    cur = id;
+  }
+  return _ok_int(step);
 }

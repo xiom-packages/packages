@@ -28,12 +28,15 @@ Implemented in 0.1.0 (M1 + M2):
   10.2/10.3);
 * integer matmul plus the forward primitives RMSNorm / RoPE / attention
   score / softmax / SiLU-SwiGLU FFN, and a tiny deterministic model fixture
-  whose single-token golden logits are asserted exactly (M2b, section 10.4).
+  whose single-token golden logits are asserted exactly (M2b, section 10.4);
+* generation loop (M3a, section 10.5): deterministic seeded integer PRNG,
+  greedy / temperature / top-k / top-p sampling, stop-token handling and a
+  single-position generate loop + the `llm_forward_token` entry point.
 
 Declared for later milestones (section 10):
 
-* generation loop (greedy first; sampling deferred, section 10.5);
-* Q4_K-class dequantization and quantization breadth (M3);
+* KV cache, longer-context attention, benchmark harness, Q4_K-class
+  dequantization and quantization breadth (M3 second half);
 * tokenizer completion: escape layer, regex pre-tokenizer, SPM/WPM
   (section 10.6).
 
@@ -48,7 +51,9 @@ Declared for later milestones (section 10):
 * No GPU backends, no mmap/streaming IO, no multi-file shards (split GGUF)
   in M1/M2; whole-buffer parsing in memory.
 * No sampling strategies beyond greedy argmax until the generation-loop
-  milestone declares them (temperature/top-k/top-p are deferred).
+  milestone declares them. M3a implements greedy argmax plus a deterministic
+  integer sampler (temperature / top-k / top-p over a seeded LCG); the KV
+  cache and longer-context attention remain deferred.
 * No UTF-8 vocabularies in M1: `xiom.gguf` parses printable-ASCII strings
   only (see section 4).
 
@@ -215,6 +220,19 @@ Model assembly and forward kernels (M2):
 * `llm: swiglu size mismatch`, `llm: swiglu overflow`
 * `llm: f32 offset out of range`, `llm: scaled value out of range`,
   `llm: value is not an exact integer` (bit-decode bridge)
+
+Generation, sampling and forward entry point (M3a):
+
+* `llm: token id out of range` (`llm_forward_token`; same message as decode)
+* `llm: model tensor missing`, `llm: model tensor extent invalid`
+  (`llm_forward_token` weight loads)
+* `llm: sampler empty logits` (greedy / temperature / top-k / top-p / choice
+  / sample-next on an empty logit vector)
+* `llm: sampler temperature not positive` (t_num or t_den <= 0)
+* `llm: sampler overflow` (temperature scaling overflow)
+* `llm: sampler keep size mismatch` (choice mask length != prob length)
+* `llm: sampler zero mass` (choice with no kept probability)
+* `llm: generate empty prompt` (`llm_generate` with an empty prompt list)
 
 ## 8. Documented deviations from llama.cpp (M1)
 
@@ -388,12 +406,47 @@ The representation:
 
 ### 10.5 Generation loop
 
+**[IMPLEMENTED in M3a, 2026-10-16 -- first half: greedy + sampling]**
+
 * `llm_greedy_next(logits: &Vec[Int]) -> Result[Int, Str]` -- argmax with
-  lowest-index tie-break; the only sampler in M2/M3.
-* `llm_generate(model: &LlmModel, prompt_ids: &Vec[Int], max_new: Int, out_ids: &mut Vec[Int]) -> Result[Int, Str]`
-  -- decode-loop composition with a KV cache plan (append-only per layer);
-  stops at EOS or `max_new`. Temperature/top-k/top-p sampling is declared
-  for a later milestone (section 2).
+  lowest-index tie-break. Error: `llm: sampler empty logits`.
+* `llm_apply_temperature(logits, t_num, t_den) -> Result[Vec[Int], Str]` --
+  `out[i] = round_half_away(logits[i] * t_den / t_num)` (T = t_num / t_den;
+  T == 1 is the identity). Errors: `llm: sampler temperature not positive`,
+  `llm: sampler overflow`.
+* `llm_top_k_keep(logits, k, keep: &mut Vec[Int]) -> Result[Int, Str]` --
+  index-ordered membership mask of the k largest logits (lower-index ties);
+  `k <= 0` or `k >= n` keeps all. Returns the kept count.
+* `llm_top_p_keep(probs, p_q, keep: &mut Vec[Int]) -> Result[Int, Str]` --
+  nucleus mask: the shortest probability-descending prefix whose cumulative
+  mass reaches `p_q` (units of `2^shift`), always keeping the top-1; `p_q <= 0`
+  keeps only the top-1.
+* `llm_sample_choice(probs, keep, state) -> Result[Int, Str]` -- one uniform
+  draw from the kept mass (`state` a PRNG state); zero kept mass falls back to
+  the highest kept probability.
+* `llm_sample_next(logits, s: &LlmSampler, state) -> Result[Int, Str]` -- the
+  composed pipeline: greedy argmax, else temperature -> integer softmax ->
+  top-k -> top-p -> draw.
+* `LlmSampler` (greedy flag, temperature num/den, top-k, top-p, shift, seed)
+  with `llm_sampler_greedy()` / `llm_sampler_seeded(...)`.
+* Deterministic PRNG: `llm_rng_seed` / `llm_rng_next` / `llm_rng_below` --
+  a 32-bit LCG `s -> (1664525*s + 1013904223) mod 2^32`, exact integer
+  arithmetic, fully reproducible from the seed.
+* `llm_is_stop(id, stop_id) -> Bool` -- stop-token predicate (`stop_id < 0`
+  disables stopping).
+* `llm_generate(model, buf, prompt_ids, max_new, stop_id, s, out_ids) ->
+  Result[Int, Str]` -- generation loop composing `llm_forward_token` (single
+  position per step) with the sampler; stops at `stop_id` (appended to
+  `out_ids`) or after `max_new` steps; returns the generated count.
+* `llm_forward_token(model, buf, token_id) -> Result[Vec[Int], Str]` -- the
+  M2b single-position forward (section 10.4) as a library entry point, used
+  per step by `llm_generate`.
+
+**Deferred (M3 second half):** append-only per-layer KV cache and attention
+over longer contexts (multi-position forward), a package-local benchmark
+harness, Q4_K-class dequantization, and the tokenizer escape/regex/SPM/WPM
+work (section 10.6). The M3a loop has no KV cache, so each step conditions
+only on the current token.
 
 ### 10.6 Tokenizer milestones (deferred pieces)
 
@@ -404,7 +457,7 @@ The representation:
 * SPM (`tokenizer.ggml.model == "llama"`) and WPM (`"bert"`)
   vocabulary extraction + their tokenize paths.
 
-## 11. Test matrix (79 checks, `tests/test_conformance.xi`)
+## 11. Test matrix (129 checks, `tests/test_conformance.xi`)
 
 All checks run against a synthetic deterministic fixture built with
 `xiom.gguf`'s builder: 6 metadata KVs, one tensor info
@@ -462,6 +515,25 @@ golden logits `logits[i] = -8*i` for i in 0..19; the single-byte sensitivity
 check (ffn_gate first quant 4 -> 3 changes 19 of 20 logits, perturbed logits
 exactly `-6*k`); and the `xiom.tensor` shape/dump smoke check.
 
+M3a additions (checks 80-129): the deterministic PRNG (seed normalization,
+two hand-computed LCG steps `next(42)=1083814273`,
+`next(1083814273)=378494188`, `below(1083814273,1024)=385`,
+`below(1083814273,10)=3`, `below(_,0)=0`); greedy argmax (tie-break,
+negatives, empty reject); temperature identity/flatten/sharpen/rounding plus
+the non-positive rejects; top-k mask (exact set, lowest-index tie, disabled and
+oversize arms, empty reject); top-p nucleus (exact prefix sets, `p=0` top-1,
+`p>total` all, empty reject); category draw (`llm_sample_choice`) bucket
+boundaries, restricted mask, zero-mass fallback and keep-size-mismatch reject;
+the composed `llm_sample_next` greedy arm plus a seeded arm verified against
+hand-computed bucket boundaries and the temperature reject; `llm_generate`
+greedy sequence `[0,0,0]`, decode roundtrip `"hhh"`, stop-token handling,
+seeded golden sequence `[0,0,0,0,1]` and same-seed reproducibility, empty
+prompt / `max_new=0` edge cases, and the `llm_forward_token` golden
+(`-8*i`) with the token-id reject. The M3 generation fixture gives
+`token_embd` rows 0 and 1 the value `[4,4,0,0]` (rows 2..19 remain zero) so
+the greedy-selected token 0 forwards without tripping the RMSNorm zero-norm
+guard; the M2b golden-logit provenance (rows for token 1) is unchanged.
+
 Golden-logit provenance (checks 75-78). The fixture is built so every integer
 step is exact: token 1 embedding row `[4,4,0,0]` (mean square 8, rms 2) ->
 `xn=[2,2,0,0]`; `Wq/Wk/Wv` select column 1 -> `q=k=v=[2,2,2,2]`; position-0
@@ -474,7 +546,7 @@ RoPE is the identity; the single attention position has softmax weight 1.0 so
 value is derived by hand from the integer algorithm above, not from a float
 reference.
 
-## 12. Compiler notes (v0.64.5)
+## 12. Compiler notes (v0.64.5, re-verified on v0.64.6)
 
 Free functions only; `Ok`/`Err` construction is confined to the leaf
 helpers in `src/llm.xi`; `Str` values read from vectors and struct fields
