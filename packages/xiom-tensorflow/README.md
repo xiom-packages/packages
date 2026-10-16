@@ -1,15 +1,109 @@
 # xiom.tensorflow
 
-> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
-> **Scope:** TensorFlow-compatible binding surface.
-> **Deps:** stdlib; may wrap C (FFI).
+> **Status:** `conformance-tested` (unreleased, not yet published to the XIOM registry).
+> **Scope:** TensorFlow C API (libtensorflow) bindings -- graph, session,
+> tensor and ops essentials behind a multi-soname loader.
+> **Deps:** stdlib (`xiom.std`: ffi, dl, io, os.platform); TensorFlow is
+> loaded at runtime, never linked or vendored.
 
-## Libs inventory
+## What this is
 
-| Lib | Description |
-|-----|-------------|
-| `tf` | Core TensorFlow API bindings. |
-| `keras` | High-level Keras-style API. |
-| `graph` | Computation graph constructs. |
-| `ops` | TensorFlow operator set. |
-| `serve` | Serving and export helpers. |
+`xiom.tensorflow` binds the declared **109 entry points of the TensorFlow C
+API** (see `SPEC.md` for the slot-by-slot coverage table) and reaches a
+system-installed runtime through a multi-soname loader:
+
+1. `XIOM_TENSORFLOW_RUNTIME` (explicit path/soname), then
+2. `tensorflow.dll`, `libtensorflow.so`, `libtensorflow.so.2`,
+   `libtensorflow.dylib`.
+
+Every declared symbol is resolved by name at load and the runtime must be
+TF 2.x (`TF_Version` gate). No runtime present -> typed SKIP (`TF_LOAD_ABSENT`)
+and the suite stays green; a broken/mismatched runtime -> typed ABI/load
+errors, never a silent fallback.
+
+## Quick start
+
+```xiom
+module demo
+use xiom.tensorflow.loader;
+use xiom.tensorflow.graph;
+use xiom.tensorflow.session;
+use xiom.tensorflow.ops;
+use xiom.tensorflow.tensor;
+use xiom.tensorflow.types;
+
+fn main() -> Int {
+  let lr = loader.tf_load();
+  if !lr.is_ok {
+    return 0;   // typed SKIP (TF_LOAD_ABSENT): no runtime installed
+  };
+  let lib = lr.value;
+
+  let g = graph.tf_graph_new(&lib).value;
+  var d2: Vec[Int] = Vec[Int].new();
+  d2.push(2);
+  var va: Vec[Float32] = Vec[Float32].new();
+  va.push(1.5);
+  va.push(2.5);
+  var vb: Vec[Float32] = Vec[Float32].new();
+  vb.push(3.5);
+  vb.push(4.5);
+  let a = ops.op_const_f32(&lib, g, "a", &d2, &va).value;
+  let b = ops.op_const_f32(&lib, g, "b", &d2, &vb).value;
+  let sum = ops.op_add(&lib, g, "sum", a, b).value;
+  // Create a session on g (session.tf_session_new with real options),
+  // tf_session_run fetching (sum, 0) with zero feeds, then
+  // tensor.tf_tensor_read_f32 -> [5.0, 7.0]; delete the fetched tensor,
+  // the session, the graph.
+  return 0;
+}
+```
+
+The full end-to-end flows (graph construction, `TF_SessionRun` with feeds,
+partial runs, GraphDef import, SavedModel load attempt, ops essentials) are
+in `tests/test_conformance.xi`.
+
+## Evidence (pinned toolchain XIOM v0.64.5)
+
+| Leg | Command | Result |
+| --- | --- | --- |
+| Live (libtensorflow 2.18.1 CPU, Windows x64) | `XIOM_TENSORFLOW_RUNTIME=E:\repos\tensorflow-bin\lib\tensorflow.dll .\scripts\port.ps1 -Package xiom.tensorflow -TimeoutSec 300` | **74/74 PASS x2** (2026-10-16 23:50:10Z and 23:50:28Z) |
+| SKIP (no runtime) | `.\scripts\port.ps1 -Package xiom.tensorflow -TimeoutSec 300` | **17/17 PASS**, live tier SKIP |
+
+The live leg proves, on real TensorFlow: version negotiation + 109/109
+symbol resolution, the status protocol, dtype sizes, tensor
+allocate/borrow/bitcast/create/read, graph construction with attributes,
+operation introspection (including the by-value `TF_Output` ABI adapters),
+GraphDef export + three import tiers (+ input mapping rewiring), session
+options incl. ConfigProto valid/malformed, exact-FP `SessionRun`
+(`1.5+3.5=5.0`, `2.5+4.5=7.0`), wrong-shape typed errors, partial runs,
+device enumeration, and the ops tier (`Add`, `AddN`, `MatMul`, `Relu`,
+`LeakyRelu`, `Neg`, `Unpack`, `Conv2D`) with exact expected values.
+
+## Package layout
+
+| Path | Contents |
+| --- | --- |
+| `src/loader.xi` | Multi-soname loader, 109-slot surface, typed errors, ABI adapters |
+| `src/types.xi` | Shared types + TF_Code / TF_DataType / TF_AttrType constants |
+| `src/tensor.xi` | TF_Tensor lifecycle + typed data helpers |
+| `src/graph.xi` | TF_Graph, operation construction/introspection, GraphDef I/O |
+| `src/session.xi` | Options, sessions, SessionRun/PRun, devices, SavedModel |
+| `src/ops.xi` | Ops essentials (placeholder/const/add/matmul/relu/identity) |
+| `SPEC.md` | Declared surface + 109/109 coverage table |
+| `AUDIT.md` | ABI seam findings (TF-A1 alignment, TF-B2 `set` collision) |
+| `PROVENANCE.md` | Upstream pins, digests, license facts |
+| `ROADMAP.md` | Delivery phases and status |
+| `tests/test_conformance.xi` | The conformance suite (pure + live tiers) |
+
+## Known limits
+
+- The live leg was verified on Windows x64 against the official CPU build;
+  POSIX call shapes are implemented and documented (AUDIT) but have no live
+  run yet.
+- `TF_OperationInput` reports `TF_ABI_UNSUPPORTED` on the SysV ABI (use the
+  portable `tf_op_all_inputs`).
+- `tf_tensor_borrow` requires `TF_TensorDefaultAlignment`-aligned storage
+  (TF-A1 in AUDIT; `TF_AllocateTensor` is the default path).
+- SavedModel loading is exercised on the typed-absent path only (no fixture
+  SavedModel is generated by the suite).
