@@ -7,6 +7,7 @@
 - [ ] Per-call timeouts (connect + total)
 - [ ] Streaming request/response bodies
 - [ ] Pluggable TLS hook (compose with `xiom.ssl` when it lands)
+- [ ] Custom request headers (incl. `Authorization`) -- required by the xiom.jev live leg (M1 finding 2026-10-16); http 0.1.8 candidate
 
 ## v0.1.4 (Current)
 - [x] Fix: printable bytes render as characters, not decimal codes (all module-local copies)
