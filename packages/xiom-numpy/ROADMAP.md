@@ -9,7 +9,7 @@
 |-------|-------------|--------|
 | 1 | Core Foundation -- types, extern C, safe wrappers, conformance tests | Done -- GREEN 30/30 x2 (v0.64.5, 2026-10-16; link bridge `bridge/numpy_bridge.c`) |
 | 2 | C bridge -- compile numpy_c_* bridge .obj, link against system NumPy + OpenBLAS | Pending |
-| 3 | Linear algebra -- SVD, inv, reductions (sum, mean, max) | Pending (Phase-3 second half) |
+| 3 | Linear algebra -- SVD, inv, reductions (sum, mean, max) | Partial -- reductions + inv DONE (Phase-3b) -- GREEN 130/130 x2 (v0.64.6, 2026-10-16); SVD pending |
 | 4 | Broadcasting + reshaping -- reshape, transpose | DONE (first half) -- GREEN 103/103 x2 (v0.64.6, 2026-10-16) |
 | 5 | Advanced -- FFT, random, advanced indexing | Pending |
 | 6 | Interop -- zero-copy tensor sharing with xiom.libtorch, xiom.pandas | Pending |
@@ -41,8 +41,23 @@ hand-computed f64 goldens) and is GREEN x2.
 - Update `tests/test_conformance.xi`: flip the twelve "returns Err" checks to
   validate runtime results (creation, element-wise, linear algebra)
 
-## Phase 3 -- Linear algebra
+## Phase 3 -- Linear algebra (reductions + inv done)
 
+Landed (2026-10-16, v0.64.6): axis-aware reductions `array_sum` / `array_mean` /
+`array_max` / `array_min` over the flat f64 arena (`axis == -1` = full-array
+reduction yielding shape `[1]`; `axis` in `[0, ndim)` drops that axis), and
+`array_inv` (self-contained Gauss-Jordan with partial pivoting, fail-closed on
+singular/non-square). Suite `tests/test_conformance.xi` grew 103 -> 130 checks
+(27 new: 14 reduction, 8 inverse, 5 contract) and is GREEN x2.
+
+Remaining Phase-3 work:
+- `svd(a: &NDArray) -> Result[(NDArray, NDArray, NDArray), Str]` -- deferred:
+  `xiom.openblas.svd` is still a Phase-1 stub (identity/zero placeholders), and a
+  correct SVD needs a one-sided Jacobi / eigen routine, not a trivial extension
+  of Gauss-Jordan. Build it once the real LAPACK wiring (or a self-contained
+  Jacobi path) exists.
+
+Historical Phase-3 plan (originally listed here):
 - `svd(a: &NDArray) -> Result[(NDArray, NDArray, NDArray), Str]`
 - `inv(a: &NDArray) -> Result[NDArray, Str]`
 - `sum(arr: &NDArray, axis: Int) -> Result[NDArray, Str]`

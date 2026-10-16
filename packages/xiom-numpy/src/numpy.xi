@@ -725,3 +725,275 @@ pub fn array_transpose(arr: &NDArray) -> Result[NDArray, Str]
   };
   return Ok(_nd_alloc_from(&out, &rshape, _nd_dtype[i]));
 }
+
+// ---------------------------------------------------------------------------
+// Phase 3b: reductions over the flat f64 arena (sum/mean/max/min).
+// ---------------------------------------------------------------------------
+// axis == -1 reduces over ALL axes and yields shape [1] (the full-array
+// reduction, i.e. the "axis omitted" convention of the SPEC surface). axis in
+// [0, ndim) reduces that axis only, dropping it from the result shape (a 1-D
+// input reduced on axis 0 yields shape [1]). Any other axis is a typed Err.
+// An empty input fails closed with a typed Err for every reducer. Row-major
+// input/output strides come from `_nd_strides_of_shape`, so this honors the
+// same N-D stride helpers as the Phase-3a element-wise path; the result is a
+// fresh array in new slots (operands are never aliased or mutated).
+
+fn _nd_abs(x: Float64) -> Float64 {
+  if x < 0.0 { return -x; };
+  return x;
+}
+
+// kind: 0 = sum, 1 = mean, 2 = max, 3 = min.
+fn _nd_reduce(ha: Int, axis: Int, kind: Int, op: Str) -> Result[NDArray, Str] {
+  if !_nd_valid(ha) {
+    return Err("numpy: " + op + " invalid handle");
+  };
+  let i = ha - 1;
+  let nd = _nd_ndim[i];
+  var full = false;
+  if axis == -1 {
+    full = true;
+  } elif axis < 0 || axis >= nd {
+    return Err("numpy: " + op + " axis out of range");
+  };
+  let isize = _nd_size[i];
+  if isize <= 0 {
+    return Err("numpy: " + op + " empty array");
+  };
+  var ishape: Vec[Int] = Vec[Int].new();
+  let so = _nd_shape_off[i];
+  var j = 0;
+  while j < nd {
+    ishape.push(_nd_shape[so + j]);
+    j = j + 1;
+  };
+  var istr: Vec[Int] = Vec[Int].new();
+  _nd_strides_of_shape(&ishape, &mut istr);
+  // Output shape plus the input-axis -> output-axis map (-1 == reduced axis).
+  var oshape: Vec[Int] = Vec[Int].new();
+  var omap: Vec[Int] = Vec[Int].new();
+  if full {
+    oshape.push(1);
+    j = 0;
+    while j < nd {
+      omap.push(-1);
+      j = j + 1;
+    };
+  } else {
+    j = 0;
+    while j < nd {
+      if j == axis {
+        omap.push(-1);
+      } else {
+        omap.push(oshape.len());
+        oshape.push(ishape[j]);
+      };
+      j = j + 1;
+    };
+    if oshape.len() == 0 {
+      oshape.push(1);
+    };
+  };
+  var ostr: Vec[Int] = Vec[Int].new();
+  _nd_strides_of_shape(&oshape, &mut ostr);
+  let osize = _nd_numel(&oshape);
+  var out: Vec[Float64] = Vec[Float64].new();
+  var q = 0;
+  while q < osize {
+    if kind == 2 {
+      out.push(-1.0e308);
+    } elif kind == 3 {
+      out.push(1.0e308);
+    } else {
+      out.push(0.0);
+    };
+    q = q + 1;
+  };
+  let base = _nd_base[i];
+  var p = 0;
+  while p < isize {
+    var rem = p;
+    var ooff = 0;
+    var k = 0;
+    while k < nd {
+      let idx = rem / istr[k];
+      rem = rem - idx * istr[k];
+      if omap[k] >= 0 {
+        ooff = ooff + idx * ostr[omap[k]];
+      };
+      k = k + 1;
+    };
+    let x = _nd_data[base + p];
+    if kind == 0 || kind == 1 {
+      out[ooff] = out[ooff] + x;
+    } elif kind == 2 {
+      if x > out[ooff] { out[ooff] = x; };
+    } else {
+      if x < out[ooff] { out[ooff] = x; };
+    };
+    p = p + 1;
+  };
+  if kind == 1 {
+    var count = isize;
+    if !full {
+      count = ishape[axis];
+    };
+    if count <= 0 {
+      return Err("numpy: " + op + " empty reduction axis");
+    };
+    q = 0;
+    while q < osize {
+      out[q] = out[q] / (count as Float64);
+      q = q + 1;
+    };
+  };
+  return Ok(_nd_alloc_from(&out, &oshape, _nd_dtype[i]));
+}
+
+pub fn array_sum(arr: &NDArray, axis: Int) -> Result[NDArray, Str]
+  requires: arr != 0
+{
+  return _nd_reduce(*arr, axis, 0, "array_sum");
+}
+
+pub fn array_mean(arr: &NDArray, axis: Int) -> Result[NDArray, Str]
+  requires: arr != 0
+{
+  return _nd_reduce(*arr, axis, 1, "array_mean");
+}
+
+pub fn array_max(arr: &NDArray, axis: Int) -> Result[NDArray, Str]
+  requires: arr != 0
+{
+  return _nd_reduce(*arr, axis, 2, "array_max");
+}
+
+pub fn array_min(arr: &NDArray, axis: Int) -> Result[NDArray, Str]
+  requires: arr != 0
+{
+  return _nd_reduce(*arr, axis, 3, "array_min");
+}
+
+// ---------------------------------------------------------------------------
+// Phase 3b: square-matrix inverse (Gauss-Jordan, partial pivoting).
+// ---------------------------------------------------------------------------
+// Self-contained over the flat f64 arena, so it is correct on the offline leg
+// with no live BLAS/LAPACK: xiom.openblas ships only a stub `solve`/`svd`
+// (identity/zero placeholders) and no `inv` symbol, so routing this through
+// that seam could not yield correct values. The openblas/LAPACK path remains
+// the documented acceleration target behind the same NDArray surface.
+// Fail-closed: a non-2-D operand, a non-square matrix, a matrix whose augmented
+// buffer would exceed the element cap, or a singular matrix (no pivot above the
+// tolerance while eliminating a column) all return a typed Err; no partial
+// result is returned.
+
+const ND_INV_PIVOT_EPS: Float64 = 0.000000000001;
+
+pub fn array_inv(arr: &NDArray) -> Result[NDArray, Str]
+  requires: arr != 0
+{
+  let h: Int = *arr;
+  if !_nd_valid(h) {
+    return Err("numpy: array_inv invalid handle");
+  };
+  let i = h - 1;
+  if _nd_ndim[i] != 2 {
+    return Err("numpy: array_inv requires 2-D");
+  };
+  let so = _nd_shape_off[i];
+  let n = _nd_shape[so + 0];
+  let cols = _nd_shape[so + 1];
+  if n != cols {
+    return Err("numpy: array_inv requires square matrix");
+  };
+  if n <= 0 {
+    return Err("numpy: array_inv empty matrix");
+  };
+  let w = 2 * n;
+  if n > ND_MAX_ELEMS / w {
+    return Err("numpy: array_inv matrix too large");
+  };
+  // Augmented [A | I] as a flat row-major n x (2n) buffer.
+  var aug: Vec[Float64] = Vec[Float64].new();
+  let base = _nd_base[i];
+  var r = 0;
+  while r < n {
+    var c = 0;
+    while c < n {
+      aug.push(_nd_data[base + r * n + c]);
+      c = c + 1;
+    };
+    c = 0;
+    while c < n {
+      if c == r {
+        aug.push(1.0);
+      } else {
+        aug.push(0.0);
+      };
+      c = c + 1;
+    };
+    r = r + 1;
+  };
+  // Gauss-Jordan elimination with partial pivoting.
+  var col = 0;
+  while col < n {
+    var piv = col;
+    var best = _nd_abs(aug[piv * w + col]);
+    r = col + 1;
+    while r < n {
+      let v = _nd_abs(aug[r * w + col]);
+      if v > best {
+        best = v;
+        piv = r;
+      };
+      r = r + 1;
+    };
+    if best < ND_INV_PIVOT_EPS {
+      return Err("numpy: array_inv singular matrix");
+    };
+    if piv != col {
+      var cc = 0;
+      while cc < w {
+        let t = aug[col * w + cc];
+        aug[col * w + cc] = aug[piv * w + cc];
+        aug[piv * w + cc] = t;
+        cc = cc + 1;
+      };
+    };
+    let d = aug[col * w + col];
+    var cc2 = 0;
+    while cc2 < w {
+      aug[col * w + cc2] = aug[col * w + cc2] / d;
+      cc2 = cc2 + 1;
+    };
+    var r2 = 0;
+    while r2 < n {
+      if r2 != col {
+        let f = aug[r2 * w + col];
+        if f != 0.0 {
+          var c2 = 0;
+          while c2 < w {
+            aug[r2 * w + c2] = aug[r2 * w + c2] - f * aug[col * w + c2];
+            c2 = c2 + 1;
+          };
+        };
+      };
+      r2 = r2 + 1;
+    };
+    col = col + 1;
+  };
+  var out: Vec[Float64] = Vec[Float64].new();
+  var rr = 0;
+  while rr < n {
+    var cc3 = 0;
+    while cc3 < n {
+      out.push(aug[rr * w + n + cc3]);
+      cc3 = cc3 + 1;
+    };
+    rr = rr + 1;
+  };
+  var sh: Vec[Int] = Vec[Int].new();
+  sh.push(n);
+  sh.push(n);
+  return Ok(_nd_alloc_from(&out, &sh, _nd_dtype[i]));
+}

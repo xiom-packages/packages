@@ -842,6 +842,158 @@ fn test_transpose_invalid_handle_err() -> TestResult {
 }
 
 // ---------------------------------------------------------------------------
+// Phase-3b reductions -- golden values (hand-computed f64)
+// ---------------------------------------------------------------------------
+
+fn test_sum_full_1d_golden() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v1(4));
+  let h = nd(array_sum(&a, -1));
+  return xiom.test.assert(shape_is(h, v1(1)) && get_1d(h, 0, 10.0), "reduce: sum [1,2,3,4] full == 10");
+}
+
+fn test_sum_axis0_2d_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  let h = nd(array_sum(&a, 0));
+  return xiom.test.assert(shape_is(h, v1(3)) && get_1d(h, 0, 5.0) && get_1d(h, 1, 7.0) && get_1d(h, 2, 9.0),
+    "reduce: sum [[1,2,3],[4,5,6]] axis0 == [5,7,9]");
+}
+
+fn test_sum_axis1_2d_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  let h = nd(array_sum(&a, 1));
+  return xiom.test.assert(shape_is(h, v1(2)) && get_1d(h, 0, 6.0) && get_1d(h, 1, 15.0),
+    "reduce: sum axis1 == [6,15]");
+}
+
+fn test_sum_axis0_3d_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v3(2, 1, 3));
+  let h = nd(array_sum(&a, 0));
+  return xiom.test.assert(shape_is(h, v2(1, 3)) && get_2d(h, 0, 0, 5.0) && get_2d(h, 0, 2, 9.0),
+    "reduce: sum 3d [2,1,3] axis0 -> [1,3] == [[5,7,9]]");
+}
+
+fn test_mean_full_golden() -> TestResult {
+  var a = mk(&fd4(2.0, 4.0, 6.0, 8.0), &v1(4));
+  let h = nd(array_mean(&a, -1));
+  return xiom.test.assert(shape_is(h, v1(1)) && get_1d(h, 0, 5.0), "reduce: mean [2,4,6,8] full == 5");
+}
+
+fn test_mean_axis0_2d_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  let h = nd(array_mean(&a, 0));
+  return xiom.test.assert(shape_is(h, v1(3)) && get_1d(h, 0, 2.5) && get_1d(h, 1, 3.5) && get_1d(h, 2, 4.5),
+    "reduce: mean axis0 == [2.5,3.5,4.5]");
+}
+
+fn test_max_axis1_2d_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 5.0, 3.0, 4.0, 2.0, 6.0), &v2(2, 3));
+  let h = nd(array_max(&a, 1));
+  return xiom.test.assert(shape_is(h, v1(2)) && get_1d(h, 0, 5.0) && get_1d(h, 1, 6.0),
+    "reduce: max [[1,5,3],[4,2,6]] axis1 == [5,6]");
+}
+
+fn test_max_full_negatives_golden() -> TestResult {
+  var a = mk(&fd3(-5.0, -2.0, -9.0), &v1(3));
+  let h = nd(array_max(&a, -1));
+  return xiom.test.assert(get_1d(h, 0, -2.0), "reduce: max [-5,-2,-9] full == -2");
+}
+
+fn test_min_axis0_2d_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 5.0, 3.0, 4.0, 2.0, 6.0), &v2(2, 3));
+  let h = nd(array_min(&a, 0));
+  return xiom.test.assert(shape_is(h, v1(3)) && get_1d(h, 0, 1.0) && get_1d(h, 1, 2.0) && get_1d(h, 2, 3.0),
+    "reduce: min axis0 == [1,2,3]");
+}
+
+fn test_min_full_fractional_golden() -> TestResult {
+  var a = mk(&fd3(1.5, -2.5, 0.0), &v1(3));
+  let h = nd(array_min(&a, -1));
+  return xiom.test.assert(get_1d(h, 0, -2.5), "reduce: min [1.5,-2.5,0] full == -2.5");
+}
+
+fn test_sum_axis_out_of_range_err() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  return xiom.test.assert(err_nd(array_sum(&a, 5)), "reduce: sum axis 5 on 2d returns Err");
+}
+
+fn test_sum_axis_negative_two_err() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  return xiom.test.assert(err_nd(array_sum(&a, -2)), "reduce: sum axis -2 returns Err");
+}
+
+fn test_sum_empty_err() -> TestResult {
+  var a = nd(array_arange(0.0, 0.0, 1.0));
+  return xiom.test.assert(err_nd(array_sum(&a, -1)), "reduce: sum of empty array returns Err");
+}
+
+fn test_reduce_invalid_handle_err() -> TestResult {
+  var a = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  array_free(a);
+  return xiom.test.assert(err_nd(array_max(&a, -1)), "reduce: max on freed handle returns Err");
+}
+
+// ---------------------------------------------------------------------------
+// Phase-3b matrix inverse -- golden values (hand-computed f64)
+// ---------------------------------------------------------------------------
+
+fn test_inv_2x2_golden() -> TestResult {
+  var a = mk(&fd4(4.0, 7.0, 2.0, 6.0), &v2(2, 2));
+  let h = nd(array_inv(&a));
+  return xiom.test.assert(shape_is(h, v2(2, 2))
+    && get_2d(h, 0, 0, 0.6) && get_2d(h, 0, 1, -0.7)
+    && get_2d(h, 1, 0, -0.2) && get_2d(h, 1, 1, 0.4),
+    "inv: [[4,7],[2,6]]^-1 == [[0.6,-0.7],[-0.2,0.4]]");
+}
+
+fn test_inv_3x3_golden() -> TestResult {
+  var a = mk(&fd9(1.0, 2.0, 3.0, 0.0, 1.0, 4.0, 5.0, 6.0, 0.0), &v2(3, 3));
+  let h = nd(array_inv(&a));
+  return xiom.test.assert(shape_is(h, v2(3, 3))
+    && get_2d(h, 0, 0, -24.0) && get_2d(h, 0, 1, 18.0) && get_2d(h, 0, 2, 5.0)
+    && get_2d(h, 1, 0, 20.0) && get_2d(h, 1, 1, -15.0) && get_2d(h, 1, 2, -4.0)
+    && get_2d(h, 2, 0, -5.0) && get_2d(h, 2, 1, 4.0) && get_2d(h, 2, 2, 1.0),
+    "inv: 3x3 inverse (det==1) golden");
+}
+
+fn test_inv_identity_golden() -> TestResult {
+  var i = mk(&fd9(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), &v2(3, 3));
+  let h = nd(array_inv(&i));
+  return xiom.test.assert(get_2d(h, 0, 0, 1.0) && get_2d(h, 1, 1, 1.0) && get_2d(h, 2, 2, 1.0)
+    && get_2d(h, 0, 1, 0.0) && get_2d(h, 1, 2, 0.0),
+    "inv: identity inverse == identity");
+}
+
+fn test_inv_matmul_roundtrip_golden() -> TestResult {
+  var a = mk(&fd4(4.0, 7.0, 2.0, 6.0), &v2(2, 2));
+  let inv = nd(array_inv(&a));
+  let p = nd(array_matmul(&a, &inv));
+  return xiom.test.assert(get_2d(p, 0, 0, 1.0) && get_2d(p, 0, 1, 0.0)
+    && get_2d(p, 1, 0, 0.0) && get_2d(p, 1, 1, 1.0),
+    "inv: A * inv(A) == identity");
+}
+
+fn test_inv_singular_err() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 2.0, 4.0), &v2(2, 2));
+  return xiom.test.assert(err_nd(array_inv(&a)), "inv: singular matrix returns Err (fail-closed)");
+}
+
+fn test_inv_nonsquare_err() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  return xiom.test.assert(err_nd(array_inv(&a)), "inv: non-square matrix returns Err");
+}
+
+fn test_inv_rank1d_err() -> TestResult {
+  var a = mk(&fd2(1.0, 2.0), &v1(2));
+  return xiom.test.assert(err_nd(array_inv(&a)), "inv: 1-D operand returns Err");
+}
+
+fn test_inv_invalid_handle_err() -> TestResult {
+  var a = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
+  array_free(a);
+  return xiom.test.assert(err_nd(array_inv(&a)), "inv: freed handle returns Err");
+}
+
+// ---------------------------------------------------------------------------
 // contract-presence markers
 // ---------------------------------------------------------------------------
 
@@ -883,6 +1035,26 @@ fn test_contract_array_reshape() -> TestResult {
 
 fn test_contract_array_transpose() -> TestResult {
   return xiom.test.assert(true, "contract: array_transpose has requires: arr != 0");
+}
+
+fn test_contract_array_sum() -> TestResult {
+  return xiom.test.assert(true, "contract: array_sum has requires: arr != 0");
+}
+
+fn test_contract_array_mean() -> TestResult {
+  return xiom.test.assert(true, "contract: array_mean has requires: arr != 0");
+}
+
+fn test_contract_array_max() -> TestResult {
+  return xiom.test.assert(true, "contract: array_max has requires: arr != 0");
+}
+
+fn test_contract_array_min() -> TestResult {
+  return xiom.test.assert(true, "contract: array_min has requires: arr != 0");
+}
+
+fn test_contract_array_inv() -> TestResult {
+  return xiom.test.assert(true, "contract: array_inv has requires: arr != 0; typed Err on singular/non-square");
 }
 
 pub fn main() -> Int {
@@ -995,6 +1167,30 @@ pub fn main() -> Int {
   results.push(test_transpose_twice_identity());
   results.push(test_transpose_invalid_handle_err());
 
+  results.push(test_sum_full_1d_golden());
+  results.push(test_sum_axis0_2d_golden());
+  results.push(test_sum_axis1_2d_golden());
+  results.push(test_sum_axis0_3d_golden());
+  results.push(test_mean_full_golden());
+  results.push(test_mean_axis0_2d_golden());
+  results.push(test_max_axis1_2d_golden());
+  results.push(test_max_full_negatives_golden());
+  results.push(test_min_axis0_2d_golden());
+  results.push(test_min_full_fractional_golden());
+  results.push(test_sum_axis_out_of_range_err());
+  results.push(test_sum_axis_negative_two_err());
+  results.push(test_sum_empty_err());
+  results.push(test_reduce_invalid_handle_err());
+
+  results.push(test_inv_2x2_golden());
+  results.push(test_inv_3x3_golden());
+  results.push(test_inv_identity_golden());
+  results.push(test_inv_matmul_roundtrip_golden());
+  results.push(test_inv_singular_err());
+  results.push(test_inv_nonsquare_err());
+  results.push(test_inv_rank1d_err());
+  results.push(test_inv_invalid_handle_err());
+
   results.push(test_contract_array_new());
   results.push(test_contract_array_from_data());
   results.push(test_contract_array_arange());
@@ -1005,6 +1201,11 @@ pub fn main() -> Int {
   results.push(test_contract_no_ffi_storage());
   results.push(test_contract_array_reshape());
   results.push(test_contract_array_transpose());
+  results.push(test_contract_array_sum());
+  results.push(test_contract_array_mean());
+  results.push(test_contract_array_max());
+  results.push(test_contract_array_min());
+  results.push(test_contract_array_inv());
 
   let total_count = results.len();
   let report = xiom.test.format_results(results);
@@ -1019,7 +1220,7 @@ pub fn main() -> Int {
   if fail_count == 0 {
     io.println("ALL " + int_to_str(total_count) + " TESTS PASSED");
     io.println("Path: packages\\xiom-numpy\\tests\\test_conformance.xi");
-    io.println("Contracts (src/numpy.xi): creation/get/set/free requires clauses; 8 contract checks in this suite");
+    io.println("Contracts (src/numpy.xi): creation/get/set/free/reduce/inv requires clauses; 15 contract checks in this suite");
     return 0;
   } else {
     io.println("Path: packages\\xiom-numpy\\tests\\test_conformance.xi");

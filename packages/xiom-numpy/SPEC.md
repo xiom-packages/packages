@@ -1,7 +1,7 @@
 # xiom.numpy -- SPEC
 
 **Phase**: 2a (Core Storage) | **Priority**: CRITICAL
-**Status**: Phase 3a GREEN -- 103/103 conformance checks x2 (compiler v0.64.6, 2026-10-16); broadcasting + N-D strides + reshape/transpose landed (Phase-2b 83/83 was v0.64.5); Phase-1 link bridge retained at `bridge/numpy_bridge.c` as the acceleration seam (not called by the module)
+**Status**: Phase 3b GREEN -- 130/130 conformance checks x2 (compiler v0.64.6, 2026-10-16); reductions (sum/mean/max/min, axis-aware) + `array_inv` landed (Phase-3a 103/103 was v0.64.6); Phase-1 link bridge retained at `bridge/numpy_bridge.c` as the acceleration seam (not called by the module)
 **Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend) -- consumed as a PATH dep (`xiom.toml`) for the Phase-2b `dot`/`matmul` compute path.
 
 ## What it wraps
@@ -92,6 +92,34 @@ We compile a thin C bridge that calls `PyArray_*` functions (which are C, not Py
   makes `[2]` with `[2,2]` legal.
 - Suite: 103/103 conformance checks GREEN x2 (v0.64.6, 2026-10-16).
 
+## Phase-3b design note: reductions + matrix inverse (2026-10-16)
+- Reductions `array_sum` / `array_mean` / `array_max` / `array_min` are pure-XIOM
+  passes over the flat f64 arena, built on the Phase-3a row-major stride helper
+  (`_nd_strides_of_shape`) and the same slot-allocation path as every other op.
+  `axis == -1` is the full-array reduction ("axis omitted") and yields shape
+  `[1]` (the `dot` inner-product convention); `axis` in `[0, ndim)` reduces that
+  axis only and drops it from the result shape (a 1-D input reduced on axis 0
+  yields `[1]`). Any other axis, an invalid handle, or an empty input fails
+  closed with a typed `Err`. Reductions never alias or mutate the operand.
+  (Names carry the module's `array_` prefix, matching `array_add`/`array_reshape`
+  rather than the bare `sum`/`mean`/`max` of the original API sketch.)
+- `array_inv` is a self-contained Gauss-Jordan elimination with partial pivoting
+  over the f64 arena, so it is correct on the offline leg with no live
+  BLAS/LAPACK. Rationale: `xiom.openblas` ships only stub `solve`/`svd`
+  (identity/zero placeholders) and no `inv` symbol, so routing the inverse
+  through that seam could not yield correct values offline; the openblas/LAPACK
+  path remains the documented acceleration target behind the same `NDArray`
+  surface. Fail-closed: a non-2-D operand, a non-square matrix, a matrix whose
+  augmented buffer would exceed `ND_MAX_ELEMS`, or a singular matrix (no pivot
+  above `ND_INV_PIVOT_EPS` while eliminating a column) all return a typed `Err`;
+  no partial result is returned.
+- `svd` is deferred: Gauss-Jordan is not trivially extendable to SVD (SVD needs
+  a one-sided Jacobi / eigen routine), and the `xiom.openblas.svd` seam is still
+  a Phase-1 stub. Documented as remaining Phase-3 work (see ROADMAP.md).
+- Suite: 130/130 conformance checks GREEN x2 (v0.64.6, 2026-10-16); 27 new
+  checks (14 reduction goldens/error-paths, 8 inverse goldens/error-paths, 5
+  contract markers).
+
 ## Phase-1 status and provenance (2026-10-16)
 - The conformance suite (`tests/test_conformance.xi`, 30 checks) links the
   package-local Phase-1 bridge `bridge/numpy_bridge.c` via `port.args.json`
@@ -159,6 +187,15 @@ pub fn max(arr: &NDArray, axis: Int) -> Result[NDArray, Str]
 pub fn reshape(arr: &NDArray, new_shape: Vec[Int]) -> Result[NDArray, Str]
 pub fn transpose(arr: &NDArray) -> Result[NDArray, Str]
 ```
+
+### Implemented surface deltas from the sketch above
+- All ops carry the `array_` prefix (`array_add`, `array_reshape`, ...), matching
+  the Phase-2b/3a implementation rather than the bare names in the sketch.
+- Reductions are implemented as `array_sum`, `array_mean`, `array_max`,
+  `array_min` (Phase-3b). `array_min` is added beyond the sketch's `max`/`mean`.
+  `axis == -1` is the full-array reduction; `axis` in `[0, ndim)` drops that axis.
+- `array_inv` is implemented (Phase-3b, self-contained Gauss-Jordan, fail-closed).
+  `svd` remains unimplemented (see the Phase-3b design note).
 
 ## Contract coverage target
 - Shape compatibility: `requires: a.ndim == b.ndim` for elementwise ops
