@@ -15,7 +15,8 @@ HTTP/1.1 types, request/response parsers, client helpers, and a (stub) server sh
 > (sha256 `b65c44d2...`) client surface stabilisation (probe + docs). 0.1.8:
 > custom request headers (`xiom.http.headers.http_headers_blob` +
 > `xiom.http.http_request`; `Authorization: Bearer` proven on the wire via the
-> shim's curl_slist path). Suite **52/52 x2** on v0.64.5.
+> shim's curl_slist path). Suite **52/52 x2** on v0.64.6. Published as a
+> single tag `xiom-http/v0.1.8` (sha256 `0e707f55...`, 2026-10-16).
 
 ## Consumer quickstart (3 lines)
 
