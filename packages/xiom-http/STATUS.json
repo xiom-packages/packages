@@ -9,9 +9,9 @@
                   "passed":  42,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "d45a106d",
-                  "checked":  "2026-10-10T21:02:44Z"
+                  "commit":  "b0cd82c5",
+                  "checked":  "2026-10-16T13:06:00Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.133 (2026-10-10; 0.1.5 in eco-v0.1.125)"
+    "excluded_reason":  "publish pending: 0.1.7 client surface stabilisation (probe + docs at b0cd82c5); rider for the next eco batch; no scope delta (existing allowlisted name)"
 }
