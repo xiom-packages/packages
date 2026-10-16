@@ -1,0 +1,10 @@
+xiom.v4l repro probe (bridge built against the pinned UAPI headers)
+  platform           : linux (device layer reachable)
+  abi_fail_count     : 0
+  abi_fail_names     : 
+  abi self-check     : green (ioctl encodings + struct sizes + key offsets re-derived)
+  probe bogus dir    : rc=1 (no V4L2 device nodes under /dev/xiom-absent-v4l-root (SKIP))
+  skip-path          : ABSENT classification OK (the suite's deterministic SKIP leg)
+  probe /dev         : rc=1 (no V4L2 device nodes under /dev (SKIP))
+  live path          : SKIP -- no V4L2 device layer on this host (recorded)
+probe done
