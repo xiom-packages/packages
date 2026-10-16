@@ -9,7 +9,8 @@ no system library, no DLL, no SDK.
 > bodies/step/state, broadphase queries, contact events and the remaining
 > tractable joint types; 0.3.0 added revolute + prismatic joint motors with
 > wrapped-angle semantics). 0.2.0 shipped in `eco-v0.1.123` (sha256
-> `314568d7...`); 0.3.0 published in `eco-v0.1.157` (sha256 `3c2ebda1...`).
+> `314568d7...`); 0.3.0 published in `eco-v0.1.157` (sha256 `3c2ebda1...`);
+> `0.4.0` published in `eco-v0.1.187` (sha256 `04fe2147...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start

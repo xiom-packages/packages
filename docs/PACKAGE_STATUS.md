@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-16T11:14:26Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T11:23:40Z.
 
 ## Summary
 
@@ -338,7 +338,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.blas | xiom-blas | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.bolt | xiom-bolt | incubating | tests/test_conformance.xi | pass 18/18 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.boosting | xiom-boosting | incubating | tests/test_conformance.xi | pass 20/20 | a3696e55 | False | publish pending: next scope delta |
-| xiom.box2d | xiom-box2d | incubating | tests/test_conformance.xi | pass 26/26 | d19090cc | False | published in eco-v0.1.157 (2026-10-11; 0.2.0 in eco-v0.1.123) |
+| xiom.box2d | xiom-box2d | incubating | tests/test_conformance.xi | pass 26/26 | 43173d68 | False | published in eco-v0.1.187 (2026-10-16, 0.4.0 A02 caller surface; 0.3.0 in eco-v0.1.157; 0.2.0 in eco-v0.1.123) |
 | xiom.btree | xiom-btree | incubating | tests/test_conformance.xi | pass 23/23 | 5be4adeb | False | published in eco-v0.1.141 (2026-10-11; 0.1.0 in eco-v0.1.121) |
 | xiom.bullet | xiom-bullet | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.cache | xiom-cache | incubating | tests/test_conformance.xi | pass 26/26 | 23b01b82 | False | publish pending: next scope delta |
@@ -466,7 +466,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.metadata | xiom-metadata | incubating | tests/test_conformance.xi | pass 28/28 | b7c0bfbf | False | publish pending: next scope delta |
 | xiom.micro | xiom-micro | incubating | tests/test_conformance.xi | pass 10/10 | 57cdac5b | False | publish pending: eco-v0.1.42 |
 | xiom.microscopy | xiom-microscopy | incubating | tests/test_conformance.xi | pass 24/24 | d475ef4b | False | publish pending: next scope delta |
-| xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | pass 27/27 | c11b7ac2 | False | publish pending: 0.4.0 (A04 growth; device/engine/node-graph/capture/streamed decode) |
+| xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | pass 27/27 | 43173d68 | False | published in eco-v0.1.187 (2026-10-16, 0.4.0 A04 audio growth; 0.3.0 in eco-v0.1.154; 0.2.0 in eco-v0.1.114) |
 | xiom.ml | xiom-ml | incubating | tests/test_conformance.xi | pass 18/18 | 6a19ce99 | False | publish pending: next scope delta |
 | xiom.mock | xiom-mock | incubating | tests/test_conformance.xi | pass 20/20 | 4c9f5b3e | False | publish pending: next scope delta |
 | xiom.mongo | xiom-mongo | incubating | tests/test_conformance.xi | pass 23/23 | 6f9ebf38 | False | category harmonization patch bump (registry metadata) |
