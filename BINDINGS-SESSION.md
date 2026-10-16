@@ -1486,6 +1486,22 @@ in-situ; filed to compiler; restore stays parked)**:
   existed.  The README docs-commit GO-AHEAD was delivered to the
   evidence session (`ses_eb96482b9ffe...`) on the re-send.
 
+**UPDATE 2026-10-16 23:30Z (miniaudio 0.5.0 handle surface LANDED --
+engine ask delivered; merge+publish relayed; wave parked overnight)**:
+owner asked for the delivery + merge relay, then pause.
+- **`xiom.miniaudio 0.5.0` LANDED**: land `c4000ba4` (path-scoped from
+  `feat/miniaudio-handle` @ `e17a8ce3`), record re-pointed (44/44 x2 on
+  **v0.64.6**; 27 -> 44 tests; handle battery: 4-slot registry, live
+  render swaps, typed STATE/BAD_HANDLE/EXHAUSTED/NO_CONTEXT, clean
+  teardown; live WASAPI/auto legs).  Delivers engine ask
+  `REL-20261016-2139-packages-2` (fold of `-2134-engine-2`).
+- **Merge+publish relayed to packages**: `REL-20261016-2324-bindings`
+  (0.5.0 publish request + merge cue; existing name, allowlist path).
+- **Queue wave parked**: torch-libtorch / tensorflow-coverage /
+  blas-fold branches are mid-flight (sessions offline with the owner
+  away); they resume + land next window, publish requests follow.
+- validate 566/0 post-landing; relay validate green (686 items).
+
 **UPDATE 2026-10-16 22:40Z (queue execution wave LAUNCHED -- 4 agents;
 category sweep completed)**: acted on every accepted/queued bindings
 item; no open relay items were pending.
