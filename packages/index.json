@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-16T16:13:58Z",
+    "updated":  "2026-10-16T18:04:49Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -3488,7 +3488,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.6",
+                         "version":  "0.1.7",
                          "name":  "xiom.http",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "XIOM HTTP Library -- types, parsing, client, and server",
@@ -3498,7 +3498,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-http/v0.1.6/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-http/v0.1.7/package.tar.gz",
                          "source_files":  [
                                               "client.xi",
                                               "cookie.xi",
@@ -6759,6 +6759,30 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pulsar/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "pulsar.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.pulse",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "PULSE protocol core: HTTP/1.1 request parser + response builders, keep-alive A/B connection loop with named deadlines, route mechanism and JSON error envelope (pure XIOM, stdlib-only)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pulse/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "config.xi",
+                                              "envelope.xi",
+                                              "http.xi",
+                                              "minimal.xi",
+                                              "pulse.xi",
+                                              "reqctx.xi",
+                                              "router.xi",
+                                              "server.xi",
                                               "package.xi"
                                           ]
                      },

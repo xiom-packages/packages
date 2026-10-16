@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-16T16:13:53+03:00
-# packages: 563  modules: 1035
+# generated: 2026-10-16T18:04:48+03:00
+# packages: 564  modules: 1043
 
 ## package names
 xiom.aaudio
@@ -389,6 +389,7 @@ xiom.protobuf
 xiom.proxy
 xiom.psf
 xiom.pulsar
+xiom.pulse
 xiom.punycode
 xiom.puppet
 xiom.pwm
@@ -1141,6 +1142,14 @@ xiom.protobuf.schema
 xiom.proxy
 xiom.psf
 xiom.pulsar
+xiom.pulse
+xiom.pulse.app
+xiom.pulse.config
+xiom.pulse.envelope
+xiom.pulse.http
+xiom.pulse.minimal
+xiom.pulse.reqctx
+xiom.pulse.router
 xiom.punycode
 xiom.puppet
 xiom.pwm
