@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-16T13:02:23Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T13:10:11Z.
 
 ## Summary
 
-- packages tracked: 561
-- incubating: 279
+- packages tracked: 563
+- incubating: 281
 - ported: 1
 - stable: 281
 - publish enabled: 0
@@ -339,6 +339,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.bolt | xiom-bolt | incubating | tests/test_conformance.xi | pass 18/18 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.boosting | xiom-boosting | incubating | tests/test_conformance.xi | pass 20/20 | a3696e55 | False | publish pending: next scope delta |
 | xiom.box2d | xiom-box2d | incubating | tests/test_conformance.xi | pass 26/26 | 43173d68 | False | published in eco-v0.1.187 (2026-10-16, 0.4.0 A02 caller surface; 0.3.0 in eco-v0.1.157; 0.2.0 in eco-v0.1.123) |
+| xiom.brotli | xiom-brotli | incubating | tests/test_conformance.xi | pass 26/26 | 7e9892bc | False | not allowlisted: no readiness evidence recorded |
 | xiom.btree | xiom-btree | incubating | tests/test_conformance.xi | pass 23/23 | 5be4adeb | False | published in eco-v0.1.141 (2026-10-11; 0.1.0 in eco-v0.1.121) |
 | xiom.bullet | xiom-bullet | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.cache | xiom-cache | incubating | tests/test_conformance.xi | pass 26/26 | 23b01b82 | False | publish pending: next scope delta |
@@ -548,6 +549,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.sql | xiom-sql | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: stub body |
 | xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | pass 21/21 | 88a45273 | False | published in eco-v0.1.175 (2026-10-13, 0.4.1 modules-list fix; 0.4.0 PULSE SQL driver in eco-v0.1.174; 0.3.0 in eco-v0.1.122) |
 | xiom.ssh2 | xiom-ssh2 | incubating | tests/test_conformance.xi | pass 24/24 | 0da2fa55 | False | publish pending: eco-v0.1.37 (v0.62.3 result-payload fix) |
+| xiom.ssl | xiom-ssl | incubating | tests/test_conformance.xi | pass 23/23 | a65f34cc | False | publish pending: new name (libssl-class TLS context engine, REL-20261015-2211-packages); ops scope queued 2026-10-16 |
 | xiom.static | xiom-static | incubating | tests/test_conformance.xi | pass 25/25 | 50742952 | False |  |
 | xiom.stats-ml | xiom-stats-ml | incubating | tests/test_conformance.xi | pass 22/22 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.stats-tests | xiom-stats-tests | incubating | tests/test_conformance.xi | pass 25/25 | 6b308204 | False | publish pending: next scope delta |

@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-16T13:02:55Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T13:10:21Z.
 
 ## How to read this table
 
@@ -42,17 +42,17 @@ preserved by `-Action repin`/`-Action update`:
 
 ## Summary
 
-- packages: 561
+- packages: 563
 - declared rows: 36
-- compile: 27
+- compile: 28
 - compile+runtime-load: 19
 - pure: 500
-- runtime-load: 15
-- native packages pending declaration: 27
+- runtime-load: 16
+- native packages pending declaration: 29
 
 ## Declaration backlog (native)
 
-xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.libpq, xiom.lzfse, xiom.miniaudio, xiom.odbc, xiom.opensl, xiom.openssl, xiom.portaudio, xiom.raylib, xiom.sdl2, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.vma, xiom.vulkan
+xiom.assimp, xiom.box2d, xiom.brotli, xiom.camera2ndk, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.libpq, xiom.lzfse, xiom.miniaudio, xiom.odbc, xiom.opensl, xiom.openssl, xiom.portaudio, xiom.raylib, xiom.sdl2, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.ssl, xiom.vma, xiom.vulkan
 
 ## Matrix
 
@@ -105,6 +105,7 @@ xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx11, xiom.direct
 | xiom.vulkan | 0.6.0 | incubating | compile+runtime-load | undeclared | vulkan-1.dll (runtime, derived) | pass 22/22 @ 1aa5be5b |
 | xiom.assimp | 0.8.0 | incubating | compile | undeclared | - | pass 16/16 @ a76bdef4 |
 | xiom.box2d | 0.4.0 | incubating | compile | undeclared | - | pass 26/26 @ 43173d68 |
+| xiom.brotli | 0.1.0 | incubating | compile | undeclared | - | pass 26/26 @ 7e9892bc |
 | xiom.http | 0.1.6 | stable | compile | undeclared | - | pass 42/42 @ d45a106d |
 | xiom.imgui | 0.3.0 | incubating | compile | undeclared | - | pass 7/7 @ 05c30982 |
 | xiom.lzfse | 0.2.0 | incubating | compile | undeclared | - | pass 7/7 @ 07f5bd2f |
@@ -121,6 +122,7 @@ xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx11, xiom.direct
 | xiom.shaderc | 0.1.0 | incubating | runtime-load | undeclared | shaderc_shared.dll (runtime, derived) | pass 17/17 @ 674dea9d |
 | xiom.slang | 0.1.0 | incubating | runtime-load | undeclared | slang.dll, slang-compiler.dll (runtime, derived) | pass 20/20 @ 674dea9d |
 | xiom.spirv-cross | 0.1.0 | incubating | runtime-load | undeclared | spirv-cross-c-shared.dll (runtime, derived) | pass 20/20 @ 674dea9d |
+| xiom.ssl | 0.1.0 | incubating | runtime-load | undeclared | libcrypto.dll, libcrypto-1_1.dll, libcrypto-1_1-x64.dll, libcrypto-3-x64.dll, libssl.dll, libssl-1_1.dll (+2 more; see SPEC) (runtime, derived) | pass 23/23 @ a65f34cc |
 | xiom.acpi | 0.1.2 | stable | pure | any (derived) | - | pass 18/18 @ 9caf792b |
 | xiom.activation | 0.1.0 | incubating | pure | any (derived) | - | pass 24/24 @ 8601a49b |
 | xiom.actor | 0.1.0 | incubating | pure | any (derived) | - | pass 28/28 @ 761842c9 |
