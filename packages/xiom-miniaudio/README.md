@@ -15,6 +15,7 @@ the test binary -- no system audio library at link time.
 > decode in 13-frame chunks). 0.2.0 shipped in `eco-v0.1.114`; 0.3.0
 > published in `eco-v0.1.154` (sha256 `6a2a77dd...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.4.0` in `eco-v0.1.187` (sha256 `382a16f0...`).
 
 ## Quick start
 

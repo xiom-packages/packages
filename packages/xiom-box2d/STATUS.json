@@ -13,5 +13,5 @@
                   "checked":  "2026-10-16T11:17:59Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: 0.4.0 A02 caller 2D-solver surface (engine ask); 0.3.0 in eco-v0.1.157"
+    "excluded_reason":  "published in eco-v0.1.187 (2026-10-16, 0.4.0 A02 caller surface; 0.3.0 in eco-v0.1.157; 0.2.0 in eco-v0.1.123)"
 }
