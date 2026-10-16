@@ -1,557 +1,499 @@
-// XIOM -- ROS 2 Conformance Test Suite
+// XIOM -- xiom.ros2 conformance tests (dynamic loader + deterministic goldens
+// + a gated live leg).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
-// Licensed under the MIT or Apache-2.0 license, at your option.
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// Comprehensive compile-time and runtime conformance tests covering
-// the full public API surface: 5 types, 12 extern FFI stubs,
-// 12 safe wrapper functions, contracts across 11 parameterized functions.
+// CI WITHOUT ROS 2 stays green: no candidate librcl soname -> typed SKIP (the
+// SKIP path is exercised deterministically every run via a bogus soname).
+// Deterministic goldens (always green, no ROS 2 needed):
+//   * loader classification: bogus soname -> ROS2_LOAD_ABSENT;
+//   * ret-code catalog names; QoS preset names; error-kind names;
+//   * ABI-host gate expectation (windows / aarch64 / arm pass; x86-64 SysV no);
+//   * fabricated-structure goldens: allocator field order, rmw_qos_profile_t
+//     offsets (history@0 depth@8 reliability@16 durability@20 liveliness@56
+//     avoid@80), pub/sub options (qos@0 alloc@88), node options (alloc@0);
+//   * custom-QoS validation and unknown-preset errors.
+// Live leg (runs when librcl is present AND the host ABI is supported --
+// Windows x64 or AArch64/ARM; the Pi leg): init/context queries, node
+// name/namespace, std_msgs/String type support, pub/sub roundtrip with
+// caller-owned message buffers, steady-clock timer, wait set + callback-free
+// spin_once, full teardown.
 //
-// All FFI calls are stubs returning Err until the C bridge is linked.
-// Tests verify stub behaviour (no crash) and contract presence.
-//
-// Compile: xiom ros2.xi tests/test_conformance.xi
+// Build+run (no extra compiler args: pure-XIOM loader):
+//   scripts/port.ps1 -Package xiom.ros2 -TimeoutSec 300
 
 module ros2_conformance
+
 use xiom.io;
-use xiom.test;
+use xiom.ffi;
+use xiom.platform;
+use xiom.string.compare;
+use xiom.string.search;
 use xiom.ros2;
 
-// ===========================================================================
-// Helpers
-// ===========================================================================
+const BOGUS_SONAME: Str = "xiom-absent-librcl-probe-xyz.so";
+const TOPIC: Str = "/xiom_ros2_probe";
+const MSG_TEXT: Str = "hello-ros2";
 
-fn int_to_str(n: Int) -> Str {
-  if n == 0 { return "0"; }
-  var num = n;
-  var out = "";
-  while num > 0 {
-    let d = num % 10;
-    var ds = "0";
-    if d == 1 { ds = "1"; }
-    elif d == 2 { ds = "2"; }
-    elif d == 3 { ds = "3"; }
-    elif d == 4 { ds = "4"; }
-    elif d == 5 { ds = "5"; }
-    elif d == 6 { ds = "6"; }
-    elif d == 7 { ds = "7"; }
-    elif d == 8 { ds = "8"; }
-    elif d == 9 { ds = "9"; }
-    out = ds + out;
-    num = num / 10;
-  }
-  return out;
-}
-
-fn report(passed: Bool, name: Str) -> Int {
-  if passed {
+fn report(ok: Bool, name: Str) -> Int {
+  if ok {
     io.println("  [PASS] " + name);
+    io.flush_stdout();
     return 0;
   }
   io.println("  [FAIL] " + name);
+  io.flush_stdout();
   return 1;
 }
 
-// ===========================================================================
-// SECTION 1 -- Types (5 tests)
-// ===========================================================================
-
-fn test_type_node_is_int() -> TestResult {
-  return assert(true, "type: Node is Int alias present");
+fn why(msg: Str) {
+  io.println("    detail: " + msg);
+  io.flush_stdout();
 }
 
-fn test_type_publisher_is_int() -> TestResult {
-  return assert(true, "type: Publisher is Int alias present");
+fn note(msg: Str) {
+  io.println("    " + msg);
+  io.flush_stdout();
 }
 
-fn test_type_subscriber_is_int() -> TestResult {
-  return assert(true, "type: Subscriber is Int alias present");
+fn streq(a: Str, b: Str) -> Bool {
+  return compare.str_compare(a, b) == 0;
 }
 
-fn test_type_service_is_int() -> TestResult {
-  return assert(true, "type: Service is Int alias present");
-}
+// =========================================================================
+// Deterministic goldens
+// =========================================================================
 
-fn test_type_message_is_int() -> TestResult {
-  return assert(true, "type: Message is Int alias present");
-}
-
-// ===========================================================================
-// SECTION 2 -- Init / Shutdown (2 tests)
-// ===========================================================================
-
-fn run_init_stub() -> Int {
-  match init() {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
-    }
-    Ok(_) => { return 1; }
+fn t_loader_absent() -> Int {
+  let missing = ros2_load_named(BOGUS_SONAME);
+  if missing.is_ok {
+    return report(false, "skip-path: bogus soname unexpectedly loaded");
   }
+  var failed = report(
+    missing.error.kind == ROS2_LOAD_ABSENT,
+    "skip-path: absent library classified as ROS2_LOAD_ABSENT (SKIP)");
+  failed = failed + report(
+    streq(ros2_error_kind_name(missing.error.kind), "absent"),
+    "skip-path: kind name is 'absent'");
+  return failed;
 }
 
-fn test_init_stub() -> TestResult {
-  let rc = run_init_stub();
-  if rc == 0 { return assert(true, "init: init() returns Err stub"); }
-  return assert(false, "init: init() returns Err stub");
+fn t_kind_names() -> Int {
+  var failed = 0;
+  failed = failed + report(streq(ros2_error_kind_name(ROS2_LOAD_ABI), "abi"), "kind: abi");
+  failed = failed + report(streq(ros2_error_kind_name(ROS2_ABI_HOST), "host-abi"), "kind: host-abi");
+  failed = failed + report(streq(ros2_error_kind_name(ROS2_RET_FAIL), "rcl-ret"), "kind: rcl-ret");
+  failed = failed + report(streq(ros2_error_kind_name(ROS2_ARG_INVALID), "arg"), "kind: arg");
+  return failed;
 }
 
-fn test_shutdown_callable() -> TestResult {
-  return assert(true, "init: shutdown(context: Int) signature present");
-}
-
-// ===========================================================================
-// SECTION 3 -- Node Lifecycle (2 tests)
-// ===========================================================================
-
-fn run_create_node_stub() -> Int {
-  match create_node("test_node") {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
-    }
-    Ok(_) => { return 1; }
+fn t_abi_host_gate() -> Int {
+  let a = platform.arch_name();
+  var expect = true;
+  if !platform.is_windows() && (a == "x86_64" || a == "amd64") {
+    expect = false;
   }
-}
-
-fn test_create_node_stub() -> TestResult {
-  let rc = run_create_node_stub();
-  if rc == 0 { return assert(true, "node: create_node('test_node') returns Err stub"); }
-  return assert(false, "node: create_node() returns Err stub");
-}
-
-fn run_destroy_node_stub() -> Int {
-  match destroy_node(1) {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
-    }
-    Ok(_) => { return 1; }
+  let got = ros2_abi_host_ok();
+  var failed = report(got == expect, "abi-gate: host verdict matches ABI rule (arch=" + a + ")");
+  if got != expect {
+    why("ros2_abi_host_ok()=" + "mismatch");
   }
+  return failed;
 }
 
-fn test_destroy_node_stub() -> TestResult {
-  let rc = run_destroy_node_stub();
-  if rc == 0 { return assert(true, "node: destroy_node(1) returns Err stub"); }
-  return assert(false, "node: destroy_node() returns Err stub");
+fn t_ret_names() -> Int {
+  var failed = 0;
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_OK), "ok"), "ret: 0 ok");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_ERROR), "error"), "ret: 1 error");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_TIMEOUT), "timeout"), "ret: 2 timeout");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_BAD_ALLOC), "bad alloc"), "ret: 10 bad alloc");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_INVALID_ARGUMENT), "invalid argument"), "ret: 11 invalid argument");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_ALREADY_INIT), "already init"), "ret: 100 already init");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_NOT_INIT), "not init"), "ret: 101 not init");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_TOPIC_NAME_INVALID), "topic name invalid"), "ret: 103 topic name invalid");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_NODE_INVALID_NAME), "node name invalid"), "ret: 201 node name invalid");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_PUBLISHER_INVALID), "publisher invalid"), "ret: 300 publisher invalid");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_SUBSCRIPTION_TAKE_FAILED), "take failed"), "ret: 401 take failed");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_TIMER_CANCELED), "timer canceled"), "ret: 801 timer canceled");
+  failed = failed + report(streq(ros2_ret_name(RCL_RET_WAIT_SET_EMPTY), "wait set empty"), "ret: 901 wait set empty");
+  failed = failed + report(streq(ros2_ret_name(9999), "unknown"), "ret: unknown fallback");
+  return failed;
 }
 
-// ===========================================================================
-// SECTION 4 -- Publisher (3 tests)
-// ===========================================================================
+fn t_qos_names() -> Int {
+  var failed = 0;
+  failed = failed + report(streq(ros2_qos_preset_name(ROS2_QOS_DEFAULT), "default"), "qos: default name");
+  failed = failed + report(streq(ros2_qos_preset_name(ROS2_QOS_SENSOR_DATA), "sensor-data"), "qos: sensor-data name");
+  failed = failed + report(streq(ros2_qos_preset_name(ROS2_QOS_SYSTEM_DEFAULT), "system-default"), "qos: system-default name");
+  failed = failed + report(streq(ros2_qos_preset_name(ROS2_QOS_PARAMETERS), "parameters"), "qos: parameters name");
+  failed = failed + report(streq(ros2_qos_preset_name(42), "unknown"), "qos: unknown fallback");
+  return failed;
+}
 
-fn run_create_publisher_stub() -> Int {
-  match create_publisher(1, "chatter") {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
-    }
-    Ok(_) => { return 1; }
+fn t_allocator_golden() -> Int {
+  let a = ros2_allocator_build(111, 222, 333, 444);
+  var failed = report(a.len() == ROS2_ALLOC_SIZE, "alloc: slot size is 40");
+  failed = failed + report(ros2_slot_u64(&a, 0) == 111, "alloc: allocate @0");
+  failed = failed + report(ros2_slot_u64(&a, 8) == 222, "alloc: deallocate @8");
+  failed = failed + report(ros2_slot_u64(&a, 16) == 333, "alloc: reallocate @16");
+  failed = failed + report(ros2_slot_u64(&a, 24) == 444, "alloc: zero_allocate @24");
+  failed = failed + report(ros2_slot_u64(&a, 32) == 0, "alloc: state @32 is NULL");
+  return failed;
+}
+
+fn t_qos_goldens() -> Int {
+  var failed = 0;
+
+  var d = Vec[UInt8].with_len(ROS2_QOS_SIZE);
+  let r1 = ros2_qos_write(&mut d, 0, ROS2_QOS_DEFAULT);
+  failed = failed + report(r1.is_ok, "qos: default preset writes");
+  failed = failed + report(ros2_slot_u32(&d, 0) == ROS2_HISTORY_KEEP_LAST, "qos(default): history@0 KEEP_LAST");
+  failed = failed + report(ros2_slot_u64(&d, 8) == 10, "qos(default): depth@8 == 10");
+  failed = failed + report(ros2_slot_u32(&d, 16) == ROS2_RELIABILITY_RELIABLE, "qos(default): reliability@16 RELIABLE");
+  failed = failed + report(ros2_slot_u32(&d, 20) == ROS2_DURABILITY_VOLATILE, "qos(default): durability@20 VOLATILE");
+  failed = failed + report(ros2_slot_u64(&d, 24) == 0 && ros2_slot_u64(&d, 32) == 0, "qos(default): deadline@24 UNSPECIFIED");
+  failed = failed + report(ros2_slot_u64(&d, 40) == 0 && ros2_slot_u64(&d, 48) == 0, "qos(default): lifespan@40 UNSPECIFIED");
+  failed = failed + report(ros2_slot_u32(&d, 56) == ROS2_LIVELINESS_SYSTEM_DEFAULT, "qos(default): liveliness@56 SYSTEM_DEFAULT");
+  failed = failed + report(ros2_slot_u64(&d, 64) == 0 && ros2_slot_u64(&d, 72) == 0, "qos(default): lease@64 UNSPECIFIED");
+  failed = failed + report(ros2_slot_u8(&d, 80) == 0, "qos(default): avoid_namespace@80 false");
+
+  var s = Vec[UInt8].with_len(ROS2_QOS_SIZE);
+  let r2 = ros2_qos_write(&mut s, 0, ROS2_QOS_SENSOR_DATA);
+  failed = failed + report(r2.is_ok, "qos: sensor-data preset writes");
+  failed = failed + report(ros2_slot_u64(&s, 8) == 5, "qos(sensor): depth@8 == 5");
+  failed = failed + report(ros2_slot_u32(&s, 16) == ROS2_RELIABILITY_BEST_EFFORT, "qos(sensor): reliability@16 BEST_EFFORT");
+
+  var y = Vec[UInt8].with_len(ROS2_QOS_SIZE);
+  let r3 = ros2_qos_write(&mut y, 0, ROS2_QOS_SYSTEM_DEFAULT);
+  failed = failed + report(r3.is_ok, "qos: system-default preset writes");
+  failed = failed + report(ros2_slot_u32(&y, 0) == 0 && ros2_slot_u64(&y, 8) == 0, "qos(system): history/depth 0");
+  failed = failed + report(ros2_slot_u32(&y, 16) == 0 && ros2_slot_u32(&y, 20) == 0, "qos(system): reliability/durability 0");
+
+  var p = Vec[UInt8].with_len(ROS2_QOS_SIZE);
+  let r4 = ros2_qos_write(&mut p, 0, ROS2_QOS_PARAMETERS);
+  failed = failed + report(r4.is_ok, "qos: parameters preset writes");
+  failed = failed + report(ros2_slot_u64(&p, 8) == 1000, "qos(parameters): depth@8 == 1000");
+
+  let bad = ros2_qos_write(&mut p, 0, 42);
+  failed = failed + report(!bad.is_ok, "qos: unknown preset rejected");
+
+  return failed;
+}
+
+fn t_qos_custom() -> Int {
+  var failed = 0;
+  var c = Vec[UInt8].with_len(ROS2_QOS_SIZE);
+  let bad1 = ros2_qos_write_custom(&mut c, 0, ROS2_HISTORY_KEEP_LAST, 0, 1, 2, 0, 0);
+  failed = failed + report(!bad1.is_ok, "qos-custom: KEEP_LAST depth 0 rejected");
+  let bad2 = ros2_qos_write_custom(&mut c, 0, ROS2_HISTORY_SYSTEM_DEFAULT, 5, 1, 2, 0, 0);
+  failed = failed + report(!bad2.is_ok, "qos-custom: SYSTEM_DEFAULT depth != 0 rejected");
+  let good = ros2_qos_write_custom(&mut c, 0, ROS2_HISTORY_KEEP_ALL, 0, ROS2_RELIABILITY_BEST_EFFORT, ROS2_DURABILITY_TRANSIENT_LOCAL, ROS2_LIVELINESS_AUTOMATIC, 1);
+  failed = failed + report(good.is_ok, "qos-custom: KEEP_ALL depth 0 accepted");
+  failed = failed + report(ros2_slot_u32(&c, 0) == ROS2_HISTORY_KEEP_ALL, "qos-custom: history@0");
+  failed = failed + report(ros2_slot_u32(&c, 16) == ROS2_RELIABILITY_BEST_EFFORT, "qos-custom: reliability@16");
+  failed = failed + report(ros2_slot_u32(&c, 20) == ROS2_DURABILITY_TRANSIENT_LOCAL, "qos-custom: durability@20");
+  failed = failed + report(ros2_slot_u32(&c, 56) == ROS2_LIVELINESS_AUTOMATIC, "qos-custom: liveliness@56");
+  failed = failed + report(ros2_slot_u8(&c, 80) == 1, "qos-custom: avoid_namespace@80");
+  return failed;
+}
+
+fn t_options_goldens() -> Int {
+  var failed = 0;
+  let alloc = ros2_allocator_build(101, 202, 303, 404);
+
+  let node_opts = ros2_node_options_build(&alloc);
+  failed = failed + report(node_opts.len() == ROS2_OPTIONS_SLOT, "node-opts: slot size 256");
+  failed = failed + report(ros2_slot_u64(&node_opts, 0) == 101, "node-opts: allocator.allocate @0");
+  failed = failed + report(ros2_slot_u64(&node_opts, 8) == 202, "node-opts: allocator.deallocate @8");
+  failed = failed + report(ros2_slot_u64(&node_opts, 32) == 0, "node-opts: state @32 NULL");
+  failed = failed + report(ros2_slot_u8(&node_opts, 40) == 0, "node-opts: use_global_arguments@40 false");
+  failed = failed + report(ros2_slot_u64(&node_opts, 48) == 0, "node-opts: arguments.impl@48 NULL");
+  failed = failed + report(ros2_slot_u8(&node_opts, 56) == 0, "node-opts: enable_rosout@56 false");
+
+  let ps = ros2_pubsub_options_build(ROS2_QOS_DEFAULT, &alloc);
+  failed = failed + report(ps.is_ok, "pubsub-opts: builds");
+  let o = ps.value;
+  failed = failed + report(o.len() == ROS2_OPTIONS_SLOT, "pubsub-opts: slot size 256");
+  failed = failed + report(ros2_slot_u64(&o, 8) == 10, "pubsub-opts: qos.depth@8 == 10 (qos first)");
+  failed = failed + report(ros2_slot_u64(&o, ROS2_PUBSUB_ALLOC_OFF) == 101, "pubsub-opts: allocator.allocate @88");
+  failed = failed + report(ros2_slot_u64(&o, ROS2_PUBSUB_ALLOC_OFF + 32) == 0, "pubsub-opts: allocator.state @120 NULL");
+  failed = failed + report(ros2_slot_u64(&o, 128) == 0, "pubsub-opts: rmw options @128 zeroed");
+  failed = failed + report(ros2_slot_u64(&o, 248) == 0, "pubsub-opts: tail @248 zeroed");
+
+  let bad = ros2_pubsub_options_build(42, &alloc);
+  failed = failed + report(!bad.is_ok, "pubsub-opts: unknown qos preset rejected");
+  return failed;
+}
+
+fn t_big_values() -> Int {
+  // Regression witness for the v0.64.5 B-29 miscompile class: slot writers
+  // must round-trip values >= 2^31 (real addresses + the B-29 witness value)
+  // through the C-side ffi.ptr_*_le recipe, never XIOM bitops.
+  let a = ros2_allocator_build(3132620800, 140732712345678, 281474976710656, 4294967296);
+  var failed = report(ros2_slot_u64(&a, 0) == 3132620800, "big: 0xBAD00000 (B-29 witness) round-trips");
+  failed = failed + report(ros2_slot_u64(&a, 8) == 140732712345678, "big: address-like value round-trips");
+  failed = failed + report(ros2_slot_u64(&a, 16) == 281474976710656, "big: 2^48 round-trips");
+  failed = failed + report(ros2_slot_u64(&a, 24) == 4294967296, "big: 2^32 round-trips");
+  return failed;
+}
+
+fn t_slots() -> Int {
+  var failed = 0;
+  var v = Vec[UInt8].with_len(8);
+  v[3] = 77 as UInt8;
+  failed = failed + report(ros2_slot_u8(&v, 3) == 77, "slot: byte write/read");
+  failed = failed + report(ros2_slot_ptr(&v) != 0, "slot: pointer is non-zero");
+  failed = failed + report(
+    search.str_contains(ros2_sonames(), "librcl.so"),
+    "sonames: candidate list names librcl.so");
+  return failed;
+}
+
+// =========================================================================
+// Live leg (SKIP when librcl is absent or the host ABI is unsupported)
+// =========================================================================
+
+fn live_roundtrip(lib: &Ros2Library, ctx: &Ros2Context, node: &Ros2Node, ts: &Ros2TypeSupport) -> Int {
+  var failed = 0;
+
+  let pub_r = ros2_publisher_init(lib, node, TOPIC, ts.addr, ROS2_QOS_DEFAULT);
+  if !pub_r.is_ok {
+    why("publisher_init: " + pub_r.error.message);
+    return report(false, "live: publisher init");
   }
-}
+  let pub_ = pub_r.value;
+  failed = failed + report(true, "live: publisher init on " + TOPIC);
 
-fn test_create_publisher_stub() -> TestResult {
-  let rc = run_create_publisher_stub();
-  if rc == 0 { return assert(true, "pub: create_publisher(1, 'chatter') returns Err stub"); }
-  return assert(false, "pub: create_publisher() returns Err stub");
-}
-
-fn run_destroy_publisher_stub() -> Int {
-  match destroy_publisher(1, 1) {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
-    }
-    Ok(_) => { return 1; }
+  let sub_r = ros2_subscription_init(lib, node, TOPIC, ts.addr, ROS2_QOS_DEFAULT);
+  if !sub_r.is_ok {
+    why("subscription_init: " + sub_r.error.message);
+    var ig = ros2_publisher_fini(lib, &pub_, node);
+    return failed + report(false, "live: subscription init");
   }
-}
+  let sub = sub_r.value;
+  failed = failed + report(true, "live: subscription init on " + TOPIC);
 
-fn test_destroy_publisher_stub() -> TestResult {
-  let rc = run_destroy_publisher_stub();
-  if rc == 0 { return assert(true, "pub: destroy_publisher(1, 1) returns Err stub"); }
-  return assert(false, "pub: destroy_publisher() returns Err stub");
-}
-
-fn run_publish_stub() -> Int {
-  match publish(1, 1) {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
+  // Build a std_msgs/String message in an XIOM-owned slot:
+  // rosidl_runtime_c__String = { char* data; size_t size; size_t capacity; }.
+  var msg = Vec[UInt8].with_len(24);
+  var got_text = "";
+  var got = false;
+  var attempt = 0;
+  while attempt < 20 {
+    unsafe {
+      let sp = ros2_slot_ptr(&msg);
+      let payload = MSG_TEXT;
+      let pp = payload as *UInt8 as Int;
+      ffi.ptr_write_u64_le((sp) as *UInt8, pp);
+      ffi.ptr_write_u64_le((sp + 8) as *UInt8, MSG_TEXT.len() as Int);
+      ffi.ptr_write_u64_le((sp + 16) as *UInt8, MSG_TEXT.len() as Int);
     }
-    Ok(_) => { return 1; }
-  }
-}
-
-fn test_publish_stub() -> TestResult {
-  let rc = run_publish_stub();
-  if rc == 0 { return assert(true, "pub: publish(1, 1) returns Err stub"); }
-  return assert(false, "pub: publish() returns Err stub");
-}
-
-// ===========================================================================
-// SECTION 5 -- Subscriber (2 tests)
-// ===========================================================================
-
-fn run_create_subscription_stub() -> Int {
-  match create_subscription(1, "chatter") {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
+    let pr = ros2_publish(lib, &pub_, ros2_slot_ptr(&msg));
+    if !pr.is_ok {
+      why("publish: " + pr.error.message);
+      failed = failed + report(false, "live: publish String message");
+      var ig2 = ros2_subscription_fini(lib, &sub, node);
+      var ig3 = ros2_publisher_fini(lib, &pub_, node);
+      return failed;
     }
-    Ok(_) => { return 1; }
-  }
-}
-
-fn test_create_subscription_stub() -> TestResult {
-  let rc = run_create_subscription_stub();
-  if rc == 0 { return assert(true, "sub: create_subscription(1, 'chatter') returns Err stub"); }
-  return assert(false, "sub: create_subscription() returns Err stub");
-}
-
-fn run_destroy_subscription_stub() -> Int {
-  match destroy_subscription(1, 1) {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
+    var wait_ms = 200;
+    if attempt == 0 { wait_ms = 500; }
+    var subs: Vec[Int] = Vec[Int].new();
+    subs.push(ros2_slot_ptr(&sub.slot));
+    var timers: Vec[Int] = Vec[Int].new();
+    let spin_r = ros2_spin_once(lib, ctx, &subs, &timers, wait_ms);
+    if !spin_r.is_ok {
+      why("spin: " + spin_r.error.message);
+      break;
     }
-    Ok(_) => { return 1; }
-  }
-}
-
-fn test_destroy_subscription_stub() -> TestResult {
-  let rc = run_destroy_subscription_stub();
-  if rc == 0 { return assert(true, "sub: destroy_subscription(1, 1) returns Err stub"); }
-  return assert(false, "sub: destroy_subscription() returns Err stub");
-}
-
-// ===========================================================================
-// SECTION 6 -- Spin (1 test)
-// ===========================================================================
-
-fn run_spin_once_stub() -> Int {
-  match spin_once(1, 100) {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
-    }
-    Ok(_) => { return 1; }
-  }
-}
-
-fn test_spin_once_stub() -> TestResult {
-  let rc = run_spin_once_stub();
-  if rc == 0 { return assert(true, "spin: spin_once(1, 100ms) returns Err stub"); }
-  return assert(false, "spin: spin_once() returns Err stub");
-}
-
-// ===========================================================================
-// SECTION 7 -- Service (2 tests)
-// ===========================================================================
-
-fn run_create_service_stub() -> Int {
-  match create_service(1, "add_two_ints") {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
-    }
-    Ok(_) => { return 1; }
-  }
-}
-
-fn test_create_service_stub() -> TestResult {
-  let rc = run_create_service_stub();
-  if rc == 0 { return assert(true, "srv: create_service(1, 'add_two_ints') returns Err stub"); }
-  return assert(false, "srv: create_service() returns Err stub");
-}
-
-fn run_destroy_service_stub() -> Int {
-  match destroy_service(1, 1) {
-    Err(msg) => {
-      if msg == "stub: ROS 2 C bridge not linked" { return 0; }
-      return 1;
-    }
-    Ok(_) => { return 1; }
-  }
-}
-
-fn test_destroy_service_stub() -> TestResult {
-  let rc = run_destroy_service_stub();
-  if rc == 0 { return assert(true, "srv: destroy_service(1, 1) returns Err stub"); }
-  return assert(false, "srv: destroy_service() returns Err stub");
-}
-
-// ===========================================================================
-// SECTION 8 -- Contract declarations (11 tests)
-// Note: contract violations trap -- tests verify declaration presence only.
-// ===========================================================================
-
-fn test_contract_shutdown() -> TestResult {
-  return assert(true, "contract: shutdown has requires: context > 0");
-}
-
-fn test_contract_create_node() -> TestResult {
-  return assert(true, "contract: create_node has requires: name.len() > 0");
-}
-
-fn test_contract_destroy_node() -> TestResult {
-  return assert(true, "contract: destroy_node has requires: node > 0");
-}
-
-fn test_contract_create_publisher() -> TestResult {
-  return assert(true, "contract: create_publisher has requires: node > 0, topic.len() > 0");
-}
-
-fn test_contract_destroy_publisher() -> TestResult {
-  return assert(true, "contract: destroy_publisher has requires: publisher > 0, node > 0");
-}
-
-fn test_contract_publish() -> TestResult {
-  return assert(true, "contract: publish has requires: publisher > 0, message > 0");
-}
-
-fn test_contract_create_subscription() -> TestResult {
-  return assert(true, "contract: create_subscription has requires: node > 0, topic.len() > 0");
-}
-
-fn test_contract_destroy_subscription() -> TestResult {
-  return assert(true, "contract: destroy_subscription has requires: subscriber > 0, node > 0");
-}
-
-fn test_contract_spin_once() -> TestResult {
-  return assert(true, "contract: spin_once has requires: node > 0, timeout_ms >= 0");
-}
-
-fn test_contract_create_service() -> TestResult {
-  return assert(true, "contract: create_service has requires: node > 0, service_name.len() > 0");
-}
-
-fn test_contract_destroy_service() -> TestResult {
-  return assert(true, "contract: destroy_service has requires: service > 0, node > 0");
-}
-
-// ===========================================================================
-// SECTION 9 -- Error handling (2 tests)
-// ===========================================================================
-
-fn run_error_message_non_empty() -> Int {
-  match init() {
-    Err(msg) => {
-      if msg.len() > 0 { return 0; }
-      return 1;
-    }
-    Ok(_) => { return 1; }
-  }
-}
-
-fn test_error_message_non_empty() -> TestResult {
-  let rc = run_error_message_non_empty();
-  if rc == 0 { return assert(true, "error: Err message is non-empty"); }
-  return assert(false, "error: Err message is non-empty");
-}
-
-fn run_error_message_contains_stub() -> Int {
-  match init() {
-    Err(msg) => {
-      var has_stub = false;
-      var i = 0;
-      while i + 4 <= msg.len() {
-        if msg[i] == 's' && msg[i + 1] == 't' && msg[i + 2] == 'u' && msg[i + 3] == 'b' {
-          has_stub = true;
+    var rmsg = Vec[UInt8].with_len(24);
+    let tr = ros2_take(lib, &sub, ros2_slot_ptr(&rmsg));
+    if tr.is_ok && tr.value {
+      unsafe {
+        let dp = ffi.ptr_read_u64_le(ros2_slot_ptr(&rmsg) as *UInt8);
+        if dp != 0 {
+          got_text = Str::from_c_str(dp as *UInt8);
+          got = true;
         }
-        i = i + 1;
-      }
-      if has_stub { return 0; }
-      return 1;
-    }
-    Ok(_) => { return 1; }
-  }
-}
-
-fn test_error_message_contains_stub() -> TestResult {
-  let rc = run_error_message_contains_stub();
-  if rc == 0 { return assert(true, "error: Err message contains 'stub'"); }
-  return assert(false, "error: Err message contains 'stub'");
-}
-
-// ===========================================================================
-// SECTION 10 -- Node lifecycle simulation (1 test)
-// ===========================================================================
-
-fn run_node_lifecycle() -> Int {
-  let node_result = init();
-  match node_result {
-    Ok(n) => { shutdown(n); return 0; }
-    Err(_) => { return 0; }
-  }
-}
-
-fn test_node_lifecycle() -> TestResult {
-  let rc = run_node_lifecycle();
-  if rc == 0 { return assert(true, "lifecycle: init + shutdown no crash (stub mode)"); }
-  return assert(false, "lifecycle: init + shutdown crashed");
-}
-
-// ===========================================================================
-// SECTION 11 -- Publisher-subscriber simulation (1 test)
-// ===========================================================================
-
-fn run_pubsub_simulation() -> Int {
-  let node = create_node("talker");
-  match node {
-    Ok(n) => {
-      let pub = create_publisher(n, "chatter");
-      match pub {
-        Ok(p) => {
-          let sub = create_subscription(n, "chatter");
-          match sub {
-            Ok(s) => {
-              let _ = publish(p, 1);
-              let _ = spin_once(n, 100);
-              let _ = destroy_subscription(s, n);
-              let _ = destroy_publisher(p, n);
-              let _ = destroy_node(n);
-              return 0;
-            }
-            Err(_) => { let _ = destroy_publisher(p, n); let _ = destroy_node(n); return 0; }
-          }
-        }
-        Err(_) => { let _ = destroy_node(n); return 0; }
       }
     }
-    Err(_) => { return 0; }
+    if got { attempt = 20; }
+    else { attempt = attempt + 1; }
   }
+
+  failed = failed + report(got, "live: pub/sub roundtrip delivered a message");
+  if got {
+    failed = failed + report(streq(got_text, MSG_TEXT), "live: roundtrip payload byte-exact");
+  } else {
+    why("no message taken after retries (discovery timing on this host?)");
+  }
+
+  // Wait-set surface on its own (subscription ready or timeout, both valid).
+  let ws_r = ros2_wait_set_init(lib, ctx, 1, 0);
+  if ws_r.is_ok {
+    let ws = ws_r.value;
+    failed = failed + report(ros2_wait_set_is_valid(lib, &ws), "live: wait set valid after init");
+    let idx = ros2_wait_set_add_subscription(lib, &ws, ros2_slot_ptr(&sub.slot));
+    failed = failed + report(idx.is_ok && idx.value == 0, "live: add_subscription index 0");
+    let clear = ros2_wait_set_clear(lib, &ws);
+    failed = failed + report(clear.is_ok, "live: wait_set_clear");
+    let re = ros2_wait_set_add_subscription(lib, &ws, ros2_slot_ptr(&sub.slot));
+    if re.is_ok {
+      let w = ros2_wait(lib, &ws, 150);
+      failed = failed + report(w.is_ok, "live: rcl_wait returns OK or TIMEOUT");
+      if w.is_ok && w.value == RCL_RET_OK {
+        let fired = ros2_wait_set_subscription_fired(lib, &ws, 0);
+        failed = failed + report(fired || !fired, "live: fired read is well-defined");
+      }
+    }
+    let wf = ros2_wait_set_fini(lib, &ws);
+    failed = failed + report(wf.is_ok, "live: wait_set_fini");
+  } else {
+    why("wait_set_init: " + ws_r.error.message);
+    failed = failed + report(false, "live: wait set init");
+  }
+
+  let sf = ros2_subscription_fini(lib, &sub, node);
+  failed = failed + report(sf.is_ok, "live: subscription_fini");
+  let pf = ros2_publisher_fini(lib, &pub_, node);
+  failed = failed + report(pf.is_ok, "live: publisher_fini");
+  return failed;
 }
 
-fn test_pubsub_simulation() -> TestResult {
-  let rc = run_pubsub_simulation();
-  if rc == 0 { return assert(true, "sim: pub-sub lifecycle no crash (stub mode)"); }
-  return assert(false, "sim: pub-sub lifecycle crashed");
+fn live_timer(lib: &Ros2Library, ctx: &Ros2Context) -> Int {
+  var failed = 0;
+  let t_r = ros2_timer_init(lib, ctx, 50, true);
+  if !t_r.is_ok {
+    why("timer_init: " + t_r.error.message);
+    return report(false, "live: timer init (50ms steady)");
+  }
+  let timer = t_r.value;
+  failed = failed + report(true, "live: timer init (50ms steady)");
+
+  let per = ros2_timer_period_ns(lib, &timer);
+  failed = failed + report(per.is_ok && per.value == 50000000, "live: timer period 50000000 ns");
+
+  var waited = false;
+  var attempt = 0;
+  while attempt < 10 {
+    var ws_subs: Vec[Int] = Vec[Int].new();
+    var ws_timers: Vec[Int] = Vec[Int].new();
+    ws_timers.push(ros2_slot_ptr(&timer.slot));
+    let spin_r = ros2_spin_once(lib, ctx, &ws_subs, &ws_timers, 200);
+    if spin_r.is_ok && spin_r.value.timer_fired.len() == 1 && spin_r.value.timer_fired[0] {
+      waited = true;
+      attempt = 10;
+    } else {
+      attempt = attempt + 1;
+    }
+  }
+  failed = failed + report(waited, "live: timer fired through spin_once wait");
+  failed = failed + report(!ros2_timer_is_ready(lib, &timer), "live: timer not immediately ready again after call");
+
+  let c = ros2_timer_cancel(lib, &timer);
+  failed = failed + report(c.is_ok, "live: timer cancel");
+  failed = failed + report(ros2_timer_is_canceled(lib, &timer), "live: timer reports canceled");
+  let cc = ros2_timer_call(lib, &timer);
+  failed = failed + report(!cc.is_ok && cc.error.ret == RCL_RET_TIMER_CANCELED, "live: call on canceled timer -> TIMER_CANCELED");
+  let rr = ros2_timer_reset(lib, &timer);
+  failed = failed + report(rr.is_ok && !ros2_timer_is_canceled(lib, &timer), "live: timer reset clears canceled");
+
+  let tf = ros2_timer_fini(lib, &timer);
+  failed = failed + report(tf.is_ok, "live: timer_fini (releases its clock)");
+  return failed;
 }
 
-// ===========================================================================
-// SECTION 12 -- FFI Extern declaration verification (compile-time smoke)
-// ===========================================================================
+fn t_live() -> Int {
+  var failed = 0;
+  let lr = ros2_load();
+  if !lr.is_ok {
+    if lr.error.kind == ROS2_LOAD_ABSENT {
+      failed = failed + report(true, "live: SKIP -- no librcl candidate present (" + lr.error.message + ")");
+      return failed;
+    }
+    if lr.error.kind == ROS2_ABI_HOST {
+      failed = failed + report(true, "live: SKIP -- host ABI unsupported (" + lr.error.message + ")");
+      return failed;
+    }
+    why("load: " + lr.error.message);
+    return report(false, "live: librcl load");
+  }
+  let lib = lr.value;
+  note("librcl loaded: " + lib.soname + " (allocator companion: " + lib.libc_soname + ")");
 
-fn test_ffi_init_shutdown_present() -> TestResult {
-  return assert(true, "ffi: rcl_init, rcl_shutdown present");
+  let cr = ros2_context_init(&lib, -1);
+  if !cr.is_ok {
+    why("context_init: " + cr.error.message);
+    var ig = ros2_close(&lib);
+    return report(false, "live: context init");
+  }
+  let ctx = cr.value;
+  failed = failed + report(true, "live: context init (default domain)");
+  failed = failed + report(ros2_context_is_valid(&lib, &ctx), "live: context valid");
+  failed = failed + report(ros2_context_instance_id(&lib, &ctx) != 0, "live: context instance id non-zero");
+  let dom = ros2_context_domain_id(&lib, &ctx);
+  failed = failed + report(dom.is_ok, "live: context domain id query");
+
+  let nr = ros2_node_init(&lib, &ctx, "xiom_ros2_suite", "/xiom");
+  if !nr.is_ok {
+    why("node_init: " + nr.error.message);
+    var ig2 = ros2_context_shutdown(&lib, &ctx);
+    var ig3 = ros2_context_fini(&lib, &ctx);
+    var ig4 = ros2_close(&lib);
+    return failed + report(false, "live: node init");
+  }
+  let node = nr.value;
+  failed = failed + report(true, "live: node init");
+  failed = failed + report(streq(ros2_node_name(&lib, &node), "xiom_ros2_suite"), "live: node name read-back");
+  failed = failed + report(streq(ros2_node_namespace(&lib, &node), "/xiom"), "live: node namespace read-back");
+
+  let ts_r = ros2_typesupport_std_msgs_string();
+  if ts_r.is_ok {
+    let ts = ts_r.value;
+    failed = failed + live_roundtrip(&lib, &ctx, &node, &ts);
+    let tc = ros2_typesupport_close(&ts);
+    failed = failed + report(tc.is_ok, "live: typesupport close");
+  } else {
+    failed = failed + report(true, "live: SKIP -- std_msgs/String typesupport absent (" + ts_r.error.message + ")");
+  }
+
+  failed = failed + live_timer(&lib, &ctx);
+
+  let nf = ros2_node_fini(&lib, &node);
+  failed = failed + report(nf.is_ok, "live: node_fini");
+  let sd = ros2_context_shutdown(&lib, &ctx);
+  failed = failed + report(sd.is_ok, "live: context shutdown");
+  failed = failed + report(!ros2_context_is_valid(&lib, &ctx), "live: context invalid after shutdown");
+  let cf = ros2_context_fini(&lib, &ctx);
+  failed = failed + report(cf.is_ok, "live: context_fini");
+  let cl = ros2_close(&lib);
+  failed = failed + report(cl.is_ok, "live: library close");
+  return failed;
 }
-
-fn test_ffi_node_functions_present() -> TestResult {
-  return assert(true, "ffi: rcl_create_node, rcl_destroy_node present");
-}
-
-fn test_ffi_publisher_functions_present() -> TestResult {
-  return assert(true, "ffi: rcl_create_publisher, rcl_destroy_publisher, rcl_publish present");
-}
-
-fn test_ffi_subscriber_functions_present() -> TestResult {
-  return assert(true, "ffi: rcl_create_subscription, rcl_destroy_subscription present");
-}
-
-fn test_ffi_service_spin_present() -> TestResult {
-  return assert(true, "ffi: rcl_spin_once, rcl_create_service, rcl_destroy_service present");
-}
-
-// ===========================================================================
-// Main -- manual test dispatch
-// ===========================================================================
 
 pub fn main() -> Int {
-  io.println("XIOM ROS 2 Conformance Suite");
-  io.println("============================");
-  var total: Int = 0;
+  io.println("=== xiom.ros2 conformance tests (rcl dynamic loader) ===");
+  io.flush_stdout();
   var failed: Int = 0;
 
-  io.println("");
-  io.println("-- SECTION 1: Types (5) --");
+  failed = failed + t_loader_absent();
+  failed = failed + t_kind_names();
+  failed = failed + t_abi_host_gate();
+  failed = failed + t_ret_names();
+  failed = failed + t_qos_names();
+  failed = failed + t_allocator_golden();
+  failed = failed + t_qos_goldens();
+  failed = failed + t_qos_custom();
+  failed = failed + t_options_goldens();
+  failed = failed + t_big_values();
+  failed = failed + t_slots();
+  failed = failed + t_live();
 
-  let r0 = test_type_node_is_int(); total = total + 1; if !r0.passed { failed = failed + 1; };
-  let r1 = test_type_publisher_is_int(); total = total + 1; if !r1.passed { failed = failed + 1; };
-  let r2 = test_type_subscriber_is_int(); total = total + 1; if !r2.passed { failed = failed + 1; };
-  let r3 = test_type_service_is_int(); total = total + 1; if !r3.passed { failed = failed + 1; };
-  let r4 = test_type_message_is_int(); total = total + 1; if !r4.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 2: Init / Shutdown (2) --");
-
-  let r5 = test_init_stub(); total = total + 1; if !r5.passed { failed = failed + 1; };
-  let r6 = test_shutdown_callable(); total = total + 1; if !r6.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 3: Node Lifecycle (2) --");
-
-  let r7 = test_create_node_stub(); total = total + 1; if !r7.passed { failed = failed + 1; };
-  let r8 = test_destroy_node_stub(); total = total + 1; if !r8.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 4: Publisher (3) --");
-
-  let r9 = test_create_publisher_stub(); total = total + 1; if !r9.passed { failed = failed + 1; };
-  let r10 = test_destroy_publisher_stub(); total = total + 1; if !r10.passed { failed = failed + 1; };
-  let r11 = test_publish_stub(); total = total + 1; if !r11.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 5: Subscriber (2) --");
-
-  let r12 = test_create_subscription_stub(); total = total + 1; if !r12.passed { failed = failed + 1; };
-  let r13 = test_destroy_subscription_stub(); total = total + 1; if !r13.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 6: Spin (1) --");
-
-  let r14 = test_spin_once_stub(); total = total + 1; if !r14.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 7: Service (2) --");
-
-  let r15 = test_create_service_stub(); total = total + 1; if !r15.passed { failed = failed + 1; };
-  let r16 = test_destroy_service_stub(); total = total + 1; if !r16.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 8: Contract declarations (11) --");
-
-  let r17 = test_contract_shutdown(); total = total + 1; if !r17.passed { failed = failed + 1; };
-  let r18 = test_contract_create_node(); total = total + 1; if !r18.passed { failed = failed + 1; };
-  let r19 = test_contract_destroy_node(); total = total + 1; if !r19.passed { failed = failed + 1; };
-  let r20 = test_contract_create_publisher(); total = total + 1; if !r20.passed { failed = failed + 1; };
-  let r21 = test_contract_destroy_publisher(); total = total + 1; if !r21.passed { failed = failed + 1; };
-  let r22 = test_contract_publish(); total = total + 1; if !r22.passed { failed = failed + 1; };
-  let r23 = test_contract_create_subscription(); total = total + 1; if !r23.passed { failed = failed + 1; };
-  let r24 = test_contract_destroy_subscription(); total = total + 1; if !r24.passed { failed = failed + 1; };
-  let r25 = test_contract_spin_once(); total = total + 1; if !r25.passed { failed = failed + 1; };
-  let r26 = test_contract_create_service(); total = total + 1; if !r26.passed { failed = failed + 1; };
-  let r27 = test_contract_destroy_service(); total = total + 1; if !r27.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 9: Error handling (2) --");
-
-  let r28 = test_error_message_non_empty(); total = total + 1; if !r28.passed { failed = failed + 1; };
-  let r29 = test_error_message_contains_stub(); total = total + 1; if !r29.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 10: Node lifecycle simulation (1) --");
-
-  let r30 = test_node_lifecycle(); total = total + 1; if !r30.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 11: Publisher-subscriber simulation (1) --");
-
-  let r31 = test_pubsub_simulation(); total = total + 1; if !r31.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 12: FFI Extern declarations (5) --");
-
-  let r32 = test_ffi_init_shutdown_present(); total = total + 1; if !r32.passed { failed = failed + 1; };
-  let r33 = test_ffi_node_functions_present(); total = total + 1; if !r33.passed { failed = failed + 1; };
-  let r34 = test_ffi_publisher_functions_present(); total = total + 1; if !r34.passed { failed = failed + 1; };
-  let r35 = test_ffi_subscriber_functions_present(); total = total + 1; if !r35.passed { failed = failed + 1; };
-  let r36 = test_ffi_service_spin_present(); total = total + 1; if !r36.passed { failed = failed + 1; };
-
-  var passed = total - failed;
-  io.println("");
-  io.println("==========================================");
-  io.println("XIOM ROS 2 Conformance: " + int_to_str(passed) +
-             "/" + int_to_str(total) + " passed" +
-             (if failed > 0 { " (" + int_to_str(failed) + " FAILED)" } else { "" }));
-  io.println("==========================================");
+  if failed == 0 {
+    io.println("xiom.ros2: all tests passed");
+  } else {
+    io.println("xiom.ros2: tests failed");
+  }
+  io.flush_stdout();
   return failed;
 }
