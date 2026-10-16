@@ -9,19 +9,9 @@
                   "passed":  20,
                   "failed":  0,
                   "run_by":  "am:android-a9-gl-leg",
-                  "commit":  "a294a3b0",
-                  "checked":  "2026-10-16T14:49:34Z"
+                  "commit":  "87763cbf",
+                  "checked":  "2026-10-16T15:07:21Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.171 (2026-10-13, 0.1.0 ANGLE surface); 0.2.0 android leg (A9) pending publish",
-    "platforms":  [
-                      "windows-x64",
-                      "android-arm64",
-                      "android-x86_64"
-                  ],
-    "runtime_deps":  [
-                         "libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent)",
-                         "libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent)",
-                         "libEGL.so + libGLESv2.so/libGLESv3.so/libGLESv1_CM.so (Android system libraries; SKIP when absent)"
-                     ]
+    "excluded_reason":  "published in eco-v0.1.171 (2026-10-13, 0.1.0 ANGLE surface); 0.2.0 android leg (A9) pending publish"
 }
