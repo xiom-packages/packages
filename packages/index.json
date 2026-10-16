@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-16T00:26:58Z",
+    "updated":  "2026-10-16T14:04:00Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -5785,6 +5785,25 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.otel",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "OpenTelemetry trace model + deterministic OTLP/JSON encoder and sink seam, pure XIOM (no FFI; transport stays caller-supplied)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-otel/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "otel.xi",
+                                              "otlp.xi",
+                                              "sink.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.4.0",
                          "name":  "xiom.ozz",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -8596,18 +8615,19 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.2.0",
                          "name":  "xiom.template",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Mustache-style template rendering with strict and lenient key handling",
+                         "description":  "Mustache-style template rendering: placeholder substitution (v0.1 surface) plus sections, loops and auto-escaping (v0.2 block surface)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-template/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-template/v0.2.0/package.tar.gz",
                          "source_files":  [
+                                              "blocks.xi",
                                               "template.xi",
                                               "package.xi"
                                           ]
@@ -9024,6 +9044,31 @@
                          "source_files":  [
                                               "transliteration.xi",
                                               "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.transport",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM transport-class seam: reliable datagram framing, reliability engine, session/channels, simulated network, loopback/null/UDP backends (no FFI, no bridge C)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-transport/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "caps.xi",
+                                              "frames.xi",
+                                              "loopback.xi",
+                                              "null.xi",
+                                              "reliable.xi",
+                                              "session.xi",
+                                              "sim.xi",
+                                              "udp.xi",
+                                              "package.xi",
+                                              "transport.xi"
                                           ]
                      },
                      {
