@@ -10,6 +10,8 @@ compiled into the test binary -- no system library, no runtime DLL.
 > chunked streaming decode/encode, typed corrupt/truncated errors, and the
 > RFC 9110 `Content-Encoding: br` helpers.
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published:** `0.1.0` in `eco-v0.1.189` (sha256 `f37f3a39...`; PULSE top-tier: real RFC 7932 `Content-Encoding: br`).
+> **Published:** `0.1.0` in `eco-v0.1.189` (sha256 `f37f3a39...`).
 
 ## Quick start
 

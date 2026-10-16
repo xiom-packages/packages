@@ -1,7 +1,8 @@
 # xiom.ssl
 
 > **Status:** `incubating` -- conformance-tested (**23/23 live x2**; **4/4
-> SKIP x2** on the compiler pin v0.64.5); not yet published.
+> SKIP x2** on the compiler pin v0.64.5); **published in `eco-v0.1.189`
+> (sha256 `ba42cf2b...`; PULSE top-tier -- TLS headline)**.
 > **Scope (phase 1):** libssl-class TLS **context engine** -- server/client
 > contexts, cert/key/chain load, handshake driving, ALPN, verify modes,
 > clean shutdown, typed errors. Streaming/session reuse/OCSP are later.

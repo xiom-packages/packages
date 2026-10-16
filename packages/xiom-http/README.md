@@ -11,7 +11,8 @@ HTTP/1.1 types, request/response parsers, client helpers, and a (stub) server sh
 > echo POST -> 200). Suite **42/42 x2** + root probe x2 on the pin (v0.64.2).
 > Published in `eco-v0.1.125` (sha256 `2d5592af...`). 0.1.6: `eco-v0.1.133`
 > (sha256 `bb8a5029...`) adds 507 Insufficient Storage with the documented
-> `Unknown` fallback contract.
+> `Unknown` fallback contract. 0.1.7: `eco-v0.1.189`
+> (sha256 `b65c44d2...`) client surface stabilisation (probe + docs).
 
 ## Consumer quickstart (3 lines)
 
