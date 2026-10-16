@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-16T18:05:42+03:00
-# packages: 564  modules: 1043
+# generated: 2026-10-16T18:30:19+03:00
+# packages: 565  modules: 1056
 
 ## package names
 xiom.aaudio
@@ -221,6 +221,7 @@ xiom.irc
 xiom.iso8583
 xiom.itest
 xiom.jit-fw
+xiom.jni
 xiom.jolt
 xiom.jpeg
 xiom.json
@@ -585,7 +586,9 @@ xiom.amqp
 xiom.analyzer
 xiom.android
 xiom.android.configuration
+xiom.android.input
 xiom.android.lifecycle
+xiom.android.sensors
 xiom.android_sys
 xiom.ann
 xiom.ann.hnsw
@@ -847,6 +850,16 @@ xiom.gles.egl_consts_1
 xiom.gles.egl_consts_2
 xiom.gles.egl_consts_3
 xiom.gles.egl_names
+xiom.gles.gles_android_cmds_01
+xiom.gles.gles_android_cmds_02
+xiom.gles.gles_android_cmds_03
+xiom.gles.gles_android_cmds_04
+xiom.gles.gles_android_cmds_05
+xiom.gles.gles_android_consts_1
+xiom.gles.gles_android_consts_2
+xiom.gles.gles_android_consts_3
+xiom.gles.gles_android_consts_4
+xiom.gles.gles_android_consts_5
 xiom.gles.gles_api
 xiom.gles.gles_cmds_01
 xiom.gles.gles_cmds_02
@@ -940,6 +953,7 @@ xiom.irc
 xiom.iso8583
 xiom.itest
 xiom.jit_fw
+xiom.jni
 xiom.jolt
 xiom.jpeg
 xiom.json

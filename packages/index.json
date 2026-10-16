@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-16T18:05:43Z",
+    "updated":  "2026-10-16T18:30:10Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -195,20 +195,22 @@
                                           ]
                      },
                      {
-                         "version":  "0.3.0",
+                         "version":  "0.4.0",
                          "name":  "xiom.android",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Android platform-core bindings (NDK r27b A1 window-core + A5 assets-storage + A2 lifecycle-glue heads: native_window.h + hardware_buffer.h + asset_manager.h + storage_manager.h + sharedmem.h + looper.h + native_activity.h + configuration.h) via a runtime libandroid.so/libnativewindow.so bridge with SKIP semantics; functional AHardwareBuffer + ASharedMemory + ALooper (callback direct handoff) + AConfiguration heads; 117-symbol export set bound + ABI-checked (window/activity/asset ops need a live Surface/Activity -\u003e A11 seam)",
+                         "description":  "Android platform-core bindings (NDK r27b A1 window-core + A5 assets-storage + A2 lifecycle-glue + A3 input + A4 sensors heads: native_window.h + hardware_buffer.h + asset_manager.h + storage_manager.h + sharedmem.h + looper.h + native_activity.h + configuration.h + input.h + keycodes.h + sensor.h) via a runtime libandroid.so/libnativewindow.so bridge with SKIP semantics; functional AHardwareBuffer + ASharedMemory + ALooper (callback direct handoff) + AConfiguration + full AInputQueue/AKeyEvent/AMotionEvent accessor surface + ASensorManager/ASensorEventQueue heads (float payloads as binary32 bits, B-12-safe); 209-symbol export set bound + ABI-checked (window/activity/asset ops need a live Surface/Activity -\u003e A11 seam; input queues are app-delivered, proven by the on-device app probe)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-android/v0.3.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-android/v0.4.0/package.tar.gz",
                          "source_files":  [
                                               "configuration.xi",
+                                              "input.xi",
                                               "lifecycle.xi",
+                                              "sensors.xi",
                                               "android.xi",
                                               "package.xi"
                                           ]
@@ -3112,17 +3114,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.gles",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "OpenGL ES 2.0/3.2 + EGL 1.5 bindings for XIOM via ANGLE (runtime libEGL.dll/libGLESv2.dll + eglGetProcAddress; generated GLES surface from the pinned Khronos registry + full EGL surface from the pinned EGL-Registry; probe/session with SKIP semantics)",
+                         "description":  "OpenGL ES 2.0/3.2 + EGL 1.5 bindings for XIOM via a runtime-loaded implementation -- the Windows ANGLE pair (libEGL.dll/libGLESv2.dll) or the Android system libraries (libEGL.so + libGLESv2.so/libGLESv3.so/libGLESv1_CM.so); generated GLES core + NDK r27b android-delta surface (494 extension commands + 1225 constants) + full EGL surface (incl. every EGL_ANDROID_* entry point); probe/session with SKIP semantics",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gles/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gles/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "egl_api.xi",
                                               "egl_cmds_01.xi",
@@ -3131,6 +3133,16 @@
                                               "egl_consts_2.xi",
                                               "egl_consts_3.xi",
                                               "egl_names.xi",
+                                              "gles_android_cmds_01.xi",
+                                              "gles_android_cmds_02.xi",
+                                              "gles_android_cmds_03.xi",
+                                              "gles_android_cmds_04.xi",
+                                              "gles_android_cmds_05.xi",
+                                              "gles_android_consts_1.xi",
+                                              "gles_android_consts_2.xi",
+                                              "gles_android_consts_3.xi",
+                                              "gles_android_consts_4.xi",
+                                              "gles_android_consts_5.xi",
                                               "gles_api.xi",
                                               "gles_cmds_01.xi",
                                               "gles_cmds_02.xi",
@@ -3850,6 +3862,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jit-fw/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "jit_fw.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.jni",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Android JNI seam bindings (NDK r27b A11 jni-seam head: jni.h interface + android/bitmap.h) -- the JNIEnv/JavaVM function-table calls are performed C-side by src/jni_bridge.c against a consumer-supplied JavaVM*/JNIEnv* (handles cross as Int; env comes from the app\u0027s JNI_OnLoad), plus the libjnigraphics.so AndroidBitmap_* cluster through a runtime multi-soname loader (libjnigraphics.so + libnativehelper.so) with SKIP semantics; jni.h is interface-based, so the declared surface is the per-op-family helper set (documented in SPEC.md); every helper is null-safe (0-env/0-object -\u003e typed error, no crash)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jni/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "jni.xi",
                                               "package.xi"
                                           ]
                      },
@@ -6766,7 +6795,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.pulse",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "PULSE protocol core: HTTP/1.1 request parser + response builders, keep-alive A/B connection loop with named deadlines, route mechanism and JSON error envelope (pure XIOM, stdlib-only)",
+                         "description":  "PULSE Beacon -- the embeddable protocol core (HTTP/1.1 request parser + response builders, keep-alive A/B connection loop with named deadlines, route mechanism, JSON error envelope); one core, two products -- the Station product consumes this same package (pure XIOM, stdlib-only)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
