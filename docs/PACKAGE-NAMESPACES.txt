@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-16T14:18:28+03:00
-# packages: 561  modules: 1033
+# generated: 2026-10-16T16:13:53+03:00
+# packages: 563  modules: 1035
 
 ## package names
 xiom.aaudio
@@ -59,6 +59,7 @@ xiom.bolt
 xiom.bonjour
 xiom.boosting
 xiom.box2d
+xiom.brotli
 xiom.bson
 xiom.btree
 xiom.bullet
@@ -470,6 +471,7 @@ xiom.sql
 xiom.sqlite
 xiom.srt
 xiom.ssh2
+xiom.ssl
 xiom.static
 xiom.stats-ml
 xiom.stats-tests
@@ -634,6 +636,7 @@ xiom.bmp
 xiom.bolt
 xiom.bonjour
 xiom.boosting
+xiom.brotli
 xiom.bson
 xiom.btree
 xiom.cab
@@ -1415,6 +1418,7 @@ xiom.sqlite.schema
 xiom.sqlite.types
 xiom.srt
 xiom.ssh2
+xiom.ssl
 xiom.static
 xiom.stats_ml
 xiom.stats_tests
