@@ -13,5 +13,5 @@
                   "checked":  "2026-10-15T23:08:54Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: new name (A08 reliable-datagram base); ops scope ask filed 2026-10-15"
+    "excluded_reason":  "published in eco-v0.1.188 (2026-10-16, 0.1.0 -- A08 reliable-datagram base)"
 }

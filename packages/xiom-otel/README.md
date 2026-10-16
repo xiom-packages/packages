@@ -1,7 +1,7 @@
 # xiom.otel
 
 > **Status:** `incubating` -- conformance-tested (30/30), recorded x2 green
-> on XIOM v0.64.5; not yet published (registry/allowlist gate).
+> on XIOM v0.64.5. Published: `0.1.0` in `eco-v0.1.188` (sha256 `830f9eab...`).
 > **Scope:** OpenTelemetry trace model + deterministic OTLP/JSON encoder +
 > sink seam, pure XIOM: typed spans/attributes/resource/scope, exact-byte
 > OTLP/JSON payloads, a collector sink and a caller-supplied send hook.
