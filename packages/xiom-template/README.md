@@ -79,6 +79,14 @@ Caps: `TEMPLATE_MAX_DEPTH` (64 sections) and `TEMPLATE_MAX_OUTPUT`
 
 ## Usage
 
+**Consumer note:** declare the dependency in your consuming manifest
+(`[dependencies] "xiom.template" = "0.2.0"`, or the equivalent
+`xiom.toml` entry) -- without the declaration, `use xiom.template;` can
+silently bind to the stdlib's `xiom.string.template` surface
+(`template_render`) while `xiom.template.blocks` stays unresolved (no
+dedicated diagnostic for the mismatch; PULSE consumer-verify note,
+2026-10-16).
+
 ```xi
 use xiom.template;
 use xiom.io;
