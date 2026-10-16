@@ -5,12 +5,12 @@
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
-                  "status":  "unknown",
-                  "passed":  null,
-                  "failed":  null,
-                  "run_by":  null,
-                  "commit":  null,
-                  "checked":  null
+                  "status":  "pass",
+                  "passed":  23,
+                  "failed":  0,
+                  "run_by":  "am:feat-tls-binding-6c85f053d41f72c2",
+                  "commit":  "7d6bdeae",
+                  "checked":  "2026-10-16T12:15:38Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: new name (libssl-class TLS context engine, REL-20261015-2211-packages); ops scope queued 2026-10-16",
