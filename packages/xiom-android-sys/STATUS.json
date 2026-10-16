@@ -9,22 +9,9 @@
                   "passed":  16,
                   "failed":  0,
                   "run_by":  "am:android-a12-sys",
-                  "commit":  "cd1efff5",
-                  "checked":  "2026-10-16T15:28:30Z"
+                  "commit":  "62201d7e",
+                  "checked":  "2026-10-16T15:44:13Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (Android SDK100 A12 system head: log + sync + binder + nnapi + zlib + icu subset; per-lib runtime-load units); publish gate after the naming decision + first end-to-end suite run (G1)",
-    "platforms":  [
-                      "windows-x64",
-                      "android-x86_64",
-                      "android-arm64"
-                  ],
-    "runtime_deps":  [
-                         "liblog.so (runtime loader; SKIP when absent)",
-                         "libsync.so (runtime loader; SKIP when absent)",
-                         "libbinder_ndk.so (runtime loader; SKIP when absent)",
-                         "libneuralnetworks.so (runtime loader, APEX on API 31+; SKIP when absent)",
-                         "libz.so (runtime loader; SKIP when absent)",
-                         "libandroidicu.so (runtime loader; required subset API 31+, u_strlen optional; SKIP when absent)"
-                     ]
+    "excluded_reason":  "new package (Android SDK100 A12 system head: log + sync + binder + nnapi + zlib + icu subset; per-lib runtime-load units); publish gate after the naming decision + first end-to-end suite run (G1)"
 }
