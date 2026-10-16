@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-16T21:01:09+03:00
-# packages: 565  modules: 1060
+# generated: 2026-10-17T00:27:01+03:00
+# packages: 566  modules: 1069
 
 ## package names
 xiom.aaudio
@@ -150,7 +150,6 @@ xiom.exr
 xiom.ext
 xiom.farbfeld
 xiom.feature
-xiom.ffi
 xiom.ffmpeg
 xiom.fidelityfx
 xiom.finance
@@ -220,6 +219,7 @@ xiom.interrupt
 xiom.irc
 xiom.iso8583
 xiom.itest
+xiom.jev
 xiom.jit-fw
 xiom.jni
 xiom.jolt
@@ -256,6 +256,7 @@ xiom.libsodium
 xiom.libtorch
 xiom.libuv
 xiom.linter
+xiom.llm
 xiom.locale
 xiom.lockfree
 xiom.logging
@@ -932,6 +933,7 @@ xiom.http
 xiom.http.client
 xiom.http.cookie
 xiom.http.demo
+xiom.http.headers
 xiom.http.middleware
 xiom.http.mime
 xiom.http.parser
@@ -956,6 +958,13 @@ xiom.interrupt
 xiom.irc
 xiom.iso8583
 xiom.itest
+xiom.jev
+xiom.jev.client
+xiom.jev.errors
+xiom.jev.request
+xiom.jev.response
+xiom.jev.selection
+xiom.jev.types
 xiom.jit_fw
 xiom.jni
 xiom.jolt
@@ -994,6 +1003,7 @@ xiom.leveldb
 xiom.lexer
 xiom.lexing
 xiom.linter
+xiom.llm
 xiom.locale
 xiom.lockfree
 xiom.logging
