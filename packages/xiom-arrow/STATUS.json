@@ -13,5 +13,5 @@
                   "checked":  "2026-10-16T20:05:01Z"
               },
     "publish":  false,
-    "excluded_reason":  "not allowlisted: Phase-1 stub bridge green (27/27 x2); real libarrow C++ backend pending (Phase 2)"
+    "excluded_reason":  "published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 62a25672...)"
 }

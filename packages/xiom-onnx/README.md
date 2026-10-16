@@ -1,6 +1,7 @@
 # xiom.onnx
 
-> **Status:** `incubating` -- 0.1.0 (unreleased). Full ONNX Runtime C API
+> **Status:** `incubating` -- 0.1.0 (published in `eco-v0.1.193`, sha256
+> `1c1c599b...`, 2026-10-16). Full ONNX Runtime C API
 > binding delivered: 97/97 declared entry points bound and live-verified;
 > suite x2 green (56/56) on the pinned toolchain.
 > **Scope:** cross-framework model inference via the ONNX Runtime C API

@@ -13,5 +13,5 @@
                   "checked":  "2026-10-16T19:50:57Z"
               },
     "publish":  false,
-    "excluded_reason":  "not allowlisted: offline stub-bridge green (80/80 x2); real Arrow C++ backend pending (bridge/REAL-BACKEND-REQUIREMENTS.md)"
+    "excluded_reason":  "published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 aad9a74e...)"
 }

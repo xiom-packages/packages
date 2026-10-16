@@ -1,6 +1,6 @@
 # xiom.arrow
 
-> **Status:** `incubating` -- Phase-1 conformance GREEN (27/27 x2, v0.64.5, 2026-10-16; stub-safe link bridge `bridge/arrow_bridge.c` + SKIP-safe real-libarrow probe `tests/probe_real_libarrow.xi`); Phase-2 real libarrow C++ backend pending; not yet published to the XIOM registry.
+> **Status:** `incubating` -- Phase-1 conformance GREEN (27/27 x2, v0.64.5, 2026-10-16; stub-safe link bridge `bridge/arrow_bridge.c` + SKIP-safe real-libarrow probe `tests/probe_real_libarrow.xi`); Phase-2 real libarrow C++ backend pending; published in `eco-v0.1.193` (sha256 `62a25672...`, 2026-10-16).
 > **Scope:** Apache Arrow columnar memory format bindings; zero-copy interop via the Arrow C Data Interface.
 > **Deps:** stdlib `extern "C"`; system libarrow only for the real (probe) leg -- the suite stays offline and deterministic.
 

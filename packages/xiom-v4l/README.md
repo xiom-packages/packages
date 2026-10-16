@@ -7,6 +7,10 @@ transitive include chain (`v4l2-common.h` + `v4l2-controls.h`) and ships a
 self-contained ioctl bridge that drives a real V4L2 capture pipeline on
 Linux.
 
+> **Status:** `incubating` -- suite 14/14 x2 on v0.64.6 (blanket-SKIP device
+> leg off-Linux by construction); published in `eco-v0.1.193` (sha256
+> `0e3d5390...`, 2026-10-16).
+
 - **2079 constants** -- every `VIDIOC_*` ioctl number (83) and every
   public `V4L2_*` value from the pinned `videodev2.h` + `v4l2-common.h`
   (`xiom.v4l.consts`, 841) and the entire `v4l2-controls.h` control-ID

@@ -1,7 +1,7 @@
 # xiom.pandas
 
 > **Status:** `incubating` -- offline conformance GREEN (80/80 x2, compiler
-> v0.64.5); NOT yet published to the XIOM registry.
+> v0.64.5); published in `eco-v0.1.193` (sha256 `aad9a74e...`, 2026-10-16).
 > **Scope:** Pandas-like tabular data structures over Apache Arrow.
 > **Deps:** stdlib; C FFI bridge.
 

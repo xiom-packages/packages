@@ -5,9 +5,9 @@
 TypeSafe Jev client tier: **System One** structured decisions for XIOM.
 
 > **Status:** `incubating` -- 0.1.0. Offline conformance suite **82/82 x2** on
-> compiler `v0.64.5` (native-session, 2026-10-16). Live probe is SKIP-safe and
-> link-gated (see "Live probe"). `publish: false` (new name: pending ops scope
-> + allowlist, coverage program).
+> compiler `v0.64.6` (native-session, 2026-10-16). Live probe is SKIP-safe and
+> link-gated (see "Live probe"). Published in `eco-v0.1.193` (sha256
+> `ed212ee6...`, 2026-10-16).
 
 JEV = System One: fast, **structured decisions where the answer space is known
 in advance** -- routing, classification, scoring. Send a state (text or JSON)
