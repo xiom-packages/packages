@@ -1,7 +1,7 @@
 # xiom.openblas
 
 > **Status:** `incubating` -- conformance-green on compiler v0.64.5 (32/32, two
-> consecutive runs); not yet published to the XIOM registry.
+> consecutive runs); published in `eco-v0.1.193` (sha256 `a6740ae1...`, 2026-10-16).
 > **Scope:** OpenBLAS backend integration and acceleration (BLAS 1-3, LAPACK
 > surface, matrix lifecycle).
 > **Deps:** stdlib; wraps C (FFI) through a declared extern "C" surface.
