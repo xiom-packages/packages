@@ -4,13 +4,14 @@
 
 # xiom.llm
 
-> **Status:** `incubating` -- conformance-tested (38/38, twice); not
+> **Status:** `incubating` -- conformance-tested (79/79, twice); not
 > published (`excluded_reason`: new name: pending ops scope + allowlist,
 > coverage program).
-> **Milestone 1:** llama.cpp-family vocab extraction from a GGUF header +
-> byte-level BPE decode/encode, over `xiom.gguf`. The rest of the runner
-> surface (payload/tensor loading, dequant, matmul, forward pass,
-> generation loop) is declared in `SPEC.md` and planned in `ROADMAP.md`.
+> **Milestones 1-2:** llama.cpp-family vocab extraction from a GGUF header +
+> byte-level BPE decode/encode (M1), and GGUF payload/tensor loading, Q8_0
+> dequantization, integer matmul and the forward primitives with a tiny
+> deterministic golden-logit fixture (M2). The generation loop is declared
+> in `SPEC.md` and planned in `ROADMAP.md` (M3).
 
 The llama.cpp-family runner tier of the XIOM ML/AI coverage program: read a
 GGUF model header with `xiom.gguf`, extract the tokenizer vocabulary from
@@ -19,10 +20,10 @@ follows llama.cpp's merge-table semantics (`llama-vocab.cpp`, commit
 `23f7aabc16c72f6f707dba227251c35d7bd1ed96`, MIT reference).
 
 * Pure XIOM, no FFI. Deps: `xiom.std`, `xiom.gguf` (header codec),
-  `xiom.tensor` (reserved for the M2 forward-pass plan).
+  `xiom.tensor` (shape construction + canonical dumps).
 * Deterministic `Err(Str)` catalog prefixed `llm: ` (see SPEC.md section 7).
-* 38 conformance checks (`tests/test_conformance.xi`) over a synthetic
-  deterministic GGUF fixture built with `xiom.gguf`'s builder -- no model
+* 79 conformance checks (`tests/test_conformance.xi`) over synthetic
+  deterministic GGUF fixtures built with `xiom.gguf`'s builder -- no model
   downloads.
 
 ## What Milestone 1 does
@@ -45,13 +46,16 @@ let ids: Vec[Int] = llm_bpe_encode(&v, "hello world").value;  // [12, 7, 16]
 let text = llm_bpe_decode(&v, &ids).value;                    // "hello world"
 ```
 
-## API summary (M1)
+## API summary (M1 + M2)
 
 | Group | Functions |
 |---|---|
 | Extraction | `llm_vocab_from_gguf` |
 | Vocab accessors | `llm_vocab_model`, `llm_vocab_size`, `llm_vocab_token`, `llm_vocab_token_type`, `llm_vocab_bos`, `llm_vocab_eos`, `llm_vocab_merge_count`, `llm_vocab_merge`, `llm_vocab_find_token` |
 | Tokenizer | `llm_bpe_encode`, `llm_bpe_decode` |
+| Loading (M2) | `llm_ggml_type_name`, `llm_ggml_block_elems`, `llm_ggml_block_bytes`, `llm_tensor_nbytes`, `llm_tensor_data`, `llm_model_open` |
+| Numerics (M2) | `llm_u16_le`, `llm_u32_le`, `llm_f16_to_scaled`, `llm_f32_to_scaled`, `llm_dequant_q8_0`, `llm_q8_0_ints`, `llm_f32_at` |
+| Forward (M2) | `llm_matmul_i32`, `llm_dot_i32`, `llm_rmsnorm_i32`, `llm_rope_i32`, `llm_softmax_i32`, `llm_silu_q`, `llm_swiglu_i32`, `llm_isqrt`, `llm_shape_dump` |
 
 ## M1 semantics in one paragraph
 
@@ -77,14 +81,15 @@ SPEC.md section 8 for the documented deviations).
   GPT-2 escaped form (`G`-dot etc., non-ASCII) -- cannot be parsed yet.
   M1 targets the synthetic ASCII fixture; the escape layer and UTF-8
   string support are M3 work (see ROADMAP.md).
-* **No payload/tensor decoding, no numerics.** Tensor infos are visible
-  through `xiom.gguf`; loading extents, Q8_0/Q4_K dequant, matmul,
-  forward pass and the generation loop are declared in SPEC.md section 10
-  and planned in ROADMAP.md (M2+).
-* **No SPM/WPM vocabularies** (`"llama"`/`"bert"` model strings are
-  rejected; declared for M3).
+* **Generation loop not implemented.** M2 delivers the forward to logits;
+  greedy generation (`llm_greedy_next`, `llm_generate`), sampling, the KV
+  cache, Q4_K-class dequant and SPM/WPM vocabs are M3 work (ROADMAP.md).
+* **Q8_0 tensor infos.** `xiom.gguf`'s builder rejects GGML types 8/9, so
+  the M2 fixture stores Q8_0 block bytes inside f32-declared FFN slices
+  (SPEC.md section 8 item 7); `llm_dequant_q8_0` itself is exercised on the
+  real block bytes.
 * **Merge lookup is a linear scan** per candidate pair; fine at fixture
-  scale, indexed merge maps are an M2+ option if profiling asks for them.
+  scale, indexed merge maps are an option if profiling asks for them.
 
 ## Testing
 
@@ -95,8 +100,8 @@ dependency via `xiom.toml`):
 & .\scripts\port.ps1 -Package xiom-llm -TimeoutSec 180
 ```
 
-Expected tail: 38 `[PASS]` lines, `xiom.llm: all tests passed`, then
-`port: PASS (passed=38 failed=0 program_exit=0 exit=0)`.
+Expected tail: 79 `[PASS]` lines, `xiom.llm: all tests passed`, then
+`port: PASS (passed=79 failed=0 program_exit=0 exit=0)`.
 
 ## License
 

@@ -1046,6 +1046,614 @@ fn t43() -> Int {
 }
 
 // --------------------------------------------------
+//  M2b: matmul + forward primitives (golden vectors)
+// --------------------------------------------------
+
+fn expect_mat_err(r: Result[Vec[Int], Str], want: Str, name: Str) -> Int {
+  if r.is_ok {
+    return report(false, name + " (expected Err)");
+  }
+  let got: Str = r.error;
+  if !str_eq(got, want) {
+    return report(false, name + " (got: " + got + ")");
+  }
+  return report(true, name);
+}
+
+// 2x3 @ 3x2 integer matmul, exact golden; plus overflow and size rejects.
+fn t44() -> Int {
+  var a = Vec[Int].new();
+  a.push(1); a.push(2); a.push(3);
+  a.push(4); a.push(5); a.push(6);
+  var b = Vec[Int].new();
+  b.push(7); b.push(8);
+  b.push(9); b.push(10);
+  b.push(11); b.push(12);
+  let r = llm_matmul_i32(&a, 2, 3, &b, 2);
+  if !r.is_ok {
+    let got: Str = r.error;
+    return report(false, "matmul 2x3 @ 3x2 ok (Err: " + got + ")");
+  }
+  let m: Vec[Int] = r.value;
+  if m.len() != 4 {
+    return report(false, "matmul out length 4");
+  }
+  let want = want4(58, 64, 139, 154);
+  if !ids_eq(&m, &want) {
+    return report(false, "matmul golden [58,64,139,154]");
+  }
+  // overflow: 3e9 * 3e9 exceeds the Int guard
+  var oa = Vec[Int].new();
+  oa.push(3000000000); oa.push(3000000000);
+  var ob = Vec[Int].new();
+  ob.push(3000000000); ob.push(3000000000);
+  let ov = llm_matmul_i32(&oa, 1, 2, &ob, 1);
+  // size mismatch
+  var bad = Vec[Int].new();
+  bad.push(1); bad.push(2); bad.push(3); bad.push(4); bad.push(5);
+  let mm = llm_matmul_i32(&bad, 2, 3, &b, 2);
+  var sum = 0;
+  sum = sum + expect_mat_err(ov, "llm: matmul overflow", "matmul overflow rejected");
+  sum = sum + expect_mat_err(mm, "llm: matmul a size mismatch", "matmul size mismatch rejected");
+  return sum;
+}
+
+// RMSNorm: exact golden on [4,4,0,0] (mean square 8, rms 2) and zero-norm reject.
+fn t45() -> Int {
+  var x = Vec[Int].new();
+  x.push(4); x.push(4); x.push(0); x.push(0);
+  var g = Vec[Int].new();
+  g.push(1); g.push(1); g.push(1); g.push(1);
+  let r = llm_rmsnorm_i32(&x, &g, 0, 0);
+  if !r.is_ok {
+    let got: Str = r.error;
+    return report(false, "rmsnorm ok (Err: " + got + ")");
+  }
+  let y: Vec[Int] = r.value;
+  let want = want4(2, 2, 0, 0);
+  var sum = 0;
+  sum = sum + report(ids_eq(&y, &want), "rmsnorm golden [2,2,0,0]");
+  var z = Vec[Int].new();
+  z.push(0); z.push(0); z.push(0); z.push(0);
+  let zr = llm_rmsnorm_i32(&z, &g, 0, 0);
+  sum = sum + expect_mat_err(zr, "llm: rmsnorm zero norm", "rmsnorm zero norm rejected");
+  return sum;
+}
+
+// RoPE: exact identity table (pos 0) and exact 90-degree rotation.
+fn t46() -> Int {
+  let s = 12;
+  var cq = Vec[Int].new();
+  cq.push(1 << s); cq.push(1 << s);
+  var sq = Vec[Int].new();
+  sq.push(0); sq.push(0);
+  var x = Vec[Int].new();
+  x.push(3); x.push(5); x.push(7); x.push(9);
+  let idr = llm_rope_i32(&x, 4, &cq, &sq, s);
+  if !idr.is_ok {
+    let got: Str = idr.error;
+    return report(false, "rope identity ok (Err: " + got + ")");
+  }
+  let idv: Vec[Int] = idr.value;
+  let want_id = want4(3, 5, 7, 9);
+  var sum = 0;
+  sum = sum + report(ids_eq(&idv, &want_id), "rope identity golden");
+  // 90-degree: cos 0, sin 1.0 -> (x0,x1) -> (-x1, x0)
+  var cq90 = Vec[Int].new();
+  cq90.push(0); cq90.push(0);
+  var sq90 = Vec[Int].new();
+  sq90.push(1 << s); sq90.push(1 << s);
+  let rr = llm_rope_i32(&x, 4, &cq90, &sq90, s);
+  if !rr.is_ok {
+    let got2: Str = rr.error;
+    return report(false, "rope 90-degree ok (Err: " + got2 + ")");
+  }
+  let rv: Vec[Int] = rr.value;
+  let want_90 = want4(-5, 3, -9, 7);
+  sum = sum + report(ids_eq(&rv, &want_90), "rope 90-degree golden [-5,3,-9,7]");
+  return sum;
+}
+
+// Softmax: exact single-element (one-hot) and uniform goldens; empty reject.
+fn t47() -> Int {
+  var one = Vec[Int].new();
+  one.push(4);
+  let sr = llm_softmax_i32(&one, 10);
+  if !sr.is_ok {
+    let got: Str = sr.error;
+    return report(false, "softmax single ok (Err: " + got + ")");
+  }
+  let sv: Vec[Int] = sr.value;
+  let want_1 = want1(1024);
+  var sum = 0;
+  sum = sum + report(ids_eq(&sv, &want_1), "softmax single golden [1024]");
+  var uni = Vec[Int].new();
+  uni.push(0); uni.push(0);
+  let ur = llm_softmax_i32(&uni, 10);
+  let uv: Vec[Int] = ur.value;
+  let want_u = want2(512, 512);
+  sum = sum + report(ids_eq(&uv, &want_u), "softmax uniform golden [512,512]");
+  var none = Vec[Int].new();
+  let er = llm_softmax_i32(&none, 10);
+  sum = sum + expect_mat_err(er, "llm: softmax empty input", "softmax empty rejected");
+  return sum;
+}
+
+// SiLU saturating-region exactness and SwiGLU exact golden.
+fn t48() -> Int {
+  var sum = 0;
+  sum = sum + report(llm_silu_q(5, 0) == 5, "silu(5) = 5 exact");
+  sum = sum + report(llm_silu_q(-5, 0) == 0, "silu(-5) = 0 exact");
+  sum = sum + report(llm_silu_q(0, 0) == 0, "silu(0) = 0 exact");
+  var gate = Vec[Int].new();
+  gate.push(5); gate.push(5);
+  var up = Vec[Int].new();
+  up.push(-2); up.push(-2);
+  let r = llm_swiglu_i32(&gate, &up, 0);
+  if !r.is_ok {
+    let got: Str = r.error;
+    return report(false, "swiglu ok (Err: " + got + ")");
+  }
+  let a: Vec[Int] = r.value;
+  let want = want2(-10, -10);
+  sum = sum + report(ids_eq(&a, &want), "swiglu golden [-10,-10]");
+  return sum;
+}
+
+// --------------------------------------------------
+//  M2b: tiny deterministic model fixture
+// --------------------------------------------------
+
+// float32 bit pattern of a small integer (0..19 and -1), exactly representable.
+fn f32_bits_of_int(n: Int) -> Int {
+  if n == 0 {
+    return 0;
+  }
+  if n < 0 {
+    return f32_bits_of_int(0 - n) | 0x80000000;
+  }
+  var e = 0;
+  var m = n;
+  while m >= 2 {
+    m = m / 2;
+    e = e + 1;
+  }
+  let mant = (n << (23 - e)) - 0x800000;
+  return ((127 + e) << 23) | mant;
+}
+
+// Append the little-endian 4-byte encoding of small integer `n` as f32.
+fn push_f32(dst: &mut Vec[UInt8], n: Int) -> Int {
+  let bits = f32_bits_of_int(n);
+  dst.push(((bits & 0xFF) as UInt8));
+  dst.push((((bits >> 8) & 0xFF) as UInt8));
+  dst.push((((bits >> 16) & 0xFF) as UInt8));
+  dst.push((((bits >> 24) & 0xFF) as UInt8));
+  return 0;
+}
+
+// Append one Q8_0 block: scale 1.0 (0x3C00) and 32 quant bytes.
+fn push_q8_scale1(dst: &mut Vec[UInt8], quants: &Vec[Int]) -> Int {
+  dst.push((0x00 as UInt8));
+  dst.push((0x3C as UInt8));
+  var i = 0;
+  while i < quants.len() {
+    let q: Int = quants[i];
+    dst.push(((q & 0xFF) as UInt8));
+    i = i + 1;
+  }
+  return 0;
+}
+
+// Append one Q8_0 block followed by zero padding to a 128-byte f32 slice.
+// xiom.gguf's builder rejects types 8/9, so the fixture stores quantized weights
+// as Q8_0 block bytes inside a f32-declared 8x4/4x8 slice (documented
+// deviation); llm_dequant_q8_0 consumes the leading 34 bytes.
+fn push_q8_padded(dst: &mut Vec[UInt8], quants: &Vec<Int>) -> Int {
+  let a = push_q8_scale1(dst, quants);
+  var pad = 0;
+  while pad < 94 {
+    dst.push((0 as UInt8));
+    pad = pad + 1;
+  }
+  return 0;
+}
+
+// The tiny model container: emb=4, heads=1, vocab=20, ffn=8, 1 layer. Eleven
+// tensor infos (token_embd, attn_norm, wq/wk/wv/wo, ffn_norm, ffn_gate/up/down,
+// output); Q8_0 for the 8x4 / 4x8 FFN matrices, f32 elsewhere. `w1_first` is
+// the ffn_gate first quant (4 normally, 3 in the sensitivity variant).
+fn model_container(w1_first: Int) -> Vec[UInt8] {
+  let tokens = vocab_tokens();
+  let merges = vocab_merges();
+  let types = vocab_types();
+  var b = gguf_builder_new();
+  let a1 = gguf_builder_add_kv_str(&mut b, "tokenizer.ggml.model", "gpt2");
+  let a2 = gguf_builder_add_kv_arr_str(&mut b, "tokenizer.ggml.tokens", &tokens);
+  let a3 = gguf_builder_add_kv_arr_str(&mut b, "tokenizer.ggml.merges", &merges);
+  let a4 = gguf_builder_add_kv_arr_int(&mut b, "tokenizer.ggml.token_type", 5, &types);
+  let a5 = gguf_builder_add_kv_int(&mut b, "tokenizer.ggml.bos_token_id", 4, 18);
+  let a6 = gguf_builder_add_kv_int(&mut b, "tokenizer.ggml.eos_token_id", 4, 19);
+
+  var d_emb = Vec[Int].new();
+  d_emb.push(20); d_emb.push(4);
+  var d_n = Vec[Int].new();
+  d_n.push(4);
+  var d_m = Vec[Int].new();
+  d_m.push(4); d_m.push(4);
+  var d_g = Vec[Int].new();
+  d_g.push(8); d_g.push(4);
+  var d_d = Vec[Int].new();
+  d_d.push(4); d_d.push(8);
+
+  let t1 = gguf_builder_add_tensor(&mut b, "token_embd.weight", &d_emb, 0, 0);
+  let t2 = gguf_builder_add_tensor(&mut b, "attn_norm.weight", &d_n, 0, 320);
+  let t3 = gguf_builder_add_tensor(&mut b, "wq.weight", &d_m, 0, 336);
+  let t4 = gguf_builder_add_tensor(&mut b, "wk.weight", &d_m, 0, 400);
+  let t5 = gguf_builder_add_tensor(&mut b, "wv.weight", &d_m, 0, 464);
+  let t6 = gguf_builder_add_tensor(&mut b, "wo.weight", &d_m, 0, 528);
+  let t7 = gguf_builder_add_tensor(&mut b, "ffn_norm.weight", &d_n, 0, 592);
+  let t8 = gguf_builder_add_tensor(&mut b, "ffn_gate.weight", &d_g, 0, 608);
+  let t9 = gguf_builder_add_tensor(&mut b, "ffn_up.weight", &d_g, 0, 736);
+  let t10 = gguf_builder_add_tensor(&mut b, "ffn_down.weight", &d_d, 0, 864);
+  let t11 = gguf_builder_add_tensor(&mut b, "output.weight", &d_emb, 0, 992);
+  let fr = gguf_builder_finish(&b);
+  var buf = fr.value;
+
+  // 1. token_embd [20,4] f32: row 1 = [4,4,0,0], all other rows zero.
+  var r = 0;
+  while r < 20 {
+    var c = 0;
+    while c < 4 {
+      if r == 1 && (c == 0 || c == 1) {
+        let z = push_f32(&mut buf, 4);
+      } else {
+        let z2 = push_f32(&mut buf, 0);
+      }
+      c = c + 1;
+    }
+    r = r + 1;
+  }
+  // 2. attn_norm [4] f32 = ones.
+  var i2 = 0;
+  while i2 < 4 {
+    let z3 = push_f32(&mut buf, 1);
+    i2 = i2 + 1;
+  }
+  // 3-5. wq, wk, wv [4,4] f32: every row [1,0,0,0].
+  var mi = 0;
+  while mi < 3 {
+    var rr = 0;
+    while rr < 4 {
+      let z4 = push_f32(&mut buf, 1);
+      let z5 = push_f32(&mut buf, 0);
+      let z6 = push_f32(&mut buf, 0);
+      let z7 = push_f32(&mut buf, 0);
+      rr = rr + 1;
+    }
+    mi = mi + 1;
+  }
+  // 6. wo [4,4] f32: every row [-1,0,0,0].
+  var rw = 0;
+  while rw < 4 {
+    let z8 = push_f32(&mut buf, -1);
+    let z9 = push_f32(&mut buf, 0);
+    let z10 = push_f32(&mut buf, 0);
+    let z11 = push_f32(&mut buf, 0);
+    rw = rw + 1;
+  }
+  // 7. ffn_norm [4] f32 = ones.
+  var i3 = 0;
+  while i3 < 4 {
+    let z12 = push_f32(&mut buf, 1);
+    i3 = i3 + 1;
+  }
+  // 8. ffn_gate [8,4] Q8_0: rows [w1_first,1,0,0] x8.
+  var qg = Vec[Int].new();
+  var rg = 0;
+  while rg < 8 {
+    qg.push(w1_first); qg.push(1); qg.push(0); qg.push(0);
+    rg = rg + 1;
+  }
+  let g8 = push_q8_padded(&mut buf, &qg);
+  // 9. ffn_up [8,4] f32-slice Q8_0: rows [0,0,1,1] x8.
+  var qu = Vec[Int].new();
+  var ru = 0;
+  while ru < 8 {
+    qu.push(0); qu.push(0); qu.push(1); qu.push(1);
+    ru = ru + 1;
+  }
+  let g9 = push_q8_padded(&mut buf, &qu);
+  // 10. ffn_down [4,8] f32-slice Q8_0: rows [1,0,0,0,0,0,0,0] x4.
+  var qd = Vec[Int].new();
+  var rd = 0;
+  while rd < 4 {
+    qd.push(1); qd.push(0); qd.push(0); qd.push(0);
+    qd.push(0); qd.push(0); qd.push(0); qd.push(0);
+    rd = rd + 1;
+  }
+  let g10 = push_q8_padded(&mut buf, &qd);
+  // 11. output [20,4] f32: row i = [i,0,0,0].
+  var ro = 0;
+  while ro < 20 {
+    let z13 = push_f32(&mut buf, ro);
+    let z14 = push_f32(&mut buf, 0);
+    let z15 = push_f32(&mut buf, 0);
+    let z16 = push_f32(&mut buf, 0);
+    ro = ro + 1;
+  }
+  return buf;
+}
+
+// Load an f32 tensor as plain Ints (each value must be an exact integer).
+fn load_f32(g: &Gguf, buf: &Vec[UInt8], name: Str) -> Vec[Int] {
+  let fir = gguf_find_tensor(g, name);
+  let idx: Int = fir.value;
+  let ndr = gguf_tensor_ndims(g, idx);
+  let nd: Int = ndr.value;
+  var cnt = 1;
+  var d = 0;
+  while d < nd {
+    let dr = gguf_tensor_dim(g, idx, d);
+    let dv: Int = dr.value;
+    cnt = cnt * dv;
+    d = d + 1;
+  }
+  let tdr = llm_tensor_data(g, buf, idx);
+  let pay: Vec[UInt8] = tdr.value;
+  var out = Vec[Int].new();
+  var i = 0;
+  while i < cnt {
+    let vr = llm_f32_at(&pay, i * 4);
+    let vv: Int = vr.value;
+    out.push(vv);
+    i = i + 1;
+  }
+  return out;
+}
+
+// Load a Q8_0 tensor as plain Ints (scale must reduce to exact integers).
+fn load_q8(g: &Gguf, buf: &Vec[UInt8], name: Str) -> Vec[Int] {
+  let fir = gguf_find_tensor(g, name);
+  let idx: Int = fir.value;
+  let tdr = llm_tensor_data(g, buf, idx);
+  let pay: Vec[UInt8] = tdr.value;
+  var out = Vec[Int].new();
+  var blk = Vec[UInt8].new();
+  var k = 0;
+  while k < 34 && k < pay.len() {
+    let b: UInt8 = pay[k];
+    blk.push(b);
+    k = k + 1;
+  }
+  let sr = llm_q8_0_ints(&blk, &mut out);
+  return out;
+}
+
+// Element-wise add of two equal-length integer vectors.
+fn vec_add(a: &Vec[Int], b: &Vec[Int]) -> Vec[Int] {
+  var out = Vec[Int].new();
+  var i = 0;
+  while i < a.len() {
+    let x: Int = a[i];
+    let y: Int = b[i];
+    out.push(x + y);
+    i = i + 1;
+  }
+  return out;
+}
+
+// model_open: parse + vocab + extent validation succeeds on the fixture;
+// error propagation for a bad header, and a tensor container without vocab.
+fn t49() -> Int {
+  let buf = model_container(4);
+  var empty = Vec[UInt8].new();
+  let mr = llm_model_open(&buf, &empty);
+  if !mr.is_ok {
+    let got: Str = mr.error;
+    return report(false, "model_open ok (Err: " + got + ")");
+  }
+  let model: LlmModel = mr.value;
+  let g: Gguf = model.g;
+  let v: LlmVocab = model.vocab;
+  let n = model.n_tensors;
+  var sum = 0;
+  sum = sum + report(n == 11, "model_open: n_tensors = " + n);
+  sum = sum + report(llm_vocab_size(&v) == 20, "model_open: vocab 20");
+  // parse failure: empty buffer
+  var er = Vec[UInt8].new();
+  let bad = llm_model_open(&er, &empty);
+  if bad.is_ok {
+    sum = sum + report(false, "model_open bad header rejected (expected Err)");
+  } else {
+    let be: Str = bad.error;
+    sum = sum + report(str_eq(be, "llm: model header parse failed"), "model_open bad header rejected");
+  }
+  // vocab failure: tensor container without tokenizer metadata
+  let tv = tensor_fixture(0, 20, 2, 0);
+  let noVocab = llm_model_open(&tv, &empty);
+  if noVocab.is_ok {
+    sum = sum + report(false, "model_open vocab failure propagated (expected Err)");
+  } else {
+    let ne: Str = noVocab.error;
+    sum = sum + report(str_eq(ne, "llm: tokenizer model missing"), "model_open vocab failure propagated");
+  }
+  return sum;
+}
+
+// Full single-token forward (emb=4, heads=1, 1 layer): returns the 20 logits,
+// or a single sentinel -999 on any assembly error. Shared by t50 and t51.
+fn forward_logits(cbuf: &Vec[UInt8]) -> Vec[Int] {
+  var empty = Vec[UInt8].new();
+  let mr = llm_model_open(cbuf, &empty);
+  if !mr.is_ok {
+    var e = Vec[Int].new();
+    e.push(-999);
+    return e;
+  }
+  let model: LlmModel = mr.value;
+  let g: Gguf = model.g;
+
+  let embed = load_f32(&g, cbuf, "token_embd.weight");
+  let gamma1 = load_f32(&g, cbuf, "attn_norm.weight");
+  let wq = load_f32(&g, cbuf, "wq.weight");
+  let wk = load_f32(&g, cbuf, "wk.weight");
+  let wv = load_f32(&g, cbuf, "wv.weight");
+  let wo = load_f32(&g, cbuf, "wo.weight");
+  let gamma2 = load_f32(&g, cbuf, "ffn_norm.weight");
+  let w1 = load_q8(&g, cbuf, "ffn_gate.weight");
+  let w3 = load_q8(&g, cbuf, "ffn_up.weight");
+  let w2 = load_q8(&g, cbuf, "ffn_down.weight");
+  let wout = load_f32(&g, cbuf, "output.weight");
+
+  var x = Vec[Int].new();
+  var c = 0;
+  while c < 4 {
+    let v: Int = embed[1 * 4 + c];
+    x.push(v);
+    c = c + 1;
+  }
+  let xnr = llm_rmsnorm_i32(&x, &gamma1, 0, 0);
+  let xn: Vec[Int] = xnr.value;
+  let qr = llm_matmul_i32(&wq, 4, 4, &xn, 1);
+  let q0: Vec[Int] = qr.value;
+  let kr = llm_matmul_i32(&wk, 4, 4, &xn, 1);
+  let k0: Vec[Int] = kr.value;
+  let vr = llm_matmul_i32(&wv, 4, 4, &xn, 1);
+  let v0: Vec[Int] = vr.value;
+  let s = 12;
+  var cq = Vec[Int].new();
+  cq.push(1 << s); cq.push(1 << s);
+  var sq = Vec[Int].new();
+  sq.push(0); sq.push(0);
+  let qrr = llm_rope_i32(&q0, 4, &cq, &sq, s);
+  let q: Vec[Int] = qrr.value;
+  let krr = llm_rope_i32(&k0, 4, &cq, &sq, s);
+  let k: Vec[Int] = krr.value;
+  let dr = llm_dot_i32(&q, &k);
+  let dot: Int = dr.value;
+  let score = dot / 2;
+  var sc = Vec[Int].new();
+  sc.push(score);
+  let smr = llm_softmax_i32(&sc, 10);
+  // single-position attention: softmax weight 1024/1024 = 1 -> attn = v0
+  let wovr = llm_matmul_i32(&wo, 4, 4, &v0, 1);
+  let wov: Vec[Int] = wovr.value;
+  let h = vec_add(&x, &wov);
+  let hnr = llm_rmsnorm_i32(&h, &gamma2, 0, 0);
+  let hn: Vec[Int] = hnr.value;
+  let gr = llm_matmul_i32(&w1, 8, 4, &hn, 1);
+  let gate: Vec[Int] = gr.value;
+  let ur = llm_matmul_i32(&w3, 8, 4, &hn, 1);
+  let up: Vec[Int] = ur.value;
+  let ar = llm_swiglu_i32(&gate, &up, 0);
+  let a: Vec[Int] = ar.value;
+  let fr = llm_matmul_i32(&w2, 4, 8, &a, 1);
+  let ffn: Vec[Int] = fr.value;
+  let h2 = vec_add(&h, &ffn);
+  let lr = llm_matmul_i32(&wout, 20, 4, &h2, 1);
+  let logits: Vec[Int] = lr.value;
+  return logits;
+}
+
+// Golden logits: the full single-token forward asserted EXACTLY.
+// Provenance: token 1 embedding row = [4,4,0,0]; RMSNorm rms=2 -> xn=[2,2,0,0];
+// Wq/Wk/Wv pick column 1 -> q=k=v=[2,2,2,2]; pos-0 RoPE is identity; the single
+// attention position has softmax weight 1.0 so attn=v; Wo=[-1,0,0,0] rows give
+// Wo@v=[-2,-2,-2,-2] and residual h=[2,2,-2,-2]; RMSNorm rms=2 -> hn=[1,1,-1,-1];
+// W1 rows [4,1,0,0] -> gate=[5,...] (saturated SiLU = 5); W3 rows [0,0,1,1] ->
+// up=[-2,...]; SwiGLU a=[-10,...]; W2 picks a[0] -> ffn=[-10,...]; h2=[-8,-8,-12,-12];
+// Wout[i]=[i,0,0,0] -> logits[i] = i * (-8) = -8*i.
+fn t50() -> Int {
+  let buf = model_container(4);
+  let logits = forward_logits(&buf);
+  if logits.len() != 20 {
+    return report(false, "golden logits: forward produced 20 logits");
+  }
+  var bad = 0;
+  var i = 0;
+  while i < 20 {
+    let got: Int = logits[i];
+    if got != (0 - 8) * i {
+      bad = bad + 1;
+    }
+    i = i + 1;
+  }
+  if bad != 0 {
+    return report(false, "golden logits exact (-8*i for i in 0..19)");
+  }
+  return report(true, "golden logits exact (-8*i for i in 0..19)");
+}
+
+// Sensitivity: one ffn_gate weight byte (4 -> 3) changes the logits. The
+// perturbed forward gives gate=[4,...] -> SiLU 4 -> a=[-8,...] -> ffn=[-8,...]
+// -> h2=[-6,-6,-10,-10] -> logits[i] = -6*i.
+fn t51() -> Int {
+  let base = model_container(4);
+  let pert = model_container(3);
+  var sum = 0;
+  // the only payload difference is the gate block: locate it via the loaded
+  // weights (header bytes may differ in builder padding, so compare weights).
+  var empty = Vec[UInt8].new();
+  let mr = llm_model_open(&base, &empty);
+  if !mr.is_ok {
+    return report(false, "sensitivity: base model_open ok");
+  }
+  let model: LlmModel = mr.value;
+  let g: Gguf = model.g;
+  let w1b = load_q8(&g, &base, "ffn_gate.weight");
+  let pr = llm_model_open(&pert, &empty);
+  if !pr.is_ok {
+    return report(false, "sensitivity: pert model_open ok");
+  }
+  let pmodel: LlmModel = pr.value;
+  let pg: Gguf = pmodel.g;
+  let w1p = load_q8(&pg, &pert, "ffn_gate.weight");
+  let b0: Int = w1b[0];
+  let p0: Int = w1p[0];
+  sum = sum + report(b0 == 4 && p0 == 3, "sensitivity: gate weight 4 -> 3 loaded");
+  // gate value 0 for the perturbed model = 3*hn[0] + 1*hn[1] = 4; SiLU exact
+  sum = sum + report(llm_silu_q(4, 0) == 4, "sensitivity: silu(4) = 4 exact");
+
+  let lb = forward_logits(&base);
+  let lp = forward_logits(&pert);
+  if lb.len() != 20 || lp.len() != 20 {
+    return sum + report(false, "sensitivity: forward produced 20 logits");
+  }
+  var changed = 0;
+  var i = 0;
+  while i < 20 {
+    let a: Int = lb[i];
+    let b: Int = lp[i];
+    if a != b {
+      changed = changed + 1;
+    }
+    i = i + 1;
+  }
+  sum = sum + report(changed == 19, "sensitivity: one weight byte changes 19 of 20 logits");
+  var bad = 0;
+  var k = 0;
+  while k < 20 {
+    let got: Int = lp[k];
+    if got != (0 - 6) * k {
+      bad = bad + 1;
+    }
+    k = k + 1;
+  }
+  sum = sum + report(bad == 0, "sensitivity: perturbed logits exact (-6*k)");
+  return sum;
+}
+
+// xiom.tensor "where sensible" boundary: shape construction + canonical dump.
+fn t52() -> Int {
+  var vals = Vec[Int].new();
+  vals.push(1); vals.push(2); vals.push(3); vals.push(4);
+  let d = llm_shape_dump(2, 2, &vals);
+  let n = string.str_len(d);
+  return report(n > 0, "tensor shape dump non-empty");
+}
+
+// --------------------------------------------------
 //  Main
 // --------------------------------------------------
 
@@ -1094,6 +1702,15 @@ fn main() -> Int {
   failed = failed + t41();
   failed = failed + t42();
   failed = failed + t43();
+  failed = failed + t44();
+  failed = failed + t45();
+  failed = failed + t46();
+  failed = failed + t47();
+  failed = failed + t48();
+  failed = failed + t49();
+  failed = failed + t50();
+  failed = failed + t51();
+  failed = failed + t52();
   if failed == 0 {
     io.println("xiom.llm: all tests passed");
   }

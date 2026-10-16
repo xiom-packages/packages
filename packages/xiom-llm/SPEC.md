@@ -15,20 +15,27 @@ implements the vocabulary/tokenizer core, and the remaining sections are
 declared designs that later milestones implement (each marked
 **[DECLARED -- NOT IMPLEMENTED in 0.1.0]**).
 
-Implemented in 0.1.0:
+Implemented in 0.1.0 (M1 + M2):
 
 * in-GGUF vocab extraction from a header parsed by `xiom.gguf` (metadata
   -> `LlmVocab`, section 5);
 * byte-level BPE tokenizer with llama.cpp-family merge-table semantics:
-  decode and encode (section 6).
+  decode and encode (section 6);
+* GGUF payload/tensor loading, extent validation and the `llm_model_open`
+  composite (M2a/M2b, section 10.1);
+* deterministic float-free numerics: integer f16/f32 bit-decode, exact
+  scaled-int `(m, e)` handling and `llm_dequant_q8_0` (M2a, sections
+  10.2/10.3);
+* integer matmul plus the forward primitives RMSNorm / RoPE / attention
+  score / softmax / SiLU-SwiGLU FFN, and a tiny deterministic model fixture
+  whose single-token golden logits are asserted exactly (M2b, section 10.4).
 
 Declared for later milestones (section 10):
 
-* GGUF payload/tensor loading over `xiom.gguf` header data;
-* deterministic float-free numerics for dequantization (Q8_0 first,
-  Q4_K-class later);
-* matmul / forward-pass composition (over `xiom.tensor` where sensible);
-* generation loop (greedy first; sampling deferred).
+* generation loop (greedy first; sampling deferred, section 10.5);
+* Q4_K-class dequantization and quantization breadth (M3);
+* tokenizer completion: escape layer, regex pre-tokenizer, SPM/WPM
+  (section 10.6).
 
 ## 2. Non-goals
 
@@ -190,6 +197,25 @@ Accessors and tokenizer:
 * `llm: array element out of range` (defensive, internal workaround path
   only -- pre-validation makes it unreachable through the public API)
 
+Model assembly and forward kernels (M2):
+
+* `llm: model header parse failed`, `llm: model tensor extent invalid`
+  (`llm_model_open`)
+* `llm: matmul negative dimension`, `llm: matmul a size mismatch`,
+  `llm: matmul b size mismatch`, `llm: matmul overflow`
+* `llm: dot size mismatch`, `llm: dot overflow`
+* `llm: rmsnorm empty input`, `llm: rmsnorm gamma size mismatch`,
+  `llm: rmsnorm negative shift`, `llm: rmsnorm overflow`,
+  `llm: rmsnorm zero norm`
+* `llm: rope head_dim not even`, `llm: rope size mismatch`,
+  `llm: rope table size mismatch`, `llm: rope shift too small`,
+  `llm: rope overflow`
+* `llm: softmax empty input`, `llm: softmax shift too small`,
+  `llm: softmax overflow`, `llm: softmax zero mass`
+* `llm: swiglu size mismatch`, `llm: swiglu overflow`
+* `llm: f32 offset out of range`, `llm: scaled value out of range`,
+  `llm: value is not an exact integer` (bit-decode bridge)
+
 ## 8. Documented deviations from llama.cpp (M1)
 
 1. **Fail-closed symbol lookup.** llama.cpp's BPE session falls back to
@@ -212,6 +238,15 @@ Accessors and tokenizer:
    (`<s>`, `</s>`, ...) by their attrs before BPE and can add BOS/EOS per
    model flags; M1 encodes raw text only (BOS/EOS insertion is declared
    for M3 alongside the generation loop).
+7. **Quantized tensor infos in the M2 fixture (M2b).** `xiom.gguf`'s
+   builder rejects GGML types 8 (`q8_0`) and 9 (`q8_1`), so the fixture
+   cannot declare a type-8 tensor. The three FFN matrices are therefore
+   declared as `f32` slices whose stored payload begins with one Q8_0 block
+   (34 bytes) followed by zero padding to the f32 extent;
+   `llm_dequant_q8_0` consumes the leading 34 bytes. The dequant path is
+   exercised on real container tensor data, but the container carries no
+   type-8 tensor info. Lifting this needs a `xiom.gguf` builder change
+   (out of lane scope).
 
 ## 9. XGGUF-ARRSTR: string-array offset workaround (RESOLVED)
 
@@ -237,14 +272,17 @@ every string array that did not start at `arr_strs[0]`**:
 
 ## 10. Declared runner surface
 
-Signatures below are the planned public surface. **Partially implemented in
-M2a (2026-10-16):** section 10.1 size tables / `llm_tensor_nbytes` /
-`llm_tensor_data` and section 10.2/10.3 integer bit-decode +
-`llm_dequant_q8_0` are implemented in `src/llm.xi`; matmul/forward
-composition (10.4) and the generation loop (10.5) remain declared for a
-follow-up wave. Milestone mapping is in ROADMAP.md.
+Signatures below are the planned public surface. **Implemented in M2a/M2b
+(2026-10-16):** section 10.1 size tables / `llm_tensor_nbytes` /
+`llm_tensor_data` / `llm_model_open`; section 10.2/10.3 integer bit-decode,
+`llm_dequant_q8_0` and `llm_q8_0_ints`; and section 10.4 matmul
+(`llm_matmul_i32`), the forward primitives and the tiny-fixture golden-logit
+conformance. The generation loop (10.5) remains declared. Milestone mapping
+is in ROADMAP.md.
 
 ### 10.1 GGUF payload and tensor loading
+
+**[IMPLEMENTED in M2a; `llm_model_open` added in M2b, 2026-10-16]**
 
 `xiom.gguf` bounds-checks declared tensor offsets against the data-section
 length but has no ggml element-size table. xiom.llm supplies it:
@@ -287,32 +325,66 @@ The representation:
 
 ### 10.3 Dequantization
 
+**[IMPLEMENTED in M2a, 2026-10-16]**
+
 * `llm_dequant_q8_0(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str]`
   -- Q8_0 first: blocks of 32 x i8 quants + f16 scale; values scaled-int.
+  The f16 scale is decoded with `llm_f16_to_scaled`, so the mapping is EXACT
+  integer arithmetic (pinned error bound 0). Limitation: a single shared
+  block scale `(m, e)` is returned, so mixed per-block scales are rejected.
+* `llm_q8_0_ints(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str]`
+  -- the bridge from the scaled-int `(m, e)` form into flat integer kernels:
+  dequantizes then reduces by `2^e`, returning plain integer weights; fails
+  closed with `llm: value is not an exact integer` when `m / 2^e` is not an
+  integer (for the standard scale-1.0 blocks the result is exactly `q[i]`).
 * `llm_dequant_q4_k(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str]`
-  -- Q4_K-class later: 256-value superblocks, f16 d/dmin, 6-bit
-  sub-scales, 4-bit quants.
+  -- Q4_K-class later (M3): 256-value superblocks, f16 d/dmin, 6-bit
+  sub-scales, 4-bit quants. Still DECLARED.
 * Every dequantizer validates the payload length against the block table
   and returns the block scale as `(m, e)` plus per-block sub-scales where
   the class requires them.
 
 ### 10.4 Matmul / forward-pass composition
 
+**[IMPLEMENTED in M2b, 2026-10-16]**
+
 * `llm_matmul_i32(a: &Vec[Int], a_rows: Int, a_cols: Int, b: &Vec[Int], b_cols: Int) -> Result[Vec[Int], Str]`
   -- flat row-major integer matmul with overflow-checked accumulation
-  (fail closed, no wraparound), the workhorse for every weight multiply.
-* `xiom.tensor` is used where it fits the integer model: shape
-  construction (`tensor_from_flat`), geometry accessors, axis slicing for
-  row windows, and canonical `tensor_dump` diagnostics. It has no matmul,
-  views or elementwise scaled-int ops, so the hot kernels stay in-package
-  over flat `Vec[Int]`; this boundary is the "over xiom.tensor where
-  sensible" contract.
-* Forward composition (llama-style skeleton for the M2 fixture):
-  token embedding row gather -> RMSNorm (integer rsqrt plan) -> Q/K/V
-  projections via `llm_matmul_i32` -> RoPE (integer sin/cos table,
-  declared in M2) -> scaled attention scores -> softmax plan (integer
-  exp/max normalization, declared with error bounds) -> output projection
-  -> SwiGLU FFN -> logits.
+  (fail closed: `llm: matmul overflow`, never wraparound), the workhorse for
+  every weight multiply. Exact over the scaled-int `(m, e)` form; the caller
+  carries the combined exponent `e_a + e_b`. Size mismatches and negative
+  dimensions fail closed.
+* Forward primitives (all pure integer functions; error bounds documented on
+  the functions in `src/llm.xi`):
+  - `llm_rmsnorm_i32(x, gamma, eps, out_shift)` -- `out[i] = gamma[i]*x[i]*2^out_shift / rms`,
+    `rms = isqrt(sum(x[i]^2)/n + eps)`; bound: < 1 LSB from the floor root plus
+    1/2 LSB rounding; exact for the fixture.
+  - `llm_rope_i32(x, head_dim, cos_q, sin_q, shift)` -- pairwise rotation with a
+    caller-supplied integer sin/cos table; bound <= 1 LSB per component; the
+    position-0 table `(2^shift, 0)` is the exact identity.
+  - `llm_dot_i32(a, b)` -- overflow-checked attention score dot product.
+  - `llm_softmax_i32(logits_q, shift)` -- max-shifted quadratic
+    `exp(t) ~ 1 + t + t^2/2` normalized to sum `2^shift`; EXACT for uniform and
+    one-hot inputs, a deterministic bounded approximation otherwise.
+  - `llm_silu_q(g, shift)` / `llm_swiglu_i32(gate, up, shift)` -- piecewise
+    SiLU (`sig = 1` for `g >= 4*2^shift`, `0` for `g <= -4*2^shift`, else a
+    linear ramp); EXACT in the saturated region and at 0.
+* `xiom.tensor` is used where it fits the integer model: shape construction
+  (`tensor_from_flat`) and canonical `tensor_dump` diagnostics via
+  `llm_shape_dump`. It has no matmul, views or elementwise scaled-int ops, so
+  the hot kernels stay in-package over flat `Vec[Int]`; this boundary is the
+  "over xiom.tensor where sensible" contract.
+* Model assembly: `llm_model_open(header, payload) -> Result[LlmModel, Str]`
+  concatenates the two buffers, parses with `xiom.gguf`, extracts the vocab and
+  validates every tensor extent; the M2 fixture loads its weights through it
+  (`llm_tensor_data` + `llm_q8_0_ints` / `llm_f32_at`).
+* Forward composition (llama-style skeleton, M2 fixture): token embedding row
+  gather -> RMSNorm -> Q/K/V projections via `llm_matmul_i32` -> RoPE
+  (identity at position 0) -> scaled attention score -> softmax (one
+  position) -> output projection with residual -> SwiGLU FFN with residual ->
+  logits. The fixture (emb=4, heads=1, vocab=20, ffn=8, 1 layer) is built so
+  every integer step is exact and the golden logits are asserted exactly
+  (`-8*i`, section 11).
 
 ### 10.5 Generation loop
 
@@ -332,7 +404,7 @@ The representation:
 * SPM (`tokenizer.ggml.model == "llama"`) and WPM (`"bert"`)
   vocabulary extraction + their tokenize paths.
 
-## 11. Test matrix (56 checks, `tests/test_conformance.xi`)
+## 11. Test matrix (79 checks, `tests/test_conformance.xi`)
 
 All checks run against a synthetic deterministic fixture built with
 `xiom.gguf`'s builder: 6 metadata KVs, one tensor info
@@ -375,6 +447,33 @@ bit-decode vectors (1.0/0.5/2.0/-1.0/subnormal) plus inf/nan rejects;
 `out[i] == (i-8)*1024`, scale `(1024,10)`), negative-scale two-block
 exactness, and the bad-length / empty / mixed-scale rejects.
 
+M2b additions (checks 44-79): `llm_matmul_i32` golden (2x3 @ 3x2 ->
+`[58,64,139,154]`) with overflow and size-mismatch rejects; `llm_rmsnorm_i32`
+exact `[4,4,0,0] -> [2,2,0,0]` plus zero-norm reject; `llm_rope_i32` exact
+identity and 90-degree (`[3,5,7,9] -> [-5,3,-9,7]`) goldens;
+`llm_softmax_i32` exact one-hot `[1024]` and uniform `[512,512]` plus empty
+reject; `llm_silu_q` saturated-region exactness and `llm_swiglu_i32` golden
+`[-10,-10]`; `llm_model_open` on the 11-tensor fixture (n=11, vocab 20) with
+bad-header and missing-vocab rejects; the **tiny model fixture** (emb=4,
+heads=1, vocab=20, ffn=8, 1 layer; eleven tensors, Q8_0 block bytes inside
+f32-declared FFN slices as a documented builder deviation, f32 anchors
+elsewhere) whose full single-token forward yields the EXACT hand-computed
+golden logits `logits[i] = -8*i` for i in 0..19; the single-byte sensitivity
+check (ffn_gate first quant 4 -> 3 changes 19 of 20 logits, perturbed logits
+exactly `-6*k`); and the `xiom.tensor` shape/dump smoke check.
+
+Golden-logit provenance (checks 75-78). The fixture is built so every integer
+step is exact: token 1 embedding row `[4,4,0,0]` (mean square 8, rms 2) ->
+`xn=[2,2,0,0]`; `Wq/Wk/Wv` select column 1 -> `q=k=v=[2,2,2,2]`; position-0
+RoPE is the identity; the single attention position has softmax weight 1.0 so
+`attn=v`; `Wo` rows `[-1,0,0,0]` give `Wo@v=[-2,-2,-2,-2]` and residual
+`h=[2,2,-2,-2]` -> `hn=[1,1,-1,-1]`; `W1` rows `[4,1,0,0]` give
+`gate=[5,...]` in the exact SiLU-saturated region; `W3` rows `[0,0,1,1]` give
+`up=[-2,...]`; SwiGLU `a=[-10,...]`; `W2` selects `a[0]` -> `ffn=[-10,...]`;
+`h2=[-8,-8,-12,-12]`; `Wout[i]=[i,0,0,0]` -> `logits[i] = i * (-8)`. Every
+value is derived by hand from the integer algorithm above, not from a float
+reference.
+
 ## 12. Compiler notes (v0.64.5)
 
 Free functions only; `Ok`/`Err` construction is confined to the leaf
@@ -383,8 +482,9 @@ are bound to typed locals and compared with `str_compare` (never `==`);
 every `UInt8` is widened with `(as Int) & 0xFF`; `&struct.field` is never
 passed where a `&Vec[...]` parameter is expected; test Result values are
 unwrapped through locals (`let r = f(); let v = r.value;`), never by
-chaining `.value` on a call. No contracts are declared on the M1
-functions (lane policy for new names).
+chaining `.value` on a call. `LlmModel` carries the parsed `Gguf` by value
+and is only produced by `llm_model_open`. No contracts are declared on any
+function (lane policy for new names, M1 and M2 alike).
 
 ## 13. Reference notes
 

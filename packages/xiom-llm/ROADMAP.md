@@ -5,7 +5,7 @@
 # xiom.llm -- roadmap
 
 Lane: llama.cpp-family runner tier of the ML/AI coverage program.
-Current: v0.1.0, milestone 1 (M1) complete and conformance-green (38/38
+Current: v0.1.0, milestones M1 + M2 complete and conformance-green (79/79
 x2); `publish: false` pending ops scope + allowlist.
 
 ## M1 -- vocab + byte-level BPE (DONE, 2026-10-16)
@@ -39,47 +39,51 @@ and pin it against an in-test hand-computed oracle.
      integer asserts on hand-built blocks (scale 1.0/-1.0, quants -8..23;
      error bound pinned at 0). Limitation: single shared block scale
      (mixed per-block scales rejected). Q4_K-class deferred to M4.
-3. **Matmul + forward composition** (SPEC.md 10.4)
-   - `llm_matmul_i32` (overflow fail-closed) + xiom.tensor for shape
-     construction/dump (the "where sensible" boundary).
-   - RMSNorm -> QKV -> RoPE -> attention -> softmax plan -> FFN ->
-     logits; each step integer with a documented error bound.
-4. **Tiny-model fixture** (concrete):
-   - dims `emb=4, heads=1, vocab=20, ffn=8`, 1 layer, Q8_0 weights (plus
-     f32 tensors for exactness anchors), written with `xiom.gguf`'s
-     builder in `tests/`;
-   - golden logits computed by hand in the suite (small enough to do in
-     integers), asserted exactly; a second check asserts that perturbing
-     one weight byte changes the argmax (sensitivity, not magic).
-5. **Acceptance**: `port.ps1` green x2 with the M2 suite; SPEC sections
-   10.1-10.4 move from DECLARED to implemented; README/STATUS updated.
+3. **Matmul + forward composition** (SPEC.md 10.4) -- DONE in M2b
+   - `llm_matmul_i32` (overflow fail-closed, typed Err) plus `llm_dot_i32`;
+     `xiom.tensor` used for shape construction/canonical dump
+     (`llm_shape_dump`), the "where sensible" boundary.
+   - Forward primitives as pure integer functions with documented error
+     bounds: `llm_rmsnorm_i32`, `llm_rope_i32`, `llm_softmax_i32`,
+     `llm_silu_q`, `llm_swiglu_i32`. Exact in the fixture regions (rms root,
+     position-0 RoPE identity, saturated SiLU); bounded elsewhere.
+4. **Tiny-model fixture** -- DONE in M2b
+   - dims `emb=4, heads=1, vocab=20, ffn=8`, 1 layer; eleven tensor infos
+     (token_embd, attn_norm, wq/wk/wv/wo, ffn_norm, ffn_gate/up/down,
+     output), built with `xiom.gguf`'s builder in `tests/`; Q8_0 block bytes
+     inside f32-declared FFN slices plus f32 anchor tensors. Deviation:
+     `xiom.gguf`'s builder rejects types 8/9, so no type-8 tensor info can
+     be declared (SPEC.md section 8 item 7).
+   - golden logits `logits[i] = -8*i` (i in 0..19) asserted EXACTLY,
+     hand-computed from the integer algorithm; a single-byte sensitivity
+     check (ffn_gate first quant 4 -> 3) changes 19 of 20 logits
+     (perturbed logits exactly `-6*k`).
+5. **Acceptance**: `port.ps1` green x2 with the M2 suite (passed=79
+   failed=0); SPEC sections 10.1-10.4 marked implemented; ROADMAP updated.
 
 Dependencies: none external (no downloads); `xiom.gguf` path dep stays.
 Risk: integer softmax/RoPE error bounds -- mitigation: declare bounds
 first, fixture dims chosen so every oracle value is exact.
 
-## M3 -- tokenizer completion + generation loop
+## M3 -- generation loop, sampling, KV cache, Q4_K
 
 1. Generate loop: `llm_greedy_next` (argmax, lowest-index tie) +
    `llm_generate` with append-only KV cache; stop at EOS/max_new.
-2. Tokenizer: GPT-2 `bytes_to_unicode` escape/unescape and the GPT-2
+2. Sampling beyond greedy (temperature/top-k/top-p) with a deterministic
+   integer PRNG (seeded, reproducible), declared in SPEC.
+3. KV cache growth policy and attention on longer contexts; benchmark
+   harness (package-local, `xiom bench` compatible).
+4. Q4_K-class dequant (`llm_dequant_q4_k`) + Q4_0/Q5_0/Q5_1/Q6_K as
+   sized; block-table conformance + error-bound pins.
+5. Tokenizer: GPT-2 `bytes_to_unicode` escape/unescape and the GPT-2
    regex pre-tokenizer, **blocked on non-ASCII GGUF strings** (see
    maintenance item); BOS/EOS insertion flags
-   (`tokenizer.ggml.add_bos_token` / `add_eos_token`).
-3. SPM (`"llama"`) and WPM (`"bert"`) extraction + tokenize paths,
+   (`tokenizer.ggml.add_bos_token` / `add_eos_token`); SPM (`"llama"`)
+   and WPM (`"bert"`) extraction + tokenize paths,
    `tokenizer.ggml.scores` handling.
-4. Acceptance: prompt -> generated ids -> decode roundtrip on the tiny
+6. Acceptance: prompt -> generated ids -> decode roundtrip on the tiny
    fixture; escape-layer golden vectors (hand-computed byte-unicode
    table values).
-
-## M4 -- quantization breadth + sampling
-
-1. Q4_K-class dequant (`llm_dequant_q4_k`) + Q4_0/Q5_0/Q5_1/Q6_K as
-   sized; block-table conformance + error-bound pins.
-2. Sampling beyond greedy (temperature/top-k/top-p) with deterministic
-   integer PRNG (seeded, reproducible), declared in SPEC.
-3. Attention on longer contexts; KV cache growth policy; benchmark
-   harness (package-local, `xiom bench` compatible).
 
 ## Maintenance / cross-lane items
 
@@ -88,6 +92,10 @@ first, fixture dims chosen so every oracle value is exact.
   was deleted in M2a and the suite re-greened (SPEC.md section 9).
 * **xiom.gguf UTF-8 strings**: non-ASCII string support unblocks the
   real-vocab escape layer (M3 tokenizer completion).
+* **xiom.gguf builder type 8/9**: the builder rejects `q8_0`/`q8_1` tensor
+  infos, forcing the M2b fixture to carry Q8_0 block bytes in f32-declared
+  slices (SPEC.md section 8 item 7). Lifting this lets the fixture declare
+  real type-8 tensors.
 * **Registry publish**: pending ops scope decision + allowlist for the
   `xiom.llm` name (same gate as the other coverage-program names).
 * **xiom.tensor**: revisit once it grows matmul/views; move kernels out

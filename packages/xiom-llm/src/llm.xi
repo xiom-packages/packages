@@ -38,11 +38,21 @@
 // 0xFF`; struct fields are bound to locals before being passed where a
 // `&Vec[...]` parameter is expected.
 
+// M2a/M2b additions (2026-10-16): GGML size tables, tensor extent
+// validation, integer f16/f32 bit-decode, Q8_0 dequantization and the
+// `llm_model_open` composite (M2a); and the integer forward tier -- overflow
+// fail-closed `llm_matmul_i32`, `llm_rmsnorm_i32`, `llm_rope_i32`,
+// `llm_softmax_i32`, `llm_silu_q`/`llm_swiglu_i32` and `llm_shape_dump`
+// (M2b). Each numeric kernel documents its integer error bound; the M2
+// fixture is built so every step is exact (golden logits pinned in the
+// suite). The generation loop (SPEC.md 10.5) remains declared for M3.
+
 module xiom.llm
 
 use xiom.string;
 use xiom.string.compare;
 use xiom.gguf;
+use xiom.tensor;
 
 // --------------------------------------------------
 //  Result constructors (see the module header)
@@ -893,4 +903,533 @@ pub fn llm_dequant_q8_0(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Resu
     blk = blk + 1;
   }
   return _ok_scale(LlmScale{ m: m0; e: e0; });
+}
+
+// --------------------------------------------------
+//  Model assembly (SPEC.md 10.1 composite)
+// --------------------------------------------------
+
+// Ok(v) for Result[LlmModel, Str].
+fn _ok_model(v: LlmModel) -> Result[LlmModel, Str] {
+  return Ok(v);
+}
+
+// Err(m) for Result[LlmModel, Str].
+fn _err_model(m: Str) -> Result[LlmModel, Str] {
+  return Err(m);
+}
+
+/// Parsed container plus validated tensors, produced only by llm_model_open.
+/// `g` is the header parsed by xiom.gguf, `vocab` the extracted tokenizer
+/// vocabulary, `n_tensors` the number of declared tensor infos whose extents
+/// were validated against the payload.
+pub type LlmModel = {
+  g: Gguf;
+  vocab: LlmVocab;
+  n_tensors: Int;
+}
+
+/// llm_model_open-equivalent assembly of tensor data: concatenate `header`
+/// and `payload` (callers may instead pass one concatenated container buffer
+/// as `header` and an empty `payload`), parse it with xiom.gguf, extract the
+/// vocabulary (llm_vocab_from_gguf) and validate every declared tensor extent
+/// against the data section. Returns the model on success. Error cases:
+/// `llm: model header parse failed`, any vocabulary error message, and
+/// `llm: model tensor extent invalid`.
+pub fn llm_model_open(header: &Vec[UInt8], payload: &Vec[UInt8]) -> Result[LlmModel, Str] {
+  var buf = Vec[UInt8].new();
+  var i = 0;
+  while i < header.len() {
+    let b: UInt8 = header[i];
+    buf.push(b);
+    i = i + 1;
+  }
+  var j = 0;
+  while j < payload.len() {
+    let b2: UInt8 = payload[j];
+    buf.push(b2);
+    j = j + 1;
+  }
+  let pr = gguf_parse(&buf);
+  if !pr.is_ok {
+    return _err_model("llm: model header parse failed");
+  }
+  let g: Gguf = pr.value;
+  let vr = llm_vocab_from_gguf(&g);
+  if !vr.is_ok {
+    let vm: Str = vr.error;
+    return _err_model(vm);
+  }
+  let vv: LlmVocab = vr.value;
+  let nt = gguf_tensor_count(&g);
+  var t = 0;
+  while t < nt {
+    let nr = llm_tensor_nbytes(&g, t);
+    if !nr.is_ok {
+      return _err_model("llm: model tensor extent invalid");
+    }
+    let offr = gguf_tensor_offset(&g, t);
+    if !offr.is_ok {
+      return _err_model("llm: model tensor extent invalid");
+    }
+    let off: Int = offr.value;
+    let nb: Int = nr.value;
+    if off < 0 || off + nb > gguf_data_len(&g) {
+      return _err_model("llm: model tensor extent invalid");
+    }
+    t = t + 1;
+  }
+  let model = LlmModel{ g: g; vocab: vv; n_tensors: nt; };
+  return _ok_model(model);
+}
+
+// --------------------------------------------------
+//  Integer helpers (overflow fail-closed)
+// --------------------------------------------------
+
+// Absolute value without a stdlib dependency (Int stays inside i64).
+fn _iabs(x: Int) -> Int {
+  if x < 0 {
+    return 0 - x;
+  }
+  return x;
+}
+
+// Conservative overflow ceiling, safely below the i64 maximum; every value in
+// this package is far smaller, so a false overflow cannot arise in practice.
+fn _imax() -> Int {
+  return 4000000000000000000;
+}
+
+// True when a*b would overflow the Int width (wraparound guard).
+fn _mul_ovf(a: Int, b: Int) -> Bool {
+  if a == 0 || b == 0 {
+    return false;
+  }
+  return _iabs(a) > _imax() / _iabs(b);
+}
+
+// True when a+b would overflow the Int width (wraparound guard).
+fn _add_ovf(a: Int, b: Int) -> Bool {
+  if a > 0 && b > 0 {
+    return a > _imax() - b;
+  }
+  if a < 0 && b < 0 {
+    return _iabs(a) > _imax() - _iabs(b);
+  }
+  return false;
+}
+
+// Round-half-away-from-zero integer division; the only declared rounding step
+// in the numeric kernels (error <= 1/2 LSB of the result).
+fn _idiv_round(a: Int, b: Int) -> Int {
+  let q = a / b;
+  let r = a % b;
+  if r == 0 {
+    return q;
+  }
+  let tr = _iabs(r) * 2;
+  let ab = _iabs(b);
+  if tr >= ab {
+    if (a > 0) == (b > 0) {
+      return q + 1;
+    }
+    return q - 1;
+  }
+  return q;
+}
+
+/// Integer square root (floor). Used by the RMSNorm kernel; the floor is part
+/// of that kernel's documented error bound.
+pub fn llm_isqrt(n: Int) -> Int {
+  if n <= 0 {
+    return 0;
+  }
+  var x = n;
+  var y = (x + 1) / 2;
+  while y < x {
+    x = y;
+    y = (x + n / x) / 2;
+  }
+  return x;
+}
+
+// Decode a scaled integer m/2^e into a plain Int when it is an exact integer;
+// error otherwise. e <= 0 scales up (m << -e); e > 0 requires divisibility.
+fn _scale_to_exact_int(m: Int, e: Int) -> Result[Int, Str] {
+  if e <= 0 {
+    if e < -60 {
+      return _err_int("llm: scaled value out of range");
+    }
+    return _ok_int(m << (0 - e));
+  }
+  let d = 1 << e;
+  if m % d != 0 {
+    return _err_int("llm: value is not an exact integer");
+  }
+  return _ok_int(m / d);
+}
+
+/// Read the f32 stored little-endian at byte offset `off` of `payload` and
+/// return it as an exact plain Int (via the integer bit decode). Error cases:
+/// `llm: f32 offset out of range`, the f32 inf/nan decode errors, and
+/// `llm: value is not an exact integer` for a non-integral value.
+pub fn llm_f32_at(payload: &Vec[UInt8], off: Int) -> Result[Int, Str] {
+  if off < 0 || off + 4 > payload.len() {
+    return _err_int("llm: f32 offset out of range");
+  }
+  let b0 = (payload[off] as Int) & 0xFF;
+  let b1 = (payload[off + 1] as Int) & 0xFF;
+  let b2 = (payload[off + 2] as Int) & 0xFF;
+  let b3 = (payload[off + 3] as Int) & 0xFF;
+  let sc = llm_f32_to_scaled(llm_u32_le(b0, b1, b2, b3));
+  if !sc.is_ok {
+    let m: Str = sc.error;
+    return _err_int(m);
+  }
+  let s: LlmScale = sc.value;
+  return _scale_to_exact_int(s.m, s.e);
+}
+
+/// Dequantize a Q8_0 payload and reduce to plain integer weights: the exact
+/// real value of output `i` is `q[i] * m / 2^e`, so when `(m / 2^e)` is not an
+/// integer this fails closed. For the standard scale-1.0 blocks (m=1024, e=10)
+/// the result is exactly the signed quant q[i]; this is the bridge from the
+/// scaled-int `(m, e)` form into the flat integer kernels. Error cases: the
+/// llm_dequant_q8_0 errors plus `llm: value is not an exact integer`.
+pub fn llm_q8_0_ints(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str] {
+  var tmp = Vec[Int].new();
+  let dr = llm_dequant_q8_0(payload, &mut tmp);
+  if !dr.is_ok {
+    let m: Str = dr.error;
+    return _err_scale(m);
+  }
+  let sc: LlmScale = dr.value;
+  var i = 0;
+  while i < tmp.len() {
+    let v: Int = tmp[i];
+    let r = _scale_to_exact_int(v, sc.e);
+    if !r.is_ok {
+      let m2: Str = r.error;
+      return _err_scale(m2);
+    }
+    let iv: Int = r.value;
+    out_values.push(iv);
+    i = i + 1;
+  }
+  return _ok_scale(sc);
+}
+
+// --------------------------------------------------
+//  Matmul + forward primitives (SPEC.md 10.4)
+// --------------------------------------------------
+
+/// Flat row-major integer matmul with overflow-checked accumulation (fail
+/// closed: it never wraps around and never silently saturates). Params: `a` is
+/// `a_rows x a_cols` row-major; `b` is `a_cols x b_cols` row-major (its row
+/// count is implicit in `a_cols`); `b_cols` is the number of columns of `b`.
+/// Returns the `a_rows x b_cols` product, row-major.
+///
+/// Error bounds: none -- the operation is exact over the scaled-int `(m, e)`
+/// form; the caller carries the combined exponent (the real value of a product
+/// element is the integer result divided by `2^(e_a + e_b)`). Error cases:
+/// `llm: matmul negative dimension`, `llm: matmul a size mismatch`,
+/// `llm: matmul b size mismatch`, `llm: matmul overflow`.
+pub fn llm_matmul_i32(a: &Vec[Int], a_rows: Int, a_cols: Int, b: &Vec[Int], b_cols: Int) -> Result[Vec[Int], Str] {
+  if a_rows < 0 || a_cols < 0 || b_cols < 0 {
+    return _err_ids("llm: matmul negative dimension");
+  }
+  if a.len() != a_rows * a_cols {
+    return _err_ids("llm: matmul a size mismatch");
+  }
+  if b.len() != a_cols * b_cols {
+    return _err_ids("llm: matmul b size mismatch");
+  }
+  var out = Vec[Int].new();
+  var i = 0;
+  while i < a_rows {
+    var j = 0;
+    while j < b_cols {
+      var acc = 0;
+      var k = 0;
+      while k < a_cols {
+        let av: Int = a[i * a_cols + k];
+        let bv: Int = b[k * b_cols + j];
+        if _mul_ovf(av, bv) {
+          return _err_ids("llm: matmul overflow");
+        }
+        let p = av * bv;
+        if _add_ovf(acc, p) {
+          return _err_ids("llm: matmul overflow");
+        }
+        acc = acc + p;
+        k = k + 1;
+      }
+      out.push(acc);
+      j = j + 1;
+    }
+    i = i + 1;
+  }
+  return _ok_ids(out);
+}
+
+/// Integer dot product with overflow-checked accumulation (used for attention
+/// scores). Error cases: `llm: dot size mismatch`, `llm: dot overflow`.
+pub fn llm_dot_i32(a: &Vec[Int], b: &Vec[Int]) -> Result[Int, Str] {
+  if a.len() != b.len() {
+    return _err_int("llm: dot size mismatch");
+  }
+  var acc = 0;
+  var i = 0;
+  while i < a.len() {
+    let x: Int = a[i];
+    let y: Int = b[i];
+    if _mul_ovf(x, y) {
+      return _err_int("llm: dot overflow");
+    }
+    let p = x * y;
+    if _add_ovf(acc, p) {
+      return _err_int("llm: dot overflow");
+    }
+    acc = acc + p;
+    i = i + 1;
+  }
+  return _ok_int(acc);
+}
+
+/// Integer RMSNorm: `out[i] = gamma[i] * x[i] * 2^out_shift / rms` where
+/// `rms = isqrt(sum(x[i]^2)/n + eps)` (all integer). Returns the plain-int
+/// normalized vector; the real value of output `i` is `out[i] / 2^out_shift`.
+///
+/// Error bounds (documented): `rms` is the floor integer square root, so the
+/// relative error from the root is < 1/rms; the final `_idiv_round` adds at
+/// most 1/2 LSB. Total absolute error <= 1 LSB of `(gamma[i]*x[i]*2^shift)`
+/// plus a term bounded by `|gamma[i]*x[i]*2^shift| / rms^2`. Exact when the
+/// mean square is a perfect square and the division divides evenly (the M2
+/// fixture is constructed so both hold). Error cases: `llm: rmsnorm empty
+/// input`, `llm: rmsnorm gamma size mismatch`, `llm: rmsnorm negative shift`,
+/// `llm: rmsnorm overflow`, `llm: rmsnorm zero norm`.
+pub fn llm_rmsnorm_i32(x: &Vec[Int], gamma: &Vec[Int], eps: Int, out_shift: Int) -> Result[Vec[Int], Str] {
+  let n = x.len();
+  if n == 0 {
+    return _err_ids("llm: rmsnorm empty input");
+  }
+  if gamma.len() != n {
+    return _err_ids("llm: rmsnorm gamma size mismatch");
+  }
+  if out_shift < 0 {
+    return _err_ids("llm: rmsnorm negative shift");
+  }
+  var ss = 0;
+  var i = 0;
+  while i < n {
+    let xi: Int = x[i];
+    if _mul_ovf(xi, xi) {
+      return _err_ids("llm: rmsnorm overflow");
+    }
+    let sq = xi * xi;
+    if _add_ovf(ss, sq) {
+      return _err_ids("llm: rmsnorm overflow");
+    }
+    ss = ss + sq;
+    i = i + 1;
+  }
+  let ms = ss / n;
+  let rms = llm_isqrt(ms + eps);
+  if rms <= 0 {
+    return _err_ids("llm: rmsnorm zero norm");
+  }
+  let scale = 1 << out_shift;
+  var out = Vec[Int].new();
+  var k = 0;
+  while k < n {
+    let gv: Int = gamma[k];
+    let xv: Int = x[k];
+    if _mul_ovf(gv, xv) {
+      return _err_ids("llm: rmsnorm overflow");
+    }
+    let gx = gv * xv;
+    if _mul_ovf(gx, scale) {
+      return _err_ids("llm: rmsnorm overflow");
+    }
+    out.push(_idiv_round(gx * scale, rms));
+    k = k + 1;
+  }
+  return _ok_ids(out);
+}
+
+/// Integer RoPE applied to consecutive pairs with a caller-supplied fixed-point
+/// sine/cosine table: `(x0,x1) -> ((x0*c - x1*s + rnd) >> shift,
+/// (x0*s + x1*c + rnd) >> shift)` where `rnd = 2^(shift-1)` (round-half-up).
+/// `cos_q`/`sin_q` hold `head_dim/2` values scaled by `2^shift`; at position 0
+/// the table is `(2^shift, 0)`, giving the exact identity.
+///
+/// Error bound (documented): each component is truncated after adding half an
+/// LSB, so the absolute error is <= 1 LSB of `|x|` (plus the table's own
+/// quantization error, zero for the identity and the exact 90-degree table).
+/// Error cases: `llm: rope head_dim not even`, `llm: rope size mismatch`,
+/// `llm: rope table size mismatch`, `llm: rope shift too small`,
+/// `llm: rope overflow`.
+pub fn llm_rope_i32(x: &Vec[Int], head_dim: Int, cos_q: &Vec[Int], sin_q: &Vec[Int], shift: Int) -> Result[Vec[Int], Str] {
+  if head_dim < 2 || head_dim % 2 != 0 {
+    return _err_ids("llm: rope head_dim not even");
+  }
+  if x.len() != head_dim {
+    return _err_ids("llm: rope size mismatch");
+  }
+  let half = head_dim / 2;
+  if cos_q.len() != half || sin_q.len() != half {
+    return _err_ids("llm: rope table size mismatch");
+  }
+  if shift < 1 {
+    return _err_ids("llm: rope shift too small");
+  }
+  let rnd = 1 << (shift - 1);
+  var out = Vec[Int].new();
+  var p = 0;
+  while p < half {
+    let x0: Int = x[2 * p];
+    let x1: Int = x[2 * p + 1];
+    let c: Int = cos_q[p];
+    let s: Int = sin_q[p];
+    if _mul_ovf(x0, c) || _mul_ovf(x1, s) || _mul_ovf(x0, s) || _mul_ovf(x1, c) {
+      return _err_ids("llm: rope overflow");
+    }
+    let a = x0 * c - x1 * s;
+    let b = x0 * s + x1 * c;
+    out.push((a + rnd) >> shift);
+    out.push((b + rnd) >> shift);
+    p = p + 1;
+  }
+  return _ok_ids(out);
+}
+
+/// Integer softmax over fixed-point logits (each real logit is
+/// `logits_q[i] / 2^shift`). The exponent is approximated by the quadratic
+/// `exp(t) ~ 1 + t + t^2/2` on `t = (logit - max) / 2^shift <= 0` (computed in
+/// integer arithmetic), and the weights are normalized to sum to `2^shift`.
+///
+/// Error bound (documented): EXACT for a uniform input (all logits equal ->
+/// uniform `2^shift/n`) and for a single element (`[2^shift]`). Otherwise the
+/// quadratic exponential has a relative error that stays within a few percent
+/// on `[-1,0]` and grows outside it; the result is a deterministic bounded
+/// approximation, never NaN and never a division by zero. Error cases:
+/// `llm: softmax empty input`, `llm: softmax shift too small`,
+/// `llm: softmax overflow`, `llm: softmax zero mass`.
+pub fn llm_softmax_i32(logits_q: &Vec[Int], shift: Int) -> Result[Vec[Int], Str] {
+  let n = logits_q.len();
+  if n == 0 {
+    return _err_ids("llm: softmax empty input");
+  }
+  if shift < 1 {
+    return _err_ids("llm: softmax shift too small");
+  }
+  let one = 1 << shift;
+  var m: Int = logits_q[0];
+  var i = 1;
+  while i < n {
+    let v: Int = logits_q[i];
+    if v > m {
+      m = v;
+    }
+    i = i + 1;
+  }
+  var w = Vec[Int].new();
+  var sum = 0;
+  var k = 0;
+  while k < n {
+    let d: Int = logits_q[k] - m;
+    var wi = one + d;
+    if _mul_ovf(d, d) {
+      return _err_ids("llm: softmax overflow");
+    }
+    wi = wi + (d * d) / (2 * one);
+    if wi < 0 {
+      wi = 0;
+    }
+    w.push(wi);
+    if _add_ovf(sum, wi) {
+      return _err_ids("llm: softmax overflow");
+    }
+    sum = sum + wi;
+    k = k + 1;
+  }
+  if sum <= 0 {
+    return _err_ids("llm: softmax zero mass");
+  }
+  var out = Vec[Int].new();
+  var t = 0;
+  while t < n {
+    let wi2: Int = w[t];
+    if _mul_ovf(wi2, one) {
+      return _err_ids("llm: softmax overflow");
+    }
+    out.push(_idiv_round(wi2 * one, sum));
+    t = t + 1;
+  }
+  return _ok_ids(out);
+}
+
+/// Integer SiLU with a piecewise sigmoid: `sig = 2^shift` (g >= 4*2^shift),
+/// `0` (g <= -4*2^shift), else the linear ramp `(g + 4*2^shift)/8`; the result
+/// is `g * sig / 2^shift` rounded half away from zero.
+///
+/// Error bound (documented): EXACT in the saturated region `|g| >= 4*2^shift`
+/// (there `sig` is 0 or `2^shift`, so `silu(g) = g` or `0` exactly) and at
+/// `g = 0`. Inside the linear ramp the sigmoid error is at most the difference
+/// between the ramp and the true logistic, bounded by ~0.1 on the interval.
+pub fn llm_silu_q(g: Int, shift: Int) -> Int {
+  let one = 1 << shift;
+  let four = 4 << shift;
+  var sig = 0;
+  if g >= four {
+    sig = one;
+  } else if g <= (0 - four) {
+    sig = 0;
+  } else {
+    sig = (g + four) / 8;
+  }
+  return _idiv_round(g * sig, one);
+}
+
+/// Integer SwiGLU: `out[j] = silu(gate[j]) * up[j] / 2^shift` (rounded half
+/// away from zero). The gate/up vectors are fixed-point `2^shift`; the
+/// product is `2^(2*shift)` and is rescaled back. Error bound: exact whenever
+/// the SiLU term is exact (see llm_silu_q), plus <= 1/2 LSB from the rescale.
+/// Error cases: `llm: swiglu size mismatch`, `llm: swiglu overflow`.
+pub fn llm_swiglu_i32(gate: &Vec[Int], up: &Vec[Int], shift: Int) -> Result[Vec[Int], Str] {
+  if gate.len() != up.len() {
+    return _err_ids("llm: swiglu size mismatch");
+  }
+  let one = 1 << shift;
+  var out = Vec[Int].new();
+  var i = 0;
+  while i < gate.len() {
+    let gv: Int = gate[i];
+    let uv: Int = up[i];
+    let s = llm_silu_q(gv, shift);
+    if _mul_ovf(s, uv) {
+      return _err_ids("llm: swiglu overflow");
+    }
+    out.push(_idiv_round(s * uv, one));
+    i = i + 1;
+  }
+  return _ok_ids(out);
+}
+
+/// Canonical `xiom.tensor` diagnostic dump of a flat row-major `rows x cols`
+/// vector ("over xiom.tensor where sensible": the integer tensor core supplies
+/// shape construction and dumps, while the hot kernels above stay over flat
+/// Vec[Int] because xiom.tensor has no matmul/views/elementwise ops).
+pub fn llm_shape_dump(rows: Int, cols: Int, values: &Vec[Int]) -> Str {
+  var dims = Vec[Int].new();
+  dims.push(rows);
+  dims.push(cols);
+  let tr = tensor_from_flat(2, &dims, values);
+  if !tr.is_ok {
+    let m: Str = tr.error;
+    return "tensor: " + m;
+  }
+  let tv: Tensor = tr.value;
+  return tensor_dump(&tv);
 }
