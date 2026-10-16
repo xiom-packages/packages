@@ -1299,6 +1299,23 @@ LIVE)**:
   + `docs/repro/bindings-pilot/b32-sqlite-nested/`; on green, the
   xiom.sqlite nested restore (flat `RowOutcome` stays until then).
 
+**UPDATE 2026-10-16 18:30Z (FAMILY 7/8 LIVE in eco-v0.1.192; android
+0.4.0 on scope re-grant; v0.64.6 cut gate GREEN)**:
+- Batch 94 = **`eco-v0.1.192`** (run 38944226590): **aaudio 0.1.0**
+  (sha `ab97fe2e`) + **android-sys 0.2.0** (`9d611a16`) +
+  **camera2ndk 0.1.0** (`0b7a0ba0`) + **mediandk 0.1.0** (`a18abb38`)
+  + **opensl 0.1.0** (`22cee06c`) + **jni 0.1.0** (`61a0ed6f`) + the
+  bonus **PULSE Beacon `xiom.pulse 0.1.0`** (`53fcc56e`).
+- **`xiom.android 0.4.0` BLOCKED (1/8)**: registry `scope_denied` --
+  the recreated registry's eco token never covered this legacy name
+  (the 550 grant covered the five NEW names only); ops re-grant asked
+  by packages; on LIVE they push the single-package tag
+  `xiom-android/v0.4.0`.  No bindings action; item
+  `REL-20261016-1810-packages-2` acked.
+- Compiler: **cut gate GREEN on m334-m345** (full battery) -- v0.64.6
+  release imminent; XVC-C-18 recon launched.  Eco through `.192`;
+  PULSE already consumer-verified ssl+brotli x2 both platforms.
+
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
 state (`cdbbca63`; clean + pushed; validate 561/0).
