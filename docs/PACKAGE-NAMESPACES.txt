@@ -870,9 +870,12 @@ xiom.numpy
 xiom.oauth
 xiom.obj
 xiom.ogg
-xiom.onnx.io
+xiom.onnx.env
+xiom.onnx.loader
 xiom.onnx.session
+xiom.onnx.tensor
 xiom.onnx.types
+xiom.onnx.value
 xiom.opencv.features
 xiom.opencv.filters
 xiom.opencv.io

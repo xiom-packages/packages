@@ -1,84 +1,93 @@
 # xiom-onnx -- System Dependency Audit
 
-> **Version:** 0.1.0 | **Compiler:** xiom v0.45.3 | **Status:** All modules compile clean.
+> **Version:** 0.1.0 (unreleased) | **Compiler:** xiom v0.64.5 (pin) |
+> **Status:** all modules compile clean; suite x2 green (56/56, pinned ORT
+> 1.31.0 live leg) + bare-runtime run 56/56 (Windows inbox ORT 1.17.1).
 
-## Compiler Compatibility
+## Compiler compatibility (v0.64.5)
 
-All `.xi` source files pass `xiom --check` with `{"status":"ok"}`.
+All six modules pass `xiom --check` / `--emit-ir`; the whole package
+type-checks and runs as one unit via `tests/test_conformance.xi`
+(`port.ps1`). Namespace check: 6 modules, 0 conflicts.
 
-### Fixes Applied (v0.45.3)
+### Compiler findings (v0.64.5)
 
-| File | Issue | Fix |
-|------|-------|------|
-| `src/io.xi` | `.clone()` on `Vec[Int]` / `Vec[Float32]` -- method not registered | Replaced with manual `copy_vec_int` / `copy_vec_float32` helpers using `Vec.push` loop |
-| `src/io.xi` | `ORT_DTYPE_FLOAT` undefined -- bare constant access | Changed to `types.ORT_DTYPE_FLOAT` (module-qualified) |
+Two codegen defects were hit and worked around inside this package; both
+reproduced with minimal scratch modules outside the package (report to the
+compiler lane):
 
-## System Dependency: ONNX Runtime
+| # | Finding | Minimal repro | Workaround used |
+|---|---------|---------------|-----------------|
+| 1 | A bare `Vec[Str]` or `Vec[Float32]` as a **Result payload** loses its elements at the call boundary: the caller observes pointer-values-as-Ints (e.g. `'"1901871365616"'`) instead of the strings; `Vec[Int]` is fine, and returning the same Vec **without** a Result wrapper is fine. | `fn f() -> Result[Vec[Str], Str] { ... return Ok(v); }` -> caller iterates `r.value` -> elements are decimal addresses | Struct-wrapper the payload: `OnnxStrList { items: Vec[Str] }` / `OnnxF32List` / `OnnxTensorList` (round-trips correctly). |
+| 2 | Passing a **struct by value** into a function call can mis-lower: the callee expects `%struct.X` but the call site passes a pointer -> clang verification failure (`'%tmp4' defined with type 'ptr' but expected '%struct.OnnxModel ...'`). | `fn close(m: MyStruct)` called with a struct local | Take `&MyStruct` (borrow) on all struct parameters. |
 
-The FFI tier (`xiom.onnx.session`) requires the **ONNX Runtime C API shared library** (v1.18.0+). All session functions are stubbed; they return dummy values until the native library is linked.
+Also observed (not defects, but pinned-runtime semantics worth recording):
 
-### Install Instructions
+- `Str::from_c_str(p)` yields a **view** of the foreign bytes: a string
+  read out of ORT-owned memory dangles once ORT frees it (e.g.
+  `ReleaseAvailableProviders`). The package copies through
+  `loader.own_c_str` (bounded SafePtr byte scan) everywhere the source can
+  be freed.
+- `Str::from_utf8(Vec[UInt8])` copies (verified with heap churn); it is the
+  safe constructor used by `own_c_str` and `read_bytes`.
 
-#### Windows
+## System dependency: ONNX Runtime
+
+The whole package is now a **runtime-loaded** binding: `xiom.onnx.loader`
+finds a runtime via its candidate list (`XIOM_ONNX_RUNTIME` override, then
+`onnxruntime.dll`, `libonnxruntime.so`, `libonnxruntime.so.1`,
+`libonnxruntime.dylib`). No build-time flags, no `-l onnxruntime`.
+
+### Install / pin (live leg)
+
 ```
 Download: https://github.com/microsoft/onnxruntime/releases
-  -> Select v1.18.0 -> onnxruntime-win-x64-1.18.0.zip
-Extract to: C:\onnxruntime
+  -> v1.31.0 -> onnxruntime-win-x64-1.31.0.zip
+Extract to: E:\repos\onnxruntime-bin\onnxruntime-win-x64-1.31.0
+  (zip SHA256 3958D8A44984160692C1B4FFD0DE3CB48F8C39F9D34BB31E433DB06E30B82195)
 
-Build with:
-  set ONNX_RUNTIME_DIR=C:\onnxruntime
-  set PATH=%ONNX_RUNTIME_DIR%\lib;%PATH%
-  xiom myprogram.xi -L %ONNX_RUNTIME_DIR%\lib -l onnxruntime
+Run the suite with:
+  $env:XIOM_ONNX_RUNTIME = "E:\repos\onnxruntime-bin\onnxruntime-win-x64-1.31.0\lib\onnxruntime.dll"
+  .\scripts\port.ps1 -Package xiom.onnx -TimeoutSec 300
 ```
 
-#### Ubuntu / Debian
-```bash
-wget https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/onnxruntime-linux-x64-1.18.0.tgz
-tar xzf onnxruntime-linux-x64-1.18.0.tgz -C /opt
-export ONNX_RUNTIME_DIR=/opt/onnxruntime-linux-x64-1.18.0
-export LD_LIBRARY_PATH=$ONNX_RUNTIME_DIR/lib:$LD_LIBRARY_PATH
-xiom myprogram.xi -L $ONNX_RUNTIME_DIR/lib -l onnxruntime
-```
-
-#### macOS
-```bash
-wget https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/onnxruntime-osx-universal2-1.18.0.tgz
-tar xzf onnxruntime-osx-universal2-1.18.0.tgz -C /opt
-export ONNX_RUNTIME_DIR=/opt/onnxruntime-osx-universal2-1.18.0
-export DYLD_LIBRARY_PATH=$ONNX_RUNTIME_DIR/lib:$DYLD_LIBRARY_PATH
-xiom myprogram.xi -L $ONNX_RUNTIME_DIR/lib -l onnxruntime
-```
-
-#### Fedora / RHEL
-```bash
-# Same as Ubuntu -- download the Linux x64 distribution
-wget https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/onnxruntime-linux-x64-1.18.0.tgz
-tar xzf onnxruntime-linux-x64-1.18.0.tgz -C /opt
-export ONNX_RUNTIME_DIR=/opt/onnxruntime-linux-x64-1.18.0
-export LD_LIBRARY_PATH=$ONNX_RUNTIME_DIR/lib:$LD_LIBRARY_PATH
-```
-
-### Library Dependencies
-- `libonnxruntime.so` / `onnxruntime.dll` -- Core inference engine
-- (Optional) `libonnxruntime_providers_cuda.so` -- CUDA execution provider
-- (Optional) `libonnxruntime_providers_tensorrt.so` -- TensorRT execution provider
+Linux/macOS use the same tarballs (see the release page); the loader
+sonames are already in the candidate list.
 
 ### Without ONNX Runtime
-- `xiom.onnx.types` and `xiom.onnx.io` work without any dependency (pure XIOM types and constructors)
-- `xiom.onnx.session` functions return stubbed values
 
-## GPU Execution Providers
+- `xiom.onnx.types` and `xiom.onnx.tensor` work with no dependency (pure
+  XIOM).
+- `xiom.onnx.loader.onnx_load()` returns `Err(ONNX_LOAD_ABSENT)` -- the
+  typed SKIP state; the live test reports SKIP and the suite stays green.
+- A present-but-too-old runtime (< 1.14) or a surface mismatch is
+  `ONNX_LOAD_ABI` (FAIL), never a silent fallback.
 
-CUDA / TensorRT / DirectML execution providers require additional setup:
-- CUDA: NVIDIA CUDA Toolkit 11.8+ and cuDNN 8.x
-- TensorRT: NVIDIA TensorRT 8.6+
-- DirectML: Windows 10+ with DirectX 12 GPU
-- CoreML: macOS 10.15+
+## Runtime version behavior (observed, windows-x64)
 
-## Production Readiness
+| Runtime | Source | Suite result |
+|---------|--------|--------------|
+| ORT 1.31.0 (pinned) | official release zip | 56/56 -- generic `SessionOptionsAppendExecutionProvider("CPUExecutionProvider")` accepted; providers = Azure + CPU |
+| ORT 1.17.1 | Windows inbox (`C:\Windows\System32\onnxruntime.dll`) | 56/56 -- generic appender rejects "CPUExecutionProvider" with its own "Unknown provider name" oracle (accepted by the suite); providers = DML + CPU |
+| (probe) ORT 1.14.1 | python onnxruntime 1.14.1 wheel | used to cross-validate the fixture model (produces [6,8]) |
 
-| Module | Compiles | FFI Required |
-|--------|----------|-------------|
+All declared table indices exist unchanged in both 1.17.1 and 1.31.0
+(verified: v1.14.1 member list is exactly the v1.31.0 prefix).
+
+## GPU execution providers
+
+Available through `SessionOptionsAppendExecutionProvider` by name when the
+runtime build ships them (CUDA / TensorRT / DML / CoreML / ...). The CPU
+package is the pinned live leg; GPU providers need their runtime builds
+(the loader path is provider-agnostic).
+
+## Production readiness
+
+| Module | Compiles | Runtime needed |
+|--------|----------|----------------|
 | `xiom.onnx.types` | Yes | No |
-| `xiom.onnx.io` | Yes | No |
-| `xiom.onnx.session` | Yes | ONNX Runtime |
+| `xiom.onnx.tensor` | Yes | No |
+| `xiom.onnx.loader` | Yes | No (classification only) |
+| `xiom.onnx.env` | Yes | Yes |
+| `xiom.onnx.value` | Yes | Yes |
+| `xiom.onnx.session` | Yes | Yes |
