@@ -1,47 +1,84 @@
-// XIOM -- xiom.torch Conformance Test Suite
+// XIOM -- xiom.torch conformance suite: pure tensor/NN tier + live
+// libtorch runtime leg.
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Comprehensive compile-time and runtime conformance tests covering
-// the full public API surface: 3 modules, 9 types, 14 public functions,
-// 11 requires contracts.
+// The pure tier needs NO runtime: tensor constructors (+ real values),
+// shape/strides semantics, typed reshape errors, NN constructors, and a
+// real linear forward with exact hand-computed results.  The runtime tier
+// skips typed when no libtorch build is present (the SKIP path is
+// exercised deterministically via a bogus soname), and proves the
+// multi-soname load, the ABI probe, the CUDA anchor, and an exact
+// upload -> download round trip when one is.
 //
-// Compile: xiom --run tests/test_conformance.xi
+// Build+run (pure-XIOM loader; no compiler args):
+//   scripts/port.ps1 -Package xiom.torch -TimeoutSec 300
+// Live leg: `XIOM_LIBTORCH_RUNTIME` (explicit build path) or a bare
+// soname; put the build's lib directory on PATH for its dependencies.
+//
+// Bindings discipline: payloads of Result values are bound to locals
+// before indexing (compiler finding, see AUDIT.md); Float32 comparisons
+// go through owned copies/helpers.
 
-module xiom_torch_conformance
-use xiom.io;
-use xiom.test;
+module torch_conformance
+
 use xiom.torch.types;
-use xiom.torch.ffi;
 use xiom.torch.nn;
+use xiom.torch.runtime;
+use xiom.io;
 
-// =========================================================================
-// Helpers
-// =========================================================================
-
-fn make_shape(d0: Int) -> Vec[Int] {
-  var s = Vec[Int].new();
-  s.push(d0);
-  return s;
+fn report(ok: Bool, name: Str) -> Int {
+  if ok {
+    io.println("  [PASS] " + name);
+    io.flush_stdout();
+    return 0;
+  }
+  io.println("  [FAIL] " + name);
+  io.flush_stdout();
+  return 1;
 }
 
-fn make_shape_2d(d0: Int, d1: Int) -> Vec[Int] {
-  var s = Vec[Int].new();
-  s.push(d0);
-  s.push(d1);
-  return s;
+fn why(msg: Str) {
+  io.println("    detail: " + msg);
+  io.flush_stdout();
 }
 
-fn make_shape_4d(d0: Int, d1: Int, d2: Int, d3: Int) -> Vec[Int] {
-  var s = Vec[Int].new();
-  s.push(d0);
-  s.push(d1);
-  s.push(d2);
-  s.push(d3);
-  return s;
+fn ist(i: Int) -> Str {
+  return runtime.int_to_str(i);
 }
 
-fn make_opts() -> TensorOptions {
+fn shape1(a: Int) -> Vec[Int] {
+  var v: Vec[Int] = Vec[Int].new();
+  v.push(a);
+  return v;
+}
+
+fn shape2(a: Int, b: Int) -> Vec[Int] {
+  var v: Vec[Int] = Vec[Int].new();
+  v.push(a);
+  v.push(b);
+  return v;
+}
+
+fn all_eq(v: &Vec[Float32], e: Float32) -> Bool {
+  var i = 0;
+  while i < v.len() {
+    let x = v[i];
+    if x != e { return false; }
+    i = i + 1;
+  };
+  return true;
+}
+
+fn eq_at(v: &Vec[Float32], i: Int, e: Float32) -> Bool
+  requires: i >= 0
+  requires: i < v.len()
+{
+  let x = v[i];
+  return x == e;
+}
+
+fn default_options() -> TensorOptions {
   return TensorOptions{
     dtype: DType.Float32,
     device: Device.CPU,
@@ -49,437 +86,302 @@ fn make_opts() -> TensorOptions {
   };
 }
 
-// =========================================================================
-// SECTION 1 -- xiom.torch.types (12 tests)
-// =========================================================================
-
-fn test_dtype_enum_variants() -> TestResult {
-  return test.assert(true, "types: DType enum -- all 6 variants defined");
-}
-
-fn test_device_enum_variants() -> TestResult {
-  return test.assert(true, "types: Device enum -- CPU and CUDA variants defined");
-}
-
-fn test_tensor_new_1d() -> TestResult {
-  var shape = make_shape(5);
-  var opts = make_opts();
-  var t = tensor_new(&shape, &opts);
-  var ok = t.data.len() == 5 && t.shape.len() == 1 && t.shape[0] == 5;
-  return test.assert(ok, "types: tensor_new 1d -- data len==5, shape==[5]");
-}
-
-fn test_tensor_new_2d() -> TestResult {
-  var shape = make_shape_2d(3, 4);
-  var opts = make_opts();
-  var t = tensor_new(&shape, &opts);
-  var ok = t.data.len() == 12 && t.shape.len() == 2 && t.shape[0] == 3 && t.shape[1] == 4;
-  return test.assert(ok, "types: tensor_new 2d -- data len==12, shape==[3,4]");
-}
-
-fn test_tensor_new_all_zeros() -> TestResult {
-  var shape = make_shape(3);
-  var opts = make_opts();
-  var t = tensor_new(&shape, &opts);
-  var all_zero = t.data[0] == 0.0 && t.data[1] == 0.0 && t.data[2] == 0.0;
-  return test.assert(all_zero, "types: tensor_new -- all elements zero-initialized");
-}
-
-fn test_tensor_new_strides() -> TestResult {
-  var shape = make_shape_2d(3, 4);
-  var opts = make_opts();
-  var t = tensor_new(&shape, &opts);
-  var strides_ok = t.strides.len() == 2 && t.strides[0] == 4 && t.strides[1] == 1;
-  return test.assert(strides_ok, "types: tensor_new -- row-major strides [4,1]");
-}
-
-fn test_tensor_zeros() -> TestResult {
-  var shape = make_shape(4);
-  var t = tensor_zeros(&shape);
-  var ok = t.data.len() == 4 && t.data[0] == 0.0 && t.dtype == DType.Float32;
-  return test.assert(ok, "types: tensor_zeros -- Float32 CPU zeros");
-}
-
-fn test_tensor_ones() -> TestResult {
-  var shape = make_shape(3);
-  var t = tensor_ones(&shape);
-  var ok = t.data.len() == 3 && t.data[0] == 1.0 && t.data[1] == 1.0 && t.data[2] == 1.0;
-  return test.assert(ok, "types: tensor_ones -- all elements == 1.0");
-}
-
-fn test_tensor_shape() -> TestResult {
-  var shape = make_shape_2d(2, 3);
-  var opts = make_opts();
-  var t = tensor_new(&shape, &opts);
-  var s = tensor_shape(&t);
-  var ok = s.len() == 2 && s[0] == 2 && s[1] == 3;
-  return test.assert(ok, "types: tensor_shape -- returns correct shape copy");
-}
-
-fn test_tensor_shape_no_alias() -> TestResult {
-  var shape = make_shape(5);
-  var opts = make_opts();
-  var t = tensor_new(&shape, &opts);
-  var s = tensor_shape(&t);
-  s[0] = 99;
-  var not_aliased = t.shape[0] == 5;
-  return test.assert(not_aliased, "types: tensor_shape -- returns clone, not alias");
-}
-
-fn test_tensor_reshape() -> TestResult {
-  var shape = make_shape_2d(2, 6);
-  var opts = make_opts();
-  var t = tensor_new(&shape, &opts);
-  var new_shape = make_shape_2d(3, 4);
-  var r = tensor_reshape(&t, &new_shape);
-  var ok = r.data.len() == 12 && r.shape.len() == 2 && r.shape[0] == 3 && r.shape[1] == 4;
-  return test.assert(ok, "types: tensor_reshape -- same element count, new shape");
-}
-
-fn test_tensor_reshape_mismatch() -> TestResult {
-  var shape = make_shape_2d(2, 3);
-  var opts = make_opts();
-  var t = tensor_new(&shape, &opts);
-  var bad_shape = make_shape_2d(5, 5);
-  var r = tensor_reshape(&t, &bad_shape);
-  var ok = r.data.len() == 0 && r.shape.len() == 0;
-  return test.assert(ok, "types: tensor_reshape -- element count mismatch returns empty tensor");
+fn finish(failed: Int) -> Int {
+  if failed == 0 {
+    io.println("xiom.torch: all tests passed");
+  } else {
+    io.println("xiom.torch: tests failed");
+  }
+  return failed;
 }
 
 // =========================================================================
-// SECTION 2 -- xiom.torch.ffi (5 tests)
+// Pure tier -- types module
 // =========================================================================
 
-fn test_ffi_torch_load_model_ok() -> TestResult {
-  var r = ffi.torch_load_model("model.pt");
-  return test.assert_ok(r, "ffi: torch_load_model returns Ok (stub)");
-}
+fn test_types() -> Int {
+  var failed = 0;
 
-fn test_ffi_torch_load_model_stub_name() -> TestResult {
-  var r = ffi.torch_load_model("model.pt");
-  var ok = r.is_ok();
-  if !ok { return test.assert(false, "ffi: torch_load_model stub returns correct name"); };
-  var m = r.unwrap();
-  return test.assert_eq("stub", m.name, "ffi: torch_load_model stub returns name='stub'");
-}
+  let sh23 = shape2(2, 3);
+  let z = tensor_zeros(&sh23);
+  var z_ok = z.data.len() == 6 && z.shape.len() == 2 && z.strides.len() == 2;
+  if z.shape[0] != 2 || z.shape[1] != 3 { z_ok = false; }
+  if z.strides[0] != 3 || z.strides[1] != 1 { z_ok = false; }
+  if !all_eq(&z.data, 0.0) { z_ok = false; }
+  failed = failed + report(z_ok, "types: tensor_zeros [2,3] (6 zeros, shape 2x3, strides 3/1)");
 
-fn test_ffi_torch_forward_ok() -> TestResult {
-  var model = ffi.torch_load_model("model.pt").unwrap();
-  var shape = make_shape(3);
-  var opts = make_opts();
-  var input = tensor_new(&shape, &opts);
-  var r = ffi.torch_forward(&model, &input);
-  return test.assert_ok(r, "ffi: torch_forward returns Ok (stub)");
-}
+  let o = tensor_ones(&sh23);
+  failed = failed + report(o.data.len() == 6 && all_eq(&o.data, 1.0),
+    "types: tensor_ones [2,3] reads back all 1.0");
 
-fn test_ffi_torch_save_model_ok() -> TestResult {
-  var model = ffi.torch_load_model("model.pt").unwrap();
-  var r = ffi.torch_save_model(&model, "save.pt");
-  var ok = r.is_ok() && r.unwrap() == true;
-  return test.assert(ok, "ffi: torch_save_model returns Ok(true) (stub)");
-}
+  let opts = default_options();
+  let nw = tensor_new(&sh23, &opts);
+  var nw_ok = nw.data.len() == 6;
+  if nw.dtype != DType.Float32 { nw_ok = false; }
+  failed = failed + report(nw_ok, "types: tensor_new with options (Float32, CPU, numel 6)");
 
-fn test_ffi_torch_is_cuda_available() -> TestResult {
-  var cuda = ffi.torch_is_cuda_available();
-  return test.assert_eq(false, cuda, "ffi: torch_is_cuda_available returns false");
-}
+  let sh = tensor_shape(&z);
+  var sh_ok = sh.len() == 2 && sh[0] == 2 && sh[1] == 3;
+  sh[0] = 999;
+  let sh2 = tensor_shape(&z);
+  if sh2[0] != 2 { sh_ok = false; }
+  failed = failed + report(sh_ok, "types: tensor_shape returns an independent copy");
 
-// =========================================================================
-// SECTION 3 -- xiom.torch.nn (16 tests)
-// =========================================================================
+  // reshape OK + data preserved.
+  let sh22 = shape2(2, 2);
+  let base_opts = default_options();
+  var base = tensor_new(&sh22, &base_opts);
+  base.data[0] = 1.0;
+  base.data[1] = 2.0;
+  base.data[2] = 3.0;
+  base.data[3] = 4.0;
+  let sh4 = shape1(4);
+  let rr = tensor_reshape(&base, &sh4);
+  var r_ok = false;
+  if rr.is_ok {
+    let r = rr.value;
+    r_ok = r.shape.len() == 1 && r.shape[0] == 4 && r.strides[0] == 1 && r.data.len() == 4;
+    if r_ok {
+      r_ok = eq_at(&r.data, 0, 1.0) && eq_at(&r.data, 3, 4.0);
+    }
+  } else { why(rr.error); }
+  failed = failed + report(r_ok, "types: tensor_reshape [2,2] -> [4] preserves data (1,2,3,4)");
 
-fn test_nn_linear_new() -> TestResult {
-  var layer = nn.linear_new(128, 10);
-  var ok = layer.in_features == 128 && layer.out_features == 10
-        && layer.weight.shape.len() == 2
-        && layer.weight.shape[0] == 10
-        && layer.weight.shape[1] == 128
-        && layer.bias.shape.len() == 1
-        && layer.bias.shape[0] == 10;
-  return test.assert(ok, "nn: linear_new -- weight [10,128], bias [10]");
-}
+  let sh5 = shape1(5);
+  let r_bad = tensor_reshape(&base, &sh5);
+  failed = failed + report(r_bad.is_err, "types: tensor_reshape element-count mismatch -> typed error");
 
-fn test_nn_linear_new_zeros() -> TestResult {
-  var layer = nn.linear_new(64, 32);
-  var w_zero = layer.weight.data[0] == 0.0;
-  var b_zero = layer.bias.data[0] == 0.0;
-  return test.assert(w_zero && b_zero, "nn: linear_new -- weight and bias zero-initialized");
-}
-
-fn test_nn_linear_forward_output_shape() -> TestResult {
-  var layer = nn.linear_new(128, 10);
-  var shape = make_shape_2d(16, 128);
-  var opts = make_opts();
-  var input = tensor_new(&shape, &opts);
-  var output = nn.linear_forward(&layer, &input);
-  var ok = output.shape.len() == 2 && output.shape[0] == 16 && output.shape[1] == 10;
-  return test.assert(ok, "nn: linear_forward -- output shape [batch, out_features]");
-}
-
-fn test_nn_conv2d_new() -> TestResult {
-  var layer = nn.conv2d_new(3, 64, 7, 2, 3);
-  var ok = layer.in_ch == 3 && layer.out_ch == 64
-        && layer.kernel == 7 && layer.stride == 2 && layer.padding == 3
-        && layer.weight.shape.len() == 4
-        && layer.weight.shape[0] == 64
-        && layer.weight.shape[1] == 3
-        && layer.weight.shape[2] == 7
-        && layer.weight.shape[3] == 7
-        && layer.bias.shape.len() == 1
-        && layer.bias.shape[0] == 64;
-  return test.assert(ok, "nn: conv2d_new -- weight [64,3,7,7], bias [64]");
-}
-
-fn test_nn_conv2d_new_zeros() -> TestResult {
-  var layer = nn.conv2d_new(3, 16, 3, 1, 1);
-  var w_zero = layer.weight.data[0] == 0.0;
-  var b_zero = layer.bias.data[0] == 0.0;
-  return test.assert(w_zero && b_zero, "nn: conv2d_new -- weight and bias zero-initialized");
-}
-
-fn test_nn_batchnorm2d_new() -> TestResult {
-  var layer = nn.batchnorm2d_new(64, 1e-5);
-  var ok = layer.gamma.shape.len() == 1 && layer.gamma.shape[0] == 64
-        && layer.beta.shape.len() == 1 && layer.beta.shape[0] == 64
-        && layer.running_mean.shape.len() == 1 && layer.running_mean.shape[0] == 64
-        && layer.running_var.shape.len() == 1 && layer.running_var.shape[0] == 64
-        && layer.eps == 1e-5;
-  return test.assert(ok, "nn: batchnorm2d_new -- all params shape [64], eps=1e-5");
-}
-
-fn test_nn_batchnorm2d_new_gamma_ones() -> TestResult {
-  var layer = nn.batchnorm2d_new(32, 1e-5);
-  var g_one = layer.gamma.data[0] == 1.0;
-  return test.assert(g_one, "nn: batchnorm2d_new -- gamma initialized to ones");
-}
-
-fn test_nn_batchnorm2d_new_beta_zeros() -> TestResult {
-  var layer = nn.batchnorm2d_new(32, 1e-5);
-  var b_zero = layer.beta.data[0] == 0.0;
-  return test.assert(b_zero, "nn: batchnorm2d_new -- beta initialized to zeros");
-}
-
-fn test_nn_batchnorm2d_new_running_var_ones() -> TestResult {
-  var layer = nn.batchnorm2d_new(32, 1e-5);
-  var v_one = layer.running_var.data[0] == 1.0;
-  return test.assert(v_one, "nn: batchnorm2d_new -- running_var initialized to ones");
-}
-
-fn test_nn_activation_types() -> TestResult {
-  return test.assert(true, "nn: activation types -- ReLU, Sigmoid, Tanh, Softmax defined");
-}
-
-fn test_nn_softmax_dim() -> TestResult {
-  var softmax = Softmax{ dim: 1 };
-  return test.assert_eq(1, softmax.dim, "nn: Softmax -- dim field == 1");
-}
-
-fn test_nn_sequential_new_empty() -> TestResult {
-  var seq = nn.sequential_new();
-  return test.assert(seq.layers.len() == 0, "nn: sequential_new -- empty layers list");
-}
-
-fn test_nn_sequential_add_linear() -> TestResult {
-  var seq = nn.sequential_new();
-  var linear = nn.linear_new(128, 10);
-  nn.sequential_add(&mut seq, LayerType.LinearLayer(linear));
-  var ok = seq.layers.len() == 1;
-  return test.assert(ok, "nn: sequential_add -- linear layer appended");
-}
-
-fn test_nn_sequential_add_conv2d() -> TestResult {
-  var seq = nn.sequential_new();
-  var conv = nn.conv2d_new(3, 64, 3, 1, 1);
-  nn.sequential_add(&mut seq, LayerType.Conv2dLayer(conv));
-  return test.assert(seq.layers.len() == 1, "nn: sequential_add -- conv2d layer appended");
-}
-
-fn test_nn_sequential_add_multiple() -> TestResult {
-  var seq = nn.sequential_new();
-  var linear = nn.linear_new(256, 128);
-  nn.sequential_add(&mut seq, LayerType.LinearLayer(linear));
-  nn.sequential_add(&mut seq, LayerType.ReLULayer);
-  nn.sequential_add(&mut seq, LayerType.SoftmaxLayer(1));
-  return test.assert(seq.layers.len() == 3, "nn: sequential_add -- 3 layers appended");
-}
-
-fn test_nn_sequential_add_batchnorm() -> TestResult {
-  var seq = nn.sequential_new();
-  var bn = nn.batchnorm2d_new(64, 1e-5);
-  nn.sequential_add(&mut seq, LayerType.BatchNorm2dLayer(bn));
-  return test.assert(seq.layers.len() == 1, "nn: sequential_add -- batchnorm layer appended");
-}
-
-fn test_nn_layer_type_enum_variants() -> TestResult {
-  return test.assert(true, "nn: LayerType -- all 7 variants defined");
+  return failed;
 }
 
 // =========================================================================
-// SECTION 4 -- Contract verification (11 tests)
+// Pure tier -- nn module (real forward math)
 // =========================================================================
 
-fn test_contract_tensor_new() -> TestResult {
-  return test.assert(true, "contract: tensor_new has requires: shape.len() > 0");
-}
+fn test_nn() -> Int {
+  var failed = 0;
 
-fn test_contract_tensor_zeros() -> TestResult {
-  return test.assert(true, "contract: tensor_zeros has requires: shape.len() > 0");
-}
+  // Constructors: declared shapes + initialization.
+  let lin = linear_new(3, 2);
+  var lin_ok = lin.in_features == 3 && lin.out_features == 2;
+  if lin.weight.shape.len() != 2 || lin.weight.shape[0] != 2 || lin.weight.shape[1] != 3 { lin_ok = false; }
+  if lin.bias.shape.len() != 1 || lin.bias.shape[0] != 2 { lin_ok = false; }
+  if !all_eq(&lin.weight.data, 0.0) || !all_eq(&lin.bias.data, 0.0) { lin_ok = false; }
+  failed = failed + report(lin_ok, "nn: linear_new(3,2) weight [2,3] + bias [2], zero-initialized");
 
-fn test_contract_tensor_ones() -> TestResult {
-  return test.assert(true, "contract: tensor_ones has requires: shape.len() > 0");
-}
+  let conv = conv2d_new(3, 8, 5, 2, 1);
+  var conv_ok = conv.in_ch == 3 && conv.out_ch == 8 && conv.kernel == 5 && conv.stride == 2 && conv.padding == 1;
+  if conv.weight.shape.len() != 4 || conv.weight.shape[0] != 8 || conv.weight.shape[1] != 3 ||
+     conv.weight.shape[2] != 5 || conv.weight.shape[3] != 5 { conv_ok = false; }
+  if conv.bias.shape.len() != 1 || conv.bias.shape[0] != 8 { conv_ok = false; }
+  failed = failed + report(conv_ok, "nn: conv2d_new(3,8,5,stride 2,pad 1) weight [8,3,5,5] + bias [8]");
 
-fn test_contract_tensor_reshape_requires() -> TestResult {
-  return test.assert(true, "contract: tensor_reshape has requires: shape.len() > 0");
-}
+  let bn = batchnorm2d_new(4, 0.001);
+  var bn_ok = bn.eps == 0.001;
+  if !all_eq(&bn.gamma.data, 1.0) { bn_ok = false; }
+  if !all_eq(&bn.beta.data, 0.0) { bn_ok = false; }
+  if !all_eq(&bn.running_mean.data, 0.0) { bn_ok = false; }
+  if !all_eq(&bn.running_var.data, 1.0) { bn_ok = false; }
+  if bn.gamma.data.len() != 4 { bn_ok = false; }
+  failed = failed + report(bn_ok, "nn: batchnorm2d_new(4, 1e-3) gamma=1 beta=0 mean=0 var=1");
 
-fn test_contract_tensor_reshape_ensures() -> TestResult {
-  return test.assert(true, "contract: tensor_reshape has ensures: result.data.len() == t.data.len()");
-}
+  var seq = sequential_new();
+  var seq_ok = seq.layers.len() == 0;
+  sequential_add(&mut seq, LayerType.ReLULayer);
+  sequential_add(&mut seq, LayerType.SoftmaxLayer(1));
+  sequential_add(&mut seq, LayerType.LinearLayer(linear_new(2, 2)));
+  seq_ok = seq_ok && seq.layers.len() == 3;
+  failed = failed + report(seq_ok, "nn: sequential_new empty + sequential_add appends (3 layers)");
 
-fn test_contract_linear_new() -> TestResult {
-  return test.assert(true, "contract: linear_new has requires: in_features > 0, out_features > 0");
-}
+  // Real linear forward, hand-computed, exact dyadic values.
+  // Identity weights + bias: 1-D input [1,2] -> output [11,22].
+  var ident = linear_new(2, 2);
+  ident.weight.data[0] = 1.0; ident.weight.data[1] = 0.0;
+  ident.weight.data[2] = 0.0; ident.weight.data[3] = 1.0;
+  ident.bias.data[0] = 10.0; ident.bias.data[1] = 20.0;
+  var x1_data: Vec[Float32] = Vec[Float32].new();
+  x1_data.push(1.0);
+  x1_data.push(2.0);
+  let sh2v = shape1(2);
+  let x1 = tensor_new(&sh2v, &default_options());
+  x1.data[0] = 1.0;
+  x1.data[1] = 2.0;
+  let y1 = linear_forward(&ident, &x1);
+  var y1_ok = y1.shape.len() == 2 && y1.shape[0] == 1 && y1.shape[1] == 2;
+  if y1_ok {
+    y1_ok = eq_at(&y1.data, 0, 11.0) && eq_at(&y1.data, 1, 22.0);
+  }
+  failed = failed + report(y1_ok, "nn: linear_forward 1-D [1,2] identity+bias -> [11,22]");
 
-fn test_contract_linear_forward() -> TestResult {
-  return test.assert(true, "contract: linear_forward has requires: input.shape.len() > 0");
-}
+  // 2-D batch: [[1,2],[3,4]] -> [[11,22],[13,24]].
+  var batch = tensor_new(&shape2(2, 2), &default_options());
+  batch.data[0] = 1.0; batch.data[1] = 2.0;
+  batch.data[2] = 3.0; batch.data[3] = 4.0;
+  let y2 = linear_forward(&ident, &batch);
+  var y2_ok = y2.shape.len() == 2 && y2.shape[0] == 2 && y2.shape[1] == 2;
+  if y2_ok {
+    y2_ok = eq_at(&y2.data, 0, 11.0) && eq_at(&y2.data, 1, 22.0) &&
+            eq_at(&y2.data, 2, 13.0) && eq_at(&y2.data, 3, 24.0);
+  }
+  failed = failed + report(y2_ok, "nn: linear_forward batch [[1,2],[3,4]] -> [[11,22],[13,24]]");
 
-fn test_contract_conv2d_new() -> TestResult {
-  return test.assert(true, "contract: conv2d_new has requires: in_ch > 0, out_ch > 0, kernel > 0, stride > 0, padding >= 0");
-}
+  // Non-trivial weights: W=[[2,3],[4,5]], b=[1,1], x=[1,1] -> [6,10].
+  var w2 = linear_new(2, 2);
+  w2.weight.data[0] = 2.0; w2.weight.data[1] = 3.0;
+  w2.weight.data[2] = 4.0; w2.weight.data[3] = 5.0;
+  w2.bias.data[0] = 1.0; w2.bias.data[1] = 1.0;
+  var x3 = tensor_new(&sh2v, &default_options());
+  x3.data[0] = 1.0;
+  x3.data[1] = 1.0;
+  let y3 = linear_forward(&w2, &x3);
+  var y3_ok = y3.shape[0] == 1 && y3.shape[1] == 2;
+  if y3_ok {
+    y3_ok = eq_at(&y3.data, 0, 6.0) && eq_at(&y3.data, 1, 10.0);
+  }
+  failed = failed + report(y3_ok, "nn: linear_forward W=[[2,3],[4,5]] b=[1,1] x=[1,1] -> [6,10]");
 
-fn test_contract_batchnorm2d_new() -> TestResult {
-  return test.assert(true, "contract: batchnorm2d_new has requires: num_features > 0, eps > 0.0");
-}
-
-fn test_contract_torch_load_model() -> TestResult {
-  return test.assert(true, "contract: torch_load_model has requires: path != \"\"");
-}
-
-fn test_contract_torch_save_model() -> TestResult {
-  return test.assert(true, "contract: torch_save_model has requires: path != \"\"");
+  return failed;
 }
 
 // =========================================================================
-// SECTION 5 -- Integration / end-to-end (2 tests)
+// Pure tier -- runtime loader statics
 // =========================================================================
 
-fn test_integration_full_pipeline() -> TestResult {
-  var shape = make_shape_4d(1, 3, 224, 224);
-  var opts = make_opts();
-  var img = tensor_new(&shape, &opts);
-  var conv = nn.conv2d_new(3, 64, 7, 2, 3);
-  var bn = nn.batchnorm2d_new(64, 1e-5);
-  var seq = nn.sequential_new();
-  nn.sequential_add(&mut seq, LayerType.Conv2dLayer(conv));
-  nn.sequential_add(&mut seq, LayerType.BatchNorm2dLayer(bn));
-  nn.sequential_add(&mut seq, LayerType.ReLULayer);
-  var ok = img.data.len() == 1 * 3 * 224 * 224 && seq.layers.len() == 3;
-  return test.assert(ok, "integration: ImageNet pipeline -- conv2d + batchnorm + relu");
-}
+fn test_runtime_statics() -> Int {
+  var failed = 0;
 
-fn test_integration_linear_classifier() -> TestResult {
-  var linear = nn.linear_new(512, 1000);
-  var shape = make_shape_2d(1, 512);
-  var opts = make_opts();
-  var input = tensor_new(&shape, &opts);
-  var output = nn.linear_forward(&linear, &input);
-  var ok = output.shape[0] == 1 && output.shape[1] == 1000;
-  return test.assert(ok, "integration: Linear classifier -- input [1,512] -> output [1,1000]");
+  let slots = torch_runtime_surface_names();
+  var surf_ok = slots.len() == 13;
+  if slots[0] != "aoti_torch_abi_version" { surf_ok = false; }
+  if slots[4] != "aoti_torch_empty_strided" { surf_ok = false; }
+  if slots[12] != "aoti_torch_is_contiguous" { surf_ok = false; }
+  failed = failed + report(surf_ok, "runtime: declared C surface 13 entry points aligned");
+
+  let anchors = torch_runtime_anchor_names();
+  var anch_ok = anchors.len() == 1;
+  if anchors[0] != "?is_available@cuda@torch@@YA_NXZ" { anch_ok = false; }
+  failed = failed + report(anch_ok, "runtime: declared C++ anchor (cuda is_available)");
+
+  let cands = torch_runtime_candidates();
+  var has_override = false;
+  let ov = io.env_var("XIOM_LIBTORCH_RUNTIME");
+  if ov.is_some {
+    if ov.value.len() > 0 { has_override = true; }
+  }
+  var base = 0;
+  if has_override { base = 1; }
+  var cand_ok = cands.len() == base + 10;
+  if cands.len() == base + 10 {
+    if cands[base + 0] != "torch_cpu.dll" { cand_ok = false; }
+    if cands[base + 1] != "libtorch_cpu.dll" { cand_ok = false; }
+    if cands[base + 2] != "libtorch.dll" { cand_ok = false; }
+    if cands[base + 3] != "torch.dll" { cand_ok = false; }
+    if cands[base + 4] != "libtorch_cpu.so" { cand_ok = false; }
+    if cands[base + 9] != "libtorch.dylib" { cand_ok = false; }
+  }
+  failed = failed + report(cand_ok, "runtime: candidate order (XIOM_LIBTORCH_RUNTIME override, then 10 sonames)");
+
+  let missing = torch_runtime_open_named("xiom-absent-libtorch-probe-xyz.dll");
+  if missing.is_ok {
+    failed = failed + report(false, "runtime: bogus soname unexpectedly loaded");
+  } else {
+    failed = failed + report(missing.error.kind == TORCH_LOAD_ABSENT && missing.error.message.len() > 0,
+      "runtime: absent build classified TORCH_LOAD_ABSENT (SKIP)");
+  }
+
+  var kinds_ok = true;
+  if TORCH_LOAD_ABSENT != 0 { kinds_ok = false; }
+  if TORCH_LOAD_ABI != 1 { kinds_ok = false; }
+  if TORCH_CALL_FAILED != 2 { kinds_ok = false; }
+  failed = failed + report(kinds_ok, "runtime: classification kinds (ABSENT/ABI/CALL_FAILED)");
+
+  return failed;
 }
 
 // =========================================================================
-// Main -- manual test dispatch
+// Live leg (SKIP when no runtime)
+// =========================================================================
+
+fn test_live() -> Int {
+  var failed = 0;
+  let orr = torch_runtime_open();
+  if !orr.is_ok {
+    if orr.error.kind == TORCH_LOAD_ABSENT {
+      return report(true, "live: SKIP -- no libtorch candidate present (" + orr.error.message + ")");
+    }
+    return report(false, "live: runtime present but unusable -- " + orr.error.message);
+  }
+  let rt: TorchRuntime = orr.value;
+
+  let info = torch_runtime_info(&rt);
+  var probe_ok = info.soname.len() > 0 && info.major >= 2;
+  if info.resolved != 13 || info.required != 13 { probe_ok = false; }
+  let expect_abi = (info.major << 56) | (info.minor << 48) | (info.patch << 40);
+  if rt.abi_version != expect_abi { probe_ok = false; }
+  failed = failed + report(probe_ok,
+    "live: " + info.soname + " " + ist(info.major) + "." + ist(info.minor) + "." + ist(info.patch) +
+    " (tensor-tier surface " + ist(info.resolved) + "/" + ist(info.required) + ")");
+
+  let cu = torch_cuda_available(&rt);
+  var cu_s = -1;
+  if cu.is_ok {
+    if cu.value { cu_s = 1; } else { cu_s = 0; }
+  }
+  failed = failed + report(cu.is_ok, "live: cuda anchor callable (is_available=" + ist(cu_s) + ")");
+
+  // Upload -> download round trip, exact.
+  var xs = tensor_new(&shape2(2, 3), &default_options());
+  xs.data[0] = 1.0; xs.data[1] = 2.0; xs.data[2] = 3.0;
+  xs.data[3] = 4.0; xs.data[4] = 5.0; xs.data[5] = 6.0;
+  let up = torch_upload(&rt, &xs);
+  var rt_ok = false;
+  if up.is_ok {
+    let h = up.value;
+    let down = torch_download(&rt, h, "xs");
+    if down.is_ok {
+      let d = down.value;
+      rt_ok = d.data.len() == 6 && d.shape.len() == 2 && d.shape[0] == 2 && d.shape[1] == 3;
+      if rt_ok {
+        rt_ok = eq_at(&d.data, 0, 1.0) && eq_at(&d.data, 2, 3.0) && eq_at(&d.data, 5, 6.0);
+      }
+      if rt_ok {
+        rt_ok = d.strides.len() == 2 && d.strides[0] == 3 && d.strides[1] == 1;
+      }
+    } else { why(down.error.message); }
+    // Upload copies: mutate the XIOM source, re-download, values unchanged.
+    if rt_ok {
+      xs.data[0] = 99.0;
+      let down2 = torch_download(&rt, h, "xs2");
+      if down2.is_ok {
+        let d2 = down2.value;
+        rt_ok = eq_at(&d2.data, 0, 1.0);
+      } else {
+        rt_ok = false;
+        why(down2.error.message);
+      }
+    }
+    let rel = torch_release(&rt, h);
+    if !rel.is_ok { rt_ok = false; }
+  } else { why(up.error.message); }
+  failed = failed + report(rt_ok, "live: upload -> download [2,3] (1..6) exact; upload copies (source mutation invisible)");
+
+  let cr = torch_runtime_close(&rt);
+  failed = failed + report(cr.is_ok, "live: runtime handle released");
+
+  return failed;
+}
+
+// =========================================================================
+// Driver
 // =========================================================================
 
 pub fn main() -> Int {
-  io.println("XIOM xiom.torch Conformance Suite");
-  io.println("==================================");
-  var total: Int = 0;
+  io.println("=== xiom.torch conformance tests (tensor types + NN + libtorch runtime tier) ===");
+  io.flush_stdout();
   var failed: Int = 0;
-
-  io.println("");
-  io.println("-- SECTION 1: xiom.torch.types (12) --");
-
-  var r0 = test_dtype_enum_variants(); total = total + 1; if !r0.passed { failed = failed + 1; };
-  var r1 = test_device_enum_variants(); total = total + 1; if !r1.passed { failed = failed + 1; };
-  var r2 = test_tensor_new_1d(); total = total + 1; if !r2.passed { failed = failed + 1; };
-  var r3 = test_tensor_new_2d(); total = total + 1; if !r3.passed { failed = failed + 1; };
-  var r4 = test_tensor_new_all_zeros(); total = total + 1; if !r4.passed { failed = failed + 1; };
-  var r5 = test_tensor_new_strides(); total = total + 1; if !r5.passed { failed = failed + 1; };
-  var r6 = test_tensor_zeros(); total = total + 1; if !r6.passed { failed = failed + 1; };
-  var r7 = test_tensor_ones(); total = total + 1; if !r7.passed { failed = failed + 1; };
-  var r8 = test_tensor_shape(); total = total + 1; if !r8.passed { failed = failed + 1; };
-  var r9 = test_tensor_shape_no_alias(); total = total + 1; if !r9.passed { failed = failed + 1; };
-  var r10 = test_tensor_reshape(); total = total + 1; if !r10.passed { failed = failed + 1; };
-  var r11 = test_tensor_reshape_mismatch(); total = total + 1; if !r11.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 2: xiom.torch.ffi (5) --");
-
-  var r12 = test_ffi_torch_load_model_ok(); total = total + 1; if !r12.passed { failed = failed + 1; };
-  var r13 = test_ffi_torch_load_model_stub_name(); total = total + 1; if !r13.passed { failed = failed + 1; };
-  var r14 = test_ffi_torch_forward_ok(); total = total + 1; if !r14.passed { failed = failed + 1; };
-  var r15 = test_ffi_torch_save_model_ok(); total = total + 1; if !r15.passed { failed = failed + 1; };
-  var r16 = test_ffi_torch_is_cuda_available(); total = total + 1; if !r16.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 3: xiom.torch.nn (16) --");
-
-  var r17 = test_nn_linear_new(); total = total + 1; if !r17.passed { failed = failed + 1; };
-  var r18 = test_nn_linear_new_zeros(); total = total + 1; if !r18.passed { failed = failed + 1; };
-  var r19 = test_nn_linear_forward_output_shape(); total = total + 1; if !r19.passed { failed = failed + 1; };
-  var r20 = test_nn_conv2d_new(); total = total + 1; if !r20.passed { failed = failed + 1; };
-  var r21 = test_nn_conv2d_new_zeros(); total = total + 1; if !r21.passed { failed = failed + 1; };
-  var r22 = test_nn_batchnorm2d_new(); total = total + 1; if !r22.passed { failed = failed + 1; };
-  var r23 = test_nn_batchnorm2d_new_gamma_ones(); total = total + 1; if !r23.passed { failed = failed + 1; };
-  var r24 = test_nn_batchnorm2d_new_beta_zeros(); total = total + 1; if !r24.passed { failed = failed + 1; };
-  var r25 = test_nn_batchnorm2d_new_running_var_ones(); total = total + 1; if !r25.passed { failed = failed + 1; };
-  var r26 = test_nn_activation_types(); total = total + 1; if !r26.passed { failed = failed + 1; };
-  var r27 = test_nn_softmax_dim(); total = total + 1; if !r27.passed { failed = failed + 1; };
-  var r28 = test_nn_sequential_new_empty(); total = total + 1; if !r28.passed { failed = failed + 1; };
-  var r29 = test_nn_sequential_add_linear(); total = total + 1; if !r29.passed { failed = failed + 1; };
-  var r30 = test_nn_sequential_add_conv2d(); total = total + 1; if !r30.passed { failed = failed + 1; };
-  var r31 = test_nn_sequential_add_multiple(); total = total + 1; if !r31.passed { failed = failed + 1; };
-  var r32 = test_nn_sequential_add_batchnorm(); total = total + 1; if !r32.passed { failed = failed + 1; };
-  var r33 = test_nn_layer_type_enum_variants(); total = total + 1; if !r33.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 4: Contract verification (11) --");
-
-  var r34 = test_contract_tensor_new(); total = total + 1; if !r34.passed { failed = failed + 1; };
-  var r35 = test_contract_tensor_zeros(); total = total + 1; if !r35.passed { failed = failed + 1; };
-  var r36 = test_contract_tensor_ones(); total = total + 1; if !r36.passed { failed = failed + 1; };
-  var r37 = test_contract_tensor_reshape_requires(); total = total + 1; if !r37.passed { failed = failed + 1; };
-  var r38 = test_contract_tensor_reshape_ensures(); total = total + 1; if !r38.passed { failed = failed + 1; };
-  var r39 = test_contract_linear_new(); total = total + 1; if !r39.passed { failed = failed + 1; };
-  var r40 = test_contract_linear_forward(); total = total + 1; if !r40.passed { failed = failed + 1; };
-  var r41 = test_contract_conv2d_new(); total = total + 1; if !r41.passed { failed = failed + 1; };
-  var r42 = test_contract_batchnorm2d_new(); total = total + 1; if !r42.passed { failed = failed + 1; };
-  var r43 = test_contract_torch_load_model(); total = total + 1; if !r43.passed { failed = failed + 1; };
-  var r44 = test_contract_torch_save_model(); total = total + 1; if !r44.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("-- SECTION 5: Integration / end-to-end (2) --");
-
-  var r45 = test_integration_full_pipeline(); total = total + 1; if !r45.passed { failed = failed + 1; };
-  var r46 = test_integration_linear_classifier(); total = total + 1; if !r46.passed { failed = failed + 1; };
-
-  io.println("");
-  io.println("==================================");
-  if failed == 0 {
-    io.println("  ALL 46 TESTS PASSED");
-    io.println("  Path:    tests/test_conformance.xi");
-    io.println("  Contracts: 11 (across 6 functions)");
-    io.println("==================================");
-    return 0;
-  };
-  io.println("  Path:    tests/test_conformance.xi");
-  io.println("  Tests:   46");
-  io.println("  Contracts: 11 (across 6 functions)");
-  io.println("  SOME TESTS FAILED");
-  io.println("==================================");
-  return 1;
+  failed = failed + test_types();
+  failed = failed + test_nn();
+  failed = failed + test_runtime_statics();
+  failed = failed + test_live();
+  return finish(failed);
 }
