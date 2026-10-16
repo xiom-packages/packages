@@ -2173,6 +2173,23 @@ otel via `-2309-3`). Relay: PULSE top-tier asks **TLS context binding
 duplicate noted; `-2313` dedupe agreed). Android wave-2 landing: 5 of 8 in
 (validate 559/0).
 
+**UPDATE 2026-10-16 21:05Z (doorbell -- v0.64.6 RELEASED)**: compiler
+**v0.64.6 RELEASED 2026-10-16 20:33Z** (`REL-20261016-2034-compiler`;
+assets live). This is the **REPIN-WAVE TRIGGER** (next-session first
+priority per the 11:30Z/18:15Z handoffs): download + sha256-verify +
+install the lane-local slot (NEVER the shared home -- clobber rule), bump
+`COMPILER_VERSION`, repin (563+ records), validate, then the queued
+re-verify: **m334 tuple fix** (1941 green; 2022/2303/2309 verdicts),
+**B-29/B-32** (B-32 = sqlite nested-shape restore; repro bundle
+`b32-sqlite-nested`), editor rows, B-25/B-26 residuals, and the
+workaround-retirement checks that ride this pin. Also this window:
+**family 7/8 LIVE in `eco-v0.1.192`** (android family + `xiom.pulse`
+Beacon; legacy android scope re-grant asked of ops); **R2 landed**
+(`0d25d58b`: `xiom.serial 0.1.0` 52/52 + `xiom.ros2 0.2.0` 82/82 x2;
+validate 563/0; publishes filed; B-33 to compiler). Beacon acceptance
+stage 1 GREEN (125/125 x2 both platforms). Zero open bindings-addressed
+relay items; validate 660 green.
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
