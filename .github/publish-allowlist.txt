@@ -608,3 +608,12 @@ xiom.otel
 # PULSE top-tier pair -- TLS + real brotli; ops scopes confirmed LIVE 2026-10-16 (brotli eco-release 552, ssl 550; PROD-only)
 xiom.brotli
 xiom.ssl
+# Android family first publish + JNI seam + PULSE Beacon core; ops scopes confirmed LIVE 2026-10-16 (android family + jni eco-release 550/552, pulse 553; PROD-only)
+xiom.android
+xiom.aaudio
+xiom.mediandk
+xiom.camera2ndk
+xiom.opensl
+xiom.android-sys
+xiom.jni
+xiom.pulse
