@@ -1677,6 +1677,21 @@ closed (v0.64.5 witness green), B-25 notes value-preserving. Engine **A02
 (`-1904-packages(-2)` acked); PULSE artifact chain satisfied
 (`-2029-pulse` noted).
 
+**UPDATE 2026-10-16 11:05Z (doorbell -- batch 86/87 records + PULSE
+TLS/brotli accepted)**: **batch 86 = `eco-v0.1.184`**: `xiom.redis` 0.1.0
+LIVE (wrap `a4351a72`, allowlist 543; run 38806083545 green; live sha256
+`215a95c1...` @21:00:52Z) -- **100 eco releases**. **Batch 87 (wave 4) =
+`eco-v0.1.185`**: **`xiom.glfw 0.6.0` (dispatcher lift, B-22 retired) +
+`xiom.sdl3 0.20.0` (filter/watch direct handoff, B-15)** LIVE (sha256s
+`e0acf0cc...`/`b04a0ae4...`; x2 37/37 + 72/72 on v0.64.5, **0 warnings**;
+run 38810046611 green) -- **101 eco releases**; the two parked workaround
+lifts from the v0.64.4 wave are SHIPPED. `eco-v0.1.186` next (transport +
+otel via `-2309-3`). Relay: PULSE top-tier asks **TLS context binding
+(libssl-class; composes xiom.tls + xiom.openssl)** + **real brotli
+(libbrotli)** accepted into the queue (`-2211-packages(-2)`; `-2302`
+duplicate noted; `-2313` dedupe agreed). Android wave-2 landing: 5 of 8 in
+(validate 559/0).
+
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
 **0.7.0-0.16.0** (`142`-`152`), assimp **0.8.0** (`153`), miniaudio **0.3.0**
