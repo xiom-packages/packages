@@ -1005,6 +1005,158 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-16 12:10Z (doorbell: eco .186/.187 recorded; brotli in
+build; TLS naming forwarded; Android A3/A4 wave starting)**:
+- **Published this window**: `xiom.template` 0.2.0 (`.186`); **`xiom.box2d`
+  0.4.0 + `xiom.miniaudio` 0.4.0 (A02/A04) in `eco-v0.1.187`** (engine
+  wave-5 relayed; tally **103 releases**).  `.188` in flight (allowlist
+  543 -> 545).
+- **PULSE top-tier builds**: the brotli session is deep in the build
+  (`xiom-brotli` staged; ~42k additions).  The TLS session is early --
+  the approved **`xiom.ssl`** naming + by-function scope was forwarded
+  to it directly (libssl-class loader; mbedTLS explicitly NOT a switch;
+  the ops registry scope is already queued with packages, so
+  first-publish is uncoupled).
+- Android program: wave-2 landed earlier; a new **A3/A4 wave** worktree
+  is starting (`android/a3-a4`).  Relay `-1150-packages(-2)` acked
+  (naming + token adoptions; box2d/miniaudio live note).  v0.64.6
+  (darwin fix) still pending; installed v0.64.5.
+
+**UPDATE 2026-10-16 11:15Z (doorbell: A02/A04 records re-pointed + their
+publish requests filed; TLS/brotli sessions launched)**: 
+- **A02 box2d 0.4.0 + A04 miniaudio 0.4.0** were landed by the morning
+  pass but had **no publish requests** -> filed now
+  (`REL-20261016-1112-bindings` box2d 26/26; `-1112-bindings-2`
+  miniaudio 27/27) and their records re-pointed to the land commits
+  (`d19090cc`/`c11b7ac2`) with platform rows restored; validate 559/0;
+  tip `c7d9a968`.
+- `-2302-packages` (TLS/brotli duplicate) closed as fixed per the dedupe
+  note; canonical = `-2211-packages` + `-2211-packages-2` (both acked).
+- **Launched the two PULSE top-tier builds** (`am-1792149214471-230ba6`):
+  `feat/tls-binding` (libssl-class multi-soname loader composing with
+  xiom.openssl; memory-BIO handshake headliner) + `feat/brotli-binding`
+  (google/brotli pinned + vendored; 100% declared surface; quality 0-11
+  round trips).  Publish requests follow as they land.
+- Eco: **101 releases through `eco-v0.1.185`** (glfw 0.6.0 + sdl3 0.20.0
+  lifts live; run green, 0 warnings).  Relay tip `8d4efae`; validate
+  flags a pre-existing non-ASCII char in `REL-20261010-1549-registry-3`
+  (other lane -- noted, not ours to edit).
+- v0.64.6 (darwin fix) not out yet; installed compiler v0.64.5.
+
+**UPDATE 2026-10-16 11:30Z (CONTEXT-LIMIT HANDOFF -- all waves landed;
+next session starts on TLS/brotli + the Android remainder)**: this
+session hands off on context.  Everything is landed, pushed, and the
+worktree is clean.  The NEW paste prompt below (at the
+`### NEXT-SESSION PASTE PROMPT` section; the 2026-10-15 11:30Z block is
+SUPERSEDED) carries the full state.  One-paragraph state: v0.64.5
+pinned + RE-VERIFY WAVE complete (only B-29 open; B-32 acked for the
+v0.64.6 fixer wave); glfw 0.6.0 + sdl3 0.20.0 lifts live in
+`eco-v0.1.185` (101 releases; `.186` armed); all 8 owner-directed agent
+waves landed (6 Android units + box2d 0.4.0 + miniaudio 0.4.0; validate
+559/0; gates 8/8 + 26/26 + 27/27); publish requests filed
+(`REL-20261016-1125-bindings`); QUEUED HIGH for the next session: PULSE
+TLS context binding + real brotli, then Android A3/A4 (serial), A9,
+  A11, A12 remainder.  Doorbell: THIS session's cron is removed at
+  handoff -- the continuation session re-arms its own (first action).
+
+**UPDATE 2026-10-16 11:50Z (CONTINUATION session -- doorbell re-armed;
+relay sweep; WAVE 5 LIVE; next wave in motion)**: this is the fresh
+context-limit continuation writing its own records.  State found on
+pickup: worktree clean at `9ecd5092`; nothing in flight un-landed.
+- Doorbell re-armed (`0 */3 * * *`; next fire 12:00Z) with the
+  corrected recipe: sync `E:\xiom-lang\xiom-relays` via fetch +
+  `merge --ff-only origin/main` (never git pull there), then `python
+  tools/relay.py view --lane bindings` with that workdir.
+- Relay sweep: **WAVE 5 PUBLISHED -- `xiom.box2d 0.4.0` +
+  `xiom.miniaudio 0.4.0` LIVE in `eco-v0.1.187`** (11:19:59Z /
+  11:21:24Z; sha256 `04fe2147...` / `382a16f0...`; run 38892953795
+  green; merge `80879547`; record `e32965dd` kept (26/26 + 27/27 @
+  `43173d68`); validate 561/0).  `REL-20261016-1112-bindings` + `-2`
+  fixed by packages; `REL-20261016-1124-packages` = Wave 5 engine
+  relay.  **`eco-v0.1.186` = xiom.template 0.2.0** (packages lane,
+  batch 88).  Tally **103 eco releases**.
+- No NEW items addressed to bindings (`-2211` x2 stay acked =
+  canonical; `-2302` fixed as the duplicate).  New scope intel:
+  orbitdb `-1128-orbitdb-2` + xvector `-1129-xvector-2` both want the
+  TLS binding too (folded into the TLS scope note).
+- NEXT WAVE (owner: continue): **brotli session ACTIVE**
+  (`feat/brotli-binding`; upstream google/brotli cloned to
+  `E:\repos\brotli` 11:20Z; vendored build in progress -- no commits
+  yet).  **TLS session produced no work by 11:40Z** -> naming/scope
+  sync filed to packages (`REL-20261016-1142-bindings`; candidate
+  name `xiom.ssl`; scope = the -2211 by-function list) + session
+  being nudged.  **Android A3/A4 wave (`xiom.android` input +
+  sensors) launching now** -- no xiom.android edit in flight
+  (`android/w2c-lifecycle` clean + pushed at `0d46b033`).
+- Base note: `feat/tls-binding` / `feat/brotli-binding` branches sit
+  on the packages-side `main` tip with no unique commits yet -- land
+  path-scoped per the standing recipe regardless of base.
+
+**UPDATE 2026-10-16 12:10Z (doorbell 12:00Z processed + wave status)**:
+- Two NEW packages replies to the wave processed:
+  - `REL-20261016-1150-packages`: **`xiom.ssl` name + by-function
+    scope ACCEPTED** (libssl-class confirmed; the "mbedTLS-class"
+    mention in the -2211 acceptance history was stray text, NOT a
+    switch).  First-publish path: packages queued the ops registry
+    scope for the new name today; the request goes in after the build
+    + suite.  Acked with the full build status (oracle pinned,
+    loader probes green, ALPN-select limitation noted).
+  - `REL-20261016-1150-packages-2`: **android platform tokens were
+    already adopted 10-15** (`5aa4e63e` + `0d46b033`) -- the -2210
+    wait is cleared; box2d/miniaudio live in `.187` confirmed;
+    android first-publish = five NEW names need the ops scope
+    (packages queued it) while `xiom.android` is the existing-name
+    path.  Acked.
+- `REL-20261016-1205-bindings` (lane-filed validate-red on the
+  long-running registry non-ASCII item) -> registry repaired +
+  closed it duplicate; `relay.py validate` is GREEN board-wide (592
+  items) for the first time in three days.  Acks/confirms were
+  committed in the shared relay clone (`21fd1cc`; tree clean).
+- WAVE STATUS: **brotli** session busy (package growing; ~+42k
+  additions).  **TLS** session busy -- recon green: oracle
+  `E:\repos\openssl` @ `openssl-3.2.4` = `8ac42712...`; loader
+  probes green on v0.64.5 (45-field struct, null cast, dl_open
+  against the real libssl); building `xiom.ssl` (server+client ctx,
+  cert/key/chain PEM/DER, step handshake + WANT_* pump, ALPN
+  set/read, verify modes, clean shutdown, typed errors; documented
+  limitation: server-side ALPN SELECT needs a C callback).
+- **A3/A4**: the first Agent Manager request never attached a session
+  (worktree `wt-1792151643502-3`/`android-a3-a4` sat sessionless) ->
+  relaunch requested `am-1792152280034-m35wty` (branch
+  `android/input-sensors`, FULL brief as the initial prompt); the
+  stale `android/a3-a4` worktree gets removed once its session is
+  confirmed dead.
+
+**UPDATE 2026-10-16 12:22Z (WAVE LANDED: brotli + ssl IN; publish
+requests filed; validate 561/0)**: both PULSE top-tier builds landed
+and passed the integration gates on the landed state:
+- **`xiom.brotli 0.1.0` LANDED** (`7e9892bc`, 137 files; record
+  `a040cfd4`): real RFC 7932 brotli, vendored google/brotli v1.2.0
+  (MIT), 16/16 declared surface (one-shot + streaming enc/dec,
+  quality 0-11 + lgwin/mode typed params, corrupt/truncated typed
+  errors, HTTP `Content-Encoding: br` helpers + body round trip).
+  Integration **26/26 x2** on the landed state (upstream vectors
+  decode byte-identically; q11 ratio 16384 -> 75).  Branch
+  `feat/brotli-binding` pushed.
+- **`xiom.ssl 0.1.0` LANDED** (`a65f34cc`, 14 files; record
+  `d22e7774`): libssl-class multi-soname loader (xiom.openssl
+  pattern; NOTHING vendored; SKIP-safe).  Live leg **23/23**
+  (OpenSSL 3.2.4: loopback TLSv1.3 + TLS_AES_256_GCM_SHA384,
+  encrypted ping/pong, ALPN set + negotiated read, verify trusted ->
+  0 / untrusted -> typed with verify_result 18, clean shutdown,
+  memory-BIO-only handshake 4 pump rounds) + SKIP leg **4/4**;
+  documented limitation: server ALPN SELECT needs a C callback (no
+  FFI callback bridging yet).  Branch `feat/tls-binding` pushed.
+- **Publish requests filed**: `REL-20261016-1220-bindings` (brotli)
+  + `-1220-bindings-2` (ssl) -- both NEW registry names; ops scopes
+  queued by packages (their -1150 note).  `status.ps1 -Action
+  validate` = **561/0**.
+- **A3/A4 session ATTACHED late** (`ses_ebb64cce2ffe5Qicm603FfQQt6`,
+  worktree `android-input-sensors`, branch `android/input-sensors`):
+  busy; rebased onto origin/bindings; compiling.  The stale
+  `android/a3-a4` worktree gets removed once its never-started
+  session is confirmed dead.
+
 **UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
 PAUSED per owner directive)**:
 - Remaining 3 branches landed (path-scoped; trees safety-verified to
@@ -2359,6 +2511,69 @@ Applied from the next touch onward (nothing shipped needs retraction).
    main (`470e13f3`); vulkan 0.5.0 live (`eco-v0.1.138`).
 
 ### NEXT-SESSION PASTE PROMPT (copy the fenced block)
+
+```
+Bindings lane continuation -- seamless pickup (2026-10-16 11:30Z;
+CONTEXT-LIMIT HANDOFF).  Everything this lane shipped is LIVE through
+`eco-v0.1.185` (101 releases; our lifts glfw 0.6.0 + sdl3 0.20.0 in
+.185; redis in .184; `.186` armed: transport+otel+template).
+
+STATE (2026-10-16; trust the UPDATE stack + this block):
+- Toolchain: v0.64.5 PINNED -- `XIOM_COMPILER=%LOCALAPPDATA%\xiom.new\
+  bin\xiom.exe` (slot byte-identical to release bd71e2d3; 557/557);
+  suites: `.\scripts\port.ps1 -Package <pkg> -TimeoutSec 300`.
+- RE-VERIFY WAVE COMPLETE: all probes green EXCEPT B-29 (big-int
+  bitops >= 2^31; boundary-arithmetic workaround stays shipped);
+  B-30/B-31 FIXED; B-05 FIXED (re-vendored stdlib); glfw 0.6.0
+  dispatcher lift + sdl3 0.20.0 filter/watch widening landed LIVE and
+  published.  B-32 (B-26 residual inside the xiom.sqlite compilation
+  unit; nested restore PARKED -- flat RowOutcome stays) ACKED by the
+  compiler -> v0.64.6 fixer wave.  `-1309` CLOSED (dx12 Int-typed COM
+  surface retained by choice).  v0.64.6 headline = darwin fix.
+- ANDROID SDK100: 6 units LANDED, gate-green, validate 559/0:
+  `xiom.android 0.3.0` (A1+A5+A2; export set 117; ALooper functional
+  on-device) + `xiom.camera2ndk` + `xiom.aaudio` + `xiom.mediandk` +
+  `xiom.android-sys` + `xiom.opensl` (0.1.0 each; on-device evidence
+  in each package's docs/repro).  REMAINING: A3 input + A4 sensors
+  (serial -- same package; next agent wave), A9 gl leg
+  (generator-aware pass over xiom.gles), A11 JNI seam, A12 remainder;
+  G1 compiler android target = owner call; G3 tokens asked
+  (`REL-20261015-2210-bindings`; no artifacts needed -- system libs).
+- ENGINE ASKS LANDED: `xiom.box2d 0.4.0` (A02; 26/26 x2) +
+  `xiom.miniaudio 0.4.0` (A04; 27/27 x2, live WASAPI); publish
+  requests filed (`REL-20261016-1125-bindings`) -- watch SESSION.md
+  for confirmation, then packages relays engine adoption.
+- QUEUED HIGH (accepted; NOT started): PULSE top-tier -- **TLS
+  context binding** (`-2211-packages`; libssl-class loader composing
+  with live xiom.tls + xiom.openssl) and **real brotli RFC 7932**
+  (`-2211-packages-2`; libbrotli); `-2302` deduped into them.
+  Clone-protocol prep first.
+- METHODOLOGY: agent branches may sit on DIVERGENT bases -- land via
+  path-scoped `git checkout <branch> -- packages/<dir>` + commit
+  (NEVER wholesale-merge: old STATUS.json histories conflict); for
+  edits to an existing package have the session rebase onto
+  origin/bindings first, then re-run the suite, record, validate.
+
+FIRST ACTIONS:
+1. Re-arm the doorbell (`0 */3 * * *`): relay fetch + `python
+   tools/relay.py view --lane bindings`; SESSION.md eco record; land
+   any in-flight branch per the recipe above.
+2. Relay sweep: read `-2211` x2 + `REL-20261016-1125` + replies;
+   process (reply via new items; stage only this lane's files).
+3. START THE NEXT WAVE (owner: continue): (a) real brotli (libbrotli;
+   vendored C -- can start immediately as an agent wave, follow the
+   clone-protocol prep pattern) + TLS context binding (libssl-class
+   loader; sync naming/scope with packages first); (b) the Android
+   A3/A4 agent wave on `xiom.android` (serial -- only if no
+   xiom.android edit is in flight); then A9/A11/A12 remainder.
+4. Standing rules: XIOM_COMPILER always the v0.64.5 slot; emulator
+   `C:\Android\sdk\emulator\emulator.exe -avd Medium_Phone_API_36.0
+   -no-window -no-audio -no-boot-anim -no-snapshot -gpu
+   swiftshader_indirect`; provenance per touch; no silent failures;
+   atomic commits + push with rebase-retry (shared worktree).
+```
+
+**SUPERSEDED prompt (2026-10-15 11:30Z, kept for history):**
 
 ```
 Bindings lane continuation -- seamless pickup (2026-10-15 11:30Z;
