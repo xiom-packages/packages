@@ -1,4 +1,4 @@
-module xiom.onnx.io
+module xiom.onnx.tensor
 
 use xiom.onnx.types;
 

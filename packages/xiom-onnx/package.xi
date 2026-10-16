@@ -14,7 +14,10 @@ package xiom_onnx {
   deps: { "xiom.std": ">=0.60.0 <1.0.0" };
   modules: [
     "xiom.onnx.types",
+    "xiom.onnx.loader",
+    "xiom.onnx.env",
+    "xiom.onnx.value",
     "xiom.onnx.session",
-    "xiom.onnx.io",
+    "xiom.onnx.tensor",
   ];
 }
