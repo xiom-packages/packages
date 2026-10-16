@@ -1,0 +1,23 @@
+{
+    "package":  "xiom.ssl",
+    "stage":  "incubating",
+    "compiler":  "v0.64.5",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  23,
+                  "failed":  0,
+                  "run_by":  "am:feat-tls-binding-6c85f053d41f72c2",
+                  "commit":  "7d6bdeae",
+                  "checked":  "2026-10-16T12:15:38Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: new name (libssl-class TLS context engine, REL-20261015-2211-packages); ops scope queued 2026-10-16",
+    "platforms":  [
+                      "windows-x64"
+                  ],
+    "runtime_deps":  [
+                         "libssl-3-x64.dll / libssl-1_1-x64.dll / libssl-1_1.dll / libssl.dll (multi-soname runtime loader; SKIP when absent), with the libcrypto companion 3-x64 / 1_1-x64 / 1_1 / unversioned"
+                     ]
+}
