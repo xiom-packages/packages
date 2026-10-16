@@ -1267,6 +1267,25 @@ A9/A11/A12 wave launched)**:
   was old main); its deregistered worktree dir is file-locked --
   retry deletion later.
 
+**UPDATE 2026-10-16 16:45Z (PUBLISHES LANDING -- brotli + ssl + gles
+LIVE)**:
+- **`xiom.brotli 0.1.0` LIVE in `eco-v0.1.189`** (sha256 `f37f3a39...`
+  @15:09:19Z; batch 91): merge `5a22868a`; native x2 26/26 both runs
+  (upstream vectors byte-identical); allowlist 545->547 (brotli
+  eco-552 scope); run 38921431252 green; PULSE relayed -- top-tier
+  item 4 closed.  The same tag carried the `xiom.http 0.1.7` rider.
+- **`xiom.ssl 0.1.0` LIVE in `eco-v0.1.189`** (sha256 `ba42cf2b...`
+  @15:11:44Z) -- **THE TLS HEADLINE GAP IS CLOSED** (PULSE item 2);
+  native x2: live 23/23 (OpenSSL 3.2.4 via Git mingw64 on PATH; TLS
+  1.3 over fd + memory BIOs, PEM/DER cert-chain incl. buffers, verify
+  accept/reject, close_notify, ALPN wire) + SKIP 4/4 x2.
+- **`xiom.gles 0.2.0` LIVE in `eco-v0.1.190`** (sha256 `40328c2a...`
+  @15:33:47Z; batch 92): existing-name path (no scope delta); native
+  x2 20/20 both runs; on-device SwiftShader PASS stands.
+- Still open at packages: android family (`-1305`/`-1322`; continues
+  with the sibling), `xiom.jni` (`-1410` acked), `xiom.android-sys`
+  (`-1545` open).  Eco through `eco-v0.1.190`.
+
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
 state (`cdbbca63`; clean + pushed; validate 561/0).
