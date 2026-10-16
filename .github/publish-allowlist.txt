@@ -602,3 +602,6 @@ xiom.photometrics
 xiom.durable
 xiom.postgres
 xiom.redis
+# A08 transport + OTLP core; ops scopes confirmed LIVE 2026-10-16 (eco-release 550; PROD-only)
+xiom.transport
+xiom.otel

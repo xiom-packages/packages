@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-16T14:18:29Z",
+    "updated":  "2026-10-16T16:13:58Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -924,6 +924,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-box2d/v0.4.0/package.tar.gz",
                          "source_files":  [
                                               "box2d.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.brotli",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Real RFC 7932 brotli bindings for XIOM (vendored google/brotli 1.2.0 C sources, no system library): decoder (create/stream/one-shot/destroy, upstream error codes + strings) and encoder (one-shot, streaming with quality/lgwin/mode parameters, TakeOutput/IsFinished) at 100% of the declared surface",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-brotli/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "brotli.xi",
                                               "package.xi"
                                           ]
                      },
@@ -8359,6 +8376,23 @@
                          "source_files":  [
                                               "ssh2.xi",
                                               "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ssl",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "libssl-class TLS context bindings via dynamic loader (multi-soname, SKIP when absent): server/client contexts, PEM/DER cert-key-chain load, step handshake over a stream fd or memory BIOs, ALPN, verify modes, typed errors",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ssl/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "package.xi",
+                                              "ssl.xi"
                                           ]
                      },
                      {
