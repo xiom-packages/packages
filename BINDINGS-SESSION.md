@@ -1259,6 +1259,13 @@ A9/A11/A12 wave launched)**:
   android family -1305/-1322, gles -1510 acked, jni -1410, sys
   -1545) and the compiler v0.64.6 watch (B-32 fixer wave; m337/m338
   already in local main per the relay).
+- 16:02Z: **stdlib-v0.64.6 TAGGED** (`b81430b` = e72288f + waves
+  151-154; relay `b5b7293`) -- the compiler v0.64.6 archive is next;
+  `gh release list` still shows v0.64.5 as latest.  On release: the
+  B-32 re-verify wave is the lane action (no unilateral repin).
+  Housekeeping: stale `android/a3-a4` branch deleted (workless, tip
+  was old main); its deregistered worktree dir is file-locked --
+  retry deletion later.
 
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
