@@ -1,0 +1,32 @@
+# xiom.gps test fixtures -- NMEA 0183 sentences recorded in the gpsd
+# upstream regression suite. Imported verbatim (data, not code) from
+# the pinned upstream clone:
+#   gitlab.com/gpsd/gpsd @ a184c8a4c028dae94b7599ba01688fb3ddeddd97
+# Sources:
+#   test/daemon/nmea-fuzzy-cases.log    (GGA/RMC; Trimble RTK-4 replay;
+#       "NMEA cases causing fuzzy arithmetic problems", submitter Fred
+#       Wright, 2020-06-29; Copyright 2020 by the GPSD project,
+#       SPDX-License-Identifier: BSD-2-clause)
+#   test/daemon/quectel-l76k-nmea.log   (GSA with NMEA 4.10 system id;
+#       GSV signal-id and empty el/az variants; Copyright by the GPSD
+#       project, BSD-2-clause)
+# Lines starting with '#' and blank lines are ignored by the suite.
+#
+# --- nmea-fuzzy-cases.log: GGA/RMC pairs (high-precision Trimble RTK) ---
+$GPGGA,132820.60,4134.49821229,N,09345.03351845,W,2,09,1.0,278.020,M,-31.442,M,7.6,0133*7E
+$GPRMC,132820.60,A,4134.49821229,N,09345.03351845,W,3.252,92.308,180320,11.5985,E,D*1A
+$GPGGA,132820.70,4134.49822493,N,09345.03347183,W,2,09,1.0,277.995,M,-31.442,M,7.6,0133*77
+$GPRMC,132820.70,A,4134.49822493,N,09345.03347183,W,3.019,89.298,180320,11.5985,E,D*14
+#
+# --- quectel-l76k-nmea.log: GSA (NMEA 4.10 GNSS system id in field 18) ---
+$GNGSA,A,3,02,07,14,15,17,20,22,30,,,,,1.5,0.9,1.2,1*3C
+$GNGSA,A,3,13,27,37,,,,,,,,,,1.5,0.9,1.2,4*39
+$GNGSA,A,3,73,84,83,,,,,,,,,,1.5,0.9,1.2,2*3F
+#
+# --- quectel-l76k-nmea.log: GSV variants (NMEA 4.1 signal id; a record
+#     with empty el/az but present ss; multi-constellation talkers) ---
+$GPGSV,3,1,12,01,17,083,03,02,20,056,27,07,18,123,25,08,,,15,0*58
+$GPGSV,3,2,12,14,79,041,29,15,31,297,21,17,54,166,28,19,24,192,23,0*62
+$GPGSV,3,3,12,20,47,263,20,22,78,280,15,24,07,305,,30,57,127,31,0*63
+$GLGSV,3,1,10,74,52,302,,82,25,034,33,73,59,049,31,80,10,081,21,0*71
+$BDGSV,1,1,03,13,19,043,17,27,38,127,33,37,36,091,24,0*49
