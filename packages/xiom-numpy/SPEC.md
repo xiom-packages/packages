@@ -1,8 +1,8 @@
 # xiom.numpy -- SPEC
 
 **Phase**: 2a (Core Storage) | **Priority**: CRITICAL
-**Status**: Phase 2a GREEN -- 67/67 conformance checks x2 (compiler v0.64.5, 2026-10-16); Phase-1 link bridge retained at `bridge/numpy_bridge.c` for the Phase-2b element-wise/linear-algebra seam
-**Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend) -- both Phase 2b+ only; the suite runs without either.
+**Status**: Phase 2b GREEN -- 83/83 conformance checks x2 (compiler v0.64.5, 2026-10-16); Phase-1 link bridge retained at `bridge/numpy_bridge.c` as the acceleration seam (not called by the module)
+**Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend) -- consumed as a PATH dep (`xiom.toml`) for the Phase-2b `dot`/`matmul` compute path.
 
 ## What it wraps
 NumPy C API -- the fundamental array computing library for scientific Python.
@@ -39,9 +39,31 @@ We compile a thin C bridge that calls `PyArray_*` functions (which are C, not Py
   independence and free semantics are conformance-checked).
 - The C-bridge seam is preserved, not removed: `bridge/numpy_bridge.c` +
   `port.args.json` still link the element-wise (`add/sub/mul/div`) and
-  linear-algebra (`dot/matmul`) entry points. Those wrappers still return
-  `Err` (Phase 2b owns them); a future PyArray/OpenBLAS acceleration would be
-  linked behind this same seam without changing the `NDArray` surface.
+  linear-algebra (`dot/matmul`) entry points. A future PyArray / real-BLAS
+  acceleration would be linked behind this same seam without changing the
+  `NDArray` surface; the module itself no longer calls it.
+
+## Phase-2b design note: element-wise + linear algebra on native storage (2026-10-16)
+- Element-wise `array_add`/`array_sub`/`array_mul`/`array_div` are pure-XIOM
+  loops over the Phase-2a arena. Same-shape rule: operands must have identical
+  `ndim` and identical extents on every axis, else typed
+  `Err("numpy: <op> shape mismatch")`. The result is a fresh array (same shape,
+  same dtype as the left operand) in new arena slots; operands are never
+  aliased or mutated.
+- Division policy (fail-closed): `array_div` treats any zero divisor element as
+  an error. The first `b[k] == 0.0` aborts the whole op with
+  `Err("numpy: array_div division by zero")`; no partial result is committed.
+  This is deliberate: no IEEE `inf`/`NaN` is produced.
+- `array_dot`/`array_matmul` delegate to the `xiom.openblas` declared surface
+  (`dot` for 1-D inner products, `gemm` for 2-D products). The openblas pool is
+  row-major with `index = row * cols + col`, the same layout as this arena, so
+  no transpose/marshal is needed. `array_dot` accepts 1-D . 1-D (inner product,
+  returned as shape `[1]`) or 2-D . 2-D (matrix product, identical to
+  `array_matmul`); any other rank pair fails with `Err`. `array_matmul` is
+  strictly 2-D x 2-D with a matching inner dimension. All rank/shape violations
+  are typed `Err`.
+- `xiom.openblas` is wired as a PATH dependency in `xiom.toml` (the
+  `xiom-llm` precedent); the legacy `package.xi` `deps:` block lists it too.
 - Surface deltas from the Phase-1 sketch in the API block below: `get`/`set`
   now return typed `Result[Float64, Str]` / `Result[(), Str]` so out-of-bounds
   and rank errors are typed (bounds are runtime facts, not static contracts);

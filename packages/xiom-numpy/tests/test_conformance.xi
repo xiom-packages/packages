@@ -46,6 +46,49 @@ fn fd1(a: Float64) -> Vec[Float64] {
   return s;
 }
 
+fn fd2(a: Float64, b: Float64) -> Vec[Float64] {
+  var s = Vec[Float64].new();
+  s.push(a); s.push(b);
+  return s;
+}
+
+fn fd3(a: Float64, b: Float64, c: Float64) -> Vec[Float64] {
+  var s = Vec[Float64].new();
+  s.push(a); s.push(b); s.push(c);
+  return s;
+}
+
+fn fd4(a: Float64, b: Float64, c: Float64, d: Float64) -> Vec[Float64] {
+  var s = Vec[Float64].new();
+  s.push(a); s.push(b); s.push(c); s.push(d);
+  return s;
+}
+
+fn fd6(a: Float64, b: Float64, c: Float64, d: Float64, e: Float64, f: Float64) -> Vec[Float64] {
+  var s = Vec[Float64].new();
+  s.push(a); s.push(b); s.push(c); s.push(d); s.push(e); s.push(f);
+  return s;
+}
+
+fn fd9(a: Float64, b: Float64, c: Float64, d: Float64, e: Float64, f: Float64, g: Float64, h: Float64, i: Float64) -> Vec[Float64] {
+  var s = Vec[Float64].new();
+  s.push(a); s.push(b); s.push(c); s.push(d); s.push(e); s.push(f); s.push(g); s.push(h); s.push(i);
+  return s;
+}
+
+// Build an array from data+shape (0 on failure).
+fn mk(data: &Vec[Float64], shape: &Vec[Int]) -> NDArray {
+  return nd(array_from_data(data, shape));
+}
+
+fn get_1d(h: NDArray, i: Int, want: Float64) -> Bool {
+  return get_is(h, v1(i), want);
+}
+
+fn get_2d(h: NDArray, i: Int, j: Int, want: Float64) -> Bool {
+  return get_is(h, v2(i, j), want);
+}
+
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
   var num = n;
@@ -473,43 +516,157 @@ fn test_new_after_free_distinct() -> TestResult {
 }
 
 // ---------------------------------------------------------------------------
-// Phase-2b ops still report the pending backend
+// Phase-2b element-wise math -- golden values (hand-computed)
 // ---------------------------------------------------------------------------
 
-fn test_add_pending_err() -> TestResult {
-  var a = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
-  var b = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
-  return xiom.test.assert(err_nd(array_add(&a, &b)), "ops: array_add returns Err (Phase 2b)");
+fn test_add_1d_golden() -> TestResult {
+  var a = mk(&fd3(1.0, 2.0, 3.0), &v1(3));
+  var b = mk(&fd3(10.0, 20.0, 30.0), &v1(3));
+  let h = nd(array_add(&a, &b));
+  return xiom.test.assert(h > 0 && get_1d(h, 0, 11.0) && get_1d(h, 1, 22.0) && get_1d(h, 2, 33.0), "ops: add [1,2,3]+[10,20,30] == [11,22,33]");
 }
 
-fn test_sub_pending_err() -> TestResult {
-  var a = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
-  var b = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
-  return xiom.test.assert(err_nd(array_sub(&a, &b)), "ops: array_sub returns Err (Phase 2b)");
+fn test_add_shape_preserved() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  var b = mk(&fd4(1.0, 1.0, 1.0, 1.0), &v2(2, 2));
+  let h = nd(array_add(&a, &b));
+  return xiom.test.assert(shape_is(h, v2(2, 2)) && get_2d(h, 1, 1, 5.0), "ops: add keeps 2d shape and values");
 }
 
-fn test_mul_pending_err() -> TestResult {
-  var a = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
-  var b = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
-  return xiom.test.assert(err_nd(array_mul(&a, &b)), "ops: array_mul returns Err (Phase 2b)");
+fn test_sub_negatives_fractional_golden() -> TestResult {
+  var a = mk(&fd3(1.5, -2.0, 3.25), &v1(3));
+  var b = mk(&fd3(0.5, 2.0, -1.25), &v1(3));
+  let h = nd(array_sub(&a, &b));
+  return xiom.test.assert(h > 0 && get_1d(h, 0, 1.0) && get_1d(h, 1, -4.0) && get_1d(h, 2, 4.5), "ops: sub fractional/negatives == [1,-4,4.5]");
 }
 
-fn test_div_pending_err() -> TestResult {
-  var a = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
-  var b = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
-  return xiom.test.assert(err_nd(array_div(&a, &b)), "ops: array_div returns Err (Phase 2b)");
+fn test_mul_negatives_fractional_golden() -> TestResult {
+  var a = mk(&fd3(2.0, -3.0, 0.5), &v1(3));
+  var b = mk(&fd3(1.5, 4.0, -2.0), &v1(3));
+  let h = nd(array_mul(&a, &b));
+  return xiom.test.assert(h > 0 && get_1d(h, 0, 3.0) && get_1d(h, 1, -12.0) && get_1d(h, 2, -1.0), "ops: mul fractional/negatives == [3,-12,-1]");
 }
 
-fn test_dot_pending_err() -> TestResult {
+fn test_div_fractional_golden() -> TestResult {
+  var a = mk(&fd3(1.0, 2.0, -9.0), &v1(3));
+  var b = mk(&fd3(2.0, 4.0, 3.0), &v1(3));
+  let h = nd(array_div(&a, &b));
+  return xiom.test.assert(h > 0 && get_1d(h, 0, 0.5) && get_1d(h, 1, 0.5) && get_1d(h, 2, -3.0), "ops: div == [0.5,0.5,-3]");
+}
+
+fn test_add_shape_mismatch_err() -> TestResult {
+  var a = mk(&fd2(1.0, 2.0), &v1(2));
+  var b = mk(&fd3(1.0, 2.0, 3.0), &v1(3));
+  return xiom.test.assert(err_nd(array_add(&a, &b)), "ops: add shape mismatch returns Err");
+}
+
+fn test_add_rank_mismatch_err() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  var b = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v1(4));
+  return xiom.test.assert(err_nd(array_add(&a, &b)), "ops: add rank mismatch returns Err");
+}
+
+fn test_mul_shape_mismatch_err() -> TestResult {
+  var a = mk(&fd2(2.0, 3.0), &v1(2));
+  var b = mk(&fd4(1.0, 1.0, 1.0, 1.0), &v2(2, 2));
+  return xiom.test.assert(err_nd(array_mul(&a, &b)), "ops: mul shape mismatch returns Err");
+}
+
+fn test_div_by_zero_err() -> TestResult {
+  var a = mk(&fd3(1.0, 2.0, 3.0), &v1(3));
+  var b = mk(&fd3(1.0, 0.0, 3.0), &v1(3));
+  return xiom.test.assert(err_nd(array_div(&a, &b)), "ops: div by zero element returns Err (fail-closed)");
+}
+
+fn test_binary_op_invalid_handle_err() -> TestResult {
+  var a = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  array_free(a);
+  var b = mk(&fd2(1.0, 1.0), &v1(2));
+  return xiom.test.assert(err_nd(array_add(&a, &b)), "ops: add on freed handle returns Err");
+}
+
+fn test_binary_op_does_not_mutate_operands() -> TestResult {
+  var a = mk(&fd2(1.0, 2.0), &v1(2));
+  var b = mk(&fd2(3.0, 4.0), &v1(2));
+  let h = nd(array_add(&a, &b));
+  return xiom.test.assert(h > 0 && get_1d(a, 0, 1.0) && get_1d(b, 0, 3.0), "ops: operands unchanged after add");
+}
+
+// ---------------------------------------------------------------------------
+// Phase-2b linear algebra -- golden values (hand-computed)
+// ---------------------------------------------------------------------------
+
+fn test_dot_vector_golden() -> TestResult {
+  var x = mk(&fd3(1.0, 2.0, 3.0), &v1(3));
+  var y = mk(&fd3(4.0, 5.0, 6.0), &v1(3));
+  let h = nd(array_dot(&x, &y));
+  return xiom.test.assert(array_size(&h) == 1 && get_1d(h, 0, 32.0), "linalg: dot [1,2,3].[4,5,6] == 32");
+}
+
+fn test_dot_vector_fractional_golden() -> TestResult {
+  var x = mk(&fd2(1.5, 2.0), &v1(2));
+  var y = mk(&fd2(2.0, -1.0), &v1(2));
+  let h = nd(array_dot(&x, &y));
+  return xiom.test.assert(get_1d(h, 0, 1.0), "linalg: dot [1.5,2].[2,-1] == 1");
+}
+
+fn test_dot_vector_length_mismatch_err() -> TestResult {
+  var x = mk(&fd2(1.0, 2.0), &v1(2));
+  var y = mk(&fd3(1.0, 2.0, 3.0), &v1(3));
+  return xiom.test.assert(err_nd(array_dot(&x, &y)), "linalg: dot length mismatch returns Err");
+}
+
+fn test_dot_rank_mismatch_err() -> TestResult {
+  var x = mk(&fd2(1.0, 2.0), &v1(2));
+  var y = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  return xiom.test.assert(err_nd(array_dot(&x, &y)), "linalg: dot 1d.2d returns Err");
+}
+
+fn test_dot_2d_equals_matmul_golden() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  var b = mk(&fd4(5.0, 6.0, 7.0, 8.0), &v2(2, 2));
+  let h = nd(array_dot(&a, &b));
+  return xiom.test.assert(get_2d(h, 0, 0, 19.0) && get_2d(h, 0, 1, 22.0) && get_2d(h, 1, 0, 43.0) && get_2d(h, 1, 1, 50.0), "linalg: dot 2d == [[19,22],[43,50]]");
+}
+
+fn test_matmul_2x2_golden() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  var b = mk(&fd4(5.0, 6.0, 7.0, 8.0), &v2(2, 2));
+  let h = nd(array_matmul(&a, &b));
+  return xiom.test.assert(shape_is(h, v2(2, 2)) && get_2d(h, 0, 0, 19.0) && get_2d(h, 0, 1, 22.0) && get_2d(h, 1, 0, 43.0) && get_2d(h, 1, 1, 50.0), "linalg: matmul [[1,2],[3,4]]*[[5,6],[7,8]] == [[19,22],[43,50]]");
+}
+
+fn test_matmul_nonsquare_golden() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  var b = mk(&fd6(7.0, 8.0, 9.0, 10.0, 11.0, 12.0), &v2(3, 2));
+  let h = nd(array_matmul(&a, &b));
+  return xiom.test.assert(shape_is(h, v2(2, 2)) && get_2d(h, 0, 0, 58.0) && get_2d(h, 0, 1, 64.0) && get_2d(h, 1, 0, 139.0) && get_2d(h, 1, 1, 154.0), "linalg: matmul 2x3 * 3x2 == [[58,64],[139,154]]");
+}
+
+fn test_matmul_identity_golden() -> TestResult {
+  var a = mk(&fd9(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0), &v2(3, 3));
+  var i = mk(&fd9(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), &v2(3, 3));
+  let h = nd(array_matmul(&a, &i));
+  return xiom.test.assert(get_2d(h, 0, 0, 1.0) && get_2d(h, 1, 2, 6.0) && get_2d(h, 2, 1, 8.0), "linalg: matmul by identity preserves A");
+}
+
+fn test_matmul_inner_mismatch_err() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  var b = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  return xiom.test.assert(err_nd(array_matmul(&a, &b)), "linalg: matmul inner mismatch returns Err");
+}
+
+fn test_matmul_rank_mismatch_err() -> TestResult {
+  var a = mk(&fd2(1.0, 2.0), &v1(2));
+  var b = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  return xiom.test.assert(err_nd(array_matmul(&a, &b)), "linalg: matmul 1d operand returns Err");
+}
+
+fn test_matmul_invalid_handle_err() -> TestResult {
   var a = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
-  var b = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
-  return xiom.test.assert(err_nd(array_dot(&a, &b)), "linalg: array_dot returns Err (Phase 2b)");
-}
-
-fn test_matmul_pending_err() -> TestResult {
-  var a = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
-  var b = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
-  return xiom.test.assert(err_nd(array_matmul(&a, &b)), "linalg: array_matmul returns Err (Phase 2b)");
+  array_free(a);
+  var b = mk(&fd4(1.0, 2.0, 3.0, 4.0), &v2(2, 2));
+  return xiom.test.assert(err_nd(array_matmul(&a, &b)), "linalg: matmul on freed handle returns Err");
 }
 
 // ---------------------------------------------------------------------------
@@ -613,12 +770,29 @@ pub fn main() -> Int {
   results.push(test_free_does_not_affect_other());
   results.push(test_new_after_free_distinct());
 
-  results.push(test_add_pending_err());
-  results.push(test_sub_pending_err());
-  results.push(test_mul_pending_err());
-  results.push(test_div_pending_err());
-  results.push(test_dot_pending_err());
-  results.push(test_matmul_pending_err());
+  results.push(test_add_1d_golden());
+  results.push(test_add_shape_preserved());
+  results.push(test_sub_negatives_fractional_golden());
+  results.push(test_mul_negatives_fractional_golden());
+  results.push(test_div_fractional_golden());
+  results.push(test_add_shape_mismatch_err());
+  results.push(test_add_rank_mismatch_err());
+  results.push(test_mul_shape_mismatch_err());
+  results.push(test_div_by_zero_err());
+  results.push(test_binary_op_invalid_handle_err());
+  results.push(test_binary_op_does_not_mutate_operands());
+
+  results.push(test_dot_vector_golden());
+  results.push(test_dot_vector_fractional_golden());
+  results.push(test_dot_vector_length_mismatch_err());
+  results.push(test_dot_rank_mismatch_err());
+  results.push(test_dot_2d_equals_matmul_golden());
+  results.push(test_matmul_2x2_golden());
+  results.push(test_matmul_nonsquare_golden());
+  results.push(test_matmul_identity_golden());
+  results.push(test_matmul_inner_mismatch_err());
+  results.push(test_matmul_rank_mismatch_err());
+  results.push(test_matmul_invalid_handle_err());
 
   results.push(test_contract_array_new());
   results.push(test_contract_array_from_data());

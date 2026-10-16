@@ -1,5 +1,7 @@
 module xiom.numpy
 
+use xiom.openblas;
+
 // xiom.numpy -- Phase 2a core storage (pure XIOM).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
@@ -7,15 +9,20 @@ module xiom.numpy
 // Phase 2a replaces the Phase-1 "backend unavailable" fallback for the core
 // storage leg with REAL, self-contained storage: an Int handle registry over a
 // flat f64 value buffer plus per-handle shape/dtype metadata. No NumPy, no
-// Python, no OpenBLAS, no FFI on any creation/access path -- registry consumers
-// cannot assume a Python+numpy install, so native storage is the contract.
-// The C-bridge seam (bridge/numpy_bridge.c, wired via port.args.json) is kept
-// for the element-wise/linear-algebra leg owned by Phase 2b, which is where a
-// PyArray_* / OpenBLAS backend may be linked for acceleration.
+// Python, no FFI on any creation/access path -- registry consumers cannot
+// assume a Python+numpy install, so native storage is the contract.
 //
-// Element-wise (add/sub/mul/div) and linear-algebra (dot/matmul) are NOT part
-// of Phase 2a: their wrappers still report the not-yet-implemented backend via
-// the bridge, exactly as Phase 1 did.
+// Phase 2b (this pass) lands the element-wise and linear-algebra leg on top of
+// that storage, still with no FFI on the compute path:
+//   * add/sub/mul/div are pure-XIOM element-wise loops with a same-shape rule
+//     (identical ndim + extents) that fails closed with a typed Err; div is
+//     fail-closed on any zero divisor element.
+//   * dot/matmul delegate to the xiom.openblas declared surface (pure-XIOM
+//     reference paths: dot for 1-D inner products, gemm for 2-D products over
+//     the pool's row-major layout, which matches this arena's layout).
+// The C-bridge seam (bridge/numpy_bridge.c, wired via port.args.json) is
+// retained for a future PyArray_* / real-BLAS acceleration behind the same
+// NDArray surface; nothing in this module calls it.
 
 pub type NDArray = Int;
 pub type DType = Int;
@@ -350,81 +357,235 @@ pub fn is_valid_dtype(dtype: DType) -> Bool {
 }
 
 // ---------------------------------------------------------------------------
-// Phase 2b seam: element-wise and linear algebra still report the pending
-// backend through the package-local bridge (bridge/numpy_bridge.c).
+// Phase 2b: element-wise math over the REAL storage (pure XIOM, no FFI).
 // ---------------------------------------------------------------------------
+// Same-shape rule: both operands must have identical ndim and identical extent
+// on every axis; anything else fails closed with a typed Err. The result is a
+// fresh array (same shape, same dtype as the left operand) backed by new slots
+// in the value arena, so operands are never aliased or mutated.
+//
+// Division policy (documented, fail-closed): array_div treats a zero divisor
+// element as an error, not IEEE inf/NaN. The first element where b == 0.0
+// aborts the whole op with Err("numpy: array_div division by zero"); no partial
+// result is committed or returned.
 
-extern "C" {
-  fn numpy_c_array_add(a: Int, b: Int) -> Int;
-  fn numpy_c_array_sub(a: Int, b: Int) -> Int;
-  fn numpy_c_array_mul(a: Int, b: Int) -> Int;
-  fn numpy_c_array_div(a: Int, b: Int) -> Int;
-  fn numpy_c_array_dot(a: Int, b: Int) -> Int;
-  fn numpy_c_array_matmul(a: Int, b: Int) -> Int;
+// True when slots ia and ib have equal ndim and equal extents on every axis.
+fn _nd_shape_eq(ia: Int, ib: Int) -> Bool {
+  let nd = _nd_ndim[ia];
+  if nd != _nd_ndim[ib] { return false; };
+  let so = _nd_shape_off[ia];
+  let sp = _nd_shape_off[ib];
+  var k = 0;
+  while k < nd {
+    if _nd_shape[so + k] != _nd_shape[sp + k] { return false; };
+    k = k + 1;
+  };
+  return true;
+}
+
+// Append a fresh slot copying `shape` of slot `src` and the values in `vals`.
+fn _nd_like(src: Int, vals: &Vec[Float64]) -> NDArray {
+  var sh: Vec[Int] = Vec[Int].new();
+  let nd = _nd_ndim[src];
+  let so = _nd_shape_off[src];
+  var k = 0;
+  while k < nd {
+    sh.push(_nd_shape[so + k]);
+    k = k + 1;
+  };
+  return _nd_alloc_from(vals, &sh, _nd_dtype[src]);
+}
+
+// kind: 0 = add, 1 = sub, 2 = mul, 3 = div (fail-closed on zero divisor).
+fn _nd_elementwise(ha: Int, hb: Int, kind: Int, op: Str) -> Result[NDArray, Str] {
+  if !_nd_valid(ha) || !_nd_valid(hb) {
+    return Err("numpy: " + op + " invalid handle");
+  };
+  let ia = ha - 1;
+  let ib = hb - 1;
+  if !_nd_shape_eq(ia, ib) {
+    return Err("numpy: " + op + " shape mismatch");
+  };
+  let n = _nd_size[ia];
+  let ba = _nd_base[ia];
+  let bb = _nd_base[ib];
+  var out: Vec[Float64] = Vec[Float64].new();
+  var k = 0;
+  while k < n {
+    let x = _nd_data[ba + k];
+    let y = _nd_data[bb + k];
+    if kind == 0 {
+      out.push(x + y);
+    } elif kind == 1 {
+      out.push(x - y);
+    } elif kind == 2 {
+      out.push(x * y);
+    } else {
+      if y == 0.0 {
+        return Err("numpy: array_div division by zero");
+      };
+      out.push(x / y);
+    };
+    k = k + 1;
+  };
+  return Ok(_nd_like(ia, &out));
 }
 
 pub fn array_add(a: &NDArray, b: &NDArray) -> Result[NDArray, Str]
   requires: a != 0
   requires: b != 0
 {
-  let handle: Int = unsafe { numpy_c_array_add(*a, *b) };
-  if handle <= 0 {
-    return Err("numpy_c_array_add: FFI bridge not linked or shape mismatch");
-  };
-  return Ok(handle);
+  return _nd_elementwise(*a, *b, 0, "array_add");
 }
 
 pub fn array_sub(a: &NDArray, b: &NDArray) -> Result[NDArray, Str]
   requires: a != 0
   requires: b != 0
 {
-  let handle: Int = unsafe { numpy_c_array_sub(*a, *b) };
-  if handle <= 0 {
-    return Err("numpy_c_array_sub: FFI bridge not linked or shape mismatch");
-  };
-  return Ok(handle);
+  return _nd_elementwise(*a, *b, 1, "array_sub");
 }
 
 pub fn array_mul(a: &NDArray, b: &NDArray) -> Result[NDArray, Str]
   requires: a != 0
   requires: b != 0
 {
-  let handle: Int = unsafe { numpy_c_array_mul(*a, *b) };
-  if handle <= 0 {
-    return Err("numpy_c_array_mul: FFI bridge not linked or shape mismatch");
-  };
-  return Ok(handle);
+  return _nd_elementwise(*a, *b, 2, "array_mul");
 }
 
 pub fn array_div(a: &NDArray, b: &NDArray) -> Result[NDArray, Str]
   requires: a != 0
   requires: b != 0
 {
-  let handle: Int = unsafe { numpy_c_array_div(*a, *b) };
-  if handle <= 0 {
-    return Err("numpy_c_array_div: FFI bridge not linked or shape mismatch");
-  };
-  return Ok(handle);
+  return _nd_elementwise(*a, *b, 3, "array_div");
 }
 
+// ---------------------------------------------------------------------------
+// Phase 2b: linear algebra. Delegates to the xiom.openblas declared surface
+// (pure-XIOM reference paths: dot for vector inner products, gemm for 2-D
+// matrix products over the pool's row-major layout). x.shape[0] * ... indexing
+// matches the openblas pool's index = row * cols + col, so the layout fits.
+// ---------------------------------------------------------------------------
+
+// Copy slot `i`'s row-major values into a flat Vec (order preserved).
+fn _nd_flat(i: Int) -> Vec[Float64] {
+  var v: Vec[Float64] = Vec[Float64].new();
+  var k = 0;
+  while k < _nd_size[i] {
+    v.push(_nd_data[_nd_base[i] + k]);
+    k = k + 1;
+  };
+  return v;
+}
+
+// 2-D x 2-D matrix product via xiom.openblas.gemm (row-major pool layout).
+fn _nd_matmul_2d(ia: Int, ib: Int) -> Result[NDArray, Str] {
+  let sa = _nd_shape_off[ia];
+  let sb = _nd_shape_off[ib];
+  let arows = _nd_shape[sa + 0];
+  let acols = _nd_shape[sa + 1];
+  let brows = _nd_shape[sb + 0];
+  let bcols = _nd_shape[sb + 1];
+  if acols != brows {
+    return Err("numpy: array_matmul inner dimension mismatch");
+  };
+  let m = arows;
+  let n = bcols;
+  let k = acols;
+  if m <= 0 || n <= 0 || k <= 0 {
+    return Err("numpy: array_matmul empty dimension");
+  };
+  var ma = xiom.openblas.matrix_create(m, k)?;
+  var mb = xiom.openblas.matrix_create(k, n)?;
+  var mc = xiom.openblas.matrix_create(m, n)?;
+  var i = 0;
+  while i < m {
+    var j = 0;
+    while j < k {
+      xiom.openblas.matrix_set(&mut ma, i, j, _nd_data[_nd_base[ia] + i * k + j]);
+      j = j + 1;
+    };
+    i = i + 1;
+  };
+  i = 0;
+  while i < k {
+    var j = 0;
+    while j < n {
+      xiom.openblas.matrix_set(&mut mb, i, j, _nd_data[_nd_base[ib] + i * n + j]);
+      j = j + 1;
+    };
+    i = i + 1;
+  };
+  xiom.openblas.gemm(false, false, m, n, k, 1.0, &ma, &mb, 0.0, &mut mc);
+  var out: Vec[Float64] = Vec[Float64].new();
+  i = 0;
+  while i < m {
+    var j = 0;
+    while j < n {
+      out.push(xiom.openblas.matrix_get(&mc, i, j));
+      j = j + 1;
+    };
+    i = i + 1;
+  };
+  xiom.openblas.matrix_free(ma);
+  xiom.openblas.matrix_free(mb);
+  xiom.openblas.matrix_free(mc);
+  var sh: Vec[Int] = Vec[Int].new();
+  sh.push(m);
+  sh.push(n);
+  return Ok(_nd_alloc_from(&out, &sh, DTYPE_FLOAT64));
+}
+
+// numpy dot: 1-D . 1-D -> inner product (shape [1]); 2-D . 2-D -> matrix product.
 pub fn array_dot(a: &NDArray, b: &NDArray) -> Result[NDArray, Str]
   requires: a != 0
   requires: b != 0
 {
-  let handle: Int = unsafe { numpy_c_array_dot(*a, *b) };
-  if handle <= 0 {
-    return Err("numpy_c_array_dot: FFI bridge not linked or dimension mismatch");
+  let ha: Int = *a;
+  let hb: Int = *b;
+  if !_nd_valid(ha) || !_nd_valid(hb) {
+    return Err("numpy: array_dot invalid handle");
   };
-  return Ok(handle);
+  let ia = ha - 1;
+  let ib = hb - 1;
+  let nda = _nd_ndim[ia];
+  let ndb = _nd_ndim[ib];
+  if nda == 1 && ndb == 1 {
+    let n = _nd_size[ia];
+    if n != _nd_size[ib] {
+      return Err("numpy: array_dot shape mismatch");
+    };
+    if n <= 0 {
+      return Err("numpy: array_dot empty vector");
+    };
+    let x = _nd_flat(ia);
+    let y = _nd_flat(ib);
+    let s = xiom.openblas.dot(&x, &y, n);
+    var out: Vec[Float64] = Vec[Float64].new();
+    out.push(s);
+    var sh: Vec[Int] = Vec[Int].new();
+    sh.push(1);
+    return Ok(_nd_alloc_from(&out, &sh, DTYPE_FLOAT64));
+  };
+  if nda == 2 && ndb == 2 {
+    return _nd_matmul_2d(ia, ib);
+  };
+  return Err("numpy: array_dot rank mismatch");
 }
 
+// numpy matmul: strictly 2-D x 2-D; inner dimensions must agree.
 pub fn array_matmul(a: &NDArray, b: &NDArray) -> Result[NDArray, Str]
   requires: a != 0
   requires: b != 0
 {
-  let handle: Int = unsafe { numpy_c_array_matmul(*a, *b) };
-  if handle <= 0 {
-    return Err("numpy_c_array_matmul: FFI bridge not linked or dimension mismatch");
+  let ha: Int = *a;
+  let hb: Int = *b;
+  if !_nd_valid(ha) || !_nd_valid(hb) {
+    return Err("numpy: array_matmul invalid handle");
   };
-  return Ok(handle);
+  let ia = ha - 1;
+  let ib = hb - 1;
+  if _nd_ndim[ia] != 2 || _nd_ndim[ib] != 2 {
+    return Err("numpy: array_matmul rank mismatch (requires 2-D)");
+  };
+  return _nd_matmul_2d(ia, ib);
 }
