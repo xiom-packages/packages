@@ -1387,6 +1387,26 @@ LANDED; B-32 restore session launched)**:
     (m351).  R2 remaining: onnx + gps (record phase) + epos
     (relaunched session).
 
+**UPDATE 2026-10-16 21:45Z (R2: onnx + gps LANDED; validate 565/0)**:
+- **`xiom.onnx 0.1.0` (full C-API coverage) LANDED** (land
+  `7485c6d5` + record `508bb5e9` + namespace registration): 95-slot
+  runtime loader + session/tensor/value/allocator/run-options +
+  high-level `load_model`/`onnx_run`; integration **x2 56/56 with a
+  LIVE ORT leg** (real `A+B -> C` inference through Run/RunOptions +
+  io-binding; onnxruntime.dll 1.17.1 on the reset box / 1.31.0 in the
+  agent's run); publish `REL-20261016-2144-bindings` (existing name;
+  bump to 0.2.0 if the registry already holds the stub line).
+- **`xiom.gps 0.1.0` LANDED** (land `d16b2b61` + record `f2d2061f`):
+  pure-XIOM gpsd JSON client + NMEA 0183 parsers (GGA/RMC/GSA/GSV;
+  recorded upstream fixtures byte-pinned); integration **x2 28/28**
+  (live client SKIPs typed without gpsd); publish
+  `-2144-bindings-2` (NEW name; ops scope).
+- validate **565/0**.  **R2 state: serial/ros2/v4l/onnx/gps ALL
+  LANDED**; epos in flight (branch advanced `6a9f3afe`); B-32 restore
+  session active (`feat/sqlite-nested-restore`).
+- Publishes in queue: serial, ros2, v4l, onnx, gps (5 items) + the
+    earlier family closes.
+
 **UPDATE 2026-10-16 19:25Z (ML/AI + robotics program -- acked + queue
 folded; 20 built names confirmed)**: owner directive (19:16Z) relayed by
 packages; handled this pass.
