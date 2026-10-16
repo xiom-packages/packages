@@ -994,6 +994,244 @@ fn test_inv_invalid_handle_err() -> TestResult {
 }
 
 // ---------------------------------------------------------------------------
+// Phase-3c SVD -- golden values (hand-computed f64) and structural checks
+// ---------------------------------------------------------------------------
+// Tolerances (pinned in SPEC.md): singular-value goldens 1e-9, reconstruction
+// A == U*S*V^T 1e-9, orthogonality U^T U == I (and Vt V == I) 1e-9.
+
+fn close_tol(a: Float64, b: Float64, tol: Float64) -> Bool {
+  if a < b { return (b - a) <= tol; }
+  return (a - b) <= tol;
+}
+
+fn err_svd(r: Result[(NDArray, NDArray, NDArray), Str]) -> Bool {
+  match r {
+    Ok(_) => { return false; },
+    Err(_) => { return true; },
+  };
+}
+
+fn svd_u(h: NDArray) -> NDArray {
+  match array_svd(&h) {
+    Ok((u, _s, _vt)) => { return u; },
+    Err(_) => { return 0; },
+  };
+}
+
+fn svd_s(h: NDArray) -> NDArray {
+  match array_svd(&h) {
+    Ok((_u, s, _vt)) => { return s; },
+    Err(_) => { return 0; },
+  };
+}
+
+fn svd_vt(h: NDArray) -> NDArray {
+  match array_svd(&h) {
+    Ok((_u, _s, vt)) => { return vt; },
+    Err(_) => { return 0; },
+  };
+}
+
+fn mat_close_2d(a: NDArray, b: NDArray, rows: Int, cols: Int, tol: Float64) -> Bool {
+  if a <= 0 || b <= 0 { return false; }
+  var i = 0;
+  while i < rows {
+    var j = 0;
+    while j < cols {
+      let ra = array_get(&a, &v2(i, j));
+      let rb = array_get(&b, &v2(i, j));
+      var ok = false;
+      match ra {
+        Ok(x) => {
+          match rb {
+            Ok(y) => { if close_tol(x, y, tol) { ok = true; }; },
+            Err(_) => { ok = false; },
+          };
+        },
+        Err(_) => { ok = false; },
+      };
+      if !ok { return false; };
+      j = j + 1;
+    };
+    i = i + 1;
+  };
+  return true;
+}
+
+fn is_identity_2d(h: NDArray, n: Int, tol: Float64) -> Bool {
+  if h <= 0 { return false; }
+  var i = 0;
+  while i < n {
+    var j = 0;
+    while j < n {
+      var want = 0.0;
+      if i == j { want = 1.0; };
+      let r = array_get(&h, &v2(i, j));
+      var ok = false;
+      match r {
+        Ok(x) => { if close_tol(x, want, tol) { ok = true; }; },
+        Err(_) => { ok = false; },
+      };
+      if !ok { return false; };
+      j = j + 1;
+    };
+    i = i + 1;
+  };
+  return true;
+}
+
+fn diag_get(h: NDArray, k: Int) -> Float64 {
+  if h <= 0 { return -1.0e300; }
+  let r = array_get(&h, &v2(k, k));
+  match r {
+    Ok(x) => { return x; },
+    Err(_) => { return -1.0e300; },
+  };
+}
+
+fn test_svd_2x2_closed_form() -> TestResult {
+  var a = mk(&fd4(2.0, 1.0, 1.0, 2.0), &v2(2, 2));
+  let s = svd_s(a);
+  return xiom.test.assert(shape_is(s, v2(2, 2))
+    && close_tol(diag_get(s, 0), 3.0, 0.000000001)
+    && close_tol(diag_get(s, 1), 1.0, 0.000000001)
+    && close_tol(diag_get(s, 0) + diag_get(s, 1), 4.0, 0.000000001),
+    "svd: 2x2 [[2,1],[1,2]] singular values 3,1 (closed form)");
+}
+
+fn test_svd_2x2_nonsym_golden() -> TestResult {
+  var a = mk(&fd4(3.0, 0.0, 4.0, 5.0), &v2(2, 2));
+  let s = svd_s(a);
+  return xiom.test.assert(close_tol(diag_get(s, 0), 6.7082039324993694, 0.000000001)
+    && close_tol(diag_get(s, 1), 2.2360679774997896, 0.000000001),
+    "svd: 2x2 [[3,0],[4,5]] singular values sqrt(45), sqrt(5)");
+}
+
+fn test_svd_2x2_reconstruction() -> TestResult {
+  var a = mk(&fd4(2.0, 1.0, 1.0, 2.0), &v2(2, 2));
+  match array_svd(&a) {
+    Ok((u, s, vt)) => {
+      let us = nd(array_matmul(&u, &s));
+      let r = nd(array_matmul(&us, &vt));
+      return xiom.test.assert(mat_close_2d(r, a, 2, 2, 0.000000001), "svd: 2x2 reconstruction A == U*S*V^T");
+    },
+    Err(_) => { return xiom.test.assert(false, "svd: 2x2 reconstruction expected Ok"); },
+  };
+}
+
+fn test_svd_2x2_u_orthogonal() -> TestResult {
+  var a = mk(&fd4(2.0, 1.0, 1.0, 2.0), &v2(2, 2));
+  let u = svd_u(a);
+  let ut = nd(array_transpose(&u));
+  let p = nd(array_matmul(&ut, &u));
+  return xiom.test.assert(is_identity_2d(p, 2, 0.000000001), "svd: 2x2 U^T U == I");
+}
+
+fn test_svd_2x2_v_orthogonal() -> TestResult {
+  var a = mk(&fd4(2.0, 1.0, 1.0, 2.0), &v2(2, 2));
+  let vt = svd_vt(a);
+  let v = nd(array_transpose(&vt));
+  let p = nd(array_matmul(&vt, &v));
+  return xiom.test.assert(is_identity_2d(p, 2, 0.000000001), "svd: 2x2 Vt V == I");
+}
+
+fn test_svd_3x3_symmetric_spectrum() -> TestResult {
+  var a = mk(&fd9(2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 2.0), &v2(3, 3));
+  let s = svd_s(a);
+  return xiom.test.assert(shape_is(s, v2(3, 3))
+    && close_tol(diag_get(s, 0), 4.0, 0.000000001)
+    && close_tol(diag_get(s, 1), 1.0, 0.000000001)
+    && close_tol(diag_get(s, 2), 1.0, 0.000000001),
+    "svd: 3x3 I+J singular values 4,1,1 (known symmetric spectrum)");
+}
+
+fn test_svd_3x3_reconstruction() -> TestResult {
+  var a = mk(&fd9(2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 2.0), &v2(3, 3));
+  match array_svd(&a) {
+    Ok((u, s, vt)) => {
+      let us = nd(array_matmul(&u, &s));
+      let r = nd(array_matmul(&us, &vt));
+      return xiom.test.assert(mat_close_2d(r, a, 3, 3, 0.000000001), "svd: 3x3 reconstruction A == U*S*V^T");
+    },
+    Err(_) => { return xiom.test.assert(false, "svd: 3x3 reconstruction expected Ok"); },
+  };
+}
+
+fn test_svd_3x3_u_orthogonal() -> TestResult {
+  var a = mk(&fd9(2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 2.0), &v2(3, 3));
+  let u = svd_u(a);
+  let ut = nd(array_transpose(&u));
+  let p = nd(array_matmul(&ut, &u));
+  return xiom.test.assert(is_identity_2d(p, 3, 0.000000001), "svd: 3x3 U^T U == I");
+}
+
+fn test_svd_rank1_spectrum() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 2.0, 4.0), &v2(2, 2));
+  let s = svd_s(a);
+  return xiom.test.assert(close_tol(diag_get(s, 0), 5.0, 0.000000001) && close_tol(diag_get(s, 1), 0.0, 0.000000001),
+    "svd: rank-1 [[1,2],[2,4]] singular values 5,0");
+}
+
+fn test_svd_rank1_reconstruction() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 2.0, 4.0), &v2(2, 2));
+  match array_svd(&a) {
+    Ok((u, s, vt)) => {
+      let us = nd(array_matmul(&u, &s));
+      let r = nd(array_matmul(&us, &vt));
+      return xiom.test.assert(mat_close_2d(r, a, 2, 2, 0.000000001), "svd: rank-1 reconstruction A == U*S*V^T");
+    },
+    Err(_) => { return xiom.test.assert(false, "svd: rank-1 reconstruction expected Ok"); },
+  };
+}
+
+fn test_svd_rank1_u_orthogonal() -> TestResult {
+  var a = mk(&fd4(1.0, 2.0, 2.0, 4.0), &v2(2, 2));
+  let u = svd_u(a);
+  let ut = nd(array_transpose(&u));
+  let p = nd(array_matmul(&ut, &u));
+  return xiom.test.assert(is_identity_2d(p, 2, 0.000000001), "svd: rank-1 U^T U == I (zero-sigma column completed)");
+}
+
+fn test_svd_tall_shapes() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(3, 2));
+  match array_svd(&a) {
+    Ok((u, s, vt)) => {
+      return xiom.test.assert(shape_is(u, v2(3, 2)) && shape_is(s, v2(2, 2)) && shape_is(vt, v2(2, 2)),
+        "svd: tall 3x2 shapes U[3,2] S[2,2] Vt[2,2]");
+    },
+    Err(_) => { return xiom.test.assert(false, "svd: tall 3x2 expected Ok"); },
+  };
+}
+
+fn test_svd_tall_reconstruction() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(3, 2));
+  match array_svd(&a) {
+    Ok((u, s, vt)) => {
+      let us = nd(array_matmul(&u, &s));
+      let r = nd(array_matmul(&us, &vt));
+      return xiom.test.assert(mat_close_2d(r, a, 3, 2, 0.000000001), "svd: tall 3x2 reconstruction A == U*S*V^T");
+    },
+    Err(_) => { return xiom.test.assert(false, "svd: tall 3x2 reconstruction expected Ok"); },
+  };
+}
+
+fn test_svd_wide_err() -> TestResult {
+  var a = mk(&fd6(1.0, 2.0, 3.0, 4.0, 5.0, 6.0), &v2(2, 3));
+  return xiom.test.assert(err_svd(array_svd(&a)), "svd: wide 2x3 (m<n) returns Err (documented scope)");
+}
+
+fn test_svd_rank1d_err() -> TestResult {
+  var a = mk(&fd2(1.0, 2.0), &v1(2));
+  return xiom.test.assert(err_svd(array_svd(&a)), "svd: 1-D operand returns Err");
+}
+
+fn test_svd_invalid_handle_err() -> TestResult {
+  var a = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
+  array_free(a);
+  return xiom.test.assert(err_svd(array_svd(&a)), "svd: freed handle returns Err");
+}
+
+// ---------------------------------------------------------------------------
 // contract-presence markers
 // ---------------------------------------------------------------------------
 
@@ -1055,6 +1293,10 @@ fn test_contract_array_min() -> TestResult {
 
 fn test_contract_array_inv() -> TestResult {
   return xiom.test.assert(true, "contract: array_inv has requires: arr != 0; typed Err on singular/non-square");
+}
+
+fn test_contract_array_svd() -> TestResult {
+  return xiom.test.assert(true, "contract: array_svd has requires: arr != 0; typed Err on non-2D/wide/freed");
 }
 
 pub fn main() -> Int {
@@ -1191,6 +1433,23 @@ pub fn main() -> Int {
   results.push(test_inv_rank1d_err());
   results.push(test_inv_invalid_handle_err());
 
+  results.push(test_svd_2x2_closed_form());
+  results.push(test_svd_2x2_nonsym_golden());
+  results.push(test_svd_2x2_reconstruction());
+  results.push(test_svd_2x2_u_orthogonal());
+  results.push(test_svd_2x2_v_orthogonal());
+  results.push(test_svd_3x3_symmetric_spectrum());
+  results.push(test_svd_3x3_reconstruction());
+  results.push(test_svd_3x3_u_orthogonal());
+  results.push(test_svd_rank1_spectrum());
+  results.push(test_svd_rank1_reconstruction());
+  results.push(test_svd_rank1_u_orthogonal());
+  results.push(test_svd_tall_shapes());
+  results.push(test_svd_tall_reconstruction());
+  results.push(test_svd_wide_err());
+  results.push(test_svd_rank1d_err());
+  results.push(test_svd_invalid_handle_err());
+
   results.push(test_contract_array_new());
   results.push(test_contract_array_from_data());
   results.push(test_contract_array_arange());
@@ -1206,6 +1465,7 @@ pub fn main() -> Int {
   results.push(test_contract_array_max());
   results.push(test_contract_array_min());
   results.push(test_contract_array_inv());
+  results.push(test_contract_array_svd());
 
   let total_count = results.len();
   let report = xiom.test.format_results(results);
@@ -1220,7 +1480,7 @@ pub fn main() -> Int {
   if fail_count == 0 {
     io.println("ALL " + int_to_str(total_count) + " TESTS PASSED");
     io.println("Path: packages\\xiom-numpy\\tests\\test_conformance.xi");
-    io.println("Contracts (src/numpy.xi): creation/get/set/free/reduce/inv requires clauses; 15 contract checks in this suite");
+    io.println("Contracts (src/numpy.xi): creation/get/set/free/reduce/inv/svd requires clauses; 16 contract checks in this suite");
     return 0;
   } else {
     io.println("Path: packages\\xiom-numpy\\tests\\test_conformance.xi");

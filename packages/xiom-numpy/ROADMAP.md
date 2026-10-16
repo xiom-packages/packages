@@ -9,7 +9,7 @@
 |-------|-------------|--------|
 | 1 | Core Foundation -- types, extern C, safe wrappers, conformance tests | Done -- GREEN 30/30 x2 (v0.64.5, 2026-10-16; link bridge `bridge/numpy_bridge.c`) |
 | 2 | C bridge -- compile numpy_c_* bridge .obj, link against system NumPy + OpenBLAS | Pending |
-| 3 | Linear algebra -- SVD, inv, reductions (sum, mean, max) | Partial -- reductions + inv DONE (Phase-3b) -- GREEN 130/130 x2 (v0.64.6, 2026-10-16); SVD pending |
+| 3 | Linear algebra -- SVD, inv, reductions (sum, mean, max) | Done -- GREEN 147/147 x2 (v0.64.6, 2026-10-16); Phase-3a broadcasting/N-D + Phase-3b reductions + inv + Phase-3c SVD |
 | 4 | Broadcasting + reshaping -- reshape, transpose | DONE (first half) -- GREEN 103/103 x2 (v0.64.6, 2026-10-16) |
 | 5 | Advanced -- FFT, random, advanced indexing | Pending |
 | 6 | Interop -- zero-copy tensor sharing with xiom.libtorch, xiom.pandas | Pending |
@@ -41,7 +41,7 @@ hand-computed f64 goldens) and is GREEN x2.
 - Update `tests/test_conformance.xi`: flip the twelve "returns Err" checks to
   validate runtime results (creation, element-wise, linear algebra)
 
-## Phase 3 -- Linear algebra (reductions + inv done)
+## Phase 3 -- Linear algebra (COMPLETE)
 
 Landed (2026-10-16, v0.64.6): axis-aware reductions `array_sum` / `array_mean` /
 `array_max` / `array_min` over the flat f64 arena (`axis == -1` = full-array
@@ -50,19 +50,17 @@ reduction yielding shape `[1]`; `axis` in `[0, ndim)` drops that axis), and
 singular/non-square). Suite `tests/test_conformance.xi` grew 103 -> 130 checks
 (27 new: 14 reduction, 8 inverse, 5 contract) and is GREEN x2.
 
-Remaining Phase-3 work:
-- `svd(a: &NDArray) -> Result[(NDArray, NDArray, NDArray), Str]` -- deferred:
-  `xiom.openblas.svd` is still a Phase-1 stub (identity/zero placeholders), and a
-  correct SVD needs a one-sided Jacobi / eigen routine, not a trivial extension
-  of Gauss-Jordan. Build it once the real LAPACK wiring (or a self-contained
-  Jacobi path) exists.
-
-Historical Phase-3 plan (originally listed here):
-- `svd(a: &NDArray) -> Result[(NDArray, NDArray, NDArray), Str]`
-- `inv(a: &NDArray) -> Result[NDArray, Str]`
-- `sum(arr: &NDArray, axis: Int) -> Result[NDArray, Str]`
-- `mean(arr: &NDArray, axis: Int) -> Result[NDArray, Str]`
-- `max(arr: &NDArray, axis: Int) -> Result[NDArray, Str]`
+Phase-3c (2026-10-16, v0.64.6): `array_svd(a) ->
+Result[(NDArray, NDArray, NDArray), Str]` is now a self-contained **one-sided
+Jacobi** SVD over the flat f64 arena -- no BLAS/LAPACK, correct offline (the
+`xiom.openblas.svd` seam is still the Phase-1 identity/zero stub). Scope is 2-D
+`m >= n`; fail-closed typed `Err` on non-2-D, empty, wide (`m < n`), freed
+handle, or non-convergence within the 100-sweep cap. Rank-deficient inputs are
+supported (zero singular values plus Gram-Schmidt completion of their `U`
+columns so `U^T U == I` holds). Returns `U [m,n]`, diagonal `S [n,n]`
+(descending), `Vt [n,n]` with `A = U * S * Vt` (S-as-diagonal is a documented
+deviation from NumPy's 1-D `s`; tolerances are pinned in SPEC.md). Suite grew
+130 -> 147 checks (17 new) and is GREEN x2. **Phase 3 is complete.**
 
 ## Phase 4 -- Broadcasting + reshaping
 

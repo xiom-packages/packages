@@ -1,7 +1,7 @@
 # xiom.numpy -- SPEC
 
-**Phase**: 2a (Core Storage) | **Priority**: CRITICAL
-**Status**: Phase 3b GREEN -- 130/130 conformance checks x2 (compiler v0.64.6, 2026-10-16); reductions (sum/mean/max/min, axis-aware) + `array_inv` landed (Phase-3a 103/103 was v0.64.6); Phase-1 link bridge retained at `bridge/numpy_bridge.c` as the acceleration seam (not called by the module)
+**Phase**: 3 complete (Core Storage + linear algebra) | **Priority**: CRITICAL
+**Status**: Phase 3 COMPLETE -- 147/147 conformance checks x2 (compiler v0.64.6, 2026-10-16); Phase-3a broadcasting + N-D + reshape/transpose (103/103) and Phase-3b reductions + `array_inv` (130/130) were v0.64.6; Phase-3c adds self-contained one-sided Jacobi `array_svd` (147/147). Phase-1 link bridge retained at `bridge/numpy_bridge.c` as the acceleration seam (not called by the module)
 **Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend) -- consumed as a PATH dep (`xiom.toml`) for the Phase-2b `dot`/`matmul` compute path.
 
 ## What it wraps
@@ -113,12 +113,53 @@ We compile a thin C bridge that calls `PyArray_*` functions (which are C, not Py
   augmented buffer would exceed `ND_MAX_ELEMS`, or a singular matrix (no pivot
   above `ND_INV_PIVOT_EPS` while eliminating a column) all return a typed `Err`;
   no partial result is returned.
-- `svd` is deferred: Gauss-Jordan is not trivially extendable to SVD (SVD needs
-  a one-sided Jacobi / eigen routine), and the `xiom.openblas.svd` seam is still
-  a Phase-1 stub. Documented as remaining Phase-3 work (see ROADMAP.md).
+- `svd` was deferred at Phase-3b: Gauss-Jordan is not trivially extendable to
+  SVD (SVD needs a one-sided Jacobi / eigen routine), and the
+  `xiom.openblas.svd` seam is still a Phase-1 stub. Resolved in Phase-3c below
+  with a self-contained one-sided Jacobi routine.
 - Suite: 130/130 conformance checks GREEN x2 (v0.64.6, 2026-10-16); 27 new
   checks (14 reduction goldens/error-paths, 8 inverse goldens/error-paths, 5
   contract markers).
+
+## Phase-3c design note: singular value decomposition (2026-10-16)
+- `array_svd` is a self-contained **one-sided Jacobi** SVD over the flat f64
+  arena (no BLAS/LAPACK), completing Phase 3. Rationale mirrors `array_inv`:
+  the `xiom.openblas.svd` seam is still the Phase-1 identity/zero stub, so
+  routing through it could not yield correct values offline; the openblas /
+  LAPACK `dgesvd_` path remains the documented acceleration target behind the
+  same `NDArray` surface.
+- Method: copy A into a working matrix W (m x n, row-major), accumulate V as
+  the identity, and repeatedly sweep every column pair (p, q), computing
+  `alpha = ||w_p||^2`, `beta = ||w_q||^2`, `gamma = w_p . w_q` and applying the
+  Jacobi rotation `t = sign(zeta) / (|zeta| + sqrt(1 + zeta^2))`,
+  `zeta = (beta - alpha) / (2 gamma)`, `c = 1/sqrt(1 + t^2)`, `s = c t` to the
+  (p, q) columns of both W and V. A pair is accepted as orthogonal when
+  `|gamma| <= ND_SVD_TOL * sqrt(alpha beta)`; sweeps repeat until every pair
+  converges or the cap `ND_SVD_MAX_SWEEPS = 100` is hit. The converged column
+  norms are the singular values, `U` columns are the normalized `W` columns,
+  and `A = U * S * V^T` because `W = A V` with `V` orthogonal.
+- Returned shapes: `U` is `m x n` (thin), `S` is the `n x n` **diagonal** matrix
+  of singular values sorted descending, and `Vt` is `n x n` with
+  `A = U * S * Vt`. S-as-a-diagonal-matrix matches the `xiom.openblas.svd`
+  seam and keeps reconstruction on the existing 2-D `array_matmul` path; it is a
+  documented deviation from NumPy's 1-D `s`.
+- Scope: 2-D with `m >= n` (tall or square). Fail-closed typed `Err` on a
+  non-2-D operand, an empty matrix, `m < n` (wide), a freed/invalid handle, or
+  failure to converge within the sweep cap; no partial result is returned.
+- Rank-deficient inputs are supported. A singular value at or below
+  `ND_SVD_ZERO_REL * sigma_max` (`ND_SVD_ZERO_REL = 1e-12`) is reported as
+  `0.0`, and its `U` column is completed to an orthonormal vector by
+  Gram-Schmidt against the other `U` columns (standard-basis candidates), so
+  `U^T U == I` holds even when `A` is rank-deficient. The completion failing to
+  find a unit vector is also a typed `Err`.
+- Tolerances (pinned, exercised in the suite): singular-value goldens `1e-9`
+  (2x2 closed form `[[2,1],[1,2]] -> 3,1`; 2x2 `[[3,0],[4,5]] ->
+  sqrt(45), sqrt(5)`; rank-1 `[[1,2],[2,4]] -> 5,0`; symmetric 3x3
+  `I + ones -> 4,1,1`), reconstruction `A == U*S*V^T` `1e-9`, and orthogonality
+  `U^T U == I` / `Vt V == I` `1e-9`.
+- Suite: 147/147 conformance checks GREEN x2 (v0.64.6, 2026-10-16); 17 new
+  checks (13 SVD goldens/reconstruction/orthogonality, 3 SVD error-paths, 1
+  contract marker).
 
 ## Phase-1 status and provenance (2026-10-16)
 - The conformance suite (`tests/test_conformance.xi`, 30 checks) links the
@@ -195,7 +236,9 @@ pub fn transpose(arr: &NDArray) -> Result[NDArray, Str]
   `array_min` (Phase-3b). `array_min` is added beyond the sketch's `max`/`mean`.
   `axis == -1` is the full-array reduction; `axis` in `[0, ndim)` drops that axis.
 - `array_inv` is implemented (Phase-3b, self-contained Gauss-Jordan, fail-closed).
-  `svd` remains unimplemented (see the Phase-3b design note).
+- `array_svd` is implemented (Phase-3c, self-contained one-sided Jacobi,
+  fail-closed; 2-D `m >= n`; returns `U [m,n]`, diagonal `S [n,n]`, `Vt [n,n]`
+  with `A = U * S * Vt`).
 
 ## Contract coverage target
 - Shape compatibility: `requires: a.ndim == b.ndim` for elementwise ops

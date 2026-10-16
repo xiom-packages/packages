@@ -1,6 +1,7 @@
 module xiom.numpy
 
 use xiom.openblas;
+use xiom.math;
 
 // xiom.numpy -- Phase 2a core storage (pure XIOM).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
@@ -996,4 +997,286 @@ pub fn array_inv(arr: &NDArray) -> Result[NDArray, Str]
   sh.push(n);
   sh.push(n);
   return Ok(_nd_alloc_from(&out, &sh, _nd_dtype[i]));
+}
+
+// ---------------------------------------------------------------------------
+// Phase 3c: singular value decomposition (one-sided Jacobi, self-contained).
+// ---------------------------------------------------------------------------
+// Self-contained over the flat f64 arena -- no BLAS/LAPACK, so it is correct
+// offline: the `xiom.openblas.svd` seam is still the Phase-1 identity/zero
+// stub, so routing this through it could not yield correct values (same
+// rationale as `array_inv`). The one-sided Jacobi method rotates each column
+// pair (p, q) of a working copy W of A until the columns of W are mutually
+// orthogonal; the accumulated rotations build V, and the converged column
+// norms are the singular values, so A = U * S * V^T with V orthogonal. The
+// singular values are sorted descending (with U and V permuted the same way).
+//
+// Returned shapes: U is m x n (thin), S is the n x n diagonal matrix of
+// singular values (descending), Vt is n x n with A = U * S * Vt. This S-as-a-
+// diagonal-matrix convention matches the xiom.openblas.svd seam and keeps the
+// whole reconstruction on the existing 2-D `array_matmul` path. It is a
+// documented deviation from NumPy's 1-D `s` (see SPEC.md).
+//
+// Scope: 2-D with m >= n (tall or square). Fail-closed typed Err on a non-2-D
+// operand, an empty matrix, m < n (wide), a freed/invalid handle, or failure
+// to converge within the sweep cap. Rank-deficient inputs are supported: a
+// singular value at or below a relative threshold is treated as zero and its
+// U column is completed to an orthonormal vector by Gram-Schmidt, so U stays
+// orthogonal even when A is rank-deficient.
+
+const ND_SVD_MAX_SWEEPS: Int = 100;
+const ND_SVD_TOL: Float64 = 1.0e-14;
+const ND_SVD_ZERO_REL: Float64 = 1.0e-12;
+
+pub fn array_svd(arr: &NDArray) -> Result[(NDArray, NDArray, NDArray), Str]
+  requires: arr != 0
+{
+  let h: Int = *arr;
+  if !_nd_valid(h) {
+    return Err("numpy: array_svd invalid handle");
+  };
+  let i = h - 1;
+  if _nd_ndim[i] != 2 {
+    return Err("numpy: array_svd requires 2-D");
+  };
+  let so = _nd_shape_off[i];
+  let m = _nd_shape[so + 0];
+  let n = _nd_shape[so + 1];
+  if m <= 0 || n <= 0 {
+    return Err("numpy: array_svd empty matrix");
+  };
+  if m < n {
+    return Err("numpy: array_svd requires m >= n");
+  };
+  let base = _nd_base[i];
+  // Working copy W (m x n, row-major); V (n x n) starts as the identity.
+  var w: Vec[Float64] = Vec[Float64].new();
+  var r = 0;
+  while r < m {
+    var c = 0;
+    while c < n {
+      w.push(_nd_data[base + r * n + c]);
+      c = c + 1;
+    };
+    r = r + 1;
+  };
+  var v: Vec[Float64] = Vec[Float64].new();
+  r = 0;
+  while r < n {
+    var c = 0;
+    while c < n {
+      if c == r { v.push(1.0); } else { v.push(0.0); };
+      c = c + 1;
+    };
+    r = r + 1;
+  };
+  // One-sided Jacobi sweeps: rotate column pairs (p, q) of W and V so the
+  // columns of W become mutually orthogonal; repeat until every pair is below
+  // ND_SVD_TOL (relative) or the sweep cap is reached.
+  var sweep = 0;
+  var converged = false;
+  while sweep < ND_SVD_MAX_SWEEPS && !converged {
+    converged = true;
+    var p = 0;
+    while p < n - 1 {
+      var q = p + 1;
+      while q < n {
+        var alpha = 0.0;
+        var beta = 0.0;
+        var gamma = 0.0;
+        var rr = 0;
+        while rr < m {
+          let wp = w[rr * n + p];
+          let wq = w[rr * n + q];
+          alpha = alpha + wp * wp;
+          beta = beta + wq * wq;
+          gamma = gamma + wp * wq;
+          rr = rr + 1;
+        };
+        if alpha > 0.0 && beta > 0.0 {
+          if _nd_abs(gamma) > ND_SVD_TOL * math.sqrt(alpha * beta) {
+            converged = false;
+            let zeta = (beta - alpha) / (2.0 * gamma);
+            var sz = 1.0;
+            if zeta < 0.0 { sz = -1.0; };
+            let t = sz / (_nd_abs(zeta) + math.sqrt(1.0 + zeta * zeta));
+            let cs = 1.0 / math.sqrt(1.0 + t * t);
+            let sn = cs * t;
+            rr = 0;
+            while rr < m {
+              let wp = w[rr * n + p];
+              let wq = w[rr * n + q];
+              w[rr * n + p] = cs * wp - sn * wq;
+              w[rr * n + q] = sn * wp + cs * wq;
+              rr = rr + 1;
+            };
+            rr = 0;
+            while rr < n {
+              let vp = v[rr * n + p];
+              let vq = v[rr * n + q];
+              v[rr * n + p] = cs * vp - sn * vq;
+              v[rr * n + q] = sn * vp + cs * vq;
+              rr = rr + 1;
+            };
+          };
+        };
+        q = q + 1;
+      };
+      p = p + 1;
+    };
+    sweep = sweep + 1;
+  };
+  if !converged {
+    return Err("numpy: array_svd did not converge");
+  };
+  // Singular values = converged column norms; U columns = normalized W columns.
+  var sigma: Vec[Float64] = Vec[Float64].new();
+  var maxs = 0.0;
+  var j = 0;
+  while j < n {
+    var nrm = 0.0;
+    var rr = 0;
+    while rr < m {
+      let x = w[rr * n + j];
+      nrm = nrm + x * x;
+      rr = rr + 1;
+    };
+    nrm = math.sqrt(nrm);
+    sigma.push(nrm);
+    if nrm > maxs { maxs = nrm; };
+    j = j + 1;
+  };
+  let thresh = maxs * ND_SVD_ZERO_REL;
+  var u: Vec[Float64] = Vec[Float64].new();
+  var z = 0;
+  while z < m * n {
+    u.push(0.0);
+    z = z + 1;
+  };
+  j = 0;
+  while j < n {
+    if sigma[j] > thresh {
+      var rr = 0;
+      while rr < m {
+        u[rr * n + j] = w[rr * n + j] / sigma[j];
+        rr = rr + 1;
+      };
+    };
+    j = j + 1;
+  };
+  // Sort singular values descending; permute U and V columns identically.
+  j = 0;
+  while j < n {
+    var besti = j;
+    var k = j + 1;
+    while k < n {
+      if sigma[k] > sigma[besti] { besti = k; };
+      k = k + 1;
+    };
+    if besti != j {
+      let ts = sigma[j];
+      sigma[j] = sigma[besti];
+      sigma[besti] = ts;
+      var rr = 0;
+      while rr < m {
+        let tu = u[rr * n + j];
+        u[rr * n + j] = u[rr * n + besti];
+        u[rr * n + besti] = tu;
+        rr = rr + 1;
+      };
+      rr = 0;
+      while rr < n {
+        let tv = v[rr * n + j];
+        v[rr * n + j] = v[rr * n + besti];
+        v[rr * n + besti] = tv;
+        rr = rr + 1;
+      };
+    };
+    j = j + 1;
+  };
+  // Complete zero-singular-value U columns to an orthonormal vector by
+  // Gram-Schmidt against every other U column (standard basis candidates).
+  j = 0;
+  while j < n {
+    if sigma[j] <= thresh {
+      var done = false;
+      var trial = 0;
+      while trial < m && !done {
+        var cand: Vec[Float64] = Vec[Float64].new();
+        var rr = 0;
+        while rr < m {
+          if rr == trial { cand.push(1.0); } else { cand.push(0.0); };
+          rr = rr + 1;
+        };
+        var k = 0;
+        while k < n {
+          if k != j {
+            var d = 0.0;
+            rr = 0;
+            while rr < m {
+              d = d + cand[rr] * u[rr * n + k];
+              rr = rr + 1;
+            };
+            rr = 0;
+            while rr < m {
+              cand[rr] = cand[rr] - d * u[rr * n + k];
+              rr = rr + 1;
+            };
+          };
+          k = k + 1;
+        };
+        var nrm = 0.0;
+        rr = 0;
+        while rr < m {
+          nrm = nrm + cand[rr] * cand[rr];
+          rr = rr + 1;
+        };
+        nrm = math.sqrt(nrm);
+        if nrm > 1.0e-12 {
+          rr = 0;
+          while rr < m {
+            u[rr * n + j] = cand[rr] / nrm;
+            rr = rr + 1;
+          };
+          done = true;
+        };
+        trial = trial + 1;
+      };
+      if !done {
+        return Err("numpy: array_svd orthogonal completion failed");
+      };
+    };
+    j = j + 1;
+  };
+  // Pack S (n x n diagonal) and Vt = V^T (n x n).
+  var sdata: Vec[Float64] = Vec[Float64].new();
+  var rr2 = 0;
+  while rr2 < n {
+    var c2 = 0;
+    while c2 < n {
+      if c2 == rr2 { sdata.push(sigma[rr2]); } else { sdata.push(0.0); };
+      c2 = c2 + 1;
+    };
+    rr2 = rr2 + 1;
+  };
+  var vt: Vec[Float64] = Vec[Float64].new();
+  rr2 = 0;
+  while rr2 < n {
+    var c2 = 0;
+    while c2 < n {
+      vt.push(v[c2 * n + rr2]);
+      c2 = c2 + 1;
+    };
+    rr2 = rr2 + 1;
+  };
+  var ush: Vec[Int] = Vec[Int].new();
+  ush.push(m);
+  ush.push(n);
+  var ssh: Vec[Int] = Vec[Int].new();
+  ssh.push(n);
+  ssh.push(n);
+  let uh = _nd_alloc_from(&u, &ush, DTYPE_FLOAT64);
+  let sh = _nd_alloc_from(&sdata, &ssh, DTYPE_FLOAT64);
+  let vth = _nd_alloc_from(&vt, &ssh, DTYPE_FLOAT64);
+  return Ok((uh, sh, vth));
 }
