@@ -4,6 +4,7 @@ use xiom.string;
 use xiom.convert;
 use xiom.convert.tostring;
 use xiom.http;
+use xiom.http.headers;
 use xiom.http.types;
 use xiom.http.url;
 
@@ -29,37 +30,38 @@ pub fn http_delete(url: Str) -> Result[HttpClientResponse, Str]
   return xiom.http.http_delete(url);
 }
 
+// http_send routes the whole request through the headers-capable root entry
+// (xiom.http.http_request): every declared HttpRequest header is serialized
+// with http_headers_blob and reaches the wire. The pre-0.1.8 dispatch only
+// used headers to pick a Content-Type default that http_post then dropped
+// (silent header loss); it also sent PATCH/HEAD/OPTIONS as GET/POST. The
+// method verb on the wire is now always request.method.
 pub fn http_send(request: &HttpRequest, url: &Url) -> Result[HttpClientResponse, Str]
   requires: url.scheme.len() > 0
   requires: url.host.len() > 0 {
   var url_str: Str = url_to_str(url);
+  var method_str: Str = method_to_wire(request.method);
+  var body_str: Str = str_from_vec_byte(request.body);
+  var blob_res: Result[Str, Str] = http_headers_blob(request.headers.entries);
+  match blob_res {
+    Ok(blob) => {
+      return xiom.http.http_request(url_str, method_str, body_str, blob);
+    },
+    Err(e) => {
+      return Err(e);
+    },
+  };
+}
 
-  match request.method {
-    HttpMethod.GET => {
-      return xiom.http.http_get(url_str);
-    };
-    HttpMethod.POST => {
-      var body_str: Str = str_from_vec_byte(request.body);
-      var ct: Str = get_content_type(request.headers);
-      return xiom.http.http_post(url_str, body_str, ct);
-    };
-    HttpMethod.PUT => {
-      var body_str: Str = str_from_vec_byte(request.body);
-      return xiom.http.http_put(url_str, body_str);
-    };
-    HttpMethod.DELETE => {
-      return xiom.http.http_delete(url_str);
-    };
-    HttpMethod.PATCH => {
-      var body_str: Str = str_from_vec_byte(request.body);
-      return xiom.http.http_post(url_str, body_str, "application/json");
-    };
-    HttpMethod.HEAD => {
-      return xiom.http.http_get(url_str);
-    };
-    HttpMethod.OPTIONS => {
-      return xiom.http.http_get(url_str);
-    };
+fn method_to_wire(m: HttpMethod) -> Str {
+  match m {
+    HttpMethod.GET => { return "GET"; };
+    HttpMethod.POST => { return "POST"; };
+    HttpMethod.PUT => { return "PUT"; };
+    HttpMethod.DELETE => { return "DELETE"; };
+    HttpMethod.PATCH => { return "PATCH"; };
+    HttpMethod.HEAD => { return "HEAD"; };
+    HttpMethod.OPTIONS => { return "OPTIONS"; };
   };
 }
 
@@ -80,13 +82,6 @@ fn url_to_str(url: &Url) -> Str {
     s = s + "#" + url.fragment;
   };
   return s;
-}
-
-fn get_content_type(headers: HttpHeaders) -> Str {
-  match headers.get("Content-Type") {
-    Some(ct) => { return ct; };
-    None => { return "application/octet-stream"; };
-  };
 }
 
 // Renders a byte code as text: control specials keep their current mappings

@@ -7,6 +7,7 @@ use xiom.http.url;
 use xiom.http.parser;
 use xiom.http.cookie;
 use xiom.http.server;
+use xiom.http.headers;
 use xiom.io;
 use xiom.string;
 use xiom.convert;
@@ -601,6 +602,111 @@ fn test_server_close() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
+// --- Header-list builder (xiom.http.headers, 0.1.8) -------------------------
+
+fn one_header(name: Str, value: Str) -> Vec[HttpHeader] {
+  var pairs: Vec[HttpHeader] = Vec[HttpHeader].new();
+  pairs.push(HttpHeader{ name: name, value: value });
+  return pairs;
+}
+
+fn assert_blob(pairs: Vec[HttpHeader], expected: Str, label: Str) -> Result[Unit, Str] {
+  match http_headers_blob(pairs) {
+    Ok(blob) => { return assert_str_eq(blob, expected, label); },
+    Err(e) => { return Err("FAIL: " + label + " -- expected Ok, got Err(" + e + ")"); },
+  };
+}
+
+fn assert_blob_err(pairs: Vec[HttpHeader], expected: Str, label: Str) -> Result[Unit, Str] {
+  match http_headers_blob(pairs) {
+    Ok(blob) => { return Err("FAIL: " + label + " -- expected Err, got Ok('" + blob + "')"); },
+    Err(e) => { return assert_str_eq(e, expected, label); },
+  };
+}
+
+fn test_headers_blob_empty() -> Result[Unit, Str] {
+  var pairs: Vec[HttpHeader] = Vec[HttpHeader].new();
+  return assert_blob(pairs, "", "headers blob: empty input -> Ok empty string");
+}
+
+fn test_headers_blob_single() -> Result[Unit, Str] {
+  return assert_blob(one_header("X-Single", "1"), "X-Single: 1\r\n", "headers blob: single pair CRLF-terminated");
+}
+
+fn test_headers_blob_order_and_duplicates() -> Result[Unit, Str] {
+  var pairs: Vec[HttpHeader] = Vec[HttpHeader].new();
+  pairs.push(HttpHeader{ name: "A", value: "1" });
+  pairs.push(HttpHeader{ name: "B", value: "2" });
+  pairs.push(HttpHeader{ name: "A", value: "3" });
+  try(assert_blob(pairs, "A: 1\r\nB: 2\r\nA: 3\r\n", "headers blob: order preserved, duplicates kept"));
+  return Ok(Unit);
+}
+
+fn test_headers_blob_authorization_bearer() -> Result[Unit, Str] {
+  try(assert_blob(one_header("Authorization", "Bearer abc123"), "Authorization: Bearer abc123\r\n", "headers blob: Authorization Bearer golden"));
+  return Ok(Unit);
+}
+
+fn test_headers_blob_empty_value() -> Result[Unit, Str] {
+  return assert_blob(one_header("X-Empty", ""), "X-Empty: \r\n", "headers blob: empty value allowed");
+}
+
+fn test_headers_blob_token_name_edges() -> Result[Unit, Str] {
+  try(assert_blob(one_header("!#$%&'*+-.^_`|~", "1"), "!#$%&'*+-.^_`|~: 1\r\n", "headers blob: all RFC 7230 token specials accepted in name"));
+  try(assert_blob(one_header("X-Digit9", "2"), "X-Digit9: 2\r\n", "headers blob: digits accepted in name"));
+  return Ok(Unit);
+}
+
+fn test_headers_blob_value_whitespace() -> Result[Unit, Str] {
+  try(assert_blob(one_header("X-Pad", "  a b\tc  "), "X-Pad:   a b\tc  \r\n", "headers blob: spaces and tab preserved verbatim"));
+  return Ok(Unit);
+}
+
+fn test_headers_blob_reject_invalid_names() -> Result[Unit, Str] {
+  var empty_name: Vec[HttpHeader] = Vec[HttpHeader].new();
+  empty_name.push(HttpHeader{ name: "", value: "1" });
+  try(assert_blob_err(empty_name, "http_headers_blob: empty header name", "headers blob: reject empty name"));
+  try(assert_blob_err(one_header("X A", "1"), "http_headers_blob: invalid header name: X A", "headers blob: reject space in name"));
+  try(assert_blob_err(one_header("X:A", "1"), "http_headers_blob: invalid header name: X:A", "headers blob: reject colon in name"));
+  try(assert_blob_err(one_header("X-A\rB", "1"), "http_headers_blob: invalid header name: X-A\rB", "headers blob: reject CR in name"));
+  try(assert_blob_err(one_header("X-A\nB", "1"), "http_headers_blob: invalid header name: X-A\nB", "headers blob: reject LF in name"));
+  return Ok(Unit);
+}
+
+fn test_headers_blob_reject_invalid_values() -> Result[Unit, Str] {
+  try(assert_blob_err(one_header("X-V", "a\rb"), "http_headers_blob: header value contains a control character: X-V", "headers blob: reject CR in value"));
+  try(assert_blob_err(one_header("X-V", "a\nb"), "http_headers_blob: header value contains a control character: X-V", "headers blob: reject LF in value"));
+  try(assert_blob_err(one_header("X-V", "a\0b"), "http_headers_blob: header value contains a control character: X-V", "headers blob: reject NUL in value"));
+  return Ok(Unit);
+}
+
+fn test_headers_blob_parse_roundtrip() -> Result[Unit, Str] {
+  var pairs: Vec[HttpHeader] = Vec[HttpHeader].new();
+  pairs.push(HttpHeader{ name: "Authorization", value: "Bearer key-123" });
+  pairs.push(HttpHeader{ name: "X-Roundtrip", value: "ok" });
+  var blob: Str = "";
+  match http_headers_blob(pairs) {
+    Ok(b) => { blob = b; },
+    Err(e) => { return Err("FAIL: headers blob roundtrip build: " + e); },
+  };
+  var res: Result[HttpHeaders, HttpParseError] = http_parse_headers(blob);
+  match res {
+    Ok(h) => {
+      try(assert_int_eq(h.count(), 2, "headers blob roundtrip count"));
+      match h.get("Authorization") {
+        Some(v) => { try(assert_str_eq(v, "Bearer key-123", "headers blob roundtrip Authorization value")); },
+        None => { return Err("FAIL: headers blob roundtrip Authorization missing"); },
+      };
+      match h.get("X-Roundtrip") {
+        Some(v) => { try(assert_str_eq(v, "ok", "headers blob roundtrip X-Roundtrip value")); },
+        None => { return Err("FAIL: headers blob roundtrip X-Roundtrip missing"); },
+      };
+    },
+    Err(e) => { return Err("FAIL: headers blob roundtrip parse: " + e.message); },
+  };
+  return Ok(Unit);
+}
+
 fn try(res: Result[Unit, Str]) {
   match res {
     Ok(_) => {},
@@ -671,6 +777,16 @@ fn main() -> Int {
   failures = failures + run_case("server listen error", test_server_listen_error());
   failures = failures + run_case("server handle error", test_server_handle_error());
   failures = failures + run_case("server close", test_server_close());
-  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(42 - failures) + "/42 passed");
+  failures = failures + run_case("headers blob empty", test_headers_blob_empty());
+  failures = failures + run_case("headers blob single", test_headers_blob_single());
+  failures = failures + run_case("headers blob order and duplicates", test_headers_blob_order_and_duplicates());
+  failures = failures + run_case("headers blob authorization bearer", test_headers_blob_authorization_bearer());
+  failures = failures + run_case("headers blob empty value", test_headers_blob_empty_value());
+  failures = failures + run_case("headers blob token name edges", test_headers_blob_token_name_edges());
+  failures = failures + run_case("headers blob value whitespace", test_headers_blob_value_whitespace());
+  failures = failures + run_case("headers blob reject invalid names", test_headers_blob_reject_invalid_names());
+  failures = failures + run_case("headers blob reject invalid values", test_headers_blob_reject_invalid_values());
+  failures = failures + run_case("headers blob parse roundtrip", test_headers_blob_parse_roundtrip());
+  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(52 - failures) + "/52 passed");
   return failures;
 }

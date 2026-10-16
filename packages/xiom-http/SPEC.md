@@ -126,6 +126,34 @@ HTTP cookie parsing and serialization.
 
 ---
 
+### `xiom.http.headers` (`src/headers.xi`)
+
+Deterministic header-list builder for the client's custom-header path (0.1.8).
+Pure: no FFI, no I/O, nothing logged; a client entry that consumes the blob
+lives in `xiom.http` (`http_request`).
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `http_headers_blob` | `(headers: Vec[HttpHeader]) -> Result[Str, Str]` | Render the CRLF wire blob for `http_request` |
+
+Wire shape (frozen): each pair renders as `"Name: value\r\n"`; the blob is the
+concatenation in declaration order (so the last line is CRLF-terminated too).
+An empty input returns `Ok("")` -- the sentinel for "no custom headers".
+Duplicate names are preserved in order; values are not trimmed or re-encoded.
+
+Validation (frozen): names must be non-empty RFC 7230 tokens (ASCII only; no
+space, colon, or control characters). Values may be empty and pass through
+verbatim (bytes >= 128 included) but CR, LF, NUL, DEL and every other control
+character except HTAB are rejected, so header injection cannot be built from
+this module. Values never appear in error text or logs; error strings carry
+the header name at most:
+
+- `http_headers_blob: empty header name`
+- `http_headers_blob: invalid header name: <name>`
+- `http_headers_blob: header value contains a control character: <name>`
+
+---
+
 ### `xiom.http` (`http.xi`)
 
 Production HTTP client backed by libcurl. This is the primary entry point for HTTP operations. Defines its own simplified `HttpClientResponse` type with `Str` body.
@@ -139,6 +167,7 @@ Production HTTP client backed by libcurl. This is the primary entry point for HT
 | `http_put` | `(url: Str, body: Str) -> Result[HttpClientResponse, Str]` | HTTP PUT request |
 | `http_delete` | `(url: Str) -> Result[HttpClientResponse, Str]` | HTTP DELETE request |
 | `http_download` | `(url: Str, path: Str) -> Result[Unit, Str]` | Download to a file on disk |
+| `http_request` | `(url: Str, method: Str, body: Str, headers: Str) -> Result[HttpClientResponse, Str]` | Headers-capable request (0.1.8; see below) |
 
 All functions:
 1. Initialize a libcurl easy handle via `curl_easy_init()`
@@ -151,6 +180,17 @@ All functions:
 8. Free the curl handle via `curl_easy_cleanup()`
 9. Return `Ok(HttpClientResponse)` or `Err(message)`
 
+`http_request` (0.1.8) follows the same flow; additionally it builds a
+`curl_slist` from the CRLF header blob (the `xiom.http.headers.http_headers_blob`
+output) via the bridge helper `xiom_http_headers_build`, sets it with
+`CURLOPT_HTTPHEADER`, and frees it with `xiom_http_headers_free` AFTER
+`curl_easy_cleanup` -- the order libcurl requires (it references the list until
+cleanup). An empty header blob skips `CURLOPT_HTTPHEADER` entirely, keeping the
+exact wrapper behavior. The method must be GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS
+(any other value returns `Err` before any FFI call); the body applies to
+POST/PUT/PATCH and is ignored for GET/DELETE/HEAD/OPTIONS. Header values are
+never logged or echoed in error messages.
+
 ### `xiom.http.client` (`src/client.xi`)
 
 High-level HTTP client that delegates to `xiom.http` functions with `Vec[Int]` body types (using `xiom.http.types.HttpResponse`).
@@ -161,15 +201,19 @@ High-level HTTP client that delegates to `xiom.http` functions with `Vec[Int]` b
 | `http_post` | `(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpClientResponse, Str]` | Converts body to Str, delegates |
 | `http_put` | `(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpClientResponse, Str]` | Converts body to Str, delegates |
 | `http_delete` | `(url: Str) -> Result[HttpClientResponse, Str]` | Delegates to `xiom.http.http_delete` |
-| `http_send` | `(request: &HttpRequest, url: &Url) -> Result[HttpClientResponse, Str]` | Serializes request, dispatches by method |
+| `http_send` | `(request: &HttpRequest, url: &Url) -> Result[HttpClientResponse, Str]` | Serializes request; routes through `http_request` with all declared headers (0.1.8) |
 
-`http_send` work flow:
+`http_send` work flow (0.1.8):
 1. Serialize `Url` to string via internal `url_to_str`
 2. Convert `request.body` (`Vec[Int]`) to `Str`
-3. Extract `Content-Type` from `request.headers`
-4. Dispatch: GET->http_get, POST->http_post, PUT->http_put, DELETE->http_delete, PATCH->http_post with JSON content type, HEAD/OPTIONS->http_get
+3. Serialize ALL `request.headers` entries to the CRLF blob via
+   `xiom.http.headers.http_headers_blob` (a validation failure returns the
+   builder's `Err` unchanged)
+4. Call `xiom.http.http_request(url, <method verb>, body, blob)` -- the
+   declared method is the wire verb (before 0.1.8 PATCH was sent as POST and
+   HEAD/OPTIONS as GET, and only Content-Type was consulted, then dropped)
 
-**Surface status (2026-10-16).** Stable for consumers: the five wrappers above, the typed `Err(Str)` taxonomy, response `status` / `body` / `headers` capture, TLS via the libcurl CA bundle. NOT yet in the surface (ROADMAP v0.1.7): keep-alive control, per-call timeouts, streaming bodies, pluggable TLS hook (`xiom.ssl`). Own probe: `tests/probe_client.xi` (refused/malformed deterministic; live + loopback legs SKIP-safe).
+**Surface status (2026-10-16; updated 0.1.8).** Stable for consumers: the five wrappers above, the typed `Err(Str)` taxonomy, response `status` / `body` / `headers` capture, TLS via the libcurl CA bundle, and -- since 0.1.8 -- custom request headers (incl. `Authorization`) via `xiom.http.http_request` (root module) fed by the `xiom.http.headers` builder; `http_send` routes every declared `HttpRequest.headers` entry through that path. NOT yet in the surface (ROADMAP): keep-alive control, per-call timeouts, streaming bodies, pluggable TLS hook (`xiom.ssl`). `http_post`'s `content_type` argument remains a compatibility no-op; put an explicit `Content-Type` into the header blob instead. Own probes: `tests/probe_client.xi` (refused/malformed deterministic; live + loopback legs SKIP-safe) and `tests/probe_real_libcurl.xi` (0.1.8 live header roundtrip leg, SKIP-safe).
 
 ### `xiom.http.demo` (`src/demo.xi`)
 
@@ -291,7 +335,7 @@ The libcurl FFI layer requires the following runtime features from XIOM's C inte
 | `as Int` pointer cast | Required | Casts `*UInt8` pointer to `Int` for passing through `curl_easy_setopt` (Int API surface) |
 | `malloc` / `free` | Available | Via `xiom.ffi` -- used for response code extraction buffer |
 | Temp file I/O | Available | `fopen`/`fclose`/`fread`/`fwrite`/`fseek`/`ftell`/`remove` -- used for response body and header capture |
-| `curl_slist_append` | Not yet wired | Required for custom request headers (`CURLOPT_HTTPHEADER`). POST with Content-Type falls back to libcurl defaults until this is available. |
+| `curl_slist_append` | Wired (0.1.8) | Custom request headers (`CURLOPT_HTTPHEADER`) via the bridge helpers `xiom_http_headers_build` / `xiom_http_headers_free` (forward-declared real libcurl slist calls; no libcurl headers needed at compile time, no stubs added to the shim). |
 | Function pointer callbacks | Not yet wired | `CURLOPT_WRITEFUNCTION` and `CURLOPT_HEADERFUNCTION` are not used; file-based capture via `CURLOPT_WRITEDATA`/`CURLOPT_HEADERDATA` with default `fwrite` callback is used instead. |
 
 ### curl Option Constants Used
@@ -523,4 +567,81 @@ header.
 
 `package.xi` -> 0.1.5; `STATUS.json` test fields reset to unknown (nulls) for
 the record run; stage/publish unchanged.
+
+---
+
+## 0.1.8 -- custom request headers (2026-10-16)
+
+The ROADMAP 0.1.7 row "Custom request headers (incl. `Authorization`)" --
+filed for the xiom.jev live leg (its SPEC section 8 documents the blocker: no
+way to attach `Authorization: Bearer` on the wire). Minimal viable pass: one
+new pure module, two bridge helpers, one new client entry; the five existing
+wrappers and every existing check are unchanged.
+
+### Pure layer: `xiom.http.headers`
+
+`http_headers_blob(Vec[HttpHeader]) -> Result[Str, Str]` renders the frozen
+CRLF blob (exact shape and reject rules in the module section above).
+Deterministic, pure, no secrets in any output; a full entry never renders
+when any pair is invalid.
+
+### C layer: bridge helpers, no libcurl symbols added
+
+- `bridge/xiom_http_shims.c` gains `xiom_http_headers_build` (blob ->
+  `curl_slist*` via the real `curl_slist_append`, one node per CRLF-terminated
+  line with the separator stripped; NULL for an empty blob or on allocation
+  failure, with the partial list freed before returning) and
+  `xiom_http_headers_free` (real `curl_slist_free_all`). The two libcurl entry
+  points are forward-declared, so the shim still needs no libcurl headers on
+  the include path and still defines no libcurl symbols.
+- `tests/probe_bridge.c` keeps its own copy plus deterministic
+  `curl_slist_append` / `curl_slist_free_all` stubs; the probe copy
+  additionally validates each split line ("Name: " required) so a malformed
+  blob fails the offline probe instead of slipping through.
+
+### XIOM layer: one new entry
+
+`pub fn http_request(url: Str, method: Str, body: Str, headers: Str) ->
+Result[HttpClientResponse, Str]` -- method whitelist
+(GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS; anything else returns `Err` before
+any FFI call), body for POST/PUT/PATCH, `headers` is the builder blob. Owns
+the slist lifecycle: build -> `CURLOPT_HTTPHEADER` -> `curl_easy_cleanup` ->
+free (libcurl's required order). An empty blob keeps the exact wrapper
+behavior (no `CURLOPT_HTTPHEADER` call). `src/client.xi` `http_send` now routes
+every request through this entry, so ALL declared `HttpRequest.headers`
+entries reach the wire (the pre-0.1.8 path consulted Content-Type only and
+then dropped it); PATCH/HEAD/OPTIONS keep their declared verbs instead of
+being sent as POST/GET. No new contract clauses: `http_request` carries the
+same `requires` shape as the public wrappers, and the new private helper
+(`cleanup_http_request`) is a pure FFI-lifecycle cleanup.
+
+### Tests and evidence (compiler v0.64.5, 2026-10-16)
+
+- `tests/test_conformance.xi`: **52/52 x2** via `port.ps1 -Package xiom-http
+  -TimeoutSec 180` (program_exit=0 both runs). The 10 new checks pin the
+  builder: empty/single/order+duplicates/`Authorization: Bearer`/empty
+  value/token-name-edge/whitespace goldens, invalid-name and invalid-value
+  (CR/LF/NUL) reject paths with exact error strings, and a blob ->
+  `http_parse_headers` roundtrip. All 42 pre-existing checks are untouched
+  and green.
+- `tests/probe_root_module.xi` (offline, `tests/probe_bridge.c`) x2 exit 0:
+  5 `[PASS]` checks -- the original two plus unsupported-method rejection,
+  the header path through the deterministic slist stubs, and the
+  empty-blob wrapper path.
+- `tests/probe_real_libcurl.xi` x2 exit 0 against curl-for-win 8.22.0 with
+  `tests/echo_headers_server.ps1` running: example.com GET 200 with a
+  577-byte body, and the loopback header roundtrip (`X-Xiom-Probe` +
+  `Authorization: Bearer ...` reflected by the echo endpoint) -- the jev
+  Authorization shape proven on the wire through real libcurl.
+- `xiom --check` green for `probe_all_modules.xi` (now covering
+  `xiom.http.headers`), `probe_client.xi`, `probe_root_module.xi`, and
+  `probe_real_libcurl.xi`.
+
+### Consumer note (xiom.jev live leg)
+
+`system_one` can now build `Authorization: Bearer <api_key>` (plus
+`Content-Type: application/json`) with `xiom.http.headers.http_headers_blob`
+and POST it through `xiom.http.http_request(endpoint, "POST", body, blob)` --
+the 401-until-headers note in jev SPEC section 8 can be retired once jev
+switches its transport call to this entry.
 

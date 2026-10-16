@@ -19,6 +19,8 @@ extern "C" {
   fn xiom_write_byte(ptr: *UInt8, offset: Int, value: Int);
   fn xiom_read_byte(ptr: *UInt8, offset: Int) -> Int;
   fn xiom_copy_from_vec(c_buf: *UInt8, vec_data: *UInt8, vec_len: Int, vec_cap: Int, offset: Int, count: Int);
+  fn xiom_http_headers_build(blob: *UInt8) -> *UInt8;
+  fn xiom_http_headers_free(list: *UInt8);
 }
 
 // --- libcurl FFI ------------------------------------------------------------
@@ -459,6 +461,48 @@ fn perform_and_collect(handle: *UInt8, body_f: *UInt8, headers_f: *UInt8) -> Res
   return Ok(());
 }
 
+// --- Headers-Capable Request Helpers (0.1.8) --------------------------------
+
+// cleanup_http_request releases every resource http_request may hold on any
+// exit path, exactly once: the curl handle first, THEN the header slist
+// (libcurl references the list until curl_easy_cleanup), then the C strings.
+// Null pointers are skipped, so callers pass whatever they have.
+fn cleanup_http_request(handle: *UInt8, header_list: *UInt8, url_cstr: *UInt8, body_cstr: *UInt8) {
+  unsafe { curl_easy_cleanup(handle); }
+  if !ptr.is_null[UInt8](header_list) {
+    unsafe { xiom_http_headers_free(header_list); }
+  };
+  if !ptr.is_null[UInt8](url_cstr) {
+    unsafe { xiom_free_cstr(url_cstr); }
+  };
+  if !ptr.is_null[UInt8](body_cstr) {
+    unsafe { xiom_free_cstr(body_cstr); }
+  };
+}
+
+// set_request_method maps a validated method string onto libcurl setup:
+// POST uses CURLOPT_POST (same as http_post); GET leaves the default; every
+// other supported method goes through CURLOPT_CUSTOMREQUEST.
+fn set_request_method(handle: *UInt8, method: Str) -> Result[Unit, Str] {
+  var rc: Int;
+  if method == "POST" {
+    unsafe { rc = curl_easy_setopt(handle, CURLOPT_POST(), make_long_value(1)); }
+    if rc != 0 { return Err(string.str_concat("CURLOPT_POST failed: ", curl_error_string(rc))); };
+    return Ok(());
+  };
+  if method == "GET" {
+    return Ok(());
+  };
+  var method_cstr: *UInt8 = str_to_cstr(method);
+  if ptr.is_null[UInt8](method_cstr) {
+    return Err("xiom_str_to_cstr failed for method");
+  };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), method_cstr); }
+  unsafe { xiom_free_cstr(method_cstr); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_CUSTOMREQUEST failed: ", curl_error_string(rc))); };
+  return Ok(());
+}
+
 // --- URL Checking -----------------------------------------------------------
 
 fn check_url(url_cstr: *UInt8, handle: *UInt8) -> Bool {
@@ -702,4 +746,123 @@ pub fn http_download(url: Str, path: Str) -> Result[Unit, Str]
   unsafe { xiom_free_cstr(path_cstr); }
 
   return Ok(());
+}
+
+// --- Headers-Capable Request Entry (0.1.8) ----------------------------------
+//
+// http_request is the ONE new client entry added in 0.1.8. The five existing
+// wrappers (http_get / http_post / http_put / http_delete / http_download)
+// are unchanged; this entry adds custom request headers (including
+// `Authorization: Bearer ...`) on top of the same libcurl flow.
+//
+//   url     -- request URL (same handling as the wrappers).
+//   method  -- one of GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS
+//              (upper-case; anything else returns Err before any FFI call).
+//   body    -- request body for POST, PUT and PATCH (exact UTF-8 bytes);
+//              ignored for GET, DELETE, HEAD and OPTIONS, which send no
+//              body -- matching the wrappers' behavior.
+//   headers -- the CRLF-joined blob produced by
+//              xiom.http.headers.http_headers_blob; "" means no custom
+//              headers. Each CRLF-terminated line becomes one curl_slist
+//              node via the bridge helper xiom_http_headers_build; the list
+//              is freed with xiom_http_headers_free after curl_easy_cleanup
+//              (libcurl references it until then). Header values are never
+//              logged or echoed in error messages.
+//
+// Mirrors the wrapper flow: common options -> headers/method/body ->
+// WRITEDATA/HEADERDATA temp files -> perform -> status/body/headers capture
+// -> cleanup.
+pub fn http_request(url: Str, method: Str, body: Str, headers: Str) -> Result[HttpClientResponse, Str]
+  requires: string.str_len(url) > 0
+  requires: string.str_len(method) > 0
+{
+  var known: Bool = method == "GET" || method == "POST" || method == "PUT" || method == "PATCH" || method == "DELETE" || method == "HEAD" || method == "OPTIONS";
+  if !known {
+    return Err(string.str_concat("http_request: unsupported method ", method));
+  };
+  var has_body: Bool = method == "POST" || method == "PUT" || method == "PATCH";
+
+  var url_cstr: *UInt8 = str_to_cstr(url);
+  if ptr.is_null[UInt8](url_cstr) {
+    return Err("xiom_str_to_cstr failed for URL");
+  };
+
+  var handle: *UInt8 = ptr_null();
+  unsafe { handle = curl_easy_init(); }
+  if ptr.is_null[UInt8](handle) {
+    unsafe { xiom_free_cstr(url_cstr); }
+    return Err("curl_easy_init returned null handle");
+  };
+
+  var header_list: *UInt8 = ptr_null();
+  var body_cstr: *UInt8 = ptr_null();
+
+  var setup = setup_common_options(handle, url_cstr);
+  match setup {
+    Err(e) => { cleanup_http_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
+    Ok(_) => {},
+  };
+
+  // Custom headers: an empty blob keeps the exact wrapper behavior (no
+  // CURLOPT_HTTPHEADER call at all); a non-empty blob must build a list.
+  if string.str_len(headers) > 0 {
+    var headers_cstr: *UInt8 = str_to_cstr(headers);
+    if ptr.is_null[UInt8](headers_cstr) {
+      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
+      return Err("xiom_str_to_cstr failed for headers");
+    };
+    unsafe { header_list = xiom_http_headers_build(headers_cstr); }
+    unsafe { xiom_free_cstr(headers_cstr); }
+    if ptr.is_null[UInt8](header_list) {
+      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
+      return Err("failed to build curl_slist from header blob");
+    };
+    var rc_h: Int = unsafe { curl_easy_setopt(handle, CURLOPT_HTTPHEADER(), header_list) };
+    if rc_h != 0 {
+      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
+      return Err(string.str_concat("CURLOPT_HTTPHEADER failed: ", curl_error_string(rc_h)));
+    };
+  };
+
+  var method_res = set_request_method(handle, method);
+  match method_res {
+    Err(e) => { cleanup_http_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
+    Ok(_) => {},
+  };
+
+  if has_body {
+    body_cstr = str_to_cstr(body);
+    if ptr.is_null[UInt8](body_cstr) {
+      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
+      return Err("xiom_str_to_cstr failed for body");
+    };
+    var rc_b: Int = unsafe { curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_cstr) };
+    if rc_b != 0 {
+      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
+      return Err(string.str_concat("CURLOPT_POSTFIELDS failed: ", curl_error_string(rc_b)));
+    };
+    var body_bytes: Vec[UInt8] = encoding.utf8_encode(body);
+    var rc_s: Int = unsafe { curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), make_long_value(body_bytes.len())) };
+    if rc_s != 0 {
+      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
+      return Err(string.str_concat("CURLOPT_POSTFIELDSIZE failed: ", curl_error_string(rc_s)));
+    };
+  };
+
+  var files = open_temp_files();
+  match files {
+    Err(e) => { cleanup_http_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
+    Ok(fds) => {
+      var perf = perform_and_collect(handle, fds.body, fds.headers);
+      var status: Int = get_response_code(handle);
+      var resp_body: Str = read_file_to_str(fds.body);
+      var resp_headers: Str = read_file_to_str(fds.headers);
+      close_temp_files(fds.body, fds.headers);
+      cleanup_temp_files();
+      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
+      match perf { Err(e) => { return Err(e); }, Ok(_) => {}, };
+      return Ok(HttpClientResponse{ status: status, body: resp_body, headers: resp_headers });
+    },
+  };
+  return Err("unreachable");
 }

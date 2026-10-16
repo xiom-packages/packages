@@ -41,7 +41,14 @@ xiom http.xi src/types.xi src/parser.xi ../runtime/ffi_bridge.c -l curl -o http_
   - All `Str` concatenation goes through `string.str_concat`.
   - LONG curl options (FOLLOWLOCATION, TIMEOUT, CONNECTTIMEOUT, NOSIGNAL, BUFFERSIZE, POST, POSTFIELDSIZE) pass the value itself through an Int -> *UInt8 value cast (`make_long_value`) per libcurl's variadic ABI (fixed in 0.1.4). Do NOT reintroduce `xiom_alloc`+`xiom_write_byte` buffers for these -- libcurl reads a `long`, not a pointer.
   - STRINGPOINT/OBJECTPOINT options (URL, ACCEPT_ENCODING, USERAGENT, POSTFIELDS, CUSTOMREQUEST, WRITEDATA, HEADERDATA) pass real pointers from `xiom_str_to_cstr` / `FILE*`; those are freed after `curl_easy_setopt` returns.
-  - **Known issue:** CURLOPT_HTTPHEADER requires `curl_slist_append` which is not yet wired in the FFI. Content-Type headers are not sent for POST/PUT requests.
+  - **Custom request headers (0.1.8):** `CURLOPT_HTTPHEADER` is fed a
+    `curl_slist` built by the bridge helpers `xiom_http_headers_build` /
+    `xiom_http_headers_free` (real `curl_slist_append` / `curl_slist_free_all`,
+    forward-declared in the shim -- no libcurl headers or stubs). The list is
+    freed after `curl_easy_cleanup`; blob shape and validation live in
+    `xiom.http.headers` (`src/headers.xi`) and are consumed by `http_request`.
+    `http_post`'s `content_type` argument remains a compatibility no-op (pass
+    an explicit `Content-Type` header through the new entry instead).
   - **Known issue:** Temp file response capture (`__xiom_http_body.tmp`, `__xiom_http_headers.tmp`). In-memory callback-based capture is planned for future versions.
 
 ### Caller modules (depend on http.xi):
@@ -50,7 +57,6 @@ xiom http.xi src/types.xi src/parser.xi ../runtime/ffi_bridge.c -l curl -o http_
 
 ## Future Work
 1. Replacing temp-file capture with in-memory CURLOPT_WRITEFUNCTION callbacks
-2. Wiring `curl_slist_append` for custom HTTP headers
-3. Native HTTP server transport via xiom-net TCP layer
-4. Streaming/chunked response support
-5. Multipart form upload support
+2. Native HTTP server transport via xiom-net TCP layer
+3. Streaming/chunked response support
+4. Multipart form upload support

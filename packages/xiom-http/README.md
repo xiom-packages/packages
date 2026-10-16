@@ -12,7 +12,10 @@ HTTP/1.1 types, request/response parsers, client helpers, and a (stub) server sh
 > Published in `eco-v0.1.125` (sha256 `2d5592af...`). 0.1.6: `eco-v0.1.133`
 > (sha256 `bb8a5029...`) adds 507 Insufficient Storage with the documented
 > `Unknown` fallback contract. 0.1.7: `eco-v0.1.189`
-> (sha256 `b65c44d2...`) client surface stabilisation (probe + docs).
+> (sha256 `b65c44d2...`) client surface stabilisation (probe + docs). 0.1.8:
+> custom request headers (`xiom.http.headers.http_headers_blob` +
+> `xiom.http.http_request`; `Authorization: Bearer` proven on the wire via the
+> shim's curl_slist path). Suite **52/52 x2** on v0.64.5.
 
 ## Consumer quickstart (3 lines)
 
@@ -28,7 +31,9 @@ imports only the parser module compiles cleanly (0.1.0 shipped 19 T001s in that 
 ## Consumer client build recipe (Windows; verified v0.64.2 + curl-for-win 8.22.0)
 
 The v0.64.2 runtime ships only `xiom_alloc`, so the client's other `xiom_*` bridge
-symbols come from the shipped shim (no libcurl stubs -- it composes with real curl).
+symbols come from the shipped shim (no libcurl stubs -- it composes with real curl;
+0.1.8 adds the header-list helpers, which call the real `curl_slist_append` /
+`curl_slist_free_all` and still define no libcurl symbols).
 lld-link searches for `curl.lib`, while curl-for-win ships `lib\libcurl.dll.a` -- copy
 it to a scratch dir as `curl.lib`:
 
@@ -51,18 +56,41 @@ The consumer-facing client surface is the `xiom.http.client` module (method
 wrappers over the libcurl bridge; adopting it needs no server-module contact).
 
 Stable today: `http_get` / `http_post` / `http_put` / `http_delete` and the
-method-routing `http_send`; typed `Err(Str)` failure taxonomy; response
-`status` / `body` / `headers` capture; TLS through the libcurl CA bundle
-(set `CURL_CA_BUNDLE`, recipe above).
+method-routing `http_send`; **custom request headers since 0.1.8** (incl.
+`Authorization: Bearer ...`): build the header list with
+`xiom.http.headers.http_headers_blob` and send it through
+`xiom.http.http_request`; `http_send` now forwards every declared
+`HttpRequest.headers` entry (pre-0.1.8 it consulted Content-Type only and then
+dropped it); typed `Err(Str)` failure taxonomy; response `status` / `body` /
+`headers` capture; TLS through the libcurl CA bundle (set `CURL_CA_BUNDLE`,
+recipe above).
 
-Not yet in the surface (tracked in `ROADMAP.md` -> v0.1.7): keep-alive
-control, per-call timeouts, streaming request/response bodies, and a
-pluggable TLS hook (arrives with `xiom.ssl`). The libcurl bridge is the
-transport until then.
+```xiom
+use xiom.http;
+use xiom.http.headers;
+use xiom.http.types;
+var pairs: Vec[HttpHeader] = Vec[HttpHeader].new();
+pairs.push(HttpHeader{ name: "Authorization", value: "Bearer <key>" });
+pairs.push(HttpHeader{ name: "Content-Type", value: "application/json" });
+match http_headers_blob(pairs) {
+  Ok(blob) => { /* http_request(url, "POST", body, blob) */ },
+  Err(e) => { /* invalid name or value; fix the pair, nothing was sent */ },
+};
+```
+
+Not yet in the surface (tracked in `ROADMAP.md`): keep-alive control,
+per-call timeouts, streaming request/response bodies, and a pluggable TLS
+hook (arrives with `xiom.ssl`). The libcurl bridge is the transport until
+then. `http_post`'s `content_type` parameter remains a compatibility no-op
+and `client.http_put` takes no content type -- put an explicit `Content-Type`
+into the header blob when the server needs one.
 
 Evidence: `tests/probe_client.xi` -- refused-taxonomy + malformed-url are
 offline-deterministic; the live GET and loopback POST legs print `[SKIP]`
-(rc 0) when the network/endpoint is absent.
+(rc 0) when the network/endpoint is absent. `tests/probe_real_libcurl.xi`
+adds the 0.1.8 live header roundtrip leg against the loopback echo endpoint
+`tests/echo_headers_server.ps1` (SKIP-safe); `tests/probe_root_module.xi`
+drives the header path offline through the deterministic probe bridge.
 
 ## Modules
 
@@ -74,6 +102,7 @@ offline-deterministic; the live GET and loopback POST legs print `[SKIP]`
 | `xiom.http.mime` | MIME mapping |
 | `xiom.http.url` | URL parsing |
 | `xiom.http.cookie` | cookie helpers (see also the `xiom.cookie` package) |
+| `xiom.http.headers` | header-list builder for custom request headers (`http_headers_blob`) |
 | `xiom.http.client` | client-side helpers |
 | `xiom.http.server` | **stub** (see below) |
 | `xiom.http.demo` | demo helpers |
@@ -113,11 +142,39 @@ offline). The consumer-style link without the shim fails on exactly
 `xiom_free_cstr` (`xiom_alloc` ships in the runtime); `curl_easy_*` resolve via
 `--link curl --link-path`.
 
+## 0.1.8 changes
+
+Custom request headers (incl. `Authorization`), the xiom.jev live-leg blocker
+(jev SPEC section 8):
+
+- New pure module `xiom.http.headers`: `http_headers_blob(Vec[HttpHeader]) ->
+  Result[Str, Str]` renders the frozen CRLF wire blob ("Name: value\r\n" per
+  pair, declaration order, duplicates kept, empty input -> `Ok("")`). Names
+  must be RFC 7230 tokens; values reject CR/LF/other control characters (HTAB
+  allowed) so header injection cannot be built; values never appear in error
+  text and nothing is logged.
+- `bridge/xiom_http_shims.c` gains `xiom_http_headers_build` /
+  `xiom_http_headers_free` (real `curl_slist_append` / `curl_slist_free_all`
+  via forward declarations -- no libcurl headers needed, no stubs added). The
+  list is freed after `curl_easy_cleanup`, the order libcurl requires.
+- New client entry `xiom.http.http_request(url, method, body, headers)`
+  (methods GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS; body for POST/PUT/PATCH;
+  `headers` is the blob). The five existing wrappers are unchanged;
+  `http_send` now routes the whole request through it, so every declared
+  `HttpRequest.headers` entry reaches the wire (and PATCH/HEAD/OPTIONS keep
+  their own request verbs instead of being sent as GET/POST).
+- Suite grows 42 -> 52 checks (10 builder goldens including the reject paths
+  and a blob -> `http_parse_headers` roundtrip); `probe_root_module.xi` drives
+  the header path offline; `probe_real_libcurl.xi` proves the live header
+  roundtrip against `tests/echo_headers_server.ps1` (SKIP-safe).
+
 ## Contracts and tests
 
 - `http_parse_request` / `http_parse_response`: `requires: input.len() > 0` (do not call
   with an empty string; an empty input traps as a contract violation).
 - Parser KATs (request line, POST body, response line, header parsing, malformed header)
-  live in `tests/test_conformance.xi` (42 checks) — added in 0.1.1 after a consumer-only
+  live in `tests/test_conformance.xi` (52 checks) -- added in 0.1.1 after a consumer-only
   defect (missing import + bare `&mut Int` cursor) shipped green on 0.1.0; the 0.1.4
-  checks pin printable-ASCII rendering in `src/url.xi` and `src/types.xi`.
+  checks pin printable-ASCII rendering in `src/url.xi` and `src/types.xi`; the 0.1.8
+  checks pin the header-list builder in `src/headers.xi` (goldens, reject rules,
+  parser roundtrip).

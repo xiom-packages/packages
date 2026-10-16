@@ -12,6 +12,7 @@ use xiom.http;
 use xiom.http.client;
 use xiom.http.cookie;
 use xiom.http.demo;
+use xiom.http.headers;
 use xiom.http.mime;
 use xiom.http.parser;
 use xiom.http.server;
