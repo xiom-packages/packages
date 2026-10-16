@@ -1,0 +1,90 @@
+﻿OK constant gate: ASENSOR_RESOLUTION_INVALID bits 0x7fc00000 (transcribed 0x7fc00000)
+OK constant gate: ASENSOR_RESOLUTION_INVALID is NaN
+OK load rc=0 error=
+OK load (declared exports=209, missing=0)
+OK A3 null queue -> explicit error (null input queue handle)
+OK A3 getEvent(null) -> 0 + error (null input queue handle)
+INFO A3 live queue path: input_app_probe.c (NativeActivity); a shell process cannot own an AInputQueue by design
+OK sensors: ASensorManager_getInstance -> handle
+INFO sensors: getInstanceForPackage("com.xiom.inputprobe") -> distinct permission-scoped manager
+OK sensors: package-scoped manager usable (sensors=18)
+OK sensors: list count=18
+INFO sensor[0] handle=0 type=1 name="Goldfish 3-axis Accelerometer" vendor="The Android Open Source Project" str="android.sensor.accelerometer"
+INFO sensor[0] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=0.000248016
+OK sensor[0] described
+INFO sensor[1] handle=1 type=4 name="Goldfish 3-axis Gyroscope" vendor="The Android Open Source Project" str="android.sensor.gyroscope"
+INFO sensor[1] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=0.001
+OK sensor[1] described
+INFO sensor[2] handle=2 type=2 name="Goldfish 3-axis Magnetic field sensor" vendor="The Android Open Source Project" str="android.sensor.magnetic_field"
+INFO sensor[2] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=0.5
+OK sensor[2] described
+INFO sensor[3] handle=3 type=3 name="Goldfish Orientation sensor" vendor="The Android Open Source Project" str="android.sensor.orientation"
+INFO sensor[3] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=1
+OK sensor[3] described
+INFO sensor[4] handle=4 type=13 name="Goldfish Ambient Temperature sensor" vendor="The Android Open Source Project" str="android.sensor.ambient_temperature"
+INFO sensor[4] min_delay=0 fifo_max=0 fifo_reserved=0 reporting=1 wake_up=0 direct_rate=0 res=1
+OK sensor[4] described
+INFO sensor[5] handle=5 type=8 name="Goldfish Proximity sensor" vendor="The Android Open Source Project" str="android.sensor.proximity"
+INFO sensor[5] min_delay=0 fifo_max=0 fifo_reserved=0 reporting=1 wake_up=1 direct_rate=0 res=1
+OK sensor[5] described
+INFO sensor[6] handle=6 type=5 name="Goldfish Light sensor" vendor="The Android Open Source Project" str="android.sensor.light"
+INFO sensor[6] min_delay=0 fifo_max=0 fifo_reserved=0 reporting=1 wake_up=0 direct_rate=0 res=1
+OK sensor[6] described
+INFO sensor[7] handle=7 type=6 name="Goldfish Pressure sensor" vendor="The Android Open Source Project" str="android.sensor.pressure"
+INFO sensor[7] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=1
+OK sensor[7] described
+INFO sensor[8] handle=8 type=12 name="Goldfish Humidity sensor" vendor="The Android Open Source Project" str="android.sensor.relative_humidity"
+INFO sensor[8] min_delay=0 fifo_max=0 fifo_reserved=0 reporting=1 wake_up=0 direct_rate=0 res=1
+OK sensor[8] described
+INFO sensor[9] handle=9 type=14 name="Goldfish 3-axis Magnetic field sensor (uncalibrated)" vendor="The Android Open Source Project" str="android.sensor.magnetic_field_uncalibrated"
+INFO sensor[9] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=0.5
+OK sensor[9] described
+INFO sensor[10] handle=10 type=16 name="Goldfish 3-axis Gyroscope (uncalibrated)" vendor="The Android Open Source Project" str="android.sensor.gyroscope_uncalibrated"
+INFO sensor[10] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=0.001
+OK sensor[10] described
+INFO sensor[11] handle=17 type=35 name="Goldfish 3-axis Accelerometer Uncalibrated" vendor="The Android Open Source Project" str="android.sensor.accelerometer_uncalibrated"
+INFO sensor[11] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=0.000248016
+OK sensor[11] described
+INFO sensor[12] handle=1600610674 type=15 name="Game Rotation Vector Sensor" vendor="AOSP" str="android.sensor.game_rotation_vector"
+INFO sensor[12] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=5.96046e-08
+OK sensor[12] described
+INFO sensor[13] handle=1600611695 type=20 name="GeoMag Rotation Vector Sensor" vendor="AOSP" str="android.sensor.geomagnetic_rotation_vector"
+INFO sensor[13] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=5.96046e-08
+OK sensor[13] described
+INFO sensor[14] handle=1600615030 type=9 name="Gravity Sensor" vendor="AOSP" str="android.sensor.gravity"
+INFO sensor[14] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=0.000248016
+OK sensor[14] described
+INFO sensor[15] handle=1600940398 type=10 name="Linear Acceleration Sensor" vendor="AOSP" str="android.sensor.linear_acceleration"
+INFO sensor[15] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=0.000248016
+OK sensor[15] described
+INFO sensor[16] handle=1601335158 type=11 name="Rotation Vector Sensor" vendor="AOSP" str="android.sensor.rotation_vector"
+INFO sensor[16] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=5.96046e-08
+OK sensor[16] described
+INFO sensor[17] handle=1601794162 type=3 name="Orientation Sensor" vendor="AOSP" str="android.sensor.orientation"
+INFO sensor[17] min_delay=10000 fifo_max=0 fifo_reserved=0 reporting=0 wake_up=0 direct_rate=0 res=0.00390625
+OK sensor[17] described
+INFO dynamic sensor list rc=0
+OK sensors: default accelerometer + Ex variant resolve
+OK sensors: direct-channel query responds (0)
+OK sensors: looper prepared (err=null input queue handle)
+INFO device sdk=0
+OK sensors: createEventQueue(ident=7) -> queue
+OK sensors: registerSensor(accel, 20000us, latency 0) (err=null input queue handle)
+OK sensors: polled + read 1 event(s)
+INFO event[0] v=104 type=1 sensor=0 ts=89736026893800 flags=0 x=0 y=9.77632 z=0.812345
+OK sensors: event type == ASENSOR_TYPE_ACCELEROMETER
+OK sensors: event timestamp > 0
+OK sensors: disableSensor
+OK sensors: requestAdditionalInfoEvents(disable)
+OK sensors: enableSensor (default rate)
+OK sensors: setEventRate(40000us) after enable
+OK sensors: queue destroyed
+OK sensors: createEventQueue(callback) -> queue
+OK sensors: pollOnce returned ALOOPER_POLL_CALLBACK
+OK sensors: callback fired 1 time(s), read 0 event(s)
+INFO direct channel (shm): rc=-12 (ASensorManager_createSharedMemoryDirectChannel rc=-12)
+OK direct channel (shm): platform rejected creation rc=-12 (goldfish HAL; documented)
+INFO direct channel (hwb): rc=-12 (ASensorManager_createHardwareBufferDirectChannel rc=-12)
+INFO configureDirectReport probe: rc=-22
+OK direct-channel trio responds on the device (behavior recorded above)
+RESULT: PASS

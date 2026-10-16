@@ -235,7 +235,12 @@ pub fn input_event_finish(queue: &InputQueue, event: &InputEvent, handled: Bool)
   return rc == 0;
 }
 
-/// Release one reference to the event (AInputEvent_release, API 31+).
+/// Release an interface object created by the JNI constructors
+/// (AKeyEvent_fromJava / AMotionEvent_fromJava; AInputEvent_release,
+/// API 31+).  Queue events from input_event_read are owned by the
+/// getEvent/finishEvent pair -- do NOT release them (the header scopes
+/// release to the fromJava path; releasing a queue event double-frees
+/// the framework reference and aborts the process).
 /// Complexity: O(1).
 pub fn input_event_release(event: InputEvent)
   requires: true
