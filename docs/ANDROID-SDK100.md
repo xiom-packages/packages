@@ -111,36 +111,56 @@ can be proven without the compiler target:
 - **W3**: on G1 -- first end-to-end suite on the emulator, then fan out
   slices A1-A12 as parallel agent sessions.
 
-## Status (2026-10-15, evening)
+## Status (2026-10-16 14:45Z)
 
 - **A1 window-core**: DONE (`xiom.android` 0.1.0; on-device 27/27 +
   HWB roundtrip).
 - **A5 assets-storage**: DONE (`xiom.android` 0.2.0; on-device 53/53 +
   SHM roundtrip).
-- **A2 lifecycle-glue**: IN FLIGHT (`android/w2c-lifecycle`; looper
-  functional on-device).
-- **A6 audio**: AAudio head IN FLIGHT (`android/aaudio`);
-  legacy tail (AMidi/OpenSL ES/OMXAL) IN FLIGHT (`android/opensl`).
-- **A7 media**: core IN FLIGHT (`android/mediandk`).
-- **A8 camera**: head IN FLIGHT (`android/camera2ndk`).
-- **A12 starter (log+sync)**: IN FLIGHT (`android/android-sys`).
-- **A3 input + A4 sensors**: NEXT WAVE (serial to W2c -- same package).
-- **A9 graphics-gl**: NEXT WAVE (delta over `xiom.gles`: system lib
-  names + EGL_ANDROID_*; generated package -- needs a
-  generator-aware pass).
+- **A2 lifecycle-glue**: DONE (xiom.android 0.3.0; 117-export set;
+  ALooper pipe/addFd/pollOnce on-device proof).
+- **A3 input + A4 sensors**: DONE (**xiom.android 0.4.0**; export set
+  117 -> 209 = input.h 60 + sensor.h 32; generated const tables, 538
+  values; x2 14/14 on v0.64.5; on-device app-probe recorded).
+- **A6 audio**: DONE (`xiom.aaudio` + `xiom.opensl` 0.1.0).
+- **A7 media**: DONE (`xiom.mediandk` 0.1.0).
+- **A8 camera**: DONE (`xiom.camera2ndk` 0.1.0).
+- **A11 JNI seam**: DONE (**`xiom.jni` 0.1.0**; 97 helpers over the
+  JNIEnv function table + android/bitmap.h cluster via libjnigraphics;
+  9-export loader set; x2 90/90; on-device shell + app_process probes
+  PASS).
+- **A9 graphics-gl**: IN FLIGHT (`android/a9-gl-leg` agent;
+  generator-aware pass over `xiom.gles`: system sonames +
+  EGL_ANDROID_* delta).
+- **A12 remainder** (binder_ndk / NNAPI / icu / z): IN FLIGHT
+  (`android/a12-sys` agent; `xiom.android-sys` 0.2.0).
 - **A10 graphics-vk**: OWNER lane (android delta =
-  VK_KHR_android_surface).
-- **A11 JNI seam**: NEXT WAVE (design: env/object slots supplied by
-  the consumer app; gates every live Surface/Context/asset wrapper).
-- **A12 remainder** (binder_ndk / NNAPI / icu / z): later waves.
+  VK_KHR_android_surface); the raw `xiom.vulkan` 0.6.0 surface is
+  100% (campaign checklist answered `REL-20261016-1347-bindings`;
+  wrapper tier = owner mini-RHI extended wave).
 - **G1 (compiler android target)**: OPEN -- owner call on the v0.64.6
   roadmap; the true end-to-end gate for XIOM-on-Android.
-- **G3 (packages tokens)**: relay item filed (`REL-20261015-2210-bindings`)
-  -- android-arm64/x86_64 tokens; NO vendored artifacts needed (all
-  system libs).
+- **G3 (packages/eco)**: android-arm64/x86_64 tokens ADOPTED
+  (`5aa4e63e` + `0d46b033`); ops scopes LIVE for the five new names
+  (eco-release 550), `xiom.ssl` (550), `xiom.brotli` + `xiom.jni`
+  (eco-release 552); family first-publish requested
+  (`REL-20261016-1305-bindings`, updated by
+  `REL-20261016-1322-bindings` -> publish `xiom.android 0.4.0`);
+  `xiom.jni` publish request `REL-20261016-1410-bindings`.
 
 ## Evidence log
 
+- 2026-10-16T11:05Z: **W2c landed** -- xiom.android 0.3.0 (A2
+  lifecycle-glue; export set 53 -> 117; ALooper functional); the five
+  new units (camera2ndk/aaudio/mediandk/android-sys/opensl 0.1.0)
+  landed the same day; integration gates 8/8 + family suites green;
+  validate 559/0.
+- 2026-10-16T12:21Z: **A3/A4 landed** -- xiom.android 0.4.0 (input +
+  sensors); export set 117 -> 209; x2 14/14 (SKIP leg); on-device
+  app-probe re-captured (live dispatcher block); validate 561/0.
+- 2026-10-16T14:10Z: **A11 landed** -- xiom.jni 0.1.0 (JNI seam +
+  bitmap); x2 90/90; on-device shell probe + app_process JNIEnv
+  acquisition probe PASS; validate 562/0.
 - 2026-10-15T11:35Z: SDK `C:\Android\sdk` verified -- NDK r27b (clang
   18.0.2 Android r522817b); smoke GREEN (ELF64/AArch64/DYN .so);
   headers + native_app_glue + CMake/ninja; emulator/AVD present.
