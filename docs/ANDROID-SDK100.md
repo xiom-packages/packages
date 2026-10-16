@@ -42,7 +42,7 @@ UPDATE carries the full trail).
 | A9 | graphics-gl | `EGL/`, `GLES/2/3`, `KHR/`, EGL_ANDROID_* -> libEGL, libGLESv1_CM/v2/v3 | `xiom.gles` 0.1.0 (ANGLE/Windows); android leg = system lib names + android extensions | G1 |
 | A10 | graphics-vk | `vulkan/`, `vk_video/` -> libvulkan | `xiom.vulkan` 0.6.0+ (OWNER lane); android delta = VK_KHR_android_surface | G1 + OWNER |
 | A11 | jni-seam | `jni.h`, `android/bitmap.h` -> libnativehelper, libjnigraphics | new | G1 |
-| A12 | system-misc | `android/log.h`, `sync.h`, `zlib.h`, binder surfaces, NNAPI, icu subset -> liblog, libsync, libz, libbinder_ndk, libneuralnetworks, libicu | partial (new) | G1 |
+| A12 | system-misc | `android/log.h`, `sync.h`, `zlib.h`, binder surfaces, NNAPI, icu subset -> liblog, libsync, libz, libbinder_ndk, libneuralnetworks, libicu | xiom.android-sys 0.2.0 (log+sync+binder+nnapi+zlib+icu subset; per-lib SKIP) | G1 |
 
 Coverage standard = the fleet standard: 100% of each slice's declared
 surface behind a XIOM module, a suite proving it (SKIP-style when the
@@ -123,7 +123,12 @@ can be proven without the compiler target:
   legacy tail (AMidi/OpenSL ES/OMXAL) IN FLIGHT (`android/opensl`).
 - **A7 media**: core IN FLIGHT (`android/mediandk`).
 - **A8 camera**: head IN FLIGHT (`android/camera2ndk`).
-- **A12 starter (log+sync)**: IN FLIGHT (`android/android-sys`).
+- **A12 system head**: DONE (`xiom.android-sys` 0.2.0; five per-lib
+  runtime-load units; on-device: log+sync 11/11 + ext 10/10, binder
+  12/12 + ext 3/3 with class lifecycle, NNAPI 12/12 + ext 7/7 with
+  offline model build + compilation finish, zlib 12/12 with exact
+  roundtrips, ICU 5/5 required + UTF roundtrip; evidence
+  `packages/xiom-android-sys/docs/repro/android-sys-probe/`).
 - **A3 input + A4 sensors**: NEXT WAVE (serial to W2c -- same package).
 - **A9 graphics-gl**: NEXT WAVE (delta over `xiom.gles`: system lib
   names + EGL_ANDROID_*; generated package -- needs a
@@ -132,7 +137,9 @@ can be proven without the compiler target:
   VK_KHR_android_surface).
 - **A11 JNI seam**: NEXT WAVE (design: env/object slots supplied by
   the consumer app; gates every live Surface/Context/asset wrapper).
-- **A12 remainder** (binder_ndk / NNAPI / icu / z): later waves.
+- **A12 follow-ups** (binder parcel/transact surface, NNAPI execution
+  I/O, ICU normalization/break, real-fence sync path): later waves
+  (deltas documented in `packages/xiom-android-sys/SPEC.md`).
 - **G1 (compiler android target)**: OPEN -- owner call on the v0.64.6
   roadmap; the true end-to-end gate for XIOM-on-Android.
 - **G3 (packages tokens)**: relay item filed (`REL-20261015-2210-bindings`)
@@ -157,3 +164,11 @@ can be proven without the compiler target:
 - 2026-10-15T21:10Z: **W2b on-device** -- xiom.android 0.2.0: 53/53
   exports resolved; ASharedMemory roundtrip exact; HWB evidence
   unchanged.
+- 2026-10-16T18:30Z: **A12 remainder on-device** -- xiom.android-sys
+  0.2.0: per-lib export sets 0 missing (binder 12/12 + 3/3 ext, NNAPI
+  12/12 + 7/7 ext, zlib 12/12, ICU required 5/5) + functional smokes
+  (binder class lifecycle; NNAPI offline model build + compilation
+  finish NO_ERROR; zlib compress/deflate roundtrips byte-exact; ICU
+  UTF roundtrip + case mapping; u_strlen optional gap recorded);
+  driver `RESULT: PASS` (evidence under
+  `packages/xiom-android-sys/docs/repro/android-sys-probe/`).
