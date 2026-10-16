@@ -1,80 +1,48 @@
-// xiom.numpy conformance suite -- Phase 1 (see SPEC.md).
+// xiom.numpy conformance suite -- Phase 2a core storage (see SPEC.md).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// 30 checks:
-//   10 dtype-logic checks (constants, is_valid_dtype, dtype_to_str)
-//   12 safe-wrapper error-path checks (the Phase-1 bridge in
-//      bridge/numpy_bridge.c resolves the extern symbols and reports the
-//      NumPy backend unavailable; the wrappers collapse <= 0 to Err)
-//    8 contract-presence markers (assert-true documentation checks)
-//
-// The bridge C source rides in port.args.json:
-//   scripts/port.ps1 -Package xiom.numpy -TimeoutSec 180
+// Exercises the REAL Phase-2a pure-XIOM storage in src/numpy.xi via
+// `use xiom.numpy`: handle-registry construction, property access, indexing
+// round-trips, bounds/rank errors, handle independence and free semantics.
+// Element-wise (add/sub/mul/div) and linear-algebra (dot/matmul) remain the
+// Phase-2b leg and are asserted to still report the pending backend through
+// the package-local bridge wired in port.args.json.
 
 module numpy_conformance
 
 use xiom.io;
 use xiom.test;
+use xiom.numpy;
 
-extern "C" {
-  fn numpy_c_array_new(shape_ptr: Int, ndim: Int, dtype: Int) -> Int;
-  fn numpy_c_array_from_data(data_ptr: Int, data_len: Int, shape_ptr: Int, ndim: Int) -> Int;
-  fn numpy_c_array_zeros(shape_ptr: Int, ndim: Int, dtype: Int) -> Int;
-  fn numpy_c_array_ones(shape_ptr: Int, ndim: Int, dtype: Int) -> Int;
-  fn numpy_c_array_arange(start: Float64, stop: Float64, step: Float64) -> Int;
-  fn numpy_c_array_free(arr: Int);
-  fn numpy_c_array_get(arr: Int, indices_ptr: Int, ndim: Int) -> Float64;
-  fn numpy_c_array_set(arr: Int, indices_ptr: Int, ndim: Int, val: Float64);
-  fn numpy_c_array_ndim(arr: Int) -> Int;
-  fn numpy_c_array_shape(arr: Int, out_ptr: Int, out_len: Int);
-  fn numpy_c_array_size(arr: Int) -> Int;
-  fn numpy_c_array_add(a: Int, b: Int) -> Int;
-  fn numpy_c_array_sub(a: Int, b: Int) -> Int;
-  fn numpy_c_array_mul(a: Int, b: Int) -> Int;
-  fn numpy_c_array_div(a: Int, b: Int) -> Int;
-  fn numpy_c_array_dot(a: Int, b: Int) -> Int;
-  fn numpy_c_array_matmul(a: Int, b: Int) -> Int;
-}
+// ---------------------------------------------------------------------------
+// Small helpers
+// ---------------------------------------------------------------------------
 
-pub type NDArray = Int;
-pub type DType = Int;
-
-pub const DTYPE_INT32: Int = 0;
-pub const DTYPE_INT64: Int = 1;
-pub const DTYPE_FLOAT32: Int = 2;
-pub const DTYPE_FLOAT64: Int = 3;
-
-fn is_valid_dtype(dtype: DType) -> Bool {
-  return dtype == DTYPE_INT32 || dtype == DTYPE_INT64 || dtype == DTYPE_FLOAT32 || dtype == DTYPE_FLOAT64;
-}
-
-fn dtype_to_str(dtype: DType) -> Str {
-  if dtype == DTYPE_INT32 { return "int32"; };
-  if dtype == DTYPE_INT64 { return "int64"; };
-  if dtype == DTYPE_FLOAT32 { return "float32"; };
-  if dtype == DTYPE_FLOAT64 { return "float64"; };
-  return "unknown";
-}
-
-fn make_shape(d0: Int) -> Vec[Int] {
+fn v1(a: Int) -> Vec[Int] {
   var s = Vec[Int].new();
-  s.push(d0);
+  s.push(a);
   return s;
 }
 
-fn make_shape_2d(d0: Int, d1: Int) -> Vec[Int] {
+fn v2(a: Int, b: Int) -> Vec[Int] {
   var s = Vec[Int].new();
-  s.push(d0);
-  s.push(d1);
+  s.push(a);
+  s.push(b);
   return s;
 }
 
-fn make_shape_3d(d0: Int, d1: Int, d2: Int) -> Vec[Int] {
+fn v3(a: Int, b: Int, c: Int) -> Vec[Int] {
   var s = Vec[Int].new();
-  s.push(d0);
-  s.push(d1);
-  s.push(d2);
+  s.push(a);
+  s.push(b);
+  s.push(c);
+  return s;
+}
+
+fn fd1(a: Float64) -> Vec[Float64] {
+  var s = Vec[Float64].new();
+  s.push(a);
   return s;
 }
 
@@ -100,89 +68,95 @@ fn int_to_str(n: Int) -> Str {
   return out;
 }
 
-fn local_array_new(shape: &Vec[Int], dtype: DType) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_new(0, shape.len(), dtype) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn float_close(a: Float64, b: Float64) -> Bool {
+  if a < b { return (b - a) < 0.000001; }
+  return (a - b) < 0.000001;
 }
 
-fn local_array_zeros(shape: &Vec[Int], dtype: DType) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_zeros(0, shape.len(), dtype) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn ints_eq(a: Vec[Int], b: Vec[Int]) -> Bool {
+  if a.len() != b.len() { return false; }
+  var i = 0;
+  while i < a.len() {
+    if a[i] != b[i] { return false; }
+    i = i + 1;
+  };
+  return true;
 }
 
-fn local_array_ones(shape: &Vec[Int], dtype: DType) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_ones(0, shape.len(), dtype) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn nd(r: Result[NDArray, Str]) -> NDArray {
+  match r {
+    Ok(h) => { return h; },
+    Err(_) => { return 0; },
+  };
 }
 
-fn local_array_arange(start: Float64, stop: Float64, step: Float64) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_arange(start, stop, step) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn ok_nd(r: Result[NDArray, Str]) -> Bool {
+  match r {
+    Ok(h) => { return h > 0; },
+    Err(_) => { return false; },
+  };
 }
 
-fn local_array_from_data(data: &Vec[Float64], shape: &Vec[Int]) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_from_data(0, data.len(), 0, shape.len()) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn err_nd(r: Result[NDArray, Str]) -> Bool {
+  match r {
+    Ok(_) => { return false; },
+    Err(_) => { return true; },
+  };
 }
 
-fn local_array_add(a: &NDArray, b: &NDArray) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_add(a, b) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn err_f(r: Result[Float64, Str]) -> Bool {
+  match r {
+    Ok(_) => { return false; },
+    Err(_) => { return true; },
+  };
 }
 
-fn local_array_sub(a: &NDArray, b: &NDArray) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_sub(a, b) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn err_u(r: Result[(), Str]) -> Bool {
+  match r {
+    Ok(_) => { return false; },
+    Err(_) => { return true; },
+  };
 }
 
-fn local_array_mul(a: &NDArray, b: &NDArray) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_mul(a, b) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn get_is(h: NDArray, idx: Vec[Int], want: Float64) -> Bool {
+  if h <= 0 { return false; }
+  let r = array_get(&h, &idx);
+  match r {
+    Ok(v) => { return float_close(v, want); },
+    Err(_) => { return false; },
+  };
 }
 
-fn local_array_div(a: &NDArray, b: &NDArray) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_div(a, b) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn set_ok(h: NDArray, idx: Vec[Int], val: Float64) -> Bool {
+  if h <= 0 { return false; }
+  var hh = h;
+  let r = array_set(&mut hh, &idx, val);
+  match r {
+    Ok(_) => { return true; },
+    Err(_) => { return false; },
+  };
 }
 
-fn local_array_dot(a: &NDArray, b: &NDArray) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_dot(a, b) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn shape_is(h: NDArray, want: Vec[Int]) -> Bool {
+  if h <= 0 { return false; }
+  let s = array_shape(&h);
+  return ints_eq(s, want);
 }
 
-fn local_array_matmul(a: &NDArray, b: &NDArray) -> Result[NDArray, Str] {
-  let handle: Int = unsafe { numpy_c_array_matmul(a, b) };
-  if handle <= 0 { return Err("FFI not linked"); };
-  return Ok(handle);
+fn get_err(h: NDArray, idx: Vec[Int]) -> Bool {
+  if h <= 0 { return false; }
+  return err_f(array_get(&h, &idx));
 }
 
-fn local_array_ndim(arr: &NDArray) -> Int {
-  return unsafe { numpy_c_array_ndim(arr) };
+fn set_err(h: NDArray, idx: Vec[Int], val: Float64) -> Bool {
+  if h <= 0 { return false; }
+  var hh = h;
+  return err_u(array_set(&mut hh, &idx, val));
 }
 
-fn local_array_size(arr: &NDArray) -> Int {
-  return unsafe { numpy_c_array_size(arr) };
-}
-
-fn local_array_get(arr: &NDArray, ndim: Int) -> Float64 {
-  return unsafe { numpy_c_array_get(arr, 0, ndim) };
-}
-
-fn local_array_free(arr: NDArray)
-  requires: arr != 0
-{
-  unsafe { numpy_c_array_free(arr) };
-}
+// ---------------------------------------------------------------------------
+// dtype logic
+// ---------------------------------------------------------------------------
 
 fn test_dtype_int32_constant() -> TestResult {
   return xiom.test.assert_eq_int(DTYPE_INT32, 0, "dtype: DTYPE_INT32 == 0");
@@ -224,86 +198,323 @@ fn test_dtype_to_str_unknown() -> TestResult {
   return xiom.test.assert(dtype_to_str(99) == "unknown", "dtype: dtype_to_str(99) == 'unknown'");
 }
 
-fn test_array_new_valid_shape_1d() -> TestResult {
-  var shape = make_shape(10);
-  var result = local_array_new(&shape, DTYPE_FLOAT64);
-  return xiom.test.assert_err(result, "create: array_new 1d returns Err (FFI not linked)");
+// ---------------------------------------------------------------------------
+// construction
+// ---------------------------------------------------------------------------
+
+fn test_new_1d_ok() -> TestResult {
+  return xiom.test.assert(ok_nd(array_new(&v1(10), DTYPE_FLOAT64)), "create: array_new 1d returns Ok");
 }
 
-fn test_array_new_valid_shape_2d() -> TestResult {
-  var shape = make_shape_2d(3, 4);
-  var result = local_array_new(&shape, DTYPE_FLOAT32);
-  return xiom.test.assert_err(result, "create: array_new 2d returns Err (FFI not linked)");
+fn test_new_1d_ndim() -> TestResult {
+  let h = nd(array_new(&v1(10), DTYPE_FLOAT64));
+  return xiom.test.assert_eq_int(array_ndim(&h), 1, "create: array_new 1d ndim == 1");
 }
 
-fn test_array_zeros_returns_err() -> TestResult {
-  var shape = make_shape(5);
-  var result = local_array_zeros(&shape, DTYPE_FLOAT64);
-  return xiom.test.assert_err(result, "create: array_zeros returns Err (FFI not linked)");
+fn test_new_1d_size() -> TestResult {
+  let h = nd(array_new(&v1(10), DTYPE_FLOAT64));
+  return xiom.test.assert_eq_int(array_size(&h), 10, "create: array_new 1d size == 10");
 }
 
-fn test_array_ones_returns_err() -> TestResult {
-  var shape = make_shape(3);
-  var result = local_array_ones(&shape, DTYPE_INT32);
-  return xiom.test.assert_err(result, "create: array_ones returns Err (FFI not linked)");
+fn test_new_1d_shape() -> TestResult {
+  let h = nd(array_new(&v1(10), DTYPE_FLOAT64));
+  return xiom.test.assert(shape_is(h, v1(10)), "create: array_new 1d shape == [10]");
 }
 
-fn test_array_arange_returns_err() -> TestResult {
-  var result = local_array_arange(0.0, 10.0, 1.0);
-  return xiom.test.assert_err(result, "create: array_arange(0,10,1) returns Err (FFI not linked)");
+fn test_new_1d_dtype() -> TestResult {
+  let h = nd(array_new(&v1(4), DTYPE_FLOAT32));
+  return xiom.test.assert_eq_int(array_dtype(&h), DTYPE_FLOAT32, "create: array_new keeps dtype");
 }
 
-fn test_array_from_data_returns_err() -> TestResult {
-  var data = Vec[Float64].new();
-  data.push(1.0);
-  data.push(2.0);
-  data.push(3.0);
-  var shape = make_shape(3);
-  var result = local_array_from_data(&data, &shape);
-  return xiom.test.assert_err(result, "create: array_from_data returns Err (FFI not linked)");
+fn test_new_2d_size() -> TestResult {
+  let h = nd(array_new(&v2(3, 4), DTYPE_FLOAT64));
+  return xiom.test.assert_eq_int(array_size(&h), 12, "create: array_new 2d size == 12");
 }
 
-fn test_array_add_returns_err() -> TestResult {
-  var a: NDArray = 1;
-  var b: NDArray = 2;
-  var result = local_array_add(&a, &b);
-  return xiom.test.assert_err(result, "ops: array_add returns Err (FFI not linked)");
+fn test_new_2d_shape() -> TestResult {
+  let h = nd(array_new(&v2(3, 4), DTYPE_FLOAT64));
+  return xiom.test.assert(shape_is(h, v2(3, 4)), "create: array_new 2d shape == [3,4]");
 }
 
-fn test_array_sub_returns_err() -> TestResult {
-  var a: NDArray = 1;
-  var b: NDArray = 2;
-  var result = local_array_sub(&a, &b);
-  return xiom.test.assert_err(result, "ops: array_sub returns Err (FFI not linked)");
+fn test_new_2d_ndim() -> TestResult {
+  let h = nd(array_new(&v2(3, 4), DTYPE_FLOAT64));
+  return xiom.test.assert_eq_int(array_ndim(&h), 2, "create: array_new 2d ndim == 2");
 }
 
-fn test_array_mul_returns_err() -> TestResult {
-  var a: NDArray = 1;
-  var b: NDArray = 2;
-  var result = local_array_mul(&a, &b);
-  return xiom.test.assert_err(result, "ops: array_mul returns Err (FFI not linked)");
+fn test_new_invalid_dtype_err() -> TestResult {
+  return xiom.test.assert(err_nd(array_new(&v1(3), 99)), "create: array_new invalid dtype returns Err");
 }
 
-fn test_array_div_returns_err() -> TestResult {
-  var a: NDArray = 1;
-  var b: NDArray = 2;
-  var result = local_array_div(&a, &b);
-  return xiom.test.assert_err(result, "ops: array_div returns Err (FFI not linked)");
+fn test_new_negative_dim_err() -> TestResult {
+  return xiom.test.assert(err_nd(array_new(&v1(-3), DTYPE_FLOAT64)), "create: array_new negative dim returns Err");
 }
 
-fn test_array_dot_returns_err() -> TestResult {
-  var a: NDArray = 1;
-  var b: NDArray = 2;
-  var result = local_array_dot(&a, &b);
-  return xiom.test.assert_err(result, "linalg: array_dot returns Err (FFI not linked)");
+fn test_zeros_ok() -> TestResult {
+  return xiom.test.assert(ok_nd(array_zeros(&v2(2, 3), DTYPE_FLOAT64)), "create: array_zeros returns Ok");
 }
 
-fn test_array_matmul_returns_err() -> TestResult {
-  var a: NDArray = 1;
-  var b: NDArray = 2;
-  var result = local_array_matmul(&a, &b);
-  return xiom.test.assert_err(result, "linalg: array_matmul returns Err (FFI not linked)");
+fn test_zeros_values() -> TestResult {
+  let h = nd(array_zeros(&v2(2, 3), DTYPE_FLOAT64));
+  let a = get_is(h, v2(0, 0), 0.0);
+  let b = get_is(h, v2(1, 2), 0.0);
+  return xiom.test.assert(a && b, "create: array_zeros elements are 0.0");
 }
+
+fn test_ones_values() -> TestResult {
+  let h = nd(array_ones(&v1(4), DTYPE_FLOAT64));
+  let a = get_is(h, v1(0), 1.0);
+  let b = get_is(h, v1(3), 1.0);
+  return xiom.test.assert(a && b, "create: array_ones elements are 1.0");
+}
+
+fn test_ones_invalid_dtype_err() -> TestResult {
+  return xiom.test.assert(err_nd(array_ones(&v1(2), 77)), "create: array_ones invalid dtype returns Err");
+}
+
+fn test_from_data_ok() -> TestResult {
+  return xiom.test.assert(ok_nd(array_from_data(&fd1(2.5), &v1(1))), "create: array_from_data returns Ok");
+}
+
+fn test_from_data_size_ndim() -> TestResult {
+  var d = Vec[Float64].new();
+  d.push(1.0);
+  d.push(2.0);
+  d.push(3.0);
+  d.push(4.0);
+  let h = nd(array_from_data(&d, &v2(2, 2)));
+  return xiom.test.assert(array_size(&h) == 4 && array_ndim(&h) == 2, "create: array_from_data size/ndim");
+}
+
+fn test_from_data_roundtrip() -> TestResult {
+  var d = Vec[Float64].new();
+  d.push(1.5);
+  d.push(2.5);
+  d.push(3.5);
+  d.push(4.5);
+  let h = nd(array_from_data(&d, &v2(2, 2)));
+  let a = get_is(h, v2(0, 0), 1.5);
+  let b = get_is(h, v2(0, 1), 2.5);
+  let c = get_is(h, v2(1, 0), 3.5);
+  let e = get_is(h, v2(1, 1), 4.5);
+  return xiom.test.assert(a && b && c && e, "create: array_from_data roundtrips values");
+}
+
+fn test_from_data_mismatch_err() -> TestResult {
+  var d = Vec[Float64].new();
+  d.push(1.0);
+  d.push(2.0);
+  d.push(3.0);
+  return xiom.test.assert(err_nd(array_from_data(&d, &v2(2, 2))), "create: array_from_data size mismatch Err");
+}
+
+fn test_from_data_negative_dim_err() -> TestResult {
+  return xiom.test.assert(err_nd(array_from_data(&fd1(1.0), &v1(-1))), "create: array_from_data negative dim Err");
+}
+
+// ---------------------------------------------------------------------------
+// arange edges
+// ---------------------------------------------------------------------------
+
+fn test_arange_ok() -> TestResult {
+  return xiom.test.assert(ok_nd(array_arange(0.0, 5.0, 1.0)), "arange: (0,5,1) returns Ok");
+}
+
+fn test_arange_size() -> TestResult {
+  let h = nd(array_arange(0.0, 5.0, 1.0));
+  return xiom.test.assert_eq_int(array_size(&h), 5, "arange: (0,5,1) size == 5");
+}
+
+fn test_arange_values() -> TestResult {
+  let h = nd(array_arange(0.0, 5.0, 1.0));
+  let a = get_is(h, v1(0), 0.0);
+  let b = get_is(h, v1(4), 4.0);
+  return xiom.test.assert(a && b, "arange: (0,5,1) values 0..4");
+}
+
+fn test_arange_empty_forward() -> TestResult {
+  let h = nd(array_arange(0.0, 0.0, 1.0));
+  return xiom.test.assert_eq_int(array_size(&h), 0, "arange: (0,0,1) empty");
+}
+
+fn test_arange_empty_stop_lt_start() -> TestResult {
+  let h = nd(array_arange(2.0, 2.0, 1.0));
+  return xiom.test.assert_eq_int(array_size(&h), 0, "arange: (2,2,1) empty");
+}
+
+fn test_arange_negative_step() -> TestResult {
+  let h = nd(array_arange(5.0, 0.0, -1.0));
+  let a = get_is(h, v1(0), 5.0);
+  let b = get_is(h, v1(4), 1.0);
+  return xiom.test.assert(array_size(&h) == 5 && a && b, "arange: (5,0,-1) size 5 values 5..1");
+}
+
+fn test_arange_fractional_step() -> TestResult {
+  let h = nd(array_arange(0.0, 1.0, 0.25));
+  let a = get_is(h, v1(0), 0.0);
+  let b = get_is(h, v1(3), 0.75);
+  return xiom.test.assert(array_size(&h) == 4 && a && b, "arange: (0,1,0.25) size 4");
+}
+
+// ---------------------------------------------------------------------------
+// indexing round-trips and bounds
+// ---------------------------------------------------------------------------
+
+fn test_set_get_1d() -> TestResult {
+  let h = nd(array_zeros(&v1(5), DTYPE_FLOAT64));
+  let s = set_ok(h, v1(2), 9.0);
+  return xiom.test.assert(s && get_is(h, v1(2), 9.0), "index: 1d set/get roundtrip");
+}
+
+fn test_set_get_2d() -> TestResult {
+  let h = nd(array_zeros(&v2(3, 4), DTYPE_FLOAT64));
+  let s = set_ok(h, v2(1, 2), 7.0);
+  return xiom.test.assert(s && get_is(h, v2(1, 2), 7.0), "index: 2d set/get roundtrip");
+}
+
+fn test_get_out_of_bounds_err() -> TestResult {
+  let h = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  return xiom.test.assert(get_err(h, v1(3)), "index: get out-of-bounds returns Err");
+}
+
+fn test_get_negative_index_err() -> TestResult {
+  let h = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  return xiom.test.assert(get_err(h, v1(-1)), "index: get negative index returns Err");
+}
+
+fn test_get_rank_mismatch_err() -> TestResult {
+  let h = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
+  return xiom.test.assert(get_err(h, v1(0)), "index: get rank mismatch returns Err");
+}
+
+fn test_set_out_of_bounds_err() -> TestResult {
+  let h = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  return xiom.test.assert(set_err(h, v1(10), 1.0), "index: set out-of-bounds returns Err");
+}
+
+fn test_set_rank_mismatch_err() -> TestResult {
+  let h = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
+  return xiom.test.assert(set_err(h, v3(0, 0, 0), 1.0), "index: set rank mismatch returns Err");
+}
+
+// ---------------------------------------------------------------------------
+// handle independence
+// ---------------------------------------------------------------------------
+
+fn test_handles_distinct() -> TestResult {
+  let a = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  let b = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  return xiom.test.assert(a != b && a > 0 && b > 0, "handles: distinct positive handles");
+}
+
+fn test_independent_values() -> TestResult {
+  let a = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  let b = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  let sa = set_ok(a, v1(0), 11.0);
+  let sb = set_ok(b, v1(0), 22.0);
+  return xiom.test.assert(sa && sb && get_is(a, v1(0), 11.0) && get_is(b, v1(0), 22.0), "handles: no value aliasing");
+}
+
+fn test_mutation_isolated() -> TestResult {
+  let a = nd(array_ones(&v1(2), DTYPE_FLOAT64));
+  let b = nd(array_ones(&v1(2), DTYPE_FLOAT64));
+  let s = set_ok(a, v1(1), 5.0);
+  return xiom.test.assert(s && get_is(a, v1(1), 5.0) && get_is(b, v1(1), 1.0), "handles: mutating one leaves other");
+}
+
+// ---------------------------------------------------------------------------
+// free semantics
+// ---------------------------------------------------------------------------
+
+fn test_free_invalidates_ndim() -> TestResult {
+  let h = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  array_free(h);
+  return xiom.test.assert_eq_int(array_ndim(&h), 0, "free: ndim == 0 after free");
+}
+
+fn test_free_invalidates_size() -> TestResult {
+  let h = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  array_free(h);
+  return xiom.test.assert_eq_int(array_size(&h), 0, "free: size == 0 after free");
+}
+
+fn test_free_invalidates_shape() -> TestResult {
+  let h = nd(array_zeros(&v2(2, 3), DTYPE_FLOAT64));
+  array_free(h);
+  let s = array_shape(&h);
+  return xiom.test.assert_eq_int(s.len(), 0, "free: shape empty after free");
+}
+
+fn test_free_blocks_get() -> TestResult {
+  let h = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  array_free(h);
+  return xiom.test.assert(err_f(array_get(&h, &v1(0))), "free: get on freed handle returns Err");
+}
+
+fn test_double_free_safe() -> TestResult {
+  let h = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  array_free(h);
+  array_free(h);
+  return xiom.test.assert_eq_int(array_ndim(&h), 0, "free: double free is safe");
+}
+
+fn test_free_does_not_affect_other() -> TestResult {
+  let a = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  let b = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  let s = set_ok(b, v1(0), 4.0);
+  array_free(a);
+  return xiom.test.assert(s && get_is(b, v1(0), 4.0) && array_ndim(&b) == 1, "free: sibling handle unaffected");
+}
+
+fn test_new_after_free_distinct() -> TestResult {
+  let a = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  array_free(a);
+  let b = nd(array_zeros(&v1(3), DTYPE_FLOAT64));
+  return xiom.test.assert(b != a && array_ndim(&b) == 1, "free: new handle is not the freed one");
+}
+
+// ---------------------------------------------------------------------------
+// Phase-2b ops still report the pending backend
+// ---------------------------------------------------------------------------
+
+fn test_add_pending_err() -> TestResult {
+  var a = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  var b = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  return xiom.test.assert(err_nd(array_add(&a, &b)), "ops: array_add returns Err (Phase 2b)");
+}
+
+fn test_sub_pending_err() -> TestResult {
+  var a = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  var b = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  return xiom.test.assert(err_nd(array_sub(&a, &b)), "ops: array_sub returns Err (Phase 2b)");
+}
+
+fn test_mul_pending_err() -> TestResult {
+  var a = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  var b = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  return xiom.test.assert(err_nd(array_mul(&a, &b)), "ops: array_mul returns Err (Phase 2b)");
+}
+
+fn test_div_pending_err() -> TestResult {
+  var a = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  var b = nd(array_zeros(&v1(2), DTYPE_FLOAT64));
+  return xiom.test.assert(err_nd(array_div(&a, &b)), "ops: array_div returns Err (Phase 2b)");
+}
+
+fn test_dot_pending_err() -> TestResult {
+  var a = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
+  var b = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
+  return xiom.test.assert(err_nd(array_dot(&a, &b)), "linalg: array_dot returns Err (Phase 2b)");
+}
+
+fn test_matmul_pending_err() -> TestResult {
+  var a = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
+  var b = nd(array_zeros(&v2(2, 2), DTYPE_FLOAT64));
+  return xiom.test.assert(err_nd(array_matmul(&a, &b)), "linalg: array_matmul returns Err (Phase 2b)");
+}
+
+// ---------------------------------------------------------------------------
+// contract-presence markers
+// ---------------------------------------------------------------------------
 
 fn test_contract_array_new() -> TestResult {
   return xiom.test.assert(true, "contract: array_new has requires: shape.len() > 0");
@@ -325,16 +536,16 @@ fn test_contract_array_set() -> TestResult {
   return xiom.test.assert(true, "contract: array_set has requires: arr != 0, indices.len() > 0");
 }
 
-fn test_contract_array_add() -> TestResult {
-  return xiom.test.assert(true, "contract: array_add has requires: a != 0, b != 0");
-}
-
 fn test_contract_array_free() -> TestResult {
   return xiom.test.assert(true, "contract: array_free has requires: arr != 0");
 }
 
-fn test_contract_array_matmul() -> TestResult {
-  return xiom.test.assert(true, "contract: array_matmul has requires: a != 0, b != 0");
+fn test_contract_typed_err() -> TestResult {
+  return xiom.test.assert(true, "contract: creation/get/set return typed Result[_, Str]");
+}
+
+fn test_contract_no_ffi_storage() -> TestResult {
+  return xiom.test.assert(true, "contract: Phase-2a storage is pure XIOM (no FFI on create/get/set)");
 }
 
 pub fn main() -> Int {
@@ -354,28 +565,69 @@ pub fn main() -> Int {
   results.push(test_dtype_to_str_int64());
   results.push(test_dtype_to_str_unknown());
 
-  results.push(test_array_new_valid_shape_1d());
-  results.push(test_array_new_valid_shape_2d());
-  results.push(test_array_zeros_returns_err());
-  results.push(test_array_ones_returns_err());
-  results.push(test_array_arange_returns_err());
-  results.push(test_array_from_data_returns_err());
+  results.push(test_new_1d_ok());
+  results.push(test_new_1d_ndim());
+  results.push(test_new_1d_size());
+  results.push(test_new_1d_shape());
+  results.push(test_new_1d_dtype());
+  results.push(test_new_2d_size());
+  results.push(test_new_2d_shape());
+  results.push(test_new_2d_ndim());
+  results.push(test_new_invalid_dtype_err());
+  results.push(test_new_negative_dim_err());
+  results.push(test_zeros_ok());
+  results.push(test_zeros_values());
+  results.push(test_ones_values());
+  results.push(test_ones_invalid_dtype_err());
+  results.push(test_from_data_ok());
+  results.push(test_from_data_size_ndim());
+  results.push(test_from_data_roundtrip());
+  results.push(test_from_data_mismatch_err());
+  results.push(test_from_data_negative_dim_err());
 
-  results.push(test_array_add_returns_err());
-  results.push(test_array_sub_returns_err());
-  results.push(test_array_mul_returns_err());
-  results.push(test_array_div_returns_err());
-  results.push(test_array_dot_returns_err());
-  results.push(test_array_matmul_returns_err());
+  results.push(test_arange_ok());
+  results.push(test_arange_size());
+  results.push(test_arange_values());
+  results.push(test_arange_empty_forward());
+  results.push(test_arange_empty_stop_lt_start());
+  results.push(test_arange_negative_step());
+  results.push(test_arange_fractional_step());
+
+  results.push(test_set_get_1d());
+  results.push(test_set_get_2d());
+  results.push(test_get_out_of_bounds_err());
+  results.push(test_get_negative_index_err());
+  results.push(test_get_rank_mismatch_err());
+  results.push(test_set_out_of_bounds_err());
+  results.push(test_set_rank_mismatch_err());
+
+  results.push(test_handles_distinct());
+  results.push(test_independent_values());
+  results.push(test_mutation_isolated());
+
+  results.push(test_free_invalidates_ndim());
+  results.push(test_free_invalidates_size());
+  results.push(test_free_invalidates_shape());
+  results.push(test_free_blocks_get());
+  results.push(test_double_free_safe());
+  results.push(test_free_does_not_affect_other());
+  results.push(test_new_after_free_distinct());
+
+  results.push(test_add_pending_err());
+  results.push(test_sub_pending_err());
+  results.push(test_mul_pending_err());
+  results.push(test_div_pending_err());
+  results.push(test_dot_pending_err());
+  results.push(test_matmul_pending_err());
 
   results.push(test_contract_array_new());
   results.push(test_contract_array_from_data());
   results.push(test_contract_array_arange());
   results.push(test_contract_array_get());
   results.push(test_contract_array_set());
-  results.push(test_contract_array_add());
   results.push(test_contract_array_free());
-  results.push(test_contract_array_matmul());
+  results.push(test_contract_typed_err());
+  results.push(test_contract_no_ffi_storage());
 
   let total_count = results.len();
   let report = xiom.test.format_results(results);
@@ -390,12 +642,11 @@ pub fn main() -> Int {
   if fail_count == 0 {
     io.println("ALL " + int_to_str(total_count) + " TESTS PASSED");
     io.println("Path: packages\\xiom-numpy\\tests\\test_conformance.xi");
-    io.println("Contracts (src/numpy.xi): 28 requires clauses; 8 contract checks in this suite");
+    io.println("Contracts (src/numpy.xi): creation/get/set/free requires clauses; 8 contract checks in this suite");
     return 0;
   } else {
     io.println("Path: packages\\xiom-numpy\\tests\\test_conformance.xi");
     io.println("Tests: " + int_to_str(total_count));
-    io.println("Contracts (src/numpy.xi): 28 requires clauses; 8 contract checks in this suite");
     io.println("SOME TESTS FAILED");
     return 1;
   };

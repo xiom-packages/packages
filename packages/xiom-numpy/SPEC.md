@@ -1,8 +1,8 @@
 # xiom.numpy -- SPEC
 
-**Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
-**Status**: Phase 1 GREEN -- 30/30 conformance checks x2 (compiler v0.64.5, 2026-10-16); Phase-1 link bridge at `bridge/numpy_bridge.c`
-**Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend) -- both Phase 2+ only; the Phase-1 suite runs without either.
+**Phase**: 2a (Core Storage) | **Priority**: CRITICAL
+**Status**: Phase 2a GREEN -- 67/67 conformance checks x2 (compiler v0.64.5, 2026-10-16); Phase-1 link bridge retained at `bridge/numpy_bridge.c` for the Phase-2b element-wise/linear-algebra seam
+**Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend) -- both Phase 2b+ only; the suite runs without either.
 
 ## What it wraps
 NumPy C API -- the fundamental array computing library for scientific Python.
@@ -23,6 +23,31 @@ bypassing Python entirely. This is what Cython/C extensions do internally.
 **Headers only from NumPy source.** Compile the C API bridge against system OpenBLAS.
 NumPy's `numpy/core/include/numpy/` contains the public C API headers.
 We compile a thin C bridge that calls `PyArray_*` functions (which are C, not Python).
+
+## Phase-2a design note: native storage over the PyArray sketch (2026-10-16)
+- Decision: the core storage leg uses **native pure-XIOM storage**, not the
+  earlier `PyArray_*` C-bridge sketch. Registry consumers cannot assume a
+  Python + NumPy install, so the core type must not depend on a Python runtime.
+  `NDArray` stays an opaque `Int` handle; the bytes it names live in a
+  module-level handle registry inside `src/numpy.xi` (parallel flat arenas:
+  `Vec[Float64]` value buffer with per-slot base/size, flat shape arena with
+  per-slot offset/ndim, dtype, and a liveness flag). No FFI is used on any
+  creation, property, indexing, or free path.
+- Handles are `1 + slot index`; handle `0` is always invalid. Slots are
+  append-only, and `array_free` marks a slot dead without reusing it, so a
+  stale handle can never silently alias a later allocation (handle
+  independence and free semantics are conformance-checked).
+- The C-bridge seam is preserved, not removed: `bridge/numpy_bridge.c` +
+  `port.args.json` still link the element-wise (`add/sub/mul/div`) and
+  linear-algebra (`dot/matmul`) entry points. Those wrappers still return
+  `Err` (Phase 2b owns them); a future PyArray/OpenBLAS acceleration would be
+  linked behind this same seam without changing the `NDArray` surface.
+- Surface deltas from the Phase-1 sketch in the API block below: `get`/`set`
+  now return typed `Result[Float64, Str]` / `Result[(), Str]` so out-of-bounds
+  and rank errors are typed (bounds are runtime facts, not static contracts);
+  `array_dtype` is exposed so the stored dtype metadata is observable.
+- Shape guard: a negative dimension, or an element product above the
+  documented `ND_MAX_ELEMS` (1000000), fails closed with `Err`.
 
 ## Phase-1 status and provenance (2026-10-16)
 - The conformance suite (`tests/test_conformance.xi`, 30 checks) links the
@@ -61,14 +86,14 @@ pub fn array_arange(start: Float64, stop: Float64, step: Float64) -> Result[NDAr
 pub fn array_free(arr: NDArray)
 
 // Properties
-pub fn ndim(arr: &NDArray) -> Int
-pub fn shape(arr: &NDArray) -> Vec[Int]
-pub fn dtype(arr: &NDArray) -> DType
-pub fn size(arr: &NDArray) -> Int
+pub fn array_dtype(arr: &NDArray) -> DType
+pub fn array_ndim(arr: &NDArray) -> Int
+pub fn array_shape(arr: &NDArray) -> Vec[Int]
+pub fn array_size(arr: &NDArray) -> Int
 
-// Indexing
-pub fn get(arr: &NDArray, indices: Vec[Int]) -> Float64
-pub fn set(arr: &mut NDArray, indices: Vec[Int], val: Float64)
+// Indexing (typed Err on invalid handle / rank / bounds)
+pub fn array_get(arr: &NDArray, indices: &Vec[Int]) -> Result[Float64, Str]
+pub fn array_set(arr: &mut NDArray, indices: &Vec[Int], val: Float64) -> Result[(), Str]
 
 // Element-wise ops
 pub fn add(a: &NDArray, b: &NDArray) -> Result[NDArray, Str]
