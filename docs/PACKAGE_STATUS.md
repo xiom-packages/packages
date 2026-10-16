@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-16T15:29:37Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T15:36:43Z.
 
 ## Summary
 
@@ -406,7 +406,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.geology | xiom-geology | incubating | tests/test_conformance.xi | pass 26/26 | fb04b916 | False | publish pending: next scope delta |
 | xiom.geom3d | xiom-geom3d | incubating | tests/test_conformance.xi | pass 27/27 | a3fb80eb | False | publish pending: next scope delta |
 | xiom.git2 | xiom-git2 | incubating | tests/test_conformance.xi | pass 24/24 | fd38977f | False | publish pending: next scope delta |
-| xiom.gles | xiom-gles | incubating | tests/test_conformance.xi | pass 20/20 | c7e08b20 | False | published in eco-v0.1.171 (2026-10-13, 0.1.0 ANGLE surface); 0.2.0 android leg (A9) pending publish |
+| xiom.gles | xiom-gles | incubating | tests/test_conformance.xi | pass 20/20 | c7e08b20 | False | published in eco-v0.1.190 (2026-10-16, 0.2.0 A9 android leg; 0.1.0 in eco-v0.1.171) |
 | xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | b0391d1b | False | published in eco-v0.1.185 (2026-10-15, 0.6.0 dispatcher lift; 0.5.0 in eco-v0.1.137; 0.4.0 in eco-v0.1.136) |
 | xiom.glslang | xiom-glslang | incubating | tests/test_conformance.xi | pass 29/29 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.golden | xiom-golden | incubating | tests/test_conformance.xi | pass 35/35 | fd38977f | False | publish pending: next scope delta |
