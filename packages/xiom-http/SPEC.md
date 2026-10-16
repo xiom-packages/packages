@@ -157,17 +157,19 @@ High-level HTTP client that delegates to `xiom.http` functions with `Vec[Int]` b
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `http_get` | `(url: Str) -> Result[HttpResponse, Str]` | Delegates to `xiom.http.http_get` |
-| `http_post` | `(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpResponse, Str]` | Converts body to Str, delegates |
-| `http_put` | `(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpResponse, Str]` | Converts body to Str, delegates |
-| `http_delete` | `(url: Str) -> Result[HttpResponse, Str]` | Delegates to `xiom.http.http_delete` |
-| `http_send` | `(request: &HttpRequest, url: &Url) -> Result[HttpResponse, Str]` | Serializes request, dispatches by method |
+| `http_get` | `(url: Str) -> Result[HttpClientResponse, Str]` | Delegates to `xiom.http.http_get` |
+| `http_post` | `(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpClientResponse, Str]` | Converts body to Str, delegates |
+| `http_put` | `(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpClientResponse, Str]` | Converts body to Str, delegates |
+| `http_delete` | `(url: Str) -> Result[HttpClientResponse, Str]` | Delegates to `xiom.http.http_delete` |
+| `http_send` | `(request: &HttpRequest, url: &Url) -> Result[HttpClientResponse, Str]` | Serializes request, dispatches by method |
 
 `http_send` work flow:
 1. Serialize `Url` to string via internal `url_to_str`
 2. Convert `request.body` (`Vec[Int]`) to `Str`
 3. Extract `Content-Type` from `request.headers`
 4. Dispatch: GET->http_get, POST->http_post, PUT->http_put, DELETE->http_delete, PATCH->http_post with JSON content type, HEAD/OPTIONS->http_get
+
+**Surface status (2026-10-16).** Stable for consumers: the five wrappers above, the typed `Err(Str)` taxonomy, response `status` / `body` / `headers` capture, TLS via the libcurl CA bundle. NOT yet in the surface (ROADMAP v0.1.7): keep-alive control, per-call timeouts, streaming bodies, pluggable TLS hook (`xiom.ssl`). Own probe: `tests/probe_client.xi` (refused/malformed deterministic; live + loopback legs SKIP-safe).
 
 ### `xiom.http.demo` (`src/demo.xi`)
 
