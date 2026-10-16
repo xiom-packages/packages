@@ -4,10 +4,10 @@
 
 package {
   name: "xiom.miniaudio"
-  version: "0.4.0"
-  description: "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library; version/context enumeration, decode/encode, live device lifecycle + playback engine + node graph/mixing + capture, streamed WAV/FLAC/MP3 decode)"
+  version: "0.5.0"
+  description: "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library; version/context enumeration, decode/encode, live device lifecycle + playback engine + node graph/mixing + capture, streamed WAV/FLAC/MP3 decode, long-lived device handles with render callbacks/stream start-stop and typed errors)"
   categories: ["media"]
-  keywords: ["miniaudio", "audio", "playback", "capture", "binding"]
+  keywords: ["miniaudio", "audio", "playback", "capture", "handle", "binding"]
   license: "MIT OR Apache-2.0"
   repository: "https://github.com/xiom-packages/packages"
   authors: ["XIOM Team"]

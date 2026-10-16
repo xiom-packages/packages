@@ -1,6 +1,6 @@
 # xiom.miniaudio -- Roadmap
 
-**Version**: v0.4.0 | **Compiler**: xiom v0.64.5 | **Last updated**: 2026-10-16
+**Version**: v0.5.0 | **Compiler**: xiom v0.64.5 (suite re-verified on v0.64.6) | **Last updated**: 2026-10-17
 
 ## Current state
 
@@ -16,21 +16,26 @@
 | Mixing/node graph (attach/detach, sound group, volume/pitch) | Done -- 0.4.0 |
 | Capture enumerate + open attempt | Done -- 0.4.0 (typed non-fatal outcomes) |
 | Streamed decode through the data-source pull path (built-in WAV/FLAC/MP3) | Done -- 0.4.0 |
+| **Long-lived device handles (open once -> render callbacks / streams over time -> close once, typed errors)** | **Done -- 0.5.0 (null battery + live auto/WASAPI open legs; 44/44 x2 on the pin, x2 on v0.64.6)** |
 | Opus/Ogg custom decoder backends (over live xiom.opus/xiom.ogg) | Staged (see below) |
 | Effect nodes / spatialization / full resource-manager surface | Future |
 
-## 0.4.0 (A04 growth -- this touch)
+## 0.5.0 (engine ask -- this touch)
 
-Per the packages ask `REL-20261015-1904-packages-2` (engine audio A04):
-device lifecycle with driver negotiation and device-loss handling, playback
-engine, mixing/node graph basics, capture open attempt, and streamed decode
-of miniaudio's built-in decoders. Live device legs are silent by
-construction and degrade to typed SKIP-style checks when the environment
-blocks audio; the device-free legs (graph/mix math, decode) are
-deterministic. Device-loss boundary: `started`/`stopped` notifications are
-proven live; `rerouted`/interruption/unlock are wired but need a real
-default-device change to fire (cannot be forced in-process) -- see
-`SPEC.md` section 3 and `PROVENANCE.md` section 4.
+Per the engine audio ask `REL-20261016-2139-packages-2` (miniaudio
+long-lived handle surface): `ma_device_handle_open` /
+`ma_device_handle_open_backend` (open once; 4-slot registry, monotonic ids,
+`MA_HANDLE_BACKEND_AUTO/WASAPI/NULL`), render callback registration
+(`set_render` / `clear_render`, replaceable while running; env-free
+top-level `fn(*UInt8, Int32) -> Unit` invoked on the device thread),
+stream start/stop cycles (`start`/`stop`), a bounded `wait`, an `info`
+snapshot (negotiated shape + `callbacks`/`frames`/`marked`/`starts`/`stops`
+counters) and `close` (running streams stop first; stale ops are typed
+`BAD_HANDLE`). Typed `MaHandleError { kind, rc, message }` throughout
+(`NO_CONTEXT`/`NO_DEVICE`/`BAD_HANDLE`/`EXHAUSTED`/`STATE`/`STEP`). The
+deterministic battery runs on the null backend (always openable, real-time
+paced, audio-service free); the live legs (auto/WASAPI open+info+close)
+degrade to typed SKIP. The 0.4.0 lifecycle bridge is unchanged alongside.
 
 ## Phase 3 (next touches)
 
@@ -41,14 +46,18 @@ default-device change to fire (cannot be forced in-process) -- see
    backend requires a C read/seek trampoline held in the compile unit plus
    the XIOM-side codec handles -- deferred to keep this touch's scope on the
    asked surface. Revisit with the audio codec classes as the durable route.
-2. Effect nodes and spatialization: `ma_engine` effect nodes (reverb/
+2. Handle-surface growth (engine follow-ups): per-handle configurable client
+   shapes (rate/channels/format/period), capture handles, and
+   frame-accurate render-start alignment if the engine leg needs them.
+3. Effect nodes and spatialization: `ma_engine` effect nodes (reverb/
    delay/filters), listener/positional API.
-3. Resource-manager surface: `ma_resource_manager` (async loads, VFS,
+4. Resource-manager surface: `ma_resource_manager` (async loads, VFS,
    decoded banks) beyond `ma_engine_play_sound`.
-4. File I/O beyond the round trip: `ma_decoder_init_file_w`, encoder
+5. File I/O beyond the round trip: `ma_decoder_init_file_w`, encoder
    to-memory callbacks, larger fixtures.
-5. Consumer note: PULSE/XVECTOR do not need audio; keep the API stable for
-   media consumers (engine audio tiers A1-A5 consume the 0.4.0 surface).
+6. Consumer note: PULSE/XVECTOR do not need audio; keep the API stable for
+   media consumers (engine audio tiers A1-A5 consume the 0.4.0 surface; the
+   engine handle leg consumes the 0.5.0 surface).
 
 ## Sector note
 

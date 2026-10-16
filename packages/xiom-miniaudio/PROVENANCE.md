@@ -3,8 +3,10 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Recorded at the 0.4.0 feature touch (A04 growth, 2026-10-16), per the
-per-touch PROVENANCE rule.
+Recorded at the 0.4.0 feature touch (A04 growth, 2026-10-16) and extended at
+the 0.5.0 handle-surface touch (engine ask `REL-20261016-2139-packages-2`,
+2026-10-17), per the per-touch PROVENANCE rule. No re-carve at 0.5.0: the
+vendored pin (0.11.25) is unchanged and byte-identical.
 
 ## 1. Upstream
 
@@ -52,6 +54,16 @@ system audio library is linked and no library of ours ships).
 - Decoders: `ma_decoder` implements the `ma_data_source` pull interface
   (`ma_data_source_read_pcm_frames`); `ma_decoder_config_init` output
   format/channels/rate conversion rules.
+- 0.5.0 handle surface (read from the pinned header): `ma_backend_null`
+  explicit selection via the `backends` array of `ma_context_init` (the
+  `case ma_backend_null` context-init arm), the default priority list
+  (`ma_context_init(NULL, 0, ...)` iterates `0..ma_backend_null` -- the null
+  backend is the last resort and "always works"), the null backend's
+  `onDeviceDataLoop = NULL` contract (miniaudio's generic device thread
+  drives the callback; the null read/write API is blocking and timer-paced),
+  `ma_device_config.pUserData`, and `ma_device_start`/`ma_device_stop`
+  semantics (stop is synchronous; start on a started device is an invalid
+  operation -- surfaced here as the typed `STATE` error).
 
 **Vendored verbatim (byte-identical to the tag; hashes in section 1 / SPEC.md section 2)**
 
@@ -62,30 +74,49 @@ system audio library is linked and no library of ours ships).
 - `miniaudio.xi` -- the single confined module: extern declarations, wrapper
   types and all public functions (version/context/decode/encode from 0.2.0/
   0.3.0; device lifecycle, engine, node graph, capture, streamed decode in
-  0.4.0). No foreign pointer crosses the boundary (B-20 discipline: every
-  complex leg caches into C statics read through scalar getters; floats are
-  compared/quantized C-side and never marshalled).
+  0.4.0; the long-lived device-handle surface -- open/close once, render
+  registration, start/stop, wait, info, typed `MaHandleError` -- in 0.5.0).
+  No foreign pointer crosses the boundary (B-20 discipline: every complex
+  leg caches into C statics read through scalar getters; floats are
+  compared/quantized C-side and never marshalled); the 0.5.0 handle state
+  lives in a C-side 4-slot registry with monotonic ids and scalar counters.
 - `src/miniaudio_all.c` -- compile unit: `MINIAUDIO_IMPLEMENTATION` + the
   `extern "C"` bridge (`xma_*`). The 0.4.0 additions were written against
-  the pinned header (callbacks, negotiation readback, exact mix math).
+  the pinned header (callbacks, negotiation readback, exact mix math); the
+  0.5.0 additions (handle registry, device-thread render trampoline with
+  marker verification, bounded wait) likewise.
 - `tests/test_conformance.xi`, `tests/fixtures/**`,
   `SPEC.md`/`ROADMAP.md`/`README.md`/`AUDIT.md`/this file.
 
-## 4. Upstream findings recorded at this touch
+## 4. Upstream findings recorded at this touch (0.5.0)
 
-- **`ma_sound` is node-compatible** (header comment on the first member);
-  the 0.4.0 suite detaches/reattaches a playing sound's output bus with
-  `ma_node_detach_output_bus((ma_node*)&sound, 0)` and proves it
-  numerically in the mix (0.375 -> 0.25 -> 0.375 exact). This is the
-  documented intent, exercised here as a witness.
-- **`ma_device_stop` fires the stopped notification synchronously** before
-  returning (observed started=1 / stopped=1 on WASAPI); the `rerouted`
-  notification cannot be forced in-process (needs a real default-device
-  change), so the loss path is wired + documented rather than fabricated.
-- **dr_mp3 applies the LAME gapless trim**: the 64-frame fixture decodes to
-  exactly 64 frames with peak 19039 (matching the ffmpeg reference decode of
-  the same file); the suite nonetheless checks bounds, not exact samples,
-  for the lossy leg.
+- **The null backend can be requested explicitly** (`backends[] =
+  { ma_backend_null }`) and always initializes; it is also the tail of the
+  default priority list, so `ma_context_init(NULL, 0, NULL, ...)` can land
+  on it when the live backends fail at context time. This is the
+  deterministic battery device: real-time paced, no audio service, silent.
+- **The null backend delegates its audio thread to miniaudio**
+  (`onDeviceDataLoop = NULL`; the generic device thread performs blocking
+  read/write at the internal period and calls the client data callback),
+  so the registered render callback runs on a miniaudio-created thread --
+  the audio-thread contract. Verified in-process: with an explicit
+  `ma_backend_null` device, the render callback fires every ~10 ms at the
+  480-frame/48 kHz period.
+- **Foreign-thread XIOM callback feasibility probe (pre-ship)**: a bare
+  top-level XIOM fn handed to a C worker thread (which invokes it
+  repeatedly while the main thread executes concurrent XIOM code) ran
+  green on the v0.64.5 pin and the v0.64.6 slot -- marker writes into the
+  C-owned buffer landed and module-level counters advanced (see AUDIT.md
+  "Design notes"). This gate preceded the 0.5.0 design (the same class as
+  the earlier callback-ABI gates).
+- **Handle-id discipline**: miniaudio itself reuses nothing here; XIOM-side
+  monotonic ids + slot lookup are the package's own guard so that a stale
+  handle never addresses a newer device (typed `BAD_HANDLE` instead).
+- **0.4.0 findings retained**: `ma_sound` is node-compatible (detach/
+  reattach proven numerically in the mix); `ma_device_stop` fires the
+  stopped notification synchronously; dr_mp3 applies the LAME gapless trim
+  (fixture decodes to exactly 64 frames, peak 19039 matching the ffmpeg
+  reference decode).
 
 ## 5. Test data
 
@@ -104,8 +135,10 @@ system audio library is linked and no library of ours ships).
    `raw.githubusercontent.com/mackron/miniaudio/<tag>/`; verify the header's
    version string and both SHA256 hashes; update SPEC.md section 2 and
    section 1 above.
-2. Re-read the 0.4.0 bridge call sites against the new header (the pinned
-   API names are listed in section 3); fix any API drift in
+2. Re-read the 0.4.0/0.5.0 bridge call sites against the new header (the
+   pinned API names are listed in section 3; the 0.5.0 handle leg relies on
+   `ma_backend_null` explicit selection, the `pUserData` field, and the
+   generic device-thread contract); fix any API drift in
    `src/miniaudio_all.c` only -- the XIOM surface stays stable.
 3. Regenerate fixtures only if the decoder behavior changed
    (`make_fixtures.ps1`, then re-record the hashes here and in

@@ -27,6 +27,19 @@
 // engine mixing (attach/detach, group and per-sound volume/pitch), capture
 // enumerate + open attempt (typed non-fatal outcomes), and streamed chunked
 // decode of WAV/FLAC/MP3 through the decoder data-source pull path.
+//
+// 0.5.0 (engine ask REL-20261016-2139-packages-2): long-lived device
+// HANDLES, alongside the lifecycle-shaped bridge: open once -> register a
+// render callback / run the stream over time -> close once. A 4-slot
+// registry with monotonic handle ids (a closed handle can never alias a new
+// one; every op on a stale handle is the typed BAD_HANDLE), typed
+// MaHandleError kinds throughout (NO_CONTEXT/NO_DEVICE/BAD_HANDLE/
+// EXHAUSTED/STATE/STEP with the ma_result in rc), render registration
+// (set/replace/clear) while the stream runs, start/stop cycles over time,
+// a bounded wait, and a full info snapshot (negotiated shape + device-thread
+// counters). The render callback is an env-free top-level XIOM fn invoked on
+// the device thread (the direct-handoff callback ABI; the foreign-thread
+// invocation is witnessed in-suite by marker writes + exact counters).
 
 module xiom.miniaudio
 
@@ -99,6 +112,15 @@ extern "C" {
   fn xma_stream_peak() -> Int32;
   fn xma_stream_exact() -> Int32;
   fn xma_stream_first() -> Int32;
+  fn xma_handle_open(which: Int32, slot: *UInt8) -> Int32;
+  fn xma_handle_set_render(handle: Int32, render: fn(*UInt8, Int32) -> Unit) -> Int32;
+  fn xma_handle_clear_render(handle: Int32) -> Int32;
+  fn xma_handle_start(handle: Int32) -> Int32;
+  fn xma_handle_stop(handle: Int32) -> Int32;
+  fn xma_handle_wait(handle: Int32, target: Int32, timeout_ms: Int32) -> Int32;
+  fn xma_handle_info(handle: Int32, slot: *UInt8) -> Int32;
+  fn xma_handle_close(handle: Int32) -> Int32;
+  fn xma_handle_rc() -> Int32;
 }
 
 // miniaudio format codes (ma_format).
@@ -107,6 +129,27 @@ pub const MA_FORMAT_S16: Int = 2;
 pub const MA_FORMAT_S24: Int = 3;
 pub const MA_FORMAT_S32: Int = 4;
 pub const MA_FORMAT_F32: Int = 5;
+
+// 0.5.0 long-lived device handles: open-once backend selection.
+pub const MA_HANDLE_BACKEND_AUTO: Int = -1;   // default priority list (WASAPI first on Windows)
+pub const MA_HANDLE_BACKEND_WASAPI: Int = 0;  // ma_backend_wasapi (explicit)
+pub const MA_HANDLE_BACKEND_NULL: Int = 14;   // ma_backend_null (deterministic silent device)
+
+// 0.5.0 typed handle-error kinds (MaHandleError.kind).
+pub const MA_HANDLE_ERR_NO_CONTEXT: Int = 1;   // context init failed (rc = ma_result)
+pub const MA_HANDLE_ERR_NO_DEVICE: Int = 2;    // device init failed (rc = ma_result)
+pub const MA_HANDLE_ERR_BAD_HANDLE: Int = 3;   // unknown or closed handle
+pub const MA_HANDLE_ERR_EXHAUSTED: Int = 4;    // registry full (4 live handles)
+pub const MA_HANDLE_ERR_STATE: Int = 5;        // start while started / stop while idle
+pub const MA_HANDLE_ERR_STEP: Int = 6;         // internal step failed (rc = ma_result)
+
+/// 0.5.0 typed handle error: `kind` is one of MA_HANDLE_ERR_*; `rc` carries
+/// the miniaudio result where one exists; `message` is the human text.
+pub type MaHandleError = {
+  kind: Int;
+  rc: Int;
+  message: Str;
+}
 
 pub type MaContextInfo = {
   playback_count: Int;
@@ -206,12 +249,42 @@ pub type MaStreamInfo = {
   first: Int;
 }
 
+/// 0.5.0 long-lived device-handle snapshot (open once -> render callbacks /
+/// stream start/stop over time -> close once). `backend` is the negotiated
+/// ma_backend id; `rate`/`channels`/`period_frames` the negotiated client
+/// shape; `callbacks`/`frames`/`marked` are device-thread counters (`marked`
+/// counts buffers whose two known marker bytes were observed after the
+/// registered render returned -- the render's writes landed); `starts`/`stops`
+/// count the successful stream cycles.
+pub type MaHandleInfo = {
+  handle: Int;
+  backend: Int;
+  rate: Int;
+  channels: Int;
+  period_frames: Int;
+  callbacks: Int;
+  frames: Int;
+  started: Bool;
+  render_set: Bool;
+  starts: Int;
+  stops: Int;
+  marked: Int;
+}
+
 fn slot4() -> Vec[UInt8]
   requires: true
 {
+  return slot_bytes(4);
+}
+
+/// Owned zeroed byte buffer of n bytes (push-growth: Vec.with_len
+/// under-allocates on a fresh vector -- the B-28 rule).
+fn slot_bytes(n: Int) -> Vec[UInt8]
+  requires: n > 0
+{
   var s: Vec[UInt8] = Vec[UInt8].new();
   var i: Int = 0;
-  while i < 4 {
+  while i < n {
     s.push(0 as UInt8);
     i = i + 1;
   }
@@ -221,11 +294,43 @@ fn slot4() -> Vec[UInt8]
 fn read_u32_le(buf: &Vec[UInt8]) -> Int
   requires: buf.len() >= 4
 {
-  let b0 = buf[0] as Int;
-  let b1 = buf[1] as Int;
-  let b2 = buf[2] as Int;
-  let b3 = buf[3] as Int;
+  return read_u32_le_at(buf, 0);
+}
+
+fn read_u32_le_at(buf: &Vec[UInt8], off: Int) -> Int
+  requires: buf.len() >= off + 4
+{
+  let b0 = buf[off] as Int;
+  let b1 = buf[off + 1] as Int;
+  let b2 = buf[off + 2] as Int;
+  let b3 = buf[off + 3] as Int;
   return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+/// Map a handle-step C status (1=bad handle, 2=state, else step) to the
+/// typed error. `ma_rc` is the value of xma_handle_rc() read at the call site.
+fn handle_step_error(handle: Int, status: Int, ma_rc: Int) -> MaHandleError {
+  if status == 1 {
+    return MaHandleError{
+      kind: MA_HANDLE_ERR_BAD_HANDLE,
+      rc: ma_rc,
+      message: "miniaudio: unknown or closed device handle (" + int_to_str(handle) + ")",
+    };
+  }
+  if status == 2 {
+    return MaHandleError{
+      kind: MA_HANDLE_ERR_STATE,
+      rc: ma_rc,
+      message: "miniaudio: device handle state error (" + int_to_str(handle)
+        + "): start while started, or stop while idle",
+    };
+  }
+  return MaHandleError{
+    kind: MA_HANDLE_ERR_STEP,
+    rc: ma_rc,
+    message: "miniaudio: device handle step failed (status=" + int_to_str(status)
+      + ", ma rc=" + int_to_str(ma_rc) + ")",
+  };
 }
 
 /// Packed version: major*10000 + minor*100 + revision (0.11.25 -> 1125).
@@ -476,6 +581,207 @@ pub fn ma_stream_decode(which: Int) -> Result[MaStreamInfo, Str]
       exact: (xma_stream_exact() as Int) != 0,
       first: xma_stream_first() as Int,
     });
+  }
+}
+
+// =========================================================================
+// 0.5.0: long-lived device handles -- open once -> register render callbacks
+// / run the stream over time -> close once (alongside the lifecycle bridge).
+// =========================================================================
+
+/// 0.5.0: open a long-lived playback device handle (once) on the default
+/// backend priority list (WASAPI first on Windows, the null backend last).
+/// The handle keeps its context + device alive until `ma_device_handle_close`;
+/// render callbacks and stream start/stop are handled over its lifetime.
+/// Typed errors: NO_CONTEXT / NO_DEVICE / EXHAUSTED carry the miniaudio result
+/// in `rc`; callers treat an environment block as SKIP.
+/// Complexity: O(backends).
+pub fn ma_device_handle_open() -> Result[Int, MaHandleError]
+  requires: true
+{
+  return ma_device_handle_open_backend(MA_HANDLE_BACKEND_AUTO);
+}
+
+/// 0.5.0: open a long-lived playback device handle on an explicit backend
+/// (`which` is a ma_backend id: MA_HANDLE_BACKEND_WASAPI=0, ...,
+/// MA_HANDLE_BACKEND_NULL=14; MA_HANDLE_BACKEND_AUTO=-1 for the default
+/// priority list). The client shape is fixed: f32 stereo at 48 kHz, 480-frame
+/// period; the render callback always receives that shape (miniaudio converts
+/// to the negotiated internal shape, reported by `ma_device_handle_info`).
+/// Up to 4 handles may be open at once (MA_HANDLE_ERR_EXHAUSTED beyond that).
+/// Complexity: O(backends).
+pub fn ma_device_handle_open_backend(which: Int) -> Result[Int, MaHandleError]
+  requires: which >= -1
+{
+  unsafe {
+    var sh = slot_bytes(20);
+    var bname = "auto";
+    if which >= 0 { bname = ma_backend_name(which); }
+    let status = xma_handle_open(which as Int32, sh.as_mut_ptr()) as Int;
+    if status == 1 {
+      let rc = xma_handle_rc() as Int;
+      return Err(MaHandleError{
+        kind: MA_HANDLE_ERR_NO_CONTEXT,
+        rc: rc,
+        message: "miniaudio: device handle context init failed on backend "
+          + bname + " (ma rc=" + int_to_str(rc) + ")",
+      });
+    }
+    if status == 2 {
+      let rc = xma_handle_rc() as Int;
+      return Err(MaHandleError{
+        kind: MA_HANDLE_ERR_NO_DEVICE,
+        rc: rc,
+        message: "miniaudio: device handle device init failed on backend "
+          + bname + " (ma rc=" + int_to_str(rc) + ")",
+      });
+    }
+    if status == 3 {
+      return Err(MaHandleError{
+        kind: MA_HANDLE_ERR_EXHAUSTED,
+        rc: 0,
+        message: "miniaudio: device handle registry exhausted (4 open handles; close one first)",
+      });
+    }
+    if status != 0 {
+      return Err(MaHandleError{
+        kind: MA_HANDLE_ERR_STEP,
+        rc: xma_handle_rc() as Int,
+        message: "miniaudio: device handle open step failed (status="
+          + int_to_str(status) + ")",
+      });
+    }
+    return Ok(read_u32_le_at(&sh, 0));
+  }
+}
+
+/// 0.5.0: register (or replace) the render callback of an open handle. The
+/// callback is an env-free top-level fn invoked on the device thread once per
+/// buffer while the stream runs; it writes interleaved f32 stereo frames at
+/// the requested 48 kHz into the pre-silenced buffer (frames = frame count).
+/// Registration may change at any time (before/while running); at most one
+/// in-flight invocation observes the previous callback.
+/// Complexity: O(1).
+pub fn ma_device_handle_set_render(handle: Int, render: fn(*UInt8, Int32) -> Unit) -> Result[Unit, MaHandleError]
+  requires: handle > 0
+{
+  unsafe {
+    let status = xma_handle_set_render(handle as Int32, render) as Int;
+    if status != 0 {
+      return Err(handle_step_error(handle, status, xma_handle_rc() as Int));
+    }
+    return Ok(());
+  }
+}
+
+/// 0.5.0: clear the render callback of an open handle (the stream keeps
+/// running; buffers stay pre-silenced).
+/// Complexity: O(1).
+pub fn ma_device_handle_clear_render(handle: Int) -> Result[Unit, MaHandleError]
+  requires: handle > 0
+{
+  unsafe {
+    let status = xma_handle_clear_render(handle as Int32) as Int;
+    if status != 0 {
+      return Err(handle_step_error(handle, status, xma_handle_rc() as Int));
+    }
+    return Ok(());
+  }
+}
+
+/// 0.5.0: start the stream of an open handle. Start while already started is
+/// the typed MA_HANDLE_ERR_STATE (not a silent no-op). Starting without a
+/// registered render is allowed (the stream renders silence).
+/// Complexity: O(1) driver work.
+pub fn ma_device_handle_start(handle: Int) -> Result[Unit, MaHandleError]
+  requires: handle > 0
+{
+  unsafe {
+    let status = xma_handle_start(handle as Int32) as Int;
+    if status != 0 {
+      return Err(handle_step_error(handle, status, xma_handle_rc() as Int));
+    }
+    return Ok(());
+  }
+}
+
+/// 0.5.0: stop the stream of an open handle. Stop while idle is the typed
+/// MA_HANDLE_ERR_STATE.
+/// Complexity: O(1) driver work.
+pub fn ma_device_handle_stop(handle: Int) -> Result[Unit, MaHandleError]
+  requires: handle > 0
+{
+  unsafe {
+    let status = xma_handle_stop(handle as Int32) as Int;
+    if status != 0 {
+      return Err(handle_step_error(handle, status, xma_handle_rc() as Int));
+    }
+    return Ok(());
+  }
+}
+
+/// 0.5.0: block (bounded, 1 ms sleeps) until at least `target_callbacks`
+/// render callbacks have accumulated on the handle, or `timeout_ms` elapses.
+/// Returns Ok either way -- read `ma_device_handle_info` for the counters.
+/// Complexity: O(timeout_ms).
+pub fn ma_device_handle_wait(handle: Int, target_callbacks: Int, timeout_ms: Int) -> Result[Unit, MaHandleError]
+  requires: handle > 0
+  requires: target_callbacks >= 0
+  requires: timeout_ms >= 0
+{
+  unsafe {
+    let status = xma_handle_wait(handle as Int32, target_callbacks as Int32, timeout_ms as Int32) as Int;
+    if status != 0 {
+      return Err(handle_step_error(handle, status, xma_handle_rc() as Int));
+    }
+    return Ok(());
+  }
+}
+
+/// 0.5.0: snapshot an open handle: negotiated shape + live counters +
+/// started/render_set state. `marked` counts buffers in which the registered
+/// render's writes were observed (the render actually landed).
+/// Complexity: O(1).
+pub fn ma_device_handle_info(handle: Int) -> Result[MaHandleInfo, MaHandleError]
+  requires: handle > 0
+{
+  unsafe {
+    var sh = slot_bytes(48);
+    let status = xma_handle_info(handle as Int32, sh.as_mut_ptr()) as Int;
+    if status != 0 {
+      return Err(handle_step_error(handle, status, xma_handle_rc() as Int));
+    }
+    return Ok(MaHandleInfo{
+      handle: read_u32_le_at(&sh, 0),
+      backend: read_u32_le_at(&sh, 4),
+      rate: read_u32_le_at(&sh, 8),
+      channels: read_u32_le_at(&sh, 12),
+      period_frames: read_u32_le_at(&sh, 16),
+      callbacks: read_u32_le_at(&sh, 20),
+      frames: read_u32_le_at(&sh, 24),
+      started: read_u32_le_at(&sh, 28) != 0,
+      render_set: read_u32_le_at(&sh, 32) != 0,
+      starts: read_u32_le_at(&sh, 36),
+      stops: read_u32_le_at(&sh, 40),
+      marked: read_u32_le_at(&sh, 44),
+    });
+  }
+}
+
+/// 0.5.0: close an open handle (once). A running stream is stopped first; the
+/// context + device are uninitialized and the slot is released. Closing an
+/// unknown or already-closed handle is the typed MA_HANDLE_ERR_BAD_HANDLE
+/// (handle ids are never reused, so a stale handle can never alias a new one).
+/// Complexity: O(1) driver work.
+pub fn ma_device_handle_close(handle: Int) -> Result[Unit, MaHandleError]
+  requires: handle > 0
+{
+  unsafe {
+    let status = xma_handle_close(handle as Int32) as Int;
+    if status != 0 {
+      return Err(handle_step_error(handle, status, xma_handle_rc() as Int));
+    }
+    return Ok(());
   }
 }
 
