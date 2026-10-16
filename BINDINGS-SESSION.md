@@ -1005,6 +1005,134 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
+PAUSED per owner directive)**:
+- Remaining 3 branches landed (path-scoped; trees safety-verified to
+  include current content): **`xiom.android 0.3.0`** (W2c A2: looper 9
+  + native_activity 5 + configuration 50; export set 53->117; ALooper
+  pipe/addFd/pollOnce on-device proof; native_app_glue closure check)
+  `17ef7223`; **`xiom.box2d 0.4.0`** (A02 caller solver: world/bodies/
+  step/state/raycast/overlap/contacts/joints) `d19090cc`;
+  **`xiom.miniaudio 0.4.0`** (A04: device/engine/node-graph/capture/
+  streamed decode) `c11b7ac2`.
+- **Integration gates re-run on the landed state (all GREEN)**:
+  xiom.android **8/8**; xiom.box2d **26/26** (raycast f=375; contacts
+  begin/hit/end; weld/distance/wheel/motor); xiom.miniaudio **27/27**
+  live WASAPI (mix-pull 5280 frames; engine lifecycle; graph mixes
+  exact 0.375/0.25/0.375; capture 2400 frames; WAV/FLAC sample-exact +
+  MP3) -- recorded `4247d3da`.
+- **All 8 waves of this session are landed**: 6 Android units
+  (xiom.android 0.3.0 + camera2ndk + aaudio + mediandk + android-sys +
+  opensl) + box2d 0.4.0 + miniaudio 0.4.0; validate **559/0**.
+- **PAUSED per owner directive** (land waves -> pause -> relay watch).
+  Overnight main-session work queued two accepted high asks for a
+  FUTURE wave: **TLS context binding** (`REL-20261015-2211-packages`;
+  libssl-class loader composing with xiom.tls + xiom.openssl crypto)
+  and **real brotli RFC 7932** (`-2211-packages-2`; libbrotli);
+  `-2302` deduped into them. Android remaining: A3/A4 input+sensors,
+  A9 gl leg, A11 JNI seam, A12 remainder; publishes gated on the G3
+  token reply.
+- Eco: `.185` live (glfw 0.6.0 + sdl3 0.20.0); `.186` armed (transport
+  + otel + template; ops gate).
+
+**UPDATE 2026-10-15 23:00Z (WAVE-2 LANDING PASS 1 -- 5 of 8 landed;
+overnight watch armed)**:
+- **LANDED**: `xiom.camera2ndk` (merge `ae7a72c3`; 70-export surface,
+  ids 1/10 on-device), `xiom.aaudio` (`30951220`; 67 exports, OPEN->
+  STARTED->close live), `xiom.mediandk` (`37c3b459`; 276 exports +
+  MediaFormat fidelity), `xiom.android-sys` (`612f08dd`; logcat proof +
+  EBADF path), `xiom.opensl` (`ae64c16e`; 114-symbol set + engine
+  lifecycle) -- the four NEW packages landed **path-scoped**
+  (`git checkout <branch> -- packages/<dir>`) because agent branches
+  were seeded from **divergent bases** (wholesale merges conflict on
+  old STATUS.json histories); validate after landing: **559 packages,
+  0 errors**.
+- **STILL IN FLIGHT**: `android/w2c-lifecycle` (0 commits, idle --
+  nudged; will land via rebase request since it EDITS `xiom.android`),
+  `box2d/a02-growth` + `miniaudio/a04-growth` (busy; bases near-tip ->
+  normal merge expected).
+- **Overnight watch**: doorbell cron rewritten as a combined pass
+  (agent-landing with the path-scoped/no-wholesale-merge recipe +
+  rebase requests for existing-package edits + relay items +
+  SESSION.md eco notes). Owner directive: land everything, then pause
+  and keep eyes on relay.
+- Side intel (from branch inspection): the main session already
+  published our lifts -- **eco-v0.1.185 live with glfw 0.6.0 +
+  sdl3 0.20.0** (101 releases; redis live in `.184`).
+
+**UPDATE 2026-10-15 22:35Z (A02 + A04 LAUNCHED in parallel -- 8 agents
+in flight)** per the owner's go-parallel directive; the two queued
+engine asks now run alongside the 6 Android sessions (all disjoint
+packages):
+- `box2d/a02-growth` -- xiom.box2d 0.3.0 -> 0.4.0 (A02): world/bodies
+  (caller shapes)/step/state-read (no out-slot recycle)/queries/
+  contacts/joints; fixed scenarios stay as probes.
+- `miniaudio/a04-growth` -- xiom.miniaudio 0.3.0 -> 0.4.0 (A04): device
+  lifecycle + playback engine + mixer/node graph + capture + streamed
+  decode (built-in decoders; opus/ogg custom-backend staged).
+- Relay items `-1904` x2 updated (work launched; the v0.64.5 wave is
+  closed so the earlier queue gate is gone). Agent request
+  `am-1792102594543-f87kzu`.
+- Integration at completion; publish follows the standing flow
+  (packages verifies + relays engine adoption).
+
+**UPDATE 2026-10-15 22:30Z (relay check: PULSE top-tier directive; SQL
+alias re-verified)**:
+- `REL-20261015-2202-pulse-5` (to ALL, awareness; **no responses
+  required**): PULSE escalated to top-tier #1-class; headline gap =
+  **no TLS anywhere in-tree** (gates native HTTPS / wss:// / ALPN /
+  ACME). Per-lane asks to stdlib/compiler/packages/ops -- **none to
+  bindings**; two relevance notes: (a) the TLS route is a
+  "schannel/OpenSSL binding via FFI" -- a vendored-C package event
+  that would slot into the wave queue if it lands with bindings;
+  (b) the compiler's `xiom-ffigen` C-header parsing ask would serve
+  our own generator passes (A9 gles leg / future heads).
+  Roadmap: PULSE repo `docs/ROADMAP-TOP-TIER.md`.
+- `REL-20261015-2029-pulse`: **FIXED** -- SQL artifact rerun **GREEN
+  24/24 on released v0.64.5** (xiom.sqlite 0.4.1 live); corroborates
+  the parked B-32 decision: the flat RowOutcome state IS the live,
+  verified artifact.
+- Nothing new addressed to bindings needs action; A02/A04 stay queued
+  behind the Android waves.
+
+**UPDATE 2026-10-15 22:15Z (wave-2b + G3 filed -- 6 package units
+live/in flight)**: two more agent sessions requested
+(`am-1792101281743-6bucae`): **`android/android-sys`**
+(`xiom.android-sys` -- A12 starter: log FUNCTIONAL + sync head) and
+**`android/opensl`** (`xiom.opensl` -- A6 legacy tail: SLES/OMXAL/
+AMidi; slCreateEngine + realize + destroy via C-side vtable).  The
+family is now 1 live package + 6 agent units.  **G3 filed** to
+packages: `REL-20261015-2210-bindings` -- propose android-arm64/
+android-x86_64 platform tokens; NO artifacts needed (everything is a
+system lib at runtime).  Program doc gained a full Status section (the
+remaining map: A3/A4 serial to W2c, A9 generator-aware, A10 OWNER,
+A11 JNI seam, A12 remainder).
+
+**UPDATE 2026-10-15 22:05Z (ANDROID WAVE-2 LAUNCHED -- 4 agent
+worktrees)** per the owner's "agents to 100%" directive; each session
+owns disjoint files (integration at their completion via the normal
+apply flow; ledgers stay coordinator-only):
+- `android/w2c-lifecycle` -- **W2c A2 lifecycle-glue** in
+  `xiom.android` 0.3.0: looper (11) FUNCTIONAL on-device (pipe + addFd
+  callback + pollOnce proof; direct handoff), activity (24) +
+  configuration (52) export-set, native_app_glue documented (source,
+  not vendored).
+- `android/aaudio` -- **xiom.aaudio 0.1.0** (A6 head): AAudio.h 72 fn
+  surface + constants; functional builder lifecycle + honest open
+  attempt (emulator may run -no-audio).
+- `android/mediandk` -- **xiom.mediandk 0.1.0** (A7 core): MediaCodec/
+  Format/Extractor/Muxer/DRM/DataSource; MediaFormat + codec-create
+  functional; rest export-set.
+- `android/camera2ndk` -- **xiom.camera2ndk 0.1.0** (A8 head): camera
+  headers; manager create + camera-id list functional best-effort;
+  rest export-set.
+- Coming waves: A3 input + A4 sensors (serial to W2c -- same package),
+  A9/A10 (existing gles/vulkan packages; A10 = OWNER lane), A11 JNI
+  seam (gates live surfaces), A12 log/sync/binder, A6 tail (AMidi +
+  OpenSL ES), engine asks A02/A04.
+- Agent Manager requests: `am-1792098871905-thr1eg` (3 sessions) +
+  `am-1792098889789-40i772` (camera).
+
 **UPDATE 2026-10-15 21:55Z (doorbell: B-32 acked for v0.64.6; eco .183
 live)**:
 - Compiler **acked B-32** (`8aba9fa`): queued for the **v0.64.6 fixer
@@ -1578,6 +1706,21 @@ closed (v0.64.5 witness green), B-25 notes value-preserving. Engine **A02
 (box2d growth)** + **A04 (miniaudio growth)** accepted into the queue
 (`-1904-packages(-2)` acked); PULSE artifact chain satisfied
 (`-2029-pulse` noted).
+
+**UPDATE 2026-10-16 11:05Z (doorbell -- batch 86/87 records + PULSE
+TLS/brotli accepted)**: **batch 86 = `eco-v0.1.184`**: `xiom.redis` 0.1.0
+LIVE (wrap `a4351a72`, allowlist 543; run 38806083545 green; live sha256
+`215a95c1...` @21:00:52Z) -- **100 eco releases**. **Batch 87 (wave 4) =
+`eco-v0.1.185`**: **`xiom.glfw 0.6.0` (dispatcher lift, B-22 retired) +
+`xiom.sdl3 0.20.0` (filter/watch direct handoff, B-15)** LIVE (sha256s
+`e0acf0cc...`/`b04a0ae4...`; x2 37/37 + 72/72 on v0.64.5, **0 warnings**;
+run 38810046611 green) -- **101 eco releases**; the two parked workaround
+lifts from the v0.64.4 wave are SHIPPED. `eco-v0.1.186` next (transport +
+otel via `-2309-3`). Relay: PULSE top-tier asks **TLS context binding
+(libssl-class; composes xiom.tls + xiom.openssl)** + **real brotli
+(libbrotli)** accepted into the queue (`-2211-packages(-2)`; `-2302`
+duplicate noted; `-2313` dedupe agreed). Android wave-2 landing: 5 of 8 in
+(validate 559/0).
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3

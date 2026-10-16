@@ -8,12 +8,21 @@
 // `--c-source`; see port.args.json).  The bridge resolves the platform
 // libraries at RUNTIME (dlopen on Android/Linux, LoadLibraryA on
 // Windows -- where everything classifies ABSENT) and verifies the
-// declared export set of native_window.h + hardware_buffer.h:
+// declared export set of native_window.h + hardware_buffer.h +
+// asset_manager.h + storage_manager.h + sharedmem.h + looper.h +
+// native_activity.h + configuration.h (117 exports, W2c):
 //
 //   ANativeWindow_*   (15 non-inline exports; window ops need a live
 //                      Surface -> A11 seam; bound + ABI-checked here)
 //   AHardwareBuffer_* (12 exports; allocate/describe/lock/write/read/
 //                      release exercised functionally by the suite)
+//   AAsset_* / AStorageManager_* (23; export-set ABI-checked)
+//   ASharedMemory_*   (3; memfd + mmap probe functional)
+//   ALooper_*         (9; FUNCTIONAL: see submodule xiom.android.lifecycle)
+//   ANativeActivity_* (5; export-set ABI-checked; live ops need a real
+//                      activity -> A11/G1)
+//   AConfiguration_*  (50; FUNCTIONAL: see submodule
+//                      xiom.android.configuration)
 //
 // Classification (the suite maps it to markers):
 //   ANDROID_LOAD_ABSENT -> SKIP  (runtime missing; CI stays green)
@@ -21,8 +30,9 @@
 //                                 a silent SKIP)
 //
 // Pointers never cross the boundary (B-25 discipline): the bridge keeps
-// the locked buffer address on the C side; pixels are read/written by
-// value.  Handles cross as Int.
+// locked buffer addresses, pipe ends and poll out-params on the C side;
+// handles cross as Int.  Looper handlers use direct handoff (env-free
+// top-level fns; B-22 fixed in m277).
 //
 // Naming note: this package is the proposed `xiom.android` home of the
 // platform-core slices (A1/A2/A5); the name is rename-safe pending the
@@ -36,6 +46,7 @@ extern "C" {
   fn xa_error() -> *UInt8;
   fn xa_abi_missing_count() -> Int32;
   fn xa_abi_missing() -> *UInt8;
+  fn xa_export_count() -> Int32;
   fn xa_hwb_is_supported(width: Int32, height: Int32, format: Int32, usage: Int64) -> Int32;
   fn xa_hwb_alloc(width: Int32, height: Int32, format: Int32, usage: Int64) -> Int64;
   fn xa_hwb_width(handle: Int64) -> Int32;
@@ -205,6 +216,15 @@ pub fn android_error() -> Str
   requires: true
 {
   unsafe { return Str::from_c_str(xa_error()); }
+}
+
+/// The declared export-set size of this bridge (117 after W2c).  Useful
+/// as a drift guard in suites.
+/// Complexity: O(1).
+pub fn android_export_count() -> Int
+  requires: true
+{
+  unsafe { return xa_export_count() as Int; }
 }
 
 /// Release any runtime handles held by the bridge.  Safe when nothing is

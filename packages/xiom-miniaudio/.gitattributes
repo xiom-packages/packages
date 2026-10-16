@@ -1,3 +1,7 @@
 # Vendored miniaudio bytes must stay byte-identical to the SHA256 pins in
 # SPEC.md. Disable end-of-line conversion for the whole vendor tree.
 vendor/** -text
+
+# Streamed-decode fixtures are binary (SHA256-pinned in
+# tests/fixtures/README.md); keep them byte-identical.
+tests/fixtures/** -text

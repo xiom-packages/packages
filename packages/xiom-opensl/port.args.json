@@ -1,0 +1,6 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/opensl_bridge.c",
+  "--timeout",
+  "300"
+]

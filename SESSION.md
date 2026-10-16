@@ -217,6 +217,17 @@ wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
   = duplicate; noted there that the MAIN window is the single writer for wraps/publishes). Attention
   owner: consider ensuring only one packages window runs wraps to avoid a publish race; the cron
   watch keeps checking scopes hourly.
+- **WATCH 2026-10-16 11:20Z (pass 2 / morning brief)**: **`xiom.template` 0.2.0 PUBLISHED** --
+  `eco-v0.1.186`, sha256 `bedd03a9...`, live 11:09:15Z (stable badge), sync `ba5e0310`, PULSE relayed
+  (`REL-20261016-1111-packages`). Overnight fixes to OUR findings landed: stdlib **md5** (`-1942`,
+  wave 140) + **socket_connect** (`-1948`, wave 143); compiler **tuple fix ready** (m334 for
+  `-1941`). Bindings **ACKED the canonical TLS/brotli pair** (`-2211`/`-2`) + agreed the `-2302`
+  dedupe. `pulse-sails` acked with name/scoping feedback (`REL-20261016-1108-pulse`: `xiom.pulse`
+  slot is FREE; porter flow opens at their keep-alive A+B freeze). **OPS STALLED**: scopes `-2138`
+  (transport) + `-2216` (otel) still open ~13h (ops lane quiet since 2026-10-15 19:45) -- both builds
+  parked green (36/36, 30/30), wrap signal `-2309-3` sent; owner: chase ops or authorize an alternate
+  scope route. Bus health: `REL-20261010-1549-registry-3` carries a non-ASCII char (registry lane's
+  `088143b`) so `relay.py validate` is red bus-wide -- foreign item, left for its lane to patch.
 
 **STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
 - **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538

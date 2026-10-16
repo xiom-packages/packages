@@ -1,0 +1,6 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/src/aaudio_bridge.c",
+  "--timeout",
+  "240"
+]

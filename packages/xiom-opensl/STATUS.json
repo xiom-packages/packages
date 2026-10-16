@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.opensl",
+    "stage":  "incubating",
+    "compiler":  "v0.64.5",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  null,
+                  "status":  "pass",
+                  "passed":  4,
+                  "failed":  0,
+                  "run_by":  "android-opensl",
+                  "commit":  "0bb6c374",
+                  "checked":  "2026-10-15T22:10:44Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "new package (Android SDK100 A6 legacy tail); publish gate after the naming decision + first on-device run (G1)"
+}
