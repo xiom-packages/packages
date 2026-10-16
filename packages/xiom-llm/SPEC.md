@@ -38,11 +38,15 @@ Implemented in 0.1.0 (M1 + M2):
   and the cached generation loop `llm_generate_cached`. The M3a
   single-position path is unchanged and a one-position cache reproduces it
   exactly.
+* Q4_K-class dequantization (M3 second-half remainder, section 10.3):
+  `llm_dequant_q4_k` (256-value super-blocks, f16 d/dmin, packed 6-bit
+  sub-scales/mins, 4-bit quants), the 6-bit unpack helper
+  `llm_k_get_scale_min_k4`, and the neighboring `llm_dequant_q5_0`
+  (5-bit quants, shared f16 scale).
 
 Declared for later milestones (section 10):
 
-* benchmark harness, Q4_K-class dequantization and quantization breadth
-  (M3 second half remainder);
+* benchmark harness (M3 second half remainder);
 * tokenizer completion: escape layer, regex pre-tokenizer, SPM/WPM
   (section 10.6).
 
@@ -260,6 +264,16 @@ KV cache and longer-context attention (M3b):
 * `llm: model tensor missing`, `llm: model tensor extent invalid`
   (`llm_generate_cached` reading the embedding dimension)
 
+Dequantization breadth (M3 second-half remainder):
+
+* `llm: q5_0 payload is empty`, `llm: q5_0 payload length not a multiple of
+  block size`, `llm: q5_0 mixed block scales are not supported`
+  (`llm_dequant_q5_0`)
+* `llm: q4_k payload is empty`, `llm: q4_k payload length not a multiple of
+  block size` (`llm_dequant_q4_k`)
+* `llm: q4_k scale index out of range`, `llm: q4_k scales too short`
+  (`llm_k_get_scale_min_k4`)
+
 ## 8. Documented deviations from llama.cpp (M1)
 
 1. **Fail-closed symbol lookup.** llama.cpp's BPE session falls back to
@@ -321,8 +335,9 @@ Signatures below are the planned public surface. **Implemented in M2a/M2b
 `llm_tensor_data` / `llm_model_open`; section 10.2/10.3 integer bit-decode,
 `llm_dequant_q8_0` and `llm_q8_0_ints`; and section 10.4 matmul
 (`llm_matmul_i32`), the forward primitives and the tiny-fixture golden-logit
-conformance. The generation loop (10.5) remains declared. Milestone mapping
-is in ROADMAP.md.
+conformance. The generation loop (10.5) is implemented in M3a/M3b. The
+Q4_K-class and Q5_0 dequantizers (10.3) landed with the M3 second-half
+remainder. Milestone mapping is in ROADMAP.md.
 
 ### 10.1 GGUF payload and tensor loading
 
@@ -369,7 +384,8 @@ The representation:
 
 ### 10.3 Dequantization
 
-**[IMPLEMENTED in M2a, 2026-10-16]**
+**[IMPLEMENTED in M2a, 2026-10-16; Q4_K-class + Q5_0 added in M3 second-half
+remainder, 2026-10-16]**
 
 * `llm_dequant_q8_0(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str]`
   -- Q8_0 first: blocks of 32 x i8 quants + f16 scale; values scaled-int.
@@ -381,12 +397,33 @@ The representation:
   dequantizes then reduces by `2^e`, returning plain integer weights; fails
   closed with `llm: value is not an exact integer` when `m / 2^e` is not an
   integer (for the standard scale-1.0 blocks the result is exactly `q[i]`).
+* `llm_dequant_q5_0(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str]`
+  -- Q5_0 (ggml type 6, 22-byte blocks of 32 values): a little-endian f16
+  scale `d`, four bytes of fifth bits `qh` (bit `k` of the little-endian u32
+  is value `k`'s fifth bit) and 16 nibble bytes. Output `i` is `q5[i] * m` for
+  the signed 5-bit quant `q5[i]` in -16..15 and the shared scale `(m, e)` from
+  `llm_f16_to_scaled`; EXACT (error bound 0). Mixed per-block scales are
+  rejected (same single-shared-scale surface as Q8_0).
 * `llm_dequant_q4_k(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str]`
-  -- Q4_K-class later (M3): 256-value superblocks, f16 d/dmin, 6-bit
-  sub-scales, 4-bit quants. Still DECLARED.
+  -- Q4_K (ggml type 12, 144-byte super-blocks of 256 values): a little-endian
+  f16 super-scale `d`, a little-endian f16 super-min `dmin`, 12 bytes of
+  packed 6-bit sub-scales/mins (eight groups) and 128 bytes of 4-bit quants
+  (32 values per group). The value of group `g`'s quant `q` is
+  `d*sc[g]*q - dmin*mn[g]`; with `d = dm/2^de`, `dmin = dmm/2^dme` this is
+  represented EXACTLY over a single exponent `E = max(de, dme)`, maximised
+  across all super-blocks, as `out_values[i] / 2^E` where
+  `out_values[i] = sc*q*dm*2^(E-de) - mn*dmm*2^(E-dme)`. The returned
+  `LlmScale` is the unit scale `(1, E)`. Unlike Q8_0/Q5_0, mixed per-block
+  d/dmin are handled (E is global). Error bound 0.
+* `llm_k_get_scale_min_k4(j, scales: &Vec[UInt8]) -> Result[Vec[Int], Str]`
+  -- the exposed 6-bit unpack (`get_scale_min_k4`): groups 0..3 read the low
+  six bits of `scales[j]` (scale) and `scales[j+4]` (min); groups 4..7
+  recombine the low four bits of `scales[j+4]` with the top two bits of
+  `scales[j-4]` (scale) and `scales[j]` (min). Returns `[sc, mn]`.
 * Every dequantizer validates the payload length against the block table
-  and returns the block scale as `(m, e)` plus per-block sub-scales where
-  the class requires them.
+  (`llm_ggml_block_bytes`) and returns the value representation as `(m, e)`;
+  Q4_K's per-group sub-scales/mins are exposed through
+  `llm_k_get_scale_min_k4` and folded exactly into the output values.
 
 ### 10.4 Matmul / forward-pass composition
 
@@ -505,9 +542,11 @@ IMPLEMENTED in M3b, 2026-10-16 -- second half: KV cache + longer context]**
   caller-supplied per-position tables are `llm_forward_cache`'s contract.
 
 **Deferred (M3 second half remainder):** the package-local benchmark
-harness, Q4_K-class dequantization, and the tokenizer escape/regex/SPM/WPM
-work (section 10.6). No multi-layer attention kernel beyond the single-layer
-fixture is implemented (the M3 fixture is 1 layer).
+harness and the tokenizer escape/regex/SPM/WPM work (section 10.6).
+Q4_K-class dequantization (`llm_dequant_q4_k`) and the neighboring Q5_0
+(`llm_dequant_q5_0`) landed with the M3 second-half remainder (section
+10.3). No multi-layer attention kernel beyond the single-layer fixture is
+implemented (the M3 fixture is 1 layer).
 
 ### 10.6 Tokenizer milestones (deferred pieces)
 
@@ -518,7 +557,7 @@ fixture is implemented (the M3 fixture is 1 layer).
 * SPM (`tokenizer.ggml.model == "llama"`) and WPM (`"bert"`)
   vocabulary extraction + their tokenize paths.
 
-## 11. Test matrix (163 checks, `tests/test_conformance.xi`)
+## 11. Test matrix (182 checks, `tests/test_conformance.xi`)
 
 All checks run against a synthetic deterministic fixture built with
 `xiom.gguf`'s builder: 6 metadata KVs, one tensor info
@@ -616,6 +655,20 @@ table. Every cache/attention/forward golden is derived by hand from the
 integer algorithm above (softmax `[513,511]`, value mixture `2561/1024 -> 3`,
 then the shared tail), not from a float reference.
 
+M3 second-half remainder additions (checks 164-182): Q5_0 dequantization --
+the all-high/nibble-zero block (every 5-bit quant `-16`, scale 1.0, exact
+`-16384` each), qh all-high (every quant `0`), the fifth-bit mapping (only
+`qh` bit 0 set leaves value 0 at 0 and every other quant at `-16`), nibble 15
+(`-1 * 1024`), and the bad-length / empty / mixed-scale rejects; the Q4_K
+6-bit unpack (`llm_k_get_scale_min_k4`) golden `sc = mn = j+1` for j=0..7 and
+the high-bit recombination `j=4 -> (21, 19)`, plus the index-out-of-range and
+short-scales rejects; the Q4_K golden super-block (d = dmin = 1.0, `sc = mn =
+g+1`, nibbles all 3 -> group `g` exactly `2*(g+1)*1024`, unit scale `(1,10)`,
+256 values) with spot values; the distinct-exponent super-block (d = 0.5,
+dmin = 0.25 -> shared `E = 12`, value 1.25 exactly `5120`); and the Q4_K
+empty / bad-length rejects. Every golden is hand-computed from the integer
+formula, not from a float reference.
+
 Golden-logit provenance (checks 75-78). The fixture is built so every integer
 step is exact: token 1 embedding row `[4,4,0,0]` (mean square 8, rms 2) ->
 `xn=[2,2,0,0]`; `Wq/Wk/Wv` select column 1 -> `q=k=v=[2,2,2,2]`; position-0
@@ -641,7 +694,10 @@ and is only produced by `llm_model_open`. No contracts are declared on any
 function (lane policy for new names, M1 and M2 alike). In-place `Vec`
 element writes (`c.keys[off] = v`) on a `&mut` struct field compile and are
 used by `llm_kv_cache_append`; no fresh compiler defect was encountered in
-M3b.
+M3b. The M3 second-half remainder (Q5_0/Q4_K dequantization) added only
+free functions over `&Vec[UInt8]` and introduced no new compiler defect
+(`Vec[Int]` locals, `<<`/`&` integer ops and `_ok_ids`/`_err_ids` leaf
+helpers all compile on v0.64.6).
 
 ## 13. Reference notes
 
@@ -657,3 +713,8 @@ M3b.
   one-merge-per-step with requeue of neighbours.
 * Token types: `LLAMA_TOKEN_TYPE_UNDEFINED=0, NORMAL=1, UNKNOWN=2,
   CONTROL=3, USER_DEFINED=4, UNUSED=5, BYTE=6` (`include/llama.h`).
+* Quantization: `src/ggml-quants.c` -- `get_scale_min_k4` (the 6-bit Q4_K
+  sub-scale/min unpack), `dequantize_row_q4_K` (`block_q4_K`: f16 d/dmin,
+  `K_SCALE_SIZE = 12`, `QK_K = 256`) and `dequantize_row_q5_0`
+  (`block_q5_0`: f16 d, 4 fifth-bit bytes, 16 nibble bytes; values -16..15).
+  Read-only; the on-disk block byte sizes match `llm_ggml_block_bytes`.

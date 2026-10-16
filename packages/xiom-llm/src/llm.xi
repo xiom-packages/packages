@@ -51,8 +51,11 @@
 // loop (SPEC.md 10.5); the M3 second half (M3b) adds the append-only
 // per-layer KV cache, longer-context multi-position attention, the cached
 // forward `llm_forward_cache` and the cached loop `llm_generate_cached`. The
-// benchmark harness and quant breadth (Q4_K etc.) remain for the M3
-// second-half remainder.
+// M3 second-half remainder adds the Q4_K-class dequantizer
+// (`llm_dequant_q4_k`, packed 6-bit scales/mins via `llm_k_get_scale_min_k4`)
+// and the neighboring Q5_0 dequantizer (`llm_dequant_q5_0`); both are EXACT
+// (error bound 0). The benchmark harness and further quant breadth
+// (Q4_0/Q5_1/Q6_K) remain for the M3 second-half remainder.
 
 module xiom.llm
 
@@ -1143,6 +1146,225 @@ pub fn llm_q8_0_ints(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[
     i = i + 1;
   }
   return _ok_scale(sc);
+}
+
+// Block byte size of Q5_0 (ggml block_q5_0: a little-endian f16 scale `d`,
+// four bytes of fifth bits `qh`, then 16 bytes of nibbles; 32 quants).
+fn _q5_0_block_bytes() -> Int {
+  return 22;
+}
+
+/// Dequantize a Q5_0 payload into scaled integers. A block is a little-endian
+/// f16 scale `d`, four bytes of fifth bits `qh` and 16 bytes of nibbles: 32
+/// signed 5-bit quants with values in -16..15, where value `k`'s fifth bit is
+/// bit `k` of the little-endian u32 `qh`. Output `i` is `q5[i] * m` and the
+/// real value is `out_values[i] / 2^e` with the shared scale `(m, e)` decoded
+/// by llm_f16_to_scaled, so the mapping is EXACT (error bound 0). Like Q8_0
+/// the surface returns a single shared block scale; blocks whose scale bits
+/// differ are rejected. Error cases: `llm: q5_0 payload is empty`,
+/// `llm: q5_0 payload length not a multiple of block size`, the f16 decode
+/// errors, and `llm: q5_0 mixed block scales are not supported`.
+pub fn llm_dequant_q5_0(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str] {
+  let n = payload.len();
+  if n == 0 {
+    return _err_scale("llm: q5_0 payload is empty");
+  }
+  if n % 22 != 0 {
+    return _err_scale("llm: q5_0 payload length not a multiple of block size");
+  }
+  let nblocks = n / 22;
+  let s0lo = (payload[0] as Int) & 0xFF;
+  let s0hi = (payload[1] as Int) & 0xFF;
+  let sc0 = llm_f16_to_scaled(llm_u16_le(s0lo, s0hi));
+  if !sc0.is_ok {
+    let mm: Str = sc0.error;
+    return _err_scale(mm);
+  }
+  let first: LlmScale = sc0.value;
+  let m0: Int = first.m;
+  let e0: Int = first.e;
+  var blk = 0;
+  while blk < nblocks {
+    let base = blk * 22;
+    if blk > 0 {
+      let lo = (payload[base] as Int) & 0xFF;
+      let hi = (payload[base + 1] as Int) & 0xFF;
+      let csr = llm_f16_to_scaled(llm_u16_le(lo, hi));
+      if !csr.is_ok {
+        let mm2: Str = csr.error;
+        return _err_scale(mm2);
+      }
+      let cs: LlmScale = csr.value;
+      if cs.m != m0 || cs.e != e0 {
+        return _err_scale("llm: q5_0 mixed block scales are not supported");
+      }
+    }
+    let qh = llm_u32_le(
+      (payload[base + 2] as Int) & 0xFF,
+      (payload[base + 3] as Int) & 0xFF,
+      (payload[base + 4] as Int) & 0xFF,
+      (payload[base + 5] as Int) & 0xFF);
+    var j = 0;
+    while j < 16 {
+      let low = (payload[base + 6 + j] as Int) & 0xFF;
+      let lo0 = low & 0xF;
+      let hb0 = (qh >> j) & 1;
+      let q0 = (lo0 | (hb0 << 4)) - 16;
+      out_values.push(q0 * m0);
+      j = j + 1;
+    }
+    var k2 = 0;
+    while k2 < 16 {
+      let low2 = (payload[base + 6 + k2] as Int) & 0xFF;
+      let lo1 = (low2 >> 4) & 0xF;
+      let hb1 = (qh >> (k2 + 16)) & 1;
+      let q1 = (lo1 | (hb1 << 4)) - 16;
+      out_values.push(q1 * m0);
+      k2 = k2 + 1;
+    }
+    blk = blk + 1;
+  }
+  return _ok_scale(LlmScale{ m: m0; e: e0; });
+}
+
+// Block byte size of Q4_K (ggml block_q4_K: f16 d, f16 dmin, 12 bytes of
+// packed 6-bit scales/mins, 128 bytes of 4-bit quants; QK_K = 256 values).
+fn _q4_k_block_bytes() -> Int {
+  return 144;
+}
+
+/// Unpack the 6-bit sub-scale `sc` and sub-min `mn` of group `j` (0..7) from a
+/// Q4_K `scales` array (12 bytes), reproducing llama.cpp `get_scale_min_k4`.
+/// Groups 0..3 read the low six bits of `scales[j]` (scale) and `scales[j+4]`
+/// (min); groups 4..7 recombine the low four bits of `scales[j+4]` with the top
+/// two bits of `scales[j-4]` (scale) and `scales[j]` (min). Returns `[sc, mn]`.
+/// Error cases: `llm: q4_k scale index out of range`,
+/// `llm: q4_k scales too short`.
+pub fn llm_k_get_scale_min_k4(j: Int, scales: &Vec[UInt8]) -> Result[Vec[Int], Str] {
+  if j < 0 || j > 7 {
+    return _err_ids("llm: q4_k scale index out of range");
+  }
+  if scales.len() < 12 {
+    return _err_ids("llm: q4_k scales too short");
+  }
+  var sc = 0;
+  var mn = 0;
+  if j < 4 {
+    let a = (scales[j] as Int) & 0xFF;
+    let b = (scales[j + 4] as Int) & 0xFF;
+    sc = a & 63;
+    mn = b & 63;
+  } else {
+    let qj4 = (scales[j + 4] as Int) & 0xFF;
+    let qjm4 = (scales[j - 4] as Int) & 0xFF;
+    let qj = (scales[j] as Int) & 0xFF;
+    sc = (qj4 & 0xF) | ((qjm4 >> 6) << 4);
+    mn = (qj4 >> 4) | ((qj >> 6) << 4);
+  }
+  var out = Vec[Int].new();
+  out.push(sc);
+  out.push(mn);
+  return _ok_ids(out);
+}
+
+/// Dequantize a Q4_K payload into exact scaled integers. A super-block is 144
+/// bytes: a little-endian f16 super-scale `d`, a little-endian f16 super-min
+/// `dmin`, 12 bytes of packed 6-bit sub-scales/mins (eight groups, unpacked by
+/// llm_k_get_scale_min_k4) and 128 bytes of 4-bit quants (256 values, 32 per
+/// group). The dequantized value of group `g`'s quant `q` is
+/// `d*sc[g]*q - dmin*mn[g]`; with `d = dm/2^de` and `dmin = dmm/2^dme` this is
+/// represented EXACTLY over a single exponent `E = max(de, dme)` (the maximum
+/// over every super-block, so mixed per-block d/dmin are handled) as
+/// `out_values[i] / 2^E` with
+/// `out_values[i] = sc*q*dm*2^(E-de) - mn*dmm*2^(E-dme)`. The returned
+/// LlmScale is the unit scale `(1, E)`; the mapping is EXACT (error bound 0).
+/// Error cases: `llm: q4_k payload is empty`, `llm: q4_k payload length not a
+/// multiple of block size`, and the f16 decode errors.
+pub fn llm_dequant_q4_k(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str] {
+  let n = payload.len();
+  if n == 0 {
+    return _err_scale("llm: q4_k payload is empty");
+  }
+  if n % 144 != 0 {
+    return _err_scale("llm: q4_k payload length not a multiple of block size");
+  }
+  let nblocks = n / 144;
+  var dms = Vec[Int].new();
+  var des = Vec[Int].new();
+  var dmms = Vec[Int].new();
+  var dmes = Vec[Int].new();
+  var emax = 0;
+  var blk = 0;
+  while blk < nblocks {
+    let base = blk * 144;
+    let dr = llm_f16_to_scaled(llm_u16_le((payload[base] as Int) & 0xFF, (payload[base + 1] as Int) & 0xFF));
+    if !dr.is_ok {
+      let mm: Str = dr.error;
+      return _err_scale(mm);
+    }
+    let dv: LlmScale = dr.value;
+    let mr = llm_f16_to_scaled(llm_u16_le((payload[base + 2] as Int) & 0xFF, (payload[base + 3] as Int) & 0xFF));
+    if !mr.is_ok {
+      let mm2: Str = mr.error;
+      return _err_scale(mm2);
+    }
+    let mv: LlmScale = mr.value;
+    dms.push(dv.m);
+    des.push(dv.e);
+    dmms.push(mv.m);
+    dmes.push(mv.e);
+    if dv.e > emax {
+      emax = dv.e;
+    }
+    if mv.e > emax {
+      emax = mv.e;
+    }
+    blk = blk + 1;
+  }
+  blk = 0;
+  while blk < nblocks {
+    let base = blk * 144;
+    let dm: Int = dms[blk];
+    let de: Int = des[blk];
+    let dmm: Int = dmms[blk];
+    let dme: Int = dmes[blk];
+    let sd = emax - de;
+    let sm = emax - dme;
+    var sb = Vec[UInt8].new();
+    var s = 0;
+    while s < 12 {
+      let bb: UInt8 = payload[base + 4 + s];
+      sb.push(bb);
+      s = s + 1;
+    }
+    var g = 0;
+    while g < 8 {
+      let scr = llm_k_get_scale_min_k4(g, &sb);
+      if !scr.is_ok {
+        let mm3: Str = scr.error;
+        return _err_scale(mm3);
+      }
+      let scv: Vec[Int] = scr.value;
+      let sc: Int = scv[0];
+      let mn: Int = scv[1];
+      let a = (sc * dm) << sd;
+      let b = (mn * dmm) << sm;
+      let bytebase = (g / 2) * 32;
+      var l = 0;
+      while l < 32 {
+        let by = (payload[base + 16 + bytebase + l] as Int) & 0xFF;
+        var q = by & 0xF;
+        if g % 2 == 1 {
+          q = (by >> 4) & 0xF;
+        }
+        out_values.push(q * a - b);
+        l = l + 1;
+      }
+      g = g + 1;
+    }
+    blk = blk + 1;
+  }
+  return _ok_scale(LlmScale{ m: 1; e: emax; });
 }
 
 // --------------------------------------------------

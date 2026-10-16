@@ -6,9 +6,10 @@
 
 Lane: llama.cpp-family runner tier of the ML/AI coverage program.
 Current: v0.1.0, milestones M1 + M2 complete, M3 first and second halves
-(generation loop + sampling, and the append-only KV cache + longer-context
-attention) complete and conformance-green (163/163 x2); `publish: false`
-pending ops scope + allowlist.
+(generation loop + sampling, the append-only KV cache + longer-context
+attention, and Q4_K-class dequantization with the neighboring Q5_0) complete
+and conformance-green (182/182 x2); the benchmark harness remains.
+`publish: false` pending ops scope + allowlist.
 
 ## M1 -- vocab + byte-level BPE (DONE, 2026-10-16)
 
@@ -40,7 +41,8 @@ and pin it against an in-test hand-computed oracle.
    - `llm_dequant_q8_0`: scaled-int values + `LlmScale (m, e)`; exact
      integer asserts on hand-built blocks (scale 1.0/-1.0, quants -8..23;
      error bound pinned at 0). Limitation: single shared block scale
-     (mixed per-block scales rejected). Q4_K-class deferred to M4.
+     (mixed per-block scales rejected). Q4_K-class deferred (landed later in
+     the M3 second-half remainder).
 3. **Matmul + forward composition** (SPEC.md 10.4) -- DONE in M2b
    - `llm_matmul_i32` (overflow fail-closed, typed Err) plus `llm_dot_i32`;
      `xiom.tensor` used for shape construction/canonical dump
@@ -87,7 +89,14 @@ first, fixture dims chosen so every oracle value is exact.
    cached forward/loop. Benchmark harness (package-local, `xiom bench`
    compatible) -- **REMAINS**.
 4. Q4_K-class dequant (`llm_dequant_q4_k`) + Q4_0/Q5_0/Q5_1/Q6_K as
-   sized; block-table conformance + error-bound pins -- **REMAINS**.
+   sized; block-table conformance + error-bound pins -- **DONE (M3
+   second-half remainder, 2026-10-16)**: `llm_dequant_q4_k` (144-byte
+   super-blocks, f16 d/dmin, 12 packed 6-bit scales/mins unpacked by the
+   exposed `llm_k_get_scale_min_k4`, 4-bit quants) and the neighboring
+   `llm_dequant_q5_0` (22-byte blocks, 5-bit quants, shared scale). Values
+   are EXACT (error bound 0); Q4_K folds per-group scales/mins into a single
+   global exponent `E = max(de, dme)`. Malformed block sizes get typed
+   errors. Q4_0/Q5_1/Q6_K remain unscheduled.
 5. Tokenizer: GPT-2 `bytes_to_unicode` escape/unescape and the GPT-2
    regex pre-tokenizer, **blocked on non-ASCII GGUF strings** (see
    maintenance item); BOS/EOS insertion flags
@@ -98,7 +107,7 @@ first, fixture dims chosen so every oracle value is exact.
    fixture; escape-layer golden vectors (hand-computed byte-unicode
    table values). **PARTIAL**: greedy and seeded prompt -> ids -> decode
    roundtrips are green and the cached multi-position loop adds a
-   two-token-prompt roundtrip (163/163 x2); escape-layer vectors remain.
+   two-token-prompt roundtrip (182/182 x2); escape-layer vectors remain.
 
 ## Maintenance / cross-lane items
 
