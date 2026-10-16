@@ -1177,6 +1177,24 @@ green + pushed; awaiting session idle to land)**:
   0.1.0, scopes staged).  NOTE: our A3/A4 land is **0.4.0** -- once
   landed, file the supersede note so packages publishes 0.4.0.
 
+**UPDATE 2026-10-16 13:25Z (A3/A4 LANDED; family 0.4.0 update filed;
+A9/A11/A12 wave launched)**:
+- **A3/A4 LANDED**: land `f8ba590a` (23 files; xiom.android 0.4.0;
+  export set 117 -> 209 = input.h 60 + sensor.h 32; generated const
+  tables 538 values; docs/repro input + app probes + recorded
+  app-probe output), record re-pointed `d0d85113`; integration
+  **x2 14/14** on v0.64.5 (SKIP leg; namespace 5 modules OK);
+  validate **561/0**; branch `android/input-sensors` pushed (session
+  idle after final record re-point `34064e2c`).
+- Family first-publish update filed: `REL-20261016-1322-bindings` --
+  publish **xiom.android 0.4.0** (supersedes 0.3.0) in the -1305
+  family batch; the five new names unchanged.
+- **NEXT WAVE LAUNCHED** (`am-1792157066997-6uc3rf`): A9 gl leg
+  (`android/a9-gl-leg`; generator-aware xiom.gles android pass),
+  A11 JNI seam (`android/a11-jni`; new `xiom.jni`), A12 system-misc
+  remainder (`android/a12-sys`; binder_ndk + NNAPI + z + icu subset
+  in xiom.android-sys 0.2.0).
+
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
 state (`cdbbca63`; clean + pushed; validate 561/0).
