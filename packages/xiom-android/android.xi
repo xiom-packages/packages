@@ -10,7 +10,8 @@
 // Windows -- where everything classifies ABSENT) and verifies the
 // declared export set of native_window.h + hardware_buffer.h +
 // asset_manager.h + storage_manager.h + sharedmem.h + looper.h +
-// native_activity.h + configuration.h (117 exports, W2c):
+// native_activity.h + configuration.h + input.h + sensor.h
+// (209 exports, W2d):
 //
 //   ANativeWindow_*   (15 non-inline exports; window ops need a live
 //                      Surface -> A11 seam; bound + ABI-checked here)
@@ -23,6 +24,12 @@
 //                      activity -> A11/G1)
 //   AConfiguration_*  (50; FUNCTIONAL: see submodule
 //                      xiom.android.configuration)
+//   AInput* / AKeyEvent_* / AMotionEvent_* (60; FUNCTIONAL: see
+//                      submodule xiom.android.input -- the queue itself
+//                      is app-delivered, proven by the on-device app
+//                      probe)
+//   ASensor* / ASensorManager* / ASensorEventQueue_* (32; FUNCTIONAL:
+//                      see submodule xiom.android.sensors)
 //
 // Classification (the suite maps it to markers):
 //   ANDROID_LOAD_ABSENT -> SKIP  (runtime missing; CI stays green)
@@ -176,6 +183,48 @@ pub const PROT_WRITE: Int = 2;
 pub const PROT_EXEC: Int = 4;
 
 // =========================================================================
+// Float bit reconstruction (shared by the input/sensors heads)
+//
+// B-12 discipline: fp cast-call returns are miscompiled on the pinned
+// toolchain, so float payloads cross the bridge as IEEE-754 binary32 BIT
+// PATTERNS (as Int) and are rebuilt here with pure arithmetic (the
+// xiom.assimp pattern).
+// =========================================================================
+
+/// IEEE-754 binary32 bits -> Float64 (pure arithmetic).  Complexity: O(1).
+pub fn android_f32_from_bits(bits: Int) -> Float64
+  requires: bits >= 0
+  requires: bits <= 0xFFFFFFFF
+{
+  let sign = if ((bits >> 31) & 1) == 1 { -1.0 } else { 1.0 };
+  let exp = (bits >> 23) & 0xFF;
+  let frac = bits & 0x7FFFFF;
+  if exp == 0 {
+    if frac == 0 { return sign * 0.0; }
+    return sign * (frac as Float64) * android_pow2i(-149);
+  }
+  if exp == 255 { return 0.0; }
+  return sign * (1.0 + (frac as Float64) / 8388608.0) * android_pow2i(exp - 127);
+}
+
+fn android_pow2i(e: Int) -> Float64
+  requires: e >= -1074
+  requires: e <= 1024
+{
+  var r = 1.0;
+  var i = e;
+  while i > 0 {
+    r = r * 2.0;
+    i = i - 1;
+  }
+  while i < 0 {
+    r = r / 2.0;
+    i = i + 1;
+  }
+  return r;
+}
+
+// =========================================================================
 // Probe API
 // =========================================================================
 
@@ -218,7 +267,7 @@ pub fn android_error() -> Str
   unsafe { return Str::from_c_str(xa_error()); }
 }
 
-/// The declared export-set size of this bridge (117 after W2c).  Useful
+/// The declared export-set size of this bridge (209 after W2d).  Useful
 /// as a drift guard in suites.
 /// Complexity: O(1).
 pub fn android_export_count() -> Int
