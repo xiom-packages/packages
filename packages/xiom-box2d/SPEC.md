@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.box2d` |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Box2D -- https://github.com/erincatto/box2d |
 | Upstream version | **v3.1.1** (tag; the v3 C API) |
 | Upstream license | MIT (`vendor/LICENSE`) |
 | Package license | MIT OR Apache-2.0 (everything outside `vendor/`) |
 | Platform | Windows x64 (primary); the vendored C path is portable |
-| Compiler pin | v0.64.3 |
+| Compiler pin | v0.64.5 |
 
 ## 2. Vendored path (G2 pin)
 
@@ -134,16 +134,73 @@ reads back milli scalars. Note that Box2D wraps revolute `GetAngle` to
 [-pi, pi] (relative angle), so a 4 rad integration reads back as
 4 - 2*pi ~ -2283 milli; the suite asserts the wrapped value.
 
+### 0.4.0 caller surface (engine PACKAGE-ASKS A02)
+
+The caller-usable 2D-solver surface is **pointer-free**: no out-param slots,
+no foreign-pointer reads, no pointer casts (B-20/B-24/B-25 discipline).
+`b2b_*` bridge entry points take and return only ints; state read-back goes
+through bridge-owned scalar caches fetched by dedicated accessors
+(`b2b_body_state` fills the cache, `b2_state_*` accessors build fresh
+values), and list surfaces (overlap entries, contact events) are snapshotted
+into bridge-owned arrays canonicalized to ascending ids so repeated runs are
+bit-identical.  Values cross as milli exactly like the probes.
+
+Surface: `b2_world_create` (2D gravity, fixed `dt_micros`, body `capacity`
+1..256) / `b2_world_destroy` / `b2_world_dt_micros`; `b2_body_add` (circle
+or box, static/dynamic, position/angle, optional mass override that scales
+the density-derived mass data) / `b2_body_remove` / `b2_body_count` /
+`b2_body_mass_milli`; `b2_step` / `b2_step_n` (fixed dt, 4 Box2D sub-steps);
+`b2_body_state` (pos/vel/angle/angular velocity/awake); `b2_raycast`
+(closest hit via `b2World_CastRayClosest`); `b2_overlap_circle` /
+`b2_overlap_box` / `b2_overlap`; `b2_contact_event_count` /
+`b2_contact_event` (begin/end/hit; hit carries point/normal/approach speed,
+destroyed sides read -1); `b2_joint_add` / `b2_joint_remove` /
+`b2_joint_count` / `b2_joint_state` with one typed `B2JointDesc` covering
+revolute, prismatic, weld, distance, wheel and motor joints (the hidden
+per-world static anchor body is the world side, `B2_WORLD = -1`).  Every
+bridge shape enables Box2D contact + hit events (defaults are off).  Edge
+and chain shapes are staged (ROADMAP Phase 4).
+
+Bridge error codes (negative; payloads are non-negative
+handles/ids/counts/values): `-1` bad/destroyed world handle, `-2` bad
+argument (shape kind, extents, steps, axis, kind, capacity), `-3` registry
+full, `-4` world creation failed, `-5` unknown/removed body id, `-6`
+shape/body creation failed, `-7` joint creation failed, `-8` unknown/removed
+joint id, `-9` index out of range.  Body ids are per-world, monotonic and
+never reused, so stale ids are rejected.
+
+Box2D event-array semantics apply: `b2World_GetContactEvents` exposes the
+begin/end/hit events of the last step, and end events caused by a removal
+outside a step become visible after the next step (the buffers are
+swapped/cleared inside `b2World_Step`).  The suite steps once after removing
+the body before asserting the end event.
+
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- 7 checks: version pin (3.1.x), default
-gravity (0, -10000 milli), resting-drop settle (1x1 box from y=10 lands at
-~0.5 within [0.4, 0.6]), impulse->velocity (5000 milli impulse on the 1 kg
-box yields vx in [4500, 5500]), drop determinism (repeated run identical),
-revolute motor (gravity-off rotor at 2 rad/s: w=2000 within +/-50 milli and
-the wrapped angle ~ -2283 within +/-120), and prismatic motor (slider on +x
-under gravity at 1 m/s: translation ~1999 within [1900, 2100] while y stays
-at 2000 within +/-10).
+Suite: `tests/test_conformance.xi` -- 26 checks.  The seven 0.3.0 conformance
+probes stay green unchanged: version pin (3.1.x), default gravity (0, -10000
+milli), resting-drop settle (1x1 box from y=10 lands at ~0.5 within
+[0.4, 0.6]), impulse->velocity (5000 milli impulse on the 1 kg box yields vx
+in [4500, 5500]), drop determinism (repeated run identical), revolute motor
+(gravity-off rotor at 2 rad/s: w=2000 within +/-50 milli and the wrapped
+angle ~ -2283 within +/-120), and prismatic motor (slider on +x under
+gravity at 1 m/s: translation ~1999 within [1900, 2100] while y stays at
+2000 within +/-10).
+
+The 0.4.0 growth adds 19 checks: world create/dt/count; body ids, count and
+capacity rejection; state read by handle (fresh values, no slots); static
+body immobility; free fall (semi-implicit Euler with 4 sub-steps: y~4978,
+vy~-10000 after 1 s); mass readback (density default 1000 milli, override
+2000, circle pi/4*1000~785); body removal + stale-id rejection; closest
+raycast (fraction/normal/body id + miss); circle/box overlaps (canonical
+order, empty query); contact begin (step 43, pair (0,1)); contact hit
+(speed ~7166 milli, normal +y, point at the ground top); contact end after
+removal (pair (0,-1), one extra step); weld hold (pos (0,1999) under
+gravity); distance pendulum (len~2000, radius^2~4e6, y<-500); wheel motor
+(w~2000); motor joint (angle 1000 -> 0); revolute and prismatic through the
+generic desc (w=2000/angle~-2283; translation~2000/y~1999); and the typed
+error matrix (unknown body/joint, bad overlap index, world-on-world joint,
+stale world).
 
 Command (cwd = this package directory; the runner hook adds the C sources):
 
@@ -156,9 +213,11 @@ Watchdog: allow >=180 s -- clang compiles 35 small C files plus the bridge
 
 ## 5. Scope
 
-0.3.0: version/world/body basics with a real stepping simulation, an
-impulse check, and revolute + prismatic joints with motors. Broad-phase
-queries, contact events, remaining joint types, world snapshots, and sample
-scenes are Phase 3 (`ROADMAP.md`). The pre-pilot v4-era static-extern module
-(`box2d.xi`, `box2d_safe.xi`, `demo_box2d.xi`, `box2d.xiom-bind`) is
-preserved in git history.
+0.4.0: the caller-usable 2D-solver surface (engine PACKAGE-ASKS A02) --
+world/bodies/step/state/count, broadphase queries, contact events and the
+remaining tractable joint types (revolute/prismatic/weld/distance/wheel/
+motor) on top of the 0.3.0 fixed-scenario probes, which stay as conformance
+probes.  Staged for later (ROADMAP Phase 4): edge/chain caller shapes,
+mouse/filter joints, sensor helpers, world snapshots and sample scenes.  The
+pre-pilot v4-era static-extern module (`box2d.xi`, `box2d_safe.xi`,
+`demo_box2d.xi`, `box2d.xiom-bind`) is preserved in git history.
