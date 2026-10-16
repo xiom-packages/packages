@@ -1351,6 +1351,42 @@ B-33 filed to compiler)**:
   (pandas leg-2 triage recorded).  R2 remaining: onnx/v4l/gps/epos
   in flight; a3-a4 stale dir finally removed.
 
+**UPDATE 2026-10-16 21:15Z (v0.64.6 VERIFIED on the scratch slot; v4l
+LANDED; B-32 restore session launched)**:
+- **v0.64.6 scratch verification** (windows-x64 asset; SHA256SUMS OK;
+  run with `XIOM_COMPILER` = scratch slot -- the repo pin STAYS
+  v0.64.5 until the owner repins):
+  - **B-26/B-32 core: GREEN** -- `nested-payload/probe.xi`
+    failures=0; `matrix.xi` ALL shapes green (incl. the previously
+    reliable-red A/A2: tag=2, items.len=2).  The m346 generic
+    field-chain fix lands as advertised.
+  - **B-30 owned-slot-cast: GREEN** (probe.xi + probe_fixed.xi both
+    compile+run, ch=2).
+  - **B-31 const-alias-cycle: still FIXED** (emit-ir exit 0).
+  - **B-29 bigint-bitops: STILL RED** (shift20=2987 vs 2989;
+    boundary-arithmetic workaround stays).
+  - B-33: not re-run (needs the clang probe.dll; compiler queued it
+    as m351 for v0.64.7).
+  - **REPIN DECISION = owner/session** (`COMPILER_VERSION` on
+    origin/bindings still v0.64.5).  Scratch slot path:
+    `%TEMP%\kilo\xiom0646\slot`.
+- **`xiom.v4l 0.1.0` LANDED** (agent chain rebased onto bindings:
+    `bbd8cfaa` prep -> `18eaf107` feat -> `ce9f9f0c` docs ->
+    `ddc97fe5` record; record re-pointed to the tested tree
+    `18eaf107` in `962c5bb1` -- fixes the db08d746 slip): V4L2 UAPI
+    bridge, 2079 consts + 1028 layout facts + 29 macro mirrors; x2
+    14/14 (blanket SKIP off-Linux); validate **564/0**; publish
+    request `REL-20261016-2115-bindings` (NEW name).
+- **B-32 restore session launched** (`am-1792185444615-u3hosb`;
+    branch `feat/sqlite-nested-restore`): in-situ
+    `Result[Option[SqliteRow]]` restore attempt on the .6 scratch
+    slot (patch + suite; clean restore -> 0.5.0 if green; evidence
+    either way into the b32 README).
+- Publishes in queue at packages: serial `-2031-bindings`, ros2
+    `-2031-bindings-2`, v4l `-2115-bindings`; B-33 acked by compiler
+    (m351).  R2 remaining: onnx + gps (record phase) + epos
+    (relaunched session).
+
 **UPDATE 2026-10-16 19:25Z (ML/AI + robotics program -- acked + queue
 folded; 20 built names confirmed)**: owner directive (19:16Z) relayed by
 packages; handled this pass.
