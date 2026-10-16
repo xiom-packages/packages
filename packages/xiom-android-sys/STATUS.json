@@ -6,21 +6,12 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  4,
+                  "passed":  16,
                   "failed":  0,
-                  "run_by":  "android-sys",
-                  "commit":  "2032a60c",
-                  "checked":  "2026-10-15T22:06:45Z"
+                  "run_by":  "am:android-a12-sys",
+                  "commit":  "62201d7e",
+                  "checked":  "2026-10-16T15:44:13Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (Android SDK100 A12 system starter head: log + sync); publish gate after the naming decision + first end-to-end suite run (G1)",
-    "platforms":  [
-                      "windows-x64",
-                      "android-x86_64",
-                      "android-arm64"
-                  ],
-    "runtime_deps":  [
-                         "liblog.so (runtime loader; SKIP when absent)",
-                         "libsync.so (runtime loader; SKIP when absent)"
-                     ]
+    "excluded_reason":  "new package (Android SDK100 A12 system head: log + sync + binder + nnapi + zlib + icu subset; per-lib runtime-load units); publish gate after the naming decision + first end-to-end suite run (G1)"
 }

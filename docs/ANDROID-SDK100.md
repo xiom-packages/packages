@@ -137,8 +137,10 @@ can be proven without the compiler target:
   EGL android family measured 0-delta; x2 20/20 on v0.64.5 -- ANGLE
   live 358/358 + 44/44 core resolved -- + on-device SwiftShader PASS
   (ES2 context + glClear err=0)).
-- **A12 remainder** (binder_ndk / NNAPI / icu / z): IN FLIGHT
-  (`android/a12-sys` agent; `xiom.android-sys` 0.2.0).
+- **A12 remainder**: DONE (**`xiom.android-sys` 0.2.0**; binder_ndk +
+  NNAPI + zlib + icu-subset heads as per-lib runtime-load units with
+  own SKIP classification; x2 16/16 on v0.64.5; on-device probe PASS --
+  five bridges, per-lib export scans + functional smokes).
 - **A10 graphics-vk**: OWNER lane (android delta =
   VK_KHR_android_surface); the raw `xiom.vulkan` 0.6.0 surface is
   100% (campaign checklist answered `REL-20261016-1347-bindings`;
