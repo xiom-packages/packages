@@ -1,8 +1,8 @@
 # xiom.template
 
 > **Status:** `stable` -- conformance-tested (43/43), `port.ps1` x2 green on
-> XIOM v0.64.5; published reference `v0.1.2` on the XIOM registry; 0.2.0
-> adds the block surface below (rides the next publish batch).
+> XIOM v0.64.5. Published: `0.2.0` in `eco-v0.1.186` (sha256 `bedd03a9...`;
+> `0.1.2` reference retained below). 0.2.0 adds the block surface below.
 > **Scope:** Mustache-style template rendering: placeholder substitution
 > (v0.1 surface, unchanged) plus sections, loops, inverted sections, dotted
 > paths and optional HTML auto-escaping (v0.2 block surface).
