@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  56,
                   "failed":  0,
-                  "run_by":  "am:feat-onnx-coverage",
-                  "commit":  "7485c6d5",
-                  "checked":  "2026-10-16T21:41:46Z"
+                  "run_by":  "native-session",
+                  "commit":  "84bdc431",
+                  "checked":  "2026-10-16T21:56:02Z"
               },
     "publish":  false,
     "excluded_reason":  null
