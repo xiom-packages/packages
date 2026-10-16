@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-16T00:26:56+03:00
-# packages: 554  modules: 1013
+# generated: 2026-10-16T14:03:57+03:00
+# packages: 556  modules: 1026
 
 ## package names
 xiom.acpi
@@ -332,6 +332,7 @@ xiom.opus
 xiom.oracle
 xiom.orc
 xiom.osrelease
+xiom.otel
 xiom.ozz
 xiom.pack
 xiom.packet
@@ -509,6 +510,7 @@ xiom.transaction
 xiom.translate
 xiom.translation
 xiom.transliteration
+xiom.transport
 xiom.tsv
 xiom.ttl
 xiom.typography
@@ -1069,6 +1071,9 @@ xiom.opus.types
 xiom.oracle
 xiom.orc
 xiom.osrelease
+xiom.otel
+xiom.otel.otlp
+xiom.otel.sink
 xiom.pack
 xiom.packet
 xiom.pagination
@@ -1419,6 +1424,7 @@ xiom.tar
 xiom.tcx
 xiom.telnet
 xiom.template
+xiom.template.blocks
 xiom.tensor
 xiom.term
 xiom.terraform
@@ -1448,6 +1454,15 @@ xiom.transaction
 xiom.translate
 xiom.translation
 xiom.transliteration
+xiom.transport
+xiom.transport.caps
+xiom.transport.frames
+xiom.transport.loopback
+xiom.transport.null
+xiom.transport.reliable
+xiom.transport.session
+xiom.transport.sim
+xiom.transport.udp
 xiom.tsv
 xiom.ttl
 xiom.typography
