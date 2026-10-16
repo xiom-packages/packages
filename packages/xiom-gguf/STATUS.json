@@ -13,5 +13,5 @@
                   "checked":  "2026-10-16T19:47:53Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+    "excluded_reason":  "published: 0.1.3 live 2026-10-16 (string-array origin fix XGGUF-ARRSTR; sha256 2d79e76c...); 0.1.0-0.1.2 previous line"
 }

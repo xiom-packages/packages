@@ -4,7 +4,7 @@
 
 # xiom.gguf
 
-> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.2` on the XIOM registry; `0.1.3` fixes the string-array origin defect (XGGUF-ARRSTR) pending publish.
+> **Status:** `stable` -- conformance-tested (26/26); `0.1.3` published 2026-10-16 (string-array origin fix, XGGUF-ARRSTR; live sha256 `2d79e76c...`; `0.1.2` was the previous line).
 
 A production-grade, dependency-free GGUF container **header** codec for
 XIOM: parse the metadata KV table and tensor-info table of llama.cpp-family
@@ -20,7 +20,7 @@ header to append tensor payloads to.
 ## Install
 
 ```toml
-xiom.gguf = "0.1.0"
+xiom.gguf = "0.1.3"
 ```
 
 ## Quick start
