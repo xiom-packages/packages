@@ -1213,6 +1213,14 @@ A9/A11/A12 wave launched)**:
   `REL-20261016-1347-bindings`); the engine-facing wrapper tier folds
   into the OWNER session's mini-RHI extended wave per the lane split
   (item acked).
+- 14:12Z update: **`xiom.jni 0.1.0` LANDED** (A11 jni-seam; land
+  `ea8dcc0e` + record `0a5e1aaf`; 97 helpers over the JNIEnv table +
+  bitmap cluster via libjnigraphics; 9-export loader set;
+  integration **x2 90/90**; on-device shell + app_process probes
+  PASS; validate **562/0**; publish request
+  `REL-20261016-1410-bindings`).  Eco: **batch 90 = `eco-v0.1.188` =
+  transport + otel** (packages lane, own packages).  A9 + A12 still
+  working (nothing pushed yet).
 
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
