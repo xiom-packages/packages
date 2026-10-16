@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-16T13:10:13Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T15:06:02Z.
 
 ## How to read this table
 
@@ -42,11 +42,11 @@ preserved by `-Action repin`/`-Action update`:
 
 ## Summary
 
-- packages: 563
+- packages: 564
 - declared rows: 37
 - compile: 28
 - compile+runtime-load: 19
-- pure: 500
+- pure: 501
 - runtime-load: 16
 - native packages pending declaration: 28
 
@@ -107,7 +107,7 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx1
 | xiom.vulkan | 0.6.0 | incubating | compile+runtime-load | undeclared | vulkan-1.dll (runtime, derived) | pass 22/22 @ 1aa5be5b |
 | xiom.assimp | 0.8.0 | incubating | compile | undeclared | - | pass 16/16 @ a76bdef4 |
 | xiom.box2d | 0.4.0 | incubating | compile | undeclared | - | pass 26/26 @ 43173d68 |
-| xiom.http | 0.1.6 | stable | compile | undeclared | - | pass 42/42 @ d45a106d |
+| xiom.http | 0.1.7 | stable | compile | undeclared | - | pass 42/42 @ b0cd82c5 |
 | xiom.imgui | 0.3.0 | incubating | compile | undeclared | - | pass 7/7 @ 05c30982 |
 | xiom.lzfse | 0.2.0 | incubating | compile | undeclared | - | pass 7/7 @ 07f5bd2f |
 | xiom.miniaudio | 0.4.0 | incubating | compile | undeclared | - | pass 27/27 @ 43173d68 |
@@ -461,6 +461,7 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx1
 | xiom.proxy | 0.1.3 | incubating | pure | any (derived) | - | pass 20/20 @ d85a0ee6 |
 | xiom.psf | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ 83669bfa |
 | xiom.pulsar | 0.1.3 | incubating | pure | any (derived) | - | pass 27/27 @ 00c21919 |
+| xiom.pulse | 0.1.0 | incubating | pure | any (derived) | - | unknown |
 | xiom.punycode | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ 30d6d9bf |
 | xiom.puppet | 0.1.0 | incubating | pure | any (derived) | - | pass 26/26 @ 8c0ac311 |
 | xiom.pwm | 0.1.0 | incubating | pure | any (derived) | - | pass 20/20 @ 599f89c9 |
