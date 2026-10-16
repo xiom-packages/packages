@@ -605,3 +605,6 @@ xiom.redis
 # A08 transport + OTLP core; ops scopes confirmed LIVE 2026-10-16 (eco-release 550; PROD-only)
 xiom.transport
 xiom.otel
+# PULSE top-tier pair -- TLS + real brotli; ops scopes confirmed LIVE 2026-10-16 (brotli eco-release 552, ssl 550; PROD-only)
+xiom.brotli
+xiom.ssl
