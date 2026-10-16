@@ -130,8 +130,14 @@ can be proven without the compiler target:
   generator-aware pass).
 - **A10 graphics-vk**: OWNER lane (android delta =
   VK_KHR_android_surface).
-- **A11 JNI seam**: NEXT WAVE (design: env/object slots supplied by
-  the consumer app; gates every live Surface/Context/asset wrapper).
+- **A11 JNI seam**: DONE (`xiom.jni` 0.1.0; design honored -- env/object
+  slots supplied by the consumer app via JNI_OnLoad; declared surface
+  97 C helpers + 9-export set (libjnigraphics + libnativehelper);
+  on-device: shell probe PASS (56/56 table offsets gated, 9/9 exports,
+  null paths, honest no-VM) + app_process app probe PASS (live env
+  battery incl. exact double-bits/parseInt/array/exception/
+  RegisterNatives/pthread attach; AndroidBitmap roundtrip on a real
+  Bitmap + PNG compress + Java-side getPixel readback)).
 - **A12 remainder** (binder_ndk / NNAPI / icu / z): later waves.
 - **G1 (compiler android target)**: OPEN -- owner call on the v0.64.6
   roadmap; the true end-to-end gate for XIOM-on-Android.
@@ -157,3 +163,13 @@ can be proven without the compiler target:
 - 2026-10-15T21:10Z: **W2b on-device** -- xiom.android 0.2.0: 53/53
   exports resolved; ASharedMemory roundtrip exact; HWB evidence
   unchanged.
+- 2026-10-16T17:00Z: **A11 on-device** -- `xiom.jni` 0.1.0 (jni-seam):
+  shell probe PASS (all 56 JNINativeInterface offsets + invoke/bitmap/
+  native-method offsets identical bridge-vs-header at runtime; 9/9
+  exports; null-safety; no-VM honesty) + app probe PASS via
+  app_process (`JNI_OnLoad` vm -> env; FindClass/GetStaticMethodID/
+  CallStatic* exact incl. double-bits 1.5; parseInt; UTF readback;
+  int-array slots roundtrip; exception path; RegisterNatives; pthread
+  Attach/Detach; `AndroidBitmap_*` on a 64x64 ARGB_8888 Bitmap:
+  write/read exact + PNG 142 B + Java getPixel readback); repro
+  `packages/xiom-jni/docs/repro/`.
