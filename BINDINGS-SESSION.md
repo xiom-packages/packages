@@ -1226,6 +1226,24 @@ A9/A11/A12 wave launched)**:
   batch (`jni scope ask filed`; family batch continues with the
   sibling session).  A9 + A12 worktrees both active mid-op at 14:28Z.
 
+**UPDATE 2026-10-16 15:10Z (doorbell 15:00Z + A9 LANDED)**:
+- **`xiom.gles 0.2.0` LANDED** (A9 graphics-gl android leg; land
+  `87763cbf` + record `7db2691a`): loader candidate pairs emitted by
+  both generators (Windows ANGLE DLLs + android system sonames),
+  generated NDK r27b delta (494 extension wrappers + 1225 constants;
+  ES1 + 279 guard/token macros documented exclusions), EGL android
+  family 0-delta.  Integration **x2 20/20** (ANGLE live: 358/358 ES +
+  44/44 EGL resolved; 236/494 delta ext-conditional) + on-device
+  SwiftShader PASS (ES2 context + glClear err=0).  validate **562/0**.
+  Publish request `REL-20261016-1510-bindings` (existing name) --
+  relay commit pending an index.lock window.
+- `docs/ANDROID-SDK100.md` status refreshed (A9 row -> DONE; A3/A4/A11
+  landings recorded; G3 scopes 550/552).
+- Relay sweep: no new items addressed to bindings; info-only noise
+  (-1429 pulse-extraction claim, -1446 codenames convention, -1304
+  http rider).  Compiler: stdlib pin ask for the v0.64.6 cut.
+- **A12** (`xiom.android-sys` 0.2.0) still working (no push yet).
+
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
 state (`cdbbca63`; clean + pushed; validate 561/0).
