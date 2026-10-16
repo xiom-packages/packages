@@ -1285,6 +1285,16 @@ LIVE)**:
 - Still open at packages: android family (`-1305`/`-1322`; continues
   with the sibling), `xiom.jni` (`-1410` acked), `xiom.android-sys`
   (`-1545` open).  Eco through `eco-v0.1.190`.
+- 17:20Z: **family batch ACKED + executing** -- the combined
+  publish = `xiom.android 0.4.0` (per -1322; 0.3.0 SKIPPED) +
+  aaudio/mediandk/camera2ndk/opensl 0.1.0 + `xiom.android-sys 0.2.0`
+  + `xiom.jni 0.1.0` (SEVEN units; all seven names being appended to
+  the repo allowlist in this batch; scopes live 550/552); x2 sweep ->
+  wrap -> publish.  Also: `xiom.pulse` scoped LIVE (eco-release 553).
+  **v0.64.6 archive IMMINENT** (packages will coordinate ordering if
+  it lands before the family batch wraps).  On release: B-32
+  re-verify wave (nested `Result[Option]` restore probes) is the
+  prepared lane action; no unilateral repin.
 
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
