@@ -19,6 +19,42 @@ with zero Python overhead. This is the approach Polars and DuckDB use internally
 ## Bundling strategy
 **System-installed only.** Depends on Arrow which is system-installed.
 
+## Surface status (2026-10-16) -- stub vs real legs
+
+Two-leg delivery (mirrors xiom.numpy Phase 1 and xiom.http's offline suite +
+real probe):
+
+- **Leg 1 (offline, GREEN)**: `bridge/pandas_bridge.c` is a deterministic
+  suite-only stub (no external libs, no Arrow) linked through `port.args.json`
+  (`--c-source`). The conformance suite is **80/80 PASS x2** on compiler
+  v0.64.5 (`scripts/port.ps1 -Package xiom-pandas -TimeoutSec 180`), covering
+  22 FFI stub checks, 30 constant checks, 12 API markers, 11 contract
+  markers, 3 type checks, 4 dtype_name checks and 8 safe-wrapper error-path
+  checks. The stub validates arguments (0-in -> 0-out plus a nonzero
+  `dataframe_to_csv` error rc) and reports "backend unavailable" on success
+  paths -- it never fabricates data.
+- **Leg 2 (real, NOT BUILT)**: `bridge/xiom_pandas_arrow.cpp` (Arrow C++,
+  C++17), specced in `bridge/REAL-BACKEND-REQUIREMENTS.md`: exact symbol
+  contract, headers, C++ ABI notes, zero-copy Arrow C Data Interface points,
+  what xiom.arrow must expose, and open items. `tests/probe_real_arrow.xi`
+  is the evidence-only real-runtime probe (NOT part of port.ps1); without
+  the real bridge it fails closed.
+- **T001 reconciliation (2026-10-16)**: the suite's duplicated extern block
+  is gone. Compiler v0.64.5 resolves the canonical declarations through
+  `use xiom.pandas;` (verified with --emit-ir probes: raw extern calls lower
+  to the `pandas_c_*` symbols; canonical constants and `dtype_name` resolve).
+  No check was weakened. Section 15 keeps local safe-wrapper copies BY DESIGN
+  (the real wrappers' `requires` contracts would trap on the violating
+  arguments the error-path checks use). One check was added (safe
+  get_column null name) to reach the 80 the suite's section comments promised.
+- **Symbol prefix (language rule 10)**: the extern names ARE the C symbols
+  and carry a `pandas_c_` prefix (the `numpy_c_*` convention). A wrapper must
+  never be named after its C symbol -- the collision is silently dropped by
+  the compiler -- so the public API names (`dataframe_new`, ...) stayed and
+  the C symbols moved. `pandas.xi` also gained the semicolons its `pub type`
+  aliases require on v0.64.5; the module now type-checks (`--emit-ir`
+  exit 0), which it did not before this pass.
+
 ## API surface
 
 ```xiom
@@ -84,18 +120,23 @@ pub fn to_parquet(df: &DataFrame, path: Str) -> Result[Unit, Str]
 
 | Artifact | Path | Lines |
 |---|---|---|
-| Module | `pandas.xi` | ~280 |
-| Tests | `tests/test_conformance.xi` | ~460 |
-| Roadmap | `ROADMAP.md` | ~55 |
-| SPEC | `SPEC.md` (this file) | ~100 |
+| Module | `pandas.xi` | 375 |
+| Tests | `tests/test_conformance.xi` | 677 |
+| Stub bridge | `bridge/pandas_bridge.c` | 174 |
+| Real-backend requirements | `bridge/REAL-BACKEND-REQUIREMENTS.md` | 152 |
+| Real-runtime probe | `tests/probe_real_arrow.xi` | 133 |
+| Roadmap | `ROADMAP.md` | 46 |
+| SPEC | `SPEC.md` (this file) | 142 |
 
 ### What Phase 1 delivers
 - **3 opaque types**: `DataFrame = Int`, `Series = Int`, `Dtype = Int`
 - **6 dtype constants**: `DTYPE_INT32`(0) through `DTYPE_BOOL`(5)
 - **6 compare op constants**: `CMP_EQ`(0) through `CMP_GE`(5)
 - **4 join type constants**: `JOIN_INNER`(0) through `JOIN_OUTER`(3)
-- **12 extern "C" functions**: dataframe_new, dataframe_from_csv, dataframe_to_csv, dataframe_get_column, dataframe_set_column, dataframe_filter, dataframe_groupby, dataframe_join, series_new, series_from_vec, series_to_vec, series_apply
+- **12 extern "C" functions** (C symbols, `pandas_c_` prefix): pandas_c_dataframe_new, pandas_c_dataframe_from_csv, pandas_c_dataframe_to_csv, pandas_c_dataframe_get_column, pandas_c_dataframe_set_column, pandas_c_dataframe_filter, pandas_c_dataframe_groupby, pandas_c_dataframe_join, pandas_c_series_new, pandas_c_series_from_vec, pandas_c_series_to_vec, pandas_c_series_apply
 - **12 safe wrappers**: all extern functions wrapped with `requires` contracts and null checks
 - **2 utilities**: `dtype_name(dtype)`, `version()`
-- **80+ conformance tests**: 15 sections covering constants, FFI stubs, API presence, contracts, types, dtype_name, and safe wrapper error paths
+- **80 conformance tests** on the current `xiom.test` API: 15 sections covering constants, FFI stub behavior, API presence, contracts, types, dtype_name, and safe wrapper error paths (see Surface status for the stub/real split and the T001 reconciliation)
 - **11 contracts**: across 11 public functions with `requires` annotations
+- **Offline stub bridge**: `bridge/pandas_bridge.c` + `port.args.json`
+- **Real-backend requirements**: `bridge/REAL-BACKEND-REQUIREMENTS.md` (for the bindings/xiom.arrow lanes)
