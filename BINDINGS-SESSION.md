@@ -1202,6 +1202,17 @@ A9/A11/A12 wave launched)**:
   eco-release 550; brotli scope check in the same pass; both stacked
   into ONE eco batch (pipeline: merge tip -> validate -> x2 -> wrap ->
   publish -> PULSE relay).
+- 13:47Z update: **A9 + A11 + A12 all WORKING** (A9
+  `android/a9-gl-leg` active mid-rebase ~+6.4k; A11 `android/a11-jni`
+  ~+5.7k; A12 relaunch `android/a12-sys` ~+5.7k ahead 9); the original
+  A12 session materialized LATE -> stopped as duplicate (worktree
+  removed).  Engine ask `REL-20261016-1341-engine-3` (vulkan campaign
+  checklist) **ANSWERED**: raw surface 100% at 0.6.0
+  (compute/bindless/mesh-shader/multi-draw-indirect/timestamps all
+  present at the vk* level; per-area evidence in
+  `REL-20261016-1347-bindings`); the engine-facing wrapper tier folds
+  into the OWNER session's mini-RHI extended wave per the lane split
+  (item acked).
 
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
