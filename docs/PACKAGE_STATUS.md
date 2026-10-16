@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-16T13:10:02Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T13:20:02Z.
 
 ## Summary
 
@@ -497,7 +497,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.optimizer-fw | xiom-optimizer-fw | incubating | tests/test_conformance.xi | pass 25/25 | ecf76d12 | False | publish pending: next scope delta |
 | xiom.opus | xiom-opus | incubating | tests/test_conformance.xi | pass 26/26 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- libopus 1.6.1 streaming audio) |
 | xiom.oracle | xiom-oracle | incubating | tests/test_conformance.xi | pass 22/22 | f487102b | False | publish pending: owner scope decision (parallel-lane implementation) |
-| xiom.otel | xiom-otel | incubating | tests/test_conformance.xi | pass 30/30 | 4d4fe157 | False | publish pending: new name (OTLP trace-export core); ops scope ask filed 2026-10-15 |
+| xiom.otel | xiom-otel | incubating | tests/test_conformance.xi | pass 30/30 | 4d4fe157 | False | published in eco-v0.1.188 (2026-10-16, 0.1.0 -- OTLP trace-export core) |
 | xiom.ozz | xiom-ozz | incubating | tests/test_conformance.xi | pass 9/9 | 50b65cee | False | published in eco-v0.1.179 (2026-10-14, 0.4.0 caller surface; 0.3.0 in eco-v0.1.156; 0.2.0 in eco-v0.1.109) |
 | xiom.pandas | xiom-pandas | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.parquet | xiom-parquet | incubating | tests/test_conformance.xi | pass 20/20 | 4ff075bf | False | publish pending: next scope delta |
@@ -568,7 +568,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.torch | xiom-torch | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.training | xiom-training | incubating | tests/test_conformance.xi | pass 26/26 | e4e2b956 | False | publish pending: next scope delta |
 | xiom.translate | xiom-translate | incubating | tests/test_conformance.xi | pass 28/28 | 5f469ee5 | False | publish pending: next scope delta |
-| xiom.transport | xiom-transport | incubating | tests/test_conformance.xi | pass 36/36 | 1c8fbf11 | False | publish pending: new name (A08 reliable-datagram base); ops scope ask filed 2026-10-15 |
+| xiom.transport | xiom-transport | incubating | tests/test_conformance.xi | pass 36/36 | 1c8fbf11 | False | published in eco-v0.1.188 (2026-10-16, 0.1.0 -- A08 reliable-datagram base) |
 | xiom.ui | xiom-ui | incubating | tests/test_conformance.xi | pass 98/98 | ed680f75 | False |  |
 | xiom.vault | xiom-vault | incubating | tests/test_conformance.xi | pass 28/28 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.vdb | xiom-vdb | incubating | tests/test_conformance.xi | pass 30/30 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- pure-XIOM vdb reader) |
