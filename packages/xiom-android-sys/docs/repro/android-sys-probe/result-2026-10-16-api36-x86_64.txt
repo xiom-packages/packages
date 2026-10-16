@@ -1,0 +1,100 @@
+﻿C:\Users\lefte\AppData\Local\Temp\kilo\android-sys-probe\android_sys_probe: 1 file pushed, 0 skipped. 2.9 MB/s (62336 bytes in 0.020s)
+=== xiom.android-sys on-device driver (A12 system surface 0.2.0, NDK r27b oracle) ===
+INFO header cross-check: log/sync + binder_status + NNAPI codes + zlib + UErrorCode _Static_assert PASS
+INFO registry: all pinned constant families verified against the r27b headers at build time
+--- log + sync (liblog.so + libsync.so) ---
+INFO dlopen: liblog.so=ok libsync.so=ok
+INFO core (API 26) exports resolved: 11/11
+INFO ext (API 30) exports resolved: 10/10
+INFO private (NDK-undeclared) sync_wait: present
+INFO private (NDK-undeclared) sync_file_info_is_signaled: absent
+INFO private (NDK-undeclared) sync_get_fence_info: absent
+INFO private (NDK-undeclared) sync_set_deadline: absent
+INFO bridge load rc=0 error=
+OK bridge core export set resolved (missing=0)
+INFO bridge ext (API 30+): 10/10 present
+INFO log: __android_log_write rc=1 (1=written)
+INFO log: __android_log_print rc=1
+INFO log: is_loggable(INFO, default INFO)=1 (expect 1)
+INFO log: is_loggable(VERBOSE, default INFO)=0 (expect 0 off-list; informational)
+INFO log: is_loggable_len(INFO, len=16, default INFO)=1 (expect 1)
+INFO log: __android_log_buf_write rc=1
+INFO log: minimum_priority=1 (-1 = API-30 ext absent)
+INFO sync: sync_file_info(-1) handle=0 errno=9 (EBADF)
+INFO sync: sync_merge(name,-1,-1) rc=-1 errno=9 (EBADF)
+INFO log+sync bridge unloaded
+--- binder (libbinder_ndk.so) ---
+INFO dlopen: libbinder_ndk.so=ok
+INFO binder core (API 29) exports resolved: 12/12
+INFO binder ext (API 31/33) exports resolved: 3/3
+INFO binder bridge load rc=0 error=
+OK binder core export set resolved (missing=0)
+INFO binder ext (API 31/33): 3/3 present
+INFO binder: class_define handle=125112403753504
+INFO binder: descriptor="xiom.a12.probe" (expect xiom.a12.probe)
+INFO binder: create handle=125115624970512
+INFO binder: associateClass=1 (expect 1)
+INFO binder: getClass identity=same
+INFO binder: isAlive=1 isRemote=0 (expect 1/0)
+INFO binder: ping=0 (OK)
+INFO binder: refcount 1 -> inc -> 2 -> dec -> 1 (expect 1/2/1)
+INFO binder: onDestroy count 0 -> 1 (expect +1)
+INFO binder: calling uid=2000 pid=20476 (own identity outside a transaction)
+INFO binder: transact callbacks observed=0 (transact/parcel surface delta)
+INFO binder bridge unloaded
+--- nnapi (libneuralnetworks.so) ---
+INFO dlopen: libneuralnetworks.so=ok
+INFO nnapi core (API 27) exports resolved: 12/12
+INFO nnapi ext (API 29) exports resolved: 7/7
+INFO nnapi bridge load rc=0 error=
+OK nnapi core export set resolved (missing=0)
+INFO nnapi ext (API 29): 7/7 present
+INFO nnapi: device count=4
+INFO nnapi: device[0] name="nnapi-sample_all" type=2 feature=1000008 version="JUST_AN_EXAMPLE"
+INFO nnapi: device[1] name="nnapi-sample_quant" type=2 feature=1000008 version="JUST_AN_EXAMPLE"
+INFO nnapi: device[2] name="nnapi-sample_sl_shim" type=2 feature=1000008 version="JUST_AN_EXAMPLE"
+INFO nnapi: device[3] name="nnapi-reference" type=2 feature=1000008 version="13344233"
+INFO nnapi: runtime feature level=1000008
+INFO nnapi: model_create handle=125113745962896
+INFO nnapi: addOperand rc=0/0/0/0 (float32 {2} x2, int32 scalar act, float32 {2} out)
+INFO nnapi: setOperandValue(act=FUSED_NONE) rc=0
+INFO nnapi: addOperation ADD (x,y,act)->out rc=0 (NO_ERROR)
+INFO nnapi: identifyInputsAndOutputs ({0,1},{3}) rc=0
+INFO nnapi: model finish rc=0 (NO_ERROR; offline build)
+INFO nnapi: compilation create handle=125111598487632
+INFO nnapi: compilation finish rc=0 (NO_ERROR; device stage OK)
+INFO nnapi: execution create handle=125113745943632
+INFO nnapi bridge unloaded
+--- zlib (libz.so) ---
+INFO dlopen: libz.so=ok
+INFO zlib core exports resolved: 12/12
+INFO zlib bridge load rc=0 error=
+OK zlib core export set resolved (missing=0)
+INFO zlib: version="1.3.0.1-motley" (header ZLIB_VERSION="1.3.0.1-motley")
+INFO zlib: crc32("123456789")=0xCBF43926 (expect 0xCBF43926)
+INFO zlib: adler32("123456789")=0x091E01DE (expect 0x091E01DE)
+INFO zlib: compress rc=0 (Z_OK) 4096 -> 119 bytes (bound 4142)
+INFO zlib: uncompress rc=0 (Z_OK) -> 4096 bytes; roundtrip exact
+INFO zlib: deflate_begin handle=125115624982176
+INFO zlib: deflate stream input=0 step rc=1 (Z_STREAM_END) end rc=0 -> 119 bytes
+INFO zlib: inflate stream handle=125115624982176 input=0 step rc=1 (Z_STREAM_END) end rc=0 -> 4096 bytes; roundtrip exact
+INFO zlib bridge unloaded
+--- icu (libandroidicu.so; declared subset) ---
+INFO dlopen: libandroidicu.so=ok
+INFO icu required subset exports resolved: 5/5
+INFO icu optional subset (reported) missing: u_strlen_android
+INFO icu optional subset (reported) exports resolved: 0/1
+INFO icu bridge load rc=0 error=
+INFO icu required subset: 5/5 resolved
+INFO icu optional subset: 0/1 resolved missing: u_strlen_android (u_strlen: header-announced API 31; not exported by the platform shim)
+INFO icu: errorName(U_ZERO_ERROR)="U_ZERO_ERROR"
+INFO icu: utf8_to_utf16 rc=0 -> 16 bytes; u_strlen gated (optional symbol absent on this shim)
+INFO icu: utf16_to_utf8 rc=0 -> "café lab"; roundtrip exact
+INFO icu: case a->0x41 e9->0xC9 Z->0x7A C9->0xE9 (expect 41/C9/7A/E9)
+INFO icu bridge unloaded
+RESULT: PASS
+--- logcat proof (tag xiom-android-sys) ---
+--------- beginning of main
+I/xiom-android-sys(20476): xiom.android-sys probe: __android_log_write ok
+I/xiom-android-sys(20476): xiom.android-sys probe: __android_log_print ok
+I/xiom-android-sys(20476): xiom.android-sys probe: __android_log_buf_write ok

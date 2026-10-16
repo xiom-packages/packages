@@ -1,6 +1,14 @@
 [
   "--c-source",
   "${PACKAGE_DIR}/src/android_sys_bridge.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/binder_bridge.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/nnapi_bridge.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/zlib_bridge.c",
+  "--c-source",
+  "${PACKAGE_DIR}/src/icu_bridge.c",
   "--timeout",
   "240"
 ]
