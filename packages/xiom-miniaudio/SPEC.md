@@ -5,20 +5,23 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.miniaudio` |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | miniaudio -- https://github.com/mackron/miniaudio |
 | Upstream version pinned | tag **0.11.25** |
 | Upstream license | Unlicense (public domain) OR MIT-0, at your option (`vendor/LICENSE`) |
 | Package license | MIT OR Apache-2.0 (everything outside `vendor/`) |
 | Platform | Windows x64 (miniaudio resolves platform backends itself) |
-| Compiler pin | v0.64.3 |
+| Compiler pin | v0.64.5 |
+
+Provenance of record: `PROVENANCE.md` (upstream pin, license, studied vs
+derived, findings, fixtures, re-carve procedure).
 
 ## 2. Vendored path (G2 pin)
 
 The single-header library is vendored **verbatim** into `vendor/` and
 compiled via `src/miniaudio_all.c` (`MINIAUDIO_IMPLEMENTATION` plus the
-`extern "C"` probe bridge) with `--c-source`; no system audio library at link
+`extern "C"` bridge) with `--c-source`; no system audio library at link
 time, no runtime DLL of ours (the OS backends miniaudio loads are the
 platform's).
 
@@ -37,40 +40,62 @@ platform's).
 
 `.gitattributes` pins `vendor/** -text`. Re-pin: fetch the new tag's header +
 LICENSE, recompute hashes, update the table and version rows, re-run
-`scripts/port.ps1 -Package xiom.miniaudio` (x2).
+`scripts/port.ps1 -Package xiom.miniaudio` (x2). Full procedure:
+`PROVENANCE.md` section 6.
 
 ## 3. Design and safe boundary (G5)
 
-`miniaudio.xi` is the only module with `extern "C"`; wrappers:
-`ma_version_packed`, `ma_context_probe` (context init + device enumeration),
-`ma_decode_probe` (in-memory WAV decode with sample spot-checks),
-`ma_encode_roundtrip` (0.3.0: `ma_encoder` WAV write -> `ma_decoder_init_file`
-re-decode -> sample compare -> temp cleanup; device-free), plus
-`MaContextInfo` / `MaWavInfo` / `MaEncodeInfo` and format constants.
-Out-params use XIOM-owned 4-byte slots read little-endian; local
+`miniaudio.xi` is the only module with `extern "C"`; every foreign call is
+wrapped here. Out-params use XIOM-owned 4-byte slots read little-endian;
+complex legs cache their result in file-scope C statics exposed through
+scalar getters (no foreign pointer crosses the boundary -- the B-20 rule;
+floats are compared/quantized C-side and never marshalled). Local
 `int_to_str` for error text (the stdlib convert must not be called inside
 confined blocks -- see the lane findings).
 
-Compile-unit probe details: the embedded WAV is 8 kHz mono s16, 16 frames of
-a precomputed sine (no libm dependency); the decode asserts 16 frames read,
-zero frames at EOS (`MA_AT_END` accepted), and spot-checked samples.  The
-0.3.0 round trip encodes 64 frames (four periods of the same tone) to
-`xma_roundtrip_tmp.wav`, re-decodes with `ma_decoder_init_file`, compares
-every sample, and removes the file (the getter reports removal success).
+Bridge surface:
 
-## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
+| Leg | Functions | Notes |
+|-----|-----------|-------|
+| Pilot | `ma_version_packed`, `ma_context_probe` (context init + device enumeration), `ma_decode_probe` (in-memory WAV decode spot-checked) | device-free except the context |
+| 0.3.0 | `ma_encode_roundtrip` (`ma_encoder` WAV write -> `ma_decoder_init_file` re-decode -> sample compare -> temp cleanup) | device-free, deterministic |
+| 0.4.0 device | `ma_device_lifecycle` -> `MaDeviceInfo` | open -> start -> mix-pull -> stop -> close; WASAPI context requested explicitly first, automatic priority list as fallback; negotiated shape read back (`internal_rate`/`internal_channels`/`period_frames`); the mix callback streams a built-in WAV decoder into the output buffer; `started`/`stopped` notifications counted, `rerouted` wired for the unplug case (cannot be forced in-process -- documented boundary) |
+| 0.4.0 engine | `ma_engine_probe` -> `MaEngineInfo` | `ma_engine` with explicit start/stop; sound from memory (WAV decoder data source, looping) play/stop with cursor evidence; file sound via `ma_engine_play_sound` (fire-and-forget from a temp WAV); engine frame clock is the mix evidence |
+| 0.4.0 graph | `ma_graph_probe` -> `MaGraphInfo` | device-free: standalone `ma_node_graph` attach/detach over a constant `ma_audio_buffer` (0.25 reads, silence after detach); noDevice engine exact mix math (sound group 0.5 x per-sound volumes -> 0.375 exact), sound detach -> 0.25, reattach -> 0.375, volume/pitch get/set, pitch 2.0 cursor-rate ratio; all values quantized x1000 + C-side exactness flags |
+| 0.4.0 capture | `ma_capture_probe` -> `MaCaptureInfo` | enumerate capture devices + open attempt; typed non-fatal outcomes: `opened=false` with the `ma_result` in `rc` (no capture device) or `opened=true, frames=0` (silent endpoint); `Err` only for unexpected internal failures |
+| 0.4.0 stream | `ma_stream_decode(which)` -> `MaStreamInfo` | chunked (13-frame) pulls through the decoder data source (`ma_data_source_read_pcm_frames`); 1 = in-memory WAV (sample-exact), 2 = FLAC fixture (lossless, sample-exact), 3 = MP3 fixture (rate/channels/frames/energy); chunk counter proves the streaming shape |
+
+Live device legs are **silent by construction** (the streamed WAV and the
+engine sounds are silence -- no audible surprise) and degrade to typed
+SKIP-style checks when the environment blocks audio, while still proving the
+call paths. Test fixtures: `tests/fixtures/` (README there records hashes;
+generation script rebuilds the source tone from the embedded table).
+
+## 4. Test matrix (recorded 2026-10-16, compiler v0.64.5)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Vendored header (always compiled in) | `scripts/port.ps1 -Package xiom.miniaudio` | **PASS 6/6 x2** -- version 0.11.25, context playback=9/capture=4, WAV decode 16 frames / 1 channel / 8000 Hz / s16, encoder + file round trip 64 frames sample-exact with temp cleanup |
+| Vendored header (always compiled in) | `scripts/port.ps1 -Package xiom.miniaudio -TimeoutSec 300` | **PASS 27/27** -- version 0.11.25; context playback=9/capture=4; WAV decode 16 frames/1ch/8000 Hz/s16; encoder round trip 64 frames sample-exact + temp cleanup; **device**: explicit WASAPI (internal 48000/2ch, period 480), mix-pull 10 callbacks/4800 frames, 4800 frames streamed from the built-in WAV decoder inside the live callback, notifications started=1/stopped=1; **engine**: init/start/play/stop lifecycle on WASAPI, memory-sound cursor advanced, file sound accepted; **graph**: standalone attach 250/1000 + detach silence, mix exact 375/1000, detach 250/1000, reattach 375/1000, group volume 500/1000, sound volume 250/1000, pitch get 1500/1000, pitch-2.0 cursor ratio 2000/1000; **capture**: opened + 2400 frames (4 enumerated devices); **stream**: WAV 16 frames exact in 2 chunks, FLAC 64 frames exact in 5 chunks, MP3 64 frames/8000 Hz/1ch peak 19039 |
 
 There is no library-absence SKIP path (the library is vendored). A host
-without an audio service reports the context check as SKIP with the
-miniaudio result code.
+without an audio service reports the context/device/engine checks as
+SKIP-typed passes with the miniaudio result code; capture without an
+endpoint reports the typed non-fatal outcome; decode mismatches are FAILs.
 
 ## 5. Scope
 
-Pilot + 0.3.0: version, device enumeration, in-memory WAV decoding, and the
-encoder/file round trip. Playback engines, mixing and capture are Phase 2
-(`ROADMAP.md`). The pre-pilot files referenced a bridge and a miniaudio
-header that were never vendored; they are preserved in git history.
+0.4.0 covers: version, context + device enumeration, in-memory WAV decoding
+and the encoder/file round trip (pilot/0.3.0); live playback device
+lifecycle with driver negotiation and notification-based loss hooks; live
+playback engine (memory + file sounds); node-graph and mixing basics
+(attach/detach, sound groups, per-sound/group volume + pitch); capture
+enumerate + open attempt; streamed decode of the built-in WAV/FLAC/MP3
+decoders through the data-source pull path.
+
+Staged (documented in `ROADMAP.md`): opus/ogg custom decoder backends wired
+over the live `xiom.opus`/`xiom.ogg` packages (the `ma_decoder` custom
+backend seam exists but is not cleanly reachable from the current bridge
+shape at this touch); effect nodes, spatialization, and the resource-manager
+API beyond `ma_engine_play_sound`. The pre-pilot files referenced a bridge
+and a miniaudio header that were never vendored; they are preserved in git
+history.
