@@ -44,6 +44,25 @@ let r = http_get("https://example.com/");                        // Ok => 2xx + 
 let p = http_post("http://127.0.0.1:18094/echo", "hi", "text/plain");
 ```
 
+## Client surface -- stability + limits
+
+The consumer-facing client surface is the `xiom.http.client` module (method
+wrappers over the libcurl bridge; adopting it needs no server-module contact).
+
+Stable today: `http_get` / `http_post` / `http_put` / `http_delete` and the
+method-routing `http_send`; typed `Err(Str)` failure taxonomy; response
+`status` / `body` / `headers` capture; TLS through the libcurl CA bundle
+(set `CURL_CA_BUNDLE`, recipe above).
+
+Not yet in the surface (tracked in `ROADMAP.md` -> v0.1.7): keep-alive
+control, per-call timeouts, streaming request/response bodies, and a
+pluggable TLS hook (arrives with `xiom.ssl`). The libcurl bridge is the
+transport until then.
+
+Evidence: `tests/probe_client.xi` -- refused-taxonomy + malformed-url are
+offline-deterministic; the live GET and loopback POST legs print `[SKIP]`
+(rc 0) when the network/endpoint is absent.
+
 ## Modules
 
 | Module | Contents |
