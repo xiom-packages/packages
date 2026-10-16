@@ -1221,6 +1221,10 @@ A9/A11/A12 wave launched)**:
   `REL-20261016-1410-bindings`).  Eco: **batch 90 = `eco-v0.1.188` =
   transport + otel** (packages lane, own packages).  A9 + A12 still
   working (nothing pushed yet).
+- 14:30Z: ops scoped **brotli + xiom.jni LIVE (eco-release 552)**;
+  packages executing both the brotli+ssl batch and the android-family
+  batch (`jni scope ask filed`; family batch continues with the
+  sibling session).  A9 + A12 worktrees both active mid-op at 14:28Z.
 
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
