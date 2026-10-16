@@ -1407,6 +1407,25 @@ LANDED; B-32 restore session launched)**:
 - Publishes in queue: serial, ros2, v4l, onnx, gps (5 items) + the
     earlier family closes.
 
+**UPDATE 2026-10-16 22:15Z (R2 COMPLETE -- epos LANDED; all six in;
+validate 566/0)**:
+- **`xiom.epos 0.1.0` LANDED** (land `85b0d9ee` + record `0944ff81`):
+  closed-SDK loader -- 179/179 declared `VCS_*` wrapper shapes across
+  system/config/operate/motion/io clusters, typed
+  EPOS_LOAD_ABSENT/ABI classifications, acquisition contract in
+  PROVENANCE (nothing vendored).  Integration **x2 29/29** (SKIP path
+  on this box; suite runs ~127s -- needs `-TimeoutSec 300`).
+  Publish **gated by the package's own terms** (Linux libEposCmd.so
+  lane + a hardware bring-up run) -- NO request filed yet.
+- **R2 WAVE FULLY LANDED**: serial (52/52), ros2 (82/82), v4l (14/14),
+  onnx (56/56 live ORT), gps (28/28), epos (29/29) -- validate
+  **566/0**.
+- Engine ask folded: `REL-20261016-2139-packages-2` (miniaudio
+  long-lived handle surface) ACKED -> next miniaudio wave.
+- Publishes: serial/ros2/v4l ACKED by packages; onnx/gps in queue.
+  B-32 restore session NOT yet producing commits (watching; relaunch
+  if it stayed sessionless).  Repin: still v0.64.5 (owner).
+
 **UPDATE 2026-10-16 19:25Z (ML/AI + robotics program -- acked + queue
 folded; 20 built names confirmed)**: owner directive (19:16Z) relayed by
 packages; handled this pass.
