@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-16T18:30:19+03:00
-# packages: 565  modules: 1056
+# generated: 2026-10-16T20:04:13+03:00
+# packages: 565  modules: 1060
 
 ## package names
 xiom.aaudio
@@ -590,6 +590,10 @@ xiom.android.input
 xiom.android.lifecycle
 xiom.android.sensors
 xiom.android_sys
+xiom.android_sys.binder
+xiom.android_sys.icu
+xiom.android_sys.nnapi
+xiom.android_sys.zlib
 xiom.ann
 xiom.ann.hnsw
 xiom.ansible
