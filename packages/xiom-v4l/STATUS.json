@@ -1,0 +1,24 @@
+{
+    "package":  "xiom.v4l",
+    "stage":  "incubating",
+    "compiler":  "v0.64.5",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  14,
+                  "failed":  0,
+                  "run_by":  "am:v4l-binding",
+                  "commit":  "4e44b395",
+                  "checked":  "2026-10-16T20:27:32Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "new package (V4L2 UAPI camera capture head; Linux-only device layer; Windows suite takes the recorded SKIP path; Raspberry Pi arm64 runtime leg documented in PROVENANCE/ROADMAP); publish gate after the naming decision + first live camera run (G1)",
+    "platforms":  [
+                      "windows-x64",
+                      "linux-x64"
+                  ],
+    "runtime_deps":  [
+                         "/dev/video* + V4L2 kernel ioctls (Linux-only; no runtime library); Windows/other hosts: absent by construction (recorded SKIP)"
+                     ]
+}
