@@ -1426,6 +1426,27 @@ validate 566/0)**:
   B-32 restore session NOT yet producing commits (watching; relaunch
    if it stayed sessionless).  Repin: still v0.64.5 (owner).
 
+**UPDATE 2026-10-16 22:40Z (queue execution wave LAUNCHED -- 4 agents;
+category sweep completed)**: acted on every accepted/queued bindings
+item; no open relay items were pending.
+- **`-2139-packages-2` (engine audio, miniaudio handle surface)** ->
+  EXECUTION launched: `feat/miniaudio-handle` (open once ->
+  callbacks/streams over time -> close, alongside the lifecycle bridge,
+  0.4.x/0.5).
+- **ML program remainder (`-1917-packages-3` queue)** -> EXECUTION
+  launched: `feat/torch-libtorch` (xiom.libtorch + xiom.torch -> 100%
+  coverage, pytorch BSD-3 sparse clone); `feat/tensorflow-coverage`
+  (TF C API, Apache-2.0 sparse clone); `feat/blas-fold` (safe-linalg
+  build-out -- openblas LIVE in .193 unblocks the parked fold).
+  Request `am-1792190033460-61atj4`; all with the light-clone protocol,
+  v0.64.5 pin, x2 suites, origin/bindings base, path-scoped landings.
+- Category vocabulary now 100% clean: kv storage -> database; lz4
+  compression -> data; raylib gamedev -> media; slang tools -> tooling
+  (on top of the 9-manifest family fix `8c9493c1`); validate 566/0.
+- Standing context: publishes with packages (gps -2144-2 open;
+  serial/ros2/v4l/onnx live .193); v0.64.6 repin owner-gated (still on
+  the v0.64.5 slot).
+
 **UPDATE 2026-10-16 22:30Z (relay sweep -- category vocabulary fix;
 gps request already out; audio fold confirmed)**: sweep + fix pass.
 - **`-2220-packages` processed**: `.193` noted (serial/ros2/v4l/onnx

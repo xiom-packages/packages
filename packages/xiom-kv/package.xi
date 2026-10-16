@@ -11,7 +11,7 @@ package xiom_kv {
   name: "xiom.kv";
   version: "0.1.0";
   description: "Pure-XIOM embedded log-structured key-value store: 28-byte segment headers, CRC32C-framed records, tombstones, crash-safe reopen with torn-tail repair, atomic-rename compaction and optional snapshots";
-  categories: ["data", "storage"];
+  categories: ["data", "database"];
   keywords: ["kv", "storage", "log-structured", "embedded"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

@@ -7,7 +7,7 @@ package xiom_lz4 {
   name: "xiom.lz4";
   version: "0.1.0";
   description: "LZ4 v1.10.0 bindings: block (lz4.h), high-compression (lz4hc.h) and frame (lz4frame.h) at 100% declared surface (vendored lib/ BSD-2-Clause)";
-  categories: ["data", "compression"];
+  categories: ["data"];
   keywords: ["lz4", "compression", "binding"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
