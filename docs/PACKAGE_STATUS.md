@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-16T18:12:13Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T19:27:13Z.
 
 ## Summary
 
@@ -316,7 +316,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.actor | xiom-actor | incubating | tests/test_conformance.xi | pass 28/28 | 761842c9 | False | publish pending: next scope delta |
 | xiom.algo | xiom-algo | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.analyzer | xiom-analyzer | incubating | tests/test_conformance.xi | pass 23/23 | a0d17c7b | False | publish pending: next scope delta |
-| xiom.android | xiom-android | incubating | tests/test_conformance.xi | pass 14/14 | f8ba590a | False | publish pending: legacy-name registry scope re-grant (ops asked 2026-10-16; batch 94 scope_denied); allowlisted + ready |
+| xiom.android | xiom-android | incubating | tests/test_conformance.xi | pass 14/14 | f8ba590a | False | published 2026-10-16 via tag xiom-android/v0.4.0 (0.4.0 A3 input + A4 sensors; sha256 2b9cf462...) |
 | xiom.android-sys | xiom-android-sys | incubating | tests/test_conformance.xi | pass 16/16 | 9e11a3a7 | False | published in eco-v0.1.192 (2026-10-16, 0.2.0 A12 system head) |
 | xiom.ann | xiom-ann | incubating | tests/test_conformance.xi | pass 24/24 | 934d9fd3 | False | published in eco-v0.1.144 (2026-10-11; 0.1.0 in eco-v0.1.139) |
 | xiom.ansible | xiom-ansible | incubating | tests/test_conformance.xi | pass 26/26 | 973754e8 | False | publish pending: next scope delta |
