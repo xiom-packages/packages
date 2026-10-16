@@ -1424,7 +1424,39 @@ validate 566/0)**:
   long-lived handle surface) ACKED -> next miniaudio wave.
 - Publishes: serial/ros2/v4l ACKED by packages; onnx/gps in queue.
   B-32 restore session NOT yet producing commits (watching; relaunch
-   if it stayed sessionless).  Repin: still v0.64.5 (owner).
+  if it stayed sessionless).  Repin: still v0.64.5 (owner).
+
+**UPDATE 2026-10-16 22:45Z (batch 95 LIVE; v0.64.6 slot active;
+sibling's 4-agent wave; B-32 relaunch + nudge)**:
+- **`eco-v0.1.193` LIVE** (batch 95; run 38973537205 green; all
+  registry live-verified): `xiom.serial 0.1.0` (`fdd4dde3`),
+  `xiom.ros2 0.2.0` (`f510bb42`), `xiom.v4l 0.1.0` (`0e3d5390`),
+  `xiom.onnx 0.1.0` (`1c1c599b`; first registry entry carries the
+  full landed surface -- no 0.2.0 bump needed).  Items `-2031` x2 +
+  `-2115` + `-2144` all fixed.
+- **`xiom.gps`**: landed + verified in-tree by packages (merge
+  `84bdc431`; x2 28/28 **on v0.64.6**; record `329aadfd`); NOT
+  published (no allowlist/scope yet); our request `-2144-bindings-2`
+  open with them -- publish rides the next batch after the scope ask.
+- **v0.64.6 repin wave landed machine-wide** (packages repin
+  `b0ba2a6b`; merge `84bdc431`; wrap `94ebce30`): the machine slot
+  `%LOCALAPPDATA%\xiom.new\bin\xiom.exe` now IS **v0.64.6**
+  (verified); packages re-ran our suites on .6 -- **no
+  regressions** (52/52, 82/82, 14/14, 28/28).  NOTE: the
+  bindings-branch `COMPILER_VERSION` file still reads v0.64.5 --
+  the branch-side repin bump is PENDING (owner/sibling step; not
+  done unilaterally here).
+- v4l category warn fixed + family sweep (`8c9493c1`: media+systems
+  / systems; kv/lz4/raylib/slang queued) -- sibling.
+- **Sibling wave**: 4 more agents launched (`8baf0dc7`): miniaudio
+  handle, torch+libtorch, tensorflow, blas fold (all visible busy
+  at 22:39Z).
+- **B-32**: the original restore session stalled (idle 75 min, zero
+  work) -> relaunch requested (`am-1792190420316-3wr9px`, branch
+  `feat/sqlite-nested-restore-2`) AND the stalled session NUDGED
+  with the slot update (slot = .6 -> no scratch download needed).
+  Whichever branch lands green first takes the restore; the other
+  gets stopped.
 
 **UPDATE 2026-10-16 22:40Z (queue execution wave LAUNCHED -- 4 agents;
 category sweep completed)**: acted on every accepted/queued bindings
