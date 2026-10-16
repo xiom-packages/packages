@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-17T00:26:52Z",
+    "updated":  "2026-10-17T00:57:26Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -3215,6 +3215,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.gps",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM GPS/GNSS data path: gpsd JSON-protocol client (VERSION/WATCH/DEVICES/TPV/SKY/ERROR) and NMEA 0183 parsers (GGA/RMC/GSA/GSV)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gps/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "gps.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.2",
                          "name":  "xiom.gpt",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -5679,9 +5696,13 @@
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-onnx/v0.1.0/package.tar.gz",
                          "source_files":  [
+                                              "env.xi",
                                               "io.xi",
+                                              "loader.xi",
                                               "session.xi",
+                                              "tensor.xi",
                                               "types.xi",
+                                              "value.xi",
                                               "package.xi"
                                           ]
                      },
@@ -7328,17 +7349,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.ros2",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "ROS 2 -- Robot Operating System middleware.",
+                         "description":  "ROS 2 (rcl) client-library bindings via dynamic loading; typed SKIP when librcl is absent.",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ros2/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ros2/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "package.xi",
                                               "ros2.xi"
@@ -7925,6 +7946,23 @@
                          "source_files":  [
                                               "sentiment.xi",
                                               "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.serial",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "UART/serial-port bindings (Win32 comm API via dynamic loader): port enumeration, open/close, baud/data-bits/parity/stop/flow configuration, blocking and poll-mode reads with timeouts, writes, flush/drain, typed errors with a deterministic absent-device SKIP path",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-serial/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "package.xi",
+                                              "serial.xi"
                                           ]
                      },
                      {
@@ -9504,6 +9542,26 @@
                          "source_files":  [
                                               "uuid.xi",
                                               "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.v4l",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Video4Linux2 (V4L2) camera capture bindings -- full UAPI constant surface from the pinned kernel include/uapi/linux/videodev2.h include chain (2079 constants: all VIDIOC_* ioctl numbers, V4L2_CAP_*/V4L2_PIX_FMT_* FOURCCs, enums, plus the 1238-entry v4l2-controls.h CID universe), 122 struct layouts as size/offset facts (1028 facts, LP64) and the 29 function-like UAPI macros mirrored as XIOM functions; functional capture head via a self-contained ioctl bridge: probe/QUERYCAP device enumeration, G_FMT/S_FMT negotiation, REQBUFS/QUERYBUF/mmap/QBUF/DQBUF streaming, STREAMON/OFF, typed errors; Linux-only device layer (Windows suite takes the recorded SKIP path); Raspberry Pi arm64 leg documented",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-v4l/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cids.xi",
+                                              "consts.xi",
+                                              "layout.xi",
+                                              "package.xi",
+                                              "v4l.xi"
                                           ]
                      },
                      {
