@@ -9,8 +9,8 @@
                   "passed":  52,
                   "failed":  0,
                   "run_by":  "am:feat-serial-binding",
-                  "commit":  "b2d1e66a",
-                  "checked":  "2026-10-16T19:53:08Z"
+                  "commit":  "8ab07ca8",
+                  "checked":  "2026-10-16T20:28:24Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: new name (xiom.serial UART bindings, owner wave 2026-10-16); ops scope not yet requested"
