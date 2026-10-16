@@ -3,14 +3,53 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-16 (11:30Z), by the main/packages session (v0.64.5
-pinned; **batches 88+89 published; three builds parked green; ops scopes are
-the only gate**; context-window handoff -- the block below is complete for a
-cold start). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-16 (21:30Z), by the coverage session (ML/AI + robotics
+program; **batches 90-94 + 2 single-tag publishes today; llm/numpy/jev/http legs
+landed; v0.64.6 RELEASED 20:33Z -- the repin wave is the top action**;
+context-window handoff -- the block below is complete for a cold start). Check
+`git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-16 11:30Z (CLEAN HANDOFF -- cold-start block; everything below it is history):**
+**STATE AT 2026-10-16 21:30Z (COVERAGE HANDOFF -- cold-start block; everything below it is history):**
+- **v0.64.6 RELEASED 20:33Z (gh Latest) -- REPIN WAVE = TOP ACTION (not yet started)**: download + SHA256-verify
+  `xiom-0.64.6-windows-x64.zip`; canonical-install byte-check; bump COMPILER_VERSION v0.64.5 -> v0.64.6; repin all
+  STATUS records (compiler field; ~565 files incl. today's additions); validate (~565/0) + guard; commit/push;
+  then the next-archive re-verify list: m334 tuple-namer (`-1941` verify+close), B-29 wide-int, B-32, editor W1/W2
+  rows (playground rows known-red). The watch 21:15Z line carries the original checklist.
+- **Published today (batches 90-94 + 2 single tags)**: transport 0.1.0 + otel 0.1.0 `eco-v0.1.188`
+  (`6638577d`/`830f9eab`); brotli 0.1.0 + ssl 0.1.0 + http 0.1.7 `0.189`; gles 0.2.0 `0.190`; android-sys 0.2.0
+  `0.191`; android family 7/8 + `xiom.pulse` Beacon 0.1.0 `0.192`; `xiom.android` 0.4.0 single tag (`2b9cf462`;
+  family 8/8 CLOSED, `-1305`/`-1322` closed); `xiom.gguf` 0.1.3 single tag (`2d79e76c`; XGGUF-ARRSTR fix live).
+- **Legs landed today (feat+record, all x2 green on v0.64.5)**: `llm` M1+M2a+M2b -- 79/79: vocab+BPE, ggml size
+  tables, f16/f32 dequant golden vectors, matmul/RMSNorm/RoPE/softmax/FFN, model_open, tiny-model GOLDEN LOGITS
+  (`logits[i] = -8*i` exact) + byte-sensitivity; M3 = generation/sampling/KV/Q4_K/multi-position. `numpy`
+  P1+P2a+P2b -- 83/83: real pure-XIOM storage + elementwise + dot/matmul (via `xiom.openblas`; fail-closed div);
+  Phase-3 = broadcasting/N-D/svd/inv/reductions. `jev` -- 82/82: full System One client + LIVE WIRED
+  (Authorization via http 0.1.8; M2/M3 queued). `http` 0.1.8 -- 52/52: custom headers (`http_headers_blob` +
+  `http_request`). `openblas` 32/32 (stub seam + real cblas probe evidence). `arrow` 27/27 (stub + CDI pinned).
+  `pandas` 80/80 (stub leg + real-Arrow requirements doc for the C++ bridge).
+- **Publish queue (scopes gate)**: `http` 0.1.8 = existing name -> rides ANY next eco batch (no scope, no landing).
+  `jev` scope reap filed (`REL-20261016-2108-packages`); `numpy` P2 complete on the grant queue. On ops LIVE:
+  allowlist append + wrap (batch or single tag) + env approve + live-verify + sync + relays.
+- **Incoming (bindings; ACKED; verify-on-landing)**: `xiom.serial` 0.1.0 (`-2031-bindings`; 52/52 claimed; NOT in
+  tree yet) + `xiom.ros2` 0.2.0 (`-2031-bindings-2`; 82/82 claimed; in-tree still the seed). Both new-to-registry
+  -> scopes prepped. On landing: port x2 -> scope -> allowlist -> publish.
+- **Ops**: 24-name grant-as-built queue extended + acked; jev/serial/ros2 reap filed (`2108`). Compiler findings
+  filed: `-2002` (Float64 via dlsym'd fn pointers = garbage; HIGH), `-2004` (`Array` builtin collision; MED),
+  `-2016` (`Result` fields behind `&Result` crash; HIGH); transient silent-output flake noted (unfiled).
+- **Agent-dispatch rule (hard-won)**: SPLIT + `variant: low` + act-early instruction. Max-reasoning on big briefs
+  burns the output budget and dies silently (2x llm M2 + 1x numpy P2 before the fix; 5/5 successes after).
+- **NEXT-SESSION PROMPT (paste-ready)**: "You are the packages-lane session continuing the 2026-10-16 ML/AI +
+  robotics coverage program. Cold start: pull both repos; `git log -1` both; read this block; `python
+  tools\relay.py view --lane packages`. TOP ACTION: the v0.64.6 repin wave (checklist above; watch 21:15Z line).
+  THEN: publish trio on scopes (http 0.1.8 rides any batch; jev + numpy on ops LIVE); serial/ros2 verify-on-landing;
+  next agent waves -- llm M3, numpy Phase-3, jev M2/M3, openblas real accel, bindings R2+ (v4l/gps/epos + onnx),
+  pandas/arrow real backends (libarrow-gated). RULES: agents = split + variant:low + act-early; in-package writes
+  only, no git for agents; relay ids exact + index.lock retry; routine publishes per the owner exception; nothing
+  strategic without the owner. Draft copy: %TEMP%\kilo\session-continuation-draft.md."
+
+**STATE AT 2026-10-16 11:30Z (history -- superseded by the 21:30Z block above):**
 - **Pin v0.64.5** (repin `cb364af3`; archive sha256 `bd71e2d3`; canonical install byte-identical
   557/557). Validate **561/0**; guard **543 allowlisted / 527 ready / 16 grandfathered / 0 failures**.
   **103 eco releases** (`eco-v0.1.86` -> `eco-v0.1.187`).
