@@ -267,7 +267,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.tar | xiom-tar | stable | tests/test_conformance.xi | pass 22/22 | 80b94336 | False | legacy bracket repair patch bump |
 | xiom.tcx | xiom-tcx | stable | tests/test_conformance.xi | pass 23/23 | a51f5b6b | False | legacy bracket repair patch bump |
 | xiom.telnet | xiom-telnet | stable | tests/test_conformance.xi | pass 18/18 | a931e97a | False | legacy bracket repair patch bump |
-| xiom.template | xiom-template | stable | tests/test_conformance.xi | pass 22/22 | 8dd05320 | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.template | xiom-template | stable | tests/test_conformance.xi | pass 43/43 | 1e05751a | False | published in eco-v0.1.186 (2026-10-16, 0.2.0 blocks/auto-escape; 0.1.2 stable reference) |
 | xiom.term | xiom-term | stable | tests/test_conformance.xi | pass 20/20 | 4e8bf506 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.tftp | xiom-tftp | stable | tests/test_conformance.xi | pass 24/24 | 5209efd7 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.tga | xiom-tga | stable | tests/test_conformance.xi | pass 18/18 | d9b9c2b8 | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -492,6 +492,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.optimizer-fw | xiom-optimizer-fw | incubating | tests/test_conformance.xi | pass 25/25 | ecf76d12 | False | publish pending: next scope delta |
 | xiom.opus | xiom-opus | incubating | tests/test_conformance.xi | pass 26/26 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- libopus 1.6.1 streaming audio) |
 | xiom.oracle | xiom-oracle | incubating | tests/test_conformance.xi | pass 22/22 | f487102b | False | publish pending: owner scope decision (parallel-lane implementation) |
+| xiom.otel | xiom-otel | incubating | tests/test_conformance.xi | pass 30/30 | 4d4fe157 | False | publish pending: new name (OTLP trace-export core); ops scope ask filed 2026-10-15 |
 | xiom.ozz | xiom-ozz | incubating | tests/test_conformance.xi | pass 9/9 | 50b65cee | False | published in eco-v0.1.179 (2026-10-14, 0.4.0 caller surface; 0.3.0 in eco-v0.1.156; 0.2.0 in eco-v0.1.109) |
 | xiom.pandas | xiom-pandas | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.parquet | xiom-parquet | incubating | tests/test_conformance.xi | pass 20/20 | 4ff075bf | False | publish pending: next scope delta |
@@ -561,6 +562,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.torch | xiom-torch | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.training | xiom-training | incubating | tests/test_conformance.xi | pass 26/26 | e4e2b956 | False | publish pending: next scope delta |
 | xiom.translate | xiom-translate | incubating | tests/test_conformance.xi | pass 28/28 | 5f469ee5 | False | publish pending: next scope delta |
+| xiom.transport | xiom-transport | incubating | tests/test_conformance.xi | pass 36/36 | 1c8fbf11 | False | publish pending: new name (A08 reliable-datagram base); ops scope ask filed 2026-10-15 |
 | xiom.ui | xiom-ui | incubating | tests/test_conformance.xi | pass 98/98 | ed680f75 | False |  |
 | xiom.vault | xiom-vault | incubating | tests/test_conformance.xi | pass 28/28 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.vdb | xiom-vdb | incubating | tests/test_conformance.xi | pass 30/30 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- pure-XIOM vdb reader) |
