@@ -1194,6 +1194,14 @@ A9/A11/A12 wave launched)**:
   A11 JNI seam (`android/a11-jni`; new `xiom.jni`), A12 system-misc
   remainder (`android/a12-sys`; binder_ndk + NNAPI + z + icu subset
   in xiom.android-sys 0.2.0).
+- 13:35Z follow-up: A9 + A11 sessions attached
+  (`ses_ebb1a2334ffe...` / `ses_ebb165967ffe...`); A12's worktree
+  never materialized -> relaunch requested
+  (`am-1792157647638-q9o9o7`).  **Packages acked brotli + ssl publish
+  execution** (`REL-20261016-1220-bindings` + `-2`): ssl scope LIVE at
+  eco-release 550; brotli scope check in the same pass; both stacked
+  into ONE eco batch (pipeline: merge tip -> validate -> x2 -> wrap ->
+  publish -> PULSE relay).
 
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
