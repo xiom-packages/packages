@@ -9,18 +9,9 @@
                   "passed":  90,
                   "failed":  0,
                   "run_by":  "am:android-a11-jni",
-                  "commit":  "22ee55f6",
-                  "checked":  "2026-10-16T14:05:40Z"
+                  "commit":  "ea8dcc0e",
+                  "checked":  "2026-10-16T14:09:33Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (Android SDK100 A11 jni-seam head: jni.h interface + android/bitmap.h); publish gate after the G1 android emission target + first end-to-end suite run",
-    "platforms":  [
-                      "windows-x64",
-                      "android-arm64",
-                      "android-x86_64"
-                  ],
-    "runtime_deps":  [
-                         "libjnigraphics.so (runtime loader; SKIP when absent)",
-                         "libnativehelper.so (runtime loader; public since API 31; SKIP when absent)"
-                     ]
+    "excluded_reason":  "new package (Android SDK100 A11 jni-seam head: jni.h interface + android/bitmap.h); publish gate after the G1 android emission target + first end-to-end suite run"
 }
