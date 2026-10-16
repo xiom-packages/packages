@@ -1153,9 +1153,33 @@ and passed the integration gates on the landed state:
   validate` = **561/0**.
 - **A3/A4 session ATTACHED late** (`ses_ebb64cce2ffe5Qicm603FfQQt6`,
   worktree `android-input-sensors`, branch `android/input-sensors`):
-  busy; rebased onto origin/bindings; compiling.  The stale
-  `android/a3-a4` worktree gets removed once its never-started
-  session is confirmed dead.
+   busy; rebased onto origin/bindings; compiling.  The stale
+   `android/a3-a4` worktree gets removed once its never-started
+   session is confirmed dead.
+
+**UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
+first-publish requested; brotli scope ask open)**: fresh pass on the live
+state (`cdbbca63`; clean + pushed; validate 561/0).
+- **Ops scope queue LIVE** (ops `f383c39`; registry restarted healthy
+  12:58Z; eco-release **550**): production set verified for **transport +
+  otel + the five android names + `xiom.ssl`**; `xiom.brotli` NOT yet
+  present.  PULSE provenance (`REL-20261015-2137`) fixed + re-verified
+  live.  Unblocks: packages transport/otel wrap (`.188`), the ssl publish
+  path, and the family's five new names.
+- **Android family first-publish requested**: `REL-20261016-1305-bindings`
+  (`xiom.android` 0.3.0 + aaudio/mediandk/camera2ndk/android-sys/opensl
+  0.1.0; docs/repro evidence per package; A3/A4 -> 0.4.0 follow-up noted;
+  batching choice left to packages).
+- **`xiom.brotli` scope ask already OPEN with ops** (`-1302-packages` +
+  `-1302-packages-2`, filed 13:02Z; stacks with the ssl batch) -- no
+  duplicate filed; watch for the fix before the `-1220-bindings` publish.
+- `REL-20261016-1304-packages` (to all): xiom.http 0.1.7 bump rider for
+  the brotli+ssl batch; our pass had cleared (clean + pushed), so the
+  packages coverage session owns the bump per the note's fallback -- no
+  bindings-side write taken.
+- A3/A4 session still busy (`android/input-sensors`; compiling); no
+  unprocessed to-bindings relay items; next doorbell 15:00Z (continuation
+  cron).  Relay tip after this pass: `9446ed9`.
 
 **UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
 PAUSED per owner directive)**:
