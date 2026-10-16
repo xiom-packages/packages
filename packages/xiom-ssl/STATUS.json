@@ -8,10 +8,16 @@
                   "status":  "pass",
                   "passed":  23,
                   "failed":  0,
-                  "run_by":  "am:feat-tls-binding",
-                  "commit":  "a65f34cc",
-                  "checked":  "2026-10-16T12:19:57Z"
+                  "run_by":  "native-session",
+                  "commit":  "5a22868a",
+                  "checked":  "2026-10-16T13:09:37Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: new name (libssl-class TLS context engine, REL-20261015-2211-packages); ops scope queued 2026-10-16"
+    "excluded_reason":  "publish pending: new name (libssl-class TLS context engine, REL-20261015-2211-packages); ops scope queued 2026-10-16",
+    "platforms":  [
+                      "windows-x64"
+                  ],
+    "runtime_deps":  [
+                         "libssl-3-x64.dll (multi-soname loader: libssl-1_1-x64.dll / libssl-1_1.dll / libssl.dll fallback; SKIP when absent)"
+                     ]
 }
