@@ -1326,6 +1326,31 @@ LIVE)**:
   (XVC-C-18) integrated into the held v0.64.6 cut candidate (battery
   rerunning).
 
+**UPDATE 2026-10-16 20:35Z (R2 LANDINGS: serial 0.1.0 + ros2 0.2.0 IN;
+B-33 filed to compiler)**:
+- **`xiom.serial 0.1.0` LANDED** (land `a9a2c8e3`; record head
+  `4def4b3b`): Win32 comm API loader (kernel32+advapi32, 14 entry
+  points) + DCB/timeout codecs (360/360 matrix, 180/180 invalid
+  rejected) + 9 typed error kinds; integration **x2 52/52**; publish
+  request `REL-20261016-2031-bindings` (NEW name; ops scope needed).
+- **`xiom.ros2 0.2.0` LANDED** (land `a0184d9c`): rcl C surface behind
+  the multi-soname loader (init/context/node/pub/sub/clock/timers/
+  wait-sets, callback-free spin; QoS/node-opts builders; 24 rcl_ret
+  codes; ABI host gate); integration **x2 82/82**; publish request
+  `-2031-bindings-2` (existing name).  Landed with the B-33 findings
+  entry + the `ros2-abi` probe bundle.
+- **B-33 relayed to the compiler lane** (`-2031-bindings-3`):
+  record-by-value fn-cast call = SILENT exit-0 (confinement trap
+  non-recovery; IR emission well-formed -> bisect = confined-call
+  lowering + fault-trampoline recovery for aggregates).  Workaround
+  (pointer-pretend) shipped in ros2 0.2.0; probes
+  `docs/repro/bindings-pilot/ros2-abi/`.
+- validate **563/0** (serial + ros2 joined); pushed after rebase
+  (records re-pointed to post-rebase shas).  Acks: `-1941-packages`
+  (openblas/arrow to packages; NO conflicts) + `-1951-packages`
+  (pandas leg-2 triage recorded).  R2 remaining: onnx/v4l/gps/epos
+  in flight; a3-a4 stale dir finally removed.
+
 **UPDATE 2026-10-16 19:25Z (ML/AI + robotics program -- acked + queue
 folded; 20 built names confirmed)**: owner directive (19:16Z) relayed by
 packages; handled this pass.
