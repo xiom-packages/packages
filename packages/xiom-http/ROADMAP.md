@@ -1,5 +1,13 @@
 # xiom.http ROADMAP
 
+## v0.1.7 -- Client surface stabilisation (in progress, 2026-10-16)
+- [x] Dedicated client probe `tests/probe_client.xi` (own surface; refused/malformed deterministic, live + loopback legs SKIP-safe) -- xvector lattice ask, REL-20261016-1129-xvector-2
+- [x] Documented client stability + limits (README + SPEC)
+- [ ] Keep-alive control + idle connection reuse for the client
+- [ ] Per-call timeouts (connect + total)
+- [ ] Streaming request/response bodies
+- [ ] Pluggable TLS hook (compose with `xiom.ssl` when it lands)
+
 ## v0.1.4 (Current)
 - [x] Fix: printable bytes render as characters, not decimal codes (all module-local copies)
 - [x] Fix: libcurl LONG options passed by value (variadic ABI), removing the heap-pointer defect and its per-call leak
