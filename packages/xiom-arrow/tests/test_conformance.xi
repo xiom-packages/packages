@@ -44,15 +44,6 @@ fn int_to_str(n: Int) -> Str {
   return out;
 }
 
-fn report(passed: Bool, name: Str) -> Int {
-  if passed {
-    io.println("  [PASS] " + name);
-    return 0;
-  }
-  io.println("  [FAIL] " + name);
-  return 1;
-}
-
 // ===============================================================================
 // Test 1-5: DataType constructors + accessors
 // ===============================================================================
@@ -363,8 +354,8 @@ fn run_table_new_valid() -> Int {
   var fields = Vec[Field].new();
   fields.push(field_new("a", dtype_int32()));
   let s = schema_new(fields);
-  var cols = Vec[Array].new();
-  let arr = Array { handle: 42; length: 5; null_count: 0; data_type: dtype_int32() };
+  var cols = Vec[DataArray].new();
+  let arr = DataArray { handle: 42; length: 5; null_count: 0; data_type: dtype_int32() };
   cols.push(arr);
   let r = table_new(s, cols);
   match r {
@@ -385,7 +376,7 @@ fn test_table_new_valid() -> TestResult {
 
 fn run_table_new_empty_schema() -> Int {
   let s = schema_empty();
-  var cols = Vec[Array].new();
+  var cols = Vec[DataArray].new();
   let r = table_new(s, cols);
   match r {
     Ok(_) => return 1,
@@ -408,8 +399,8 @@ fn run_table_new_mismatched_columns() -> Int {
   fields.push(field_new("a", dtype_int32()));
   fields.push(field_new("b", dtype_float64()));
   let s = schema_new(fields);
-  var cols = Vec[Array].new();
-  let arr = Array { handle: 1; length: 3; null_count: 0; data_type: dtype_int32() };
+  var cols = Vec[DataArray].new();
+  let arr = DataArray { handle: 1; length: 3; null_count: 0; data_type: dtype_int32() };
   cols.push(arr);
   let r = table_new(s, cols);
   match r {
@@ -432,8 +423,8 @@ fn run_table_column_oob() -> Int {
   var fields = Vec[Field].new();
   fields.push(field_new("x", dtype_bool()));
   let s = schema_new(fields);
-  var cols = Vec[Array].new();
-  let arr = Array { handle: 1; length: 10; null_count: 0; data_type: dtype_bool() };
+  var cols = Vec[DataArray].new();
+  let arr = DataArray { handle: 1; length: 10; null_count: 0; data_type: dtype_bool() };
   cols.push(arr);
   let r = table_new(s, cols);
   match r {
@@ -462,8 +453,8 @@ fn run_ipc_write_stub() -> Int {
   var fields = Vec[Field].new();
   fields.push(field_new("a", dtype_int32()));
   let s = schema_new(fields);
-  var cols = Vec[Array].new();
-  let arr = Array { handle: 1; length: 0; null_count: 0; data_type: dtype_int32() };
+  var cols = Vec[DataArray].new();
+  let arr = DataArray { handle: 1; length: 0; null_count: 0; data_type: dtype_int32() };
   cols.push(arr);
   let r = table_new(s, cols);
   match r {
@@ -599,42 +590,51 @@ pub fn main() -> Int {
   io.println("=== xiom.arrow Conformance Tests ===");
   io.println("");
 
-  var tests: Vec[fn() -> TestResult] = Vec[fn() -> TestResult].new();
-  tests.push(test_dtype_constructors);
-  tests.push(test_dtype_from_id);
-  tests.push(test_dtype_from_id_invalid);
-  tests.push(test_dtype_eq);
-  tests.push(test_dtype_name);
-  tests.push(test_field_new);
-  tests.push(test_field_non_nullable);
-  tests.push(test_schema_new);
-  tests.push(test_schema_empty_and_add);
-  tests.push(test_schema_get_field_oob);
-  tests.push(test_array_create_invalid_length);
-  tests.push(test_array_create_invalid_buffers);
-  tests.push(test_schema_create_empty_format);
-  tests.push(test_schema_create_valid);
-  tests.push(test_record_batch_null_schema);
-  tests.push(test_record_batch_null_columns);
-  tests.push(test_record_batch_get_column_null_batch);
-  tests.push(test_table_new_valid);
-  tests.push(test_table_new_empty_schema);
-  tests.push(test_table_new_mismatched_columns);
-  tests.push(test_table_column_oob);
-  tests.push(test_ipc_write_stub);
-  tests.push(test_ipc_read_stub);
-  tests.push(test_array_high_level);
-  tests.push(test_version);
-  tests.push(test_is_linked);
-  tests.push(test_dtype_all_variants);
+  var results = Vec[TestResult].new();
+  results.push(test_dtype_constructors());
+  results.push(test_dtype_from_id());
+  results.push(test_dtype_from_id_invalid());
+  results.push(test_dtype_eq());
+  results.push(test_dtype_name());
+  results.push(test_field_new());
+  results.push(test_field_non_nullable());
+  results.push(test_schema_new());
+  results.push(test_schema_empty_and_add());
+  results.push(test_schema_get_field_oob());
+  results.push(test_array_create_invalid_length());
+  results.push(test_array_create_invalid_buffers());
+  results.push(test_schema_create_empty_format());
+  results.push(test_schema_create_valid());
+  results.push(test_record_batch_null_schema());
+  results.push(test_record_batch_null_columns());
+  results.push(test_record_batch_get_column_null_batch());
+  results.push(test_table_new_valid());
+  results.push(test_table_new_empty_schema());
+  results.push(test_table_new_mismatched_columns());
+  results.push(test_table_column_oob());
+  results.push(test_ipc_write_stub());
+  results.push(test_ipc_read_stub());
+  results.push(test_array_high_level());
+  results.push(test_version());
+  results.push(test_is_linked());
+  results.push(test_dtype_all_variants());
 
-  let failures = xiom.test.run_all(tests);
-  let total = tests.len();
+  let total = results.len();
+  let report = xiom.test.format_results(results);
+  io.println(report);
+
+  let failures = xiom.test.test_count_failures(results);
   let passed = total - failures;
 
   io.println("");
-  io.println("Results: " + int_to_str(passed) + " passed, " + int_to_str(failures) + " failed, " + int_to_str(total) + " total");
+  io.println(int_to_str(passed) + "/" + int_to_str(total) + " tests passed");
 
-  if failures > 0 { return 1; }
-  return 0;
+  if failures == 0 {
+    io.println("ALL " + int_to_str(total) + " TESTS PASSED");
+    io.println("Path: packages\\xiom-arrow\\tests\\test_conformance.xi");
+    return 0;
+  };
+  io.println("Path: packages\\xiom-arrow\\tests\\test_conformance.xi");
+  io.println("SOME TESTS FAILED");
+  return 1;
 }
