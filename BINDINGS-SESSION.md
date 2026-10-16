@@ -1458,6 +1458,29 @@ sibling's 4-agent wave; B-32 relaunch + nudge)**:
   Whichever branch lands green first takes the restore; the other
   gets stopped.
 
+**UPDATE 2026-10-16 23:05Z (B-32 re-attempt on v0.64.6: STILL RED
+in-situ; filed to compiler; restore stays parked)**:
+- The (nudged) restore session ran the briefed flow on the **v0.64.6
+  slot** (exe sha256 `EB1F46C2ACBA5B95D46124FA7BB52426508BE5B81256E3ED1819CBFDA6979150`):
+  **17/17 PASS then t18 `cols.len=140702801265104` -> 0xC0000005** --
+  identical to the documented v0.64.5 signature.  Controls GREEN on
+  the SAME slot (nested-payload probe + matrix all shapes) =>
+  **m346 fixed the ISOLATED shapes only; the in-situ unit still
+  miscompiles**.  Restore stays **PARKED** (flat `RowOutcome` 0.4.1;
+  package untouched).
+- Evidence: `%TEMP%\kilo\b32\` (attempt-1.log, tested-tree.diff,
+  probe-1.log, matrix-1.log, slot-exe.sha256).  Docs-only README
+  result section approved -> landing via the restore branch.
+- **Compiler relay filed: `REL-20261016-2303-bindings`** -- fold the
+  residual into the v0.64.7 fixer wave as an extension of the
+  m346/XVC-C-18 class; re-verify = the same two commands + README.
+- Bundle caveats for the next attempt: `restore-0.5.0-attempt.patch`
+  is UTF-16LE (convert to UTF-8 before `git apply`); its README hunk
+  predates the 0.4.1 modules-list paragraph (manual re-apply); the
+  other 7 files apply cleanly.
+- Duplicate restore session (`feat/sqlite-nested-restore-2`) to be
+  stopped at the next sweep (Agent Manager timeouts this pass).
+
 **UPDATE 2026-10-16 22:40Z (queue execution wave LAUNCHED -- 4 agents;
 category sweep completed)**: acted on every accepted/queued bindings
 item; no open relay items were pending.
