@@ -53,6 +53,8 @@ cold start). Check `git log -1 --format=%h %s` before starting.
   Cold-start order: pull both repos -> read this block -> `relay.py view --lane packages` -> process
   open asks (routine publishes per the owner exception; nothing strategic without the owner).
 
+- **WATCH 2026-10-16 12:15Z**: scopes -2138/-2216 still OPEN (no ops pass); bus validate GREEN again (registry fixed the ASCII item); bindings info-ack -1201 closed; bindings adopted the android tokens + accepted the xiom.ssl name for their TLS package; sibling session active (answered the orbitdb station wishlist). No publish this pass -- transport + otel parked green.
+
 **STATE AT 2026-10-14 14:25Z (history -- wave-3 published; superseded by the 2026-10-16 11:30Z block above):**
 - **Wave-3 CLOSED end-to-end**: `REL-20261014-1331-bindings` fixed. Merge `945b795f` (tip `dd160416`;
   README/STATUS resolved to bindings + published lines restored); validate **553/0**; regen `50b65cee`;
