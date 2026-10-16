@@ -8,16 +8,10 @@
                   "status":  "pass",
                   "passed":  26,
                   "failed":  0,
-                  "run_by":  "task:ses_eca6cc8b0ffeIWOLV4Vkjj4uJn",
-                  "commit":  "ee688a15",
-                  "checked":  "2026-10-16T12:05:24Z"
+                  "run_by":  "am:feat-brotli-binding",
+                  "commit":  "7e9892bc",
+                  "checked":  "2026-10-16T12:18:27Z"
               },
     "publish":  false,
-    "excluded_reason":  "not allowlisted: no readiness evidence recorded",
-    "platforms":  [
-                      "windows-x64"
-                  ],
-    "runtime_deps":  [
-
-                     ]
+    "excluded_reason":  "not allowlisted: no readiness evidence recorded"
 }
