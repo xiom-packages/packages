@@ -1424,7 +1424,25 @@ validate 566/0)**:
   long-lived handle surface) ACKED -> next miniaudio wave.
 - Publishes: serial/ros2/v4l ACKED by packages; onnx/gps in queue.
   B-32 restore session NOT yet producing commits (watching; relaunch
-  if it stayed sessionless).  Repin: still v0.64.5 (owner).
+   if it stayed sessionless).  Repin: still v0.64.5 (owner).
+
+**UPDATE 2026-10-16 22:30Z (relay sweep -- category vocabulary fix;
+gps request already out; audio fold confirmed)**: sweep + fix pass.
+- **`-2220-packages` processed**: `.193` noted (serial/ros2/v4l/onnx
+  live; sha256s listed); **gps publish request was already filed**
+  (`REL-20261016-2144-bindings-2`, open -- awaiting packages ack); the
+  requested **v4l category fix applied**, plus the same-bug siblings:
+  **9 family manifests** moved to the controlled vocabulary
+  (v4l/camera2ndk/mediandk/aaudio/opensl -> `["media","systems"]`;
+  android/android-sys/jni/epos -> `["systems"]`).  Remaining
+  out-of-vocabulary values flagged for future touches (not fixed
+  now): `xiom-kv -> storage`, `xiom-lz4 -> compression`,
+  `xiom-raylib -> gamedev`, `xiom-slang -> tools`.  validate **566/0**
+  after the fix.
+- Engine audio ask confirmed ours: `-2139-packages-2` (miniaudio
+  long-lived handle surface) accepted -> next miniaudio wave; engine
+  keeps the null-tier fallback meanwhile.
+- No other open relay items addressed to bindings.
 
 **UPDATE 2026-10-16 19:25Z (ML/AI + robotics program -- acked + queue
 folded; 20 built names confirmed)**: owner directive (19:16Z) relayed by
