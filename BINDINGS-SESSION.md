@@ -1127,6 +1127,36 @@ pickup: worktree clean at `9ecd5092`; nothing in flight un-landed.
   stale `android/a3-a4` worktree gets removed once its session is
   confirmed dead.
 
+**UPDATE 2026-10-16 12:22Z (WAVE LANDED: brotli + ssl IN; publish
+requests filed; validate 561/0)**: both PULSE top-tier builds landed
+and passed the integration gates on the landed state:
+- **`xiom.brotli 0.1.0` LANDED** (`7e9892bc`, 137 files; record
+  `a040cfd4`): real RFC 7932 brotli, vendored google/brotli v1.2.0
+  (MIT), 16/16 declared surface (one-shot + streaming enc/dec,
+  quality 0-11 + lgwin/mode typed params, corrupt/truncated typed
+  errors, HTTP `Content-Encoding: br` helpers + body round trip).
+  Integration **26/26 x2** on the landed state (upstream vectors
+  decode byte-identically; q11 ratio 16384 -> 75).  Branch
+  `feat/brotli-binding` pushed.
+- **`xiom.ssl 0.1.0` LANDED** (`a65f34cc`, 14 files; record
+  `d22e7774`): libssl-class multi-soname loader (xiom.openssl
+  pattern; NOTHING vendored; SKIP-safe).  Live leg **23/23**
+  (OpenSSL 3.2.4: loopback TLSv1.3 + TLS_AES_256_GCM_SHA384,
+  encrypted ping/pong, ALPN set + negotiated read, verify trusted ->
+  0 / untrusted -> typed with verify_result 18, clean shutdown,
+  memory-BIO-only handshake 4 pump rounds) + SKIP leg **4/4**;
+  documented limitation: server ALPN SELECT needs a C callback (no
+  FFI callback bridging yet).  Branch `feat/tls-binding` pushed.
+- **Publish requests filed**: `REL-20261016-1220-bindings` (brotli)
+  + `-1220-bindings-2` (ssl) -- both NEW registry names; ops scopes
+  queued by packages (their -1150 note).  `status.ps1 -Action
+  validate` = **561/0**.
+- **A3/A4 session ATTACHED late** (`ses_ebb64cce2ffe5Qicm603FfQQt6`,
+  worktree `android-input-sensors`, branch `android/input-sensors`):
+  busy; rebased onto origin/bindings; compiling.  The stale
+  `android/a3-a4` worktree gets removed once its never-started
+  session is confirmed dead.
+
 **UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
 PAUSED per owner directive)**:
 - Remaining 3 branches landed (path-scoped; trees safety-verified to
