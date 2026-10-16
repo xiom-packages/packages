@@ -86,6 +86,7 @@ extern int32_t xj_bitmap_is_hardware(int64_t, int64_t);
 extern int32_t xj_bitmap_compress_owned(int64_t, int64_t, int32_t, int32_t, int32_t);
 extern int32_t xj_bitmap_compressed_len(void);
 extern int32_t xj_bitmap_compressed_byte(int32_t);
+extern const uint8_t* xj_bitmap_compressed_ptr(void);
 extern void xj_unload(void);
 
 static int g_fail = 0;
@@ -167,6 +168,11 @@ static jint run_probe(JNIEnv* env, jclass clazz, jobject bitmap) {
     }
     check(xj_bitmap_compressed_byte(len) == -1,
           "bitmap: compressed_byte(out of range) -> -1");
+    {
+        const uint8_t* p = xj_bitmap_compressed_ptr();
+        check(p != 0 && p[0] == 0x89 && p[1] == 0x50,
+              "bitmap: compressed_ptr() exposes the owned buffer");
+    }
 
     LOGI("A11_BITMAP fail=%d", fails);
     return fails;

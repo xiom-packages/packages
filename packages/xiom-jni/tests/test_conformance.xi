@@ -244,6 +244,8 @@ fn t_null_strings_arrays() -> Int {
     "null-safety: string_utf_length(0) -> -1 + error");
   failed = failed + report(string_read_utf8(&e0, &s0, 0) == JNI_ERR_INT && err_text_present(),
     "null-safety: string_read_utf8(0) -> -1 + error");
+  failed = failed + report(string_buf() == "" && string_buf_len() == 0,
+    "slots: string buffer starts empty (owned-slot readback)");
   failed = failed + report(array_length(&e0, &a0) == JNI_ERR_INT && err_text_present(),
     "null-safety: array_length(0) -> -1 + error");
   let r2 = new_int_array(&e0, 8);
