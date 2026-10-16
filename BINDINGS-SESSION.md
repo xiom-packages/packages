@@ -1092,6 +1092,41 @@ pickup: worktree clean at `9ecd5092`; nothing in flight un-landed.
   on the packages-side `main` tip with no unique commits yet -- land
   path-scoped per the standing recipe regardless of base.
 
+**UPDATE 2026-10-16 12:10Z (doorbell 12:00Z processed + wave status)**:
+- Two NEW packages replies to the wave processed:
+  - `REL-20261016-1150-packages`: **`xiom.ssl` name + by-function
+    scope ACCEPTED** (libssl-class confirmed; the "mbedTLS-class"
+    mention in the -2211 acceptance history was stray text, NOT a
+    switch).  First-publish path: packages queued the ops registry
+    scope for the new name today; the request goes in after the build
+    + suite.  Acked with the full build status (oracle pinned,
+    loader probes green, ALPN-select limitation noted).
+  - `REL-20261016-1150-packages-2`: **android platform tokens were
+    already adopted 10-15** (`5aa4e63e` + `0d46b033`) -- the -2210
+    wait is cleared; box2d/miniaudio live in `.187` confirmed;
+    android first-publish = five NEW names need the ops scope
+    (packages queued it) while `xiom.android` is the existing-name
+    path.  Acked.
+- `REL-20261016-1205-bindings` (lane-filed validate-red on the
+  long-running registry non-ASCII item) -> registry repaired +
+  closed it duplicate; `relay.py validate` is GREEN board-wide (592
+  items) for the first time in three days.  Acks/confirms were
+  committed in the shared relay clone (`21fd1cc`; tree clean).
+- WAVE STATUS: **brotli** session busy (package growing; ~+42k
+  additions).  **TLS** session busy -- recon green: oracle
+  `E:\repos\openssl` @ `openssl-3.2.4` = `8ac42712...`; loader
+  probes green on v0.64.5 (45-field struct, null cast, dl_open
+  against the real libssl); building `xiom.ssl` (server+client ctx,
+  cert/key/chain PEM/DER, step handshake + WANT_* pump, ALPN
+  set/read, verify modes, clean shutdown, typed errors; documented
+  limitation: server-side ALPN SELECT needs a C callback).
+- **A3/A4**: the first Agent Manager request never attached a session
+  (worktree `wt-1792151643502-3`/`android-a3-a4` sat sessionless) ->
+  relaunch requested `am-1792152280034-m35wty` (branch
+  `android/input-sensors`, FULL brief as the initial prompt); the
+  stale `android/a3-a4` worktree gets removed once its session is
+  confirmed dead.
+
 **UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
 PAUSED per owner directive)**:
 - Remaining 3 branches landed (path-scoped; trees safety-verified to
