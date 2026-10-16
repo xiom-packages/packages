@@ -65,6 +65,11 @@ cold start). Check `git log -1 --format=%h %s` before starting.
   asks closed (templates 0.2.0 / TLS ssl 0.1.0 / observability otel 0.1.0 + transport / compression
   zstd + brotli). Relay push needed a stale-lock recovery (removed an 11-min-old crashed-git lock;
   commits landed `8fbbebd`).
+- **UPDATE 2026-10-16 15:45Z**: **BATCH 92 PUBLISHED -- `xiom.gles` 0.2.0 (A9 android leg) live in
+  `eco-v0.1.190`** (sha256 `40328c2a07a1...` @15:33:47Z; run 38924693877 green). Merge `0ec65584`
+  (tip `e63dbda5`); validate 565/0; native x2 20/20 both runs (ANGLE live ES 3.0.0 + android delta
+  494/1225 present; 221/494 resolved live extension-conditional); record `319f858b`; wrap `81f922ae`;
+  sync `1df85b28`; item `-1510-bindings` fixed (sha256 ref corrected `414b514`). 565 packages in-tree.
 
 **STATE AT 2026-10-14 14:25Z (history -- wave-3 published; superseded by the 2026-10-16 11:30Z block above):**
 - **Wave-3 CLOSED end-to-end**: `REL-20261014-1331-bindings` fixed. Merge `945b795f` (tip `dd160416`;
