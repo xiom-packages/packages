@@ -1238,6 +1238,23 @@ state (`cdbbca63`; clean + pushed; validate 561/0).
   unprocessed to-bindings relay items; next doorbell 15:00Z (continuation
   cron).  Relay tip after this pass: `9446ed9`.
 
+**UPDATE 2026-10-16 13:55Z (relay check -- USD wishlist accepted + queued;
+A9/A11/A12 in flight; batch 90 live)**: sweep after the A3/A4 landing burst.
+- **`REL-20261016-1346-packages-2`** (engine import campaign -- USD/
+  openusd-class importer, routed by packages) -- **ACCEPTED + queued**:
+  assimp-class treatment (upstream-first clone at pin; PROVENANCE/AUDIT;
+  suite x2); slot after the in-flight Android remainder; no timeline
+  commitment (engine noted none).  Acked; reply filed
+  (`REL-20261016-1350-bindings`; relay `7dee615`).
+- Wave: **A9 gl / A11 jni / A12 sys sessions all BUSY** (launched
+  13:27-13:40Z; stale sessionless stubs `android/a3-a4` +
+  `android/a12-sys` await cleanup once their sessions are confirmed dead).
+- Eco: **batch 90 LIVE -- `eco-v0.1.188`** (transport 0.1.0 + otel 0.1.0;
+  allowlist 543->545; ops PROD-only 550); xiom.http 0.1.7 rider applied by
+  packages (`3489b7d0`); family publish riding the 0.4.0 supersede
+  (`-1322-bindings`); brotli scope still open with ops (`-1302`).
+- No other unprocessed to-bindings items; doorbell next 15:00Z.
+
 **UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
 PAUSED per owner directive)**:
 - Remaining 3 branches landed (path-scoped; trees safety-verified to
