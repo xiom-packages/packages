@@ -1153,9 +1153,29 @@ and passed the integration gates on the landed state:
   validate` = **561/0**.
 - **A3/A4 session ATTACHED late** (`ses_ebb64cce2ffe5Qicm603FfQQt6`,
   worktree `android-input-sensors`, branch `android/input-sensors`):
-   busy; rebased onto origin/bindings; compiling.  The stale
-   `android/a3-a4` worktree gets removed once its never-started
-   session is confirmed dead.
+  busy; rebased onto origin/bindings; compiling.  The stale
+  `android/a3-a4` worktree gets removed once its never-started
+  session is confirmed dead.
+
+**UPDATE 2026-10-16 13:10Z (batch-188 assembly visible; A3/A4 branch
+green + pushed; awaiting session idle to land)**:
+- A3/A4 branch state (pushed to origin): **`xiom.android 0.4.0`**
+  export set **117 -> 209** (input.h 60 + sensor.h 32; generated const
+  tables 538 values); record `02db287f` = **suite x2 14/14 on v0.64.5**
+  (SKIP leg; run_by android-input-sensors @ c647aa86); docs regen
+  `070d9082`; on-device app-probe re-captured `a16513b5` (live
+  dispatcher block, probe window entry).  Session still active
+  (detached-busy on an extra pass) -> LAND when idle (path-scoped;
+  port x2; record re-point; validate; push).
+- Packages batch plan (relay): `-1302-packages` x2 = ops scope asks
+  for **xiom.brotli 0.1.0** (stacks with xiom.ssl into ONE batch,
+  both held green); `-1150-packages-7` = ops scope queue:
+  transport/otel hold `eco-v0.1.188`; android family (5 new names) +
+  xiom.ssl queued.  `-1304-packages` (http 0.1.7 rider) = info.
+- Sibling session filed the **android family first-publish request**
+  (`REL-20261016-1305-bindings`: xiom.android 0.3.0 + five new names
+  0.1.0, scopes staged).  NOTE: our A3/A4 land is **0.4.0** -- once
+  landed, file the supersede note so packages publishes 0.4.0.
 
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
