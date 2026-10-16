@@ -1,81 +1,79 @@
 # xiom.ros2 Roadmap
 
-## Current State -- v0.1.0 (SPEC)
+## Current State -- v0.2.0 (delivered 2026-10-16)
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| `xiom.ros2` module | SPEC | Full API surface declared: 12 public functions, 12 extern FFI stubs, 5 type aliases |
-| Init / Shutdown | Stub | `init`, `shutdown` -- return Err until C bridge linked |
-| Node Lifecycle | Stub | `create_node`, `destroy_node` -- contracts for name.len()>0, node>0 |
-| Publisher | Stub | `create_publisher`, `destroy_publisher`, `publish` -- topic/msg contracts |
-| Subscriber | Stub | `create_subscription`, `destroy_subscription` -- topic contract |
-| Spin | Stub | `spin_once` -- contracts for node>0, timeout_ms>=0 |
-| Service | Stub | `create_service`, `destroy_service` -- service_name contract |
-| C Bridge | Missing | `ros2_bridge.c` not yet implemented -- all FFI stubs return Err |
+| Loader | Done | Multi-soname (`librcl.so` / `rcl.dll` / `librcl.dylib`), 39 required + 1 optional entry points + C-runtime companion; typed ABSENT/ABI/HOST classification |
+| Init / Shutdown | Done | `rcl_init_options_init`/`set_domain_id`/`fini` + `rcl_init` + `rcl_shutdown` + `rcl_context_fini`; default or explicit domain id |
+| Context | Done | validity, instance id, domain id queries |
+| Node | Done | init/fini + name/namespace read-back; options fabricated (no global args, no rosout -- documented) |
+| Publisher | Done | preset + custom QoS; publish with caller-owned message buffers |
+| Subscription | Done | preset + custom QoS; take with caller-owned buffers (typed no-message state) |
+| Clock | Done | steady/system/ros clock init/fini + now |
+| Timers | Done | private or shared clock; NULL-callback design (rcl-documented); call/is_ready/period/time-until/cancel/reset |
+| Wait sets | Done | init/fini/clear/resize/add subscription+timer/wait/fired reads/is_valid |
+| Spin | Done | callback-free `ros2_spin_once` (wait + fired report + timer call accounting) |
+| Type support | Done | generic resolve (soname+getter symbol) + std_msgs/String convenience |
+| QoS | Done (core) | presets + custom history/depth/reliability/durability/liveliness; deadline/lifespan/lease pinned to RMW_DURATION_UNSPECIFIED |
+| C bridge | Not needed | superseded by the dynamic-loader discipline (zero vendored C) |
 
 ### Contracts Coverage
 
-- **12 public functions**
-- **11 functions** guarded by `requires:` contracts (92%)
-- **12 extern "C"** function declarations for rcl/rclc FFI
-- Missing contract: `init()` -- returns Result, no input to validate
+- 63 public functions, 175 `requires:` clauses; validation on all handle and
+  buffer parameters; QoS cross-field rules enforced.
+- Z3-provable: none claimed (verifier emitter limitation on this pin;
+  runtime-checked by the suite) -- lane standard.
 
 ### Test Coverage
 
-- **37 conformance tests** in `tests/test_conformance.xi`
-- Covers: types (5), init/shutdown stubs (2), node lifecycle stubs (2), publisher stubs (3), subscriber stubs (2), spin stub (1), service stubs (2), contract declarations (11), error handling (2), lifecycle simulation (1), pub-sub simulation (1), FFI declaration smoke (5)
+- 82 checks in `tests/test_conformance.xi`, x2 green on v0.64.5 (SKIP arm on
+  hosts without librcl; the live arm is written and runs when available --
+  Pi leg).
+- Coverage evidence table: AUDIT.md section "Coverage evidence".
 
 ---
 
-## v0.2.0 -- C Bridge Implementation
+## v0.3.0 -- Callback bridging (compiler-gated)
 
-- [ ] Create `ros2_bridge.c` with thin FFI wrappers around rcl/rclc
-- [ ] Build system: CMake integration for ROS 2 linking (`ament_cmake`)
-- [ ] Wire `init()` -> CFFI `rcl_init()`
-- [ ] Wire `shutdown()` -> CFFI `rcl_shutdown()`
-- [ ] Wire `create_node()` -> CFFI `rcl_create_node()`
-- [ ] Replace Err stubs with actual FFI call + error translation
-- [ ] Tests: run against live ROS 2 (`rclcpp` installed via apt/choco)
+- [ ] C function-pointer bridging in the FFI (lane survey: no shipped
+      package passes an XIOM fn pointer to C yet) -- then subscription
+      callbacks (`rcl_subscription_init` callback slot) and timer callbacks
+      (`rcl_timer_init2`), plus `rclc`-style executor spin.
+- [ ] Guard conditions (`rcl_guard_condition_init/trigger/fini`; options
+      by value -> pointer-pretend, already proven) + wait-set
+      add_guard_condition.
 
-## v0.3.0 -- Publisher / Subscriber
+## v0.4.0 -- Services / clients
 
-- [ ] Wire `create_publisher()` -> CFFI `rcl_create_publisher()`
-- [ ] Wire `publish()` -> CFFI `rcl_publish()` with message serialisation
-- [ ] Wire `create_subscription()` -> CFFI `rcl_create_subscription()` with callback
-- [ ] Wire `spin_once()` -> CFFI `rcl_spin_once()`
-- [ ] Map rcl_ret_t errors -> human-readable Str
-- [ ] Tests: pub/sub roundtrip on `/chatter` topic
+- [ ] `rcl_service_init/fini`, `rcl_take_request`, `rcl_send_response`;
+  `rcl_client_init/fini`, `rcl_send_request`, `rcl_take_response`
+  (same loader discipline; request/response buffers are caller-owned).
 
-## v0.4.0 -- Services
+## v0.5.0 -- QoS remainder + parameters
 
-- [ ] Wire `create_service()` -> CFFI `rcl_create_service()`
-- [ ] Wire `destroy_service()` -> CFFI `rcl_destroy_service()`
-- [ ] Add `take_request()` / `send_response()` wrappers
-- [ ] Tests: service call/response roundtrip (`add_two_ints`)
+- [ ] Deadline / lifespan / liveliness-lease writes (offsets already
+      pinned in SPEC section 3; needs only value plumbing + tests).
+- [ ] Parameter server wrappers (needs the typesupport/rcl_interfaces
+      layer; design pass first).
 
-## v0.5.0 -- Quality-of-Service & Parameters
+## v0.6.0 -- Actions / lifecycle / TF
 
-- [ ] QoS profile type: `QosProfile { reliability, durability, history, depth }`
-- [ ] `create_publisher_with_qos()` / `create_subscription_with_qos()`
-- [ ] ROS 2 parameter server wrappers (`rcl_params_get`, `rcl_params_set`)
-- [ ] Tests: QoS reliability (reliable vs best-effort)
+- [ ] Actions (`rcl_action_*` graph + goal handles; needs callback
+      decisions), lifecycle nodes, TF2 buffer/listener.
 
-## v0.6.0 -- Serialisation & Message Types
+## v0.7.0 -- Serialisation & message types
 
-- [ ] StdMsgs wrapper: `String`, `Int32`, `Float64`, `Bool`
-- [ ] Custom message codegen from `.msg` / `.idl` files
-- [ ] Vec[UInt8] <-> ROS 2 message marshaling
-- [ ] Tests: roundtrip serialisation for std_msgs/String
+- [ ] std_msgs helpers for the common primitives using caller-owned
+      buffers (String lands in the live suite already); custom `.msg`/`.idl`
+      codegen pass.
 
-## v1.0.0 -- Stable Release
+## v1.0.0 -- Stable
 
-- [ ] All above features complete
-- [ ] 90%+ test coverage on all modules
-- [ ] Full API documentation
-- [ ] Cross-platform CI: Windows (choco), Linux (apt), macOS (brew)
-- [ ] ROS 2 Humble + Iron + Jazzy compatibility matrix
-- [ ] Security audit of all `unsafe` blocks
-- [ ] Formal contract verification (xiom-verify) on public API
+- [ ] Full declared surface + distro matrix verified live (Humble/Iron/
+      Jazzy; `rcl_timer_init` fallback re-verified on Humble hardware).
+- [ ] 90%+ coverage on all modules; formal contract verification once the
+      Z3 emitter handles Str-touching shapes; cross-platform CI.
 
 ---
 
@@ -83,16 +81,13 @@
 
 | Feature | Priority | Notes |
 |---------|----------|-------|
-| Actions (goal-oriented) | Medium | `rcl_action_create`, feedback/result streaming |
-| Lifecycle nodes | Medium | Managed nodes with configure/activate/deactivate states |
-| TF2 transforms | High | `tf2_ros` buffer + broadcaster/listener |
-| Composition | Medium | Node composition via `rclcpp_components` |
-| Intra-process comms | Medium | Zero-copy pub/sub within the same process |
-| Time/Timers | High | `rcl_timer_init`, ROS clock abstraction |
-| Executors | Medium | Multi-threaded executor, callback groups |
-| Launch system | Low | `.launch.py` generation from XIOM DAG |
-| RViz visualisation | Low | Marker message publishers |
-| rosbag2 | Low | Playback / recording of topic data |
+| Actions (goal-oriented) | Medium | after callbacks land |
+| Lifecycle nodes | Medium | managed node states |
+| TF2 transforms | High | separate `xiom.tf2` package candidate |
+| Composition | Medium | `rclcpp_components` is out of the C surface |
+| Intra-process comms | Low | rmw-level, not rcl |
+| Launch system | Low | `.launch.py` generation |
+| RViz / rosbag2 | Low | ecosystem tools, not core bindings |
 
 ---
 
@@ -100,8 +95,16 @@
 
 ```
 xiom.ros2 (this package)
-  |-- xiom-std (stdlib: string, collections, ptr)
-  |-- rcl + rclc C libraries (ROS 2 Humble+, system-installed)
-  |-- rosidl_typesupport (message type support)
-  `-- ros2_bridge.c (thin C FFI wrapper)
+  |-- xiom-std (string, collections, ptr)
+  |-- xiom.ffi.dl (runtime symbol resolution; no build-time link)
+  |-- librcl + rmw + DDS (system-installed at run time)
+  `-- typesupport libs resolved per message package (e.g. std_msgs)
 ```
+
+## Version matrix / ABI pin
+
+ABI layouts pinned to rcl rolling `e5754f0d` + rmw `4158e1ed` + rcutils
+`0f55f24e` (SPEC section 3; humble/iron/jazzy header diffs checked -- qos
+order + wait-set layout stable; Humble timer fallback in the loader).
+Re-carve: re-verify the offsets + entry-point set against the target
+distro's headers and update SPEC/PROVENANCE in one commit.
