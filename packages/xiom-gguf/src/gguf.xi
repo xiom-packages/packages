@@ -406,7 +406,7 @@ fn _parse_kv_value(g: &mut Gguf, buf: &Vec[UInt8], total: Int, pos_in: Int, key:
   var sv = "";
   var at = 0;
   var ac = 0;
-  var aoff = g.arr_ints.len();
+  var aoff = 0;
   if t == 0 {
     let r = _rd_i8(buf, total, pos);
     if !r.is_ok { return _err_int(r.error); }
@@ -465,6 +465,11 @@ fn _parse_kv_value(g: &mut Gguf, buf: &Vec[UInt8], total: Int, pos_in: Int, key:
     if cnt > 1048576 { return _err_int("gguf: bad array element count"); }
     at = et;
     ac = cnt;
+    if et == 6 || et == 8 || et == 12 {
+      aoff = g.arr_strs.len();
+    } else {
+      aoff = g.arr_ints.len();
+    }
     pos = pos + 12;
     var e = 0;
     while e < cnt {

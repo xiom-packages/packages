@@ -4,7 +4,7 @@
 
 # xiom.gguf
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.2` on the XIOM registry; `0.1.3` fixes the string-array origin defect (XGGUF-ARRSTR) pending publish.
 
 A production-grade, dependency-free GGUF container **header** codec for
 XIOM: parse the metadata KV table and tensor-info table of llama.cpp-family
@@ -14,7 +14,8 @@ header to append tensor payloads to.
 * Pure XIOM, no FFI, deps: `xiom.std` only.
 * Deterministic `Err(Str)` catalog (see SPEC.md §6).
 * Integer-only internals: floats are preserved as raw LE bytes in hex.
-* 24 conformance checks (`tests/test_conformance.xi`).
+* 26 conformance checks (`tests/test_conformance.xi`) -- includes the
+  two-string-array origin isolation regression (XGGUF-ARRSTR).
 
 ## Install
 
