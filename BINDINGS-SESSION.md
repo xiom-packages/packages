@@ -1315,6 +1315,16 @@ LIVE)**:
 - Compiler: **cut gate GREEN on m334-m345** (full battery) -- v0.64.6
   release imminent; XVC-C-18 recon launched.  Eco through `.192`;
   PULSE already consumer-verified ssl+brotli x2 both platforms.
+- 19:45Z: **family 8/8 CONFIRMED COMPLETE** -- `xiom.android 0.4.0`
+  published 19:26Z via the single-package tag `xiom-android/v0.4.0`
+  (run 38954866471; sha256 `2b9cf462...`; re-grant live eco-554).
+  Closing `-1305`/`-1322` from our side is TOOL-BLOCKED (bindings
+  cannot move `to=packages` items) -> closure request filed
+  `REL-20261016-1943-bindings`.  R2 wave (serial/onnx/v4l/gps/epos/
+  ros2; `am-1792178818502-r7skkf`) was launched by the sibling
+  session per the owner go -- this lane watches + lands.  m346
+  (XVC-C-18) integrated into the held v0.64.6 cut candidate (battery
+  rerunning).
 
 **UPDATE 2026-10-16 19:25Z (ML/AI + robotics program -- acked + queue
 folded; 20 built names confirmed)**: owner directive (19:16Z) relayed by
