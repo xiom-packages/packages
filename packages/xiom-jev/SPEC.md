@@ -1,0 +1,262 @@
+<!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
+<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
+# xiom.jev -- SPEC (M1)
+
+`xiom.jev` 0.1.0 -- the TypeSafe Jev client tier ("System One" structured
+decisions) of the ML/AI coverage program, paired with `xiom.llm` (System
+Two text). This file is the doc-of-record for the M1 slice: sources, surface,
+rules, catalog, evidence, deviations and open items.
+
+## 1. Identity and M1 scope
+
+JEV = System One: structured decisions where the answer space is known in
+advance. One request carries a state (text or JSON) and a set of typed
+questions (several per request, evaluated in parallel server-side); the
+response carries one typed answer per question with the full probability
+distribution and (choice/score) confidence.
+
+M1 (this package, implemented): state (text | JSON), typed questions
+(choice / score / noul), request builder, response parser (typed answers +
+micro-unit probabilities + confidence + usage), deterministic selection
+helpers (argmax / threshold / sample-by-probability from caller-supplied
+entropy), typed Err catalog, transport over the xiom.http 0.1.7 client
+surface + xiom.serialize.json.
+
+Out of M1 (see ROADMAP.md): structured instructions/criteria (objects and
+arrays), the danger-zone `box` question/answer, media assets, compression,
+retry/backoff policy, hierarchical-classification helpers, legend exposure.
+
+## 2. Schema sources and fixture map
+
+Sources (fetched 2026-10-16; read-only references):
+
+| # | Source | Used for |
+|---|---|---|
+| S1 | https://docs.typesafe.ai/introduction | concepts: primitives, System One, atomic questions, fan-out motivation |
+| S2 | https://docs.typesafe.ai/introduction/quickstart | exact endpoint/auth/body/raw-response shape; the 3-question ticket example |
+| S3 | https://docs.typesafe.ai/primitives/choice | Choice request/response schemas; the 1-question and 5-question triage examples; structured criteria |
+| S4 | https://docs.typesafe.ai/primitives/score | Score request/response schemas; score = probability-weighted level mean; legend; structured levels |
+| S5 | https://docs.typesafe.ai/primitives/noul | Noul request/response schemas; optional true/false criteria; no confidence |
+| S6 | https://docs.typesafe.ai/confidence | confidence semantics (choice/score formulas; noul = |2p-1|) |
+| S7 | https://docs.typesafe.ai/patterns/fan-out | send all questions in one call; route in code |
+| S8 | https://api.typesafe.ai/openapi.json (v0.2.0) | SystemOneRequest/SystemOneResponse schemas; limits (choice 1..255 options, score 1..10 levels); HTTPValidationError (`{"detail":[{"loc","msg","type"}]}`) for 422; HTTPBearer auth |
+| S9 | https://github.com/browser-use/jev-ultrafast (MIT), commit `1231850a0bf1a0c0341fe408ef1668dbbfdfac46` | real request/response payload shapes (`jev_ultrafast/model.py`: state as text|object, questions map, `probabilities`/`confidence`/`choice` validation, `usage` optional, retry on 429/529/503) |
+
+Fixture map (tests/test_conformance.xi):
+
+| Test | Mirrors |
+|---|---|
+| t1 | S3 first request (department Choice) byte-exact; t2: S2 quickstart request byte-exact (3 mixed questions); t3: S5 criteria true/false + S3 null-description option; t4: S8 state-as-object |
+| t5/t6 | validation limits from S3 (255 options), S4 (min 2 / max 10 levels), S8 (minProperties 1) |
+| t7 | S3 first response example; t8: S3 five-question triage response; t9: S4 bug_severity response (score 1.43); t10: S4 structured-levels response (legend values as objects); t11: S5 two-noul response; t12: S9 optional usage (reference client's `result.get("usage", {})`) |
+| t13..t16 | S8 required fields + S9 fail-closed validation intent (choice present & argmax, sum tolerance) |
+| t17 | forward compatibility (unknown extra fields ignored) |
+| t18..t22 | S3/S6 thresholds and S7 "route in code"; entropy boundaries are package rules (section 7) |
+| t23..t26 | presentation + endpoint + error-body decode (S8 422 shape) |
+
+## 3. Declared module surface
+
+| Module | M1 public surface |
+|---|---|
+| `xiom.jev` | `default_model`, `default_base_url`, `version`, `systemone_endpoint` |
+| `xiom.jev.types` | `state_text`, `state_json`, `question_choice`, `question_add_option`, `question_score`, `question_add_level`, `question_noul`, `question_set_noul_criteria`, `answers_new`, `response_new`, accessors (`response_count/id/kind/find/choice/confidence_micro/score_micro/noul_micro/prob_count/prob_label/prob_micro/prob_find/prob_total_micro/has_usage/input_tokens/output_tokens`), `kind_name`, `micro_text`, constants `MICRO`, `KIND_CHOICE`, `KIND_SCORE`, `KIND_NOUL` |
+| `xiom.jev.request` | `build_request` |
+| `xiom.jev.response` | `parse_response`, `api_error_detail` |
+| `xiom.jev.selection` | `answer_argmax`, `answer_argmax_label`, `answer_max_micro`, `answer_count_at_or_above`, `answer_labels_at_or_above`, `answer_sample_index`, `answer_sample_label`, `choice_answer_covers_question`, `score_round_level`, `score_normalized_micro`, `noul_yes`, `noul_confidence_micro` |
+| `xiom.jev.errors` | `JevError`, `jev_error_kind`, `jev_error_text` |
+| `xiom.jev.client` | `system_one` |
+
+Per the program brief there are NO contracts (`requires:`/`ensures:`) on new
+functions; every accessor guards its indices (out-of-range returns ""/-1/0 as
+documented) and every rejected input returns a stable typed error string.
+
+## 4. Micro units and the JSON boundary
+
+- prob / confidence / noul in [0,1]: stored as `micro = round(value * 1000000)`
+  (round half away from zero, `math.round`), range [0, 1000000].
+- score: stored as `score_micro = round(score * 1000000)`; one rubric level is
+  1000000 micro (domain 0 .. top level, max 9000000 for 10 levels).
+- tokens: `math.round(value)` after a non-negative check.
+- The ONLY Float64 touch points are parsing a response number and letting
+  `json_stringify` render numbers inside a JSON state. All selection/
+  rendering arithmetic is integer-only. `NaN` fails the `>=`/`<=` bounds
+  (a NaN comparison is false), so non-finite values are rejected as
+  out-of-range.
+
+## 5. Request shape and validation
+
+Body (insertion-ordered, compact): `{"state":...,"model":...,"questions":{id:
+{"type","instructions",["criteria"]}}}`. Choice criteria = object of option ->
+description (empty description -> `null`, per S3); Score criteria = ordered
+array of level descriptions; Noul criteria = object emitted only when at
+least one of true/false is non-empty, keys in order `true`, `false` (S5).
+Question ids are never sent to the model (S2/S3) but are the answer keys.
+
+Rejections (BadRequest). Order: model -> state -> question count -> per
+question (id, duplicates, instructions, kind-specific):
+
+| Reason string |
+|---|
+| `request: model is empty` |
+| `request: state is empty` (text states only; an empty JSON document is allowed) |
+| `request: no questions` |
+| `request: question <i>: id is empty` (i = 0-based position) |
+| `request: duplicate question id '<id>'` |
+| `request: question '<id>': instructions is empty` |
+| `request: question '<id>': choice needs at least one option` |
+| `request: question '<id>': choice has more than 255 options` |
+| `request: question '<id>': choice options are malformed` (labels/texts drifted) |
+| `request: question '<id>': choice option <j>: label is empty` |
+| `request: question '<id>': score needs at least 2 levels` |
+| `request: question '<id>': score has more than 10 levels` |
+| `request: question '<id>': score level <j>: description is empty` |
+| `request: question '<id>': unknown question kind` |
+
+## 6. Error catalog
+
+`JevError` variants and `jev_error_text` rendering:
+
+| kind | variant | text | trigger |
+|---|---|---|---|
+| 0 | `BadRequest(reason)` | `jev: bad request: <reason>` | section 5; `client: base_url is empty`; `client: api_key is empty` |
+| 1 | `Transport(reason)` | `jev: transport: <reason>` | the libcurl bridge failed (no HTTP response; reason is the curl-level message) |
+| 2 | `HttpStatus(code, detail)` | `jev: http <code>: <detail>` | non-2xx status; `detail` = decoded API error message else the first 200 chars of the raw body |
+| 3 | `Parse(reason)` | `jev: parse: <reason>` | section 6.1 |
+
+Response Parse reasons (all prefixed `response: `; per-answer ones use
+`response: answer '<id>': `):
+
+- structural: `invalid JSON`, `root is not an object`, `missing model`,
+  `model is not a string`, `model is empty`, `missing answers`,
+  `answers is not an object`, `answers is empty`, `answer '<id>': not an
+  object`, `answer '<id>': missing type`, `answer '<id>': type is not a
+  string`, `answer '<id>': unknown answer type '<t>'` (includes `box` in M1).
+- choice: `missing choice`, `choice is not a string`, `choice is empty`,
+  `missing probabilities`, `probabilities is not an object`, `probabilities
+  is empty`, `probability '<l>' is not a number`, `probability '<l>' out of
+  range`, `probabilities sum out of tolerance`, `choice '<l>' is not in
+  probabilities`, `choice '<l>' is not the highest-probability option`,
+  `missing confidence`, `confidence is not a number`, `confidence out of
+  range`.
+- score: `missing score`, `score is not a number`, `score out of range`
+  (domain [0, 10]), `missing legend`, `legend is not an object`, `legend is
+  empty`, `probability '<l>' is not in legend`, plus the choice set above
+  (probabilities/confidence/sum).
+- noul: `missing noul`, `noul is not a number`, `noul out of range`.
+- usage: `usage is not an object`, `usage.input_tokens is not a number`,
+  `usage.input_tokens out of range`, `usage.output_tokens is not a number`,
+  `usage.output_tokens out of range`.
+
+Validation semantics: probability keys/legend values may be strings or
+structured (S4); a choice's selected option must be present in probabilities
+and be a maximum (mirrors S9's `validate_choice`); a score's probability keys
+must be a subset of legend keys; distribution sums must be within +/- 2% of
+1.0 (micro sum in [980000, 1020000], mirroring S9's tolerance); `usage` is
+optional (S9) and its token keys are optional within it; unknown extra fields
+are ignored (forward compatibility). Answer order follows wire order.
+
+## 7. Selection rules (pinned)
+
+- `answer_argmax`: index of the maximum micro; ties -> lowest index; an
+  all-zero vector with >= 1 entry -> index 0 (documented corner); no
+  probabilities -> -1.
+- Threshold (`answer_count_at_or_above` / `answer_labels_at_or_above`):
+  inclusive (`micro >= threshold`); labels in criterion order.
+- `answer_sample_index(r, i, entropy)`: the package never draws entropy;
+  the caller supplies any Int. `u = ((entropy % total) + total) % total`
+  (Euclidean modulo; negative entropy wraps deterministically). Option j owns
+  the half-open interval `[cum_before, cum_before + p_j)` in wire order; an
+  exact cumulative boundary selects the later option. Zero-probability
+  options are never selected. `total <= 0` or no probabilities -> -1. Same
+  entropy + same distribution -> same index, on every run and platform.
+- `score_round_level`: nearest level, halves away from zero.
+- `score_normalized_micro(score_micro, top_level)`: score / top_level, halves
+  away from zero (integer q/r rule); `top_level <= 0` -> 0.
+- `noul_yes`: inclusive threshold gate. `noul_confidence_micro`: `|2p - 1|`
+  (S6's Noul formula).
+- `micro_text`: integer-only rendering, trailing zeros stripped
+  (`610000 -> "0.61"`, `1000000 -> "1"`, negatives -> `"0"`).
+
+## 8. Transport, known gap, live probe
+
+`system_one(base_url, api_key, model, state, questions)` composes
+`<base_url>/v1/systemone` (trailing slashes collapsed), builds the body,
+converts it to UTF-8 bytes, calls `xiom.http.client.http_post(..., 
+"application/json")`, and parses 2xx bodies. No new FFI; TLS is the
+consumer's libcurl bridge.
+
+**KNOWN GAP -- Authorization (upstream):** the xiom.http 0.1.7 client
+surface (`packages/xiom-http/README.md` "Client surface") cannot attach
+custom request headers: `http_post`/`http_get`/`http_put`/`http_delete` take
+no header parameter and `http_send` only forwards Content-Type from
+`HttpRequest.headers`. The API requires `Authorization: Bearer <key>`
+(S2/S8, HTTPBearer). The call implemented here is wire-correct and reaches
+the API, which answers 401; `api_key` is validated and reserved. The probe
+reports that typed 401 as `[SKIP]` with its decoded detail (never as PASS)
+until custom-header support lands in xiom.http.
+
+Probe invocation (documented in README and tests/probe_live.xi; read the key
+from the environment only, never store it):
+
+```powershell
+xiom --run packages\xiom-jev\tests\probe_live.xi `
+  --c-source packages\xiom-http\bridge\xiom_http_shims.c `
+  --link curl --link-path <scratch-with-curl.lib>
+```
+
+Evidence (this session, 2026-10-16): `xiom --check tests\probe_live.xi`
+-> "Type check PASSED"; full build with the shim + vcpkg `libcurl.lib` copied
+as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
+`[SKIP] TYPESAFE_API_KEY is not set; no network call made`, exit 0.
+
+## 9. Deviations from the references
+
+1. **Float-free micro units** (house style; compiler trap: no `Vec[Float64]`):
+   probabilities/confidence/noul/score are Int micro units; the reference
+   client (S9) and SDKs use floats. Conversion happens once at the JSON
+   boundary with documented rounding.
+2. **Tighter choice validation**: S9 checks `probabilities[choice] >= max -
+   1e-6`; here the parser requires `micro[choice] == max` after rounding and
+   additionally requires |sum - 1| <= 0.02 (same tolerance as S9, applied in
+   micro).
+3. **`box` answers rejected** as unknown type in M1 (danger-zone API, needs
+   `TypeSafe-Danger-Zone-Images` and vision models; S8).
+4. **Structured instructions/criteria not built**: M1 accepts string
+   instructions and string criteria entries only; S3/S4/S5 document object/
+   array forms.
+5. **No retry policy**: S9 retries 429/529/503 with backoff; M1 returns the
+   typed `HttpStatus` and leaves retry to the caller (ROADMAP).
+6. **No base_url/API-key whitespace normalization**: S2's SDK trims keys and
+   rejects internal whitespace; M1 only rejects empty values.
+7. **`usage` optional** (mirrors S9, though S8 lists it required).
+
+## 10. Test strategy and evidence
+
+- Suite: `tests/test_conformance.xi` -- 26 test functions, **82/82 checks
+  passed, x2** (two consecutive runs) via
+  `& .\scripts\port.ps1 -Package xiom-jev -TimeoutSec 180` on compiler
+  `v0.64.5` (native-session, 2026-10-16); `program_exit=0` both runs.
+- Offline/deterministic: no API key, no network, no randomness; selection
+  uses hand-supplied entropy; request fixtures are compared byte-exact.
+- Link-free: the suite never imports `xiom.jev.client` (the transport links
+  the libcurl bridge); the client is covered by `xiom --check` and the probe.
+- STATUS.json is seeded (`incubating`, `tests: unknown`, `publish: false`)
+  per the program's porter conventions; recording the run is the
+  coordinator's step.
+
+## 11. Unresolved items
+
+1. **Custom request headers in xiom.http** (blocker for a live 2xx): needs a
+   header-capable `http_post`/`http_send` (or a consumer bridge) -- then
+   `system_one` can attach `Authorization` and the probe's [PASS] leg becomes
+   reachable. Owner: xiom.http lane (0.1.7 surface note; see ROADMAP).
+2. **Live verification** of the 401 detail decode and of a real 2xx parse
+   could not be exercised here: no `TYPESAFE_API_KEY` is available in this
+   session (by design none is stored).
+3. **Confidence formula reimplementation** (S6 choice/score formulas) is not
+   exposed in M1; the API-returned confidence is carried through. Planned M2.
+4. **`Vec[StructType]` / `&Result` compiler traps**: `Result` payloads must
+   be read via a local binding or matched by value (a `&Result` parameter
+   that reads `r.value` crashes with an access violation on `v0.64.5`,
+   reproduced in scratch probes during this build); the package and suite
+   follow the safe patterns everywhere.
