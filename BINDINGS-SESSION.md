@@ -1005,6 +1005,23 @@ E-family publish:
 - **v0.64.5 tag still HELD** (`-2123` stdlib regression fix in progress);
   on tag -> packages repin -> the lane's RE-VERIFY WAVE (m275-m294).
 
+**UPDATE 2026-10-16 12:10Z (doorbell: eco .186/.187 recorded; brotli in
+build; TLS naming forwarded; Android A3/A4 wave starting)**:
+- **Published this window**: `xiom.template` 0.2.0 (`.186`); **`xiom.box2d`
+  0.4.0 + `xiom.miniaudio` 0.4.0 (A02/A04) in `eco-v0.1.187`** (engine
+  wave-5 relayed; tally **103 releases**).  `.188` in flight (allowlist
+  543 -> 545).
+- **PULSE top-tier builds**: the brotli session is deep in the build
+  (`xiom-brotli` staged; ~42k additions).  The TLS session is early --
+  the approved **`xiom.ssl`** naming + by-function scope was forwarded
+  to it directly (libssl-class loader; mbedTLS explicitly NOT a switch;
+  the ops registry scope is already queued with packages, so
+  first-publish is uncoupled).
+- Android program: wave-2 landed earlier; a new **A3/A4 wave** worktree
+  is starting (`android/a3-a4`).  Relay `-1150-packages(-2)` acked
+  (naming + token adoptions; box2d/miniaudio live note).  v0.64.6
+  (darwin fix) still pending; installed v0.64.5.
+
 **UPDATE 2026-10-16 11:15Z (doorbell: A02/A04 records re-pointed + their
 publish requests filed; TLS/brotli sessions launched)**: 
 - **A02 box2d 0.4.0 + A04 miniaudio 0.4.0** were landed by the morning
