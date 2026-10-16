@@ -3,15 +3,57 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-14 (14:25Z), by the main/packages session (v0.64.4
-pinned; **wave-3 PUBLISHED -- all 11 live in `eco-v0.1.179`**; full pipeline
-ran relay check -> merge -> validate -> regen -> x2 -> record -> ops gate ->
-wrap/tag/publish -> live-verify -> README/STATUS sync -> engine relay. Check
-`git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-16 (11:30Z), by the main/packages session (v0.64.5
+pinned; **batches 88+89 published; three builds parked green; ops scopes are
+the only gate**; context-window handoff -- the block below is complete for a
+cold start). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-14 14:25Z (WAVE-3 PUBLISHED -- all 11 live in eco-v0.1.179; 95 eco releases; this block is the live handoff):**
+**STATE AT 2026-10-16 11:30Z (CLEAN HANDOFF -- cold-start block; everything below it is history):**
+- **Pin v0.64.5** (repin `cb364af3`; archive sha256 `bd71e2d3`; canonical install byte-identical
+  557/557). Validate **561/0**; guard **543 allowlisted / 527 ready / 16 grandfathered / 0 failures**.
+  **103 eco releases** (`eco-v0.1.86` -> `eco-v0.1.187`).
+- **Published this window (all synced + relayed)**: `xiom.template` 0.2.0 (`eco-v0.1.186`; sha
+  `bedd03a9`; stable badge; PULSE top-tier item 1, relayed `-1111`); `xiom.box2d` 0.4.0 (A02) +
+  `xiom.miniaudio` 0.4.0 (A04) (`eco-v0.1.187`; sha `04fe2147`/`382a16f0`; engine wave-5 relayed
+  `-1124`). Wait-window trio + lifts earlier: durable+postgres (`eco-v0.1.183`), redis
+  (`eco-v0.1.184`), glfw 0.6.0+sdl3 0.20.0 (`eco-v0.1.185`).
+- **PARKED GREEN -- THE ONLY GATE = OPS SCOPES**: `xiom.transport` 0.1.0 (A08; 36/36 x2; feat
+  `1c8fbf11`, record `02a3489d`; scope ask **`REL-20261015-2138-packages` OPEN**) + `xiom.otel`
+  0.1.0 (30/30 x2; feat `4d4fe157`, record `ca42abc2`; scope ask **`REL-20261015-2216-packages`
+  OPEN**). Ops lane quiet since 2026-10-15 19:45; wrap signal `-2309-3` sent. **On LIVE confirm**:
+  allowlist 543 -> 545 + wrap + tag **`eco-v0.1.188`** + approve registry-publish env + watch +
+  live-verify + README/STATUS/PACKAGE_STATUS sync + engine relay (transport = A08 seam) / PULSE
+  relay (otel). If ops stays quiet, the owner must chase or authorize an alternate scope route.
+- **Queue / expected next work**: (1) ops scopes above; (2) bindings' android-family publish
+  requests (`xiom.aaudio`/`xiom.mediandk`/`android 0.3.0` are in-tree now -- 561 packages -- but
+  NEW names need scopes before allowlist/publish); (3) pulse-sails core extraction opens when PULSE
+  files the milestone at keep-alive A+B green (`xiom.pulse` slot free; porter flow; `-1108` acked);
+  (4) TLS context + real brotli = bindings queue (`-2211` canonical pair; `-2302` duplicate agreed);
+  (5) **v0.64.6** repin + re-verify when released (compiler has m334 ready for `-1941`; B-29 +
+  B-32 open; editor W1/W2 rows re-verify).
+- **Findings filed this window (all with owning lanes)**: `-1941` tuple-namer (fix ready m334);
+  `-1942` md5 (FIXED in stdlib wave 140); `-1948` socket_connect refused-Ok (FIXED wave 143);
+  `-2303` enum-variant defects (16-probe bundle in `%TEMP%\kilo\otel-findings\enum-float\`);
+  `-2309` mixed-element tuples (stdlib `socket_recv_from` wrapper unusable on the pin -- runtime
+  primitive sound; transport wraps it directly) + `-2309-2` bare-assert mis-binding.
+- **Operations**: hourly cron watch `wku_141b5f9f9001epkcHHLGVh5P14` (mode: land + watch; processes
+  routine publish requests unattended; no new builds). A second packages window has been active
+  (dedupe note `-2313`; main window is the stated single writer for wraps/publishes). Bus validate
+  is currently RED bus-wide from `REL-20261010-1549-registry-3` (registry lane's non-ASCII glyph --
+  foreign; left to its lane). **Tool learnings**: dep-consuming suites need
+  `XIOM_HOME=%TEMP%\kilo\consumer-home` (xiom.wal etc.); the shared live stdlib
+  (`E:\xiom-lang\stdlib`) can be mid-save by the stdlib lane -- a transient compile error inside it
+  means re-run, not a package bug; merge STATUS conflicts: main side keeps publish-sync reasons +
+  platform/runtime rows (wave-3 rule) but for a delivery wave keep the landing lane's fresh records
+  + platform rows (A02/A04 rule) -- in doubt, re-run x2 and re-record after merge.
+- **Environment**: Windows; toolchain `xiom` on PATH (0.64.5); relays clone `E:\xiom-lang\xiom-relays`
+  (shared with other lanes -- leave foreign WIP alone; `python tools/relay.py` for all item ops).
+  Cold-start order: pull both repos -> read this block -> `relay.py view --lane packages` -> process
+  open asks (routine publishes per the owner exception; nothing strategic without the owner).
+
+**STATE AT 2026-10-14 14:25Z (history -- wave-3 published; superseded by the 2026-10-16 11:30Z block above):**
 - **Wave-3 CLOSED end-to-end**: `REL-20261014-1331-bindings` fixed. Merge `945b795f` (tip `dd160416`;
   README/STATUS resolved to bindings + published lines restored); validate **553/0**; regen `50b65cee`;
   native x2 ALL GREEN @ `50b65cee` (`2d3fc725`): ffmpeg 23/23 x2 both gens (Blender 7.1.1 + GIMP 6.1.1)
