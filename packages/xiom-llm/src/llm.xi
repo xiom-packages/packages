@@ -26,9 +26,10 @@
 //     pairs that still occupy their rank index.
 //   * llama.cpp's per-byte fallback for unknown final symbols is replaced by
 //     a fail-closed error (documented deviation; see SPEC.md section 8).
-//   * string-array elements are read through a local workaround for an
-//     observed xiom.gguf 0.1.2 parse-offset defect (XGGUF-ARRSTR; see the
-//     _arr_str_origin comment below and SPEC.md section 9).
+//   * string-array elements are read through gguf_kv_arr_str; the temporary
+//     XGGUF-ARRSTR parse-offset workaround was removed once xiom.gguf 0.1.3
+//     carried the upstream origin fix (element types 6/8/12 now record the
+//     arr_strs origin; see SPEC.md section 9, now resolved).
 //
 // v0.61.3+ compiler notes that shaped this module: free functions only;
 // Ok/Err construction is confined to the leaf helpers below; Str values
@@ -87,6 +88,26 @@ fn _err_vocab(m: Str) -> Result[LlmVocab, Str] {
   return Err(m);
 }
 
+// Ok(v) for Result[Vec[UInt8], Str].
+fn _ok_bytes(v: Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+  return Ok(v);
+}
+
+// Err(m) for Result[Vec[UInt8], Str].
+fn _err_bytes(m: Str) -> Result[Vec[UInt8], Str] {
+  return Err(m);
+}
+
+// Ok(v) for Result[LlmScale, Str].
+fn _ok_scale(v: LlmScale) -> Result[LlmScale, Str] {
+  return Ok(v);
+}
+
+// Err(m) for Result[LlmScale, Str].
+fn _err_scale(m: Str) -> Result[LlmScale, Str] {
+  return Err(m);
+}
+
 // --------------------------------------------------
 //  Types
 // --------------------------------------------------
@@ -115,6 +136,16 @@ pub type LlmVocab = {
   merge_r: Vec[Str];
   bos: Int;
   eos: Int;
+}
+
+/// Exact scaled-integer representation of a real number: the value is
+/// `m / 2^e` with `m` and `e` plain Ints (no floating point anywhere). A
+/// decoded f16/f32 scale or a dequantized tensor block carries one of these;
+/// `llm_dequant_q8_0` returns the shared block scale as the pair (m, e) such
+/// that the exact real value of output `i` is `out_values[i] / 2^e`.
+pub type LlmScale = {
+  m: Int;
+  e: Int;
 }
 
 // --------------------------------------------------
@@ -205,67 +236,6 @@ fn _kv_index_or_neg(g: &Gguf, key: Str) -> Int {
   return -1;
 }
 
-// True for array element type codes whose parsed elements are stored in
-// `Gguf.arr_strs` (strings and the raw-byte hex forms of f32/f64).
-fn _elem_in_arr_strs(et: Int) -> Bool {
-  return et == 6 || et == 8 || et == 12;
-}
-
-// Workaround origin for entry `i`'s string-array elements (XGGUF-ARRSTR).
-//
-// Observed on xiom.gguf 0.1.2 (24/24 conformance suite green, which does
-// not exercise string arrays): `gguf_parse` initializes the per-entry array
-// origin as `g.arr_ints.len()` (src/gguf.xi, `_parse_kv_value`), which is
-// the correct origin only for integer arrays. For an array whose elements
-// live in `arr_strs` the recorded `kv_arr_off` is therefore 0 (or some
-// stale `arr_ints` length), and `gguf_kv_arr_str` then returns elements of
-// an EARLIER string array (the first one is accidentally right only because
-// it starts at 0 with no int-array contamination).
-//
-// The parse itself appends `arr_strs` elements in KV declaration order, so
-// the true origin is recoverable: the number of `arr_strs` elements
-// contributed by all earlier KVs. This helper computes exactly that;
-// xiom.llm reads string-array elements through it and never through the
-// recorded offset. The builder side of xiom.gguf is unaffected (it records
-// `arr_strs.len()` at add time and its bytes are exact). Reported to the
-// lane coordinator for an upstream xiom.gguf patch; the workaround is
-// local and can be deleted once a fixed xiom.gguf lands.
-fn _arr_str_origin(g: &Gguf, i: Int) -> Int {
-  let types: Vec[Int] = g.kv_types;
-  let ats: Vec[Int] = g.kv_arr_type;
-  let cnts: Vec[Int] = g.kv_arr_count;
-  var sum = 0;
-  var j = 0;
-  while j < i {
-    let t: Int = types[j];
-    if t == 9 {
-      let et: Int = ats[j];
-      let c: Int = cnts[j];
-      if _elem_in_arr_strs(et) {
-        sum = sum + c;
-      }
-    }
-    j = j + 1;
-  }
-  return sum;
-}
-
-// String-array element `e` of entry `i` through the recovered origin.
-// Callers pre-validate `cnt`; the failure arm is defensive only and maps to
-// the caller's own deterministic message.
-fn _arr_str_at(g: &Gguf, i: Int, e: Int, cnt: Int) -> Result[Str, Str] {
-  if e < 0 || e >= cnt {
-    return _err_str("llm: array element out of range");
-  }
-  let off = _arr_str_origin(g, i);
-  let sv: Vec[Str] = g.arr_strs;
-  if off + e >= sv.len() {
-    return _err_str("llm: array element out of range");
-  }
-  let s: Str = sv[off + e];
-  return _ok_str(s);
-}
-
 /// Extract the tokenizer vocabulary from a GGUF header parsed by
 /// xiom.gguf. Params: g - the parsed header. Returns: the LlmV ocab with
 /// tokens, merge table, optional token types and optional bos/eos ids.
@@ -316,7 +286,7 @@ pub fn llm_vocab_from_gguf(g: &Gguf) -> Result[LlmVocab, Str] {
   var tokens = Vec[Str].new();
   var e = 0;
   while e < n_tokens {
-    let er = _arr_str_at(g, ti, e, n_tokens);
+    let er = gguf_kv_arr_str(g, ti, e);
     if !er.is_ok {
       return _err_vocab("llm: tokenizer tokens is not a string array");
     }
@@ -347,7 +317,7 @@ pub fn llm_vocab_from_gguf(g: &Gguf) -> Result[LlmVocab, Str] {
   var merge_r = Vec[Str].new();
   var m = 0;
   while m < n_merges {
-    let mr2 = _arr_str_at(g, gi, m, n_merges);
+    let mr2 = gguf_kv_arr_str(g, gi, m);
     if !mr2.is_ok {
       return _err_vocab("llm: tokenizer merges is not a string array");
     }
@@ -611,4 +581,316 @@ pub fn llm_bpe_decode(v: &LlmVocab, ids: &Vec[Int]) -> Result[Str, Str] {
     i = i + 1;
   }
   return _ok_str(out);
+}
+
+// --------------------------------------------------
+//  GGML element-size tables (SPEC.md 10.1)
+// --------------------------------------------------
+
+// Human-readable ggml type name for the standard llama.cpp type codes;
+// "unknown" for anything else. Codes follow ggml.h (GGML_TYPE_*).
+pub fn llm_ggml_type_name(t: Int) -> Str {
+  if t == 0 { return "f32"; }
+  if t == 1 { return "f16"; }
+  if t == 2 { return "q4_0"; }
+  if t == 3 { return "q4_1"; }
+  if t == 6 { return "q5_0"; }
+  if t == 7 { return "q5_1"; }
+  if t == 8 { return "q8_0"; }
+  if t == 9 { return "q8_1"; }
+  if t == 10 { return "q2_K"; }
+  if t == 11 { return "q3_K"; }
+  if t == 12 { return "q4_K"; }
+  if t == 13 { return "q5_K"; }
+  if t == 14 { return "q6_K"; }
+  if t == 15 { return "q8_K"; }
+  return "unknown";
+}
+
+// Elements per block for ggml type `t`; 0 when the type is unknown.
+// f32/f16 are 1 element per "block"; the 4/5/8-bit families are 32;
+// the K-quants are 256 (QK_K).
+pub fn llm_ggml_block_elems(t: Int) -> Int {
+  if t == 0 || t == 1 {
+    return 1;
+  }
+  if t == 2 || t == 3 || t == 6 || t == 7 || t == 8 || t == 9 {
+    return 32;
+  }
+  if t >= 10 && t <= 15 {
+    return 256;
+  }
+  return 0;
+}
+
+// Bytes per block for ggml type `t`; 0 when the type is unknown. These are
+// the on-disk block sizes from llama.cpp ggml (f32 4, f16 2, q4_0 18,
+// q8_0 34, the K-quants 84..292), reproduced as an exact integer table.
+pub fn llm_ggml_block_bytes(t: Int) -> Int {
+  if t == 0 { return 4; }
+  if t == 1 { return 2; }
+  if t == 2 { return 18; }
+  if t == 3 { return 20; }
+  if t == 6 { return 22; }
+  if t == 7 { return 24; }
+  if t == 8 { return 34; }
+  if t == 9 { return 36; }
+  if t == 10 { return 84; }
+  if t == 11 { return 110; }
+  if t == 12 { return 144; }
+  if t == 13 { return 176; }
+  if t == 14 { return 210; }
+  if t == 15 { return 292; }
+  return 0;
+}
+
+// --------------------------------------------------
+//  Tensor extent validation (SPEC.md 10.1)
+// --------------------------------------------------
+
+/// Exact byte size of tensor `ti` in `g`: the product of its dimensions
+/// divided by the type's block element count, times the type's block byte
+/// count (exact integer arithmetic; no floats). Error cases:
+/// `llm: tensor index out of range`, `llm: tensor has negative dimension`,
+/// `llm: unknown ggml type`, `llm: tensor dims not divisible by block size`.
+pub fn llm_tensor_nbytes(g: &Gguf, ti: Int) -> Result[Int, Str] {
+  let nr = gguf_tensor_ndims(g, ti);
+  if !nr.is_ok {
+    return _err_int("llm: tensor index out of range");
+  }
+  let nd: Int = nr.value;
+  var nelem = 1;
+  var d = 0;
+  while d < nd {
+    let dr = gguf_tensor_dim(g, ti, d);
+    if !dr.is_ok {
+      return _err_int("llm: tensor index out of range");
+    }
+    let dv: Int = dr.value;
+    if dv < 0 {
+      return _err_int("llm: tensor has negative dimension");
+    }
+    nelem = nelem * dv;
+    d = d + 1;
+  }
+  let tr = gguf_tensor_type(g, ti);
+  if !tr.is_ok {
+    return _err_int("llm: tensor index out of range");
+  }
+  let ty: Int = tr.value;
+  let be = llm_ggml_block_elems(ty);
+  let bb = llm_ggml_block_bytes(ty);
+  if be <= 0 || bb <= 0 {
+    return _err_int("llm: unknown ggml type");
+  }
+  if nelem % be != 0 {
+    return _err_int("llm: tensor dims not divisible by block size");
+  }
+  return _ok_int((nelem / be) * bb);
+}
+
+/// Copy the payload of tensor `ti` out of container buffer `buf`. The slice
+/// is `data_offset + tensor_offset` for `llm_tensor_nbytes(g, ti)` bytes,
+/// after validating that the extent lies inside the declared data section
+/// (`gguf_data_len`) and inside `buf` itself. Error cases propagate the
+/// `llm_tensor_nbytes` errors, plus `llm: tensor extent out of data section`
+/// and `llm: buffer too small for tensor extent`.
+pub fn llm_tensor_data(g: &Gguf, buf: &Vec[UInt8], ti: Int) -> Result[Vec[UInt8], Str] {
+  let nr = llm_tensor_nbytes(g, ti);
+  if !nr.is_ok {
+    let m: Str = nr.error;
+    return _err_bytes(m);
+  }
+  let nbytes: Int = nr.value;
+  let orr = gguf_tensor_offset(g, ti);
+  if !orr.is_ok {
+    return _err_bytes("llm: tensor index out of range");
+  }
+  let toff: Int = orr.value;
+  let dl = gguf_data_len(g);
+  if toff < 0 || nbytes < 0 || toff + nbytes > dl {
+    return _err_bytes("llm: tensor extent out of data section");
+  }
+  let base = gguf_data_offset(g);
+  let start = base + toff;
+  if start + nbytes > buf.len() {
+    return _err_bytes("llm: buffer too small for tensor extent");
+  }
+  var out = Vec[UInt8].new();
+  var i = 0;
+  while i < nbytes {
+    let b: UInt8 = buf[start + i];
+    out.push(b);
+    i = i + 1;
+  }
+  return _ok_bytes(out);
+}
+
+// --------------------------------------------------
+//  Deterministic float-free numerics (SPEC.md 10.2/10.3)
+// --------------------------------------------------
+
+// Little-endian u16 assembled from two 0..255 integer bytes.
+pub fn llm_u16_le(b0: Int, b1: Int) -> Int {
+  return (b0 & 0xFF) | ((b1 & 0xFF) << 8);
+}
+
+// Little-endian u32 assembled from four 0..255 integer bytes.
+pub fn llm_u32_le(b0: Int, b1: Int, b2: Int, b3: Int) -> Int {
+  return (b0 & 0xFF) | ((b1 & 0xFF) << 8) | ((b2 & 0xFF) << 16) | ((b3 & 0xFF) << 24);
+}
+
+/// Decode an IEEE-754 binary16 bit pattern (low 16 bits of `bits`) into the
+/// exact scaled integer `(m, e)` with value = m / 2^e. Integer shifts/masks
+/// only (no Float64/Float32 arithmetic): the mantissa and exponent of the
+/// half float are extracted directly. Normalised values become (1024+mant,
+/// 25-exp); subnormals (mant, 24); negative zero decodes to (0, 0). The
+/// decode is exact -- there is no rounding step. Error cases:
+/// `llm: f16 is inf`, `llm: f16 is nan` (exponent field all ones).
+pub fn llm_f16_to_scaled(bits: Int) -> Result[LlmScale, Str] {
+  let b = bits & 0xFFFF;
+  let sign = (b >> 15) & 1;
+  let exp = (b >> 10) & 0x1F;
+  let mant = b & 0x3FF;
+  if exp == 31 {
+    if mant == 0 {
+      return _err_scale("llm: f16 is inf");
+    }
+    return _err_scale("llm: f16 is nan");
+  }
+  if exp == 0 {
+    if mant == 0 {
+      return _ok_scale(LlmScale{ m: 0; e: 0; });
+    }
+    var mz = mant;
+    if sign == 1 {
+      mz = 0 - mz;
+    }
+    return _ok_scale(LlmScale{ m: mz; e: 24; });
+  }
+  let mm = 1024 + mant;
+  let E = exp - 25;
+  var m = mm;
+  var e = 0;
+  if E >= 0 {
+    m = mm << E;
+  } else {
+    e = 0 - E;
+  }
+  if sign == 1 {
+    m = 0 - m;
+  }
+  return _ok_scale(LlmScale{ m: m; e: e; });
+}
+
+/// Decode an IEEE-754 binary32 bit pattern (low 32 bits of `bits`) into the
+/// exact scaled integer `(m, e)` with value = m / 2^e. Integer shifts/masks
+/// only. Normalised values become (8388608+mant, 150-exp); subnormals
+/// (mant, 149). Decode is exact (no rounding). Error cases: `llm: f32 is
+/// inf`, `llm: f32 is nan`. Overflow note: a value whose exponent is larger
+/// than the host Int width cannot be represented; callers only pass scale
+/// patterns in the tensor-scale range (see SPEC.md 10.2).
+pub fn llm_f32_to_scaled(bits: Int) -> Result[LlmScale, Str] {
+  let b = bits & 0xFFFFFFFF;
+  let sign = (b >> 31) & 1;
+  let exp = (b >> 23) & 0xFF;
+  let mant = b & 0x7FFFFF;
+  if exp == 255 {
+    if mant == 0 {
+      return _err_scale("llm: f32 is inf");
+    }
+    return _err_scale("llm: f32 is nan");
+  }
+  if exp == 0 {
+    if mant == 0 {
+      return _ok_scale(LlmScale{ m: 0; e: 0; });
+    }
+    var mz = mant;
+    if sign == 1 {
+      mz = 0 - mz;
+    }
+    return _ok_scale(LlmScale{ m: mz; e: 149; });
+  }
+  let mm = 8388608 + mant;
+  let E = exp - 150;
+  var m = mm;
+  var e = 0;
+  if E >= 0 {
+    m = mm << E;
+  } else {
+    e = 0 - E;
+  }
+  if sign == 1 {
+    m = 0 - m;
+  }
+  return _ok_scale(LlmScale{ m: m; e: e; });
+}
+
+// Block byte size and element count of Q8_0 (ggml block_q8_0: a little-endian
+// f16 scale `d` followed by 32 signed int8 quants).
+fn _q8_0_block_bytes() -> Int {
+  return 34;
+}
+
+/// Dequantize a Q8_0 payload into scaled integers. Params: payload - the raw
+/// block bytes (little-endian f16 scale, then 32 int8 quants per 34-byte
+/// block); out_values - appended with one Int per quant. Returns: the shared
+/// block scale as `(m, e)` where the exact real value of output `i` is
+/// `out_values[i] / 2^e`, i.e. output `i` is `q[i] * m` for the signed quant
+/// `q[i]`. The f16 scale is decoded with llm_f16_to_scaled, so the mapping is
+/// EXACT integer arithmetic: the pinned error bound is 0 (no rounding step).
+/// Documented limitation: all blocks must carry the same scale bits, since
+/// the surface returns a single shared (m, e); differing scales are rejected.
+/// Error cases: `llm: q8_0 payload is empty`, `llm: q8_0 payload length not
+/// a multiple of block size`, the f16 decode errors, and
+/// `llm: q8_0 mixed block scales are not supported`.
+pub fn llm_dequant_q8_0(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str] {
+  let n = payload.len();
+  if n == 0 {
+    return _err_scale("llm: q8_0 payload is empty");
+  }
+  if n % 34 != 0 {
+    return _err_scale("llm: q8_0 payload length not a multiple of block size");
+  }
+  let nblocks = n / 34;
+  let s0lo = (payload[0] as Int) & 0xFF;
+  let s0hi = (payload[1] as Int) & 0xFF;
+  let sc0 = llm_f16_to_scaled(llm_u16_le(s0lo, s0hi));
+  if !sc0.is_ok {
+    let mm: Str = sc0.error;
+    return _err_scale(mm);
+  }
+  let first: LlmScale = sc0.value;
+  let m0: Int = first.m;
+  let e0: Int = first.e;
+  var blk = 0;
+  while blk < nblocks {
+    let base = blk * 34;
+    if blk > 0 {
+      let lo = (payload[base] as Int) & 0xFF;
+      let hi = (payload[base + 1] as Int) & 0xFF;
+      let csr = llm_f16_to_scaled(llm_u16_le(lo, hi));
+      if !csr.is_ok {
+        let mm: Str = csr.error;
+        return _err_scale(mm);
+      }
+      let cs: LlmScale = csr.value;
+      if cs.m != m0 || cs.e != e0 {
+        return _err_scale("llm: q8_0 mixed block scales are not supported");
+      }
+    }
+    var k = 0;
+    while k < 32 {
+      let raw = (payload[base + 2 + k] as Int) & 0xFF;
+      var q = raw;
+      if raw >= 128 {
+        q = raw - 256;
+      }
+      let v = q * m0;
+      out_values.push(v);
+      k = k + 1;
+    }
+    blk = blk + 1;
+  }
+  return _ok_scale(LlmScale{ m: m0; e: e0; });
 }

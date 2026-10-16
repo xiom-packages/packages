@@ -213,35 +213,36 @@ Accessors and tokenizer:
    model flags; M1 encodes raw text only (BOS/EOS insertion is declared
    for M3 alongside the generation loop).
 
-## 9. XGGUF-ARRSTR: string-array offset workaround (observed defect)
+## 9. XGGUF-ARRSTR: string-array offset workaround (RESOLVED)
 
-While building the M1 fixture we observed that **`xiom.gguf` 0.1.2
-mis-reads every string array that does not start at `arr_strs[0]`**:
+While building the M1 fixture we observed that **`xiom.gguf` 0.1.2 mis-read
+every string array that did not start at `arr_strs[0]`**:
 
-* Evidence (debug probe, 2026-10-16): a built header with two string
-  arrays (`tokenizer.ggml.tokens` then `tokenizer.ggml.merges`) parses
-  fine, but `gguf_kv_arr_str` on the second array returns elements of the
-  first (entry `"h e"` read back as `"h"`; single-array headers read
-  correctly). The built bytes are exact -- the first array's payload is
-  found verbatim in the buffer -- so the defect is parse-side only.
-* Root cause: `_parse_kv_value` (src/gguf.xi) initializes the per-entry
+* Evidence (debug probe, 2026-10-16): a built header with two string arrays
+  (`tokenizer.ggml.tokens` then `tokenizer.ggml.merges`) parsed fine, but
+  `gguf_kv_arr_str` on the second array returned elements of the first;
+  single-array headers read correctly.
+* Root cause: `_parse_kv_value` (src/gguf.xi) initialized the per-entry
   origin as `g.arr_ints.len()`; string/hex-float arrays (element types 6,
-  8, 12) append to `g.arr_strs`, so their recorded `kv_arr_off` is 0 (or
-  a stale int count) instead of the true `arr_strs` origin. The 24/24
-  conformance suite does not cover string arrays, hence green.
-* Workaround in xiom.llm: `_arr_str_origin(g, i)` recomputes the true
-  origin as the `arr_strs` element count contributed by all earlier KVs
-  (parse order is declaration order), and `_arr_str_at` reads through it.
-  The builder side needs no workaround.
-* Exit plan: report to the lane coordinator for an upstream fix
-  (change the origin to `arr_strs.len()` for element types 6/8/12 in
-  `_parse_kv_value`, add an array-of-strings conformance case); delete
-  the workaround here once a fixed `xiom.gguf` is pinned.
+  8, 12) append to `g.arr_strs`, so their recorded `kv_arr_off` was 0 (or
+  a stale int count) instead of the true `arr_strs` origin.
+* M1 workaround: `_arr_str_origin`/`_arr_str_at` recomputed the true origin
+  locally.
+* **Resolution (M2a, 2026-10-16):** `xiom.gguf` 0.1.3 carries the upstream
+  fix -- `_parse_kv_value` now records `aoff = g.arr_strs.len()` for element
+  types 6/8/12 (src/gguf.xi line ~469). The path dependency picks the fix
+  up automatically, and the `_arr_str_origin`/`_arr_str_at` workaround was
+  deleted from `src/llm.xi`; string-array elements are read straight through
+  `gguf_kv_arr_str`. Suite re-greened.
 
-## 10. Declared runner surface [DECLARED -- NOT IMPLEMENTED in 0.1.0]
+## 10. Declared runner surface
 
-Signatures below are the planned public surface; they are not present in
-`src/llm.xi` yet. Milestone mapping is in ROADMAP.md.
+Signatures below are the planned public surface. **Partially implemented in
+M2a (2026-10-16):** section 10.1 size tables / `llm_tensor_nbytes` /
+`llm_tensor_data` and section 10.2/10.3 integer bit-decode +
+`llm_dequant_q8_0` are implemented in `src/llm.xi`; matmul/forward
+composition (10.4) and the generation loop (10.5) remain declared for a
+follow-up wave. Milestone mapping is in ROADMAP.md.
 
 ### 10.1 GGUF payload and tensor loading
 
@@ -331,7 +332,7 @@ The representation:
 * SPM (`tokenizer.ggml.model == "llama"`) and WPM (`"bert"`)
   vocabulary extraction + their tokenize paths.
 
-## 11. Test matrix (38 checks, `tests/test_conformance.xi`)
+## 11. Test matrix (56 checks, `tests/test_conformance.xi`)
 
 All checks run against a synthetic deterministic fixture built with
 `xiom.gguf`'s builder: 6 metadata KVs, one tensor info
@@ -364,6 +365,15 @@ the two control tokens; bos/eos 18/19.
 | 18 | decode id range errors (20, -1) |
 | 19-27 | extraction error catalog (unsupported/missing/non-string model, missing/int tokens, missing merges, short/string token_type, non-integer bos) |
 | 28 | plain header: token types default 1, bos/eos -1 |
+
+M2a additions (checks 29-43): GGML type name/element/byte tables; tensor
+nbytes (20x2 f32 = 160) with unknown-type, non-divisible-dims and index
+reject arms; `llm_tensor_data` position-checked extraction with oversize
+(extent > `gguf_data_len`) and short-buffer rejects; exact f16 and f32
+bit-decode vectors (1.0/0.5/2.0/-1.0/subnormal) plus inf/nan rejects;
+`llm_dequant_q8_0` golden block (scale 1.0, quants -8..23, exact
+`out[i] == (i-8)*1024`, scale `(1024,10)`), negative-scale two-block
+exactness, and the bad-length / empty / mixed-scale rejects.
 
 ## 12. Compiler notes (v0.64.5)
 

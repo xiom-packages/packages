@@ -26,16 +26,19 @@ twice (passed=38 failed=0), namespace-check clean, docs in sync.
 Goal: run a real forward pass over a tiny GGUF container, integer-only,
 and pin it against an in-test hand-computed oracle.
 
-1. **GGUF payload/tensor loading** (SPEC.md 10.1)
-   - `llm_ggml_*` size tables (f32/f16/Q8_0 first, then Q4_K-class).
+1. **GGUF payload/tensor loading** (SPEC.md 10.1) -- DONE in M2a
+   - `llm_ggml_*` size tables (f32/f16/Q4_0/Q5_* /Q8_0/Q8_1/K-quants).
    - `llm_tensor_nbytes` + `llm_tensor_data` with extent validation.
-   - Fixture: extend the builder fixture with real payload bytes at
-     declared offsets; cover good extents + every reject arm.
-2. **Deterministic float-free numerics** (SPEC.md 10.2/10.3)
-   - Integer f16/f32 -> (sign, mantissa, exponent) bit decode.
-   - `llm_dequant_q8_0` first: scaled-int values + `(m, e)` scale; error
-     bounds documented and unit-pinned on hand-built blocks
-     (known mantissa/exponent bytes, e.g. scale 1.0/0.5/2.0 patterns).
+   - Fixture: tensor headers with real payload bytes at declared offsets;
+     good extents + oversize/short-buffer/unknown-type/non-divisible rejects.
+   - Not yet: `llm_model_open` composite (deferred with the forward wave).
+2. **Deterministic float-free numerics** (SPEC.md 10.2/10.3) -- DONE in M2a
+   - Integer f16/f32 -> exact scaled-int `(m, e)` bit decode
+     (`llm_f16_to_scaled`, `llm_f32_to_scaled`; no Float arithmetic).
+   - `llm_dequant_q8_0`: scaled-int values + `LlmScale (m, e)`; exact
+     integer asserts on hand-built blocks (scale 1.0/-1.0, quants -8..23;
+     error bound pinned at 0). Limitation: single shared block scale
+     (mixed per-block scales rejected). Q4_K-class deferred to M4.
 3. **Matmul + forward composition** (SPEC.md 10.4)
    - `llm_matmul_i32` (overflow fail-closed) + xiom.tensor for shape
      construction/dump (the "where sensible" boundary).
@@ -80,10 +83,9 @@ first, fixture dims chosen so every oracle value is exact.
 
 ## Maintenance / cross-lane items
 
-* **xiom.gguf string-array fix (XGGUF-ARRSTR)**: coordinator to schedule
-  upstream patch (origin for element types 6/8/12; add an arr_str
-  conformance case). When a fixed `xiom.gguf` is pinned, delete
-  `_arr_str_origin`/`_arr_str_at` from `src/llm.xi` and re-green.
+* **xiom.gguf string-array fix (XGGUF-ARRSTR)**: RESOLVED -- fixed in
+  `xiom.gguf` 0.1.3 (origin for element types 6/8/12); the M1 workaround
+  was deleted in M2a and the suite re-greened (SPEC.md section 9).
 * **xiom.gguf UTF-8 strings**: non-ASCII string support unblocks the
   real-vocab escape layer (M3 tokenizer completion).
 * **Registry publish**: pending ops scope decision + allowlist for the
