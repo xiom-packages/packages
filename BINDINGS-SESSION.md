@@ -1480,6 +1480,11 @@ in-situ; filed to compiler; restore stays parked)**:
   other 7 files apply cleanly.
 - Duplicate restore session (`feat/sqlite-nested-restore-2`) to be
   stopped at the next sweep (Agent Manager timeouts this pass).
+- 23:12Z cleanup: the restore-2 worktree turned out SESSIONLESS (the
+  attach flake again) -> deregistered + its branch deleted; the dir
+  is file-locked (sweep later, same as a3-a4).  NO duplicate session
+  existed.  The README docs-commit GO-AHEAD was delivered to the
+  evidence session (`ses_eb96482b9ffe...`) on the re-send.
 
 **UPDATE 2026-10-16 22:40Z (queue execution wave LAUNCHED -- 4 agents;
 category sweep completed)**: acted on every accepted/queued bindings
