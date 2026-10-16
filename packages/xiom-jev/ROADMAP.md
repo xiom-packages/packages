@@ -30,13 +30,25 @@
       `xiom.jev.types` (instructions, choice options, score levels, noul
       true/false), emitted verbatim by `build_request`; string fixtures stay
       byte-exact; offline-golden-tested (suite t31..t35).
-- [ ] expose `legend` (level -> description, string or structured) on score
-      answers instead of validating-only.
+- [x] expose `legend` (level -> description, string or structured) on score
+      answers instead of validating-only -- DONE 2026-10-16: `Answers` gains
+      `legend_*` parallel vectors (raw JSON values, so string and object/array
+      forms round-trip) and `xiom.jev.types` gains
+      `response_legend_count/label/doc/is_structured/text/find/json`;
+      offline-golden-tested (suite t36..t37).
 - [ ] confidence formula helpers (S6 choice/score exact formulas) for
-      verification and for callers computing their own statistics.
-- [ ] api key hygiene per S2: trim, reject internal whitespace/control/
-      non-ASCII before the call.
-- [ ] base_url validation (scheme/host) before composing the endpoint.
+      verification and for callers computing their own statistics -- BLOCKED:
+      SPEC.md does not pin the exact S6 choice/score formulas (only the noul
+      `|2p-1|` spread). Skipped cleanly in the M2-chunk-3 lane rather than
+      inventing semantics; needs the Architect to pin the formulas first.
+- [x] api key hygiene per S2: trim, reject internal whitespace/control/
+      non-ASCII before the call -- DONE 2026-10-16:
+      `xiom.jev.api_key_validate` (typed BadRequest; returns the trimmed key);
+      wired into `system_one`; offline-golden-tested (suite t38).
+- [x] base_url validation (scheme/host) before composing the endpoint --
+      DONE 2026-10-16: `xiom.jev.base_url_validate` (http/https scheme,
+      non-empty host; typed BadRequest); wired into `system_one`;
+      offline-golden-tested (suite t39).
 - [ ] content compression (gzip/zstd) and the 32 MiB body rule (S8).
 
 ## M3 -- decision-systems ergonomics

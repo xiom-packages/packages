@@ -236,7 +236,12 @@ pub fn question_set_noul_criteria_json(q: &mut Question, yes_means: JsonValue, n
 /// module header for the layout and micro units). choices[i] is the selected
 /// option for a choice answer ("" otherwise); confidence_micro is -1 for
 /// noul answers (the API returns no confidence for them); score_micro and
-/// noul_micro are 0 unless their kind applies.
+/// noul_micro are 0 unless their kind applies. The legend of a score answer
+/// is the level -> description map reported by the API (S4), kept in
+/// legend_starts/legend_counts/legend_labels parallel to the probabilities;
+/// legend_docs holds each description as its raw JSON value (string or
+/// object/array), so both the plain and the structured S4 legend forms
+/// round-trip.
 pub type Answers = {
   ids: Vec[Str];
   kinds: Vec[Int];
@@ -248,6 +253,10 @@ pub type Answers = {
   prob_counts: Vec[Int];
   prob_labels: Vec[Str];
   prob_micro: Vec[Int];
+  legend_starts: Vec[Int];
+  legend_counts: Vec[Int];
+  legend_labels: Vec[Str];
+  legend_docs: Vec[JsonValue];
 }
 
 /// Response is one parsed System One response: the model that answered, the
@@ -275,6 +284,10 @@ pub fn answers_new() -> Answers {
     prob_counts: Vec[Int].new(),
     prob_labels: Vec[Str].new(),
     prob_micro: Vec[Int].new(),
+    legend_starts: Vec[Int].new(),
+    legend_counts: Vec[Int].new(),
+    legend_labels: Vec[Str].new(),
+    legend_docs: Vec[JsonValue].new(),
   };
 }
 
@@ -429,6 +442,106 @@ pub fn response_prob_total_micro(r: &Response, i: Int) -> Int {
     j = j + 1;
   }
   return total;
+}
+
+// --------------------------------------------------
+//  Legend (score answers)
+// --------------------------------------------------
+
+/// response_legend_count is the number of legend entries of score answer i
+/// (0 for choice/noul answers and when i is out of range). The legend maps
+/// each level key to its description, which may be a string or a structured
+/// value (S4); entries keep wire order. Complexity: O(1).
+pub fn response_legend_count(r: &Response, i: Int) -> Int {
+  let a: Answers = r.answers;
+  if i < 0 || i >= a.legend_counts.len() { return 0; }
+  return a.legend_counts[i];
+}
+
+/// response_legend_label is the level key of legend entry j of answer i
+/// ("" when out of range). Complexity: O(1).
+pub fn response_legend_label(r: &Response, i: Int, j: Int) -> Str {
+  let a: Answers = r.answers;
+  if i < 0 || i >= a.legend_counts.len() { return ""; }
+  let n: Int = a.legend_counts[i];
+  if j < 0 || j >= n { return ""; }
+  let base: Int = a.legend_starts[i];
+  return a.legend_labels[base + j];
+}
+
+/// response_legend_doc is legend entry j of answer i as its raw JSON value
+/// (JSON null when out of range). A string entry keeps its string form; a
+/// structured entry keeps its object/array form (S4). Complexity: O(1).
+pub fn response_legend_doc(r: &Response, i: Int, j: Int) -> JsonValue {
+  let a: Answers = r.answers;
+  if i < 0 || i >= a.legend_counts.len() { return json.json_null(); }
+  let n: Int = a.legend_counts[i];
+  if j < 0 || j >= n { return json.json_null(); }
+  let base: Int = a.legend_starts[i];
+  return a.legend_docs[base + j];
+}
+
+/// response_legend_is_structured is 1 when legend entry j of answer i is not
+/// a plain string (an object/array form, S4), else 0 (including out of
+/// range). Complexity: O(1).
+pub fn response_legend_is_structured(r: &Response, i: Int, j: Int) -> Int {
+  let a: Answers = r.answers;
+  if i < 0 || i >= a.legend_counts.len() { return 0; }
+  let n: Int = a.legend_counts[i];
+  if j < 0 || j >= n { return 0; }
+  let base: Int = a.legend_starts[i];
+  let d: JsonValue = a.legend_docs[base + j];
+  if compare.str_compare(json.json_type(d), "string") == 0 { return 0; }
+  return 1;
+}
+
+/// response_legend_text is the plain-string form of legend entry j of answer
+/// i ("" when the entry is structured or out of range). Complexity: O(1).
+pub fn response_legend_text(r: &Response, i: Int, j: Int) -> Str {
+  let a: Answers = r.answers;
+  if i < 0 || i >= a.legend_counts.len() { return ""; }
+  let n: Int = a.legend_counts[i];
+  if j < 0 || j >= n { return ""; }
+  let base: Int = a.legend_starts[i];
+  let d: JsonValue = a.legend_docs[base + j];
+  match d {
+    JsonValue.String(s) => {
+      return s;
+    },
+    _ => {
+      return "";
+    },
+  };
+}
+
+/// response_legend_find is the entry index of `label` within answer i's
+/// legend (-1 when absent or i is out of range). Complexity: O(n).
+pub fn response_legend_find(r: &Response, i: Int, label: Str) -> Int {
+  let n: Int = response_legend_count(r, i);
+  var j: Int = 0;
+  while j < n {
+    let e: Str = response_legend_label(r, i, j);
+    if compare.str_compare(e, label) == 0 { return j; }
+    j = j + 1;
+  }
+  return -1;
+}
+
+/// response_legend_json rebuilds answer i's legend as a JSON object
+/// (level -> description), in wire order; an empty object when the answer
+/// carries no legend. This is the emission form of the parsed legend.
+/// Complexity: O(n). Pure.
+pub fn response_legend_json(r: &Response, i: Int) -> JsonValue {
+  var obj: JsonValue = json.json_object_new();
+  let n: Int = response_legend_count(r, i);
+  var j: Int = 0;
+  while j < n {
+    let label: Str = response_legend_label(r, i, j);
+    let doc: JsonValue = response_legend_doc(r, i, j);
+    obj = json.json_set(obj, label, doc);
+    j = j + 1;
+  }
+  return obj;
 }
 
 /// response_has_usage is 1 when the response carried a `usage` object.

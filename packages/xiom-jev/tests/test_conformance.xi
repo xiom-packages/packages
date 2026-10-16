@@ -27,6 +27,7 @@ module jev_tests
 use xiom.io;
 use xiom.string.compare;
 use xiom.convert;
+use xiom.convert.tostring;
 use xiom.serialize.json;
 use xiom.jev;
 use xiom.jev.errors;
@@ -808,6 +809,115 @@ fn t35() -> Int {
 }
 
 // --------------------------------------------------
+//  M2 chunk 3: legend exposure (score answers)
+// --------------------------------------------------
+
+fn t36() -> Int {
+  let body: Str = "{\"model\":\"jev-1.13.0\",\"answers\":{\"bug_severity\":{\"type\":\"score\",\"score\":1.43,\"confidence\":0.35,\"legend\":{\"0\":\"Cosmetic; no impact to functionality\",\"1\":\"Broken or degraded feature, but workaround exists\",\"2\":\"Blocking issue; no workaround exists\"},\"probabilities\":{\"0\":0.0,\"1\":0.57,\"2\":0.43}}},\"usage\":{\"input_tokens\":332,\"output_tokens\":18}}";
+  let r: Result[Response, JevError] = response.parse_response(body);
+  if !r.is_ok { return report(false, "score fixture parses for legend"); }
+  let resp: Response = r.value;
+  var ok: Bool = true;
+  if types.response_legend_count(&resp, 0) != 3 { ok = false; }
+  if !str_eq(types.response_legend_label(&resp, 0, 0), "0") { ok = false; }
+  if !str_eq(types.response_legend_label(&resp, 0, 1), "1") { ok = false; }
+  if !str_eq(types.response_legend_label(&resp, 0, 2), "2") { ok = false; }
+  if !str_eq(types.response_legend_text(&resp, 0, 0), "Cosmetic; no impact to functionality") { ok = false; }
+  if !str_eq(types.response_legend_text(&resp, 0, 2), "Blocking issue; no workaround exists") { ok = false; }
+  if types.response_legend_is_structured(&resp, 0, 0) != 0 { ok = false; }
+  if types.response_legend_find(&resp, 0, "1") != 1 { ok = false; }
+  if types.response_legend_find(&resp, 0, "9") != -1 { ok = false; }
+  if types.response_legend_count(&resp, 9) != 0 { ok = false; }
+  if !str_eq(types.response_legend_label(&resp, 0, 9), "") { ok = false; }
+  let emitted: Str = json.json_stringify(types.response_legend_json(&resp, 0));
+  let want: Str = "{\"0\":\"Cosmetic; no impact to functionality\",\"1\":\"Broken or degraded feature, but workaround exists\",\"2\":\"Blocking issue; no workaround exists\"}";
+  if !str_eq(emitted, want) {
+    return report(false, "string legend emission byte-exact (got: " + emitted + ")");
+  }
+  let cb: Str = "{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"choice\",\"choice\":\"a\",\"confidence\":1.0,\"probabilities\":{\"a\":1.0}}}}";
+  let cr: Result[Response, JevError] = response.parse_response(cb);
+  if !cr.is_ok {
+    ok = false;
+  } else {
+    let cresp: Response = cr.value;
+    if types.response_legend_count(&cresp, 0) != 0 { ok = false; }
+  }
+  return report(ok, "score legend exposed (string form: labels, text, find, emission)");
+}
+
+fn t37() -> Int {
+  let body: Str = "{\"model\":\"jev-1.13.0\",\"answers\":{\"bug_severity\":{\"type\":\"score\",\"score\":1.09,\"confidence\":0.87,\"legend\":{\"0\":{\"what\":\"Cosmetic; no impact to functionality\",\"examples\":[\"typo in a label\",\"misaligned icon\"]},\"1\":{\"what\":\"Broken or degraded feature, but workaround exists\",\"examples\":[\"export fails in one browser but works in another\"]},\"2\":{\"what\":\"Blocking issue; no workaround exists\",\"examples\":[\"cannot log in\",\"data loss\"]}},\"probabilities\":{\"0\":0.0,\"1\":0.91,\"2\":0.09}}},\"usage\":{\"input_tokens\":379,\"output_tokens\":18}}";
+  let r: Result[Response, JevError] = response.parse_response(body);
+  if !r.is_ok { return report(false, "structured-legend fixture parses"); }
+  let resp: Response = r.value;
+  var ok: Bool = true;
+  if types.response_legend_count(&resp, 0) != 3 { ok = false; }
+  if !str_eq(types.response_legend_label(&resp, 0, 1), "1") { ok = false; }
+  if types.response_legend_is_structured(&resp, 0, 0) != 1 { ok = false; }
+  if types.response_legend_is_structured(&resp, 0, 2) != 1 { ok = false; }
+  if !str_eq(types.response_legend_text(&resp, 0, 0), "") { ok = false; }
+  let d0: JsonValue = types.response_legend_doc(&resp, 0, 0);
+  if compare.str_compare(json.json_type(d0), "object") != 0 { ok = false; }
+  let emitted: Str = json.json_stringify(types.response_legend_json(&resp, 0));
+  let want: Str = "{\"0\":{\"what\":\"Cosmetic; no impact to functionality\",\"examples\":[\"typo in a label\",\"misaligned icon\"]},\"1\":{\"what\":\"Broken or degraded feature, but workaround exists\",\"examples\":[\"export fails in one browser but works in another\"]},\"2\":{\"what\":\"Blocking issue; no workaround exists\",\"examples\":[\"cannot log in\",\"data loss\"]}}";
+  if !str_eq(emitted, want) {
+    return report(false, "structured legend emission byte-exact (got: " + emitted + ")");
+  }
+  return report(ok, "score legend exposed (structured form: docs, structured flag, emission)");
+}
+
+// --------------------------------------------------
+//  M2 chunk 3: API-key hygiene and base_url validation
+// --------------------------------------------------
+
+fn t38() -> Int {
+  var failed: Int = 0;
+  let okr: Result[Str, JevError] = jev.api_key_validate("  sk-abc-123\t");
+  if !okr.is_ok {
+    failed = failed + report(false, "padded api key accepted");
+  } else {
+    let k: Str = okr.value;
+    failed = failed + report(str_eq(k, "sk-abc-123"), "api key trimmed to its printable core");
+  }
+  failed = failed + expect_bad(jev.api_key_validate(""), "client: api_key is empty", "empty api key rejected");
+  failed = failed + expect_bad(jev.api_key_validate("   "), "client: api_key is empty", "whitespace-only api key rejected");
+  failed = failed + expect_bad(jev.api_key_validate("sk abc"), "client: api_key has invalid characters", "internal space rejected");
+  failed = failed + expect_bad(jev.api_key_validate("sk\tabc"), "client: api_key has invalid characters", "internal tab rejected");
+  failed = failed + expect_bad(jev.api_key_validate("sk\nabc"), "client: api_key has invalid characters", "control byte rejected");
+  let nc: Option[Char] = convert.int_to_char(233);
+  if nc.is_some {
+    let nonascii: Str = tostring.to_string_char(nc.value);
+    failed = failed + expect_bad(jev.api_key_validate("sk" + nonascii), "client: api_key has invalid characters", "non-ASCII key rejected");
+  }
+  return report(failed == 0, "api key hygiene (trim + printable-ASCII)");
+}
+
+fn t39() -> Int {
+  var failed: Int = 0;
+  let ok1: Result[Str, JevError] = jev.base_url_validate("https://api.typesafe.ai");
+  if !ok1.is_ok {
+    failed = failed + report(false, "https base accepted");
+  } else {
+    let v1: Str = ok1.value;
+    failed = failed + report(str_eq(v1, "https://api.typesafe.ai"), "https base accepted unchanged");
+  }
+  let ok2: Result[Str, JevError] = jev.base_url_validate("http://127.0.0.1:8080/");
+  if !ok2.is_ok {
+    failed = failed + report(false, "http host:port base accepted");
+  } else {
+    let v2: Str = ok2.value;
+    failed = failed + report(str_eq(v2, "http://127.0.0.1:8080/"), "http host:port base accepted unchanged");
+  }
+  failed = failed + expect_bad(jev.base_url_validate(""), "client: base_url is empty", "empty base rejected");
+  failed = failed + expect_bad(jev.base_url_validate("///"), "client: base_url is empty", "all-slash base rejected");
+  failed = failed + expect_bad(jev.base_url_validate("ftp://api.typesafe.ai"), "client: base_url scheme must be http or https", "non-http scheme rejected");
+  failed = failed + expect_bad(jev.base_url_validate("api.typesafe.ai"), "client: base_url scheme must be http or https", "scheme-less base rejected");
+  failed = failed + expect_bad(jev.base_url_validate("https://"), "client: base_url host is empty", "scheme-only base (empty host) rejected");
+  failed = failed + expect_bad(jev.base_url_validate("https:///v1"), "client: base_url host is empty", "slash-only host rejected");
+  return report(failed == 0, "base_url validation (scheme + host)");
+}
+
+// --------------------------------------------------
 //  Entry point
 // --------------------------------------------------
 
@@ -849,6 +959,10 @@ fn main() -> Int {
   failed = failed + t33();
   failed = failed + t34();
   failed = failed + t35();
+  failed = failed + t36();
+  failed = failed + t37();
+  failed = failed + t38();
+  failed = failed + t39();
   if failed == 0 {
     io.println("xiom.jev: all tests passed");
   } else {

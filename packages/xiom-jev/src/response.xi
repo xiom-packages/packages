@@ -236,6 +236,8 @@ fn _parse_choice_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
   out.noul_micro.push(0);
   out.prob_starts.push(out.prob_labels.len());
   out.prob_counts.push(labels.len());
+  out.legend_starts.push(out.legend_labels.len());
+  out.legend_counts.push(0);
   var j: Int = 0;
   while j < labels.len() {
     let l: Str = labels[j];
@@ -269,6 +271,7 @@ fn _parse_score_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
   }
   let lv: JsonValue = lo.value;
   var legend_keys: Vec[Str] = Vec[Str].new();
+  var legend_docs: Vec[JsonValue] = Vec[JsonValue].new();
   var legend_ok: Bool = false;
   match lv {
     JsonValue.Object(le) => {
@@ -279,7 +282,9 @@ fn _parse_score_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
       var j: Int = 0;
       while j < le.keys.len() {
         let lk: Str = le.keys[j];
+        let lvv: JsonValue = le.values[j];
         legend_keys.push(lk);
+        legend_docs.push(lvv);
         j = j + 1;
       }
     },
@@ -362,6 +367,14 @@ fn _parse_score_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
     out.prob_micro.push(m);
     j = j + 1;
   }
+  out.legend_starts.push(out.legend_labels.len());
+  out.legend_counts.push(legend_keys.len());
+  j = 0;
+  while j < legend_keys.len() {
+    out.legend_labels.push(legend_keys[j]);
+    out.legend_docs.push(legend_docs[j]);
+    j = j + 1;
+  }
   return "";
 }
 
@@ -384,6 +397,8 @@ fn _parse_noul_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
   out.noul_micro.push(_micro_of_unit(nf));
   out.prob_starts.push(out.prob_labels.len());
   out.prob_counts.push(0);
+  out.legend_starts.push(out.legend_labels.len());
+  out.legend_counts.push(0);
   return "";
 }
 

@@ -23,8 +23,11 @@
 //
 // LIVE LEG (resolved 2026-10-16): the Authorization: Bearer header now goes
 // out through the xiom.http 0.1.8 custom-headers surface (see SPEC.md
-// section 8). api_key is validated (non-empty); it is never logged, stored
-// or echoed in errors.
+// section 8). base_url and api_key are validated up front through the pure
+// hygiene helpers of xiom.jev (base_url_validate: http/https scheme and a
+// non-empty host; api_key_validate: trim + printable-ASCII), so a malformed
+// input fails as a typed BadRequest before any network call. api_key is never
+// logged, stored or echoed in errors.
 
 module xiom.jev.client
 
@@ -90,9 +93,15 @@ pub fn system_one(base_url: Str, api_key: Str, model: Str, state: State, questio
   if endpoint.len() == 0 {
     return _err_bad("client: base_url is empty");
   }
-  if api_key.len() == 0 {
-    return _err_bad("client: api_key is empty");
+  let base_ok: Result[Str, JevError] = jev.base_url_validate(base_url);
+  if !base_ok.is_ok {
+    return _err_response(base_ok.error);
   }
+  let key_ok: Result[Str, JevError] = jev.api_key_validate(api_key);
+  if !key_ok.is_ok {
+    return _err_response(key_ok.error);
+  }
+  let key: Str = key_ok.value;
   let built: Result[Str, JevError] = request.build_request(model, state, questions);
   if !built.is_ok {
     let e: JevError = built.error;
@@ -100,7 +109,7 @@ pub fn system_one(base_url: Str, api_key: Str, model: Str, state: State, questio
   }
   let body: Str = built.value;
   var hdrs: Vec[HttpHeader] = Vec[HttpHeader].new();
-  hdrs.push(HttpHeader{ name: "Authorization", value: "Bearer " + api_key });
+  hdrs.push(HttpHeader{ name: "Authorization", value: "Bearer " + key });
   hdrs.push(HttpHeader{ name: "Content-Type", value: "application/json" });
   let blob: Result[Str, Str] = xiom.http.headers.http_headers_blob(hdrs);
   if !blob.is_ok {

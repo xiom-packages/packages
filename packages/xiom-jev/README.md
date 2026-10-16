@@ -4,7 +4,7 @@
 
 TypeSafe Jev client tier: **System One** structured decisions for XIOM.
 
-> **Status:** `incubating` -- 0.1.0. Offline conformance suite **86/86 x2** on
+> **Status:** `incubating` -- 0.1.0. Offline conformance suite **110/110 x2** on
 > compiler `v0.64.6` (native-session, 2026-10-16). Live probe is SKIP-safe and
 > link-gated (see "Live probe"). Published in `eco-v0.1.193` (sha256
 > `ed212ee6...`, 2026-10-16).
@@ -20,8 +20,8 @@ coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
 
 | Module | Contents |
 |---|---|
-| `xiom.jev` | identity, `default_model`, `default_base_url`, `systemone_endpoint` |
-| `xiom.jev.types` | `State`, `Question` (+ builders), `Answers`, `Response` (+ guarded accessors), `micro_text` |
+| `xiom.jev` | identity, `default_model`, `default_base_url`, `systemone_endpoint`, `api_key_validate`, `base_url_validate` |
+| `xiom.jev.types` | `State`, `Question` (+ builders), `Answers`, `Response` (+ guarded accessors incl. `response_legend_*`), `micro_text` |
 | `xiom.jev.request` | `build_request` -- validated JSON body (exact bytes, insertion order) |
 | `xiom.jev.response` | `parse_response` -- typed answers + confidence + usage; `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_labels_at_or_above`, `answer_sample_index` (caller-supplied entropy), score/noul helpers |
@@ -71,6 +71,13 @@ their byte-exact fixtures are unchanged; string, object and array entries
 can be mixed in one question. Validation counts an instruction/level as
 present when its string is non-empty or its doc is set.
 
+**Score legend (M2, 2026-10-16):** a score answer's `legend`
+(level -> description) is now carried through parsing, not just validated.
+Read it with `types.response_legend_count/label/doc/is_structured/text/find`
+(guarded; empty for choice/noul answers) and rebuild the object with
+`types.response_legend_json`; both string and structured (object/array) S4
+legend forms round-trip.
+
 ## Transport (xiom.http 0.1.8 headers surface)
 
 `xiom.jev.client.system_one(base_url, api_key, model, state, questions)`
@@ -82,7 +89,15 @@ catalog.
 
 **Live leg (resolved 2026-10-16):** xiom.http 0.1.8 ships the custom-headers
 surface, so the API receives the bearer token; a valid key now yields a 2xx
-([PASS] in the probe). `api_key` is validated and never logged or stored.
+([PASS] in the probe).
+
+**Input hygiene (M2, 2026-10-16):** before the POST, `system_one` validates
+both transport inputs through the pure helpers `xiom.jev.base_url_validate`
+(scheme must be http/https, host non-empty) and `xiom.jev.api_key_validate`
+(trims the key, then requires printable ASCII, rejecting internal
+whitespace/control/non-ASCII) -- malformed input fails as a typed
+`BadRequest` before any network call. The trimmed key is sent; the raw key is
+never logged or stored.
 
 **Retry (M2, 2026-10-16):** transient non-2xx statuses (429 / 503 / 529) are
 retried up to `xiom.jev.retry.default_max_attempts()` total attempts with the

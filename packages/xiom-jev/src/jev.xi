@@ -17,11 +17,14 @@
 //   xiom.jev.errors     the typed Err catalog
 //   xiom.jev.client     transport over the xiom.http client surface
 //
-// The root module carries package identity and the endpoint composition
-// helper used by the client (pure, offline-testable).
+// The root module carries package identity, the endpoint composition helper
+// and the transport input hygiene checks used by the client (all pure and
+// offline-testable): api_key_validate (S2 trim + printable-ASCII rule) and
+// base_url_validate (http/https scheme, non-empty host).
 
 module xiom.jev
 
+use xiom.jev.errors;
 use xiom.string;
 use xiom.string.compare;
 
@@ -58,4 +61,74 @@ pub fn systemone_endpoint(base_url: Str) -> Str {
   if n == 0 { return ""; }
   let trimmed: Str = string.str_slice(base_url, 0, n);
   return trimmed + "/v1/systemone";
+}
+
+// --------------------------------------------------
+//  Transport input hygiene (S2 API keys; endpoint URL)
+// --------------------------------------------------
+
+// _has_prefix is true when s starts with p (byte-exact, case-sensitive).
+// Complexity: O(|p|).
+fn _has_prefix(s: Str, p: Str) -> Bool {
+  if s.len() < p.len() { return false; }
+  let head: Str = string.str_slice(s, 0, p.len());
+  if compare.str_compare(head, p) == 0 { return true; }
+  return false;
+}
+
+/// api_key_validate trims an API key and rejects it with a typed
+/// JevError.BadRequest when it is empty or carries characters forbidden on
+/// the wire (S2): after trimming, every byte must be printable ASCII
+/// (0x21..0x7E), so internal whitespace, control bytes and non-ASCII are
+/// rejected. On success the Ok payload is the trimmed key. The raw key is
+/// never logged or stored. Complexity: O(len). Pure.
+pub fn api_key_validate(raw: Str) -> Result[Str, JevError] {
+  let key: Str = string.str_trim(raw);
+  if key.len() == 0 {
+    return Err(JevError.BadRequest("client: api_key is empty"));
+  }
+  var i: Int = 0;
+  let n: Int = key.len();
+  while i < n {
+    let b: Int = (string.byte_at(key, i) as Int) & 0xFF;
+    if b <= 0x20 || b >= 0x7F {
+      return Err(JevError.BadRequest("client: api_key has invalid characters"));
+    }
+    i = i + 1;
+  }
+  return Ok(key);
+}
+
+/// base_url_validate rejects a base URL with a typed JevError.BadRequest when
+/// its scheme is not http/https or its host is empty; the Ok payload is the
+/// base URL unchanged (the caller still composes the endpoint). An empty or
+/// all-slash base is `client: base_url is empty` (systemone_endpoint
+/// semantics). Complexity: O(len). Pure.
+pub fn base_url_validate(base_url: Str) -> Result[Str, JevError] {
+  if systemone_endpoint(base_url).len() == 0 {
+    return Err(JevError.BadRequest("client: base_url is empty"));
+  }
+  var scheme_len: Int = 0;
+  if _has_prefix(base_url, "https://") {
+    scheme_len = 8;
+  } elif _has_prefix(base_url, "http://") {
+    scheme_len = 7;
+  } else {
+    return Err(JevError.BadRequest("client: base_url scheme must be http or https"));
+  }
+  let n: Int = base_url.len();
+  var host_end: Int = n;
+  var i: Int = scheme_len;
+  while i < n {
+    let b: Int = (string.byte_at(base_url, i) as Int) & 0xFF;
+    if b == 47 {
+      host_end = i;
+      break;
+    }
+    i = i + 1;
+  }
+  if host_end <= scheme_len {
+    return Err(JevError.BadRequest("client: base_url host is empty"));
+  }
+  return Ok(base_url);
 }

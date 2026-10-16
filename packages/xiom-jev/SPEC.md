@@ -58,8 +58,8 @@ Fixture map (tests/test_conformance.xi):
 
 | Module | M1 public surface |
 |---|---|
-| `xiom.jev` | `default_model`, `default_base_url`, `version`, `systemone_endpoint` |
-| `xiom.jev.types` | `state_text`, `state_json`, `question_choice`, `question_add_option`, `question_add_option_json`, `question_score`, `question_add_level`, `question_add_level_json`, `question_noul`, `question_set_noul_criteria`, `question_set_noul_criteria_json`, `question_set_instructions_json`, `doc_is_set`, `answers_new`, `response_new`, accessors (`response_count/id/kind/find/choice/confidence_micro/score_micro/noul_micro/prob_count/prob_label/prob_micro/prob_find/prob_total_micro/has_usage/input_tokens/output_tokens`), `kind_name`, `micro_text`, constants `MICRO`, `KIND_CHOICE`, `KIND_SCORE`, `KIND_NOUL` |
+| `xiom.jev` | `default_model`, `default_base_url`, `version`, `systemone_endpoint`, `api_key_validate`, `base_url_validate` |
+| `xiom.jev.types` | `state_text`, `state_json`, `question_choice`, `question_add_option`, `question_add_option_json`, `question_score`, `question_add_level`, `question_add_level_json`, `question_noul`, `question_set_noul_criteria`, `question_set_noul_criteria_json`, `question_set_instructions_json`, `doc_is_set`, `answers_new`, `response_new`, accessors (`response_count/id/kind/find/choice/confidence_micro/score_micro/noul_micro/prob_count/prob_label/prob_micro/prob_find/prob_total_micro/legend_count/legend_label/legend_doc/legend_is_structured/legend_text/legend_find/legend_json/has_usage/input_tokens/output_tokens`), `kind_name`, `micro_text`, constants `MICRO`, `KIND_CHOICE`, `KIND_SCORE`, `KIND_NOUL` |
 | `xiom.jev.request` | `build_request` |
 | `xiom.jev.response` | `parse_response`, `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_argmax_label`, `answer_max_micro`, `answer_count_at_or_above`, `answer_labels_at_or_above`, `answer_sample_index`, `answer_sample_label`, `choice_answer_covers_question`, `score_round_level`, `score_normalized_micro`, `noul_yes`, `noul_confidence_micro` |
@@ -132,7 +132,7 @@ position.
 
 | kind | variant | text | trigger |
 |---|---|---|---|
-| 0 | `BadRequest(reason)` | `jev: bad request: <reason>` | section 5; `client: base_url is empty`; `client: api_key is empty` |
+| 0 | `BadRequest(reason)` | `jev: bad request: <reason>` | section 5; `client: base_url is empty`; `client: base_url scheme must be http or https`; `client: base_url host is empty`; `client: api_key is empty`; `client: api_key has invalid characters` |
 | 1 | `Transport(reason)` | `jev: transport: <reason>` | the libcurl bridge failed (no HTTP response; reason is the curl-level message) |
 | 2 | `HttpStatus(code, detail)` | `jev: http <code>: <detail>` | non-2xx status; `detail` = decoded API error message else the first 200 chars of the raw body |
 | 3 | `Parse(reason)` | `jev: parse: <reason>` | section 6.1 |
@@ -206,7 +206,12 @@ custom request headers (`http_headers_blob` + `http_request`; commit
 `249f1d61`), so the `Authorization: Bearer <key>` header (S2/S8, HTTPBearer)
 now goes out on the wire. A live 2xx needs only a valid key; a typed 401
 with its decoded detail is reported by the probe as `[SKIP]` (key/permission
-trouble, never as PASS). `api_key` is validated and never logged or stored.
+trouble, never as PASS). Before the POST, `system_one` runs the pure hygiene
+helpers: `base_url_validate` (scheme http/https, non-empty host) and
+`api_key_validate` (S2 trim; after trimming every byte must be printable
+ASCII, so internal whitespace/control/non-ASCII fail with a typed
+BadRequest). The trimmed key is what goes into the header; the raw key is
+never logged or stored.
 
 Probe invocation (documented in README and tests/probe_live.xi; read the key
 from the environment only, never store it):
@@ -240,18 +245,22 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
    M1 byte-exact fixtures are unchanged.
 5. **No retry policy**: S9 retries 429/529/503 with backoff; M1 returns the
    typed `HttpStatus` and leaves retry to the caller (ROADMAP).
-6. **No base_url/API-key whitespace normalization**: S2's SDK trims keys and
-   rejects internal whitespace; M1 only rejects empty values.
+6. ~~**No base_url/API-key whitespace normalization**~~ RESOLVED 2026-10-16
+   (M2 chunk 3): `api_key_validate` trims the key and rejects internal
+   whitespace/control/non-ASCII; `base_url_validate` enforces an http/https
+   scheme and a non-empty host (see sections 3, 6, 8, 14).
 7. **`usage` optional** (mirrors S9, though S8 lists it required).
 
 ## 10. Test strategy and evidence
 
-- Suite: `tests/test_conformance.xi` -- 35 test functions, **91/91 checks
-  passed, x2** (two consecutive runs at the end of the M2-chunk-2 lane) via
+- Suite: `tests/test_conformance.xi` -- 39 test functions, **110/110 checks
+  passed, x2** (two consecutive runs at the end of the M2-chunk-3 lane) via
   `& .\scripts\port.ps1 -Package xiom.jev -TimeoutSec 240` on compiler
   `v0.64.6` (native-session, 2026-10-16); `program_exit=0` both runs. History:
   26 functions/82 checks at M1; +4 functions (retry) -> 86; +5 functions
-  (structured instructions/criteria) -> 91.
+  (structured instructions/criteria) -> 91; +4 functions (legend exposure x2,
+  api-key hygiene, base_url validation) -> 110 (the two hygiene functions emit
+  one check per case).
 - Offline/deterministic: no API key, no network, no randomness; selection
   uses hand-supplied entropy; request fixtures are compared byte-exact.
 - Link-free: the suite never imports `xiom.jev.client` (the transport links
@@ -270,8 +279,12 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
 2. **Live verification** of the 401 detail decode and of a real 2xx parse
    could not be exercised here: no `TYPESAFE_API_KEY` is available in this
    session (by design none is stored).
-3. **Confidence formula reimplementation** (S6 choice/score formulas) is not
-   exposed in M1; the API-returned confidence is carried through. Planned M2.
+3. **Confidence formula reimplementation** (S6 choice/score formulas): still
+   not exposed. This SPEC pins only the noul spread `|2p - 1|` (section 7,
+   `noul_confidence_micro`); the exact S6 choice/score formulas are not
+   defined here, so the M2-chunk-3 lane skipped the helper cleanly rather than
+   inventing semantics (the API-returned confidence is carried through
+   unchanged). Blocked on the Architect pinning the S6 formulas in this file.
 4. **`Vec[StructType]` / `&Result` compiler traps**: `Result` payloads must
    be read via a local binding or matched by value (a `&Result` parameter
    that reads `r.value` crashes with an access violation on `v0.64.5`,
@@ -337,3 +350,38 @@ instructions example (object with a nested `potential_duplicate` record and
 an array-form instruction variant), structured true/false noul criteria, and
 a mixed string/object/array/null choice + score fixture. No live network is
 involved.
+
+## 14. M2 progress (increment 3: legend exposure + transport input hygiene)
+
+Third M2 chunk (ROADMAP M2 bullets 4, 6 and 7). Score-answer legends are now
+carried through parsing instead of validating-only, and the transport inputs
+are validated before any network call:
+
+- **Legend exposure** (ROADMAP bullet 4). The parser stores each score
+  answer's legend (level key -> description) in the `Answers` parallel
+  vectors `legend_starts`/`legend_counts`/`legend_labels`/`legend_docs`, where
+  `legend_docs` holds the raw JSON value so both the plain-string and the
+  structured (object/array) S4 forms round-trip. Choice/noul answers carry an
+  empty legend (count 0). New accessors in `xiom.jev.types`:
+  `response_legend_count/label/doc/is_structured/text/find` (all index-guarded)
+  and `response_legend_json`, which rebuilds the legend object for emission.
+- **API-key hygiene** (ROADMAP bullet 6, S2). `xiom.jev.api_key_validate`
+  trims leading/trailing ASCII whitespace and then requires every remaining
+  byte to be printable ASCII (0x21..0x7E); empty-after-trim ->
+  `client: api_key is empty`, any internal whitespace/control/non-ASCII ->
+  `client: api_key has invalid characters`. It returns the trimmed key, which
+  is what `system_one` sends.
+- **base_url validation** (ROADMAP bullet 7). `xiom.jev.base_url_validate`
+  requires an `http://` or `https://` scheme and a non-empty host (the text
+  between the scheme and the first `/`); empty/all-slash stays
+  `client: base_url is empty`. `system_one` runs it before building the
+  request, so a malformed base fails typed and offline.
+- **S6 confidence formulas**: skipped cleanly (see section 11 item 3) -- this
+  SPEC does not define the exact choice/score formulas.
+
+`system_one` now validates both inputs through these pure helpers (still
+`--check`-clean); they are unit-tested offline in the suite rather than
+through the libcurl-linked client. Fully offline-golden-tested (suite
+t36..t39): string and structured legend exposure (labels/order/text/
+structured flag/emission bytes), the api-key trim/reject matrix, and the
+base_url scheme/host matrix. No live network is involved.
