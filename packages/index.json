@@ -1,8 +1,25 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-16T14:04:00Z",
+    "updated":  "2026-10-16T14:18:29Z",
     "packages":  [
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.aaudio",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Android AAudio bindings (NDK r27b aaudio/AAudio.h; A6 audio head of the Android SDK100 program) via a runtime libaaudio.so bridge with SKIP semantics; full 67-function declared surface bound + ABI-checked, constants/types transcribed, functional builder lifecycle + stream open/start/close head",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-aaudio/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "aaudio.xi",
+                                              "package.xi"
+                                          ]
+                     },
                      {
                          "version":  "0.1.2",
                          "name":  "xiom.acpi",
@@ -178,19 +195,38 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.android",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Android platform-core bindings (NDK r27b A1 window-core + A5 assets-storage heads: native_window.h + hardware_buffer.h + asset_manager.h + storage_manager.h + sharedmem.h) via a runtime libandroid.so/libnativewindow.so bridge with SKIP semantics; functional AHardwareBuffer + ASharedMemory heads; 53-symbol export set bound + ABI-checked (window/asset ops need a live Surface/Context -\u003e A11 seam)",
+                         "description":  "Android platform-core bindings (NDK r27b A1 window-core + A5 assets-storage + A2 lifecycle-glue heads: native_window.h + hardware_buffer.h + asset_manager.h + storage_manager.h + sharedmem.h + looper.h + native_activity.h + configuration.h) via a runtime libandroid.so/libnativewindow.so bridge with SKIP semantics; functional AHardwareBuffer + ASharedMemory + ALooper (callback direct handoff) + AConfiguration heads; 117-symbol export set bound + ABI-checked (window/activity/asset ops need a live Surface/Activity -\u003e A11 seam)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-android/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-android/v0.3.0/package.tar.gz",
                          "source_files":  [
+                                              "configuration.xi",
+                                              "lifecycle.xi",
                                               "android.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.android-sys",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Android system-starter bindings (NDK r27b A12 head: android/log.h + android/sync.h + linux/sync_file.h) via a runtime liblog.so/libsync.so bridge with SKIP semantics; functional liblog head (__android_log_write/print + is_loggable verdicts) and typed libsync error path (sync_file_info/sync_merge errno capture); 11-symbol core export set (API 26) ABI-gated + 10 API-30 liblog extensions reported; JNI excluded",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-android-sys/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "android_sys.xi",
                                               "package.xi"
                                           ]
                      },
@@ -875,7 +911,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.3.0",
+                         "version":  "0.4.0",
                          "name":  "xiom.box2d",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Box2D 2D physics bindings for XIOM (vendored v3.1.1 C sources, integer bridge)",
@@ -885,7 +921,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-box2d/v0.3.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-box2d/v0.4.0/package.tar.gz",
                          "source_files":  [
                                               "box2d.xi",
                                               "package.xi"
@@ -973,6 +1009,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cache/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "cache.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.camera2ndk",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Android camera2 NDK bindings (NDK r27b A8 camera head: NdkCameraManager.h + NdkCameraDevice.h + NdkCameraCaptureSession.h + NdkCaptureRequest.h + NdkCameraMetadata.h + NdkCameraMetadataTags.h + NdkCameraError.h) via a runtime libcamera2ndk.so bridge with SKIP semantics; functional ACameraManager create/delete + camera-id list (typed ACAMERA_ERROR_* outcomes are non-fatal); 70-symbol export set bound + ABI-checked (device/session/request async surfaces are export-set only this wave; data callbacks staged later)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-camera2ndk/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "camera2ndk.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4692,6 +4745,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.mediandk",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Android NDK media bindings (NDK r27b oracle; runtime libmediandk.so bridge with SKIP semantics): A7 core media head -- AMediaCodec/AMediaFormat/AMediaExtractor/AMediaMuxer/AMediaDrm/AMediaDataSource declared surface (276 symbols bound + ABI-checked) with functional AMediaFormat roundtrips (int32/float/string/buffer/toString) and an audio/opus decoder-create probe",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mediandk/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "mediandk.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.3",
                          "name":  "xiom.memcached",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -4885,17 +4955,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.3.0",
+                         "version":  "0.4.0",
                          "name":  "xiom.miniaudio",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library; version/context enumeration, in-memory + file WAV decode, encoder round trip)",
+                         "description":  "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library; version/context enumeration, decode/encode, live device lifecycle + playback engine + node graph/mixing + capture, streamed WAV/FLAC/MP3 decode)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-miniaudio/v0.3.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-miniaudio/v0.4.0/package.tar.gz",
                          "source_files":  [
                                               "miniaudio.xi",
                                               "package.xi"
@@ -5642,6 +5712,23 @@
                          "source_files":  [
                                               "openpgl.xi",
                                               "openpgl_ffi.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.opensl",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Android legacy audio bindings (NDK r27b): OpenSL ES (SLES/OpenSLES.h + OpenSLES_Android.h: slCreateEngine/slQuery*EngineInterfaces + 53 SL_IID_* runtime interface-ID globals), OpenMAX AL (OMXAL/OpenMAXAL.h: xaCreateEngine/xaQuery*EngineInterfaces + 41 XA_IID_* globals) and AMidi (amidi/AMidi.h: 14 functions) via a runtime libOpenSLES.so/libOpenMAXAL.so/libamidi.so bridge with SKIP semantics; functional slCreateEngine -\u003e Realize -\u003e Destroy engine lifecycle (all vtable calls stay C-side); 114-symbol export set bound + ABI-checked",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-opensl/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "opensl.xi",
                                               "package.xi"
                                           ]
                      },
