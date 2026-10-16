@@ -1,13 +1,18 @@
 // xiom.android conformance suite -- platform-core (libandroid.so +
 // libnativewindow.so) loader/probe for the A1 window-core + A5
-// assets-storage + A2 lifecycle-glue heads.
+// assets-storage + A2 lifecycle-glue + A3 input + A4 sensors heads.
 //
 // The probe never FAILs on a missing runtime:
 //   present runtime -> export-set ABI check + functional AHardwareBuffer
 //                      roundtrip (isSupported/allocate/describe/write/
 //                      read/release) + ASharedMemory + ALooper
 //                      (ident + direct-handoff callback + poll codes) +
-//                      AConfiguration value object
+//                      AConfiguration value object + the A4 sensor
+//                      manager (enumerate + describe + queue roundtrip)
+//                      -- the A3 queue itself is app-delivered, so its
+//                      live path lives in the on-device app probe and
+//                      this suite checks the A3/A4 constant clusters +
+//                      the explicit-error contract of every head
 //   missing libs    -> ANDROID_LOAD_ABSENT (SKIP; exercised
 //                      deterministically below with bogus sonames)
 //   broken install  -> ANDROID_LOAD_ABI (FAIL -- never a silent SKIP)
@@ -27,6 +32,8 @@ use xiom.io;
 use xiom.android;
 use xiom.android.lifecycle;
 use xiom.android.configuration;
+use xiom.android.input;
+use xiom.android.sensors;
 
 fn report(ok: Bool, name: Str) -> Int {
   if ok {
@@ -92,6 +99,90 @@ fn t_a2_constants() -> Bool {
   if ACONFIGURATION_LOCALE != 0x0004 || ACONFIGURATION_DENSITY != 0x0100 { ok = false; }
   if ACONFIGURATION_COLOR_MODE != 0x10000 || ACONFIGURATION_GRAMMATICAL_GENDER != 0x20000 { ok = false; }
   return ok;
+}
+
+fn t_a3_constants() -> Bool {
+  var ok = true;
+  // input.h event types + sources (spot set; the full transcription is
+  // build-time checked against the NDK header in the on-device probe).
+  if AINPUT_EVENT_TYPE_KEY != 1 || AINPUT_EVENT_TYPE_MOTION != 2 { ok = false; }
+  if AINPUT_EVENT_TYPE_CAPTURE != 4 || AINPUT_EVENT_TYPE_DRAG != 5 { ok = false; }
+  if AINPUT_SOURCE_CLASS_MASK != 0xFF || AINPUT_SOURCE_CLASS_POINTER != 2 { ok = false; }
+  if AINPUT_SOURCE_KEYBOARD != 0x101 || AINPUT_SOURCE_TOUCHSCREEN != 0x1002 { ok = false; }
+  if AINPUT_SOURCE_JOYSTICK != 0x1000010 { ok = false; }
+  if AINPUT_KEYBOARD_TYPE_ALPHABETIC != 2 { ok = false; }
+  // key event actions/flags + meta states.
+  if AKEY_EVENT_ACTION_DOWN != 0 || AKEY_EVENT_ACTION_UP != 1 { ok = false; }
+  if AKEY_EVENT_FLAG_LONG_PRESS != 128 || AKEY_EVENT_FLAG_FALLBACK != 1024 { ok = false; }
+  if AMETA_SHIFT_ON != 1 || AMETA_ALT_ON != 2 || AMETA_CTRL_ON != 4096 { ok = false; }
+  if AMETA_META_ON != 65536 || AMETA_SCROLL_LOCK_ON != 4194304 { ok = false; }
+  // motion event actions/flags/buttons/edges/tools/classification.
+  if AMOTION_EVENT_ACTION_DOWN != 0 || AMOTION_EVENT_ACTION_MOVE != 2 { ok = false; }
+  if AMOTION_EVENT_ACTION_POINTER_DOWN != 5 || AMOTION_EVENT_ACTION_SCROLL != 8 { ok = false; }
+  if AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT != 8 { ok = false; }
+  if AMOTION_EVENT_ACTION_POINTER_INDEX_MASK != 65280 { ok = false; }
+  if AMOTION_EVENT_BUTTON_PRIMARY != 1 || AMOTION_EVENT_BUTTON_STYLUS_SECONDARY != 64 { ok = false; }
+  if AMOTION_EVENT_EDGE_FLAG_TOP != 1 || AMOTION_EVENT_EDGE_FLAG_RIGHT != 8 { ok = false; }
+  if AMOTION_EVENT_TOOL_TYPE_FINGER != 1 || AMOTION_EVENT_TOOL_TYPE_PALM != 5 { ok = false; }
+  if AMOTION_EVENT_AXIS_X != 0 || AMOTION_EVENT_AXIS_ORIENTATION != 8 { ok = false; }
+  if AMOTION_EVENT_AXIS_GENERIC_1 != 32 || AMOTION_EVENT_AXIS_GESTURE_SWIPE_FINGER_COUNT != 53 { ok = false; }
+  if AMOTION_EVENT_CLASSIFICATION_DEEP_PRESS != 2 || AMOTION_EVENT_CLASSIFICATION_PINCH != 5 { ok = false; }
+  // keycodes.h frozen enum (spot set across the table incl. the tail).
+  if AKEYCODE_UNKNOWN != 0 || AKEYCODE_HOME != 3 || AKEYCODE_BACK != 4 { ok = false; }
+  if AKEYCODE_A != 29 || AKEYCODE_Z != 54 || AKEYCODE_ENTER != 66 { ok = false; }
+  if AKEYCODE_MENU != 82 || AKEYCODE_ESCAPE != 111 || AKEYCODE_NUM_LOCK != 143 { ok = false; }
+  if AKEYCODE_MUTE != 91 || AKEYCODE_ASSIST != 219 || AKEYCODE_HELP != 259 { ok = false; }
+  if AKEYCODE_SOFT_SLEEP != 276 || AKEYCODE_RECENT_APPS != 312 { ok = false; }
+  if AKEYCODE_STYLUS_BUTTON_TAIL != 311 || AKEYCODE_MACRO_4 != 316 { ok = false; }
+  return ok;
+}
+
+fn t_a4_constants() -> Bool {
+  var ok = true;
+  // sensor.h types/status/direct/limits (spot set; the full transcription
+  // is build-time checked in the on-device probe).
+  if ASENSOR_TYPE_INVALID != -1 || ASENSOR_TYPE_ACCELEROMETER != 1 { ok = false; }
+  if ASENSOR_TYPE_MAGNETIC_FIELD != 2 || ASENSOR_TYPE_GYROSCOPE != 4 { ok = false; }
+  if ASENSOR_TYPE_LIGHT != 5 || ASENSOR_TYPE_PROXIMITY != 8 { ok = false; }
+  if ASENSOR_TYPE_ROTATION_VECTOR != 11 || ASENSOR_TYPE_HEART_RATE != 21 { ok = false; }
+  if ASENSOR_TYPE_POSE_6DOF != 28 || ASENSOR_TYPE_DYNAMIC_SENSOR_META != 32 { ok = false; }
+  if ASENSOR_TYPE_ADDITIONAL_INFO != 33 || ASENSOR_TYPE_HEADING != 42 { ok = false; }
+  if ASENSOR_STATUS_UNRELIABLE != 0 || ASENSOR_STATUS_ACCURACY_HIGH != 3 { ok = false; }
+  if ASENSOR_STATUS_NO_CONTACT != -1 { ok = false; }
+  if ASENSOR_DIRECT_RATE_STOP != 0 || ASENSOR_DIRECT_RATE_NORMAL != 1 { ok = false; }
+  if ASENSOR_DIRECT_RATE_FAST != 2 || ASENSOR_DIRECT_RATE_VERY_FAST != 3 { ok = false; }
+  if ASENSOR_DIRECT_CHANNEL_TYPE_SHARED_MEMORY != 1 { ok = false; }
+  if ASENSOR_DIRECT_CHANNEL_TYPE_HARDWARE_BUFFER != 2 { ok = false; }
+  if ASENSOR_ADDITIONAL_INFO_BEGIN != 0 || ASENSOR_ADDITIONAL_INFO_END != 1 { ok = false; }
+  if ASENSOR_ADDITIONAL_INFO_INTERNAL_TEMPERATURE != 65537 { ok = false; }
+  if ASENSOR_INVALID != -1 || ASENSOR_FIFO_COUNT_INVALID != -1 { ok = false; }
+  if ASENSOR_DELAY_INVALID != -2147483648 { ok = false; }
+  // nanf("") sentinel transcribed as its IEEE-754 quiet-NaN bit pattern.
+  if ASENSOR_RESOLUTION_INVALID != 2143289344 { ok = false; }
+  // float constants (reconstructed value equality at binary32 precision).
+  let g = ASENSOR_STANDARD_GRAVITY;
+  if g < 9.806 || g > 9.807 { ok = false; }
+  if ASENSOR_MAGNETIC_FIELD_EARTH_MAX != 60.0 { ok = false; }
+  if ASENSOR_MAGNETIC_FIELD_EARTH_MIN != 30.0 { ok = false; }
+  return ok;
+}
+
+// Explicit-error contract of the A3/A4 heads: null handles (and an
+// unloaded runtime on Windows) must produce recorded errors -- never a
+// silent zero.  Null-handle checks are safe on every host.
+fn t_a3a4_explicit_errors() -> Int {
+  var failed: Int = 0;
+  let q0 = InputQueue{ handle: 0 };
+  failed = failed + report(input_queue_has_events(&q0) == -1,
+    "input: has_events on null queue -> explicit error");
+  let ev0 = input_event_read(&q0);
+  failed = failed + report(!ev0.is_ok, "input: event_read on null queue -> explicit error");
+  let lq0 = SensorEventQueue{ handle: 0 };
+  let rd0 = queue_read(&lq0, 4);
+  failed = failed + report(!rd0.is_ok, "sensors: queue_read on null queue -> explicit error");
+  let s0 = Sensor{ handle: 0 };
+  failed = failed + report(sensor_name(&s0) == "", "sensors: name on null sensor -> empty (error recorded)");
+  return failed;
 }
 
 fn t_hwb_functional() -> Int {
@@ -270,6 +361,89 @@ fn t_config_functional() -> Int {
   return failed;
 }
 
+fn t_sensor_functional() -> Int {
+  var failed: Int = 0;
+  let m = manager();
+  if !m.is_ok {
+    return report(false, "sensors: manager failed -- " + m.error.message);
+  }
+  let mgr: SensorManager = m.value;
+  failed = failed + report(manager_valid(&mgr), "sensors: manager instance");
+  let list = manager_sensor_list(&mgr);
+  if !list.is_ok {
+    return failed + report(false, "sensors: list failed -- " + list.error.message);
+  }
+  let sensors: Vec[Sensor] = list.value;
+  failed = failed + report(true, "sensors: enumerated " + to_string(sensors.len()) + " sensor(s)");
+  if sensors.len() > 0 {
+    let s0 = sensors[0];
+    failed = failed + report(sensor_valid(&s0), "sensors: first sensor valid");
+    let nm = sensor_name(&s0);
+    failed = failed + report(nm.len() > 0, "sensors: first sensor named (" + nm + ")");
+    let st = sensor_type(&s0);
+    failed = failed + report(st >= 0, "sensors: first sensor type " + to_string(st));
+    failed = failed + report(sensor_min_delay(&s0) >= 0,
+      "sensors: first sensor min delay " + to_string(sensor_min_delay(&s0)));
+    failed = failed + report(sensor_handle(&s0) >= 0,
+      "sensors: first sensor handle " + to_string(sensor_handle(&s0)));
+    let _is_wake = sensor_is_wake_up(&s0);
+    failed = failed + report(true, "sensors: wake-up query responds");
+  }
+  // Default accelerometer: present on every emulator; a sensorless
+  // device is a documented case, not a failure.
+  let acc = manager_default_sensor(&mgr, ASENSOR_TYPE_ACCELEROMETER);
+  if !sensor_valid(&acc) {
+    return failed + report(true, "sensors: no accelerometer (no-sensor device; queue path skipped)");
+  }
+  failed = failed + report(true, "sensors: accelerometer present (type " + to_string(sensor_type(&acc)) + ")");
+
+  // Event-queue roundtrip on the calling thread's looper.
+  let lp = looper_prepare(true);
+  if !lp.is_ok {
+    return failed + report(false, "sensors: looper prepare failed -- " + lp.error.message);
+  }
+  let qr = manager_create_queue_ident(&mgr, &lp.value, 9);
+  if !qr.is_ok {
+    return failed + report(false, "sensors: create queue failed -- " + qr.error.message);
+  }
+  let q: SensorEventQueue = qr.value;
+  failed = failed + report(queue_valid(&q), "sensors: queue created");
+  failed = failed + report(queue_enable_sensor(&q, &acc), "sensors: enable accelerometer");
+  var got: Int = 0;
+  var ev_type: Int = -1;
+  var ev_ts: Int = -1;
+  var ev_mag: Float64 = 0.0;
+  var tries: Int = 0;
+  while tries < 30 && got == 0 {
+    let rc = looper_poll_once(&lp.value, 100);
+    if rc == 9 || queue_has_events(&q) == 1 {
+      let rr = queue_read(&q, 8);
+      if rr.is_ok {
+        let batch: Vec[SensorEvent] = rr.value;
+        got = batch.len();
+        if got > 0 {
+          let ev = batch[0];
+          ev_type = event_type(&ev);
+          ev_ts = event_timestamp(&ev);
+          ev_mag = event_x(&ev) + event_y(&ev) + event_z(&ev);
+        }
+      }
+    }
+    tries = tries + 1;
+  }
+  failed = failed + report(got >= 1, "sensors: polled + read " + to_string(got) + " event(s)");
+  if got >= 1 {
+    failed = failed + report(ev_type == ASENSOR_TYPE_ACCELEROMETER,
+      "sensors: event type accelerometer (got " + to_string(ev_type) + ")");
+    failed = failed + report(ev_ts > 0, "sensors: event timestamp > 0");
+    failed = failed + report(ev_mag < 1000.0 && ev_mag > -1000.0,
+      "sensors: event payload sane (x+y+z = " + to_string(ev_mag) + ")");
+  }
+  failed = failed + report(queue_disable_sensor(&q, &acc), "sensors: disable accelerometer");
+  failed = failed + report(manager_destroy_queue(&mgr, q), "sensors: queue destroyed");
+  return failed;
+}
+
 fn main() -> Int {
   io.println("=== xiom.android conformance tests (platform-core loader/probe) ===");
   io.flush_stdout();
@@ -277,8 +451,10 @@ fn main() -> Int {
 
   failed = failed + report(t_constants(), "constants: kinds + window/HWB formats + usage flags");
   failed = failed + report(t_a2_constants(), "constants: looper events/results + activity flags + config enums");
-  failed = failed + report(android_export_count() == 117,
-    "export set: declared size 117 (got " + to_string(android_export_count()) + ")");
+  failed = failed + report(t_a3_constants(), "constants: A3 event types/sources/key+motion enums + keycode table");
+  failed = failed + report(t_a4_constants(), "constants: A4 sensor types/status/direct rates + limits");
+  failed = failed + report(android_export_count() == 209,
+    "export set: declared size 209 (got " + to_string(android_export_count()) + ")");
 
   // SKIP-path classification, deterministic on every host (bogus pair).
   let missing = android_probe_named("xiom-absent-libandroid-xyz.so", "xiom-absent-libnativewindow-xyz.so");
@@ -295,6 +471,7 @@ fn main() -> Int {
   failed = failed + report(!lp0.is_ok, "looper: prepare without runtime -> explicit error");
   let c0 = config_new();
   failed = failed + report(!c0.is_ok, "config: new without runtime -> explicit error");
+  failed = failed + t_a3a4_explicit_errors();
 
   // Default runtime probe.
   let p = android_probe();
@@ -306,6 +483,7 @@ fn main() -> Int {
     failed = failed + t_shm_functional();
     failed = failed + t_looper_functional();
     failed = failed + t_config_functional();
+    failed = failed + t_sensor_functional();
   } else {
     if p.error.kind == ANDROID_LOAD_ABSENT {
       failed = failed + report(true, "probe: SKIP -- android runtime not present (" + p.error.message + ")");
