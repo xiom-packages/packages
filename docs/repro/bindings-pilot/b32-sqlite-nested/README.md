@@ -43,6 +43,40 @@ the 1400-line suite + 8 package modules + the vendored sqlite3.c TU.
 
 None reproduce it.  (Run: `xiom --run probe.xi` from `probe-nearmiss/`.)
 
+## Re-attempt on v0.64.6 (2026-10-16, machine slot) -- STILL RED
+
+Re-ran this bundle on the v0.64.6 slot
+(`%LOCALAPPDATA%\xiom.new\bin\xiom.exe`, sha256
+`EB1F46C2ACBA5B95D46124FA7BB52426508BE5B81256E3ED1819CBFDA6979150`;
+`port.ps1 -Package xiom.sqlite -TimeoutSec 300`, tested-on v0.64.6):
+17/17 PASS, then the SAME signature at t18 --
+
+```
+DBG q1 ok=true
+DBG out some=true
+DBG cols.len=140702801265104        <-- pointer-like garbage (B-26 signature)
+exit code: -1073741819 (0xC0000005)
+```
+
+(`port: FAIL (passed=17 failed=0 program_exit=-1073741819)`.)  Controls
+on the same slot: `nested-payload/probe.xi` GREEN (nested/flat/option
+2/2/2) and `matrix.xi` GREEN (all 8 shapes, shape A included).  B-32
+is not fixed by v0.64.6 (m346 covered the isolated shapes only); next
+re-verify rides the v0.64.7+ wave.
+
+Evidence (this host): `%TEMP%\kilo\b32\` -- `attempt-1.log`,
+`tested-tree.diff` (HEAD + patch, as tested), `probe-1.log`,
+`matrix-1.log`, `slot-exe.sha256`.
+
+Bundle caveats (hit on this re-run):
+
+- the committed `restore-0.5.0-attempt.patch` is UTF-16LE -- convert it
+  to UTF-8 before `git apply` (`--recount` is safe);
+- its `README.md` hunk context predates the 0.4.1 modules-list
+  paragraph now in the package README -- re-apply that hunk manually
+  (the other 7 files apply cleanly; `src/types.xi` still matches the
+  patch's recorded new blob `61eb2d5b`).
+
 ## Status
 
 - xiom.sqlite STAYS at the flat RowOutcome shape (restore parked; the
