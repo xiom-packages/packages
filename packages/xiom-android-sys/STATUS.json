@@ -13,5 +13,12 @@
                   "checked":  "2026-10-16T15:44:13Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (Android SDK100 A12 system head: log + sync + binder + nnapi + zlib + icu subset; per-lib runtime-load units); publish gate after the naming decision + first end-to-end suite run (G1)"
+    "excluded_reason":  "new package (Android SDK100 A12 system head: log + sync + binder + nnapi + zlib + icu subset; per-lib runtime-load units); publish gate after the naming decision + first end-to-end suite run (G1)",
+    "platforms":  [
+                      "android-arm64",
+                      "android-x86_64"
+                  ],
+    "runtime_deps":  [
+                         "libbinder_ndk.so, libneuralnetworks.so, libz.so, libandroidicu.so, liblog.so, libsync.so (per-lib runtime-load units; SKIP when absent)"
+                     ]
 }
