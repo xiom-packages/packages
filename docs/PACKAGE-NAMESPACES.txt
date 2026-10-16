@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-17T00:27:01+03:00
-# packages: 566  modules: 1069
+# generated: 2026-10-17T00:52:20+03:00
+# packages: 569  modules: 1079
 
 ## package names
 xiom.aaudio
@@ -186,6 +186,7 @@ xiom.glfw
 xiom.glslang
 xiom.golden
 xiom.gpio
+xiom.gps
 xiom.gpt
 xiom.gpx
 xiom.graphql
@@ -446,6 +447,7 @@ xiom.semaphore
 xiom.semver
 xiom.sensor
 xiom.sentiment
+xiom.serial
 xiom.serverless
 xiom.session
 xiom.sgf
@@ -534,6 +536,7 @@ xiom.uri
 xiom.usb
 xiom.useragent
 xiom.uuid
+xiom.v4l
 xiom.validation
 xiom.varint
 xiom.vault
@@ -878,6 +881,7 @@ xiom.gles.gles_consts_5
 xiom.gles.gles_names
 xiom.golden
 xiom.gpio
+xiom.gps
 xiom.gpt
 xiom.gpx
 xiom.grpc.client
@@ -1076,9 +1080,13 @@ xiom.ogg.ffi
 xiom.ogg.mux
 xiom.ogg.types
 xiom.oidn
+xiom.onnx.env
 xiom.onnx.io
+xiom.onnx.loader
 xiom.onnx.session
+xiom.onnx.tensor
 xiom.onnx.types
+xiom.onnx.value
 xiom.opencv.features
 xiom.opencv.filters
 xiom.opencv.io
@@ -1372,6 +1380,7 @@ xiom.sensor.fusion
 xiom.sensor.gps
 xiom.sensor.imu
 xiom.sentiment
+xiom.serial
 xiom.serverless
 xiom.serverless.check
 xiom.serverless.deploy
@@ -1536,6 +1545,10 @@ xiom.uri
 xiom.usb
 xiom.useragent
 xiom.uuid
+xiom.v4l
+xiom.v4l.cids
+xiom.v4l.consts
+xiom.v4l.layout
 xiom.validation
 xiom.varint
 xiom.vault

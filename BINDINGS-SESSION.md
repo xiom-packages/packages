@@ -1285,6 +1285,164 @@ LIVE)**:
 - Still open at packages: android family (`-1305`/`-1322`; continues
   with the sibling), `xiom.jni` (`-1410` acked), `xiom.android-sys`
   (`-1545` open).  Eco through `eco-v0.1.190`.
+- 17:20Z: **family batch ACKED + executing** -- the combined
+  publish = `xiom.android 0.4.0` (per -1322; 0.3.0 SKIPPED) +
+  aaudio/mediandk/camera2ndk/opensl 0.1.0 + `xiom.android-sys 0.2.0`
+  + `xiom.jni 0.1.0` (SEVEN units; all seven names being appended to
+  the repo allowlist in this batch; scopes live 550/552); x2 sweep ->
+  wrap -> publish.  Also: `xiom.pulse` scoped LIVE (eco-release 553).
+  **v0.64.6 archive IMMINENT** (packages will coordinate ordering if
+  it lands before the family batch wraps).  On release: B-32
+  re-verify wave (nested `Result[Option]` restore probes) is the
+  prepared lane action; no unilateral repin.  Probe paths ready:
+  `docs/repro/bindings-pilot/nested-payload/` (probe.xi + matrix.xi)
+  + `docs/repro/bindings-pilot/b32-sqlite-nested/`; on green, the
+  xiom.sqlite nested restore (flat `RowOutcome` stays until then).
+
+**UPDATE 2026-10-16 18:30Z (FAMILY 7/8 LIVE in eco-v0.1.192; android
+0.4.0 on scope re-grant; v0.64.6 cut gate GREEN)**:
+- Batch 94 = **`eco-v0.1.192`** (run 38944226590): **aaudio 0.1.0**
+  (sha `ab97fe2e`) + **android-sys 0.2.0** (`9d611a16`) +
+  **camera2ndk 0.1.0** (`0b7a0ba0`) + **mediandk 0.1.0** (`a18abb38`)
+  + **opensl 0.1.0** (`22cee06c`) + **jni 0.1.0** (`61a0ed6f`) + the
+  bonus **PULSE Beacon `xiom.pulse 0.1.0`** (`53fcc56e`).
+- **`xiom.android 0.4.0` BLOCKED (1/8)**: registry `scope_denied` --
+  the recreated registry's eco token never covered this legacy name
+  (the 550 grant covered the five NEW names only); ops re-grant asked
+  by packages; on LIVE they push the single-package tag
+  `xiom-android/v0.4.0`.  No bindings action; item
+  `REL-20261016-1810-packages-2` acked.
+- Compiler: **cut gate GREEN on m334-m345** (full battery) -- v0.64.6
+  release imminent; XVC-C-18 recon launched.  Eco through `.192`;
+  PULSE already consumer-verified ssl+brotli x2 both platforms.
+- 19:45Z: **family 8/8 CONFIRMED COMPLETE** -- `xiom.android 0.4.0`
+  published 19:26Z via the single-package tag `xiom-android/v0.4.0`
+  (run 38954866471; sha256 `2b9cf462...`; re-grant live eco-554).
+  Closing `-1305`/`-1322` from our side is TOOL-BLOCKED (bindings
+  cannot move `to=packages` items) -> closure request filed
+  `REL-20261016-1943-bindings`.  R2 wave (serial/onnx/v4l/gps/epos/
+  ros2; `am-1792178818502-r7skkf`) was launched by the sibling
+  session per the owner go -- this lane watches + lands.  m346
+  (XVC-C-18) integrated into the held v0.64.6 cut candidate (battery
+  rerunning).
+
+**UPDATE 2026-10-16 20:35Z (R2 LANDINGS: serial 0.1.0 + ros2 0.2.0 IN;
+B-33 filed to compiler)**:
+- **`xiom.serial 0.1.0` LANDED** (land `a9a2c8e3`; record head
+  `4def4b3b`): Win32 comm API loader (kernel32+advapi32, 14 entry
+  points) + DCB/timeout codecs (360/360 matrix, 180/180 invalid
+  rejected) + 9 typed error kinds; integration **x2 52/52**; publish
+  request `REL-20261016-2031-bindings` (NEW name; ops scope needed).
+- **`xiom.ros2 0.2.0` LANDED** (land `a0184d9c`): rcl C surface behind
+  the multi-soname loader (init/context/node/pub/sub/clock/timers/
+  wait-sets, callback-free spin; QoS/node-opts builders; 24 rcl_ret
+  codes; ABI host gate); integration **x2 82/82**; publish request
+  `-2031-bindings-2` (existing name).  Landed with the B-33 findings
+  entry + the `ros2-abi` probe bundle.
+- **B-33 relayed to the compiler lane** (`-2031-bindings-3`):
+  record-by-value fn-cast call = SILENT exit-0 (confinement trap
+  non-recovery; IR emission well-formed -> bisect = confined-call
+  lowering + fault-trampoline recovery for aggregates).  Workaround
+  (pointer-pretend) shipped in ros2 0.2.0; probes
+  `docs/repro/bindings-pilot/ros2-abi/`.
+- validate **563/0** (serial + ros2 joined); pushed after rebase
+  (records re-pointed to post-rebase shas).  Acks: `-1941-packages`
+  (openblas/arrow to packages; NO conflicts) + `-1951-packages`
+  (pandas leg-2 triage recorded).  R2 remaining: onnx/v4l/gps/epos
+  in flight; a3-a4 stale dir finally removed.
+
+**UPDATE 2026-10-16 21:15Z (v0.64.6 VERIFIED on the scratch slot; v4l
+LANDED; B-32 restore session launched)**:
+- **v0.64.6 scratch verification** (windows-x64 asset; SHA256SUMS OK;
+  run with `XIOM_COMPILER` = scratch slot -- the repo pin STAYS
+  v0.64.5 until the owner repins):
+  - **B-26/B-32 core: GREEN** -- `nested-payload/probe.xi`
+    failures=0; `matrix.xi` ALL shapes green (incl. the previously
+    reliable-red A/A2: tag=2, items.len=2).  The m346 generic
+    field-chain fix lands as advertised.
+  - **B-30 owned-slot-cast: GREEN** (probe.xi + probe_fixed.xi both
+    compile+run, ch=2).
+  - **B-31 const-alias-cycle: still FIXED** (emit-ir exit 0).
+  - **B-29 bigint-bitops: STILL RED** (shift20=2987 vs 2989;
+    boundary-arithmetic workaround stays).
+  - B-33: not re-run (needs the clang probe.dll; compiler queued it
+    as m351 for v0.64.7).
+  - **REPIN DECISION = owner/session** (`COMPILER_VERSION` on
+    origin/bindings still v0.64.5).  Scratch slot path:
+    `%TEMP%\kilo\xiom0646\slot`.
+- **`xiom.v4l 0.1.0` LANDED** (agent chain rebased onto bindings:
+    `bbd8cfaa` prep -> `18eaf107` feat -> `ce9f9f0c` docs ->
+    `ddc97fe5` record; record re-pointed to the tested tree
+    `18eaf107` in `962c5bb1` -- fixes the db08d746 slip): V4L2 UAPI
+    bridge, 2079 consts + 1028 layout facts + 29 macro mirrors; x2
+    14/14 (blanket SKIP off-Linux); validate **564/0**; publish
+    request `REL-20261016-2115-bindings` (NEW name).
+- **B-32 restore session launched** (`am-1792185444615-u3hosb`;
+    branch `feat/sqlite-nested-restore`): in-situ
+    `Result[Option[SqliteRow]]` restore attempt on the .6 scratch
+    slot (patch + suite; clean restore -> 0.5.0 if green; evidence
+    either way into the b32 README).
+- Publishes in queue at packages: serial `-2031-bindings`, ros2
+    `-2031-bindings-2`, v4l `-2115-bindings`; B-33 acked by compiler
+    (m351).  R2 remaining: onnx + gps (record phase) + epos
+    (relaunched session).
+
+**UPDATE 2026-10-16 21:45Z (R2: onnx + gps LANDED; validate 565/0)**:
+- **`xiom.onnx 0.1.0` (full C-API coverage) LANDED** (land
+  `7485c6d5` + record `508bb5e9` + namespace registration): 95-slot
+  runtime loader + session/tensor/value/allocator/run-options +
+  high-level `load_model`/`onnx_run`; integration **x2 56/56 with a
+  LIVE ORT leg** (real `A+B -> C` inference through Run/RunOptions +
+  io-binding; onnxruntime.dll 1.17.1 on the reset box / 1.31.0 in the
+  agent's run); publish `REL-20261016-2144-bindings` (existing name;
+  bump to 0.2.0 if the registry already holds the stub line).
+- **`xiom.gps 0.1.0` LANDED** (land `d16b2b61` + record `f2d2061f`):
+  pure-XIOM gpsd JSON client + NMEA 0183 parsers (GGA/RMC/GSA/GSV;
+  recorded upstream fixtures byte-pinned); integration **x2 28/28**
+  (live client SKIPs typed without gpsd); publish
+  `-2144-bindings-2` (NEW name; ops scope).
+- validate **565/0**.  **R2 state: serial/ros2/v4l/onnx/gps ALL
+  LANDED**; epos in flight (branch advanced `6a9f3afe`); B-32 restore
+  session active (`feat/sqlite-nested-restore`).
+- Publishes in queue: serial, ros2, v4l, onnx, gps (5 items) + the
+    earlier family closes.
+
+**UPDATE 2026-10-16 19:25Z (ML/AI + robotics program -- acked + queue
+folded; 20 built names confirmed)**: owner directive (19:16Z) relayed by
+packages; handled this pass.
+- **`-1917-packages-3` acked + replied** (`REL-20261016-1921-bindings`;
+  relay `794063b`): bindings half CONFIRMED against tip `2ba5854d` --
+  **13 fleet names** (gpio/i2c/spi/adc/pwm/sensor/can/ble/zigbee/hid/usb
+  + modbus + mqtt; all present in both trees, 0.1.3 line) + **7 in-tree
+  ML/ros2 bodies** (blas/openblas/libtorch/torch/tensorflow/onnx 0.1.0,
+  ros2 0.1.0) = **20 built names** (matches the bulk scope queue);
+  serial/v4l/gps/epos = new work; no name/ownership corrections.
+- **QUEUE FOLDED** (agents pick directly): R1 fleet publish (packages
+  pipeline) -> R2 serial/v4l/gps/epos/ros2 (**serial FIRST**) -> M1
+  foundation -> M2 runtimes (**onnx FIRST**; previously parked on the
+  native-lane go-ahead -- now unblocked) -> M3 LLM runner.  Clone
+  protocol: light `--depth 1`, license first, pin in PROVENANCE.
+- Live context: family **7/8 in `eco-v0.1.192`** (android 0.4.0 on the
+  ops legacy re-grant); v0.64.6 cut gate green (B-32 re-verify paths
+  pinned); no open relay items after this pass.
+
+**UPDATE 2026-10-16 19:35Z (ML/AI + robotics parallel wave LAUNCHED -- 6
+agents; light-clone protocol; first picks serial + onnx)**: owner go
+("start in parallel agents") -- requested 6 Agent Manager worktree
+sessions (`am-1792178818502-r7skkf`):
+- `feat/serial-binding` (**first pick**) -- xiom.serial UART core;
+  `feat/onnx-coverage` (**first pick**) -- xiom.onnx 0.1.0 -> full C-API
+  coverage + delivery (native-lane unblock); `feat/v4l-binding` --
+  xiom.v4l V4L2 UAPI; `feat/gps-binding` -- xiom.gps gpsd-JSON + NMEA
+  (pure-XIOM preferred); `feat/epos-binding` -- xiom.epos closed-SDK
+  loader; `feat/ros2-coverage` -- xiom.ros2 rcl C surface completion.
+- Protocol in every brief: LIGHT clones (`--depth 1`, no history) into
+  `E:\repos\<name>`; license check first (MIT-or-compatible; closed ->
+  loader pattern, nothing vendored); commit pinned in PROVENANCE; 100%
+  declared-surface coverage; v0.64.5 pin; suite x2; path-scoped landing;
+  start from origin/bindings.
+- Landings via the standing recipe as branches go green; R1 fleet
+  publish + android 0.4.0 re-grant remain with packages/ops.
 
 **UPDATE 2026-10-16 13:10Z (live pass -- OPS SCOPES LIVE; android family
 first-publish requested; brotli scope ask open)**: fresh pass on the live
@@ -2070,6 +2228,23 @@ otel via `-2309-3`). Relay: PULSE top-tier asks **TLS context binding
 (libbrotli)** accepted into the queue (`-2211-packages(-2)`; `-2302`
 duplicate noted; `-2313` dedupe agreed). Android wave-2 landing: 5 of 8 in
 (validate 559/0).
+
+**UPDATE 2026-10-16 21:05Z (doorbell -- v0.64.6 RELEASED)**: compiler
+**v0.64.6 RELEASED 2026-10-16 20:33Z** (`REL-20261016-2034-compiler`;
+assets live). This is the **REPIN-WAVE TRIGGER** (next-session first
+priority per the 11:30Z/18:15Z handoffs): download + sha256-verify +
+install the lane-local slot (NEVER the shared home -- clobber rule), bump
+`COMPILER_VERSION`, repin (563+ records), validate, then the queued
+re-verify: **m334 tuple fix** (1941 green; 2022/2303/2309 verdicts),
+**B-29/B-32** (B-32 = sqlite nested-shape restore; repro bundle
+`b32-sqlite-nested`), editor rows, B-25/B-26 residuals, and the
+workaround-retirement checks that ride this pin. Also this window:
+**family 7/8 LIVE in `eco-v0.1.192`** (android family + `xiom.pulse`
+Beacon; legacy android scope re-grant asked of ops); **R2 landed**
+(`0d25d58b`: `xiom.serial 0.1.0` 52/52 + `xiom.ros2 0.2.0` 82/82 x2;
+validate 563/0; publishes filed; B-33 to compiler). Beacon acceptance
+stage 1 GREEN (125/125 x2 both platforms). Zero open bindings-addressed
+relay items; validate 660 green.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3

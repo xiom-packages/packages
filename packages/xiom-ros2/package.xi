@@ -1,7 +1,7 @@
 package xiom_ros2 {
   name: "xiom.ros2";
-  version: "0.1.0";
-  description: "ROS 2 -- Robot Operating System middleware.";
+  version: "0.2.0";
+  description: "ROS 2 (rcl) client-library bindings via dynamic loading; typed SKIP when librcl is absent.";
   categories: ["science", "systems"];
   keywords: ["ros2", "robotics", "middleware", "dds"];
   license: "MIT OR Apache-2.0";
