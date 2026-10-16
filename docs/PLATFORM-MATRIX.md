@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-15T23:01:58Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T11:14:36Z.
 
 ## How to read this table
 
@@ -42,26 +42,29 @@ preserved by `-Action repin`/`-Action update`:
 
 ## Summary
 
-- packages: 556
-- declared rows: 32
+- packages: 561
+- declared rows: 35
 - compile: 27
-- compile+runtime-load: 14
+- compile+runtime-load: 19
 - pure: 500
 - runtime-load: 15
-- native packages pending declaration: 26
+- native packages pending declaration: 28
 
 ## Declaration backlog (native)
 
-xiom.android, xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.libpq, xiom.lzfse, xiom.miniaudio, xiom.odbc, xiom.openssl, xiom.portaudio, xiom.raylib, xiom.sdl2, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.vma, xiom.vulkan
+xiom.android, xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx11, xiom.directx12, xiom.dxc, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.libpq, xiom.lzfse, xiom.miniaudio, xiom.odbc, xiom.opensl, xiom.openssl, xiom.portaudio, xiom.raylib, xiom.sdl2, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.vma, xiom.vulkan
 
 ## Matrix
 
 | Package | Version | Stage | Class | Platforms | Runtime needs | Evidence |
 |---|---|---|---|---|---|---|
+| xiom.aaudio | 0.1.0 | incubating | compile+runtime-load | windows-x64, android-arm64, android-x86_64 | libaaudio.so | pass 13/13 @ 366d80ab |
+| xiom.android-sys | 0.1.0 | incubating | compile+runtime-load | windows-x64, android-x86_64, android-arm64 | liblog.so (runtime loader; SKIP when absent); libsync.so (runtime loader; SKIP when absent) | pass 4/4 @ 2032a60c |
 | xiom.dx12 | 0.4.0 | stable | compile+runtime-load | windows-x64 | d3d12.dll (runtime loader; SKIP when absent); dxgi.dll (runtime loader; SKIP when absent) | pass 42/42 @ fd90ebf3 |
 | xiom.ffmpeg | 0.4.1 | incubating | compile+runtime-load | windows-x64 | avcodec/avformat/avutil/swresample shared libraries (multi-soname runtime loader; SKIP when absent) | pass 23/23 @ 50b65cee |
 | xiom.fidelityfx | 0.1.0 | incubating | compile+runtime-load | windows-x64 | amd_fidelityfx_loader_dx12.dll / amd_fidelityfx_upscaler_dx12.dll / amd_fidelityfx_framegeneration_dx12.dll (signed FidelityFX-SDK 2.3.0 effect modules; multi-soname runtime loader; SKIP when absent) | pass 35/35 @ 3a22a083 |
 | xiom.gles | 0.1.0 | incubating | compile+runtime-load | windows-x64 | libEGL.dll (ANGLE; EGL.dll fallback; SKIP when absent); libGLESv2.dll (ANGLE; GLESv2.dll fallback; SKIP when absent) | pass 18/18 @ 779ac140 |
+| xiom.mediandk | 0.1.0 | incubating | compile+runtime-load | windows-x64, android-arm64, android-x86_64 | libmediandk.so (Android platform media library; SKIP when absent; Windows: absent by design) | pass 5/5 @ 43c492f8 |
 | xiom.oidn | 0.1.0 | incubating | compile+runtime-load | windows-x64 | OpenImageDenoise.dll + OpenImageDenoise_core.dll + OpenImageDenoise_device_cpu.dll + tbb12.dll (OIDN v2.5.1 runtime, loader-resolved; SKIP when absent) | pass 4/4 @ 3a22a083 |
 | xiom.opengl | 0.5.0 | incubating | compile+runtime-load | windows-x64 | opengl32.dll (runtime loader; SKIP when absent; WGL needs a Win32 device context) | pass 28/28 @ 779ac140 |
 | xiom.basisu | 0.1.0 | incubating | compile | windows-x64 | - | pass 31/31 @ ccb62224 |
@@ -90,20 +93,22 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12
 | xiom.xess | 0.1.0 | incubating | runtime-load | windows-x64 | libxess.dll (Intel XeSS SR core; runtime loader; SKIP when absent); libxess_dx11.dll (XeSS D3D11 companion; optional; typed CANT_LOAD_LIBRARY when absent) | pass 24/24 @ 3a22a083 |
 | xiom.photometrics | 0.1.0 | incubating | pure | windows-x64 | - | pass 43/43 @ 50b65cee |
 | xiom.vdb | 0.1.0 | incubating | pure | windows-x64 | - | pass 30/30 @ 3a22a083 |
-| xiom.android | 0.2.0 | incubating | compile+runtime-load | undeclared | libandroid.so, libnativewindow.so (runtime, derived) | pass 4/4 @ 912081de |
+| xiom.android | 0.3.0 | incubating | compile+runtime-load | undeclared | libandroid.so, libnativewindow.so (runtime, derived) | pass 8/8 @ 17ef7223 |
+| xiom.camera2ndk | 0.1.0 | incubating | compile+runtime-load | undeclared | libcamera2ndk.so (runtime, derived) | pass 5/5 @ 4dba927c |
 | xiom.cuda | 0.2.0 | incubating | compile+runtime-load | undeclared | nvcuda.dll (runtime, derived) | pass 5/5 @ 4bb65d14 |
 | xiom.directx11 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d11.dll, dxgi.dll (runtime, derived) | pass 5/5 @ cce33ecb |
 | xiom.directx12 | 0.2.0 | incubating | compile+runtime-load | undeclared | d3d12.dll, dxgi.dll (runtime, derived) | pass 5/5 @ 3e0c2384 |
 | xiom.dxc | 0.3.0 | incubating | compile+runtime-load | undeclared | dxcompiler.dll (runtime, derived) | pass 20/20 @ f2e6523d |
+| xiom.opensl | 0.1.0 | incubating | compile+runtime-load | undeclared | libamidi.so, libOpenMAXAL.so, libOpenSLES.so (runtime, derived) | pass 4/4 @ 0bb6c374 |
 | xiom.spirv-tools | 0.1.0 | incubating | compile+runtime-load | undeclared | SPIRV-Tools-shared.dll (runtime, derived) | pass 39/39 @ 674dea9d |
 | xiom.vma | 0.3.0 | incubating | compile+runtime-load | undeclared | vulkan-1.dll (runtime, derived) | pass 5/5 @ f2e6523d |
 | xiom.vulkan | 0.6.0 | incubating | compile+runtime-load | undeclared | vulkan-1.dll (runtime, derived) | pass 22/22 @ 1aa5be5b |
 | xiom.assimp | 0.8.0 | incubating | compile | undeclared | - | pass 16/16 @ a76bdef4 |
-| xiom.box2d | 0.3.0 | incubating | compile | undeclared | - | pass 7/7 @ 0e4604f7 |
+| xiom.box2d | 0.4.0 | incubating | compile | undeclared | - | pass 26/26 @ d19090cc |
 | xiom.http | 0.1.6 | stable | compile | undeclared | - | pass 42/42 @ d45a106d |
 | xiom.imgui | 0.3.0 | incubating | compile | undeclared | - | pass 7/7 @ 05c30982 |
 | xiom.lzfse | 0.2.0 | incubating | compile | undeclared | - | pass 7/7 @ 07f5bd2f |
-| xiom.miniaudio | 0.3.0 | incubating | compile | undeclared | - | pass 6/6 @ ab8dc89e |
+| xiom.miniaudio | 0.4.0 | incubating | compile | undeclared | - | pass 27/27 @ c11b7ac2 |
 | xiom.spirv-reflect | 0.1.0 | incubating | compile | undeclared | - | pass 40/40 @ 674dea9d |
 | xiom.glfw | 0.6.0 | incubating | runtime-load | undeclared | glfw3.dll (runtime, derived) | pass 37/37 @ b0391d1b |
 | xiom.glslang | 0.1.0 | incubating | runtime-load | undeclared | glslang.dll, glslang-default-resource-limits.dll (runtime, derived) | pass 29/29 @ 674dea9d |
@@ -567,7 +572,7 @@ xiom.android, xiom.assimp, xiom.box2d, xiom.cuda, xiom.directx11, xiom.directx12
 | xiom.translate | 0.1.0 | incubating | pure | any (derived) | - | pass 28/28 @ 5f469ee5 |
 | xiom.translation | 0.1.2 | stable | pure | any (derived) | - | pass 22/22 @ fdbc02a8 |
 | xiom.transliteration | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ 5f2ac0f9 |
-| xiom.transport | 0.1.0 | (none) | pure | any (derived) | - | - |
+| xiom.transport | 0.1.0 | incubating | pure | any (derived) | - | pass 36/36 @ 1c8fbf11 |
 | xiom.tsv | 0.1.2 | stable | pure | any (derived) | - | pass 22/22 @ 7986ca8a |
 | xiom.ttl | 0.1.2 | stable | pure | any (derived) | - | pass 14/14 @ ab206c98 |
 | xiom.typography | 0.1.2 | stable | pure | any (derived) | - | pass 20/20 @ b878d230 |
