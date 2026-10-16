@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.5` -- generated 2026-10-16T17:02:58Z.
+Toolchain pin: `v0.64.5` -- generated 2026-10-16T17:03:59Z.
 
 ## How to read this table
 
@@ -60,7 +60,7 @@ xiom.assimp, xiom.box2d, xiom.camera2ndk, xiom.cuda, xiom.directx11, xiom.direct
 |---|---|---|---|---|---|---|
 | xiom.aaudio | 0.1.0 | incubating | compile+runtime-load | windows-x64, android-arm64, android-x86_64 | libaaudio.so | pass 13/13 @ 366d80ab |
 | xiom.android | 0.4.0 | incubating | compile+runtime-load | windows-x64, android-arm64, android-x86_64 | libandroid.so; libnativewindow.so | pass 14/14 @ f8ba590a |
-| xiom.android-sys | 0.2.0 | incubating | compile+runtime-load | android-arm64, android-x86_64 | libbinder_ndk.so, libneuralnetworks.so, libz.so, libandroidicu.so, liblog.so, libsync.so (per-lib runtime-load units; SKIP when absent) | pass 16/16 @ 62201d7e |
+| xiom.android-sys | 0.2.0 | incubating | compile+runtime-load | android-arm64, android-x86_64 | libbinder_ndk.so, libneuralnetworks.so, libz.so, libandroidicu.so, liblog.so, libsync.so (per-lib runtime-load units; SKIP when absent) | pass 16/16 @ 9e11a3a7 |
 | xiom.dx12 | 0.4.0 | stable | compile+runtime-load | windows-x64 | d3d12.dll (runtime loader; SKIP when absent); dxgi.dll (runtime loader; SKIP when absent) | pass 42/42 @ fd90ebf3 |
 | xiom.ffmpeg | 0.4.1 | incubating | compile+runtime-load | windows-x64 | avcodec/avformat/avutil/swresample shared libraries (multi-soname runtime loader; SKIP when absent) | pass 23/23 @ 50b65cee |
 | xiom.fidelityfx | 0.1.0 | incubating | compile+runtime-load | windows-x64 | amd_fidelityfx_loader_dx12.dll / amd_fidelityfx_upscaler_dx12.dll / amd_fidelityfx_framegeneration_dx12.dll (signed FidelityFX-SDK 2.3.0 effect modules; multi-soname runtime loader; SKIP when absent) | pass 35/35 @ 3a22a083 |

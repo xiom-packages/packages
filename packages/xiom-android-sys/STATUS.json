@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  16,
                   "failed":  0,
-                  "run_by":  "am:android-a12-sys",
-                  "commit":  "62201d7e",
-                  "checked":  "2026-10-16T15:44:13Z"
+                  "run_by":  "native-session",
+                  "commit":  "9e11a3a7",
+                  "checked":  "2026-10-16T17:04:02Z"
               },
     "publish":  false,
     "excluded_reason":  "new package (Android SDK100 A12 system head: log + sync + binder + nnapi + zlib + icu subset; per-lib runtime-load units); publish gate after the naming decision + first end-to-end suite run (G1)",
