@@ -617,3 +617,8 @@ xiom.opensl
 xiom.android-sys
 xiom.jni
 xiom.pulse
+# ML/AI + robotics R2 wave + jev first publish; ops scopes confirmed LIVE 2026-10-16T21:57Z (eco-release 558; PROD-only)
+xiom.jev
+xiom.v4l
+xiom.serial
+xiom.ros2

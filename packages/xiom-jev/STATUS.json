@@ -9,8 +9,8 @@
                   "passed":  82,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "94d3450e",
-                  "checked":  "2026-10-16T20:55:53Z"
+                  "commit":  "59b0bdce",
+                  "checked":  "2026-10-16T22:02:45Z"
               },
     "publish":  false,
     "excluded_reason":  "new name: pending ops scope + allowlist (coverage program)"

@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.6` -- generated 2026-10-16T21:59:58Z.
+Toolchain pin: `v0.64.6` -- generated 2026-10-16T22:03:12Z.
 
 ## Summary
 
@@ -426,7 +426,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.inference | xiom-inference | incubating | tests/test_conformance.xi | pass 28/28 | 27a0a7ee | False | publish pending: next scope delta |
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb2 | False | publish pending: next scope delta |
-| xiom.jev | xiom-jev | incubating | tests/test_conformance.xi | pass 82/82 | 94d3450e | False | new name: pending ops scope + allowlist (coverage program) |
+| xiom.jev | xiom-jev | incubating | tests/test_conformance.xi | pass 82/82 | 59b0bdce | False | new name: pending ops scope + allowlist (coverage program) |
 | xiom.jit-fw | xiom-jit-fw | incubating | tests/test_conformance.xi | pass 25/25 | c1e35d4f | False | category harmonization patch bump (registry metadata) |
 | xiom.jni | xiom-jni | incubating | tests/test_conformance.xi | pass 90/90 | ea8dcc0e | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 A11 jni-seam head) |
 | xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 159/159 | 6a01201d | False | published in eco-v0.1.182 (2026-10-15, 0.7.0 E4/E5 -- E-family complete; 0.6.0 in eco-v0.1.181; 0.5.0 in eco-v0.1.180; 0.4.0 in eco-v0.1.179; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161) |
