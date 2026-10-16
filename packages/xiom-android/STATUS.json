@@ -8,19 +8,10 @@
                   "status":  "pass",
                   "passed":  8,
                   "failed":  0,
-                  "run_by":  "android-w2c-lifecycle",
-                  "commit":  "3791915e",
-                  "checked":  "2026-10-15T23:00:02Z"
+                  "run_by":  "bindings-landing",
+                  "commit":  "17ef7223",
+                  "checked":  "2026-10-16T11:12:20Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (Android SDK100 W2c A2 lifecycle-glue head); publish gate after the naming decision + first on-device run (G1)",
-    "platforms":  [
-                      "windows-x64",
-                      "android-arm64",
-                      "android-x86_64"
-                  ],
-    "runtime_deps":  [
-                         "libandroid.so",
-                         "libnativewindow.so"
-                     ]
+    "excluded_reason":  "new package (Android SDK100 W2c A2 lifecycle-glue head); publish gate after the naming decision + first on-device run (G1)"
 }
