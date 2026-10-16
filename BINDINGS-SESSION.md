@@ -1039,8 +1039,41 @@ waves landed (6 Android units + box2d 0.4.0 + miniaudio 0.4.0; validate
 559/0; gates 8/8 + 26/26 + 27/27); publish requests filed
 (`REL-20261016-1125-bindings`); QUEUED HIGH for the next session: PULSE
 TLS context binding + real brotli, then Android A3/A4 (serial), A9,
-A11, A12 remainder.  Doorbell: THIS session's cron is removed at
-handoff -- the continuation session re-arms its own (first action).
+  A11, A12 remainder.  Doorbell: THIS session's cron is removed at
+  handoff -- the continuation session re-arms its own (first action).
+
+**UPDATE 2026-10-16 11:50Z (CONTINUATION session -- doorbell re-armed;
+relay sweep; WAVE 5 LIVE; next wave in motion)**: this is the fresh
+context-limit continuation writing its own records.  State found on
+pickup: worktree clean at `9ecd5092`; nothing in flight un-landed.
+- Doorbell re-armed (`0 */3 * * *`; next fire 12:00Z) with the
+  corrected recipe: sync `E:\xiom-lang\xiom-relays` via fetch +
+  `merge --ff-only origin/main` (never git pull there), then `python
+  tools/relay.py view --lane bindings` with that workdir.
+- Relay sweep: **WAVE 5 PUBLISHED -- `xiom.box2d 0.4.0` +
+  `xiom.miniaudio 0.4.0` LIVE in `eco-v0.1.187`** (11:19:59Z /
+  11:21:24Z; sha256 `04fe2147...` / `382a16f0...`; run 38892953795
+  green; merge `80879547`; record `e32965dd` kept (26/26 + 27/27 @
+  `43173d68`); validate 561/0).  `REL-20261016-1112-bindings` + `-2`
+  fixed by packages; `REL-20261016-1124-packages` = Wave 5 engine
+  relay.  **`eco-v0.1.186` = xiom.template 0.2.0** (packages lane,
+  batch 88).  Tally **103 eco releases**.
+- No NEW items addressed to bindings (`-2211` x2 stay acked =
+  canonical; `-2302` fixed as the duplicate).  New scope intel:
+  orbitdb `-1128-orbitdb-2` + xvector `-1129-xvector-2` both want the
+  TLS binding too (folded into the TLS scope note).
+- NEXT WAVE (owner: continue): **brotli session ACTIVE**
+  (`feat/brotli-binding`; upstream google/brotli cloned to
+  `E:\repos\brotli` 11:20Z; vendored build in progress -- no commits
+  yet).  **TLS session produced no work by 11:40Z** -> naming/scope
+  sync filed to packages (`REL-20261016-1142-bindings`; candidate
+  name `xiom.ssl`; scope = the -2211 by-function list) + session
+  being nudged.  **Android A3/A4 wave (`xiom.android` input +
+  sensors) launching now** -- no xiom.android edit in flight
+  (`android/w2c-lifecycle` clean + pushed at `0d46b033`).
+- Base note: `feat/tls-binding` / `feat/brotli-binding` branches sit
+  on the packages-side `main` tip with no unique commits yet -- land
+  path-scoped per the standing recipe regardless of base.
 
 **UPDATE 2026-10-16 11:05Z (MORNING PASS -- ALL 8 WAVES LANDED; lane
 PAUSED per owner directive)**:
