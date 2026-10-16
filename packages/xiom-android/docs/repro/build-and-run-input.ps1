@@ -128,7 +128,15 @@ if (-not $SkipApp) {
   # refused for this window -- the dispatcher lists its InputWindowInfo
   # with frame=[0,0][0,0] / touchableRegion=<empty>; appended verbatim so
   # the limitation is recorded, never papered over.
-  $block = & $adb @serialArg shell "dumpsys input | grep -A2 'inputprobe/android.app.NativeActivity,' | head -3"
+  $deadline = (Get-Date).AddSeconds(20)
+  do {
+    $focus = & $adb @serialArg shell dumpsys window | Select-String -Pattern 'mCurrentFocus=.*inputprobe'
+  } while (-not $focus -and (Get-Date) -lt $deadline)
+  $di = & $adb @serialArg shell dumpsys input
+  # the LIVE entry: the previous instance's dying window lingers in the
+  # list briefly, so match the focused (inputConfig=0x0) entry only.
+  $block = @($di | Select-String -Pattern 'com\.xiom\.inputprobe/android\.app\.NativeActivity,.*inputConfig=0x0' -Context 0,2 |
+             Select-Object -First 1 | ForEach-Object { $_.Line.Trim(); $_.Context.PostContext | ForEach-Object { $_.Trim() } })
 
   & $adb @serialArg shell input keyevent 29   # AKEYCODE_A (down + up)
   Start-Sleep -Seconds 3

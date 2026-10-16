@@ -1,41 +1,41 @@
 ﻿--------- beginning of main
-10-16 15:55:11.086 18654 18700 I XIOM-A3 : A3 load rc=0 declared_exports=209 missing=0 error=
-10-16 15:55:11.086 18654 18700 I XIOM-A3 : OK A3 209-export set resolved in an app process
-10-16 15:55:11.098 18654 18700 I XIOM-A3 : A3 app A4 check: sensor manager=ok sensors=18
-10-16 15:55:11.098 18654 18700 I XIOM-A3 : A3 waiting for the app to receive focus + injected events (up to 120s)...
-10-16 15:55:11.974 18654 18700 I XIOM-A3 : EVENT#1 KEY action=0 code=29 scan=0 meta=0 repeat=0 down_time=89752257000000 event_time=89752257000000 src=0x0 dev=-1
-10-16 15:55:11.974 18654 18700 I XIOM-A3 : OK A3 keycode decoded (code=29)
-10-16 15:55:11.975 18654 18700 I XIOM-A3 : OK A3 key action decoded (action=0)
-10-16 15:55:11.975 18654 18700 I XIOM-A3 : OK A3 key times sane
-10-16 15:55:11.975 18654 18700 I XIOM-A3 : A3 reattach: detach rc=0 (0=removed from glue looper), attach rc=0 (callback variant)
-10-16 15:55:11.975 18654 18700 I XIOM-A3 : OK A3 detachLooper on the live queue
-10-16 15:55:11.975 18654 18700 I XIOM-A3 : OK A3 attachLooper (callback) on the live queue
-10-16 15:55:11.975 18654 18700 I XIOM-A3 : A3_STAGE2_ATTACHED
-10-16 15:55:12.009 18654 18700 I XIOM-A3 : A3 cb: our attach delivered (queue fd=104 events=0x1)
-10-16 15:55:12.009 18654 18700 I XIOM-A3 : EVENT#2 KEY action=1 code=29 scan=0 meta=0 repeat=0 down_time=89752257000000 event_time=89753306000000 src=0x0 dev=-1
-10-16 15:55:12.009 18654 18700 I XIOM-A3 : OK A3 keycode decoded (code=29)
-10-16 15:55:12.009 18654 18700 I XIOM-A3 : OK A3 key action decoded (action=1)
-10-16 15:55:12.009 18654 18700 I XIOM-A3 : OK A3 key times sane
-10-16 15:55:12.009 18654 18700 I XIOM-A3 : A3 cb: preDispatch=1
-10-16 15:55:12.064 18654 18700 I XIOM-A3 : A3 cb: our attach delivered (queue fd=104 events=0x1)
-10-16 15:55:12.065 18654 18700 I XIOM-A3 : EVENT#3 KEY action=1 code=29 scan=0 meta=0 repeat=0 down_time=89752257000000 event_time=89753306000000 src=0x0 dev=-1
-10-16 15:55:12.065 18654 18700 I XIOM-A3 : OK A3 keycode decoded (code=29)
-10-16 15:55:12.065 18654 18700 I XIOM-A3 : OK A3 key action decoded (action=1)
-10-16 15:55:12.065 18654 18700 I XIOM-A3 : OK A3 key times sane
-10-16 15:55:12.073 18654 18700 I XIOM-A3 : A3 cb: preDispatch=0
-10-16 15:55:12.082 18654 18700 I XIOM-A3 : A3 cycle2: detach rc=0 attach rc=0
-10-16 15:55:12.086 18654 18700 I XIOM-A3 : OK A3 second detach/re-attach cycle
-10-16 15:55:15.349 18654 18700 I XIOM-A3 : EVENT#4 KEY action=0 code=30 scan=0 meta=0 repeat=0 down_time=89756662000000 event_time=89756662000000 src=0x0 dev=-1
-10-16 15:55:15.349 18654 18700 I XIOM-A3 : OK A3 keycode decoded (code=30)
-10-16 15:55:15.349 18654 18700 I XIOM-A3 : OK A3 key action decoded (action=0)
-10-16 15:55:15.349 18654 18700 I XIOM-A3 : OK A3 key times sane
-10-16 15:55:15.349 18654 18700 I XIOM-A3 : A3 cb: preDispatch=1
-10-16 15:55:15.349 18654 18700 I XIOM-A3 : A3_ALL_EVIDENCE_COLLECTED events=4 fail=0
-10-16 15:55:15.349 18654 18700 I XIOM-A3 : A3_RESULT fail=0 events=4
+10-16 16:06:59.687 19376 19399 I XIOM-A3 : A3 load rc=0 declared_exports=209 missing=0 error=
+10-16 16:06:59.687 19376 19399 I XIOM-A3 : OK A3 209-export set resolved in an app process
+10-16 16:06:59.735 19376 19399 I XIOM-A3 : A3 app A4 check: sensor manager=ok sensors=18
+10-16 16:06:59.735 19376 19399 I XIOM-A3 : A3 waiting for the app to receive focus + injected events (up to 120s)...
+10-16 16:07:06.546 19376 19399 I XIOM-A3 : EVENT#1 KEY action=0 code=29 scan=0 meta=0 repeat=0 down_time=90467845000000 event_time=90467845000000 src=0x0 dev=-1
+10-16 16:07:06.547 19376 19399 I XIOM-A3 : OK A3 keycode decoded (code=29)
+10-16 16:07:06.547 19376 19399 I XIOM-A3 : OK A3 key action decoded (action=0)
+10-16 16:07:06.547 19376 19399 I XIOM-A3 : OK A3 key times sane
+10-16 16:07:06.547 19376 19399 I XIOM-A3 : A3 reattach: detach rc=0 (0=removed from glue looper), attach rc=0 (callback variant)
+10-16 16:07:06.547 19376 19399 I XIOM-A3 : OK A3 detachLooper on the live queue
+10-16 16:07:06.547 19376 19399 I XIOM-A3 : OK A3 attachLooper (callback) on the live queue
+10-16 16:07:06.547 19376 19399 I XIOM-A3 : A3_STAGE2_ATTACHED
+10-16 16:07:06.571 19376 19399 I XIOM-A3 : A3 cb: our attach delivered (queue fd=103 events=0x1)
+10-16 16:07:06.571 19376 19399 I XIOM-A3 : EVENT#2 KEY action=1 code=29 scan=0 meta=0 repeat=0 down_time=90467845000000 event_time=90467873000000 src=0x0 dev=-1
+10-16 16:07:06.571 19376 19399 I XIOM-A3 : OK A3 keycode decoded (code=29)
+10-16 16:07:06.571 19376 19399 I XIOM-A3 : OK A3 key action decoded (action=1)
+10-16 16:07:06.571 19376 19399 I XIOM-A3 : OK A3 key times sane
+10-16 16:07:06.571 19376 19399 I XIOM-A3 : A3 cb: preDispatch=1
+10-16 16:07:06.574 19376 19399 I XIOM-A3 : A3 cb: our attach delivered (queue fd=103 events=0x1)
+10-16 16:07:06.574 19376 19399 I XIOM-A3 : EVENT#3 KEY action=1 code=29 scan=0 meta=0 repeat=0 down_time=90467845000000 event_time=90467873000000 src=0x0 dev=-1
+10-16 16:07:06.575 19376 19399 I XIOM-A3 : OK A3 keycode decoded (code=29)
+10-16 16:07:06.575 19376 19399 I XIOM-A3 : OK A3 key action decoded (action=1)
+10-16 16:07:06.575 19376 19399 I XIOM-A3 : OK A3 key times sane
+10-16 16:07:06.575 19376 19399 I XIOM-A3 : A3 cb: preDispatch=0
+10-16 16:07:06.575 19376 19399 I XIOM-A3 : A3 cycle2: detach rc=0 attach rc=0
+10-16 16:07:06.575 19376 19399 I XIOM-A3 : OK A3 second detach/re-attach cycle
+10-16 16:07:09.882 19376 19399 I XIOM-A3 : EVENT#4 KEY action=0 code=30 scan=0 meta=0 repeat=0 down_time=90471196000000 event_time=90471196000000 src=0x0 dev=-1
+10-16 16:07:09.882 19376 19399 I XIOM-A3 : OK A3 keycode decoded (code=30)
+10-16 16:07:09.882 19376 19399 I XIOM-A3 : OK A3 key action decoded (action=0)
+10-16 16:07:09.882 19376 19399 I XIOM-A3 : OK A3 key times sane
+10-16 16:07:09.882 19376 19399 I XIOM-A3 : A3 cb: preDispatch=1
+10-16 16:07:09.882 19376 19399 I XIOM-A3 : A3_ALL_EVIDENCE_COLLECTED events=4 fail=0
+10-16 16:07:09.882 19376 19399 I XIOM-A3 : A3_RESULT fail=0 events=4
 
 == documented block: touch injection (dispatcher view of this window, captured live) ==
-      6: name=1f7bcdf ActivityRecordInputSink com.xiom.inputprobe/android.app.NativeActivity, id=393, displayId=0, inputConfig=NO_INPUT_CHANNEL | NOT_FOCUSABLE, alpha=1, frame=[0,0][0,0], globalScale=0, applicationInfo.name=, applicationInfo.token=<null>, touchableRegion=[-10800,-24000][10800,24000], ownerPid=731, ownerUid=1000, dispatchingTimeout=0ms, token=0x0, touchOcclusionMode=BLOCK_UNTRUSTED
-      transform (ROT_0) (IDENTITY)
-      7: name=4062a96 com.google.android.gms/com.google.android.gms.feedback.FeedbackAlohaActivity, id=379, displayId=0, inputConfig=NO_INPUT_CHANNEL | NOT_VISIBLE | NOT_FOCUSABLE | NOT_TOUCHABLE | PAUSE_DISPATCHING, alpha=1, frame=[0,2400][1080,4800], globalScale=1, applicationInfo.name=ActivityRecord{189496008 u0 com.google.android.gms/.feedback.FeedbackAlohaActivity t29}, applicationInfo.token=0x710291903ab0, touchableRegion=<empty>, ownerPid=6131, ownerUid=10147, dispatchingTimeout=0ms, token=0x0, touchOcclusionMode=BLOCK_UNTRUSTED, canOccludePresentation
+5: name=9018992 com.xiom.inputprobe/android.app.NativeActivity, id=468, displayId=0, inputConfig=0x0, alpha=1, frame=[0,0][0,0], globalScale=1, applicationInfo.name=ActivityRecord{26987682 u0 com.xiom.inputprobe/android.app.NativeActivity t35}, applicationInfo.token=0x7102918b3950, touchableRegion=<empty>, ownerPid=19376, ownerUid=10225, dispatchingTimeout=5000ms, token=0x7102018a60d0, touchOcclusionMode=BLOCK_UNTRUSTED, canOccludePresentation
+transform (ROT_0) (IDENTITY)
+6: name=da186d ActivityRecordInputSink com.xiom.inputprobe/android.app.NativeActivity, id=465, displayId=0, inputConfig=NO_INPUT_CHANNEL | NOT_FOCUSABLE, alpha=1, frame=[0,0][0,0], globalScale=0, applicationInfo.name=, applicationInfo.token=<null>, touchableRegion=[-10800,-24000][10800,24000], ownerPid=731, ownerUid=1000, dispatchingTimeout=0ms, token=0x0, touchOcclusionMode=BLOCK_UNTRUSTED
 == post-tap app log tail (expected: unchanged -- no touch delivered) ==
-10-16 15:55:15.349 18654 18700 I XIOM-A3 : A3_RESULT fail=0 events=4
+10-16 16:07:09.882 19376 19399 I XIOM-A3 : A3_RESULT fail=0 events=4
