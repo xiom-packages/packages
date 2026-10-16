@@ -61,9 +61,13 @@
   notice (Apache-2.0; the JNI specification text notes the interfaces
   are expected to be VM-neutral).  `android/bitmap.h` carries the
   Apache License 2.0 AOSP notice; bionic-derived portions of the NDK
-  sysroot are BSD-3-Clause.  This package interoperates with the public
-  ABI; declarations here are facts of that interface, and the package
-  itself ships no Google/Sun code.
+  sysroot are BSD-3-Clause.  The NDK distribution additionally carries
+  Apache-2.0 WITH LLVM-exception notices for its compiler-rt/glue-
+  derived sources; neither `jni.h` nor `android/bitmap.h` falls in that
+  group (both carry the plain Apache-2.0 AOSP notice above).  This
+  package interoperates with the public ABI; declarations here are
+  facts of that interface, and the package itself ships no Google/Sun
+  code.
 - Independent declaration: none of these headers, in whole or in part,
   is copied or vendored here -- only the public interface facts (names,
   signatures, table order, enum values, struct layout) are transcribed
