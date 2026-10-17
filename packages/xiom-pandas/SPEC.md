@@ -1,8 +1,9 @@
 # xiom.pandas -- SPEC
 
-**Phase**: 1 (Core Foundation) | **Priority**: HIGH
-**Status**: Phase 1 implemented -- `pandas.xi` + tests + ROADMAP; REAL
-Arrow-backed bridge source prepared and probe-green (Arrow C++ 22.0.0,
+**Phase**: 1 (Core Foundation) + Phase 2 partial (pure-XIOM DataFrame ops) | **Priority**: HIGH
+**Status**: Phase 1 implemented -- `pandas.xi` + tests + ROADMAP; Phase 2
+pinned subset implemented in pure XIOM (109/109 x2, v0.64.6, 2026-10-17);
+REAL Arrow-backed bridge source prepared and probe-green (Arrow C++ 22.0.0,
 v0.64.6, 2026-10-17)
 **Depends on**: xiom.ffi (stdlib), xiom.arrow (Apache Arrow -- Pandas 2.0+ backend)
 
@@ -63,6 +64,65 @@ real probe):
   the C symbols moved. `pandas.xi` also gained the semicolons its `pub type`
   aliases require on v0.64.5; the module now type-checks (`--emit-ir`
   exit 0), which it did not before this pass.
+
+## Phase 2 (partial, pure-XIOM, 2026-10-17)
+
+Phase 2 is implemented with **no FFI on any new path**. The design mirrors
+`xiom.numpy` Phase-2a: `DataFrame`/`Series` remain opaque `Int` handles;
+handle `0` is invalid and a live handle is `1 + slot index`. Slots are
+append-only and never reused, so a stale handle cannot alias a later
+allocation. The Phase-1 C-bridge seam and its offline stub are untouched.
+
+Storage model (the model SPEC itself pins in the API sketch):
+
+- a DataFrame is named Float64 columns (`Map[Str, Vec[Float64]]` in the SPEC
+  sketch; the executable constructor takes parallel `Vec[Str]` /
+  `Vec[Vec[Float64]]` because the module already owns `dataframe_new` with the
+  Phase-1 FFI signature);
+- values live in one flat `Vec[Float64]` arena plus per-column
+  name/dtype/base/length/live arenas;
+- frames store a flat list of column-slot indices, so no nested `Vec` is
+  written at runtime;
+- Series handles are views over the same value arena (no data copy on
+  `column`; `iloc` copies the selected row).
+
+### Implemented surface (pinned)
+
+| Function | Semantics |
+|---|---|
+| `dataframe_from_columns(names, col_values)` | constructor; equal lengths, >= 1 column, equal row counts, unique names, else typed `Err` |
+| `dataframe_shape(df)` / `shape(df)` | `(rows, cols)`; invalid/dead handle -> `(0, 0)` |
+| `dataframe_columns(df)` / `columns(df)` | names in storage order |
+| `dataframe_dtypes(df)` / `dtypes(df)` | per-column dtype tags (Float64 in this model) |
+| `column(df, name)` | exact, case-sensitive column lookup -> Series view; missing -> `Err` |
+| `dataframe_iloc(df, row)` / `iloc(df, row)` | 0-based row values in column order; negative / out-of-range -> `Err` |
+| `dataframe_loc_range(df, start, end)` / `loc_range(...)` | inclusive row slice `[start, end]` (pandas `.loc` endpoint semantics); strict bounds, else `Err` |
+| `dataframe_head(df, n)` | first `n` rows; clamps; `n == 0` -> 0-row frame; `n < 0` -> `Err` |
+| `dataframe_tail(df, n)` | last `n` rows; same clamp/zero/negative rules |
+| `series_len`, `series_dtype`, `series_values` | pure-XIOM Series inspection used by the conformance suite |
+
+All property/selection/slicing functions carry `requires: df != 0`.
+
+### Deliberately skipped (unpinned -- no guessed semantics)
+
+- `rename` / `reorder_columns`: absent from SPEC and ROADMAP.
+- `concat`: absent from SPEC and ROADMAP.
+- `merge` / joins: the SPEC sketch mentions `merge`, but the phased table
+  places joins after Phase 2 and no key/collision/suffix/duplicate-key
+  semantics are pinned; `dataframe_join` remains the Phase-1 FFI seam only.
+- Mixed-dtype storage: SPEC's pinned constructor is Float64-only, so
+  `dtypes` reports `DTYPE_FLOAT64` for every column rather than inventing a
+  coercion policy.
+- Negative `iloc`/`head`/`tail` indexing and non-clamping `loc_range`
+  out-of-bounds behavior: not pinned; rejected with `Err`.
+
+### Test evidence
+
+`tests/test_conformance.xi` section 16 adds 29 hand-computed checks on a
+fixed `a = [10,20,30]`, `b = [1.5,2.5,3.5]` fixture (shape/order, dtype
+tags, column view, iloc, inclusive `loc_range`, head/tail clamps and zeros,
+constructor error arms, empty frame). Suite: **109/109 PASS x2** on compiler
+v0.64.6 (2026-10-17).
 
 ## Real bridge (prepared, 2026-10-17) -- pin, ABI gate, ownership
 
@@ -183,6 +243,38 @@ pub fn to_csv(df: &DataFrame, path: Str) -> Result[Unit, Str]
 pub fn to_parquet(df: &DataFrame, path: Str) -> Result[Unit, Str]
 ```
 
+### Implemented Phase-2 surface (pure-XIOM, no FFI)
+
+The sketch above is the long-range API. The subset implemented today (the
+pinned Phase-2 items) is:
+
+```xiom
+// Construction (SPEC's Map[Str, Vec[Float64]] model, as parallel vectors)
+pub fn dataframe_from_columns(names: &Vec[Str], col_values: &Vec[Vec[Float64]]) -> Result[DataFrame, Str]
+
+// Properties (ROADMAP names + SPEC aliases)
+pub fn dataframe_shape(df: &DataFrame) -> (Int, Int)
+pub fn shape(df: &DataFrame) -> (Int, Int)
+pub fn dataframe_columns(df: &DataFrame) -> Vec[Str]
+pub fn columns(df: &DataFrame) -> Vec[Str]
+pub fn dataframe_dtypes(df: &DataFrame) -> Vec[Dtype]
+pub fn dtypes(df: &DataFrame) -> Vec[Dtype]
+
+// Selection / slicing
+pub fn column(df: &DataFrame, name: Str) -> Result[Series, Str]
+pub fn dataframe_iloc(df: &DataFrame, row: Int) -> Result[Series, Str]
+pub fn iloc(df: &DataFrame, row: Int) -> Result[Series, Str]
+pub fn dataframe_loc_range(df: &DataFrame, start: Int, end: Int) -> Result[DataFrame, Str]
+pub fn loc_range(df: &DataFrame, start: Int, end: Int) -> Result[DataFrame, Str]
+pub fn dataframe_head(df: &DataFrame, n: Int) -> Result[DataFrame, Str]
+pub fn dataframe_tail(df: &DataFrame, n: Int) -> Result[DataFrame, Str]
+
+// Series inspection (pure-XIOM registry)
+pub fn series_len(s: &Series) -> Int
+pub fn series_dtype(s: &Series) -> Dtype
+pub fn series_values(s: &Series) -> Result[Vec[Float64], Str]
+```
+
 ## Contract coverage target
 - Column existence: `requires: col_name in columns(df)`
 - Shape compatibility: `requires: left.len() > 0 && right.len() > 0`
@@ -202,8 +294,8 @@ pub fn to_parquet(df: &DataFrame, path: Str) -> Result[Unit, Str]
 
 | Artifact | Path | Lines |
 |---|---|---|
-| Module | `pandas.xi` | 375 |
-| Tests | `tests/test_conformance.xi` | 677 |
+| Module | `pandas.xi` | 781 |
+| Tests | `tests/test_conformance.xi` | 1042 |
 | Stub bridge | `bridge/pandas_bridge.c` | 174 |
 | REAL Arrow bridge | `bridge/xiom_pandas_arrow.cpp` | 821 |
 | Real-backend requirements | `bridge/REAL-BACKEND-REQUIREMENTS.md` | 152 |
@@ -219,7 +311,7 @@ pub fn to_parquet(df: &DataFrame, path: Str) -> Result[Unit, Str]
 - **12 extern "C" functions** (C symbols, `pandas_c_` prefix): pandas_c_dataframe_new, pandas_c_dataframe_from_csv, pandas_c_dataframe_to_csv, pandas_c_dataframe_get_column, pandas_c_dataframe_set_column, pandas_c_dataframe_filter, pandas_c_dataframe_groupby, pandas_c_dataframe_join, pandas_c_series_new, pandas_c_series_from_vec, pandas_c_series_to_vec, pandas_c_series_apply
 - **12 safe wrappers**: all extern functions wrapped with `requires` contracts and null checks
 - **2 utilities**: `dtype_name(dtype)`, `version()`
-- **80 conformance tests** on the current `xiom.test` API: 15 sections covering constants, FFI stub behavior, API presence, contracts, types, dtype_name, and safe wrapper error paths (see Surface status for the stub/real split and the T001 reconciliation)
-- **11 contracts**: across 11 public functions with `requires` annotations
+- **109 conformance tests** on the current `xiom.test` API: 16 sections covering constants, FFI stub behavior, API presence, contracts, types, dtype_name, safe wrapper error paths, and the Phase-2 pure-XIOM surface (29 checks)
+- **27 contracts**: the 11 Phase-1 contracts plus 16 Phase-2 contracts (`dataframe_shape`, `shape`, `dataframe_columns`, `columns`, `dataframe_dtypes`, `dtypes`, `column`, `dataframe_iloc`, `iloc`, `dataframe_loc_range`, `loc_range`, `dataframe_head`, `dataframe_tail`, `series_len`, `series_dtype`, `series_values`), all `requires: handle != 0`
 - **Offline stub bridge**: `bridge/pandas_bridge.c` + `port.args.json`
 - **Real-backend requirements**: `bridge/REAL-BACKEND-REQUIREMENTS.md` (for the bindings/xiom.arrow lanes)

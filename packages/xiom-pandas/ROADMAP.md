@@ -1,13 +1,14 @@
 # xiom.pandas -- Roadmap
 
 > Two-leg delivery (mirrors xiom.numpy Phase 1): the OFFLINE conformance leg
-> is green (80/80, v0.64.6, 2026-10-17) via the suite-only stub bridge
-> `bridge/pandas_bridge.c`. The REAL Arrow C++ backend SOURCE is now prepared
-> (`bridge/xiom_pandas_arrow.cpp`) and probe-green against Apache Arrow C++
-> 22.0.0 (pyarrow 22.0.0 MSVC wheel): null contract + CSV round trip in
-> `tests/probe_real_arrow.xi`, plus a deleted local C-ABI exercise of all 12
-> symbols. Owner-pending ABI items (free functions, apply signature, Float64
-> filter value, parquet) are listed in SPEC.md; `pandas.xi` is unchanged.
+> is green (**109/109 x2**, v0.64.6, 2026-10-17) via the pure-XIOM Phase-2
+> registry plus the suite-only stub bridge `bridge/pandas_bridge.c`. The REAL
+> Arrow C++ backend SOURCE is prepared (`bridge/xiom_pandas_arrow.cpp`) and
+> probe-green against Apache Arrow C++ 22.0.0 (pyarrow 22.0.0 MSVC wheel):
+> null contract + CSV round trip in `tests/probe_real_arrow.xi`, plus a
+> deleted local C-ABI exercise of all 12 symbols. Owner-pending ABI items
+> (free functions, apply signature, Float64 filter value, parquet) are listed
+> in SPEC.md; the 12-symbol FFI ABI is unchanged.
 
 **Phase 1** (v0.1.0) -- Core Foundation [OK]
 - [x] 3 opaque types: `DataFrame`, `Series`, `Dtype`
@@ -24,14 +25,23 @@
 - [x] Real-backend requirements report (for bindings/xiom.arrow lanes)
 - [x] Real-runtime probe authored (evidence-only, fails closed)
 
-**Phase 2** (v0.2.0) -- DataFrame Operations (needs the real Arrow backend)
-- [ ] `dataframe_shape(df) -> (Int, Int)` -- row/column count
-- [ ] `dataframe_columns(df) -> Vec[Str]` -- column name enumeration
-- [ ] `dataframe_dtypes(df) -> Vec[Dtype]` -- per-column dtype query
-- [ ] `dataframe_iloc(df, row) -> Result[Series, Str]` -- row access
-- [ ] `dataframe_loc_range(df, start, end) -> Result[DataFrame, Str]` -- row slice
-- [ ] `dataframe_head(df, n) -> Result[DataFrame, Str]` -- first N rows
-- [ ] `dataframe_tail(df, n) -> Result[DataFrame, Str]` -- last N rows
+**Phase 2** (v0.2.0, partial) -- DataFrame Operations (**pure XIOM, no real backend needed**)
+- [x] `dataframe_shape(df) -> (Int, Int)` -- row/column count (+ `shape` SPEC alias)
+- [x] `dataframe_columns(df) -> Vec[Str]` -- column name enumeration (+ `columns` alias)
+- [x] `dataframe_dtypes(df) -> Vec[Dtype]` -- per-column dtype query (+ `dtypes` alias)
+- [x] `column(df, name) -> Result[Series, Str]` -- named column view
+- [x] `dataframe_iloc(df, row) -> Result[Series, Str]` -- row access (+ `iloc` alias)
+- [x] `dataframe_loc_range(df, start, end) -> Result[DataFrame, Str]` -- inclusive row slice (+ `loc_range` alias)
+- [x] `dataframe_head(df, n) -> Result[DataFrame, Str]` -- first N rows
+- [x] `dataframe_tail(df, n) -> Result[DataFrame, Str]` -- last N rows
+- [x] Pure-XIOM registry (`dataframe_from_columns`, `series_len`,
+      `series_dtype`, `series_values`); 29 new checks -> **109/109 x2**
+- [ ] Rename / reorder -- **SKIPPED (unpinned: absent from SPEC and ROADMAP)**
+- [ ] Concat -- **SKIPPED (unpinned)**
+- [ ] Merge / joins -- **SKIPPED (unpinned key/suffix/duplicate semantics; phased after Phase 2 in SPEC)**
+- [ ] Mixed-dtype storage -- **SKIPPED (SPEC's pinned constructor is `Map[Str, Vec[Float64]]`)**
+
+Design + semantics: SPEC.md -> "Phase 2 (partial, pure-XIOM)".
 
 **Phase 3** (v0.3.0) -- Aggregation & Transformation (needs the real Arrow backend)
 - [ ] `groupby_sum(gb, col) -> Result[DataFrame, Str]`
@@ -56,5 +66,5 @@
 | Apache Arrow C++ (system) | Required by the real bridge only; never by the offline suite |
 
 ## Contract Coverage
-- 11 `requires` contracts across 11 public functions (Phase 1)
+- 27 `requires` contracts across 27 public functions (11 Phase 1 + 16 Phase 2)
 - Target: 100% of public FFI functions have contracts
