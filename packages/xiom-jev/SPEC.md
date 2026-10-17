@@ -19,8 +19,8 @@ M1 (this package, implemented): state (text | JSON), typed questions
 (choice / score / noul), request builder, response parser (typed answers +
 micro-unit probabilities + confidence + usage), deterministic selection
 helpers (argmax / threshold / sample-by-probability from caller-supplied
-entropy), typed Err catalog, transport over the xiom.http 0.1.7 client
-surface + xiom.serialize.json.
+entropy), typed Err catalog, transport over the xiom.http client surface
+(0.1.9 for the compressed path) + xiom.serialize.json.
 
 Out of M1 (see ROADMAP.md): structured instructions/criteria (objects and
 arrays), the danger-zone `box` question/answer, media assets, compression,
@@ -64,8 +64,8 @@ Fixture map (tests/test_conformance.xi):
 | `xiom.jev.response` | `parse_response`, `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_argmax_label`, `answer_max_micro`, `answer_count_at_or_above`, `answer_labels_at_or_above`, `answer_sample_index`, `answer_sample_label`, `choice_answer_covers_question`, `score_round_level`, `score_normalized_micro`, `noul_yes`, `noul_confidence_micro` |
 | `xiom.jev.errors` | `JevError`, `jev_error_kind`, `jev_error_text` |
-| `xiom.jev.compression` | `max_body_bytes`, `body_size_check`, `encoding_name`, `encoding_from_name`, `encoding_supported`, `compress_bytes`, `compress_body`; constants `MAX_BODY_BYTES`, `ENCODING_IDENTITY`, `ENCODING_GZIP`, `ENCODING_ZSTD` |
-| `xiom.jev.client` | `system_one` |
+| `xiom.jev.compression` | `max_body_bytes`, `body_size_check`, `encoding_name`, `encoding_from_name`, `encoding_supported`, `encoding_check`, `wire_uses_bytes`, `compress_bytes`, `compress_body`, `prepare_body`, `bytes_copy`, type `EncodedBody`; constants `MAX_BODY_BYTES`, `ENCODING_IDENTITY`, `ENCODING_GZIP`, `ENCODING_ZSTD` |
+| `xiom.jev.client` | `system_one` (identity path), `system_one_with_encoding` (explicit `Content-Encoding` selection) |
 
 Per the program brief there are NO contracts (`requires:`/`ensures:`) on new
 functions; every accessor guards its indices (out-of-range returns ""/-1/0 as
@@ -174,7 +174,10 @@ are ignored (forward compatibility). Answer order follows wire order.
 `request: body exceeds 32 MiB limit` (body size > 33554432 bytes),
 `compression: body size is negative`, `compression: unknown encoding '<name>'`,
 `compression: unknown encoding <tag>`, and
-`compression: zstd compressor is not available`.
+`compression: zstd compressor is not available`. `compression.encoding_check`
+is the pure selection gate and reuses the last two strings for an unsupported
+selected compressor; `compression.prepare_body` applies the logical-body size
+rule before that gate.
 
 ## 7. Selection rules (pinned)
 
@@ -204,9 +207,14 @@ are ignored (forward compatibility). Answer order follows wire order.
 `<base_url>/v1/systemone` (trailing slashes collapsed), builds the body,
 builds the header blob (`Authorization: Bearer <api_key>` +
 `Content-Type: application/json` via `xiom.http.headers`), calls
-`xiom.http.http_request(endpoint, "POST", body, blob)` (the xiom.http 0.1.8
-headers-capable entry), and parses 2xx bodies. No new FFI; TLS is the
-consumer's libcurl bridge.
+`xiom.http.http_request(endpoint, "POST", body, blob)`, and parses 2xx
+bodies. `system_one_with_encoding(..., encoding)` adds the S8 compression
+selection: identity takes that exact Str path (byte-identical to the 0.1.8
+behavior), while gzip builds the logical body, compresses it with
+`xiom.jev.compression.prepare_body`, and sends the exact frame plus its exact
+`content_length` through the binary-safe xiom.http 0.1.9
+`http_request_bytes`, with `Content-Encoding: gzip` in the same header blob.
+No new FFI; TLS is the consumer's libcurl bridge.
 
 **RESOLVED 2026-10-16 -- Authorization:** the xiom.http 0.1.8 surface ships
 custom request headers (`http_headers_blob` + `http_request`; commit
@@ -260,15 +268,16 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
 
 ## 10. Test strategy and evidence
 
-- Suite: `tests/test_conformance.xi` -- 42 test functions, **143/143 checks
-  passed, x2** (two consecutive runs at the end of the M2-chunk-4 lane) via
+- Suite: `tests/test_conformance.xi` -- 44 test functions, **169/169 checks
+  passed, x2** (two consecutive runs at the end of the M2-chunk-5 lane) via
   `& .\scripts\port.ps1 -Package xiom.jev -TimeoutSec 240` on compiler
   `v0.64.6` (native-session, 2026-10-17); `program_exit=0` both runs. History:
   26 functions/82 checks at M1; +4 functions (retry) -> 86; +5 functions
   (structured instructions/criteria) -> 91; +4 functions (legend exposure x2,
   api-key hygiene, base_url validation) -> 110; +3 functions (32 MiB boundary,
-  compression encodings, pre-compression gate) -> 143 (the boundary/encoder
-  functions emit one check per case).
+  compression encodings, pre-compression gate) -> 143; +2 functions (encoding
+  selection/wire plan, request-builder gzip plan) -> 169 (the boundary/encoder/
+  selection functions emit one check per case).
 - Offline/deterministic: no API key, no network, no randomness; selection
   uses hand-supplied entropy; request fixtures are compared byte-exact.
 - Link-free: the suite never imports `xiom.jev.client` (the transport links
@@ -280,10 +289,10 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
 ## 11. Unresolved items
 
 1. ~~Custom request headers in xiom.http~~ RESOLVED 2026-10-16: xiom.http
-   0.1.8 ships `http_headers_blob` + `http_request` (commit 249f1d61);
-   `system_one` attaches `Authorization: Bearer` -- the probe's [PASS] leg is
-   reachable with a valid key (item 2 below still applies: none available
-   here).
+   0.1.8 shipped `http_headers_blob` + `http_request` (commit 249f1d61), and
+   0.1.9 adds binary-safe `http_request_bytes`; `system_one` attaches
+   `Authorization: Bearer` -- the probe's [PASS] leg is reachable with a
+   valid key (item 2 below still applies: none available here).
 2. **Live verification** of the 401 detail decode and of a real 2xx parse
    could not be exercised here: no `TYPESAFE_API_KEY` is available in this
    session (by design none is stored).
@@ -298,12 +307,11 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
    that reads `r.value` crashes with an access violation on `v0.64.5`,
    reproduced in scratch probes during this build); the package and suite
    follow the safe patterns everywhere.
-5. **Compressed request bodies over the live transport** (S8 remainder,
-   2026-10-17): `xiom.jev.compression` can produce gzip bytes, but
-   xiom.http 0.1.8 takes a `Str` body and UTF-8 re-encodes it in
-   `str_to_cstr`, which corrupts arbitrary binary frames. `system_one` sends
-   the identity body (with the 32 MiB rule enforced) until xiom.http exposes
-   a binary-body entrypoint. See section 15.
+5. ~~**Compressed request bodies over the live transport**~~ RESOLVED
+   2026-10-17 (M2 chunk 5): xiom.http 0.1.9 ships binary-safe
+   `http_request_bytes` (exact `CURLOPT_POSTFIELDSIZE`, no UTF-8 re-encode);
+   `system_one_with_encoding` now sends gzip frames end-to-end. See sections
+   15 and 16.
 6. **zstd compressor**: declared as `ENCODING_ZSTD` but unavailable (typed
    error). The in-tree `xiom.zstd` binding is vendored-C/FFI and would break
    the package's link-free offline suite; wiring it needs a deliberate
@@ -452,15 +460,13 @@ depend on a C toolchain. The typed error above is the deliberate fail-closed
 path; adding zstd later means giving this package a `port.args.json` with the
 vendored C source and allowing FFI in the suite.
 
-**Transport blocker (precise).** xiom.http 0.1.8 accepts request bodies as
-`Str` and re-encodes them to UTF-8 in `http.xi` `str_to_cstr` before the C
-call. A gzip/zstd frame is arbitrary binary and is generally not valid
-UTF-8, so the live transport cannot carry an encoded body unchanged. The
-encoders therefore are exposed for callers whose transport accepts bytes;
-`system_one` continues to send the identity JSON body (still guarded by the
-32 MiB rule). Completing end-to-end compressed requests requires a
-binary-body entrypoint in xiom.http (or a bytes-capable transport seam) --
-this is the remaining S8 work, recorded in ROADMAP.md and section 11.
+**Transport blocker (resolved 2026-10-17, see section 16).** xiom.http 0.1.8
+accepted request bodies only as `Str` and re-encoded them to UTF-8 in
+`http.xi` `str_to_cstr` before the C call, so a gzip frame could not be
+carried unchanged. xiom.http 0.1.9 adds `http_request_bytes` (Vec[UInt8]
+plus an explicit `content_length`; no re-encode and no NUL truncation), and
+the M2-chunk-5 client now selects it for every non-identity encoding.
+Identity remains on the original Str `http_request` path.
 
 Fully offline-golden-tested (suite t40..t42, 33 checks): the exact boundary
 on numeric sizes and on synthetic 32 MiB-1 / 32 MiB / 32 MiB+1 buffers; the
@@ -471,3 +477,39 @@ tag/token/support matrix; the unknown-token and unknown-tag error arms; the
 zstd-absent typed error through both `compress_bytes` and `compress_body`;
 and proof that an oversized logical body is rejected before any encoder runs
 (even when it would compress below the limit). No live network is involved.
+
+## 16. M2 progress (increment 5: end-to-end compressed requests)
+
+Fifth M2 chunk (ROADMAP M2 bullet 8 completion): compression is wired into
+the client now that xiom.http 0.1.9 ships a binary-safe request entry.
+
+- **Selection.** `xiom.jev.compression.encoding_check(enc)` is the pure gate:
+  identity and gzip pass through; zstd fails
+  `compression: zstd compressor is not available`; any other tag fails
+  `compression: unknown encoding <tag>`. `system_one_with_encoding` runs it
+  before building the body, and `system_one` delegates with
+  `ENCODING_IDENTITY`.
+- **Wire plan.** `compression.prepare_body(body, enc)` enforces the 32 MiB
+  rule on the LOGICAL body first, then the encoding gate, then encodes. Its
+  `EncodedBody` carries the exact `bytes`, `content_length = bytes.len()` and
+  the `Content-Encoding` token ("" for identity). `wire_uses_bytes` is the
+  pure transport-choice predicate. gzip output is deterministic (mtime 0), so
+  exact-byte tests are stable.
+- **Transport.** identity keeps the existing `http_request` Str path
+  byte-identical (no Content-Encoding header). gzip passes the exact frame
+  and its exact content length to `http_request_bytes` (xiom.http 0.1.9,
+  binary-safe; libcurl emits Content-Length from `CURLOPT_POSTFIELDSIZE`) and
+  adds `Content-Encoding: gzip` to the same header blob. The retry policy is
+  shared by both paths; a `HttpBytesRequestError.Transport` message maps onto
+  `JevError.Transport` unchanged, and the pre-FFI body-length arms map onto a
+  descriptive transport reason (they cannot fire from the client's plan).
+
+**Tests (suite t43..t44, 26 checks, offline).** The selection matrix
+(identity/gzip accepted, zstd/unknown typed), the transport-choice predicate,
+identity plan bytes/length/no-header, gzip plan token/exact length/frame
+header/round-trip/determinism, the plan error arms and logical-rule
+precedence, and a request-builder integration leg that gzips the real
+conformance JSON and decompresses back to the exact `build_request` bytes.
+The client module itself stays out of the link-free suite (it links the
+libcurl bridge) and is covered by `xiom --check` plus `tests/probe_live.xi`;
+the probe gains a gzip leg behind the same SKIP-safe key gate.

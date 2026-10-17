@@ -25,14 +25,19 @@
 //     the in-tree xiom.zstd package is a vendored-C/FFI binding, and this
 //     package's suite and live path are link-free, so asking for it returns
 //     the typed BadRequest below instead of silently falling back.
+//   * prepare_body / encoding_check are the pure request-build seam used by
+//     xiom.jev.client: encoding_check fails unsupported compressors typed,
+//     prepare_body enforces the logical-body rule and returns the exact wire
+//     bytes, their Content-Length and the Content-Encoding token ("" for
+//     identity, which keeps the Str transport path).
 //
-// Transport note (blocker recorded in SPEC.md section 15 and ROADMAP.md):
-// xiom.http 0.1.8 accepts request bodies as `Str` and re-encodes them as
-// UTF-8 before the C call (http.xi str_to_cstr). A gzip/zstd frame is binary
-// and not necessarily valid UTF-8, so the current transport cannot carry an
-// encoded body unchanged. The encoders are therefore exposed for callers with
-// a binary-capable transport; xiom.jev.client continues to send the identity
-// body and applies body_size_check to it before the POST.
+// Transport note (S8 resolved with xiom.http 0.1.9): `http_request_bytes`
+// transmits a Vec[UInt8] verbatim (explicit CURLOPT_POSTFIELDSIZE, no UTF-8
+// re-encode, no NUL truncation), so a gzip frame now reaches the endpoint
+// unchanged. xiom.jev.client sends identity bodies through the existing
+// `http_request` Str path (byte-identical to 0.1.8) and every other selected
+// encoding through `http_request_bytes` with the exact encoded length and a
+// `Content-Encoding` header.
 //
 // Error strings (JevError.BadRequest) are stable and pinned by the suite:
 //
@@ -132,12 +137,49 @@ pub fn encoding_supported(enc: Int) -> Int {
   return 0;
 }
 
+/// encoding_check validates a selected encoding for the request path. It
+/// returns the tag unchanged for the supported identity/gzip encodings and a
+/// typed BadRequest otherwise: zstd -> `compression: zstd compressor is not
+/// available`, any other tag -> `compression: unknown encoding <tag>`. This is
+/// the pure selection gate `system_one_with_encoding` runs before building a
+/// body or touching the network.
+/// Complexity: O(1). Pure.
+pub fn encoding_check(enc: Int) -> Result[Int, JevError] {
+  if enc == ENCODING_IDENTITY { return Ok(enc); }
+  if enc == ENCODING_GZIP { return Ok(enc); }
+  if enc == ENCODING_ZSTD {
+    return Err(JevError.BadRequest("compression: zstd compressor is not available"));
+  }
+  return Err(JevError.BadRequest("compression: unknown encoding " + convert.to_string(enc)));
+}
+
+/// wire_uses_bytes reports whether a selected encoding needs the binary-safe
+/// transport. identity (0) keeps the existing Str `http_request` path; gzip
+/// (1) goes through `http_request_bytes`. Callers should run encoding_check
+/// first: an unknown tag is handled as an error, not as a transport choice.
+/// Complexity: O(1). Pure.
+pub fn wire_uses_bytes(enc: Int) -> Int {
+  if enc == ENCODING_IDENTITY { return 0; }
+  return 1;
+}
+
+/// EncodedBody is the pure wire plan for a compressed request body: the exact
+/// bytes to transmit, their length (the CURLOPT_POSTFIELDSIZE / Content-Length
+/// value) and the Content-Encoding token ("" for identity, so no header is
+/// emitted on the existing Str path).
+pub type EncodedBody = {
+  bytes: Vec[UInt8];
+  content_length: Int;
+  content_encoding: Str;
+}
+
 // --------------------------------------------------
 //  Encoders (pure byte transforms)
 // --------------------------------------------------
 
-// _copy_bytes returns an owned copy of data.
-fn _copy_bytes(data: &Vec[UInt8]) -> Vec[UInt8] {
+/// bytes_copy returns an owned copy of `data` (used per retry attempt, since
+/// the binary transport takes the body by value). Complexity: O(len). Pure.
+pub fn bytes_copy(data: &Vec[UInt8]) -> Vec[UInt8] {
   var out: Vec[UInt8] = Vec[UInt8].new();
   var i: Int = 0;
   while i < data.len() {
@@ -154,17 +196,16 @@ fn _copy_bytes(data: &Vec[UInt8]) -> Vec[UInt8] {
 /// stays link-free; any other tag returns the unknown-encoding BadRequest.
 /// Complexity: O(len) for identity, O(len) plus gzip work otherwise. Pure.
 pub fn compress_bytes(data: &Vec[UInt8], enc: Int) -> Result[Vec[UInt8], JevError] {
+  let checked: Result[Int, JevError] = encoding_check(enc);
+  if !checked.is_ok {
+    let e: JevError = checked.error;
+    return Err(e);
+  }
   if enc == ENCODING_IDENTITY {
-    return Ok(_copy_bytes(data));
+    return Ok(bytes_copy(data));
   }
-  if enc == ENCODING_GZIP {
-    let frame: Vec[UInt8] = gzip.gzip_compress(data);
-    return Ok(frame);
-  }
-  if enc == ENCODING_ZSTD {
-    return Err(JevError.BadRequest("compression: zstd compressor is not available"));
-  }
-  return Err(JevError.BadRequest("compression: unknown encoding " + convert.to_string(enc)));
+  let frame: Vec[UInt8] = gzip.gzip_compress(data);
+  return Ok(frame);
 }
 
 /// compress_body encodes a UTF-8 request body. The 32 MiB rule is enforced on
@@ -181,4 +222,38 @@ pub fn compress_body(body: Str, enc: Int) -> Result[Vec[UInt8], JevError] {
   }
   let src: Vec[UInt8] = encoding.utf8_encode(body);
   return compress_bytes(&src, enc);
+}
+
+/// prepare_body builds the exact wire plan for a request body under `enc`.
+/// Validation order is the logical-body rule FIRST (so an oversized logical
+/// body is rejected before any encoder selection or work), then the encoding
+/// gate (unsupported compressor -> typed BadRequest). On success the fields
+/// are: `bytes` = the exact bytes to transmit, `content_length` =
+/// `bytes.len()` (the declared Content-Length passed to http_request_bytes),
+/// `content_encoding` = the Content-Encoding token, or "" for identity (the
+/// existing Str path emits no such header). gzip bytes are deterministic and
+/// the decompressed frame equals the UTF-8 body.
+/// Complexity: O(len) for identity, O(len) plus gzip work otherwise. Pure.
+pub fn prepare_body(body: Str, enc: Int) -> Result[EncodedBody, JevError] {
+  let size_checked: Result[Int, JevError] = body_size_check(body.len());
+  if !size_checked.is_ok {
+    let size_err: JevError = size_checked.error;
+    return Err(size_err);
+  }
+  let enc_checked: Result[Int, JevError] = encoding_check(enc);
+  if !enc_checked.is_ok {
+    let enc_err: JevError = enc_checked.error;
+    return Err(enc_err);
+  }
+  let encoded: Result[Vec[UInt8], JevError] = compress_body(body, enc);
+  if !encoded.is_ok {
+    let encode_err: JevError = encoded.error;
+    return Err(encode_err);
+  }
+  let wire: Vec[UInt8] = encoded.value;
+  var token: Str = "";
+  if enc != ENCODING_IDENTITY {
+    token = encoding_name(enc);
+  }
+  return Ok(EncodedBody{ bytes: wire, content_length: wire.len(), content_encoding: token });
 }

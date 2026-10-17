@@ -4,7 +4,7 @@
 
 TypeSafe Jev client tier: **System One** structured decisions for XIOM.
 
-> **Status:** `incubating` -- 0.1.0. Offline conformance suite **143/143 x2** on
+> **Status:** `incubating` -- 0.1.0. Offline conformance suite **169/169 x2** on
 > compiler `v0.64.6` (native-session, 2026-10-17). Live probe is SKIP-safe and
 > link-gated (see "Live probe"). Published in `eco-v0.1.193` (sha256
 > `ed212ee6...`, 2026-10-16).
@@ -26,9 +26,9 @@ coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
 | `xiom.jev.response` | `parse_response` -- typed answers + confidence + usage; `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_labels_at_or_above`, `answer_sample_index` (caller-supplied entropy), score/noul helpers |
 | `xiom.jev.retry` | `retry_is_retryable`, `retry_backoff_millis`, `default_max_attempts/base_millis/cap_millis` -- pure bounded-backoff policy |
-| `xiom.jev.compression` | 32 MiB `body_size_check`, encoding tags (`identity`/`gzip`/`zstd`), `compress_bytes`/`compress_body` (gzip; zstd typed unavailable) |
+| `xiom.jev.compression` | 32 MiB `body_size_check`, encoding tags (`identity`/`gzip`/`zstd`), `encoding_check`, `wire_uses_bytes`, `prepare_body`/`EncodedBody`, `compress_bytes`/`compress_body` (gzip; zstd typed unavailable) |
 | `xiom.jev.errors` | `JevError` (BadRequest / Transport / HttpStatus / Parse) + `jev_error_text` |
-| `xiom.jev.client` | `system_one` -- transport over the xiom.http 0.1.8 headers surface |
+| `xiom.jev.client` | `system_one` (identity) and `system_one_with_encoding` -- transport over xiom.http 0.1.9 (`http_request` Str / `http_request_bytes` binary) |
 
 ## Quick start (offline shape)
 
@@ -79,7 +79,7 @@ Read it with `types.response_legend_count/label/doc/is_structured/text/find`
 `types.response_legend_json`; both string and structured (object/array) S4
 legend forms round-trip.
 
-## Transport (xiom.http 0.1.8 headers surface)
+## Transport (xiom.http 0.1.9 headers + binary-body surface)
 
 `xiom.jev.client.system_one(base_url, api_key, model, state, questions)`
 builds the body, attaches `Authorization: Bearer <api_key>` +
@@ -88,9 +88,28 @@ builds the body, attaches `Authorization: Bearer <api_key>` +
 is the consumer's libcurl bridge). Failures map onto the typed `JevError`
 catalog.
 
-**Live leg (resolved 2026-10-16):** xiom.http 0.1.8 ships the custom-headers
-surface, so the API receives the bearer token; a valid key now yields a 2xx
-([PASS] in the probe).
+`system_one_with_encoding(..., compression.ENCODING_GZIP)` compresses the
+logical body with `xiom.jev.compression.prepare_body` and sends the exact
+frame plus its exact Content-Length through the binary-safe
+`xiom.http.http_request_bytes` (0.1.9) with `Content-Encoding: gzip`.
+`ENCODING_IDENTITY` (what `system_one` selects) keeps the original Str path
+byte-identical and emits no `Content-Encoding` header. zstd and unknown tags
+fail typed before any network call.
+
+```xiom
+use xiom.jev.client;
+use xiom.jev.compression;
+
+// gzip request path (identity: call client.system_one instead)
+let r = client.system_one_with_encoding(
+  "https://api.typesafe.ai", api_key, "jev-latest", state, questions,
+  compression.ENCODING_GZIP);
+```
+
+**Live leg (resolved 2026-10-16):** xiom.http ships the custom-headers
+surface, so the API receives the bearer token; a valid key yields a 2xx
+([PASS] in the probe). The probe now selects gzip to exercise the binary
+body path.
 
 **Input hygiene (M2, 2026-10-16):** before the POST, `system_one` validates
 both transport inputs through the pure helpers `xiom.jev.base_url_validate`
@@ -106,17 +125,17 @@ deterministic bounded backoff of `xiom.jev.retry` (500 ms base doubling to a
 30 s cap, no jitter); the client sleeps via `xiom.time.sleep_ms`. Transport
 failures are not retried. The policy core is offline-golden-tested.
 
-**Body rule and compression (M2, 2026-10-17):** `system_one` rejects a
-request body above **33554432 bytes (32 MiB)** with the typed
-`request: body exceeds 32 MiB limit` before building headers or touching the
-network; exactly 32 MiB is allowed (inclusive). `xiom.jev.compression`
-exposes the same `body_size_check` for callers, plus `identity` and `gzip`
-encoders (`compress_body`, pure stdlib RFC 1952, no FFI) and a typed
-`compression: zstd compressor is not available` path. The live client still
-sends the identity JSON body: xiom.http 0.1.8 takes a `Str` and UTF-8
-re-encodes it, which cannot carry a binary gzip frame -- end-to-end
-compressed requests wait on a binary-body entrypoint upstream (SPEC.md
-section 15).
+**Body rule and compression (M2, 2026-10-17):** the client rejects a LOGICAL
+(uncompressed) request body above **33554432 bytes (32 MiB)** with the typed
+`request: body exceeds 32 MiB limit` before building headers, selecting an
+encoder or touching the network; exactly 32 MiB is allowed (inclusive), so
+compression cannot smuggle an oversized logical body past the rule.
+`xiom.jev.compression` exposes the same `body_size_check`, the pure
+`encoding_check`/`prepare_body` selection seam, `identity` and `gzip`
+encoders (`compress_body`, pure stdlib RFC 1952, no FFI), and a typed
+`compression: zstd compressor is not available` path. With xiom.http 0.1.9
+(`http_request_bytes`) gzip requests now travel end-to-end; SPEC.md sections
+15 and 16 pin the plan and the evidence.
 
 ## Live probe
 

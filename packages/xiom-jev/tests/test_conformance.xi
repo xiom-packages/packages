@@ -119,6 +119,23 @@ fn expect_bad_bytes(r: Result[Vec[UInt8], JevError], want: Str, name: Str) -> In
   };
 }
 
+// expect_bad_plan is expect_bad for a Result carrying an EncodedBody plan.
+fn expect_bad_plan(r: Result[EncodedBody, JevError], want: Str, name: Str) -> Int {
+  match r {
+    Ok(_v) => {
+      return report(false, name + " (expected BadRequest, got Ok)");
+    },
+    Err(e) => {
+      let got: Str = errors.jev_error_text(e);
+      let want_full: Str = "jev: bad request: " + want;
+      if !str_eq(got, want_full) {
+        return report(false, name + " (got: " + got + ")");
+      }
+      return report(true, name);
+    },
+  };
+}
+
 fn expect_ok_int(r: Result[Int, JevError], want: Int, name: Str) -> Int {
   match r {
     Ok(v) => {
@@ -1105,6 +1122,135 @@ fn t42() -> Int {
 }
 
 // --------------------------------------------------
+//  M2 chunk 5 (S8 completion): client encoding selection seam
+// --------------------------------------------------
+
+fn t43() -> Int {
+  var failed: Int = 0;
+  // Selection gate: supported tags pass, unsupported compressors fail typed.
+  failed = failed + expect_ok_int(compression.encoding_check(compression.ENCODING_IDENTITY), compression.ENCODING_IDENTITY, "selection: identity accepted");
+  failed = failed + expect_ok_int(compression.encoding_check(compression.ENCODING_GZIP), compression.ENCODING_GZIP, "selection: gzip accepted");
+  failed = failed + expect_bad_int(compression.encoding_check(compression.ENCODING_ZSTD), "compression: zstd compressor is not available", "selection: zstd rejected typed");
+  failed = failed + expect_bad_int(compression.encoding_check(99), "compression: unknown encoding 99", "selection: unknown tag rejected typed");
+  // Transport choice: identity stays on the Str path, gzip needs bytes.
+  if compression.wire_uses_bytes(compression.ENCODING_IDENTITY) != 0 {
+    failed = failed + report(false, "transport: identity keeps the Str path");
+  } else {
+    failed = failed + report(true, "transport: identity keeps the Str path");
+  }
+  if compression.wire_uses_bytes(compression.ENCODING_GZIP) != 1 {
+    failed = failed + report(false, "transport: gzip uses the bytes path");
+  } else {
+    failed = failed + report(true, "transport: gzip uses the bytes path");
+  }
+
+  let body: Str = "{\"state\":\"hello hello hello\",\"model\":\"jev-latest\",\"questions\":{}}";
+  let plain: Vec[UInt8] = encoding.utf8_encode(body);
+
+  // Identity wire plan: exact UTF-8 bytes, exact logical length, no header.
+  let idp: Result[EncodedBody, JevError] = compression.prepare_body(body, compression.ENCODING_IDENTITY);
+  if !idp.is_ok {
+    failed = failed + report(false, "plan: identity prepares");
+  } else {
+    let idplan: EncodedBody = idp.value;
+    let id_token: Str = idplan.content_encoding;
+    let id_len: Int = idplan.content_length;
+    let id_bytes: Vec[UInt8] = idplan.bytes;
+    failed = failed + report(str_eq(id_token, ""), "plan: identity emits no Content-Encoding");
+    failed = failed + report(bytes_eq(&id_bytes, &plain), "plan: identity bytes are the exact UTF-8 body");
+    failed = failed + report(id_len == plain.len(), "plan: identity Content-Length is the logical length");
+  }
+
+  // Gzip wire plan: exact frame, content_length == frame length, header token,
+  // deterministic bytes, and the frame decompresses to the logical body.
+  let gp: Result[EncodedBody, JevError] = compression.prepare_body(body, compression.ENCODING_GZIP);
+  if !gp.is_ok {
+    failed = failed + report(false, "plan: gzip prepares");
+  } else {
+    let gplan: EncodedBody = gp.value;
+    let g_token: Str = gplan.content_encoding;
+    let g_len: Int = gplan.content_length;
+    let g_bytes: Vec[UInt8] = gplan.bytes;
+    failed = failed + report(str_eq(g_token, "gzip"), "plan: gzip Content-Encoding token");
+    failed = failed + report(g_len == g_bytes.len(), "plan: gzip Content-Length is the frame length");
+    var magic_ok: Bool = false;
+    if g_bytes.len() >= 4 {
+      if g_bytes[0] == 0x1F && g_bytes[1] == 0x8B && g_bytes[2] == 0x08 && g_bytes[3] == 0x00 {
+        magic_ok = true;
+      }
+    }
+    failed = failed + report(magic_ok, "plan: gzip frame header (1F 8B 08 00, mtime 0)");
+    let dec: Result[Vec[UInt8], Str] = gzip.gzip_decompress(&g_bytes);
+    if !dec.is_ok {
+      failed = failed + report(false, "plan: gzip frame decompresses");
+    } else {
+      let decv: Vec[UInt8] = dec.value;
+      failed = failed + report(bytes_eq(&decv, &plain), "plan: gzip round-trip equals the logical body");
+    }
+    let gp2: Result[EncodedBody, JevError] = compression.prepare_body(body, compression.ENCODING_GZIP);
+    if !gp2.is_ok {
+      failed = failed + report(false, "plan: gzip prepares deterministically");
+    } else {
+      let gplan2: EncodedBody = gp2.value;
+      let g_bytes2: Vec[UInt8] = gplan2.bytes;
+      failed = failed + report(bytes_eq(&g_bytes, &g_bytes2), "plan: gzip bytes are deterministic");
+    }
+  }
+
+  // Typed error arms on the plan seam.
+  failed = failed + expect_bad_plan(compression.prepare_body(body, compression.ENCODING_ZSTD), "compression: zstd compressor is not available", "plan: zstd rejected typed");
+  failed = failed + expect_bad_plan(compression.prepare_body(body, 99), "compression: unknown encoding 99", "plan: unknown tag rejected typed");
+  // The logical-body rule runs before encoding selection/compression.
+  let over_s: Str = string.str_repeat("A", compression.max_body_bytes()) + "A";
+  failed = failed + expect_bad_plan(compression.prepare_body(over_s, compression.ENCODING_GZIP), "request: body exceeds 32 MiB limit", "plan: oversized logical body rejected before gzip");
+  failed = failed + expect_bad_plan(compression.prepare_body(over_s, compression.ENCODING_ZSTD), "request: body exceeds 32 MiB limit", "plan: logical-body rule precedes the encoding gate");
+  return report(failed == 0, "encoding selection + wire plan (bytes, length, token, typed errors)");
+}
+
+fn t44() -> Int {
+  var failed: Int = 0;
+  // End-to-end request-builder seam: build the real conformance body, then
+  // gzip exactly those logical bytes and check the wire plan.
+  let state: State = types.state_text("Our API integration started returning 500 errors on every request about 20 minutes ago, and we can't process any customer orders until this is fixed.");
+  let built: Result[Str, JevError] = request.build_request("jev-latest", state, triage_questions());
+  if !built.is_ok {
+    return report(false, "built request prepares for compression");
+  }
+  let body: Str = built.value;
+  let plain: Vec[UInt8] = encoding.utf8_encode(body);
+  let gp: Result[EncodedBody, JevError] = compression.prepare_body(body, compression.ENCODING_GZIP);
+  if !gp.is_ok {
+    return report(false, "built request gzip plan");
+  }
+  let gplan: EncodedBody = gp.value;
+  let g_token: Str = gplan.content_encoding;
+  let g_len: Int = gplan.content_length;
+  let g_bytes: Vec[UInt8] = gplan.bytes;
+  failed = failed + report(str_eq(g_token, "gzip"), "built request: gzip selected");
+  failed = failed + report(g_len == g_bytes.len(), "built request: Content-Length matches encoded frame");
+  failed = failed + report(g_len < plain.len(), "built request: gzip shrinks the JSON body");
+  let dec: Result[Vec[UInt8], Str] = gzip.gzip_decompress(&g_bytes);
+  if !dec.is_ok {
+    failed = failed + report(false, "built request: gzip frame decompresses");
+  } else {
+    let decv: Vec[UInt8] = dec.value;
+    failed = failed + report(bytes_eq(&decv, &plain), "built request: gzip round-trip equals build_request bytes");
+  }
+  // Identity plan on the same body is byte-identical to the Str path.
+  let idp: Result[EncodedBody, JevError] = compression.prepare_body(body, compression.ENCODING_IDENTITY);
+  if !idp.is_ok {
+    failed = failed + report(false, "built request: identity plan");
+  } else {
+    let idplan: EncodedBody = idp.value;
+    let id_len: Int = idplan.content_length;
+    let id_bytes: Vec[UInt8] = idplan.bytes;
+    failed = failed + report(id_len == plain.len(), "built request: identity length equals body bytes");
+    failed = failed + report(bytes_eq(&id_bytes, &plain), "built request: identity bytes equal the Str body");
+  }
+  return report(failed == 0, "request builder + compression wire plan (exact bytes, length, round-trip)");
+}
+
+// --------------------------------------------------
 //  Entry point
 // --------------------------------------------------
 
@@ -1153,6 +1299,8 @@ fn main() -> Int {
   failed = failed + t40();
   failed = failed + t41();
   failed = failed + t42();
+  failed = failed + t43();
+  failed = failed + t44();
   if failed == 0 {
     io.println("xiom.jev: all tests passed");
   } else {
