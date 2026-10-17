@@ -1,10 +1,10 @@
 # xiom.openblas -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
-**Status**: Phase 1 implemented and conformance-green (32/32 x2 on compiler v0.64.5).
-Two-leg split: an offline leg (stub link-seam bridge, no system OpenBLAS required)
-and a real-library leg (runtime-detected OpenBLAS probe, SKIP-safe when absent).
-**Depends on**: xiom.ffi (stdlib), xiom.alloc (stdlib)
+**Status**: Phase 1 COMPLETE and conformance-green (42/42 x2 on compiler v0.64.6)
+on both legs: an offline stub/SKIP artifact (no OpenBLAS required) and a real
+linked OpenBLAS artifact (BLAS 1-3 + LAPACK SVD/eigen/solve).
+**Depends on**: xiom.convert (stdlib), xiom.ffi (stdlib), xiom.alloc (stdlib)
 
 ## What it wraps
 OpenBLAS -- optimized Basic Linear Algebra Subprograms (BLAS) and LAPACK.
@@ -61,15 +61,18 @@ pub fn solve(A: &Matrix, b: &Vec[Float64]) -> Result[Matrix, Str]
 
 | Leg | What it is | How to run | Needs OpenBLAS? |
 |-----|-----------|------------|-----------------|
-| Offline conformance | `tests/test_conformance.xi` linked with `bridge/openblas_bridge.c` (stub link-seam; wired via `port.args.json`). All numbers come from the pure-XIOM reference paths in `openblas.xi`; the stub symbols are declared but never called. | `.\scripts\port.ps1 -Package xiom-openblas -TimeoutSec 180` | No |
-| Real library | `tests/probe_real_openblas.xi` + `tests/probe_openblas_shim.c`: detects a system OpenBLAS at runtime (XIOM_OPENBLAS_LIB override, standard locations, then OS loader search = PATH), exercises real `cblas_ddot` and `cblas_dgemm`; prints `[SKIP]` and exits 0 when absent. | see tests/probe_real_openblas.xi header (direct `xiom --run` invocation) | Yes (else SKIP) |
+| Offline/SKIP | `tests/test_conformance.xi` linked with `bridge/openblas_bridge.c` (stub link-seam; wired via `port.args.json`). `xiom_openblas_backend()` returns 0, so BLAS numbers come from the pure-XIOM reference paths and LAPACK returns the documented identity/zero placeholders; the stub C symbols are never called. | `.\scripts\port.ps1 -Package xiom.openblas -TimeoutSec 300` | No |
+| Real linked | the same suite linked against the system OpenBLAS import library plus `bridge/openblas_real_marker.c` (marker only -- no stub symbols). `xiom_openblas_backend()` returns 1, so `cblas_*` and `dgesvd_`/`dsyev_`/`dgesv_` are called over raw Vec/pool pointers. SKIPs cleanly when no build is found. | `.\packages\xiom.openblas\tests\run_real_leg.ps1 -Require` | Yes (else SKIP) |
+| Runtime probe (legacy) | `tests/probe_real_openblas.xi` + `tests/probe_openblas_shim.c`: runtime-detected `cblas_ddot`/`cblas_dgemm` smoke check; kept SKIP-safe. | see tests/probe_real_openblas.xi header | Yes (else SKIP) |
 
-The offline leg is stub-safe *by design* and documented as such; it is not a
-claim that BLAS is computed by OpenBLAS. The real leg is the OpenBLAS truth:
-last verified on this machine against a real LP64 OpenBLAS DLL (scipy wheel
-copy) -- `cblas_ddot == 32` and 2x2 `cblas_dgemm == [[19,22],[43,50]]` both
-passed; on the same box, without the override, the probe SKIPs cleanly
-(nothing standard-named on PATH/standard locations).
+The offline leg is stub-safe *by design*; it is not a claim that BLAS is
+computed by OpenBLAS. The linked real leg is the OpenBLAS truth. Verified on
+2026-10-17 against the official OpenBLAS **v0.3.34** Windows x64 **LP64/Int32**
+build (`typedef int blasint`, `USE_64BITINT=` empty; SHA256 `e9cb6134...`,
+BSD-3-Clause -- `PROVENANCE.md`): `42/42` checks x2, including `U*S*VT`
+reconstruction for 4x3 and 2x3 inputs, `diag(3,2,1)` singular values,
+`A*v = lambda*v` eigenpair residuals, `solve([[3,1],[1,2]],[9,8]) = [2,3]`,
+and singular-matrix `dgesv_` returning `Err` (`info > 0`).
 
 ## Phased roadmap
 
@@ -85,13 +88,16 @@ passed; on the same box, without the override, the probe SKIPs cleanly
 ### Files
 | File | Lines | Purpose |
 |------|-------|---------|
-| `openblas.xi` | 368 | Module `xiom.openblas` -- extern C surface (int32 blasint ABI), pool, safe wrappers (pure-XIOM paths), LAPACK stubs |
-| `bridge/openblas_bridge.c` | 129 | Stub link-seam resolving the extern C surface for the offline leg (validates pointers; computes nothing; LAPACK writes info=-999) |
+| `openblas.xi` | 719 | Module `xiom.openblas` -- extern C surface (int32 blasint ABI + gfortran hidden lengths), pool, leg marker, real cblas/LAPACK marshalling, pure-XIOM fallback |
+| `bridge/openblas_bridge.c` | 156 | Offline stub link-seam (backend marker 0; validates pointers; computes nothing; LAPACK writes info=-999) |
+| `bridge/openblas_real_marker.c` | 18 | Real-leg marker only (backend 1); deliberately defines no cblas/LAPACK symbol |
 | `port.args.json` | 4 | Wires `--c-source ${PACKAGE_DIR}/bridge/openblas_bridge.c` into the port.ps1 suite invocation |
-| `tests/test_conformance.xi` | 536 | 32 conformance tests (same checks/names/order as the original suite), rewritten to the current xiom.test API |
-| `tests/probe_real_openblas.xi` | 147 | SKIP-safe real-library probe (real leg); exercises real cblas_ddot/cblas_dgemm |
-| `tests/probe_openblas_shim.c` | 175 | Probe-local C shim: runtime OpenBLAS detection/loading + real cblas calls (int32 ABI) |
-| `ROADMAP.md` | -- | Phased plan: Core -> LAPACK full -> Sparse -> MT -> Integration |
+| `tests/test_conformance.xi` | 941 | 42 conformance checks on the current xiom.test API; leg-aware LAPACK accuracy assertions |
+| `tests/run_real_leg.ps1` | 171 | Real linked leg: OpenBLAS discovery, ILP64 refusal, PATH, link args, 2x PASS/FAIL gate |
+| `tests/probe_real_openblas.xi` | 159 | Legacy SKIP-safe runtime probe; exercises real cblas_ddot/cblas_dgemm |
+| `tests/probe_openblas_shim.c` | 191 | Probe-local C shim: runtime OpenBLAS detection/loading + real cblas calls (int32 ABI) |
+| `PROVENANCE.md` | -- | OpenBLAS v0.3.34 pin, BSD-3-Clause, SHA256/MD5, LP64/Int32 evidence |
+| `ROADMAP.md` | -- | Phased plan: Core (complete) -> LAPACK full -> Sparse -> MT -> Integration |
 | `SPEC.md` | -- | This file |
 
 ### API surface (implemented)
@@ -139,12 +145,27 @@ pub fn solve(A: &Matrix, b: &Vec[Float64]) -> Result[Matrix, Str]
 | extern C ABI | `blasint` params `Int` -> `Int32` | honesty: real OpenBLAS LP64 uses int32; the declarations are the Phase-2 wiring target |
 | Suite API | rewritten to `xiom.test` TestResult API | old suite used an exit-code style API removed from the current stdlib |
 
+### Phase 1 real-leg delta (2026-10-17)
+| Item | Change | Reason |
+|------|--------|--------|
+| Leg selection | `xiom_openblas_backend()` marker + `bridge/openblas_real_marker.c` | One suite, two artifacts; stub and real symbols never coexist |
+| BLAS wiring | `dot`/`axpy`/`gemv`/`gemm` call `cblas_*` on the real leg | Real acceleration via raw pool/Vec pointers |
+| LAPACK wiring | `svd`/`eigen_sym`/`solve` call `dgesvd_`/`dsyev_`/`dgesv_` | Real SVD/eigen/solve (replaces placeholders on the real leg) |
+| LAPACK ABI | Hidden `size_t` character lengths appended to `dgesvd_`/`dsyev_` | gfortran convention (`LAPACK_FORTRAN_STRLEN_END`) |
+| Workspace | `lwork = -1` query, then allocate an XIOM `Vec[Float64]` of `lwork` | No guessed workspace sizes |
+| Pivots | `ipiv` viewed as `*Int32` over a `Float64` Vec (n*4 bytes) | `Vec[T]` slots are 8 bytes, so `Vec[Int32]` would not be contiguous |
+| Accuracy | New leg-aware suite checks (reconstruction, singular values, eigenpair residual, solve, singular Err) | Numerical evidence, not just shape checks |
+| Platform | Real leg verified against OpenBLAS v0.3.34 x64 LP64/Int32; ILP64 refused | Matches the int32 `blasint` declarations |
+
 ### Internal architecture
 - **Pool**: 5 parallel `Vec` arrays (`__pool_data`, `__pool_rows`, `__pool_cols`, `__pool_start`, `__pool_used`)
 - **Handle**: 1-based index into pool; 0 = invalid
-- **BLAS 1-3**: pure XIOM loop implementations (reference path; linked OpenBLAS wiring pending)
-- **LAPACK**: stub implementations returning identity/zero placeholders
-- **Offline link seam**: `bridge/openblas_bridge.c` resolves the extern C surface; never called by the module
+- **Leg marker**: `xiom_openblas_backend()` (0 = stub bridge, 1 = real marker)
+- **BLAS 1-3 (real leg)**: `cblas_ddot`/`daxpy`/`dgemv`/`dgemm` over raw pointers to the pool span / Vec data; `CblasRowMajor` (101), NoTrans/Trans (111/112), `lda` = the pool matrix column count
+- **BLAS 1-3 (offline leg)**: the pure-XIOM reference loops (same public semantics, including the transposed paths)
+- **LAPACK (real leg)**: row-major pool -> column-major scratch, `lwork = -1` workspace query, then an XIOM `Vec[Float64]` of exactly `lwork` slots; `dgesvd_` economy U/VT, `dsyev_` (`jobz='V'`, `uplo='U'`), `dgesv_` with an int32 `ipiv` view over Vec storage; results converted back to row-major
+- **LAPACK (offline leg)**: documented identity/zero placeholders with correct shapes
+- **Link seams**: exactly one of `bridge/openblas_bridge.c` (offline) or `bridge/openblas_real_marker.c` + OpenBLAS import library (real); never both
 
 ## What xiom.numpy Phase 2 must call from this package
 - `matrix_create` / `matrix_set` / `matrix_get` / `matrix_rows` / `matrix_cols`
@@ -152,9 +173,9 @@ pub fn solve(A: &Matrix, b: &Vec[Float64]) -> Result[Matrix, Str]
 - `dot`, `axpy`, `gemv`, `gemm` as the BLAS fast paths behind numpy `dot` /
   `matmul` semantics (pool layout is row-major, index = row * cols + col --
   the same layout the numpy bridge marshals into CBLAS RowMajor);
-- `svd` / `eigen_sym` / `solve` for the linalg surface; Phase 2 should treat
-  them as placeholders until the real LAPACK wiring lands (both packages'
-  Phase 2);
+- `svd` / `eigen_sym` / `solve` for the linalg surface; they are real LAPACK
+  operations on the linked real leg and the documented placeholders on the
+  offline/SKIP leg (`backend_is_real()` tells the two apart);
 - the extern seam convention: keep `bridge/openblas_bridge.c` out of any build
   that links a real OpenBLAS (duplicate symbols); the real leg is the shim
   pattern in `tests/probe_openblas_shim.c`.

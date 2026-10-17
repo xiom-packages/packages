@@ -2,15 +2,19 @@
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// 32 checks covering: matrix lifecycle, get/set roundtrip, BLAS 1-3,
-// LAPACK Phase-1 stub paths, error handling, and boundary conditions.
-// Same checks / names / order as the original suite, rewritten to the
-// current xiom.test API (TestResult + format_results).
+// 42 checks covering: matrix lifecycle, get/set roundtrip, BLAS 1-3
+// (including transposed gemv/gemm), LAPACK SVD/eigen/solve accuracy,
+// error handling, and boundary conditions.
 //
-// Offline-leg note (see SPEC.md): the module is compiled and linked with
-// bridge/openblas_bridge.c (stub link-seam via port.args.json), so this
-// suite runs with no system OpenBLAS installed. All numbers below come
-// from the pure-XIOM reference paths in openblas.xi.
+// Two legs, one suite (see SPEC.md / README.md):
+//   * Offline/SKIP leg: linked with bridge/openblas_bridge.c via
+//     port.args.json. `backend_is_real()` is false, so the BLAS numbers
+//     below come from the pure-XIOM reference paths and the LAPACK checks
+//     assert the documented identity/zero placeholders.
+//   * Real leg: linked with the system OpenBLAS import library plus
+//     bridge/openblas_real_marker.c (tests/run_real_leg.ps1).
+//     `backend_is_real()` is true, so the same checks exercise real
+//     cblas_* calls and assert LAPACK numerical accuracy.
 
 module xiom.openblas.test_conformance
 use xiom.openblas;
@@ -56,6 +60,56 @@ fn int_to_str(n: Int) -> Str {
     num = num / 10;
   }
   return out;
+}
+
+fn approx_eq(a: Float64, b: Float64, tol: Float64) -> Bool {
+  var d = a - b;
+  if d < 0.0 { d = -d; }
+  return d <= tol;
+}
+
+// Reconstruct A from svd(A) and compare with the flat row-major input.
+fn svd_reconstructs(data: &Vec[Float64], rows: Int, cols: Int, tol: Float64) -> Bool {
+  match matrix_create(rows, cols) {
+    Ok(a) => {
+      var ha = a;
+      var k = 0;
+      while k < rows * cols {
+        matrix_set(&mut ha, k / cols, k % cols, data[k]);
+        k = k + 1;
+      }
+      match svd(&ha) {
+        Ok((u, s, vt)) => {
+          var r = rows;
+          if cols < r { r = cols; }
+          var ok = true;
+          var i = 0;
+          while i < rows {
+            var j = 0;
+            while j < cols {
+              var sum = 0.0;
+              var p = 0;
+              while p < r {
+                sum = sum + matrix_get(&u, i, p) * matrix_get(&s, p, p) * matrix_get(&vt, p, j);
+                p = p + 1;
+              }
+              if !approx_eq(sum, data[i * cols + j], tol) {
+                ok = false;
+              }
+              j = j + 1;
+            }
+            i = i + 1;
+          }
+          matrix_free(u);
+          matrix_free(s);
+          matrix_free(vt);
+          return ok;
+        }
+        Err(_) => { return false; }
+      }
+    }
+    Err(_) => { return false; }
+  }
 }
 
 // ============================================================
@@ -352,7 +406,100 @@ fn test_gemm_zero_beta() -> TestResult {
 }
 
 // ============================================================
-// Section 5 -- LAPACK: SVD (Phase 1 stub paths)
+// Section 4b -- BLAS transposed paths (both legs)
+// ============================================================
+
+fn test_gemv_transpose() -> TestResult {
+  match matrix_create(3, 2) {
+    Ok(a) => {
+      var ha = a;
+      matrix_set(&mut ha, 0, 0, 1.0);
+      matrix_set(&mut ha, 0, 1, 2.0);
+      matrix_set(&mut ha, 1, 0, 3.0);
+      matrix_set(&mut ha, 1, 1, 4.0);
+      matrix_set(&mut ha, 2, 0, 5.0);
+      matrix_set(&mut ha, 2, 1, 6.0);
+      var x = vec3(1.0, 1.0, 1.0);
+      var y = vec2(0.0, 0.0);
+      gemv(true, 2, 3, 1.0, &ha, &x, 0.0, &mut y);
+      return xiom.test.assert(y[0] == 9.0 && y[1] == 12.0, "gemv transpose column sums == [9,12]");
+    }
+    Err(_) => { return xiom.test.assert(false, "gemv_transpose: expected Ok"); }
+  }
+}
+
+fn test_gemm_transpose_a() -> TestResult {
+  match matrix_create(3, 2) {
+    Ok(a) => {
+      match matrix_create(3, 2) {
+        Ok(b) => {
+          match matrix_create(2, 2) {
+            Ok(c) => {
+              var ha = a;
+              var hb = b;
+              var hc = c;
+              matrix_set(&mut ha, 0, 0, 1.0);
+              matrix_set(&mut ha, 0, 1, 2.0);
+              matrix_set(&mut ha, 1, 0, 3.0);
+              matrix_set(&mut ha, 1, 1, 4.0);
+              matrix_set(&mut ha, 2, 0, 5.0);
+              matrix_set(&mut ha, 2, 1, 6.0);
+              matrix_set(&mut hb, 0, 0, 1.0);
+              matrix_set(&mut hb, 0, 1, 0.0);
+              matrix_set(&mut hb, 1, 0, 0.0);
+              matrix_set(&mut hb, 1, 1, 1.0);
+              matrix_set(&mut hb, 2, 0, 1.0);
+              matrix_set(&mut hb, 2, 1, 1.0);
+              gemm(true, false, 2, 2, 3, 1.0, &ha, &hb, 0.0, &mut hc);
+              return xiom.test.assert(matrix_get(&hc, 0, 0) == 6.0 && matrix_get(&hc, 0, 1) == 8.0 && matrix_get(&hc, 1, 0) == 8.0 && matrix_get(&hc, 1, 1) == 10.0, "gemm transA: A^T B == [[6,8],[8,10]]");
+            }
+            Err(_) => { return xiom.test.assert(false, "gemm_transpose_a: C create failed"); }
+          }
+        }
+        Err(_) => { return xiom.test.assert(false, "gemm_transpose_a: B create failed"); }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "gemm_transpose_a: A create failed"); }
+  }
+}
+
+fn test_gemm_transpose_b() -> TestResult {
+  match matrix_create(2, 3) {
+    Ok(a) => {
+      match matrix_create(2, 3) {
+        Ok(b) => {
+          match matrix_create(2, 2) {
+            Ok(c) => {
+              var ha = a;
+              var hb = b;
+              var hc = c;
+              matrix_set(&mut ha, 0, 0, 1.0);
+              matrix_set(&mut ha, 0, 1, 2.0);
+              matrix_set(&mut ha, 0, 2, 3.0);
+              matrix_set(&mut ha, 1, 0, 4.0);
+              matrix_set(&mut ha, 1, 1, 5.0);
+              matrix_set(&mut ha, 1, 2, 6.0);
+              matrix_set(&mut hb, 0, 0, 1.0);
+              matrix_set(&mut hb, 0, 1, 0.0);
+              matrix_set(&mut hb, 0, 2, 1.0);
+              matrix_set(&mut hb, 1, 0, 0.0);
+              matrix_set(&mut hb, 1, 1, 1.0);
+              matrix_set(&mut hb, 1, 2, 1.0);
+              gemm(false, true, 2, 2, 3, 1.0, &ha, &hb, 0.0, &mut hc);
+              return xiom.test.assert(matrix_get(&hc, 0, 0) == 4.0 && matrix_get(&hc, 0, 1) == 5.0 && matrix_get(&hc, 1, 0) == 10.0 && matrix_get(&hc, 1, 1) == 11.0, "gemm transB: A B^T == [[4,5],[10,11]]");
+            }
+            Err(_) => { return xiom.test.assert(false, "gemm_transpose_b: C create failed"); }
+          }
+        }
+        Err(_) => { return xiom.test.assert(false, "gemm_transpose_b: B create failed"); }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "gemm_transpose_b: A create failed"); }
+  }
+}
+
+// ============================================================
+// Section 5 -- LAPACK: SVD
 // ============================================================
 
 fn test_svd_returns_ok() -> TestResult {
@@ -416,8 +563,71 @@ fn test_svd_tall_matrix() -> TestResult {
   }
 }
 
+fn test_svd_singular_values() -> TestResult {
+  match matrix_create(3, 3) {
+    Ok(a) => {
+      var ha = a;
+      matrix_set(&mut ha, 0, 0, 3.0);
+      matrix_set(&mut ha, 1, 1, 2.0);
+      matrix_set(&mut ha, 2, 2, 1.0);
+      match svd(&ha) {
+        Ok((u, s, vt)) => {
+          var ok = false;
+          if backend_is_real() {
+            ok = approx_eq(matrix_get(&s, 0, 0), 3.0, 0.000000001)
+              && approx_eq(matrix_get(&s, 1, 1), 2.0, 0.000000001)
+              && approx_eq(matrix_get(&s, 2, 2), 1.0, 0.000000001);
+          } else {
+            ok = matrix_get(&s, 0, 0) == 0.0 && matrix_get(&s, 2, 2) == 0.0;
+          }
+          matrix_free(u);
+          matrix_free(s);
+          matrix_free(vt);
+          return xiom.test.assert(ok, "svd diag(3,2,1): singular values [3,2,1] on the real leg (zeros on the stub leg)");
+        }
+        Err(_) => { return xiom.test.assert(false, "svd_singular_values: expected Ok"); }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "svd_singular_values: expected Ok"); }
+  }
+}
+
+fn test_svd_reconstruct_tall() -> TestResult {
+  if !backend_is_real() {
+    return xiom.test.assert(true, "svd reconstruct 4x3: SKIP (stub leg placeholder, documented)");
+  }
+  var data = Vec[Float64].new();
+  data.push(1.0);
+  data.push(2.0);
+  data.push(3.0);
+  data.push(4.0);
+  data.push(5.0);
+  data.push(6.0);
+  data.push(7.0);
+  data.push(8.0);
+  data.push(9.0);
+  data.push(10.0);
+  data.push(11.0);
+  data.push(13.0);
+  return xiom.test.assert(svd_reconstructs(&data, 4, 3, 0.000000001), "svd 4x3: U * S * VT reconstructs A (tol 1e-9)");
+}
+
+fn test_svd_reconstruct_wide() -> TestResult {
+  if !backend_is_real() {
+    return xiom.test.assert(true, "svd reconstruct 2x3: SKIP (stub leg placeholder, documented)");
+  }
+  var data = Vec[Float64].new();
+  data.push(1.0);
+  data.push(2.0);
+  data.push(3.0);
+  data.push(4.0);
+  data.push(5.0);
+  data.push(6.0);
+  return xiom.test.assert(svd_reconstructs(&data, 2, 3, 0.000000001), "svd 2x3: U * S * VT reconstructs A (tol 1e-9)");
+}
+
 // ============================================================
-// Section 6 -- LAPACK: symmetric eigenvalues (Phase 1 stub paths)
+// Section 6 -- LAPACK: symmetric eigenvalues
 // ============================================================
 
 fn test_eigen_sym_square_ok() -> TestResult {
@@ -472,8 +682,81 @@ fn test_eigen_sym_1x1() -> TestResult {
   }
 }
 
+fn test_eigen_sym_values() -> TestResult {
+  match matrix_create(2, 2) {
+    Ok(a) => {
+      var ha = a;
+      matrix_set(&mut ha, 0, 0, 2.0);
+      matrix_set(&mut ha, 0, 1, 1.0);
+      matrix_set(&mut ha, 1, 0, 1.0);
+      matrix_set(&mut ha, 1, 1, 2.0);
+      match eigen_sym(&ha) {
+        Ok((vals, vecs)) => {
+          var ok = false;
+          if backend_is_real() {
+            ok = approx_eq(matrix_get(&vals, 0, 0), 1.0, 0.000000001)
+              && approx_eq(matrix_get(&vals, 1, 1), 3.0, 0.000000001);
+          } else {
+            ok = matrix_get(&vals, 0, 0) == 0.0 && matrix_get(&vals, 1, 1) == 0.0;
+          }
+          matrix_free(vals);
+          matrix_free(vecs);
+          return xiom.test.assert(ok, "eigen_sym [[2,1],[1,2]]: values [1,3] on the real leg (zeros on the stub leg)");
+        }
+        Err(_) => { return xiom.test.assert(false, "eigen_sym_values: expected Ok"); }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "eigen_sym_values: expected Ok"); }
+  }
+}
+
+fn test_eigen_sym_vectors() -> TestResult {
+  match matrix_create(2, 2) {
+    Ok(a) => {
+      var ha = a;
+      matrix_set(&mut ha, 0, 0, 2.0);
+      matrix_set(&mut ha, 0, 1, 1.0);
+      matrix_set(&mut ha, 1, 0, 1.0);
+      matrix_set(&mut ha, 1, 1, 2.0);
+      match eigen_sym(&ha) {
+        Ok((vals, vecs)) => {
+          var ok = true;
+          if backend_is_real() {
+            var j = 0;
+            while j < 2 {
+              let lam = matrix_get(&vals, j, j);
+              var k = 0;
+              while k < 2 {
+                var av = 0.0;
+                var i = 0;
+                while i < 2 {
+                  av = av + matrix_get(&ha, k, i) * matrix_get(&vecs, i, j);
+                  i = i + 1;
+                }
+                if !approx_eq(av, lam * matrix_get(&vecs, k, j), 0.000000001) {
+                  ok = false;
+                }
+                k = k + 1;
+              }
+              j = j + 1;
+            }
+          } else {
+            ok = matrix_get(&vecs, 0, 0) == 1.0 && matrix_get(&vecs, 0, 1) == 0.0
+              && matrix_get(&vecs, 1, 0) == 0.0 && matrix_get(&vecs, 1, 1) == 1.0;
+          }
+          matrix_free(vals);
+          matrix_free(vecs);
+          return xiom.test.assert(ok, "eigen_sym: A*v == lambda*v on the real leg (identity on the stub leg)");
+        }
+        Err(_) => { return xiom.test.assert(false, "eigen_sym_vectors: expected Ok"); }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "eigen_sym_vectors: expected Ok"); }
+  }
+}
+
 // ============================================================
-// Section 7 -- LAPACK: linear solve (Phase 1 stub paths)
+// Section 7 -- LAPACK: linear solve
 // ============================================================
 
 fn test_solve_square_ok() -> TestResult {
@@ -524,6 +807,60 @@ fn test_solve_dimension_mismatch() -> TestResult {
   }
 }
 
+fn test_solve_values() -> TestResult {
+  match matrix_create(2, 2) {
+    Ok(a) => {
+      var ha = a;
+      matrix_set(&mut ha, 0, 0, 3.0);
+      matrix_set(&mut ha, 0, 1, 1.0);
+      matrix_set(&mut ha, 1, 0, 1.0);
+      matrix_set(&mut ha, 1, 1, 2.0);
+      var b = vec2(9.0, 8.0);
+      match solve(&ha, &b) {
+        Ok(x) => {
+          var ok = false;
+          if backend_is_real() {
+            ok = approx_eq(matrix_get(&x, 0, 0), 2.0, 0.000000001)
+              && approx_eq(matrix_get(&x, 1, 0), 3.0, 0.000000001);
+          } else {
+            ok = matrix_get(&x, 0, 0) == 0.0 && matrix_get(&x, 1, 0) == 0.0;
+          }
+          matrix_free(x);
+          return xiom.test.assert(ok, "solve [[3,1],[1,2]]x=[9,8]: x=[2,3] on the real leg (zeros on the stub leg)");
+        }
+        Err(_) => { return xiom.test.assert(false, "solve_values: expected Ok"); }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "solve_values: expected Ok"); }
+  }
+}
+
+fn test_solve_singular() -> TestResult {
+  match matrix_create(2, 2) {
+    Ok(a) => {
+      var ha = a;
+      matrix_set(&mut ha, 0, 0, 1.0);
+      matrix_set(&mut ha, 0, 1, 2.0);
+      matrix_set(&mut ha, 1, 0, 2.0);
+      matrix_set(&mut ha, 1, 1, 4.0);
+      var b = vec2(1.0, 2.0);
+      match solve(&ha, &b) {
+        Ok(x) => {
+          matrix_free(x);
+          if backend_is_real() {
+            return xiom.test.assert(false, "solve singular 2x2: expected Err on the real leg");
+          }
+          return xiom.test.assert(true, "solve singular 2x2: stub leg returns the documented zero placeholder");
+        }
+        Err(_) => {
+          return xiom.test.assert(backend_is_real(), "solve singular 2x2: real dgesv_ returns Err (info > 0)");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "solve_singular: expected Ok"); }
+  }
+}
+
 // ============================================================
 // Test runner
 // ============================================================
@@ -560,18 +897,28 @@ pub fn main() -> Int {
 
   results.push(test_gemm_2x2_identity());
   results.push(test_gemm_zero_beta());
+  results.push(test_gemv_transpose());
+  results.push(test_gemm_transpose_a());
+  results.push(test_gemm_transpose_b());
 
   results.push(test_svd_returns_ok());
   results.push(test_svd_correct_shapes());
   results.push(test_svd_tall_matrix());
+  results.push(test_svd_singular_values());
+  results.push(test_svd_reconstruct_tall());
+  results.push(test_svd_reconstruct_wide());
 
   results.push(test_eigen_sym_square_ok());
   results.push(test_eigen_sym_rejects_rectangular());
   results.push(test_eigen_sym_1x1());
+  results.push(test_eigen_sym_values());
+  results.push(test_eigen_sym_vectors());
 
   results.push(test_solve_square_ok());
   results.push(test_solve_rejects_nonsquare());
   results.push(test_solve_dimension_mismatch());
+  results.push(test_solve_values());
+  results.push(test_solve_singular());
 
   let total_count = results.len();
   let report = xiom.test.format_results(results);
