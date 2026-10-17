@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.6` -- generated 2026-10-17T13:20:43Z.
+Toolchain pin: `v0.64.6` -- generated 2026-10-17T14:04:21Z.
 
 ## Summary
 
@@ -427,7 +427,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.inference | xiom-inference | incubating | tests/test_conformance.xi | pass 28/28 | 27a0a7ee | False | publish pending: next scope delta |
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb2 | False | publish pending: next scope delta |
-| xiom.jev | xiom-jev | incubating | tests/test_conformance.xi | pass 169/169 | 903d7a82 | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 ed212ee6...) |
+| xiom.jev | xiom-jev | incubating | tests/test_conformance.xi | pass 210/210 | 03f77764 | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 ed212ee6...) |
 | xiom.jit-fw | xiom-jit-fw | incubating | tests/test_conformance.xi | pass 25/25 | c1e35d4f | False | category harmonization patch bump (registry metadata) |
 | xiom.jni | xiom-jni | incubating | tests/test_conformance.xi | pass 90/90 | ea8dcc0e | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 A11 jni-seam head) |
 | xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 159/159 | 6a01201d | False | published in eco-v0.1.182 (2026-10-15, 0.7.0 E4/E5 -- E-family complete; 0.6.0 in eco-v0.1.181; 0.5.0 in eco-v0.1.180; 0.4.0 in eco-v0.1.179; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161) |
@@ -453,7 +453,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.libtorch | xiom-libtorch | incubating | tests/test_conformance.xi | pass 8/8 | ec548542 | False | published in eco-v0.1.194 (2026-10-17, 0.1.0; sha256 865c6d2a...) |
 | xiom.libuv | xiom-libuv | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.linter | xiom-linter | incubating | tests/test_conformance.xi | pass 26/26 | fd38977f | False | publish pending: next scope delta |
-| xiom.llm | xiom-llm | incubating | tests/test_conformance.xi | pass 302/302 | f0b21160 | False | new name: pending ops scope + allowlist (coverage program) |
+| xiom.llm | xiom-llm | incubating | tests/test_conformance.xi | pass 303/303 | b164e32b | False | new name: pending ops scope + allowlist (coverage program) |
 | xiom.locale | xiom-locale | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.lockfree | xiom-lockfree | incubating | tests/test_conformance.xi | pass 21/21 | 425d4cb2 | False | publish pending: next scope delta |
 | xiom.logging | xiom-logging | incubating | tests/test_conformance.xi | pass 22/22 | 425d4cb2 | False | publish pending: next scope delta |
@@ -521,7 +521,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.protobuf | xiom-protobuf | incubating | tests/test_conformance.xi | pass 49/49 | 84140793 | False | publish pending: eco-v0.1.43 |
 | xiom.proxy | xiom-proxy | incubating | tests/test_conformance.xi | pass 20/20 | d85a0ee6 | False | category harmonization patch bump (registry metadata) |
 | xiom.pulsar | xiom-pulsar | incubating | tests/test_conformance.xi | pass 27/27 | 00c21919 | False | category harmonization patch bump (registry metadata) |
-| xiom.pulse | xiom-pulse | incubating | tests/test_conformance.xi | pass 153/153 | 7a3abdcd | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 Beacon protocol core) |
+| xiom.pulse | xiom-pulse | incubating | tests/test_conformance.xi | pass 165/165 | 359d6209 | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 Beacon protocol core) |
 | xiom.puppet | xiom-puppet | incubating | tests/test_conformance.xi | pass 26/26 | 8c0ac311 | False | publish pending: next scope delta |
 | xiom.pwm | xiom-pwm | incubating | tests/test_conformance.xi | pass 20/20 | 599f89c9 | False | publish pending: next scope delta |
 | xiom.randomforest | xiom-randomforest | incubating | tests/test_conformance.xi | pass 24/24 | 3ff86363 | False | publish pending: next scope delta |
