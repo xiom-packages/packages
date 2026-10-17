@@ -20,6 +20,7 @@ use xiom.string; use xiom.string.compare;
 use xiom.string.builder;
 use xiom.gguf;
 use xiom.llm;
+use bench.llm_bench;
 
 // --------------------------------------------------
 //  Harness helpers
@@ -3327,6 +3328,14 @@ fn t89() -> Int {
   return sum;
 }
 
+// t90: the package-local benchmark entry (bench/bench_llm.xi) type-checks.
+// The suite imports the module (so every harness function is type-checked)
+// and calls the compile/link marker only -- no iterations run here.
+fn t90() -> Int {
+  let rows = bench_smoke();
+  return report(rows == 4, "bench entry type-checks (4 rows, no iterations)");
+}
+
 // --------------------------------------------------
 //  Main
 // --------------------------------------------------
@@ -3421,6 +3430,7 @@ fn main() -> Int {
   failed = failed + t87();
   failed = failed + t88();
   failed = failed + t89();
+  failed = failed + t90();
   if failed == 0 {
     io.println("xiom.llm: all tests passed");
   }

@@ -9,10 +9,11 @@ Current: v0.1.0, milestones M1 + M2 complete, M3 first and second halves
 (generation loop + sampling, the append-only KV cache + longer-context
 attention, and Q4_K-class dequantization with the neighboring Q5_0) complete
 plus the tokenizer completion (GPT-2 escape layer, GPT-2 regex
-pre-tokenizer, SPM scored-merge core) and real-vocabulary loading (lossless
+pre-tokenizer, SPM scored-merge core), real-vocabulary loading (lossless
 GGUF string bytes, SPM U+2581 normalization + `<0xXX>` byte fallback,
-BOS/EOS insertion flags, escaped GPT-2 vocab loader); conformance-green
-(302/302 x2). Remaining: the benchmark harness and WPM (`"bert"`).
+BOS/EOS insertion flags, escaped GPT-2 vocab loader), and the package-local
+benchmark harness (`bench/bench_llm.xi`, SPEC.md section 10.7);
+conformance-green (303/303 x2). Remaining: WPM (`"bert"`).
 `publish: false` pending ops scope + allowlist.
 
 ## M1 -- vocab + byte-level BPE (DONE, 2026-10-16)
@@ -90,8 +91,13 @@ first, fixture dims chosen so every oracle value is exact.
 3. KV cache growth policy and attention on longer contexts -- **DONE (M3b)**:
    append-only `LlmKvCache` (flat `[layer][position][n_kv]`), exact
    append/read goldens, `llm_attention_i32` over all cached positions and the
-   cached forward/loop. Benchmark harness (package-local, `xiom bench`
-   compatible) -- **REMAINS**.
+   cached forward/loop. Benchmark harness -- **DONE (M3 remainder,
+   2026-10-17)**: `bench/bench_llm.xi` (off-suite, offline) measures fixture
+   prefill / decode token throughput plus SPM / GPT-2 encode throughput from
+   a caller-supplied iteration count, with a fixed deterministic output
+   shape. The conformance suite type-checks the entry (marker `t90`) without
+   running iterations; invocation and number interpretation are in SPEC.md
+   section 10.7.
 4. Q4_K-class dequant (`llm_dequant_q4_k`) + Q4_0/Q5_0/Q5_1/Q6_K as
    sized; block-table conformance + error-bound pins -- **DONE (M3
    second-half remainder, 2026-10-16)**: `llm_dequant_q4_k` (144-byte
@@ -131,8 +137,8 @@ first, fixture dims chosen so every oracle value is exact.
    fixture; escape-layer golden vectors (hand-computed byte-unicode
    table values). **DONE**: greedy and seeded prompt -> ids -> decode
    roundtrips are green, the cached multi-position loop adds a
-   two-token-prompt roundtrip, the escape-layer vectors are pinned, and the
-   suite is green (302/302 x2).
+   two-token-prompt roundtrip, the escape-layer vectors are pinned, the
+   benchmark entry is type-checked, and the suite is green (303/303 x2).
 
 ## Maintenance / cross-lane items
 

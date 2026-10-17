@@ -58,10 +58,14 @@ Implemented in 0.1.0 (M1 + M2):
   escaped GPT-2 vocabulary and applies the `bytes_to_unicode` inverse to
   every token/merge key. `docs/probe-nonascii-gguf.md` records the resolved
   container probe (test `t83`).
+* package-local benchmark harness (M3 remainder, 2026-10-17, section 10.7):
+  the offline `bench/bench_llm.xi` entry measures fixture prefill / decode
+  token throughput and SPM / GPT-2 encode throughput from a caller-supplied
+  iteration count. The conformance suite type-checks the entry (marker
+  `t90`) without running iterations.
 
 Declared for later milestones (section 10):
 
-* benchmark harness (M3 second half remainder);
 * WPM (`"bert"`) vocabulary/tokenize path (section 10.6).
 
 ## 2. Non-goals
@@ -617,9 +621,9 @@ IMPLEMENTED in M3b, 2026-10-16 -- second half: KV cache + longer context]**
   identity RoPE table for every position (valid over the fixture domain);
   caller-supplied per-position tables are `llm_forward_cache`'s contract.
 
-**Deferred:** the package-local benchmark harness and WPM (`"bert"`)
-(section 10.6); the BOS/EOS insertion flags and real-vocabulary loading
-are implemented. Q4_K-class dequantization
+**Deferred:** WPM (`"bert"`) (section 10.6). The package-local benchmark
+harness is implemented (section 10.7); the BOS/EOS insertion flags and
+real-vocabulary loading are implemented. Q4_K-class dequantization
 (`llm_dequant_q4_k`) and the neighboring Q5_0 (`llm_dequant_q5_0`) landed
 with the M3 second-half remainder (section 10.3); the GPT-2 escape layer,
 ASCII pre-tokenizer and SPM core landed with the tokenizer completion
@@ -718,7 +722,59 @@ Still declared: WPM (`"bert"`) extraction/tokenize. The SPM marker
 normalization, `<0xXX>` byte fallback and the `add_bos_token` /
 `add_eos_token` flags are implemented.
 
-## 11. Test matrix (302 checks, `tests/test_conformance.xi`)
+### 10.7 Benchmark harness
+
+**[IMPLEMENTED in the M3 remainder, 2026-10-17]**
+
+`bench/bench_llm.xi` is an off-suite, offline, deterministic-shape entry
+(module `bench.llm_bench`; not part of the published library API). It uses
+the same tiny model fixture and the same SPM / GPT-2 fixture vocabularies as
+the conformance suite; no network, external model file or float arithmetic is
+involved.
+
+Invocation (from the package directory):
+
+```
+xiom --run bench/bench_llm.xi
+XIOM_LLM_BENCH_ITERS=5000 xiom --run bench/bench_llm.xi
+```
+
+The iteration count is read from `XIOM_LLM_BENCH_ITERS` (default 1000,
+capped at 4096) because `xiom --run` does not forward trailing CLI arguments
+to the compiled program. `--iters N` / `--iters=N` is also accepted when the
+bench binary is executed directly. The pinned toolchain has no `xiom bench`
+subcommand, so the entry is invoked with `xiom --run`; its rows follow the
+`xiom.bench` stdlib result fields:
+
+```
+xiom.llm bench: fixture=tiny-gpt2 emb=4 heads=1 layers=1 vocab=20 iterations=1000
+prefill: ops=2000 total_ns=180000000 ops_per_sec=11111 checksum=-304000
+decode: ops=1000 total_ns=563000000 ops_per_sec=1776 checksum=-175522
+tokenizer.spm.encode: ops=1000 total_ns=394000000 ops_per_sec=2538 checksum=6000
+tokenizer.gpt2.encode: ops=1000 total_ns=175000000 ops_per_sec=5714 checksum=4000
+bench: done
+```
+
+* `prefill` -- per iteration, a fresh 2-position cache is built and the
+  two forwardable fixture tokens are forwarded (`ops = 2 * iterations`).
+* `decode` -- one append-only cached forward per iteration after a one-time
+  two-token prefill (`ops = iterations`); the cache is bounded by the
+  iteration cap, so attention work grows with position but stays finite.
+* `tokenizer.spm.encode` / `tokenizer.gpt2.encode` -- one encode of the
+  fixed texts `" ab ab ab ab ab ab ab ab"` / `" hi hi hi hi hi hi hi hi"`
+  per iteration.
+* `total_ns` is the batch wall time from the monotonic clock (millisecond
+  resolution); `ops_per_sec = ops * 1_000_000_000 / total_ns`, and `0` means
+  the batch was shorter than one clock tick (raise the iteration count).
+* `checksum` is a deterministic sink over the fixture outputs; it keeps the
+  work observable and is stable across runs.
+
+Absolute numbers are machine-dependent; the harness is for relative tracking
+on the same machine. The conformance suite imports the module and calls the
+`bench_smoke()` marker (test `t90`) so the entry is type-checked on every
+run without executing iterations.
+
+## 11. Test matrix (303 checks, `tests/test_conformance.xi`)
 
 All checks run against a synthetic deterministic fixture built with
 `xiom.gguf`'s builder: 6 metadata KVs, one tensor info
@@ -892,6 +948,12 @@ Real-vocabulary additions (checks 255-302, tests `t84`-`t89`):
   non-integer `add_eos_token` (string) yield
   `llm: add_bos token flag is not an integer` /
   `llm: add_eos token flag is not an integer`.
+
+Benchmark entry marker (check 303, test `t90`): the suite imports
+`bench/bench_llm.xi` (module `bench.llm_bench`) and calls `bench_smoke()`,
+which returns the fixed row count (4). This type-checks the whole harness
+without running any timed iterations. The bench itself is run off-suite
+(section 10.7).
 
 Golden-logit provenance (checks 75-78). The fixture is built so every integer
 step is exact: token 1 embedding row `[4,4,0,0]` (mean square 8, rms 2) ->

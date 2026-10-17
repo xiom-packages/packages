@@ -4,11 +4,11 @@
 
 # xiom.llm
 
-> **Status:** `incubating` -- conformance-tested (302/302, twice); not
+> **Status:** `incubating` -- conformance-tested (303/303, twice); not
 > published (`excluded_reason`: new name: pending ops scope + allowlist,
 > coverage program).
 > **Milestones 1-2 + M3 first and second halves + tokenizer completion +
-> real vocabularies:**
+> real vocabularies + benchmark harness:**
 > llama.cpp-family vocab extraction from a GGUF header + byte-level BPE
 > decode/encode (M1), GGUF payload/tensor loading, Q8_0 dequantization,
 > integer matmul and the forward primitives with a tiny deterministic
@@ -19,7 +19,8 @@
 > the tokenizer completion (GPT-2 escape layer, GPT-2 regex pre-tokenizer,
 > SPM scored-merge core), and real-vocabulary loading (lossless GGUF string
 > bytes, escaped GPT-2 keys, SPM `▁` normalization + `<0xXX>` fallback,
-> BOS/EOS flags). The benchmark harness and WPM remain (`SPEC.md` /
+> BOS/EOS flags), and the package-local benchmark harness (fixture prefill /
+> decode and SPM / GPT-2 encode throughput). WPM remains (`SPEC.md` /
 > `ROADMAP.md`).
 
 The llama.cpp-family runner tier of the XIOM ML/AI coverage program: read a
@@ -31,9 +32,11 @@ follows llama.cpp's merge-table semantics (`llama-vocab.cpp`, commit
 * Pure XIOM, no FFI. Deps: `xiom.std`, `xiom.gguf` (header codec),
   `xiom.tensor` (shape construction + canonical dumps).
 * Deterministic `Err(Str)` catalog prefixed `llm: ` (see SPEC.md section 7).
-* 302 conformance checks (`tests/test_conformance.xi`) over synthetic
+* 303 conformance checks (`tests/test_conformance.xi`) over synthetic
   deterministic GGUF fixtures built with `xiom.gguf`'s builder (including
   non-ASCII escaped GPT-2 keys and SPM `▁` tokens) -- no model downloads.
+* Offline benchmark harness (`bench/bench_llm.xi`); the conformance suite
+  type-checks it (marker `t90`) without running iterations.
 
 ## What Milestone 1 does
 
@@ -101,17 +104,68 @@ SPEC.md sections 8 and 10.6 for the documented deviations).
   current token only; `llm_generate_cached` prefills every prompt position
   into an append-only KV cache and attends over the whole cache. The M3
   fixture is one layer, so no multi-layer attention kernel is implemented
-  (the cache itself is per-layer). The benchmark harness is still M3 work;
-  sampling is greedy / temperature / top-k / top-p over a deterministic
-  seeded integer PRNG. SPM (`"llama"`) is implemented with `▁`
-  normalization, byte fallback and BOS/EOS insertion flags; WPM (`"bert"`)
-  remains (ROADMAP.md).
+  (the cache itself is per-layer). `bench/bench_llm.xi` is the offline
+  throughput harness (see below); sampling is greedy / temperature / top-k /
+  top-p over a deterministic seeded integer PRNG. SPM (`"llama"`) is
+  implemented with `▁` normalization, byte fallback and BOS/EOS insertion
+  flags; WPM (`"bert"`) remains (ROADMAP.md).
 * **Q8_0 tensor infos.** `xiom.gguf`'s builder rejects GGML types 8/9, so
   the M2 fixture stores Q8_0 block bytes inside f32-declared FFN slices
   (SPEC.md section 8 item 7); `llm_dequant_q8_0` itself is exercised on the
   real block bytes.
 * **Merge lookup is a linear scan** per candidate pair; fine at fixture
   scale, indexed merge maps are an option if profiling asks for them.
+
+## Benchmark harness
+
+Offline and fixture-based (no network, no external model files). Run it from
+the package directory:
+
+```
+$env:XIOM_STDLIB = "E:\xiom-lang\stdlib"   # if the toolchain resolver has not set it
+xiom --run bench/bench_llm.xi
+```
+
+The iteration count is caller-supplied through the environment (default
+1000, capped at 4096 because the decode row appends one KV position per
+iteration):
+
+```
+$env:XIOM_LLM_BENCH_ITERS = 5000
+xiom --run bench/bench_llm.xi
+```
+
+`xiom --run` does not forward trailing CLI arguments to the compiled program,
+so the environment variable is the canonical input; `--iters N` /
+`--iters=N` is also accepted when the compiled binary is executed directly.
+The pinned toolchain has no `xiom bench` subcommand, so the entry is invoked
+with `xiom --run`; its rows follow the `xiom.bench` stdlib result fields and
+print a fixed set of integer values:
+
+```
+xiom.llm bench: fixture=tiny-gpt2 emb=4 heads=1 layers=1 vocab=20 iterations=1000
+prefill: ops=2000 total_ns=180000000 ops_per_sec=11111 checksum=-304000
+decode: ops=1000 total_ns=563000000 ops_per_sec=1776 checksum=-175522
+tokenizer.spm.encode: ops=1000 total_ns=394000000 ops_per_sec=2538 checksum=6000
+tokenizer.gpt2.encode: ops=1000 total_ns=175000000 ops_per_sec=5714 checksum=4000
+bench: done
+```
+
+How to read the numbers:
+
+* `ops` -- operations performed: prefill counts two token forwards per
+  iteration (a fresh 2-token cache), decode counts one cached forward per
+  iteration, and each tokenizer row counts one encode of its fixed
+  eight-piece text.
+* `total_ns` -- wall time for the whole batch, measured with the monotonic
+  clock (millisecond resolution, so it is a multiple of `1000000`).
+* `ops_per_sec` -- `ops * 1_000_000_000 / total_ns`; `0` means the batch
+  finished inside one clock tick, so raise the iteration count.
+* `checksum` -- deterministic sink accumulated from the fixture outputs; it
+  keeps the measured work observable and must not change between runs.
+
+Absolute numbers are machine-dependent: use the harness for relative
+tracking on the same machine, not as an absolute performance claim.
 
 ## Testing
 
@@ -122,8 +176,8 @@ dependency via `xiom.toml`):
 & .\scripts\port.ps1 -Package xiom-llm -TimeoutSec 180
 ```
 
-Expected tail: 163 `[PASS]` lines, `xiom.llm: all tests passed`, then
-`port: PASS (passed=163 failed=0 program_exit=0 exit=0)`.
+Expected tail: 303 `[PASS]` lines, `xiom.llm: all tests passed`, then
+`port: PASS (passed=303 failed=0 program_exit=0 exit=0)`.
 
 ## License
 
