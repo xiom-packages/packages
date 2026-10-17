@@ -25,7 +25,7 @@ package xiom_llm {
   modules: ["xiom.llm"];
   deps: {
     "xiom.std": ">=0.60.0 <1.0.0";
-    "xiom.gguf": "0.1.2";
+    "xiom.gguf": "0.1.4";
     "xiom.tensor": "0.1.0";
   };
 }
