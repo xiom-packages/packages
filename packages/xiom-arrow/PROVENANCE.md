@@ -13,7 +13,7 @@ Apache Arrow C++ public headers and links the upstream runtime.
 | Field | Value |
 |-------|-------|
 | Project | Apache Arrow -- `https://github.com/apache/arrow` |
-| License | Apache-2.0 (ASF); `LICENSE.txt` fetched/verified before checkout (110,358 bytes, Apache License 2.0 text) |
+| License | Apache-2.0 (ASF); `LICENSE.txt` fetched/verified before checkout (115,734 bytes, Apache License 2.0 text) |
 | Study clone | `E:\repos\arrow` -- `git clone --depth 1 --filter=blob:none --sparse --branch apache-arrow-22.0.0`; sparse: `cpp/src/arrow/{c,array,compute,acero,io,csv}`, `cpp/src/parquet`, `cpp/src/arrow/{table,builder,type,chunked_array,record_batch,api}.h`, `LICENSE.txt` |
 | Delivered pin | tag **apache-arrow-22.0.0** -- commit `5aeb5f217f1ba39c428c9b481f393bd37097f69e` (2025-10-20) |
 | Why 22.0.0 | Newest release whose public headers compile as C++17. Arrow 24+ uses `std::span`/`std::bit_width` in public headers (C++20), which would break the C++17 artifact contract. |
