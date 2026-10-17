@@ -4,9 +4,8 @@
 
 # xiom.llm
 
-> **Status:** `incubating` -- conformance-tested (303/303, twice); not
-> published (`excluded_reason`: new name: pending ops scope + allowlist,
-> coverage program).
+> **Status:** `incubating` -- conformance-tested (303/303, twice);
+> published in `eco-v0.1.196` (sha256 `3c85e858...`, 2026-10-17).
 > **Milestones 1-2 + M3 first and second halves + tokenizer completion +
 > real vocabularies + benchmark harness:**
 > llama.cpp-family vocab extraction from a GGUF header + byte-level BPE

@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.6` -- generated 2026-10-17T14:13:41Z.
+Toolchain pin: `v0.64.6` -- generated 2026-10-17T14:21:11Z.
 
 ## Summary
 
@@ -453,7 +453,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.libtorch | xiom-libtorch | incubating | tests/test_conformance.xi | pass 8/8 | ec548542 | False | published in eco-v0.1.194 (2026-10-17, 0.1.0; sha256 865c6d2a...) |
 | xiom.libuv | xiom-libuv | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.linter | xiom-linter | incubating | tests/test_conformance.xi | pass 26/26 | fd38977f | False | publish pending: next scope delta |
-| xiom.llm | xiom-llm | incubating | tests/test_conformance.xi | pass 303/303 | b164e32b | False | new name: pending ops scope + allowlist (coverage program) |
+| xiom.llm | xiom-llm | incubating | tests/test_conformance.xi | pass 303/303 | b164e32b | False | published in eco-v0.1.196 (2026-10-17, 0.1.0; sha256 3c85e858...) |
 | xiom.locale | xiom-locale | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.lockfree | xiom-lockfree | incubating | tests/test_conformance.xi | pass 21/21 | 425d4cb2 | False | publish pending: next scope delta |
 | xiom.logging | xiom-logging | incubating | tests/test_conformance.xi | pass 22/22 | 425d4cb2 | False | publish pending: next scope delta |
@@ -486,7 +486,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.nlp | xiom-nlp | incubating | tests/test_conformance.xi | pass 27/27 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.nrd | xiom-nrd | incubating | tests/test_conformance.xi | pass 29/29 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- NRD reference loader) |
 | xiom.nuclear | xiom-nuclear | incubating | tests/test_conformance.xi | pass 27/27 | 9cd53156 | False | publish pending: next scope delta |
-| xiom.numpy | xiom-numpy | incubating | tests/test_conformance.xi | pass 147/147 | 11eee036 | False | not allowlisted: Phase-1 link bridge green (30/30 x2); Phase-2 NumPy C API backend pending |
+| xiom.numpy | xiom-numpy | incubating | tests/test_conformance.xi | pass 147/147 | 11eee036 | False | published in eco-v0.1.196 (2026-10-17, 0.1.0; sha256 0eaa9185...) |
 | xiom.oauth | xiom-oauth | incubating | tests/test_conformance.xi | pass 25/25 | 72cfe406 | False | category harmonization patch bump (registry metadata) |
 | xiom.odbc | xiom-odbc | incubating | tests/test_conformance.xi | pass 5/5 | 31d0cc0e | False | not allowlisted: pending ops scope + native-lane allowlist append |
 | xiom.oidn | xiom-oidn | incubating | tests/test_conformance.xi | pass 4/4 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- OIDN loader tier) |
@@ -501,7 +501,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.optimizer-fw | xiom-optimizer-fw | incubating | tests/test_conformance.xi | pass 25/25 | ecf76d12 | False | publish pending: next scope delta |
 | xiom.opus | xiom-opus | incubating | tests/test_conformance.xi | pass 26/26 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- libopus 1.6.1 streaming audio) |
 | xiom.oracle | xiom-oracle | incubating | tests/test_conformance.xi | pass 22/22 | f487102b | False | publish pending: owner scope decision (parallel-lane implementation) |
-| xiom.orbitdb | xiom-orbitdb | incubating | tests/test_conformance.xi | pass 160/160 | ee0a74e5 | False | publish pending: canary freeze 3bc2a61; ops scope REL-20261017-1254-packages |
+| xiom.orbitdb | xiom-orbitdb | incubating | tests/test_conformance.xi | pass 160/160 | ee0a74e5 | False | published in eco-v0.1.196 (2026-10-17, 0.2.1; sha256 c8fc6548...) |
 | xiom.otel | xiom-otel | incubating | tests/test_conformance.xi | pass 30/30 | 4d4fe157 | False | published in eco-v0.1.188 (2026-10-16, 0.1.0 -- OTLP trace-export core) |
 | xiom.ozz | xiom-ozz | incubating | tests/test_conformance.xi | pass 9/9 | 50b65cee | False | published in eco-v0.1.179 (2026-10-14, 0.4.0 caller surface; 0.3.0 in eco-v0.1.156; 0.2.0 in eco-v0.1.109) |
 | xiom.pandas | xiom-pandas | incubating | tests/test_conformance.xi | pass 80/80 | 4f54826f | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 aad9a74e...) |

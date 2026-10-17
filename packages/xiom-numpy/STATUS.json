@@ -13,5 +13,5 @@
                   "checked":  "2026-10-16T23:11:14Z"
               },
     "publish":  false,
-    "excluded_reason":  "not allowlisted: Phase-1 link bridge green (30/30 x2); Phase-2 NumPy C API backend pending"
+    "excluded_reason":  "published in eco-v0.1.196 (2026-10-17, 0.1.0; sha256 0eaa9185...)"
 }
