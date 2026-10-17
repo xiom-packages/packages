@@ -2,12 +2,12 @@
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// 25 checks with a live runtime, 5 on a host without one (the runtime
+// 56 checks with a live runtime, 5 on a host without one (the runtime
 // section collapses to one classified SKIP line):
 //   SECTION A (4): deterministic SKIP classification (bogus directory),
 //     status-name mapping, stale-module-handle classification, and the
 //     pinned ABI constants.
-//   SECTION B (21): cuSPARSE live -- load, handle create/version/setStream,
+//   SECTION B (52): cuSPARSE live -- load, handle create/version/setStream,
 //     legacy mat descriptor create/set/destroy, CSR + dense descriptors,
 //     SpMV (f64 and f32) and SpMM (f64) with real numerical results,
 //     buffer-size queries, descriptor/handle teardown, unload.
@@ -251,6 +251,13 @@ fn test_b_live() -> Int {
     "upload: CSR row offsets (i32)");
   failed = failed + expect_unit(cusparse_buffer_upload_i32(&dci, &col_indices),
     "upload: CSR column indices (i32)");
+  var ci_back = Vec[Int32].with_len(5);
+  failed = failed + expect_unit(cusparse_buffer_download_i32(&dci, &mut ci_back),
+    "download: CSR column indices (i32)");
+  let ci_ok = ci_back[0] == 0 as Int32 && ci_back[1] == 2 as Int32
+    && ci_back[2] == 1 as Int32 && ci_back[3] == 0 as Int32
+    && ci_back[4] == 2 as Int32;
+  failed = failed + report(ci_ok, "i32 round trip: column indices [0,2,1,0,2]");
   failed = failed + expect_unit(cusparse_buffer_upload_f64(&dva, &a_vals),
     "upload: CSR values (f64)");
   failed = failed + expect_unit(cusparse_buffer_upload_f64(&dvx, &x_vals),

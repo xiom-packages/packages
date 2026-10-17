@@ -89,6 +89,6 @@ NVIDIA driver.
 
 ## 7. Evidence
 
-- Suite: **54/54 x2** live (xiom v0.64.6, RTX 3070 Ti, driver 13.4,
+- Suite: **56/56 x2** live (xiom v0.64.6, RTX 3070 Ti, driver 13.4,
   cuSPARSE 12.5.10 -> version 12510) and **5/5 x1** on the deterministic
   SKIP path; recorded in `STATUS.json` and `AUDIT.md`.

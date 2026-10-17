@@ -10,7 +10,7 @@
 | Link model | one `--c-source` TU (`src/cusparse_bridge.c`); `cusparse64_12.dll` + `nvJitLink_120_0.dll` loaded at run time |
 | FFI confinement | all `unsafe`/`extern` in `cusparse.xi` (G5) |
 | Suite | `tests/test_conformance.xi` |
-| Live runs | **54/54 x2** on the host RTX 3070 Ti (driver 13.4, cuSPARSE 12510) |
+| Live runs | **56/56 x2** on the host RTX 3070 Ti (driver 13.4, cuSPARSE 12510) |
 | SKIP run | **5/5** with the runtime absent (`CUSPARSE_LOAD_ABSENT`) |
 | Publish | false -- new 0.1.0, allowlist append owned by the native lane |
 
@@ -39,7 +39,7 @@
 
 | Package | Compiler | Checks | Result | Host |
 |---------|----------|--------|--------|------|
-| xiom.cusparse | v0.64.6 | 54 | PASS x2 | RTX 3070 Ti, driver 13.4, cuSPARSE 12.5.10 |
+| xiom.cusparse | v0.64.6 | 56 | PASS x2 | RTX 3070 Ti, driver 13.4, cuSPARSE 12.5.10 |
 | xiom.cusparse (no runtime) | v0.64.6 | 5 | PASS (SKIP line green) | same host, `XIOM_CUSPARSE_DIR` unset |
 
 Numbers exercised: SpMV (f64 and f32) `A*x = [5,6,13]`; SpMM (f64)

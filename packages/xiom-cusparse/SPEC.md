@@ -97,13 +97,13 @@ bridge destroys the context and unloads the module on `cusparse_unload`.
 
 ## 4. Test contract
 
-Suite: `tests/test_conformance.xi` -- **54 checks live**, 5 without a
+Suite: `tests/test_conformance.xi` -- **56 checks live**, 5 without a
 runtime:
 
 | Section | Checks | Content |
 |---------|--------|---------|
 | A (always) | 4 | deterministic SKIP classification, status-name map, stale-module typed error, pinned constants |
-| B (live or SKIP) | 50 | load, create, version, setStream, legacy mat descriptor create/set/destroy, 7 device allocations, CSR uploads (i32/f64), CSR/DnVec descriptors, SpMV buffer query + result `[5,6,13]` (f64), f32 SpMV path, DnMat descriptors, SpMM buffer query + result `[[3,1],[0,3],[5,4]]` (f64), descriptor/buffer/handle teardown, unload |
+| B (live or SKIP) | 52 | load, create, version, setStream, legacy mat descriptor create/set/destroy, 7 device allocations, CSR uploads (i32/f64) + i32 round trip, CSR/DnVec descriptors, SpMV buffer query + result `[5,6,13]` (f64), f32 SpMV path, DnMat descriptors, SpMM buffer query + result `[[3,1],[0,3],[5,4]]` (f64), descriptor/buffer/handle teardown, unload |
 
 CSR input: `A = [[2,0,1],[0,3,0],[1,0,4]]` (`row_offsets=[0,2,3,5]`,
 `col_indices=[0,2,1,0,2]`, `values=[2,1,3,1,4]`), `x=[1,2,3]`;

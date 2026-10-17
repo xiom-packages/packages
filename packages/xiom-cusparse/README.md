@@ -6,7 +6,7 @@ fallbacks); **nothing from NVIDIA is vendored or linked**. When the runtime
 is absent the suite reports a typed **SKIP** (green), and a loaded module
 with missing entry points reports a typed **FAIL**.
 
-> **Status:** `incubating` -- 0.1.0; conformance suite **54/54 x2** live on
+> **Status:** `incubating` -- 0.1.0; conformance suite **56/56 x2** live on
 > the pin (xiom v0.64.6, RTX 3070 Ti, cuSPARSE 12.5.10 -> version 12510)
 > and **5/5** on the deterministic SKIP path. Lane: bindings
 > (`keywords: ["binding"]`). Not on the publish allowlist yet.
@@ -77,7 +77,7 @@ Live leg on this host (runtime fetched outside the repo):
 
 ```
 $env:XIOM_CUSPARSE_DIR = "E:\repos\nvidia-math\runtime"
-.\scripts\port.ps1 -Package xiom.cusparse -TimeoutSec 300   # 54/54, x2
+.\scripts\port.ps1 -Package xiom.cusparse -TimeoutSec 300   # 56/56, x2
 Remove-Item Env:\XIOM_CUSPARSE_DIR
 .\scripts\port.ps1 -Package xiom.cusparse -TimeoutSec 300   # 5/5 SKIP
 ```
