@@ -1,7 +1,7 @@
 # xiom.pulse -- PULSE Beacon (embeddable core)
 
-> **Status:** `incubating` -- conformance-tested (125/125), recorded x2 green
-> on XIOM v0.64.5. Published: `0.1.0` in `eco-v0.1.192`
+> **Status:** `incubating` -- conformance-tested (153/153), recorded x2 green
+> on XIOM v0.64.6. Published: `0.1.0` in `eco-v0.1.192`
 > (sha256 `53fcc56e...`).
 > **Scope:** the frozen PULSE protocol core (Beacon extraction): HTTP/1.1
 > request parser + response builders, the keep-alive A/B connection loop
@@ -59,6 +59,58 @@ pub fn main() -> Int {
 `PULSE_PORT` / `PULSE_BIND` move the listener; stop the loop with one
 request carrying `X-Pulse-Quit: 1`.
 
+## Consumer integration
+
+Declare the dependency; namespace any modules you own that share the
+package's module names. Package modules take precedence over consumer
+modules with the same name -- a local module that collides is shadowed
+silently, with only warning W001 -- so name product modules under your own
+root (for example `station.app`, not `xiom.pulse.app`).
+
+The product behaviors that PULSE's Station adds (metrics start/finish,
+audit append, structured access log with rid/duration, CORS preflight) hang
+off the opt-in hook seam in `xiom.pulse.app`. With no hooks installed,
+`serve` / `dispatch` behave exactly like the carved core.
+
+```xi
+use xiom.pulse.app;
+use xiom.pulse.http;
+use xiom.pulse.reqctx;
+
+fn cors_preflight(req: &PulseRequest, _body: Str) -> PreOut {
+  if req.method == "OPTIONS" {
+    var hs: Vec[(Str, Str)] = Vec[(Str, Str)].new();
+    hs.push(("Access-Control-Allow-Origin", "*"));
+    return app.pre_stop(HandlerOut{ status: 204; content_type: "text/plain; charset=utf-8"; headers: hs; body: ""; body_bytes: Vec[UInt8].new() });
+  }
+  return app.pre_continue();
+}
+
+fn access_log(_req: &PulseRequest, _body: Str, out: &HandlerOut, info: &ResponseInfo) {
+  // Metrics/audit/access-log finish: rid, status, response bytes, duration.
+  // let rid = reqctx.get_rid();
+  let _status = out.status;
+  let _bytes = info.bytes;
+  let _dur = info.duration_ms;
+}
+
+pub fn main() -> Int {
+  let _ = app.register("GET", "/health");
+  var hooks = app.hooks_new();
+  let _ = app.hooks_install_pre(&mut hooks, cors_preflight);
+  let _ = app.hooks_install_after(&mut hooks, access_log);
+  return app.serve_with(health, &hooks);
+}
+```
+
+Semantics: the pre hook runs after parsing and before route matching and
+may short-circuit (`pre_stop`); the after hook runs once per dispatched
+response, including short-circuits and 404/405/400/501 outcomes, with
+`ResponseInfo{status, bytes, duration_ms}` (send time excluded; rid via
+`reqctx.get_rid()`). Re-installing a hook returns the typed
+`HookError` (`pre_already_installed` / `after_already_installed`);
+clearing is idempotent.
+
 ## Public surface
 
 | Module | Surface |
@@ -69,7 +121,7 @@ request carrying `X-Pulse-Quit: 1`.
 | `xiom.pulse.envelope` | `error_body`, `ok_bool`, `single_field` |
 | `xiom.pulse.reqctx` | `set_rid`, `get_rid` |
 | `xiom.pulse.config` | `cfg_read_timeout`, `cfg_write_timeout`, `cfg_idle_timeout`, `cfg_keepalive`, `cfg_port`, `cfg_bind` |
-| `xiom.pulse.app` | `HandlerOut`; `register`, `routes_list`, `out_json`, `out_text`, `out_html`, `handle_route`, `handle_connection`, `serve` |
+| `xiom.pulse.app` | `HandlerOut`, `ResponseInfo`, `PreOut`, `HookSet`, `HookError`; `register`, `routes_list`, `out_json`, `out_text`, `out_html`, `handle_route`, `dispatch_with`, `handle_connection`, `handle_connection_with`, `serve`, `serve_with`, `hooks_new`, `pre_continue`, `pre_stop`, `hooks_install_pre`, `hooks_install_after`, `hooks_clear_pre`, `hooks_clear_after`, `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code` |
 | `xiom.pulse.minimal` | the runnable example (`main`) |
 
 ## Verify
@@ -79,10 +131,11 @@ request carrying `X-Pulse-Quit: 1`.
 ```
 
 `tests/test_conformance.xi` (driver with explicit `fn main`) carries the
-protocol-hardening fixtures, the keep-alive A/B decisions, and four
-loopback end-to-end checks (pipelined reuse on one fd, silent idle expiry,
-`PULSE_KEEPALIVE=0`, `Expect: 100-continue`) over real sockets --
-offline-safe, no threads.
+protocol-hardening fixtures, the keep-alive A/B decisions, the hook-seam
+checks (pre/post ordering, short-circuit, registration/clear, typed misuse),
+and five loopback end-to-end checks (pipelined reuse on one fd, silent idle
+expiry, `PULSE_KEEPALIVE=0`, `Expect: 100-continue`, hooked CORS preflight)
+over real sockets -- offline-safe, no threads.
 
 Spec details: `SPEC.md` (surface, caps, A/B semantics, deviations).
 Extraction record: `PROVENANCE.md` (pinned commit + per-file SHA256).

@@ -33,7 +33,7 @@ Frozen identity strings are kept from the source: `pulse_version()` returns
 | `xiom.pulse.envelope` | `src/envelope.xi` | JSON error envelope helpers (verbatim) |
 | `xiom.pulse.reqctx` | `src/reqctx.xi` | per-request id plumbing (verbatim) |
 | `xiom.pulse.config` | `src/config.xi` | the six loop knobs actually read by the core (slimmed) |
-| `xiom.pulse.app` | `src/server.xi` | `HandlerOut`, registration seam, dispatch policy, `read_request`/`send_all`, the connection loop, the accept loop |
+| `xiom.pulse.app` | `src/server.xi` | `HandlerOut`, hook seam (`HookSet`, `ResponseInfo`, `PreOut`), registration seam, dispatch policy, `read_request`/`send_all`, the connection loop, the accept loop |
 | `xiom.pulse.minimal` | `src/minimal.xi` | the minimal example: register a route + start the loop |
 
 ## 2. Frozen surface
@@ -144,8 +144,11 @@ pub fn main() -> Int {
 | `routes_list() -> Vec[(Str, Str)]` | a copy of the registered routes in registration order |
 | `out_json` / `out_text` / `out_html(status, body) -> HandlerOut` | façade builders (the frozen private `out_*` helpers made public) |
 | `handle_route(m, req, body, handler) -> HandlerOut` | the frozen pre-dispatch policy + dispatch (below) |
-| `handle_connection(client, handler)` | drives one accepted fd through its keep-alive cycles (section 3) |
+| `dispatch_with(hooks, eff_method, req, body, handler) -> HandlerOut` | hook-aware dispatch: pre -> route match + policy + handler -> after (section 2.6) |
+| `handle_connection(client, handler)` | drives one accepted fd through its keep-alive cycles with an empty hook set (section 3) |
+| `handle_connection_with(client, handler, hooks)` | the same loop, dispatching through `hooks` |
 | `serve(handler) -> Int` | binds `PULSE_BIND:PULSE_PORT`, accepts sequentially, calls `handle_connection`; returns 0 on `X-Pulse-Quit`, 1 on socket failure |
+| `serve_with(handler, hooks) -> Int` | the same accept loop with the hook-aware connection loop |
 
 `HandlerOut` is the frozen type: `{ status: Int; content_type: Str;
 headers: Vec[(Str, Str)]; body: Str; body_bytes: Vec[UInt8] }`; a non-empty
@@ -165,6 +168,72 @@ value; no closures).
 terminator (frozen behavior). `X-Pulse-Quit: 1` stops the accept loop after
 the connection closes (kept from the frozen loop as the clean-shutdown
 seam).
+
+### 2.6 Hook seam (`pre_route` + `after_response`)
+
+The hook seam is the Station adoption point: product behaviors (metrics,
+audit, access log, CORS preflight) live in hooks and the carved loop stays
+unchanged. A `HookSet` is a value; an empty set (`hooks_new`) produces the
+same response bytes as the hook-free core.
+
+```xi
+pub type ResponseInfo = {
+  status: Int;
+  bytes: Int;        // body_bytes.len() when non-empty, else body.len()
+  duration_ms: Int;  // pre + routing + handler; send excluded
+}
+
+pub type PreOut = {
+  short_circuit: Bool;
+  response: HandlerOut;
+}
+
+pub type HookSet = {
+  pre: Vec[fn(&PulseRequest, Str) -> PreOut];
+  after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)];
+}
+
+pub enum HookError {
+  PreAlreadyInstalled,
+  AfterAlreadyInstalled,
+}
+```
+
+| Fn | Behavior |
+|---|---|
+| `hooks_new() -> HookSet` | an empty set (both slots empty) |
+| `pre_continue() -> PreOut` | "dispatch normally" |
+| `pre_stop(response) -> PreOut` | short-circuit with `response` |
+| `hooks_install_pre(hs, h) -> Result[Bool, HookError]` | installs the single pre hook; a second install is `Err(PreAlreadyInstalled)` |
+| `hooks_install_after(hs, h) -> Result[Bool, HookError]` | installs the single after hook; a second install is `Err(AfterAlreadyInstalled)` |
+| `hooks_clear_pre` / `hooks_clear_after` / `hooks_clear(hs) -> Bool` | removes one/both; returns whether anything was installed; idempotent |
+| `hooks_has_pre` / `hooks_has_after(hs) -> Bool` | registration state |
+| `hook_error_code(e) -> Str` | `"pre_already_installed"` / `"after_already_installed"` |
+
+Call order for one parsed request (the `dispatch_with` path used by the
+connection loop):
+
+1. **pre hook** runs after `parse_request`, before `v1_path`/`route_match`,
+   with the decoded body. `pre_continue()` falls through; `pre_stop(resp)`
+   skips route matching and the handler and uses `resp` (e.g. an OPTIONS
+   preflight 204).
+2. **dispatch**: routing, the frozen TE/CL policy, 404/405, then the
+   registered handler.
+3. **after hook** runs exactly once per dispatch outcome -- including
+   pre-hook short-circuits and the policy responses -- and observes the
+   final `HandlerOut` plus `ResponseInfo{status, bytes, duration_ms}`. The
+   per-request id is available through `reqctx.get_rid()`.
+
+The seam does not wrap outcomes that bypass dispatch: parse failures,
+`X-Pulse-Quit`, the 408 deadline path, idle/EOF closes. `HEAD` still
+dispatches as `GET` and is trimmed at send time; `bytes` reports the
+produced body.
+
+Implementation note: the slot vectors and direct fn types are deliberate
+workarounds for three 0.64.6 fn-value defects, with minimization probes in
+`docs/COMPILER-NOTES.md` (global fn var, adjacent fn struct fields, fn
+alias as a callable parameter). Do not "simplify" the slots back to fn
+fields or aliases.
 
 ## 3. Keep-alive + deadlines (frozen A/B semantics)
 
@@ -270,8 +339,12 @@ possible. Recorded deltas from the frozen files:
    connection cycle loop extracted from the frozen `main` so tests and
    consumers can drive one fd without owning the accept loop),
    `app.serve` (the frozen accept loop parametrized by one handler
-   instead of the product route table), and the `xiom.pulse.minimal`
-   example.
+   instead of the product route table), the hook seam (section 2.6:
+   `hooks_new`, `pre_continue`, `pre_stop`, `hooks_install_pre`,
+   `hooks_install_after`, `hooks_clear_pre`, `hooks_clear_after`,
+   `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code`,
+   `dispatch_with`, `handle_connection_with`, `serve_with`), and the
+   `xiom.pulse.minimal` example.
 7. **`http.xi` is byte-verbatim**, including `bearer_token` and
    `idem_key_valid` (small pure helpers the frozen parser module ships;
    they carry no dependency and are documented here for completeness).
@@ -281,8 +354,9 @@ possible. Recorded deltas from the frozen files:
 
 `tests/test_conformance.xi` (driver with explicit `fn main`) ports the
 hardening fixtures from the source `tests/test_http.xi` plus the keep-alive
-A/B checks mined from `scripts/http_smoke.ps1` sections 13e/13f, and adds
-four loopback end-to-end checks over two real fds (no threads):
+A/B checks mined from `scripts/http_smoke.ps1` sections 13e/13f, adds
+hook-seam checks (section I), and adds five loopback end-to-end checks over
+two real fds (no threads):
 
 - A/B/E/F: parser + framing goldens, caps, chunked (Wikipedia golden,
   state transitions 1/0/-1, extension + trailer, decoded cap), TE/CL
@@ -295,10 +369,16 @@ four loopback end-to-end checks over two real fds (no threads):
 - H (E2E): pipelined two requests on one fd (two ordered responses; the
   first without `Connection: close`, the second with it), silent idle
   expiry (~PULSE_IDLE_TIMEOUT, no 408, no close header),
-  `PULSE_KEEPALIVE=0` close-per-request, and the `Expect: 100-continue`
-  interim arriving before the final response. Ports are bound by the
-  suite on 127.0.0.1 with a 24-port retry range; the suite is
+  `PULSE_KEEPALIVE=0` close-per-request, the `Expect: 100-continue`
+  interim arriving before the final response, and one hooked preflight
+  over a real fd (204 + CORS header, handler skipped). Ports are bound by
+  the suite on 127.0.0.1 with a 24-port retry range; the suite is
   offline-safe.
+- I (hook seam): empty-set equivalence with `handle_route`, the post hook's
+  status/bytes/duration observation, pre -> handler -> after ordering,
+  policy-outcome observation (404), pre-hook short-circuit (no handler),
+  registration/clear (including idempotent clear), and the typed misuse
+  errors (`pre_already_installed` / `after_already_installed`).
 
 ## 7. Provenance
 

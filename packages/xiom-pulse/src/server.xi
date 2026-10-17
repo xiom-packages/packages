@@ -61,6 +61,51 @@ pub type HandlerOut = {
   body_bytes: Vec[UInt8];
 }
 
+/// ResponseInfo is the observation a post-request hook receives: the final
+/// status, the response body byte count (body_bytes when set, else body) and
+/// the dispatch duration in milliseconds (pre hook + routing + handler, the
+/// send excluded). The per-request id is available via reqctx.get_rid().
+pub type ResponseInfo = {
+  status: Int;
+  bytes: Int;
+  duration_ms: Int;
+}
+
+/// PreOut is the pre-request hook decision: short_circuit=true sends
+/// `response` and skips routing and the registered handler; otherwise the
+/// request continues through the normal dispatch. Build it with
+/// pre_continue()/pre_stop().
+pub type PreOut = {
+  short_circuit: Bool;
+  response: HandlerOut;
+}
+
+/// HookSet is the opt-in hook seam. A fresh set (hooks_new) has no hooks and
+/// leaves dispatch byte-identical to the hook-free core.
+///
+/// The pre hook is `fn(&PulseRequest, Str) -> PreOut`: it runs after the
+/// request parses and before route matching; the second argument is the
+/// decoded body. The after hook is
+/// `fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)`: it runs once per
+/// dispatched response, including pre-hook short-circuits and the frozen
+/// policy responses (400/404/405/501).
+///
+/// Both are written as direct fn types: an fn-typed alias used as a callable
+/// parameter miscompiles at 0.64.6. Hooks live in one-element vectors because
+/// adjacent fn-typed struct fields are laid out incorrectly (both defects are
+/// minimized in docs/COMPILER-NOTES.md); do not simplify the slots.
+pub type HookSet = {
+  pre: Vec[fn(&PulseRequest, Str) -> PreOut];
+  after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)];
+}
+
+/// HookError is the typed misuse error for hook registration. Clearing is
+/// idempotent and never fails.
+pub enum HookError {
+  PreAlreadyInstalled,
+  AfterAlreadyInstalled,
+}
+
 // error_status_body injects the HTTP status into an error envelope
 // ({"error":{"status":N,"code":...,"message":...}}) -- RFC 9457-friendly
 // without changing the stable code/message contract; non-error bodies pass
@@ -88,6 +133,123 @@ pub fn out_text(status: Int, body: Str) -> HandlerOut {
 /// Complexity: O(body). Pure.
 pub fn out_html(status: Int, body: Str) -> HandlerOut {
   return HandlerOut{ status: status; content_type: "text/html; charset=utf-8"; headers: Vec[(Str, Str)].new(); body: body; body_bytes: Vec[UInt8].new(); };
+}
+
+// ---------------------------------------------------------------------------
+// Hook seam: pre_route + after_response (opt-in; empty set == frozen core).
+// ---------------------------------------------------------------------------
+
+/// hooks_new returns an empty hook set: dispatch through it behaves exactly
+/// like the hook-free core. Complexity: O(1).
+pub fn hooks_new() -> HookSet {
+  return HookSet{ pre: Vec[fn(&PulseRequest, Str) -> PreOut].new(); after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)].new() };
+}
+
+/// pre_continue is the "dispatch normally" pre-hook decision.
+/// Complexity: O(1).
+pub fn pre_continue() -> PreOut {
+  return PreOut{ short_circuit: false; response: HandlerOut{ status: 200; content_type: CONTENT_TEXT; headers: Vec[(Str, Str)].new(); body: ""; body_bytes: Vec[UInt8].new() } };
+}
+
+/// pre_stop is the short-circuit pre-hook decision: `response` is sent and
+/// route matching + the registered handler are skipped (the after hook still
+/// observes it). Complexity: O(1).
+pub fn pre_stop(response: HandlerOut) -> PreOut {
+  return PreOut{ short_circuit: true; response: response };
+}
+
+/// hooks_install_pre registers the one pre hook. A second install is misuse:
+/// Err(PreAlreadyInstalled). Complexity: O(1).
+pub fn hooks_install_pre(hs: &mut HookSet, h: fn(&PulseRequest, Str) -> PreOut) -> Result[Bool, HookError] {
+  if hs.pre.len() > 0 { return Err(PreAlreadyInstalled); }
+  hs.pre.push(h);
+  return Ok(true);
+}
+
+/// hooks_install_after registers the one after hook. A second install is
+/// misuse: Err(AfterAlreadyInstalled). Complexity: O(1).
+pub fn hooks_install_after(hs: &mut HookSet, h: fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)) -> Result[Bool, HookError] {
+  if hs.after.len() > 0 { return Err(AfterAlreadyInstalled); }
+  hs.after.push(h);
+  return Ok(true);
+}
+
+/// hooks_clear_pre removes the pre hook; returns true when one was installed.
+/// Clearing is idempotent. Complexity: O(1).
+pub fn hooks_clear_pre(hs: &mut HookSet) -> Bool {
+  let had = hs.pre.len() > 0;
+  hs.pre = Vec[fn(&PulseRequest, Str) -> PreOut].new();
+  return had;
+}
+
+/// hooks_clear_after removes the after hook; returns true when one was
+/// installed. Clearing is idempotent. Complexity: O(1).
+pub fn hooks_clear_after(hs: &mut HookSet) -> Bool {
+  let had = hs.after.len() > 0;
+  hs.after = Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)].new();
+  return had;
+}
+
+/// hooks_clear removes both hooks; returns true when either was installed.
+/// Complexity: O(1).
+pub fn hooks_clear(hs: &mut HookSet) -> Bool {
+  let had_pre = hooks_clear_pre(hs);
+  let had_after = hooks_clear_after(hs);
+  return had_pre || had_after;
+}
+
+/// hooks_has_pre / hooks_has_after report registration state.
+/// Complexity: O(1).
+pub fn hooks_has_pre(hs: &HookSet) -> Bool {
+  return hs.pre.len() > 0;
+}
+
+pub fn hooks_has_after(hs: &HookSet) -> Bool {
+  return hs.after.len() > 0;
+}
+
+/// hook_error_code is the stable misuse code for logs and tests:
+/// "pre_already_installed" / "after_already_installed". Complexity: O(1).
+pub fn hook_error_code(e: &HookError) -> Str {
+  match e {
+    PreAlreadyInstalled => { return "pre_already_installed"; }
+    AfterAlreadyInstalled => { return "after_already_installed"; }
+  }
+}
+
+/// response_body_bytes is the byte count of the response body (raw bytes
+/// when set, else the text body). Complexity: O(1).
+fn response_body_bytes(out: &HandlerOut) -> Int {
+  if out.body_bytes.len() > 0 { return out.body_bytes.len(); }
+  return out.body.len();
+}
+
+/// dispatch_with is the hook-aware dispatch seam: pre hook -> route match +
+/// frozen policy + handler -> after hook. With an empty HookSet it returns
+/// exactly what the hook-free dispatch returns. The after hook runs once per
+/// response, including short-circuits and 400/404/405/501 outcomes.
+/// Complexity: O(request) + hook bodies.
+pub fn dispatch_with(hooks: &HookSet, eff_method: Str, req: &PulseRequest, body: Str, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut) -> HandlerOut {
+  let t0 = time.monotonic_ms();
+  var out: HandlerOut = HandlerOut{ status: 200; content_type: CONTENT_TEXT; headers: Vec[(Str, Str)].new(); body: ""; body_bytes: Vec[UInt8].new() };
+  var short_circuited: Bool = false;
+  if hooks.pre.len() > 0 {
+    let ph = hooks.pre[0];
+    let pd = ph(req, body);
+    if pd.short_circuit {
+      out = pd.response;
+      short_circuited = true;
+    }
+  }
+  if !short_circuited {
+    out = dispatch_one(eff_method, req, body, handler);
+  }
+  if hooks.after.len() > 0 {
+    let info = ResponseInfo{ status: out.status; bytes: response_body_bytes(&out); duration_ms: time.monotonic_ms() - t0 };
+    let ah = hooks.after[0];
+    ah(req, body, &out, &info);
+  }
+  return out;
 }
 
 /// register adds one (method, pattern) route in registration order and
@@ -341,7 +503,17 @@ fn send_all(fd: Int, data: &Vec[UInt8]) -> Bool {
 }
 
 /// handle_connection serves one accepted connection through its keep-alive
-/// cycles (the frozen Phase A+B loop, minus the dropped product hooks):
+/// cycles (the frozen Phase A+B loop) with no hooks -- identical to the
+/// hook-free core. handle_connection_with is the seam variant.
+/// Complexity: O(request) per cycle.
+pub fn handle_connection(client: Int, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut) {
+  let hooks = hooks_new();
+  handle_connection_with(client, handler, &hooks);
+}
+
+/// handle_connection_with serves one accepted connection through its
+/// keep-alive cycles (the frozen Phase A+B loop, minus the dropped product
+/// hooks) and dispatches through `hooks`:
 ///   * per-connection trailing buffer carried across cycles (h11 rule 4);
 ///   * one-way reuse latch: `Connection: close` token, HTTP/1.0 peers and
 ///     incomplete/oversize framing all close after the response;
@@ -352,9 +524,9 @@ fn send_all(fd: Int, data: &Vec[UInt8]) -> Bool {
 ///   * EOF mid-message closes with no answer (h11 rule 6);
 ///   * `PULSE_KEEPALIVE=0` restores close-per-request.
 /// Exported so consumers and tests can drive one connection without owning
-/// the accept loop (serve() is the loop). Sets quit_requested on
+/// the accept loop (serve_with() is the loop). Sets quit_requested on
 /// `X-Pulse-Quit: 1`. Complexity: O(request) per cycle.
-pub fn handle_connection(client: Int, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut) {
+pub fn handle_connection_with(client: Int, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut, hooks: &HookSet) {
   var conn_open: Bool = true;
   var keep: Bool = config.cfg_keepalive();
   var buf: Vec[UInt8] = Vec[UInt8].new();
@@ -417,7 +589,7 @@ pub fn handle_connection(client: Int, handler: fn(&PulseRequest, &PulseRoute, St
         let body_str = http.bytes_to_str(&req.body, 0, req.body.len());
         var eff_method: Str = req.method;
         if req.method == "HEAD" { eff_method = "GET"; }
-        let out = dispatch_one(eff_method, &req, body_str, handler);
+        let out = dispatch_with(hooks, eff_method, &req, body_str, handler);
         var resp: Vec[UInt8] = Vec[UInt8].new();
         if out.body_bytes.len() > 0 {
           resp = http.build_response_bytes(out.status, out.content_type, &out.headers, &out.body_bytes, reuse);
@@ -459,11 +631,18 @@ pub fn handle_connection(client: Int, handler: fn(&PulseRequest, &PulseRoute, St
   }
 }
 
-/// serve runs the frozen accept loop: bind PULSE_BIND:PULSE_PORT, accept
-/// one connection at a time and hand it to handle_connection with `handler`.
-/// Returns 0 on the clean shutdown path (X-Pulse-Quit) and 1 when the
-/// socket/bind/listen/accept fails. Complexity: O(runtime).
+/// serve runs the frozen accept loop with no hooks -- identical to the
+/// hook-free core. Complexity: O(runtime).
 pub fn serve(handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut) -> Int {
+  let hooks = hooks_new();
+  return serve_with(handler, &hooks);
+}
+
+/// serve_with runs the frozen accept loop: bind PULSE_BIND:PULSE_PORT, accept
+/// one connection at a time and hand it to handle_connection_with with
+/// `handler` and `hooks`. Returns 0 on the clean shutdown path (X-Pulse-Quit)
+/// and 1 when the socket/bind/listen/accept fails. Complexity: O(runtime).
+pub fn serve_with(handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut, hooks: &HookSet) -> Int {
   let sr = socket.socket_tcp();
   if sr.is_err {
     io.println("pulse: socket create failed");
@@ -504,7 +683,7 @@ pub fn serve(handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut) -> Int 
       return 1;
     }
     let client = ar.value;
-    handle_connection(client, handler);
+    handle_connection_with(client, handler, hooks);
     socket.socket_close(client);
   }
 

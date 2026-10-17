@@ -62,6 +62,43 @@ fn test_handler(req: &PulseRequest, m: &PulseRoute, body: Str) -> HandlerOut {
   return app.out_json(200, "{\"echo\":\"" + req.target + "\"}");
 }
 
+// Hook-seam observability (section I): test hooks record what they saw.
+var hook_order: Str = "";
+var hook_handler_calls: Int = 0;
+var hook_seen_status: Int = 0;
+var hook_seen_bytes: Int = -1;
+var hook_seen_duration: Int = -1;
+
+fn hook_pre_order(_req: &PulseRequest, _body: Str) -> PreOut {
+  hook_order = hook_order + "pre;";
+  return app.pre_continue();
+}
+
+/// hook_pre_cors is the CORS-preflight shape: OPTIONS short-circuits with a
+/// 204 + allow-origin header; every other method continues to the router.
+fn hook_pre_cors(req: &PulseRequest, _body: Str) -> PreOut {
+  hook_order = hook_order + "preflight;";
+  if req.method == "OPTIONS" {
+    var hs: Vec[(Str, Str)] = Vec[(Str, Str)].new();
+    hs.push(("Access-Control-Allow-Origin", "*"));
+    return app.pre_stop(HandlerOut{ status: 204; content_type: "text/plain; charset=utf-8"; headers: hs; body: ""; body_bytes: Vec[UInt8].new() });
+  }
+  return app.pre_continue();
+}
+
+fn hook_after_observe(_req: &PulseRequest, _body: Str, _out: &HandlerOut, info: &ResponseInfo) {
+  hook_order = hook_order + "after;";
+  hook_seen_status = info.status;
+  hook_seen_bytes = info.bytes;
+  hook_seen_duration = info.duration_ms;
+}
+
+fn hook_handler(_req: &PulseRequest, _m: &PulseRoute, _body: Str) -> HandlerOut {
+  hook_handler_calls = hook_handler_calls + 1;
+  hook_order = hook_order + "handler;";
+  return app.out_text(201, "hello");
+}
+
 /// bind_listener binds 127.0.0.1 on the first free port at/after `seed`
 /// (SO_REUSEADDR best-effort). Returns (listener_fd, port); (0, -1) when
 /// the whole range is busy.
@@ -92,7 +129,15 @@ fn bind_listener(seed: Int) -> (Int, Int) {
 /// server-side loop (app.handle_connection) on the accepted fd, then reads
 /// everything the client can still receive. Returns the raw response text,
 /// or a "BIND_FAIL"/"CONN_FAIL"/"ACCEPT_FAIL" sentinel on setup failure.
+/// e2e_round_trip drives the loop with an empty hook set (the hook-free
+/// baseline); e2e_round_trip_with lets section I wire hooks into the real
+/// connection loop.
 fn e2e_round_trip(seed: Int, request: Str) -> Str {
+  let none = app.hooks_new();
+  return e2e_round_trip_with(seed, request, &none);
+}
+
+fn e2e_round_trip_with(seed: Int, request: Str, hooks: &HookSet) -> Str {
   let lp = bind_listener(seed);
   let lfd = lp.0;
   if lfd <= 0 { return "BIND_FAIL"; }
@@ -118,7 +163,7 @@ fn e2e_round_trip(seed: Int, request: Str) -> Str {
     return "ACCEPT_FAIL";
   }
   let conn = ar.value;
-  app.handle_connection(conn, test_handler);
+  app.handle_connection_with(conn, test_handler, hooks);
   socket.socket_close(conn);
   var all: Vec[UInt8] = Vec[UInt8].new();
   var rounds: Int = 0;
@@ -390,6 +435,87 @@ pub fn main() -> Int {
   let h_ok = app.handle_route(m_reg, &p_quit_shape, "", test_handler);
   f = f + check("dispatch handler reached", h_ok.status == 200 && contains(h_ok.body, "\"/hello\""));
 
+  // --- I. hook seam (pre_route + after_response) ----------------------------
+  let p_hook_req = http.parse_request(&req_bytes("GET /hello HTTP/1.1\r\nHost: t\r\n\r\n"));
+  let p_hook_missing = http.parse_request(&req_bytes("GET /missing HTTP/1.1\r\nHost: t\r\n\r\n"));
+  let p_hook_options = http.parse_request(&req_bytes("OPTIONS /hello HTTP/1.1\r\nHost: t\r\n\r\n"));
+
+  let hs_empty = app.hooks_new();
+  f = f + check("hooks empty by default", !app.hooks_has_pre(&hs_empty) && !app.hooks_has_after(&hs_empty));
+  hook_order = "";
+  hook_handler_calls = 0;
+  let base_route = app.handle_route(m_reg, &p_hook_req, "", hook_handler);
+  let base_calls = hook_handler_calls;
+  let base_hook = app.dispatch_with(&hs_empty, "GET", &p_hook_req, "", hook_handler);
+  f = f + check("no-hook dispatch matches handle_route", base_hook.status == base_route.status && base_hook.body == base_route.body);
+  f = f + check("no-hook dispatch keeps handler path", hook_handler_calls == base_calls + 1);
+  f = f + check("no-hook dispatch runs no hooks", hook_order == "handler;handler;");
+
+  var hs_after = app.hooks_new();
+  let after_installed = app.hooks_install_after(&mut hs_after, hook_after_observe);
+  f = f + check("install after hook ok", after_installed.is_ok());
+  f = f + check("has after hook", app.hooks_has_after(&hs_after) && !app.hooks_has_pre(&hs_after));
+  hook_order = "";
+  hook_handler_calls = 0;
+  hook_seen_status = 0;
+  hook_seen_bytes = -1;
+  hook_seen_duration = -1;
+  let out_after = app.dispatch_with(&hs_after, "GET", &p_hook_req, "", hook_handler);
+  f = f + check("post hook sees status", out_after.status == 201 && hook_seen_status == 201);
+  f = f + check("post hook sees response bytes", hook_seen_bytes == 5);
+  f = f + check("post hook sees duration", hook_seen_duration >= 0);
+  f = f + check("post hook runs after handler", hook_order == "handler;after;");
+
+  var hs_both = app.hooks_new();
+  let _ip = app.hooks_install_pre(&mut hs_both, hook_pre_order);
+  let _ia = app.hooks_install_after(&mut hs_both, hook_after_observe);
+  hook_order = "";
+  hook_handler_calls = 0;
+  let out_both = app.dispatch_with(&hs_both, "GET", &p_hook_req, "", hook_handler);
+  f = f + check("hook ordering pre/handler/after", out_both.status == 201 && hook_order == "pre;handler;after;");
+
+  hook_order = "";
+  hook_handler_calls = 0;
+  hook_seen_status = 0;
+  let out_404 = app.dispatch_with(&hs_both, "GET", &p_hook_missing, "", hook_handler);
+  f = f + check("post hook sees policy 404", out_404.status == 404 && hook_seen_status == 404);
+  f = f + check("post hook wraps 404 without handler", hook_handler_calls == 0 && hook_order == "pre;after;");
+
+  var hs_cors = app.hooks_new();
+  let _cp = app.hooks_install_pre(&mut hs_cors, hook_pre_cors);
+  let _ca = app.hooks_install_after(&mut hs_cors, hook_after_observe);
+  hook_order = "";
+  hook_handler_calls = 0;
+  hook_seen_status = 0;
+  let out_cors = app.dispatch_with(&hs_cors, "OPTIONS", &p_hook_options, "", hook_handler);
+  f = f + check("pre hook short-circuits preflight", out_cors.status == 204);
+  f = f + check("short-circuit response keeps headers", out_cors.headers.len() == 1 && out_cors.headers[0].1 == "*");
+  f = f + check("short-circuit skips handler", hook_handler_calls == 0 && hook_order == "preflight;after;");
+  f = f + check("post hook observes short-circuit", hook_seen_status == 204);
+
+  var hs_err = app.hooks_new();
+  let first_pre = app.hooks_install_pre(&mut hs_err, hook_pre_order);
+  f = f + check("install pre hook ok", first_pre.is_ok() && app.hooks_has_pre(&hs_err));
+  let dup_pre = app.hooks_install_pre(&mut hs_err, hook_pre_order);
+  f = f + check("duplicate pre hook rejected", dup_pre.is_err());
+  var dup_pre_code: Str = "";
+  if dup_pre.is_err {
+    let e = dup_pre.unwrap_err();
+    dup_pre_code = app.hook_error_code(&e);
+  }
+  f = f + check("duplicate pre hook typed code", dup_pre_code == "pre_already_installed");
+  var dup_after_code: Str = "";
+  let first_after = app.hooks_install_after(&mut hs_err, hook_after_observe);
+  let dup_after = app.hooks_install_after(&mut hs_err, hook_after_observe);
+  if dup_after.is_err {
+    let e2 = dup_after.unwrap_err();
+    dup_after_code = app.hook_error_code(&e2);
+  }
+  f = f + check("duplicate after hook rejected typed", first_after.is_ok() && dup_after.is_err() && dup_after_code == "after_already_installed");
+  f = f + check("clear pre hook", app.hooks_clear_pre(&mut hs_err) && !app.hooks_has_pre(&hs_err));
+  f = f + check("clear pre hook idempotent", !app.hooks_clear_pre(&mut hs_err));
+  f = f + check("clear both hooks", app.hooks_clear(&mut hs_err) && !app.hooks_has_after(&hs_err));
+
   // --- G. keep-alive semantics (pure decisions) -----------------------------
   let ka11 = http.parse_request(&req_bytes("GET /health HTTP/1.1\r\nHost: t\r\n\r\n"));
   f = f + check("ka 1.1 default reuse", !http.connection_close_requested(&ka11));
@@ -468,6 +594,19 @@ pub fn main() -> Int {
   } else {
     f = f + check("e2e 100-continue interim first", false);
   }
+
+  var hs_e2e = app.hooks_new();
+  let _ep = app.hooks_install_pre(&mut hs_e2e, hook_pre_cors);
+  let _ea = app.hooks_install_after(&mut hs_e2e, hook_after_observe);
+  hook_order = "";
+  hook_handler_calls = 0;
+  hook_seen_status = 0;
+  let cors_out = e2e_round_trip_with(18860, "OPTIONS /hello HTTP/1.1\r\nHost: t\r\n\r\n", &hs_e2e);
+  let cors_204 = contains(cors_out, "HTTP/1.1 204");
+  f = f + check("e2e hook preflight status 204", cors_204);
+  f = f + check("e2e hook preflight cors header", contains(cors_out, "Access-Control-Allow-Origin: *"));
+  f = f + check("e2e hook preflight skips handler", hook_handler_calls == 0);
+  f = f + check("e2e hook post observed status", hook_seen_status == 204);
 
   env.remove_var("PULSE_KEEPALIVE");
   env.remove_var("PULSE_IDLE_TIMEOUT");
