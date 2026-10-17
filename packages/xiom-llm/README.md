@@ -4,10 +4,10 @@
 
 # xiom.llm
 
-> **Status:** `incubating` -- conformance-tested (327/327, twice);
+> **Status:** `incubating` -- conformance-tested (384/384, twice);
 > published in `eco-v0.1.196` (sha256 `3c85e858...`, 2026-10-17).
-> **Milestones 1-2 + M3 first and second halves + tokenizer completion +
-> real vocabularies + benchmark harness:**
+> **Milestones 1-2 + M3 first and second halves + tokenizer completion
+> (GPT-2 / SPM / WPM) + real vocabularies + benchmark harness:**
 > llama.cpp-family vocab extraction from a GGUF header + byte-level BPE
 > decode/encode (M1), GGUF payload/tensor loading, Q8_0 dequantization,
 > integer matmul and the forward primitives with a tiny deterministic
@@ -16,12 +16,11 @@
 > (M3a), the append-only KV cache with longer-context multi-position
 > attention and the cached generation loop (M3b), Q8_0/Q5_0/Q4_K/Q4_0/Q5_1/
 > Q6_K dequantization, the tokenizer completion (GPT-2 escape layer, GPT-2
-> regex pre-tokenizer,
-> SPM scored-merge core), and real-vocabulary loading (lossless GGUF string
-> bytes, escaped GPT-2 keys, SPM `▁` normalization + `<0xXX>` fallback,
-> BOS/EOS flags), and the package-local benchmark harness (fixture prefill /
-> decode and SPM / GPT-2 encode throughput). WPM remains (`SPEC.md` /
-> `ROADMAP.md`).
+> regex pre-tokenizer, SPM scored-merge core, WPM BERT WordPiece core with
+> `##` continuations and `[UNK]` mapping), and real-vocabulary loading
+> (lossless GGUF string bytes, escaped GPT-2 keys, SPM `▁` normalization +
+> `<0xXX>` fallback, BOS/EOS flags), and the package-local benchmark harness
+> (fixture prefill / decode and SPM / GPT-2 encode throughput).
 
 The llama.cpp-family runner tier of the XIOM ML/AI coverage program: read a
 GGUF model header with `xiom.gguf`, extract the tokenizer vocabulary from
@@ -32,9 +31,10 @@ follows llama.cpp's merge-table semantics (`llama-vocab.cpp`, commit
 * Pure XIOM, no FFI. Deps: `xiom.std`, `xiom.gguf` (header codec),
   `xiom.tensor` (shape construction + canonical dumps).
 * Deterministic `Err(Str)` catalog prefixed `llm: ` (see SPEC.md section 7).
-* 327 conformance checks (`tests/test_conformance.xi`) over synthetic
+* 384 conformance checks (`tests/test_conformance.xi`) over synthetic
   deterministic GGUF fixtures built with `xiom.gguf`'s builder (including
-  non-ASCII escaped GPT-2 keys and SPM `▁` tokens) -- no model downloads.
+  non-ASCII escaped GPT-2 keys, SPM `▁` tokens and WPM `##é` pieces) -- no
+  model downloads.
 * Offline benchmark harness (`bench/bench_llm.xi`); the conformance suite
   type-checks it (marker `t90`) without running iterations.
 
@@ -72,6 +72,7 @@ let text = llm_bpe_decode(&v, &ids).value;                    // "hello world"
 | Generation (M3a) | `llm_forward_token`, `llm_generate`, `llm_is_stop`, `llm_greedy_next`, `llm_apply_temperature`, `llm_top_k_keep`, `llm_top_p_keep`, `llm_sample_choice`, `llm_sample_next`, `llm_sampler_greedy`, `llm_sampler_seeded`, `llm_rng_seed`, `llm_rng_next`, `llm_rng_below` |
 | KV cache (M3b) | `llm_kv_cache_new`, `llm_kv_cache_len`, `llm_kv_cache_cap`, `llm_kv_cache_append`, `llm_kv_cache_key`, `llm_kv_cache_val`, `llm_attention_i32`, `llm_forward_cache`, `llm_generate_cached` |
 | Tokenizer completion / real vocab | `llm_gpt2_byte_to_codepoint`, `llm_gpt2_codepoint_to_byte`, `llm_utf8_append`, `llm_gpt2_escape`, `llm_gpt2_unescape`, `llm_gpt2_unescape_str`, `llm_gpt2_pretokenize`, `llm_gpt2_vocab_from_gguf`, `llm_spm_vocab_from_gguf`, `llm_spm_model`, `llm_spm_size`, `llm_spm_token`, `llm_spm_score`, `llm_spm_find_token`, `llm_spm_bos`, `llm_spm_eos`, `llm_spm_add_bos`, `llm_spm_add_eos`, `llm_spm_encode`, `llm_spm_decode` |
+| WPM (`bert`) | `llm_wpm_vocab_from_gguf`, `llm_wpm_model`, `llm_wpm_size`, `llm_wpm_token`, `llm_wpm_token_type`, `llm_wpm_find_token`, `llm_wpm_unk`, `llm_wpm_bos`, `llm_wpm_eos`, `llm_wpm_add_bos`, `llm_wpm_add_eos`, `llm_wpm_wordpiece`, `llm_wpm_encode`, `llm_wpm_decode` |
 
 ## M1 semantics in one paragraph
 
@@ -92,15 +93,21 @@ misses), and the GPT-2 pre-tokenizer is available separately as
 `llm_gpt2_pretokenize`. Real GPT-2 vocabularies are loaded through
 `llm_gpt2_vocab_from_gguf`, which unescapes every token/merge key to raw
 bytes. SPM (`llm_spm_encode` / `llm_spm_decode`) rewrites spaces to
-U+2581 (`▁`) and back, and uses `<0xXX>` fallback tokens when present (see
-SPEC.md sections 8 and 10.6 for the documented deviations).
+U+2581 (`▁`) and back, and uses `<0xXX>` fallback tokens when present. WPM
+(`llm_wpm_encode` / `llm_wpm_decode`) implements the BERT WordPiece
+convention: whitespace splitting, greedy longest-match-prefix, `##`
+continuations, all-or-nothing `[UNK]`, and `##`-aware decode. No WPM case
+folding or accent stripping is applied (the SPEC does not pin those
+options). See SPEC.md sections 8 and 10.6 for the documented deviations.
 
 ## Limitations
 
-* **WPM only.** `xiom.gguf` now accepts arbitrary string bytes, so real
-  GPT-2 escaped vocabularies and SPM `▁` vocabularies load losslessly
-  (`docs/probe-nonascii-gguf.md` records the resolved probe). WPM
-  (`"bert"`) remains unimplemented (ROADMAP.md).
+* **WPM normalization.** All three tokenizer families load real
+  vocabularies: GPT-2 escaped keys, SPM `▁` tokens and WPM `##`
+  continuations (`docs/probe-nonascii-gguf.md` records the resolved probe).
+  The WPM core is normalization-free by design: the SPEC pins no
+  `do_lower_case` / accent-stripping option, so callers must normalize text
+  themselves when a model expects it.
 * **Generation is single-layer (M3a/M3b).** `llm_generate` conditions on the
   current token only; `llm_generate_cached` prefills every prompt position
   into an append-only KV cache and attends over the whole cache. The M3
@@ -109,7 +116,8 @@ SPEC.md sections 8 and 10.6 for the documented deviations).
   throughput harness (see below); sampling is greedy / temperature / top-k /
   top-p over a deterministic seeded integer PRNG. SPM (`"llama"`) is
   implemented with `▁` normalization, byte fallback and BOS/EOS insertion
-  flags; WPM (`"bert"`) remains (ROADMAP.md).
+  flags; WPM (`"bert"`) is implemented as the WordPiece core (SPEC.md
+  section 10.6).
 * **Q8_0 tensor infos.** `xiom.gguf`'s builder rejects GGML types 8/9, so
   the M2 fixture stores Q8_0 block bytes inside f32-declared FFN slices
   (SPEC.md section 8 item 7); `llm_dequant_q8_0` itself is exercised on the
@@ -177,8 +185,8 @@ dependency via `xiom.toml`):
 & .\scripts\port.ps1 -Package xiom-llm -TimeoutSec 180
 ```
 
-Expected tail: 327 `[PASS]` lines, `xiom.llm: all tests passed`, then
-`port: PASS (passed=327 failed=0 program_exit=0 exit=0)`.
+Expected tail: 384 `[PASS]` lines, `xiom.llm: all tests passed`, then
+`port: PASS (passed=384 failed=0 program_exit=0 exit=0)`.
 
 ## License
 

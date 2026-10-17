@@ -3667,6 +3667,327 @@ fn t90() -> Int {
 }
 
 // --------------------------------------------------
+//  WPM ("bert") tokenizer core (t94-t100)
+// --------------------------------------------------
+
+// Synthetic WordPiece vocabulary. Ids: 0 [UNK], 1 [CLS], 2 [SEP], 3 hello,
+// 4 world, 5 he, 6 ##llo, 7 ##lo, 8 caf, 9 ##é (C3 A9), 10 é (C3 A9),
+// 11 a, 12 ##b, 13 ##c, 14 abc, 15 ##s, 16 z, 17 ##d, 18 +, 19 ##+.
+// The continuations make greedy longest-match distinction observable:
+// "hello" must prefer id 3 over [5, 6], and "hellos" must use [3, 15].
+fn wpm_tokens_with_first(first: Str) -> Vec[Str] {
+  var t = Vec[Str].new();
+  t.push(first);                               // 0
+  t.push("[CLS]");                             // 1
+  t.push("[SEP]");                             // 2
+  t.push("hello");                             // 3
+  t.push("world");                             // 4
+  t.push("he");                                // 5
+  t.push("##llo");                             // 6
+  t.push("##lo");                              // 7
+  t.push("caf");                               // 8
+  t.push(str_of_bytes(&want4(35, 35, 195, 169)));  // 9 ##é
+  t.push(str_of_bytes(&want2(195, 169)));      // 10 é
+  t.push("a");                                 // 11
+  t.push("##b");                               // 12
+  t.push("##c");                               // 13
+  t.push("abc");                               // 14
+  t.push("##s");                               // 15
+  t.push("z");                                 // 16
+  t.push("##d");                               // 17
+  t.push("+");                                 // 18
+  t.push("##+");                               // 19
+  return t;
+}
+
+fn wpm_tokens() -> Vec[Str] {
+  return wpm_tokens_with_first("[UNK]");
+}
+
+fn wpm_tokens_no_unk() -> Vec[Str] {
+  return wpm_tokens_with_first("[PAD]");
+}
+
+// Token types: 2 (unknown) for [UNK]/[PAD], 3 (control) for [CLS]/[SEP],
+// 1 (normal) for every other id.
+fn wpm_types() -> Vec[Int] {
+  var t = Vec[Int].new();
+  t.push(2);
+  t.push(3);
+  t.push(3);
+  var i = 3;
+  while i < 20 {
+    t.push(1);
+    i = i + 1;
+  }
+  return t;
+}
+
+fn wpm_gguf(with_unk: Int, with_flags: Int) -> Vec[UInt8] {
+  var toks = wpm_tokens();
+  if with_unk == 0 {
+    toks = wpm_tokens_no_unk();
+  }
+  let types = wpm_types();
+  var b = gguf_builder_new();
+  let a1 = gguf_builder_add_kv_str(&mut b, "tokenizer.ggml.model", "bert");
+  let a2 = gguf_builder_add_kv_arr_str(&mut b, "tokenizer.ggml.tokens", &toks);
+  let a3 = gguf_builder_add_kv_arr_int(&mut b, "tokenizer.ggml.token_type", 5, &types);
+  if with_flags != 0 {
+    let a4 = gguf_builder_add_kv_int(&mut b, "tokenizer.ggml.bos_token_id", 4, 1);
+    let a5 = gguf_builder_add_kv_int(&mut b, "tokenizer.ggml.eos_token_id", 4, 2);
+    let a6 = gguf_builder_add_kv_int(&mut b, "tokenizer.ggml.add_bos_token", 4, 1);
+    let a7 = gguf_builder_add_kv_int(&mut b, "tokenizer.ggml.add_eos_token", 4, 1);
+  }
+  let fr = gguf_builder_finish(&b);
+  return fr.value;
+}
+
+fn wpm_vocab(with_unk: Int, with_flags: Int) -> LlmWpmVocab {
+  let buf = wpm_gguf(with_unk, with_flags);
+  let pr = gguf_parse(&buf);
+  let g = pr.value;
+  let vr = llm_wpm_vocab_from_gguf(&g);
+  return vr.value;
+}
+
+fn expect_wpm_err(r: Result[LlmWpmVocab, Str], want: Str, name: Str) -> Int {
+  if r.is_ok {
+    return report(false, name + " (expected Err)");
+  }
+  let got: Str = r.error;
+  if !str_eq(got, want) {
+    return report(false, name + " (got: " + got + ")");
+  }
+  return report(true, name);
+}
+
+fn check_wpm_encode(v: &LlmWpmVocab, text: Str, want: &Vec[Int], name: Str) -> Int {
+  let r = llm_wpm_encode(v, text);
+  if !r.is_ok {
+    let got: Str = r.error;
+    return report(false, name + " (Err: " + got + ")");
+  }
+  let got_ids: Vec[Int] = r.value;
+  return report(ids_eq(&got_ids, want), name);
+}
+
+fn check_wpm_wordpiece(v: &LlmWpmVocab, word: Str, want: &Vec[Int], name: Str) -> Int {
+  let r = llm_wpm_wordpiece(v, word);
+  if !r.is_ok {
+    let got: Str = r.error;
+    return report(false, name + " (Err: " + got + ")");
+  }
+  let got_ids: Vec[Int] = r.value;
+  return report(ids_eq(&got_ids, want), name);
+}
+
+// ASCII bytes of `s` as an Int vector (decode expectations).
+fn ascii_ints(s: Str) -> Vec[Int] {
+  var out = Vec[Int].new();
+  let n = string.str_len(s);
+  var i = 0;
+  while i < n {
+    out.push((string.byte_at(s, i) as Int) & 0xFF);
+    i = i + 1;
+  }
+  return out;
+}
+
+fn check_wpm_decode_bytes(v: &LlmWpmVocab, ids: &Vec[Int], want: &Vec[Int], name: Str) -> Int {
+  let r = llm_wpm_decode(v, ids);
+  if !r.is_ok {
+    let got: Str = r.error;
+    return report(false, name + " (Err: " + got + ")");
+  }
+  let got: Str = r.value;
+  return report(str_bytes_eq(got, want), name);
+}
+
+// t94: WPM extraction/accessors over the synthetic bert fixture.
+fn t94() -> Int {
+  let v = wpm_vocab(1, 0);
+  var sum = 0;
+  let model = llm_wpm_model(&v);
+  sum = sum + report(str_eq(model, "bert"), "wpm model bert");
+  sum = sum + report(llm_wpm_size(&v) == 20, "wpm size 20");
+  let t3 = llm_wpm_token(&v, 3);
+  sum = sum + report(t3.is_ok && str_eq(t3.value, "hello"), "wpm token 3 = hello");
+  let t6 = llm_wpm_token(&v, 6);
+  sum = sum + report(t6.is_ok && str_eq(t6.value, "##llo"), "wpm token 6 = ##llo continuation");
+  let t9 = llm_wpm_token(&v, 9);
+  sum = sum + report(t9.is_ok && str_bytes_eq(t9.value, &want4(35, 35, 195, 169)), "wpm token 9 = ##é bytes 23 23 C3 A9");
+  sum = sum + report(llm_wpm_unk(&v) == 0, "wpm unk id 0");
+  sum = sum + report(llm_wpm_find_token(&v, "##llo") == 6, "wpm find ##llo = 6");
+  sum = sum + report(llm_wpm_find_token(&v, str_of_bytes(&want4(35, 35, 195, 169))) == 9, "wpm find ##é = 9");
+  sum = sum + report(llm_wpm_find_token(&v, "zz") == -1, "wpm find miss = -1");
+  let tt0 = llm_wpm_token_type(&v, 0);
+  let tt1 = llm_wpm_token_type(&v, 1);
+  let tt3 = llm_wpm_token_type(&v, 3);
+  sum = sum + report(tt0.is_ok && tt0.value == 2, "wpm token_type 0 = unknown");
+  sum = sum + report(tt1.is_ok && tt1.value == 3, "wpm token_type 1 = control");
+  sum = sum + report(tt3.is_ok && tt3.value == 1, "wpm token_type 3 = normal");
+  sum = sum + report(llm_wpm_bos(&v) == -1 && llm_wpm_eos(&v) == -1, "wpm bos/eos absent -1");
+  sum = sum + report(llm_wpm_add_bos(&v) == 0 && llm_wpm_add_eos(&v) == 0, "wpm flags absent 0");
+  let t20 = llm_wpm_token(&v, 20);
+  let tt99 = llm_wpm_token_type(&v, -1);
+  sum = sum + expect_str_err(t20, "llm: token index out of range", "wpm token 20 rejected");
+  sum = sum + expect_int_err(tt99, "llm: token index out of range", "wpm token_type -1 rejected");
+  return sum;
+}
+
+// t95: greedy longest-match-prefix with the ## continuation convention.
+fn t95() -> Int {
+  let v = wpm_vocab(1, 0);
+  var sum = 0;
+  sum = sum + check_wpm_wordpiece(&v, "hello", &want1(3), "wpm greedy hello -> hello (not he + ##llo)");
+  sum = sum + check_wpm_wordpiece(&v, "hellos", &want2(3, 15), "wpm hellos -> hello + ##s");
+  sum = sum + check_wpm_wordpiece(&v, "he", &want1(5), "wpm he -> he");
+  sum = sum + check_wpm_wordpiece(&v, "abc", &want1(14), "wpm abc -> abc (longest)");
+  sum = sum + check_wpm_wordpiece(&v, "z", &want1(16), "wpm z -> z");
+  sum = sum + check_wpm_wordpiece(&v, "q", &want1(0), "wpm unknown q -> [UNK]");
+  sum = sum + check_wpm_wordpiece(&v, "abcq", &want1(0), "wpm partial match then miss -> whole [UNK]");
+  sum = sum + check_wpm_wordpiece(&v, "a+b", &want3(11, 19, 12), "wpm a+b -> a ##+ ##b (no punctuation split)");
+  sum = sum + check_wpm_wordpiece(&v, "", &Vec[Int].new(), "wpm empty word -> []");
+  let cafe = "caf" + str_of_bytes(&want2(195, 169));
+  sum = sum + check_wpm_wordpiece(&v, cafe, &want2(8, 9), "wpm café -> caf + ##é (multi-byte codepoint)");
+  sum = sum + check_wpm_wordpiece(&v, str_of_bytes(&want2(195, 169)), &want1(10), "wpm é -> é (single multi-byte token)");
+  return sum;
+}
+
+// t96: whitespace splitting + BOS/EOS flags.
+fn t96() -> Int {
+  let v = wpm_vocab(1, 0);
+  var sum = 0;
+  sum = sum + check_wpm_encode(&v, "", &Vec[Int].new(), "wpm encode empty");
+  sum = sum + check_wpm_encode(&v, "hello world", &want2(3, 4), "wpm encode hello world");
+  sum = sum + check_wpm_encode(&v, "  hello   world  ", &want2(3, 4), "wpm encode collapses separators");
+  sum = sum + check_wpm_encode(&v, "he hello", &want2(5, 3), "wpm encode he hello");
+  let cafe = "caf" + str_of_bytes(&want2(195, 169));
+  sum = sum + check_wpm_encode(&v, "hello " + cafe, &want3(3, 8, 9), "wpm encode hello café");
+  sum = sum + check_wpm_encode(&v, "a+b", &want3(11, 19, 12), "wpm encode a+b stays one word");
+
+  let fv = wpm_vocab(1, 1);
+  sum = sum + report(llm_wpm_add_bos(&fv) == 1 && llm_wpm_add_eos(&fv) == 1, "wpm flags read 1/1");
+  sum = sum + report(llm_wpm_bos(&fv) == 1 && llm_wpm_eos(&fv) == 2, "wpm flagged bos/eos 1/2");
+  sum = sum + check_wpm_encode(&fv, "hello", &want3(1, 3, 2), "wpm encode inserts BOS/EOS");
+  sum = sum + check_wpm_encode(&fv, "", &want2(1, 2), "wpm empty text still gets BOS/EOS");
+  return sum;
+}
+
+// t97: decode (space join + ## attach), multi-byte bytes, roundtrip, errors.
+fn t97() -> Int {
+  let v = wpm_vocab(1, 0);
+  var sum = 0;
+  sum = sum + check_wpm_decode_bytes(&v, &Vec[Int].new(), &Vec[Int].new(), "wpm decode [] = empty");
+  sum = sum + check_wpm_decode_bytes(&v, &want2(3, 4), &ascii_ints("hello world"), "wpm decode [3,4] = hello world");
+  sum = sum + check_wpm_decode_bytes(&v, &want2(3, 15), &ascii_ints("hellos"), "wpm decode [3,15] attaches ##s");
+  sum = sum + check_wpm_decode_bytes(&v, &want3(11, 19, 12), &want3(97, 43, 98), "wpm decode a+b");
+  let cafe_ids = want2(8, 9);
+  sum = sum + check_wpm_decode_bytes(&v, &cafe_ids, &want5(99, 97, 102, 195, 169), "wpm decode café bytes");
+  sum = sum + check_wpm_decode_bytes(&v, &want1(10), &want2(195, 169), "wpm decode é bytes");
+  sum = sum + expect_str_err(llm_wpm_decode(&v, &want1(20)), "llm: token id out of range", "wpm decode id 20 rejected");
+  sum = sum + expect_str_err(llm_wpm_decode(&v, &want1(-1)), "llm: token id out of range", "wpm decode id -1 rejected");
+
+  let cafe = "caf" + str_of_bytes(&want2(195, 169));
+  var texts = Vec[Str].new();
+  texts.push("hello world");
+  texts.push("hellos");
+  texts.push("he hello");
+  texts.push(cafe);
+  texts.push("a+b");
+  var rt_ok = true;
+  var i = 0;
+  while i < texts.len() {
+    let tx: Str = texts[i];
+    let er = llm_wpm_encode(&v, tx);
+    if !er.is_ok {
+      rt_ok = false;
+    } else {
+      let idsv: Vec[Int] = er.value;
+      let dr = llm_wpm_decode(&v, &idsv);
+      if !dr.is_ok {
+        rt_ok = false;
+      } else {
+        let gotb = str_u8v(dr.value);
+        let wantb = str_u8v(tx);
+        if !bytes_eq(&gotb, &wantb) {
+          rt_ok = false;
+        }
+      }
+    }
+    i = i + 1;
+  }
+  sum = sum + report(rt_ok, "wpm encode/decode roundtrip (5 texts, incl multi-byte)");
+
+  let fv = wpm_vocab(1, 1);
+  sum = sum + check_wpm_decode_bytes(&fv, &want3(1, 3, 2), &ascii_ints("[CLS] hello [SEP]"), "wpm decode specials join with spaces");
+  return sum;
+}
+
+// t98: extraction error arms.
+fn t98() -> Int {
+  var sum = 0;
+  let gpt2buf = header_plain("gpt2");
+  let pr = gguf_parse(&gpt2buf);
+  let g = pr.value;
+  sum = sum + expect_wpm_err(llm_wpm_vocab_from_gguf(&g), "llm: wpm tokenizer model is not bert", "wpm gpt2 model rejected");
+
+  var b = gguf_builder_new();
+  let a1 = gguf_builder_add_kv_str(&mut b, "tokenizer.ggml.model", "bert");
+  let fr = gguf_builder_finish(&b);
+  let pr2 = gguf_parse(&fr.value);
+  let g2 = pr2.value;
+  sum = sum + expect_wpm_err(llm_wpm_vocab_from_gguf(&g2), "llm: tokenizer tokens missing", "wpm tokens missing rejected");
+
+  let toks = wpm_tokens();
+  var short_types = Vec[Int].new();
+  short_types.push(1);
+  short_types.push(1);
+  short_types.push(1);
+  var b2 = gguf_builder_new();
+  let c1 = gguf_builder_add_kv_str(&mut b2, "tokenizer.ggml.model", "bert");
+  let c2 = gguf_builder_add_kv_arr_str(&mut b2, "tokenizer.ggml.tokens", &toks);
+  let c3 = gguf_builder_add_kv_arr_int(&mut b2, "tokenizer.ggml.token_type", 5, &short_types);
+  let fr2 = gguf_builder_finish(&b2);
+  let pr3 = gguf_parse(&fr2.value);
+  let g3 = pr3.value;
+  sum = sum + expect_wpm_err(llm_wpm_vocab_from_gguf(&g3), "llm: token type count smaller than token count", "wpm short token_type rejected");
+
+  var b3 = gguf_builder_new();
+  let d1 = gguf_builder_add_kv_str(&mut b3, "tokenizer.ggml.model", "bert");
+  let d2 = gguf_builder_add_kv_arr_str(&mut b3, "tokenizer.ggml.tokens", &toks);
+  let d3 = gguf_builder_add_kv_str(&mut b3, "tokenizer.ggml.token_type", "normal");
+  let fr3 = gguf_builder_finish(&b3);
+  let pr4 = gguf_parse(&fr3.value);
+  let g4 = pr4.value;
+  sum = sum + expect_wpm_err(llm_wpm_vocab_from_gguf(&g4), "llm: token types are not an integer array", "wpm string token_type rejected");
+  return sum;
+}
+
+// t99: a vocabulary without [UNK] fails closed on an unmatched piece.
+fn t99() -> Int {
+  let v = wpm_vocab(0, 0);
+  var sum = 0;
+  sum = sum + report(llm_wpm_unk(&v) == -1, "wpm no-unk fixture unk = -1");
+  sum = sum + expect_ids_err(llm_wpm_encode(&v, "q"), "llm: wpm unk token missing", "wpm unknown without [UNK] rejected");
+  sum = sum + expect_ids_err(llm_wpm_wordpiece(&v, "abcq"), "llm: wpm unk token missing", "wpm partial without [UNK] rejected");
+  return sum;
+}
+
+// t100: WPM is normalization-free (SPEC unpinned): case and accents are
+// preserved, so uppercase "HELLO" does not match the lowercase token.
+fn t100() -> Int {
+  let v = wpm_vocab(1, 0);
+  var sum = 0;
+  sum = sum + check_wpm_encode(&v, "hello", &want1(3), "wpm lowercase matches");
+  sum = sum + check_wpm_encode(&v, "HELLO", &want1(0), "wpm uppercase not normalized -> [UNK]");
+  let cafe_upper = "CAF" + str_of_bytes(&want2(195, 169));
+  sum = sum + check_wpm_encode(&v, cafe_upper, &want1(0), "wpm accent/case normalization not applied");
+  return sum;
+}
+
+// --------------------------------------------------
 //  Main
 // --------------------------------------------------
 fn main() -> Int {
@@ -3764,6 +4085,13 @@ fn main() -> Int {
   failed = failed + t91();
   failed = failed + t92();
   failed = failed + t93();
+  failed = failed + t94();
+  failed = failed + t95();
+  failed = failed + t96();
+  failed = failed + t97();
+  failed = failed + t98();
+  failed = failed + t99();
+  failed = failed + t100();
   if failed == 0 {
     io.println("xiom.llm: all tests passed");
   }

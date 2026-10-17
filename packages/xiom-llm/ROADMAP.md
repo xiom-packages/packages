@@ -9,11 +9,12 @@ Current: v0.1.0, milestones M1 + M2 complete, M3 first and second halves
 (generation loop + sampling, the append-only KV cache + longer-context
 attention, and the Q4_K-class / Q5_0 / Q4_0 / Q5_1 / Q6_K dequantizers)
 complete plus the tokenizer completion (GPT-2 escape layer, GPT-2 regex
-pre-tokenizer, SPM scored-merge core), real-vocabulary loading (lossless
-GGUF string bytes, SPM U+2581 normalization + `<0xXX>` byte fallback,
-BOS/EOS insertion flags, escaped GPT-2 vocab loader), and the package-local
-benchmark harness (`bench/bench_llm.xi`, SPEC.md section 10.7);
-conformance-green (327/327 x2). Remaining: WPM (`"bert"`).
+pre-tokenizer, SPM scored-merge core, WPM `"bert"` WordPiece core),
+real-vocabulary loading (lossless GGUF string bytes, SPM U+2581
+normalization + `<0xXX>` byte fallback, BOS/EOS insertion flags, escaped
+GPT-2 vocab loader), and the package-local benchmark harness
+(`bench/bench_llm.xi`, SPEC.md section 10.7); conformance-green
+(384/384 x2). No ROADMAP items remain.
 `publish: false` pending ops scope + allowlist.
 
 ## M1 -- vocab + byte-level BPE (DONE, 2026-10-16)
@@ -115,7 +116,7 @@ first, fixture dims chosen so every oracle value is exact.
    goldens and typed empty / bad-length / scale-error arms.
 5. Tokenizer: GPT-2 `bytes_to_unicode` escape/unescape and the GPT-2
    regex pre-tokenizer, SPM (`"llama"`) extraction + tokenize core, BOS/EOS
-   insertion flags, WPM (`"bert"`) -- **PARTIAL / DONE (2026-10-17)**:
+   insertion flags, WPM (`"bert"`) -- **DONE (2026-10-17)**:
    * escape layer -- DONE as exact pure surfaces (`llm_gpt2_byte_to_codepoint`
      / `_codepoint_to_byte`, `llm_utf8_append`, `llm_gpt2_escape` /
      `llm_gpt2_unescape` / `llm_gpt2_unescape_str`); all-256-byte inverse
@@ -131,7 +132,14 @@ first, fixture dims chosen so every oracle value is exact.
      U+2581), exact f32 `tokenizer.ggml.scores` folded to a common exponent,
      score-ordered merge traversal with leftmost ties, `▁` normalization
      (space on encode, back on decode), `<0xXX>` byte fallback, encode/
-     decode and error arms. WPM (`"bert"`) REMAINS.
+     decode and error arms. WPM (`"bert"`) -- DONE (2026-10-17): a
+     `LlmWpmVocab` extractor/accessors plus the WordPiece core
+     (`llm_wpm_wordpiece` / `llm_wpm_encode` / `llm_wpm_decode`): greedy
+     longest-match-prefix over UTF-8 codepoint boundaries, `##`
+     continuation tokens, all-or-nothing `[UNK]` mapping, whitespace
+     splitting and BOS/EOS flags. Normalization is intentionally not
+     applied because the SPEC pins no WPM lowercase/accent option
+     (SPEC.md section 8 item 8).
    * BOS/EOS insertion -- DONE: `tokenizer.ggml.add_bos_token` /
      `add_eos_token` are extracted as 0/1 flags (absent -> 0) and applied by
      `llm_spm_encode`.
@@ -144,7 +152,9 @@ first, fixture dims chosen so every oracle value is exact.
    table values). **DONE**: greedy and seeded prompt -> ids -> decode
    roundtrips are green, the cached multi-position loop adds a
    two-token-prompt roundtrip, the escape-layer vectors are pinned, the
-   benchmark entry is type-checked, and the suite is green (327/327 x2).
+   WPM WordPiece goldens (including `##` continuations, `[UNK]` and a
+   multi-byte `é` piece) are pinned, the benchmark entry is type-checked,
+   and the suite is green (384/384 x2).
 
 ## Maintenance / cross-lane items
 

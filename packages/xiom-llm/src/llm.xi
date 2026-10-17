@@ -56,8 +56,10 @@
 // M3 second-half remainder adds the Q4_K-class dequantizer
 // (`llm_dequant_q4_k`, packed 6-bit scales/mins via `llm_k_get_scale_min_k4`)
 // and the neighboring Q5_0 dequantizer (`llm_dequant_q5_0`); both are EXACT
-// (error bound 0). The benchmark harness and further quant breadth
-// (Q4_0/Q5_1/Q6_K) remain for the M3 second-half remainder.
+// (error bound 0). The benchmark harness, further quant breadth
+// (Q4_0/Q5_1/Q6_K) and the tokenizer completion (GPT-2 escape layer and
+// pre-tokenizer, SPM scored-merge core, WPM BERT WordPiece core) landed in
+// the M3 remainder.
 
 module xiom.llm
 
@@ -194,6 +196,25 @@ pub type LlmSpmVocab = {
   eos: Int;
   add_bos: Int;
   add_eos: Int;
+}
+
+/// WPM ("bert") vocabulary extracted from a GGUF header. `tokens[i]` is the
+/// token string (continuation pieces start with `##` exactly as in a BERT
+/// WordPiece vocabulary); `token_types[i]` mirrors the file array (default
+/// 1). `bos`/`eos` are -1 when absent; `add_bos`/`add_eos` are the normalized
+/// 0/1 insertion flags. `unk` is the highest id whose token string is
+/// `[UNK]`, or -1 when the vocabulary has no unknown token. A value is only
+/// produced by llm_wpm_vocab_from_gguf.
+pub type LlmWpmVocab = {
+  model: Str;
+  tokens: Vec[Str];
+  has_types: Int;
+  token_types: Vec[Int];
+  bos: Int;
+  eos: Int;
+  add_bos: Int;
+  add_eos: Int;
+  unk: Int;
 }
 
 // --------------------------------------------------
@@ -335,8 +356,9 @@ fn _read_add_flag(g: &Gguf, key: Str, err: Str) -> Result[Int, Str] {
 /// xiom.gguf. Params: g - the parsed header. Returns: the LlmV ocab with
 /// tokens, merge table, optional token types and optional bos/eos ids.
 /// Semantics mirror llama.cpp src/llama-vocab.cpp (commit 23f7aabc) for
-/// `tokenizer.ggml.model == "gpt2"`; any other model string is rejected in
-/// M1 (SPM/WPM vocabularies are declared for M3). Error cases (deterministic
+/// `tokenizer.ggml.model == "gpt2"`; any other model string is rejected here
+/// (SPM `"llama"` and WPM `"bert"` load through their own loaders). Error
+/// cases (deterministic
 /// `llm: ` messages, see SPEC.md section 7): missing or non-string model,
 /// unsupported model, missing or non-string-array tokens/merges, non-integer
 /// token_type array, token_type count smaller than the token count, bos/eos
@@ -1855,6 +1877,422 @@ pub fn llm_spm_decode(v: &LlmSpmVocab, ids: &Vec[Int]) -> Result[Str, Str] {
     i = i + 1;
   }
   return _ok_str(_bytes_to_str(&out));
+}
+
+// --------------------------------------------------
+//  WPM ("bert") tokenizer core (SPEC.md 10.6)
+// --------------------------------------------------
+
+// Ok(v) for Result[LlmWpmVocab, Str].
+fn _ok_wpm(v: LlmWpmVocab) -> Result[LlmWpmVocab, Str] {
+  return Ok(v);
+}
+
+// Err(m) for Result[LlmWpmVocab, Str].
+fn _err_wpm(m: Str) -> Result[LlmWpmVocab, Str] {
+  return Err(m);
+}
+
+// Highest token id whose string equals `s`, else -1 (map-overwrite
+// semantics, same as the other tokenizers: duplicates resolve to the
+// highest id).
+fn _find_wpm_token_id(tokens: &Vec[Str], s: Str) -> Int {
+  var found = -1;
+  var i = 0;
+  while i < tokens.len() {
+    let t: Str = tokens[i];
+    if _str_is(t, s) {
+      found = i;
+    }
+    i = i + 1;
+  }
+  return found;
+}
+
+/// Extract a WPM (`tokenizer.ggml.model == "bert"`) vocabulary from a GGUF
+/// header. WPM needs only the token list: continuations are encoded in the
+/// token strings themselves by the `##` prefix (there is no merge table).
+/// `token_type` is optional (default 1), and bos/eos plus the
+/// `add_bos_token` / `add_eos_token` flags follow the same rules as the
+/// GPT-2 and SPM loaders. The `[UNK]` id is resolved at extraction (highest
+/// duplicate, -1 when absent). Error cases: the common model/tokens/
+/// token_type/bos/eos messages from section 7, and
+/// `llm: wpm tokenizer model is not bert` when the model is another family.
+pub fn llm_wpm_vocab_from_gguf(g: &Gguf) -> Result[LlmWpmVocab, Str] {
+  let mi = _kv_index_or_neg(g, "tokenizer.ggml.model");
+  if mi < 0 {
+    return _err_wpm("llm: tokenizer model missing");
+  }
+  let mt = gguf_kv_type(g, mi);
+  if !mt.is_ok || mt.value != 8 {
+    return _err_wpm("llm: tokenizer model is not a string");
+  }
+  let mr = gguf_kv_str_bytes(g, mi);
+  if !mr.is_ok {
+    return _err_wpm("llm: tokenizer model is not a string");
+  }
+  let model_raw: Vec[UInt8] = mr.value;
+  let model: Str = _bytes_to_str(&model_raw);
+  if !_str_is(model, "bert") {
+    return _err_wpm("llm: wpm tokenizer model is not bert");
+  }
+
+  let ti = _kv_index_or_neg(g, "tokenizer.ggml.tokens");
+  if ti < 0 {
+    return _err_wpm("llm: tokenizer tokens missing");
+  }
+  let tt = gguf_kv_type(g, ti);
+  if !tt.is_ok || tt.value != 9 {
+    return _err_wpm("llm: tokenizer tokens is not a string array");
+  }
+  let ta = gguf_kv_arr_type(g, ti);
+  if !ta.is_ok || ta.value != 8 {
+    return _err_wpm("llm: tokenizer tokens is not a string array");
+  }
+  let tc = gguf_kv_arr_count(g, ti);
+  if !tc.is_ok {
+    return _err_wpm("llm: tokenizer tokens is not a string array");
+  }
+  let n_tokens = tc.value;
+  var tokens = Vec[Str].new();
+  var e = 0;
+  while e < n_tokens {
+    let er = gguf_kv_arr_str_bytes(g, ti, e);
+    if !er.is_ok {
+      return _err_wpm("llm: tokenizer tokens is not a string array");
+    }
+    let raw: Vec[UInt8] = er.value;
+    let s: Str = _bytes_to_str(&raw);
+    tokens.push(s);
+    e = e + 1;
+  }
+
+  var has_types = 0;
+  var token_types = Vec[Int].new();
+  let si = _kv_index_or_neg(g, "tokenizer.ggml.token_type");
+  if si >= 0 {
+    let st = gguf_kv_type(g, si);
+    if !st.is_ok || st.value != 9 {
+      return _err_wpm("llm: token types are not an integer array");
+    }
+    let sa = gguf_kv_arr_type(g, si);
+    if !sa.is_ok || !_type_is_integer(sa.value) {
+      return _err_wpm("llm: token types are not an integer array");
+    }
+    let sc = gguf_kv_arr_count(g, si);
+    if !sc.is_ok || sc.value < n_tokens {
+      return _err_wpm("llm: token type count smaller than token count");
+    }
+    has_types = 1;
+    var k = 0;
+    while k < n_tokens {
+      let kr = gguf_kv_arr_int(g, si, k);
+      if !kr.is_ok {
+        return _err_wpm("llm: token types are not an integer array");
+      }
+      let tv: Int = kr.value;
+      token_types.push(tv);
+      k = k + 1;
+    }
+  } else {
+    var d = 0;
+    while d < n_tokens {
+      token_types.push(1);
+      d = d + 1;
+    }
+  }
+
+  var bos = -1;
+  let bi = _kv_index_or_neg(g, "tokenizer.ggml.bos_token_id");
+  if bi >= 0 {
+    let bv = gguf_kv_int(g, bi);
+    if !bv.is_ok {
+      return _err_wpm("llm: bos token id is not an integer");
+    }
+    bos = bv.value;
+  }
+  var eos = -1;
+  let ei = _kv_index_or_neg(g, "tokenizer.ggml.eos_token_id");
+  if ei >= 0 {
+    let ev = gguf_kv_int(g, ei);
+    if !ev.is_ok {
+      return _err_wpm("llm: eos token id is not an integer");
+    }
+    eos = ev.value;
+  }
+
+  let abr = _read_add_flag(g, "tokenizer.ggml.add_bos_token", "llm: add_bos token flag is not an integer");
+  if !abr.is_ok {
+    return _err_wpm(abr.error);
+  }
+  let add_bos: Int = abr.value;
+  let aer = _read_add_flag(g, "tokenizer.ggml.add_eos_token", "llm: add_eos token flag is not an integer");
+  if !aer.is_ok {
+    return _err_wpm(aer.error);
+  }
+  let add_eos: Int = aer.value;
+
+  let unk = _find_wpm_token_id(&tokens, "[UNK]");
+  let vocab = LlmWpmVocab{
+    model: model;
+    tokens: tokens;
+    has_types: has_types;
+    token_types: token_types;
+    bos: bos;
+    eos: eos;
+    add_bos: add_bos;
+    add_eos: add_eos;
+    unk: unk;
+  };
+  return _ok_wpm(vocab);
+}
+
+/// WPM model string ("bert").
+pub fn llm_wpm_model(v: &LlmWpmVocab) -> Str {
+  return v.model;
+}
+
+/// Number of WPM tokens.
+pub fn llm_wpm_size(v: &LlmWpmVocab) -> Int {
+  let toks: Vec[Str] = v.tokens;
+  return toks.len();
+}
+
+/// Token string at `i`, or `llm: token index out of range`.
+pub fn llm_wpm_token(v: &LlmWpmVocab, i: Int) -> Result[Str, Str] {
+  let toks: Vec[Str] = v.tokens;
+  if i < 0 || i >= toks.len() {
+    return _err_str("llm: token index out of range");
+  }
+  let s: Str = toks[i];
+  return _ok_str(s);
+}
+
+/// Token type at `i`, or `llm: token index out of range`.
+pub fn llm_wpm_token_type(v: &LlmWpmVocab, i: Int) -> Result[Int, Str] {
+  let tt: Vec[Int] = v.token_types;
+  if i < 0 || i >= tt.len() {
+    return _err_int("llm: token index out of range");
+  }
+  let t: Int = tt[i];
+  return _ok_int(t);
+}
+
+/// Highest token id whose string equals `s`, else -1.
+pub fn llm_wpm_find_token(v: &LlmWpmVocab, s: Str) -> Int {
+  let toks: Vec[Str] = v.tokens;
+  return _find_wpm_token_id(&toks, s);
+}
+
+/// `[UNK]` token id resolved at extraction, or -1 when absent.
+pub fn llm_wpm_unk(v: &LlmWpmVocab) -> Int {
+  return v.unk;
+}
+
+/// BOS id from the header, or -1 when absent.
+pub fn llm_wpm_bos(v: &LlmWpmVocab) -> Int {
+  return v.bos;
+}
+
+/// EOS id from the header, or -1 when absent.
+pub fn llm_wpm_eos(v: &LlmWpmVocab) -> Int {
+  return v.eos;
+}
+
+/// BOS insertion flag (`tokenizer.ggml.add_bos_token`, 0/1; absent -> 0).
+pub fn llm_wpm_add_bos(v: &LlmWpmVocab) -> Int {
+  return v.add_bos;
+}
+
+/// EOS insertion flag (`tokenizer.ggml.add_eos_token`, 0/1; absent -> 0).
+pub fn llm_wpm_add_eos(v: &LlmWpmVocab) -> Int {
+  return v.add_eos;
+}
+
+// Byte offsets of every UTF-8 codepoint boundary in `raw`, followed by the
+// buffer length as a sentinel: offs[0] = 0, offs[cp + 1] = start of the next
+// codepoint. Invalid UTF-8 bytes are treated as one-byte codepoints so the
+// matcher never splits a valid multi-byte character.
+fn _wpm_codepoint_offsets(raw: &Vec[UInt8]) -> Vec[Int] {
+  var offs = Vec[Int].new();
+  offs.push(0);
+  var pos = 0;
+  let n = raw.len();
+  while pos < n {
+    let dr = _utf8_decode_at(raw, pos);
+    var next = pos + 1;
+    if dr.is_ok {
+      let pair: Vec[Int] = dr.value;
+      let nv: Int = pair[1];
+      next = nv;
+    }
+    offs.push(next);
+    pos = next;
+  }
+  return offs;
+}
+
+// Append the ids of one word (already whitespace-free) to `ids` using greedy
+// longest-match-first WordPiece over UTF-8 codepoints. The first piece is
+// matched bare, every continuation piece with the `##` prefix. If any piece
+// has no match the whole word becomes a single `[UNK]` id (standard BERT
+// all-or-nothing behavior); a vocabulary without `[UNK]` fails closed.
+fn _wpm_wordpiece_bytes(v: &LlmWpmVocab, raw: &Vec[UInt8], ids: &mut Vec[Int]) -> Result[Int, Str] {
+  let toks: Vec[Str] = v.tokens;
+  let n = raw.len();
+  if n == 0 {
+    return _ok_int(0);
+  }
+  let offs = _wpm_codepoint_offsets(raw);
+  let nc = offs.len() - 1;
+  var tmp = Vec[Int].new();
+  var start = 0;
+  while start < nc {
+    var matched = -1;
+    var match_end = -1;
+    var j = nc;
+    while j > start {
+      let a: Int = offs[start];
+      let b: Int = offs[j];
+      let piece: Str = _bytes_to_str(&_bytes_slice(raw, a, b));
+      var cand = piece;
+      if start > 0 {
+        cand = "##" + piece;
+      }
+      let id = _find_wpm_token_id(&toks, cand);
+      if id >= 0 {
+        matched = id;
+        match_end = j;
+        break;
+      }
+      j = j - 1;
+    }
+    if matched < 0 {
+      let unk: Int = v.unk;
+      if unk < 0 {
+        return _err_int("llm: wpm unk token missing");
+      }
+      ids.push(unk);
+      return _ok_int(1);
+    }
+    tmp.push(matched);
+    start = match_end;
+  }
+  var q = 0;
+  while q < tmp.len() {
+    let id2: Int = tmp[q];
+    ids.push(id2);
+    q = q + 1;
+  }
+  return _ok_int(tmp.len());
+}
+
+/// WordPiece-tokenize one word (no whitespace splitting): greedy
+/// longest-match-prefix over UTF-8 codepoint boundaries, with continuation
+/// pieces prefixed by `##`. A piece that has no vocabulary entry makes the
+/// whole word a single `[UNK]` id. Empty input -> empty id list. Error case:
+/// `llm: wpm unk token missing` (unknown piece and no `[UNK]` token in the
+/// vocabulary).
+pub fn llm_wpm_wordpiece(v: &LlmWpmVocab, word: Str) -> Result[Vec[Int], Str] {
+  let raw = _str_bytes(word);
+  var ids = Vec[Int].new();
+  let wr = _wpm_wordpiece_bytes(v, &raw, &mut ids);
+  if !wr.is_ok {
+    return _err_ids(wr.error);
+  }
+  return _ok_ids(ids);
+}
+
+/// WPM tokenize: split `text` at ASCII whitespace (space, tab, LF, VT, FF,
+/// CR) and WordPiece every non-empty word (see `llm_wpm_wordpiece`).
+/// Consecutive separators are collapsed. No case folding or accent
+/// normalization is applied: the SPEC does not pin those options for WPM,
+/// so the core is normalization-free (the caller may normalize beforehand).
+/// BOS/EOS ids are prepended / appended when the header sets
+/// `add_bos_token` / `add_eos_token` and the id exists. Empty text -> empty
+/// id list (plus BOS/EOS when flagged). Error case:
+/// `llm: wpm unk token missing`.
+pub fn llm_wpm_encode(v: &LlmWpmVocab, text: Str) -> Result[Vec[Int], Str] {
+  let raw = _str_bytes(text);
+  var ids = Vec[Int].new();
+  var start = 0;
+  let n = raw.len();
+  var i = 0;
+  while i <= n {
+    var is_sep = false;
+    if i < n {
+      let b = (raw[i] as Int) & 0xFF;
+      if b == 32 || b == 9 || b == 10 || b == 11 || b == 12 || b == 13 {
+        is_sep = true;
+      }
+    } else {
+      is_sep = true;
+    }
+    if is_sep {
+      if i > start {
+        let wb = _bytes_slice(&raw, start, i);
+        let wr = _wpm_wordpiece_bytes(v, &wb, &mut ids);
+        if !wr.is_ok {
+          return _err_ids(wr.error);
+        }
+      }
+      start = i + 1;
+    }
+    i = i + 1;
+  }
+
+  var out = Vec[Int].new();
+  let ab: Int = v.add_bos;
+  let bvid: Int = v.bos;
+  if ab != 0 && bvid >= 0 {
+    out.push(bvid);
+  }
+  var q = 0;
+  while q < ids.len() {
+    let iv: Int = ids[q];
+    out.push(iv);
+    q = q + 1;
+  }
+  let ae: Int = v.add_eos;
+  let evid: Int = v.eos;
+  if ae != 0 && evid >= 0 {
+    out.push(evid);
+  }
+  return _ok_ids(out);
+}
+
+/// Decode WPM ids: join the token strings with single spaces, then remove
+/// every `" ##"` sequence so continuation pieces attach to the previous
+/// piece (`converted_tokens_to_string` semantics). Empty ids -> "". Error
+/// case: `llm: token id out of range`.
+pub fn llm_wpm_decode(v: &LlmWpmVocab, ids: &Vec[Int]) -> Result[Str, Str] {
+  let toks: Vec[Str] = v.tokens;
+  var joined = "";
+  var i = 0;
+  while i < ids.len() {
+    let id: Int = ids[i];
+    if id < 0 || id >= toks.len() {
+      return _err_str("llm: token id out of range");
+    }
+    let s: Str = toks[id];
+    if i > 0 {
+      joined = joined + " ";
+    }
+    joined = joined + s;
+    i = i + 1;
+  }
+  var out = "";
+  let n = string.str_len(joined);
+  var k = 0;
+  while k < n {
+    if k + 2 < n && _byte_at(joined, k) == 32 && _byte_at(joined, k + 1) == 35 && _byte_at(joined, k + 2) == 35 {
+      k = k + 3;
+      continue;
+    }
+    out = out + string.str_slice(joined, k, k + 1);
+    k = k + 1;
+  }
+  return _ok_str(out);
 }
 
 // --------------------------------------------------

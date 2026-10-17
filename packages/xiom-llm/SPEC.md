@@ -68,10 +68,14 @@ Implemented in 0.1.0 (M1 + M2):
   token throughput and SPM / GPT-2 encode throughput from a caller-supplied
   iteration count. The conformance suite type-checks the entry (marker
   `t90`) without running iterations.
+* WPM (`"bert"`) vocabulary extraction + WordPiece tokenizer core (M3
+  remainder follow-up, 2026-10-17, section 10.6): `llm_wpm_vocab_from_gguf`,
+  the `llm_wpm_*` accessors, greedy longest-match-prefix with the `##`
+  continuation convention, all-or-nothing `[UNK]` mapping, whitespace
+  splitting, BOS/EOS flags, and decode.
 
-Declared for later milestones (section 10):
-
-* WPM (`"bert"`) vocabulary/tokenize path (section 10.6).
+No declared items remain: every tokenizer family named by the ROADMAP
+(GPT-2 BPE, SPM `"llama"`, WPM `"bert"`) is implemented.
 
 ## 2. Non-goals
 
@@ -339,6 +343,10 @@ Tokenizer completion (M3 remainder):
   optional insertion flag is present but not an integer)
 * `llm: spm byte not in vocabulary` (`llm_spm_encode`: an unknown symbol
   whose bytes have no `<0xXX>` fallback token)
+* `llm: wpm tokenizer model is not bert` (`llm_wpm_vocab_from_gguf` when
+  `tokenizer.ggml.model` names another family)
+* `llm: wpm unk token missing` (`llm_wpm_wordpiece` / `llm_wpm_encode`: a
+  piece has no vocabulary match and the vocabulary has no `[UNK]` token)
 * `llm: invalid utf8`, `llm: codepoint not in gpt2 byte map`
   (`llm_gpt2_vocab_from_gguf`: a stored token/merge key is not a valid
   escaped GPT-2 string)
@@ -388,15 +396,21 @@ Tokenizer completion (M3 remainder):
    exercised on real container tensor data, but the container carries no
    type-8 tensor info. Lifting this needs a `xiom.gguf` builder change
    (out of lane scope).
-8. **SPM normalization / WPM.** `llm_spm_encode` applies SentencePiece
-   word-boundary normalization by mapping every ASCII space to the UTF-8
-   marker U+2581 (`▁`, E2 96 81) before traversal, and `llm_spm_decode`
-   maps it back to a space. Symbols are split at strict UTF-8 codepoint
-   boundaries (invalid bytes become one-byte symbols); an unknown final
-   symbol falls back to its per-byte `<0xXX>` tokens when the vocabulary
-   provides them. llm.cpp prepends a leading `▁` unconditionally; xiom.llm
-   only rewrites spaces (documented deviation, keeps the ASCII fixtures and
-   empty-text behavior unchanged). WPM (`"bert"`) remains unimplemented.
+8. **SPM normalization / WPM conventions.** `llm_spm_encode` applies
+   SentencePiece word-boundary normalization by mapping every ASCII space
+   to the UTF-8 marker U+2581 (`▁`, E2 96 81) before traversal, and
+   `llm_spm_decode` maps it back to a space. Symbols are split at strict
+   UTF-8 codepoint boundaries (invalid bytes become one-byte symbols); an
+   unknown final symbol falls back to its per-byte `<0xXX>` tokens when the
+   vocabulary provides them. llm.cpp prepends a leading `▁` unconditionally;
+   xiom.llm only rewrites spaces (documented deviation, keeps the ASCII
+   fixtures and empty-text behavior unchanged). WPM (`"bert"`) follows the
+   BERT WordPiece convention (`##` continuation tokens, all-or-nothing
+   `[UNK]`), whereas llama.cpp's WPM session prefixes each word with U+2581
+   and has no `##` convention. The WPM core splits on ASCII whitespace only
+   (not punctuation) and is normalization-free: the SPEC does not pin
+   `do_lower_case` / accent stripping for WPM, so neither is applied (the
+   caller may normalize text before encoding).
 
 ## 9. XGGUF-ARRSTR: string-array offset workaround (RESOLVED)
 
@@ -662,13 +676,13 @@ IMPLEMENTED in M3b, 2026-10-16 -- second half: KV cache + longer context]**
   identity RoPE table for every position (valid over the fixture domain);
   caller-supplied per-position tables are `llm_forward_cache`'s contract.
 
-**Deferred:** WPM (`"bert"`) (section 10.6). The package-local benchmark
+**Deferred:** nothing at the milestone level. The package-local benchmark
 harness is implemented (section 10.7); the BOS/EOS insertion flags and
 real-vocabulary loading are implemented. Q4_K-class dequantization
 (`llm_dequant_q4_k`), the neighboring Q5_0 (`llm_dequant_q5_0`) and the
 remaining Q4_0/Q5_1/Q6_K decoders landed with the M3 remainder
-(section 10.3); the GPT-2 escape layer,
-ASCII pre-tokenizer and SPM core landed with the tokenizer completion
+(section 10.3); the GPT-2 escape layer, ASCII pre-tokenizer, SPM core and
+WPM (`"bert"`) WordPiece core landed with the tokenizer completion
 (section 10.6). No multi-layer attention kernel beyond the single-layer
 fixture is implemented (the M3 fixture is 1 layer).
 
@@ -760,9 +774,42 @@ SPM (`tokenizer.ggml.model == "llama"`):
   `<0xXX>` byte-fallback tokens contribute their raw byte; other tokens are
   copied verbatim. Error `llm: token id out of range`.
 
-Still declared: WPM (`"bert"`) extraction/tokenize. The SPM marker
-normalization, `<0xXX>` byte fallback and the `add_bos_token` /
-`add_eos_token` flags are implemented.
+WPM (`tokenizer.ggml.model == "bert"`):
+
+* `LlmWpmVocab` (model, tokens, has_types, token_types, bos, eos, add_bos,
+  add_eos, unk) produced only by `llm_wpm_vocab_from_gguf(g)`. WPM has no
+  merge table: continuations are encoded in the token strings by the `##`
+  prefix. Tokens are read through `gguf_kv_arr_str_bytes`; token types,
+  bos/eos and the insertion flags follow the GPT-2/SPM extraction rules.
+  `unk` is the highest id whose token string is `[UNK]`, or -1 when absent.
+  Errors: the common model/tokens/token_type/bos/eos messages plus
+  `llm: wpm tokenizer model is not bert` (section 7).
+* Accessors: `llm_wpm_model`, `llm_wpm_size`, `llm_wpm_token`,
+  `llm_wpm_token_type`, `llm_wpm_find_token` (highest duplicate id),
+  `llm_wpm_unk`, `llm_wpm_bos`, `llm_wpm_eos`, `llm_wpm_add_bos`,
+  `llm_wpm_add_eos`.
+* `llm_wpm_wordpiece(v, word) -> Result[Vec[Int], Str]` -- the WordPiece
+  core over one whitespace-free word. Starting at codepoint 0, repeatedly
+  take the LONGEST prefix (by UTF-8 codepoint count) that exists as a
+  vocabulary token; the first piece is matched bare and every later piece
+  with the `##` prefix. If any position has no matching prefix, the whole
+  word becomes a single `[UNK]` id (standard BERT all-or-nothing mapping).
+  Empty input -> empty list. Error: `llm: wpm unk token missing` when a
+  missing piece has no `[UNK]` mapping.
+* `llm_wpm_encode(v, text) -> Result[Vec[Int], Str]` -- splits `text` at
+  ASCII whitespace (space, tab, LF, VT, FF, CR), collapses runs of
+  separators, and WordPiece-tokenizes every non-empty word. No case folding
+  or accent stripping is applied (the SPEC does not pin those options; see
+  section 8). When `add_bos_token` / `add_eos_token` is 1 and the id exists,
+  the BOS id is prepended and the EOS id appended. Empty text -> empty list
+  (plus BOS/EOS when flagged). Error: `llm: wpm unk token missing`.
+* `llm_wpm_decode(v, ids) -> Result[Str, Str]` -- joins the token strings
+  with single spaces and removes every `" ##"` sequence, so continuation
+  pieces attach to the previous piece (BERT `convert_tokens_to_string`
+  semantics). Empty list -> "". Error: `llm: token id out of range`.
+
+The SPM marker normalization, `<0xXX>` byte fallback and the
+`add_bos_token` / `add_eos_token` flags are implemented.
 
 ### 10.7 Benchmark harness
 
@@ -816,7 +863,7 @@ on the same machine. The conformance suite imports the module and calls the
 `bench_smoke()` marker (test `t90`) so the entry is type-checked on every
 run without executing iterations.
 
-## 11. Test matrix (327 checks, `tests/test_conformance.xi`)
+## 11. Test matrix (384 checks, `tests/test_conformance.xi`)
 
 All checks run against a synthetic deterministic fixture built with
 `xiom.gguf`'s builder: 6 metadata KVs, one tensor info
@@ -1019,6 +1066,35 @@ goldens hand-computed from the integer formulas):
   the `d = 0.5` exponent case (value 8 at `E = 11`), mixed super-block d
   sharing `E = 11`, and the empty / bad-length / f16-inf rejects.
 
+WPM (`"bert"`) additions (checks 328-384, tests `t94`-`t100`; synthetic
+20-token bert fixture with `##` continuations, `[UNK]`, `[CLS]`/`[SEP]`,
+and a multi-byte `é` piece):
+
+* extraction/accessors (`t94`): model `bert`, size 20, bare and `##`
+  tokens including the exact bytes `23 23 C3 A9` for `##é`, `[UNK]` id 0,
+  find hits/misses, token types 2/3/1, absent bos/eos and flags, and the
+  token / token_type range rejects.
+* WordPiece core (`t95`): greedy longest match (`hello -> [3]`, not
+  `[5,6]`), continuation attach (`hellos -> [3,15]`), `abc -> [14]`,
+  unknown `q -> [0]`, the all-or-nothing rule (`abcq -> [0]`), continuations
+  without punctuation splitting (`a+b -> [11,19,12]`), empty word, and the
+  multi-byte cases `café -> [8,9]` / `é -> [10]`.
+* encode / flags (`t96`): empty text, whitespace splitting and separator
+  collapsing, `hello café`, `a+b`, the flagged 1/1 read, bos/eos 1/2, and
+  BOS/EOS insertion for both non-empty and empty text.
+* decode (`t97`): empty, space join with `##` attach (`[3,4] ->
+  "hello world"`, `[3,15] -> "hellos"`), `a+b`, exact multi-byte bytes,
+  out-of-range ids, five-text encode/decode roundtrip (including `é`), and
+  the special-token join.
+* extraction errors (`t98`): a `gpt2` header, missing tokens, a short
+  token_type array and a string token_type array, each with its exact
+  message.
+* no-`[UNK]` fixture (`t99`): `unk = -1`, and both encode and wordpiece fail
+  closed with `llm: wpm unk token missing`.
+* normalization-free core (`t100`): lowercase matches while uppercase and
+  mixed-case-accented text become `[UNK]` (the SPEC pins no WPM case
+  folding or accent stripping).
+
 Golden-logit provenance (checks 75-78). The fixture is built so every integer
 step is exact: token 1 embedding row `[4,4,0,0]` (mean square 8, rms 2) ->
 `xn=[2,2,0,0]`; `Wq/Wk/Wv` select column 1 -> `q=k=v=[2,2,2,2]`; position-0
@@ -1056,7 +1132,11 @@ fallback, flags, escaped GPT-2 loader) also compiles on v0.64.6 with no new
 compiler defect; `xiom.string.builder`'s `sb_to_str` is used to materialize
 `Str` values from arbitrary bytes. The raw-GGUF test helpers hand-write
 header bytes because `xiom.gguf` has no float-array builder entry; the
-escaped GPT-2 fixture is built with the builder plus `sb_to_str`.
+escaped GPT-2 fixture is built with the builder plus `sb_to_str`. The WPM
+addition (WordPiece core) uses only free functions over `Str`,
+`Vec[Str]`, `Vec[Int]` and `Vec[UInt8]` plus one new struct type; it
+compiles on v0.64.6 with no new compiler defect (the existing
+`_utf8_decode_at` helper is reused for codepoint boundaries).
 
 ## 13. Reference notes
 
@@ -1070,6 +1150,10 @@ escaped GPT-2 fixture is built with the builder plus `sb_to_str`.
 * Merge split semantics: `llama-vocab.cpp`, `word.find(' ', 1)`.
 * BPE priority: `llm_bigram_bpe::comparator` (rank asc, left asc),
   one-merge-per-step with requeue of neighbours.
+* WPM: `llm_tokenizer_wpm_session` (llama.cpp traversal with a U+2581
+  phantom-space prefix). xiom.llm implements the BERT WordPiece convention
+  pinned by the ROADMAP (`##` continuations, `[UNK]`) instead; the
+  difference is recorded in section 8 item 8.
 * Token types: `LLAMA_TOKEN_TYPE_UNDEFINED=0, NORMAL=1, UNKNOWN=2,
   CONTROL=3, USER_DEFINED=4, UNUSED=5, BYTE=6` (`include/llama.h`).
 * Quantization: `src/ggml-quants.c` -- `get_scale_min_k4` (the 6-bit Q4_K
