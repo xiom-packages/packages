@@ -1501,6 +1501,39 @@ in-situ; filed to compiler; restore stays parked)**:
   merge cue `a8902f4`) -- the engine's long-lived-handle ask is
   DELIVERED; compiler wave m347-m349 integrated (locks 39/39).
 
+**UPDATE 2026-10-17 00:45Z (OVERNIGHT WAVE: M2 runtimes LANDED --
+torch/libtorch/tensorflow/blas/openblas; B-34 filed; 566/0)**:
+- **All five overnight wave branches LANDED** (sibling parked; this
+  session completed the landings on the v0.64.6 slot):
+  - **`xiom.torch 0.1.0` + `xiom.libtorch 0.1.0`** (land `012760fc`;
+    records re-pointed): agent x2 LIVE 22/22 + 33/33 (libtorch 2.9.0
+    CPU); SKIP-leg gate 19/19 + 8/8 x2.
+  - **`xiom.tensorflow 0.1.0`** (land `be30e872`): 109/109 C API
+    loader; agent x2 LIVE 74/74 (libtensorflow 2.18.1 CPU); SKIP-leg
+    gate 17/17 x2.
+  - **`xiom.blas 0.1.0`** (land `30c0d1ac`): safe linalg over the live
+    xiom.openblas seam; 50/50 x2; + **`xiom.openblas`** STATUS pin fix
+    (32/32).
+  - validate **566/0**; pushed `6bf167ba`.
+- **CHECKOUT-HYGIENE TRAP found + fixed (recipe addendum)**: `git
+  checkout <branch> -- <dir>` does NOT apply the branch's DELETIONS --
+  stale root stubs (`xiom-blas/blas.xi`, `xiom-tensorflow/tensorflow.xi`)
+  shadowed the new `src/` modules (blas: 119 T001s + W001 module
+  collision).  Fixed via `git rm` in `30c0d1ac`; tf re-verified 17/17
+  after removal.  When a branch restructures a package dir: remove the
+  dir first (`git rm -rf`) then checkout, or diff the branch manifest.
+- **B-34 filed to compiler** (`REL-20261017-0042-bindings`; medium;
+  probe bundle `docs/repro/bindings-pilot/vec-alias-generic/`, landed
+  `294c28bc`): cross-module `Vec[alias]` generics do not unify -- RED
+  on .5 AND .6 (pre-existing; NOT a .6 regression; found cross-checking
+  tf; not blocking any landed package).
+- **M2 publish request filed** (`-0042-bindings-2`, combined):
+  torch/libtorch/tensorflow = NEW names (ops scopes); blas/openblas =
+  confirm registry entries; one wave batch suggested.
+- MORNING TODO: gps scope still pending (`-2144-bindings-2` acked);
+  branch-side `COMPILER_VERSION` bump still pending (owner/sibling);
+  B-32 (m358) + B-34 ride the v0.64.7 wave.
+
 **UPDATE 2026-10-16 23:30Z (miniaudio 0.5.0 handle surface LANDED --
 engine ask delivered; merge+publish relayed; wave parked overnight)**:
 owner asked for the delivery + merge relay, then pause.
