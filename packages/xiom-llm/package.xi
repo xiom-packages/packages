@@ -16,7 +16,7 @@
 package xiom_llm {
   name: "xiom.llm";
   version: "0.1.0";
-  description: "llama.cpp-family runner tier: GGUF payload/vocab loading, byte-level BPE tokenizer and (planned) deterministic float-free dequant, matmul, forward pass and generation loop";
+  description: "llama.cpp-family runner tier: GGUF payload/vocab loading, byte-level BPE tokenizer and deterministic float-free dequant, matmul, forward pass and generation loop";
   categories: ["ai-ml"];
   keywords: ["llm", "gguf", "inference", "bpe", "tokenizer", "llama", "quantization"];
   license: "MIT OR Apache-2.0";

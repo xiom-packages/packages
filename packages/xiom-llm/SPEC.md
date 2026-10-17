@@ -43,6 +43,11 @@ Implemented in 0.1.0 (M1 + M2):
   sub-scales/mins, 4-bit quants), the 6-bit unpack helper
   `llm_k_get_scale_min_k4`, and the neighboring `llm_dequant_q5_0`
   (5-bit quants, shared f16 scale).
+* remaining quant formats (M3 remainder follow-up, 2026-10-17, section 10.3):
+  `llm_dequant_q4_0` (18-byte blocks, 4-bit quants centered at 8),
+  `llm_dequant_q5_1` (24-byte blocks, unsigned 5-bit quants with an f16
+  additive offset `m`), and `llm_dequant_q6_k` (210-byte super-blocks,
+  6-bit quants with signed int8 per-16 scales).
 * tokenizer completion (M3 remainder, 2026-10-17, section 10.6): the GPT-2
   `bytes_to_unicode` escape/unescape layer as exact integer/UTF-8 surfaces
   (`llm_gpt2_*`, `llm_utf8_append`), the GPT-2 regex pre-tokenizer over the
@@ -83,7 +88,7 @@ Declared for later milestones (section 10):
   integer sampler (temperature / top-k / top-p over a seeded LCG); M3b adds
   the append-only KV cache and longer-context attention. Q4_K-class / Q5_0
   dequantization landed with the M3 second-half remainder; Q4_0/Q5_1/Q6_K
-  remain unscheduled.
+  landed with the M3 remainder follow-up (section 10.3).
 * No UTF-8 restriction in the container: the current `xiom.gguf` stores
   string values as opaque bytes (section 4); the ASCII-only M1 domain survives only
   as the historic fixture domain. Real SPM/GPT-2 vocabularies are loaded
@@ -309,6 +314,13 @@ Dequantization breadth (M3 second-half remainder):
   block size` (`llm_dequant_q4_k`)
 * `llm: q4_k scale index out of range`, `llm: q4_k scales too short`
   (`llm_k_get_scale_min_k4`)
+* `llm: q4_0 payload is empty`, `llm: q4_0 payload length not a multiple of
+  block size`, `llm: q4_0 mixed block scales are not supported`
+  (`llm_dequant_q4_0`)
+* `llm: q5_1 payload is empty`, `llm: q5_1 payload length not a multiple of
+  block size` (`llm_dequant_q5_1`)
+* `llm: q6_k payload is empty`, `llm: q6_k payload length not a multiple of
+  block size` (`llm_dequant_q6_k`)
 
 Tokenizer completion (M3 remainder):
 
@@ -465,7 +477,7 @@ The representation:
 ### 10.3 Dequantization
 
 **[IMPLEMENTED in M2a, 2026-10-16; Q4_K-class + Q5_0 added in M3 second-half
-remainder, 2026-10-16]**
+remainder, 2026-10-16; Q4_0 + Q5_1 + Q6_K added 2026-10-17]**
 
 * `llm_dequant_q8_0(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str]`
   -- Q8_0 first: blocks of 32 x i8 quants + f16 scale; values scaled-int.
@@ -495,6 +507,35 @@ remainder, 2026-10-16]**
   `out_values[i] = sc*q*dm*2^(E-de) - mn*dmm*2^(E-dme)`. The returned
   `LlmScale` is the unit scale `(1, E)`. Unlike Q8_0/Q5_0, mixed per-block
   d/dmin are handled (E is global). Error bound 0.
+* `llm_dequant_q4_0(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str]`
+  -- Q4_0 (ggml type 2, 18-byte blocks of 32 values): a little-endian f16
+  scale `d` and 16 nibble bytes; value `j` (0..15) is the low nibble of byte
+  `j`, value `j + 16` its high nibble, and the unsigned 4-bit quant in 0..15
+  is centered by subtracting 8. Output `i` is `(q[i] - 8) * m` for the shared
+  scale `(m, e)` from `llm_f16_to_scaled`; EXACT (error bound 0). Mixed
+  per-block scales are rejected (same single-shared-scale surface as
+  Q8_0/Q5_0).
+* `llm_dequant_q5_1(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str]`
+  -- Q5_1 (ggml type 7, 24-byte blocks of 32 values): a little-endian f16
+  scale `d`, a little-endian f16 offset `m`, four bytes of fifth bits `qh`
+  (bit `k` of the little-endian u32 is value `k`'s fifth bit) and 16 nibble
+  bytes. The 32 unsigned 5-bit quants are in 0..31 and value `k` is
+  `d*q[k] + m`. With `d = dm/2^de`, `m = dmm/2^dme` this is represented
+  EXACTLY over the global exponent `E = max(de, dme)` as
+  `out_values[i] = q*dm*2^(E-de) + dmm*2^(E-dme)` with the returned unit
+  scale `(1, E)`; mixed per-block d/m are handled. Error bound 0.
+* `llm_dequant_q6_k(payload: &Vec[UInt8], out_values: &mut Vec[Int]) -> Result[LlmScale, Str]`
+  -- Q6_K (ggml type 14, 210-byte super-blocks of 256 values): `ql[128]`,
+  `qh[64]`, 16 signed int8 per-16 scales and a final little-endian f16
+  super-scale `d`. Each 128-value half emits the four 6-bit quants of
+  `((ql[l] & 0xF) | ((qh[l] >> 0 & 3) << 4)) - 32`, the `ql[l+32]` low
+  nibble with `qh[l] >> 2`, the `ql[l]` high nibble with `qh[l] >> 4`, and
+  the `ql[l+32]` high nibble with `qh[l] >> 6`, at offsets `l`, `l+32`,
+  `l+64`, `l+96` with scales `sc[is]`, `sc[is+2]`, `sc[is+4]`, `sc[is+6]`
+  (`is = l / 16`), then advances ql/qh/scales by 64/32/8. The value is
+  `d*sc*q`, represented EXACTLY over the global `E = max(de)` as
+  `out_values[i] = sc*q*dm*2^(E-de)` with the unit scale `(1, E)`; mixed
+  per-block d are handled. Error bound 0.
 * `llm_k_get_scale_min_k4(j, scales: &Vec[UInt8]) -> Result[Vec[Int], Str]`
   -- the exposed 6-bit unpack (`get_scale_min_k4`): groups 0..3 read the low
   six bits of `scales[j]` (scale) and `scales[j+4]` (min); groups 4..7
@@ -624,8 +665,9 @@ IMPLEMENTED in M3b, 2026-10-16 -- second half: KV cache + longer context]**
 **Deferred:** WPM (`"bert"`) (section 10.6). The package-local benchmark
 harness is implemented (section 10.7); the BOS/EOS insertion flags and
 real-vocabulary loading are implemented. Q4_K-class dequantization
-(`llm_dequant_q4_k`) and the neighboring Q5_0 (`llm_dequant_q5_0`) landed
-with the M3 second-half remainder (section 10.3); the GPT-2 escape layer,
+(`llm_dequant_q4_k`), the neighboring Q5_0 (`llm_dequant_q5_0`) and the
+remaining Q4_0/Q5_1/Q6_K decoders landed with the M3 remainder
+(section 10.3); the GPT-2 escape layer,
 ASCII pre-tokenizer and SPM core landed with the tokenizer completion
 (section 10.6). No multi-layer attention kernel beyond the single-layer
 fixture is implemented (the M3 fixture is 1 layer).
@@ -774,7 +816,7 @@ on the same machine. The conformance suite imports the module and calls the
 `bench_smoke()` marker (test `t90`) so the entry is type-checked on every
 run without executing iterations.
 
-## 11. Test matrix (303 checks, `tests/test_conformance.xi`)
+## 11. Test matrix (327 checks, `tests/test_conformance.xi`)
 
 All checks run against a synthetic deterministic fixture built with
 `xiom.gguf`'s builder: 6 metadata KVs, one tensor info
@@ -954,6 +996,28 @@ Benchmark entry marker (check 303, test `t90`): the suite imports
 which returns the fixed row count (4). This type-checks the whole harness
 without running any timed iterations. The bench itself is run off-suite
 (section 10.7).
+
+Remaining quant-format additions (checks 304-327, tests `t91`-`t93`; all
+goldens hand-computed from the integer formulas):
+
+* Q4_0 (`t91`): the all-zero-nibble block (every centered quant `-8`, scale
+  1.0, exact `-8192` each), nibble 15 (`7 * 1024`), the low/high nibble
+  ordering (`0x30` first byte -> value 0 `-8` and value 16 `-5`), the
+  scale-0.5 exponent shift (`(1024, 11)` with unchanged `q*m`), and the
+  empty / bad-length / mixed-scale rejects.
+* Q5_1 (`t92`): zero quants with `m = 0` (unit scale `(1,10)`, all zero),
+  the fifth-bit mapping (only `qh` bit 0 set -> value 0 is `16 * 1024`),
+  the asymmetric distinct-exponent case `d = 0.5`, `m = 0.25`, `q = 1`
+  -> `0.75` exactly `3072` at `E = 12`, mixed per-block d/m sharing
+  `E = 12` (`1.0 -> 4096`, `0.75 -> 3072`), and the empty / bad-length /
+  f16-inf rejects.
+* Q6_K (`t93`): the all-zero ql/qh block (every quant `-32`, unit scale
+  `(1,10)`, exact `-32768`), the q1..q4 ordering and 2-bit field
+  decomposition (`ql[0]=0x21`, `ql[32]=0x43`, `qh[0]=0xE4` -> `-31`,
+  `-13`, `2`, `20` at offsets 0/32/64/96), the signed int8 scale vector
+  `[+1,-1,+2,-2,+3]` exact at the `is = l/16` index boundary (l=15/16),
+  the `d = 0.5` exponent case (value 8 at `E = 11`), mixed super-block d
+  sharing `E = 11`, and the empty / bad-length / f16-inf rejects.
 
 Golden-logit provenance (checks 75-78). The fixture is built so every integer
 step is exact: token 1 embedding row `[4,4,0,0]` (mean square 8, rms 2) ->

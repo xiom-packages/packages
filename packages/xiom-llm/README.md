@@ -4,7 +4,7 @@
 
 # xiom.llm
 
-> **Status:** `incubating` -- conformance-tested (303/303, twice);
+> **Status:** `incubating` -- conformance-tested (327/327, twice);
 > published in `eco-v0.1.196` (sha256 `3c85e858...`, 2026-10-17).
 > **Milestones 1-2 + M3 first and second halves + tokenizer completion +
 > real vocabularies + benchmark harness:**
@@ -14,8 +14,9 @@
 > golden-logit fixture (M2), the generation loop with a deterministic seeded
 > sampler -- greedy / temperature / top-k / top-p -- plus stop-token handling
 > (M3a), the append-only KV cache with longer-context multi-position
-> attention and the cached generation loop (M3b), Q4_K/Q5_0 dequantization,
-> the tokenizer completion (GPT-2 escape layer, GPT-2 regex pre-tokenizer,
+> attention and the cached generation loop (M3b), Q8_0/Q5_0/Q4_K/Q4_0/Q5_1/
+> Q6_K dequantization, the tokenizer completion (GPT-2 escape layer, GPT-2
+> regex pre-tokenizer,
 > SPM scored-merge core), and real-vocabulary loading (lossless GGUF string
 > bytes, escaped GPT-2 keys, SPM `▁` normalization + `<0xXX>` fallback,
 > BOS/EOS flags), and the package-local benchmark harness (fixture prefill /
@@ -31,7 +32,7 @@ follows llama.cpp's merge-table semantics (`llama-vocab.cpp`, commit
 * Pure XIOM, no FFI. Deps: `xiom.std`, `xiom.gguf` (header codec),
   `xiom.tensor` (shape construction + canonical dumps).
 * Deterministic `Err(Str)` catalog prefixed `llm: ` (see SPEC.md section 7).
-* 303 conformance checks (`tests/test_conformance.xi`) over synthetic
+* 327 conformance checks (`tests/test_conformance.xi`) over synthetic
   deterministic GGUF fixtures built with `xiom.gguf`'s builder (including
   non-ASCII escaped GPT-2 keys and SPM `▁` tokens) -- no model downloads.
 * Offline benchmark harness (`bench/bench_llm.xi`); the conformance suite
@@ -66,6 +67,7 @@ let text = llm_bpe_decode(&v, &ids).value;                    // "hello world"
 | Tokenizer | `llm_bpe_encode`, `llm_bpe_decode` |
 | Loading (M2) | `llm_ggml_type_name`, `llm_ggml_block_elems`, `llm_ggml_block_bytes`, `llm_tensor_nbytes`, `llm_tensor_data`, `llm_model_open` |
 | Numerics (M2) | `llm_u16_le`, `llm_u32_le`, `llm_f16_to_scaled`, `llm_f32_to_scaled`, `llm_dequant_q8_0`, `llm_q8_0_ints`, `llm_f32_at` |
+| Dequant (M3) | `llm_dequant_q8_0`, `llm_dequant_q5_0`, `llm_dequant_q4_k`, `llm_k_get_scale_min_k4`, `llm_dequant_q4_0`, `llm_dequant_q5_1`, `llm_dequant_q6_k` |
 | Forward (M2) | `llm_matmul_i32`, `llm_dot_i32`, `llm_rmsnorm_i32`, `llm_rope_i32`, `llm_softmax_i32`, `llm_silu_q`, `llm_swiglu_i32`, `llm_isqrt`, `llm_shape_dump` |
 | Generation (M3a) | `llm_forward_token`, `llm_generate`, `llm_is_stop`, `llm_greedy_next`, `llm_apply_temperature`, `llm_top_k_keep`, `llm_top_p_keep`, `llm_sample_choice`, `llm_sample_next`, `llm_sampler_greedy`, `llm_sampler_seeded`, `llm_rng_seed`, `llm_rng_next`, `llm_rng_below` |
 | KV cache (M3b) | `llm_kv_cache_new`, `llm_kv_cache_len`, `llm_kv_cache_cap`, `llm_kv_cache_append`, `llm_kv_cache_key`, `llm_kv_cache_val`, `llm_attention_i32`, `llm_forward_cache`, `llm_generate_cached` |
@@ -175,8 +177,8 @@ dependency via `xiom.toml`):
 & .\scripts\port.ps1 -Package xiom-llm -TimeoutSec 180
 ```
 
-Expected tail: 303 `[PASS]` lines, `xiom.llm: all tests passed`, then
-`port: PASS (passed=303 failed=0 program_exit=0 exit=0)`.
+Expected tail: 327 `[PASS]` lines, `xiom.llm: all tests passed`, then
+`port: PASS (passed=327 failed=0 program_exit=0 exit=0)`.
 
 ## License
 

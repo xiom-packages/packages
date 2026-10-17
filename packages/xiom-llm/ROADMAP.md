@@ -7,13 +7,13 @@
 Lane: llama.cpp-family runner tier of the ML/AI coverage program.
 Current: v0.1.0, milestones M1 + M2 complete, M3 first and second halves
 (generation loop + sampling, the append-only KV cache + longer-context
-attention, and Q4_K-class dequantization with the neighboring Q5_0) complete
-plus the tokenizer completion (GPT-2 escape layer, GPT-2 regex
+attention, and the Q4_K-class / Q5_0 / Q4_0 / Q5_1 / Q6_K dequantizers)
+complete plus the tokenizer completion (GPT-2 escape layer, GPT-2 regex
 pre-tokenizer, SPM scored-merge core), real-vocabulary loading (lossless
 GGUF string bytes, SPM U+2581 normalization + `<0xXX>` byte fallback,
 BOS/EOS insertion flags, escaped GPT-2 vocab loader), and the package-local
 benchmark harness (`bench/bench_llm.xi`, SPEC.md section 10.7);
-conformance-green (303/303 x2). Remaining: WPM (`"bert"`).
+conformance-green (327/327 x2). Remaining: WPM (`"bert"`).
 `publish: false` pending ops scope + allowlist.
 
 ## M1 -- vocab + byte-level BPE (DONE, 2026-10-16)
@@ -106,7 +106,13 @@ first, fixture dims chosen so every oracle value is exact.
    `llm_dequant_q5_0` (22-byte blocks, 5-bit quants, shared scale). Values
    are EXACT (error bound 0); Q4_K folds per-group scales/mins into a single
    global exponent `E = max(de, dme)`. Malformed block sizes get typed
-   errors. Q4_0/Q5_1/Q6_K remain unscheduled.
+   errors. The remaining formats landed with the M3 remainder follow-up
+   (2026-10-17): `llm_dequant_q4_0` (18-byte blocks, centered 4-bit quants,
+   shared scale), `llm_dequant_q5_1` (24-byte blocks, unsigned 5-bit quants
+   plus an f16 offset `m`, global `E = max(de, dme)`) and
+   `llm_dequant_q6_k` (210-byte super-blocks, 6-bit quants with signed int8
+   per-16 scales, global `E = max(de)`). All are EXACT with hand-computed
+   goldens and typed empty / bad-length / scale-error arms.
 5. Tokenizer: GPT-2 `bytes_to_unicode` escape/unescape and the GPT-2
    regex pre-tokenizer, SPM (`"llama"`) extraction + tokenize core, BOS/EOS
    insertion flags, WPM (`"bert"`) -- **PARTIAL / DONE (2026-10-17)**:
@@ -138,7 +144,7 @@ first, fixture dims chosen so every oracle value is exact.
    table values). **DONE**: greedy and seeded prompt -> ids -> decode
    roundtrips are green, the cached multi-position loop adds a
    two-token-prompt roundtrip, the escape-layer vectors are pinned, the
-   benchmark entry is type-checked, and the suite is green (303/303 x2).
+   benchmark entry is type-checked, and the suite is green (327/327 x2).
 
 ## Maintenance / cross-lane items
 

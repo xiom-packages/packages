@@ -2391,6 +2391,336 @@ fn t73() -> Int {
 }
 
 // --------------------------------------------------
+//  M3 remainder: Q4_0 + Q5_1 + Q6_K dequantization
+// --------------------------------------------------
+
+// One Q4_0 block: little-endian f16 `dbits`, a first nibble byte `first`,
+// then 15 copies of `fill` (18 bytes total).
+fn q4_0_block(dbits: Int, first: Int, fill: Int) -> Vec[UInt8] {
+  var v = Vec[UInt8].new();
+  v.push(((dbits & 0xFF) as UInt8));
+  v.push((((dbits >> 8) & 0xFF) as UInt8));
+  v.push(((first & 0xFF) as UInt8));
+  var i = 1;
+  while i < 16 {
+    v.push(((fill & 0xFF) as UInt8));
+    i = i + 1;
+  }
+  return v;
+}
+
+// One Q5_1 block: f16 `dbits`, f16 `mbits`, four little-endian bytes of the
+// fifth bits `qh`, then 16 nibble bytes (24 bytes total).
+fn q5_1_block(dbits: Int, mbits: Int, qh: Int, qsbyte: Int) -> Vec[UInt8] {
+  var v = Vec[UInt8].new();
+  v.push(((dbits & 0xFF) as UInt8));
+  v.push((((dbits >> 8) & 0xFF) as UInt8));
+  v.push(((mbits & 0xFF) as UInt8));
+  v.push((((mbits >> 8) & 0xFF) as UInt8));
+  v.push(((qh & 0xFF) as UInt8));
+  v.push((((qh >> 8) & 0xFF) as UInt8));
+  v.push((((qh >> 16) & 0xFF) as UInt8));
+  v.push((((qh >> 24) & 0xFF) as UInt8));
+  var i = 0;
+  while i < 16 {
+    v.push(((qsbyte & 0xFF) as UInt8));
+    i = i + 1;
+  }
+  return v;
+}
+
+// One Q6_K super-block: 128 ql bytes (`ql0` at index 0, `ql32` at index 32,
+// `qlfill` elsewhere), 64 qh bytes (`qh0` at 0, `qhfill` elsewhere), 16
+// signed scale bytes, then f16 `dbits` (210 bytes total).
+fn q6_k_block(dbits: Int, scales: &Vec[Int], qlfill: Int, qhfill: Int, ql0: Int, ql32: Int, qh0: Int) -> Vec[UInt8] {
+  var v = Vec[UInt8].new();
+  var i = 0;
+  while i < 128 {
+    if i == 0 {
+      v.push(((ql0 & 0xFF) as UInt8));
+    } else {
+      if i == 32 {
+        v.push(((ql32 & 0xFF) as UInt8));
+      } else {
+        v.push(((qlfill & 0xFF) as UInt8));
+      }
+    }
+    i = i + 1;
+  }
+  var j = 0;
+  while j < 64 {
+    if j == 0 {
+      v.push(((qh0 & 0xFF) as UInt8));
+    } else {
+      v.push(((qhfill & 0xFF) as UInt8));
+    }
+    j = j + 1;
+  }
+  var k = 0;
+  while k < 16 {
+    let s: Int = scales[k];
+    v.push(((s & 0xFF) as UInt8));
+    k = k + 1;
+  }
+  v.push(((dbits & 0xFF) as UInt8));
+  v.push((((dbits >> 8) & 0xFF) as UInt8));
+  return v;
+}
+
+fn scales16(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int) -> Vec[Int] {
+  var v = Vec[Int].new();
+  v.push(a);
+  v.push(b);
+  v.push(c);
+  v.push(d);
+  v.push(e);
+  v.push(f);
+  v.push(g);
+  v.push(h);
+  v.push(a);
+  v.push(a);
+  v.push(a);
+  v.push(a);
+  v.push(a);
+  v.push(a);
+  v.push(a);
+  v.push(a);
+  return v;
+}
+
+// Q4_0 golden vectors: 4-bit quants centered at 8 (values -8..7).
+fn t91() -> Int {
+  var sum = 0;
+  // d = 1.0, all nibbles 0 -> (0 - 8) * 1024 = -8192.
+  var b1 = q4_0_block(0x3C00, 0x00, 0x00);
+  var o1 = Vec[Int].new();
+  let r1 = llm_dequant_q4_0(&b1, &mut o1);
+  if !r1.is_ok {
+    let got: Str = r1.error;
+    return report(false, "q4_0 golden decode (Err: " + got + ")");
+  }
+  let s1: LlmScale = r1.value;
+  sum = sum + report(s1.m == 1024 && s1.e == 10 && o1.len() == 32 && all_eq(&o1, -8192), "q4_0 golden all -8 (scale 1.0)");
+  // Nibble 15 -> (15 - 8) * 1024 = 7168.
+  var b2 = q4_0_block(0x3C00, 0xFF, 0xFF);
+  var o2 = Vec[Int].new();
+  let r2 = llm_dequant_q4_0(&b2, &mut o2);
+  sum = sum + report(r2.is_ok && all_eq(&o2, 7168), "q4_0 nibble 15 -> 7 * 1024");
+  // Low nibbles are values 0..15, high nibbles values 16..31.
+  var b3 = q4_0_block(0x3C00, 0x30, 0x00);
+  var o3 = Vec[Int].new();
+  let r3 = llm_dequant_q4_0(&b3, &mut o3);
+  var order_ok = false;
+  if r3.is_ok && o3.len() == 32 {
+    let v0: Int = o3[0];
+    let v1: Int = o3[1];
+    let v15: Int = o3[15];
+    let v16: Int = o3[16];
+    let v31: Int = o3[31];
+    order_ok = v0 == -8192 && v1 == -8192 && v15 == -8192 && v16 == -5120 && v31 == -8192;
+  }
+  sum = sum + report(order_ok, "q4_0 low/high nibble order");
+  // d = 0.5 -> (m, e) = (1024, 11); quants still -8 * 1024.
+  var b4 = q4_0_block(0x3800, 0x00, 0x00);
+  var o4 = Vec[Int].new();
+  let r4 = llm_dequant_q4_0(&b4, &mut o4);
+  var exp_ok = false;
+  if r4.is_ok {
+    let s4: LlmScale = r4.value;
+    exp_ok = s4.m == 1024 && s4.e == 11 && all_eq(&o4, -8192);
+  }
+  sum = sum + report(exp_ok, "q4_0 scale 0.5 shifts exponent to 11");
+  // Error arms: empty, bad length, mixed per-block scales.
+  var empty = Vec[UInt8].new();
+  var oe = Vec[Int].new();
+  sum = sum + expect_scale_err(llm_dequant_q4_0(&empty, &mut oe), "llm: q4_0 payload is empty", "q4_0 empty rejected");
+  var short = Vec[UInt8].new();
+  var z = 0;
+  while z < 17 {
+    short.push((0 as UInt8));
+    z = z + 1;
+  }
+  var os = Vec[Int].new();
+  sum = sum + expect_scale_err(llm_dequant_q4_0(&short, &mut os), "llm: q4_0 payload length not a multiple of block size", "q4_0 bad length rejected");
+  var two = q4_0_block(0x3C00, 0x00, 0x00);
+  let b2nd = q4_0_block(0x3800, 0x00, 0x00);
+  let a2 = append_bytes(&mut two, &b2nd);
+  var om = Vec[Int].new();
+  sum = sum + expect_scale_err(llm_dequant_q4_0(&two, &mut om), "llm: q4_0 mixed block scales are not supported", "q4_0 mixed scales rejected");
+  return sum;
+}
+
+// Q5_1 golden vectors: unsigned 5-bit quants with an additive f16 offset m.
+fn t92() -> Int {
+  var sum = 0;
+  // d = 1.0, m = 0, qh and nibbles 0 -> every value 0.
+  var b1 = q5_1_block(0x3C00, 0x0000, 0, 0x00);
+  var o1 = Vec[Int].new();
+  let r1 = llm_dequant_q5_1(&b1, &mut o1);
+  if !r1.is_ok {
+    let got: Str = r1.error;
+    return report(false, "q5_1 golden decode (Err: " + got + ")");
+  }
+  let s1: LlmScale = r1.value;
+  sum = sum + report(s1.m == 1 && s1.e == 10 && o1.len() == 32 && all_eq(&o1, 0), "q5_1 zero quants -> all zero (unit scale)");
+  // Fifth bit 0 set only: value 0 has q = 16, the rest 0.
+  var b2 = q5_1_block(0x3C00, 0x0000, 0x00000001, 0x00);
+  var o2 = Vec[Int].new();
+  let r2 = llm_dequant_q5_1(&b2, &mut o2);
+  var fifth_ok = false;
+  if r2.is_ok {
+    let v0: Int = o2[0];
+    let v1: Int = o2[1];
+    let v16: Int = o2[16];
+    fifth_ok = v0 == 16384 && v1 == 0 && v16 == 0;
+  }
+  sum = sum + report(fifth_ok, "q5_1 fifth bit 0 -> value 0 only");
+  // Asymmetric distinct exponents: d = 0.5 (de=11), m = 0.25 (dme=12),
+  // q = 1 -> 0.75, represented exactly at E = 12 as 3072.
+  var b3 = q5_1_block(0x3800, 0x3400, 0, 0x11);
+  var o3 = Vec[Int].new();
+  let r3 = llm_dequant_q5_1(&b3, &mut o3);
+  var asym_ok = false;
+  if r3.is_ok {
+    let s3: LlmScale = r3.value;
+    asym_ok = s3.m == 1 && s3.e == 12 && o3.len() == 32 && all_eq(&o3, 3072);
+  }
+  sum = sum + report(asym_ok, "q5_1 0.5*q + 0.25 exact at E=12 (3072)");
+  // Mixed per-block d/m are handled over one global exponent: block 0 is
+  // 1.0*1 + 0 = 1 -> 4096, block 1 is 0.5*1 + 0.25 = 0.75 -> 3072.
+  var two = q5_1_block(0x3C00, 0x0000, 0, 0x11);
+  let b2nd = q5_1_block(0x3800, 0x3400, 0, 0x11);
+  let a2 = append_bytes(&mut two, &b2nd);
+  var o4 = Vec[Int].new();
+  let r4 = llm_dequant_q5_1(&two, &mut o4);
+  var mixed_ok = false;
+  if r4.is_ok && o4.len() == 64 {
+    let s4: LlmScale = r4.value;
+    let v0: Int = o4[0];
+    let v31: Int = o4[31];
+    let v32: Int = o4[32];
+    let v63: Int = o4[63];
+    mixed_ok = s4.m == 1 && s4.e == 12 && v0 == 4096 && v31 == 4096 && v32 == 3072 && v63 == 3072;
+  }
+  sum = sum + report(mixed_ok, "q5_1 mixed block d/m share E=12");
+  // Error arms: empty, bad length, f16 inf scale.
+  var empty = Vec[UInt8].new();
+  var oe = Vec[Int].new();
+  sum = sum + expect_scale_err(llm_dequant_q5_1(&empty, &mut oe), "llm: q5_1 payload is empty", "q5_1 empty rejected");
+  var short = Vec[UInt8].new();
+  var z = 0;
+  while z < 23 {
+    short.push((0 as UInt8));
+    z = z + 1;
+  }
+  var os = Vec[Int].new();
+  sum = sum + expect_scale_err(llm_dequant_q5_1(&short, &mut os), "llm: q5_1 payload length not a multiple of block size", "q5_1 bad length rejected");
+  var inf = q5_1_block(0x7C00, 0x0000, 0, 0x00);
+  var oi = Vec[Int].new();
+  sum = sum + expect_scale_err(llm_dequant_q5_1(&inf, &mut oi), "llm: f16 is inf", "q5_1 inf scale rejected");
+  return sum;
+}
+
+// Q6_K golden vectors: 6-bit quants -32..31 with signed per-16 int8 scales.
+fn t93() -> Int {
+  var sum = 0;
+  var ones = scales16(1, 1, 1, 1, 1, 1, 1, 1);
+  // d = 1.0, ql/qh zero -> every 6-bit quant is -32.
+  var b1 = q6_k_block(0x3C00, &ones, 0x00, 0x00, 0x00, 0x00, 0x00);
+  var o1 = Vec[Int].new();
+  let r1 = llm_dequant_q6_k(&b1, &mut o1);
+  if !r1.is_ok {
+    let got: Str = r1.error;
+    return report(false, "q6_k golden decode (Err: " + got + ")");
+  }
+  let s1: LlmScale = r1.value;
+  sum = sum + report(s1.m == 1 && s1.e == 10 && o1.len() == 256, "q6_k unit scale (1,10), 256 values");
+  sum = sum + report(all_eq(&o1, -32768), "q6_k golden all -32 * 1024");
+  // Quant ordering: ql[0] = 0x21, ql[32] = 0x43, qh[0] = 0xE4 decompose into
+  // q1 = -31 (index 0), q2 = -13 (32), q3 = 2 (64), q4 = 20 (96).
+  var b2 = q6_k_block(0x3C00, &ones, 0x00, 0x00, 0x21, 0x43, 0xE4);
+  var o2 = Vec[Int].new();
+  let r2 = llm_dequant_q6_k(&b2, &mut o2);
+  var order_ok = false;
+  if r2.is_ok {
+    let v0: Int = o2[0];
+    let v1: Int = o2[1];
+    let v31: Int = o2[31];
+    let v32: Int = o2[32];
+    let v64: Int = o2[64];
+    let v96: Int = o2[96];
+    order_ok = v0 == -31744 && v1 == -32768 && v31 == -32768 && v32 == -13312 && v64 == 2048 && v96 == 20480;
+  }
+  sum = sum + report(order_ok, "q6_k q1..q4 ordering and 2-bit fields");
+  // Signed scales and the is = l/16 index mapping. qh = 0xFF makes every
+  // quant 16; half-0 scales [1,-1,1,2,1,-2,1,3], half-1 all 1.
+  var sc = scales16(1, 0 - 1, 1, 2, 1, 0 - 2, 1, 3);
+  var b3 = q6_k_block(0x3C00, &sc, 0x00, 0xFF, 0x00, 0x00, 0xFF);
+  var o3 = Vec[Int].new();
+  let r3 = llm_dequant_q6_k(&b3, &mut o3);
+  var sign_ok = false;
+  var index_ok = false;
+  if r3.is_ok {
+    let v0: Int = o3[0];
+    let v15: Int = o3[15];
+    let v16: Int = o3[16];
+    let v31: Int = o3[31];
+    let v32: Int = o3[32];
+    let v48: Int = o3[48];
+    let v64: Int = o3[64];
+    let v80: Int = o3[80];
+    let v96: Int = o3[96];
+    let v112: Int = o3[112];
+    sign_ok = v0 == 16384 && v16 == -16384 && v48 == 32768 && v80 == -32768 && v112 == 49152;
+    index_ok = v15 == 16384 && v31 == -16384 && v32 == 16384 && v64 == 16384 && v96 == 16384;
+  }
+  sum = sum + report(sign_ok, "q6_k signed scales [+1,-1,+2,-2,+3] exact");
+  sum = sum + report(index_ok, "q6_k is = l/16 scale index at l=15/16");
+  // Distinct d exponent: d = 0.5, q = 16 -> value 8 at E = 11 (16384).
+  var b4 = q6_k_block(0x3800, &ones, 0x00, 0xFF, 0x00, 0x00, 0xFF);
+  var o4 = Vec[Int].new();
+  let r4 = llm_dequant_q6_k(&b4, &mut o4);
+  var exp_ok = false;
+  if r4.is_ok {
+    let s4: LlmScale = r4.value;
+    exp_ok = s4.m == 1 && s4.e == 11 && all_eq(&o4, 16384);
+  }
+  sum = sum + report(exp_ok, "q6_k d=0.5 value 8 at E=11");
+  // Mixed super-block d over one global exponent: 16 -> 32768, then 8 -> 16384.
+  var two = q6_k_block(0x3C00, &ones, 0x00, 0xFF, 0x00, 0x00, 0xFF);
+  let b2nd = q6_k_block(0x3800, &ones, 0x00, 0xFF, 0x00, 0x00, 0xFF);
+  let a2 = append_bytes(&mut two, &b2nd);
+  var o5 = Vec[Int].new();
+  let r5 = llm_dequant_q6_k(&two, &mut o5);
+  var mixed_ok = false;
+  if r5.is_ok && o5.len() == 512 {
+    let s5: LlmScale = r5.value;
+    let v0: Int = o5[0];
+    let v255: Int = o5[255];
+    let v256: Int = o5[256];
+    let v511: Int = o5[511];
+    mixed_ok = s5.m == 1 && s5.e == 11 && v0 == 32768 && v255 == 32768 && v256 == 16384 && v511 == 16384;
+  }
+  sum = sum + report(mixed_ok, "q6_k mixed d blocks share E=11");
+  // Error arms: empty, bad length, f16 inf scale.
+  var empty = Vec[UInt8].new();
+  var oe = Vec[Int].new();
+  sum = sum + expect_scale_err(llm_dequant_q6_k(&empty, &mut oe), "llm: q6_k payload is empty", "q6_k empty rejected");
+  var short = Vec[UInt8].new();
+  var z = 0;
+  while z < 209 {
+    short.push((0 as UInt8));
+    z = z + 1;
+  }
+  var os = Vec[Int].new();
+  sum = sum + expect_scale_err(llm_dequant_q6_k(&short, &mut os), "llm: q6_k payload length not a multiple of block size", "q6_k bad length rejected");
+  var inf = q6_k_block(0x7C00, &ones, 0x00, 0x00, 0x00, 0x00, 0x00);
+  var oi = Vec[Int].new();
+  sum = sum + expect_scale_err(llm_dequant_q6_k(&inf, &mut oi), "llm: f16 is inf", "q6_k inf scale rejected");
+  return sum;
+}
+
+// --------------------------------------------------
 //  Tokenizer completion fixtures (GPT-2 escape + pre-tokenizer + SPM)
 // --------------------------------------------------
 
@@ -3431,6 +3761,9 @@ fn main() -> Int {
   failed = failed + t88();
   failed = failed + t89();
   failed = failed + t90();
+  failed = failed + t91();
+  failed = failed + t92();
+  failed = failed + t93();
   if failed == 0 {
     io.println("xiom.llm: all tests passed");
   }
