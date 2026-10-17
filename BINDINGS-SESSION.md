@@ -3,9 +3,9 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: batch 95 =
-`eco-v0.1.193` (8 packages: jev / onnx / ros2 0.2.0 / serial / v4l /
-arrow / openblas / pandas) -- through `eco-v0.1.193` (108 eco releases);
+**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: `eco-v0.1.196`
+(ML core tier: orbitdb 0.2.1 / numpy 0.1.0 / llm 0.1.0) -- through
+`eco-v0.1.196` (111 eco releases);
 recent cycle highlights: E-family COMPLETE (jolt 0.5.0/0.6.0/0.7.0,
 E1-E7), LIFTS live (`eco-v0.1.185`: glfw 0.6.0 + sdl3 0.20.0 -- B-22/B-15
 retired), PULSE top-tier live (`eco-v0.1.189`: brotli + ssl,
@@ -1535,6 +1535,201 @@ torch/libtorch/tensorflow/blas/openblas; B-34 filed; 566/0)**:
   branch-side `COMPILER_VERSION` bump still pending (owner/sibling);
   B-32 (m358) + B-34 ride the v0.64.7 wave.
 
+**UPDATE 2026-10-17 15:05Z (doorbell -- `eco-v0.1.195` + `eco-v0.1.196`
+LIVE; ML core tier + orbitdb shipped)**: packages confirms two more
+batches carrying this lane's packages:
+- **`eco-v0.1.195`** (run 39039228850 green; all registry live-verified;
+  validate 571/0): **gguf 0.1.4** (sha256 `0dda8b2b...`; non-ASCII string
+  values + byte/UTF-8 accessors), **http 0.1.9** (`f7b0c30f...`;
+  binary-safe bodies; jev dep satisfied), **pulse 0.2.0**
+  (`5cbf1ea8...`; hook seam + Server-token seam; PULSE `-1312` fixed,
+  Station stage 2b unblocked). README/STATUS sync `e9250141`.
+- **`eco-v0.1.196`** (run 39039898017 green; allowlist 561 -> 564; all
+  live-verified; validate 571/0): **orbitdb 0.2.1** (`c8fc6548...`;
+  160/160 x2 + db_crash 25/25; `-1245-orbitdb` fixed), **numpy 0.1.0**
+  (`0eaa9185...`; Phase-3 COMPLETE 147/147), **llm 0.1.0**
+  (`3c85e858...`; M3 COMPLETE 303/303; deps gguf 0.1.4 live).
+  Registry now carries the full ML core (arrow/openblas/pandas/jev/onnx/
+  gguf/llm/numpy) + orbitdb. README/STATUS sync `b1d49388`.
+- Remaining: numpy Phase-4/real-BLAS, llm WPM+quant formats, jev M3
+  remainder, pandas phases on the bindings arrow landing, compiler
+  re-verify queue (B-29/W1.4/W2.3/B-34 + m348-m351); owner gates open:
+  jev S6/S8, pandas section-6. Lane meanwhile launched the **NVIDIA
+  backlog execution** (7 agents: cuda-math/cudnn/tensorrt/nvenc/nvml-nvapi/
+  optix/onnx-directml; AMD hardware-gated).
+
+**UPDATE 2026-10-17 12:05Z (MORNING: v0.64.6 REPIN on bindings +
+`eco-v0.1.194` -- M2 wave + gps LIVE)**:
+- **Branch repin landed**: `d2ef7ec2` -- `COMPILER_VERSION` -> **v0.64.6**
+  + all 566 STATUS records aligned (validate 566/0); the slot/file
+  mismatch is closed.
+- **`eco-v0.1.194` LIVE** (run 39030226463 green; all registry
+  live-verified; merge `ec548542`; publish-sync `c1d1d85d`):
+  - `xiom.torch 0.1.0` (`bde0ce5c...`; SKIP gate 19/19 x2)
+  - `xiom.libtorch 0.1.0` (`865c6d2a...`; 8/8 x2; scope LIVE 11:28Z)
+  - `xiom.tensorflow 0.1.0` (`0f4bb6a5...`; 17/17 x2)
+  - `xiom.blas 0.1.0` (`bee07a38...`; 50/50 x2)
+  - `xiom.gps 0.1.0` (`020b50ac...`; live 11:52:45Z; scope LIVE
+    11:28Z; allowlist 559 -> 561; 28/28 x2)
+  - openblas metadata fix correctly skipped (version_exists; rides a
+    future openblas bump).
+- Both publish close-outs FIXED (`-0042-bindings-2`, `-2144-bindings-2`).
+  Eco through **`.194`** (109 releases).  B-34 acked -> compiler
+  alias-unification batch (1548-stdlib-6/2100 family); B-32 stays
+  m358.  Both ride v0.64.7; nothing else in flight on this lane.
+
+**UPDATE 2026-10-17 14:15Z (REAL-ACCEL WAVE LANDED: openblas real leg +
+arrow/pandas sync; 566/0)**:
+- **`xiom.openblas` Phase-1 REAL LEG LANDED** (land `cff4543a`; record
+  `0a4cb027`): linked cblas + LAPACK (transA/B, SVD/eigen/solve real
+  values, workspace query, leg marker); integration **x2 42/42** on
+  the .6 slot (stub-leg gate; real-leg provenance v0.3.34 x64 LP64,
+  BSD-3; `tests/run_real_leg.ps1` -- real leg green on the branch).
+  NOTE: openblas 0.1.0 is already live (eco-v0.1.193); the tree change
+  publishes with the NEXT version bump (packages' version_exists rule).
+- **`xiom.arrow` synced to the main-line real-backend content** (land
+  `e30db62e`): record refreshed **x2 32/32** on .6
+  (`bridge/arrow_real.cpp`, port.args, real-backend probes; stub
+  suite unchanged at 32).
+- **`xiom.pandas` real Arrow-backed C++ bridge PREP landed** (same
+  land): `bridge/xiom_pandas_arrow.cpp` (821 lines) +
+  `REAL-BACKEND-REQUIREMENTS.md` + `probe_real_arrow.xi` + port.args;
+  gate **80/80** (stub backend; the bridge prep is inert until the
+  Arrow real backend lands -- pandas 2-4 follow per the program plan).
+- validate **566/0**; pushed `74e93a35`.  No publish request this pass
+  (openblas version_exists rider; arrow/pandas prep only) -- the next
+  bump carries them.
+
+**UPDATE 2026-10-17 15:10Z (doorbell 15:00Z: `xiom.usd` LANDED; eco
+.195/.196 LIVE; NVIDIA wave launched)**:
+- **`xiom.usd 0.1.0` LANDED** (content `6c8fa791`; record `7cea7786`;
+  note: the sibling's concurrent commit swept the staged USD checkout,
+  so content+docs share one commit -- consistent, watched): OpenUSD
+  v26.08 scene-import (58-entry C-ABI + generated trampolines; stage/
+  prim/attr/mesh/material/time; typed errors + stale-handle
+  invalidation); gate **x2 65/65 LIVE on usd_ms.dll (ABI 2608)** +
+  typed SKIP; validate **567/0**; publish request
+  `REL-20261017-1507-bindings` (NEW name; ops scope).
+- **Eco**: **`eco-v0.1.195` = gguf/http/pulse 0.2.0** + **`.196` =
+  orbitdb/numpy/llm ML core** LIVE (111 releases; sibling doorbell).
+- **NVIDIA vendor wave LAUNCHED** (sibling): 7 agents -- cuda-math/
+  cudnn/tensorrt/nvenc/nvml-nvapi/optix/onnx-directml; AMD
+  hardware-gated.  Compiler: v0.64.7 candidate tags being relayed
+  (`compiler-compiler-v0.64.7`); not released yet.
+
+**UPDATE 2026-10-17 16:55Z (NVIDIA WAVE PART 1 LANDED: cudnn +
+nvenc; 569/0)**:
+- **`xiom.cudnn 0.1.0` LANDED** (land `78fb1ae3`; record `6970134f`):
+  cuDNN 9 essentials (25/25 loader surface; conv/act/pool/softmax +
+  workspace query; nothing vendored); gate **x2 60/60 LIVE** on cuDNN
+  9.27.0.42 (RTX 3070 Ti cc 8.6; conv parity 54/63/90/99) + typed
+  SKIP path.
+  - **LIVE-RIG NOTE**: the working recipe needs BOTH the cuDNN wheel
+    bin dir AND the cuBLAS bin dir ON PATH.  `XIOM_CUDNN_DIR` alone
+    classifies the DLL but the dependent sub-libraries fail to bind;
+    the probe then aborts (0xC0000409) instead of skipping.  Flagged
+    in the publish request; README addendum recommended to the
+    package owner.
+- **`xiom.nvenc 0.1.0` LANDED** (land `ae937669`; record `9d042f59`):
+  NVENC + NVDEC loader-only (H.264/HEVC real bitstreams + cuvid decode
+  roundtrips; typed errors); gate **x2 67/67 LIVE** on driver API 13.1
+  (forced-IDR H.264 2442B + HEVC 3920B Annex-B, NVDEC back to NV12) +
+  typed SKIP path.
+- validate **569/0**; pushed `9d042f59`; publish request
+  `REL-20261017-1653-bindings` (PART 1; part 2 agents in flight:
+  cuda-math/tensorrt/nvml-nvapi/optix/onnx-directml).
+
+**UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
+stays hardware-gated; DirectML exception in flight)**: owner go.
+- Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
+  (cublas+cufft+cusparse; pip math wheels; live on the host RTX 3070
+  Ti), `feat/cudnn`, `feat/tensorrt`, `feat/nvenc` (NVENC+NVDEC via
+  nv-codec-headers MIT), `feat/nvml-nvapi` (driver-present DLLs ->
+  fully live-testable), `feat/optix` (SDK fetch attempt; else loader +
+  SKIP + acquisition contract), `feat/onnx-directml` (vendor-neutral
+  accelerator leg -- the one "accelerator extras" item testable on this
+  box; extends the published xiom.onnx additively).
+- Protocol: loader-only for closed/driver SDKs (nothing vendored; NVIDIA
+  EULA runtime user-supplied; reference headers pinned), live legs on the
+  host GPU where obtainable, SKIP-safe everywhere; v0.64.6 pin; x2
+  suites; origin/bindings base; path-scoped landing.
+- **AMD**: hip/rocblas/miopen/amf/ags/NPU stay BACKLOG until an AMD card
+  exists for live legs -- no hardware-free path; the only exception
+  (DirectML) is in flight now and validated on the NVIDIA GPU.
+
+**UPDATE 2026-10-17 13:15Z (GPU VENDOR BACKLOG -- AMD + NVIDIA added)**:
+owner asked to backlog both vendor sets (on top of the accelerator-extras
+line in `-1254-bindings`).
+- **AMD -- landed in-tree, green, unpublished (publish on consumption)**:
+  `xiom.fidelityfx` 0.1.0 (FidelityFX SDK 2.3.0: FSR2/FSR3 + frame gen;
+  43/43 x2 + 35/35 SKIP), `xiom.rpr` 0.1.0 (Radeon ProRender 3.1.7.1;
+  35/35 x2 + 9/9 SKIP).
+- **AMD -- backlog (not yet launched, on request)**: `xiom.hip` (HIP
+  SDK/ROCm runtime loader; MIT), `xiom.rocblas`/`xiom.miopen`
+  (+hipBLASLt on demand), `xiom.amf` (AMF hardware codec SDK; MIT),
+  `xiom.ags` (GPU services; optional), Ryzen AI/XDNA NPU (on demand).
+- **NVIDIA -- published**: `xiom.cuda` 0.2.0 (driver API; live RTX 3070
+  Ti; eco-v0.1.126).
+- **NVIDIA -- landed in-tree, green, unpublished (publish on
+  consumption)**: `xiom.dlss` 0.1.0 (NGX; 21), `xiom.nrd` 0.1.0 (29),
+  `xiom.rtxdi` 0.1.0 (RTXDI+RTXGI; 33).
+- **NVIDIA -- backlog (not yet launched, on request)**: `xiom.cudnn`,
+  `xiom.cublas` (+cufft/cusparse on demand), `xiom.tensorrt`,
+  `xiom.nvenc` (Video Codec SDK: NVENC/NVDEC), `xiom.nvml` +
+  `xiom.nvapi` (utils/telemetry), OptiX (optional ray tracing).
+- **Shared**: DirectML execution-provider leg for `xiom.onnx`
+  (vendor-neutral Windows GPU ML path across AMD/NVIDIA/Intel).
+- Rule: accelerators stay loader-only (closed/driver SDKs user-supplied,
+  nothing vendored; SKIP-safe; live legs need the hardware).
+
+**UPDATE 2026-10-17 12:20Z (remaining builds LAUNCHED -- openblas real
+accel + arrow real backend; USD prep in flight)**: acting on the
+doorbell's own remaining-queue list.
+- **`feat/openblas-real`**: Phase-1 real-acceleration remainder
+  (ROADMAP unchecked set: real linked-OpenBLAS leg, cblas_* wiring via
+  raw pointers, real LAPACK, workspace query, numerical verification;
+  SKIP leg retained; official BSD-3 Windows build into E:\repos).
+- **`feat/arrow-real-backend`**: `xiom.arrow` real backend per
+  `xiom-pandas/bridge/REAL-BACKEND-REQUIREMENTS.md` (true ArrowArray/
+  ArrowSchema structs + zero-copy export/import + ownership doc; the
+  C++ pandas bridge prepared with an honest MSVC/ABI-gate note; 12-symbol
+  ABI untouched; section-6 owner decisions flagged).
+- Request `am-1792239272393-43e1df`; USD prep (`feat/usd-import`) in
+  flight from 12:11Z.  Remaining queue now: epos publish request
+  (hardware-gate), numpy grant (packages/ops), v0.64.7 re-verify rows,
+  llm/jev/pandas items (packages half), Pi smoke (arm64 release),
+  extras on demand.
+
+**UPDATE 2026-10-17 12:10Z (all remainings pass -- eco .194 verified on
+our side; stubs swept; USD prep LAUNCHED)**: continuation after the
+morning sweep.
+- **`eco-v0.1.194` verified**: torch/libtorch/tensorflow/blas/gps all
+  registry live-verified (allowlist 559->561; guard 561/552/9/0);
+  M2 request `-0042-bindings-2` + gps `-2144-bindings-2` both FIXED.
+- **Worktree stubs swept**: sessionless `android/a12-sys` worktree +
+  branch removed; `android/a3-a4` + `feat/sqlite-nested-restore-2`
+  were already cleaned earlier; orphan dirs remain file-locked (OS
+  handles; retry later).  68 live worktrees remain (idle sessions).
+- **USD importer (import campaign) -- PREP LAUNCHED**: `feat/usd-import`
+  (`am-1792238631823-at8f8f`): OpenUSD sparse light clone at pin,
+  license/provenance first, usd-core wheel as the policy-clean loader
+  leg, staged scenes/materials surface, v0.64.6 pin, x2 suites.
+- Remaining after this: v0.64.7 wave (B-29/B-32/B-33/B-34/XVC-C-18),
+  Pi/edge smoke (waits arm64 target release), accelerator extras (on
+  demand), M1/M3 (packages half).
+
+**UPDATE 2026-10-17 11:58Z (branch pin bump DONE -- COMPILER_VERSION
+v0.64.6 + 566 records repinned; morning state)**: closes the 00:45Z
+MORNING TODO.
+- **`COMPILER_VERSION` -> v0.64.6** (matches the published stdlib 0.64.6
+  and main's repin `ec548542`); `status.ps1 -Action repin` updated all
+  **566** records (run totals/commits preserved); validate **566/0**.
+- Morning state: miniaudio 0.5.0 PUBLISHED; M2 wave (torch/libtorch/
+  tensorflow/blas + openblas fix) merged to main; gps + libtorch scopes
+  LIVE (560); M2 publish in flight with packages; B-34 acked (v0.64.7
+  batch).  Relay inbox zero (the stdlib 0.64.6 announcement is
+  to-all -- the bus correctly refuses other-lane moves).
+
 **UPDATE 2026-10-16 23:30Z (miniaudio 0.5.0 handle surface LANDED --
 engine ask delivered; merge+publish relayed; wave parked overnight)**:
 owner asked for the delivery + merge relay, then pause.
@@ -2412,6 +2607,29 @@ otel via `-2309-3`). Relay: PULSE top-tier asks **TLS context binding
 duplicate noted; `-2313` dedupe agreed). Android wave-2 landing: 5 of 8 in
 (validate 559/0).
 
+**UPDATE 2026-10-17 12:05Z (doorbell -- miniaudio 0.5.0 + `eco-v0.1.194`
+publishes recorded; v0.64.6 repin DONE)**: packages confirms both queued
+publishes from this lane:
+- **`xiom.miniaudio 0.5.0` PUBLISHED** (single tag `xiom-miniaudio/v0.5.0`;
+  sha256 `7d83c1ed...`; run 39027702853 green; registry live-verified;
+  sync `35fea936`): handle surface (open once, callbacks/streams, close),
+  x2 **44/44** on v0.64.6. `-2324-bindings` fixed; engine ask
+  `-2134-engine-2` delivered+shipped; `-2139-packages-2` folded.
+- **`eco-v0.1.194` LIVE** (M2 runtimes + gps; run 39030226463 green;
+  allowlist 559 -> 561; guard 561/552/9/0): **torch** `bde0ce5c`,
+  **libtorch** `865c6d2a`, **tensorflow** `0f4bb6a5`, **blas**
+  `bee07a38`, **gps** `020b50ac` -- all registry live-verified; relays
+  `-0042-bindings-2` + `-2144-bindings-2` fixed. openblas metadata fix
+  stays unpublished until a future 0.1.x bump (0.1.0 already live in
+  `.193`).
+- **v0.64.6 repin landed in this repo** (`d2ef7ec2`): COMPILER_VERSION +
+  **566 records** aligned (validate 566/0); the repin-wave trigger is
+  cleared.
+- Remaining queue (bindings side): epos publish request; numpy grant;
+  compiler re-verify rows (B-29 / W1.4 / W2.3 / B-34 + m348-m351); llm
+  tokenizer/bench; jev S8 + S6 SPEC pin; openblas real accel;
+  pandas/arrow libarrow backends.
+
 **UPDATE 2026-10-16 21:05Z (doorbell -- v0.64.6 RELEASED)**: compiler
 **v0.64.6 RELEASED 2026-10-16 20:33Z** (`REL-20261016-2034-compiler`;
 assets live). This is the **REPIN-WAVE TRIGGER** (next-session first
@@ -2428,6 +2646,39 @@ Beacon; legacy android scope re-grant asked of ops); **R2 landed**
 validate 563/0; publishes filed; B-33 to compiler). Beacon acceptance
 stage 1 GREEN (125/125 x2 both platforms). Zero open bindings-addressed
 relay items; validate 660 green.
+
+**UPDATE 2026-10-17 12:05Z (doorbell -- `eco-v0.1.194` LIVE; in-tree repin
+done)**: **`eco-v0.1.194`** (run 39030226463 green) -- 5 LIVE +
+live-verified: `xiom.torch` `bde0ce5c`, `xiom.libtorch` `865c6d2a`,
+`xiom.tensorflow` `0f4bb6a5`, `xiom.blas` `bee07a38`, `xiom.gps`
+`020b50ac` (records @ `ec548542`; allowlist 559->561; guard 561/552/9/0;
+README/STATUS sync `c1d1d85d`; relays `-0042-bindings-2` +
+`-2144-bindings-2` fixed; the openblas metadata fix rides a future 0.1.x
+bump). **`xiom.miniaudio 0.5.0`** published as a single tag
+`xiom-miniaudio/v0.5.0` (`7d83c1ed...`; run 39027702853; engine
+`-2134-engine-2` fixed as delivered+shipped; bindings `-2324` fixed).
+**In-tree v0.64.6 repin landed** (`d2ef7ec2`: COMPILER_VERSION + 566
+records aligned; validate 566/0) -- the machine-wide wave is now mirrored
+in this tree. Zero open bindings relay items; validate 696 green.
+
+**UPDATE 2026-10-17 15:05Z (doorbell -- `eco-v0.1.195` + `.196` LIVE)**:
+- **`eco-v0.1.195`** (owner-ordered; run 39039228850): `xiom.gguf` 0.1.4
+  (`0dda8b2b...`; non-ASCII string values + byte/UTF-8 accessors),
+  `xiom.http` 0.1.9 (`f7b0c30f...`; binary-safe bodies, jev dep),
+  `xiom.pulse` 0.2.0 (`5cbf1ea8...`; hook seam + Server-token seam; PULSE
+  `-1312-pulse` fixed; Station stage 2b unblocked). validate 571/0.
+- **`eco-v0.1.196`** (ML/AI core tier + ORBITDB; run 39039898017): ops
+  allowlist 561->564; `xiom.orbitdb` 0.2.1 (`c8fc6548...`; 160/160 x2 +
+  db_crash 25/25 + mvcc/fault-sync green; `-1245-orbitdb` fixed),
+  `xiom.numpy` 0.1.0 (`0eaa9185...`; Phase-3 complete 147/147),
+  `xiom.llm` 0.1.0 (`3c85e858...`; M3 303/303). Registry now carries the
+  full ML core (arrow/openblas/pandas/jev/onnx/gguf/llm/numpy) + orbitdb.
+- Remaining owner gates: jev S6/S8 + pandas sec.6. Lane: **NVIDIA backlog
+  -> execution** (`8ec262b3`: 7 agents -- cuda-math/cudnn/tensorrt/nvenc/
+  nvml-nvapi/optix/onnx-directml; AMD hardware-gated); real-accel wave
+  landed (`0a87650f`: openblas real leg 42/42 x2 + arrow/pandas
+  real-backend sync/prep; bindings validate 566/0). Zero open
+  bindings-addressed relay items; validate 717 green.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3

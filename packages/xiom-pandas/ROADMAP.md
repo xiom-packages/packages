@@ -1,10 +1,13 @@
 # xiom.pandas -- Roadmap
 
 > Two-leg delivery (mirrors xiom.numpy Phase 1): the OFFLINE conformance leg
-> is green (80/80 x2, v0.64.5) via the suite-only stub bridge
-> `bridge/pandas_bridge.c`. The REAL Arrow C++ backend leg is NOT built; its
-> exact requirements are pinned in `bridge/REAL-BACKEND-REQUIREMENTS.md` and
-> its evidence probe is `tests/probe_real_arrow.xi` (not part of port.ps1).
+> is green (80/80, v0.64.6, 2026-10-17) via the suite-only stub bridge
+> `bridge/pandas_bridge.c`. The REAL Arrow C++ backend SOURCE is now prepared
+> (`bridge/xiom_pandas_arrow.cpp`) and probe-green against Apache Arrow C++
+> 22.0.0 (pyarrow 22.0.0 MSVC wheel): null contract + CSV round trip in
+> `tests/probe_real_arrow.xi`, plus a deleted local C-ABI exercise of all 12
+> symbols. Owner-pending ABI items (free functions, apply signature, Float64
+> filter value, parquet) are listed in SPEC.md; `pandas.xi` is unchanged.
 
 **Phase 1** (v0.1.0) -- Core Foundation [OK]
 - [x] 3 opaque types: `DataFrame`, `Series`, `Dtype`

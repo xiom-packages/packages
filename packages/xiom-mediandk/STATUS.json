@@ -13,13 +13,5 @@
                   "checked":  "2026-10-15T21:50:27Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.192 (2026-10-16, 0.1.0 A7 core media head)",
-    "platforms":  [
-                      "windows-x64",
-                      "android-arm64",
-                      "android-x86_64"
-                  ],
-    "runtime_deps":  [
-                         "libmediandk.so (Android platform media library; SKIP when absent; Windows: absent by design)"
-                     ]
+    "excluded_reason":  "new package (Android SDK100 A7 core media head); publish gate after the naming decision + on-device runs (G1)"
 }

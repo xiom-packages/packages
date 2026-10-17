@@ -8,10 +8,13 @@
 // Schema low-level wrappers (create/free/format/name),
 // RecordBatch wrappers (create/column/schema),
 // High-level Array/Table API, contract enforcement (requires: clauses),
-// and error-path behavior (boundary conditions, null handles).
+// error-path behavior (boundary conditions, null handles), and the Phase-2
+// additive surface's offline semantics (backend identity, struct schema,
+// typed arrays, export/import, release entry points).
 //
-// FFI-dependent functions return stubs until the native Arrow C bridge
-// is linked.
+// The suite links the deterministic offline stub leg
+// (bridge/arrow_bridge.c); the REAL backend (bridge/arrow_real.cpp) is
+// exercised only by tests/probe_real_backend.xi.
 
 module arrow_conformance
 use xiom.io;
@@ -548,8 +551,8 @@ fn run_is_linked() -> Int {
 
 fn test_is_linked() -> TestResult {
   let rc = run_is_linked();
-  if rc == 0 { return assert(true, "util: is_linked returns false (no C bridge)"); }
-  return assert(false, "util: is_linked should be false");
+  if rc == 0 { return assert(true, "util: is_linked false for the offline stub backend"); }
+  return assert(false, "util: is_linked should be false with the stub");
 }
 
 // ===============================================================================
@@ -580,6 +583,81 @@ fn test_dtype_all_variants() -> TestResult {
   let rc = run_dtype_all_variants();
   if rc == 0 { return assert(true, "types: all 16 DataType variants"); }
   return assert(false, "types: all DataType variants failed");
+}
+
+// ===============================================================================
+// Test 28-32: Phase-2 additive surface (offline stub semantics)
+// ===============================================================================
+
+fn test_backend_surface_stub() -> TestResult {
+  if backend_available() { return assert(false, "backend: stub reports available"); }
+  if backend_version() != "" { return assert(false, "backend: stub reports a version"); }
+  return assert(true, "backend: stub reports unavailable (empty version)");
+}
+
+fn test_schema_create_struct_stub() -> TestResult {
+  let null_args = schema_create_struct(0, 0, 0);
+  match null_args {
+    Ok(_) => return assert(false, "schema struct: null args accepted"),
+    Err(_) => {},
+  };
+  let backend_off = schema_create_struct(1, 1, 2);
+  match backend_off {
+    Ok(_) => return assert(false, "schema struct: stub returned a handle"),
+    Err(_) => {},
+  };
+  return assert(true, "schema struct: validation + backend-unavailable contract");
+}
+
+fn test_array_from_stub() -> TestResult {
+  let null_int = array_from_int64(0, 5);
+  match null_int {
+    Ok(_) => return assert(false, "array_from_int64: null values accepted"),
+    Err(_) => {},
+  };
+  let zero_len = array_from_int64(1, 0);
+  match zero_len {
+    Ok(_) => return assert(false, "array_from_int64: zero length accepted"),
+    Err(_) => {},
+  };
+  let backend_off = array_from_float64(1, 5);
+  match backend_off {
+    Ok(_) => return assert(false, "array_from_float64: stub returned a handle"),
+    Err(_) => {},
+  };
+  return assert(true, "typed arrays: validation + backend-unavailable contract");
+}
+
+fn test_import_export_stub() -> TestResult {
+  let null_export = record_batch_export(0, 0, 0);
+  match null_export {
+    Ok(_) => return assert(false, "record_batch_export: null args accepted"),
+    Err(_) => {},
+  };
+  let backend_off_export = record_batch_export(1, 1, 1);
+  match backend_off_export {
+    Ok(_) => return assert(false, "record_batch_export: stub returned success"),
+    Err(_) => {},
+  };
+  let null_import = record_batch_import(0, 0);
+  match null_import {
+    Ok(_) => return assert(false, "record_batch_import: null slots accepted"),
+    Err(_) => {},
+  };
+  let backend_off_import = record_batch_import(1, 1);
+  match backend_off_import {
+    Ok(_) => return assert(false, "record_batch_import: stub returned a handle"),
+    Err(_) => {},
+  };
+  return assert(true, "handoff: export/import validation + backend-unavailable contract");
+}
+
+fn test_release_stub() -> TestResult {
+  if schema_release(0) { return assert(false, "schema_release: null slot reported released"); }
+  if array_release(0) { return assert(false, "array_release: null slot reported released"); }
+  if schema_release(1) { return assert(false, "schema_release: stub reported a release"); }
+  if array_release(1) { return assert(false, "array_release: stub reported a release"); }
+  return assert(true, "handoff: release entry points are inert without the real backend");
 }
 
 // ===============================================================================
@@ -618,6 +696,11 @@ pub fn main() -> Int {
   results.push(test_version());
   results.push(test_is_linked());
   results.push(test_dtype_all_variants());
+  results.push(test_backend_surface_stub());
+  results.push(test_schema_create_struct_stub());
+  results.push(test_array_from_stub());
+  results.push(test_import_export_stub());
+  results.push(test_release_stub());
 
   let total = results.len();
   let report = xiom.test.format_results(results);

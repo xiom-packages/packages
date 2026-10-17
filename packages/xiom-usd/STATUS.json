@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.usd",
+    "stage":  "incubating",
+    "compiler":  "v0.64.6",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  65,
+                  "failed":  0,
+                  "run_by":  "am:feat-usd-import",
+                  "commit":  "6c8fa791",
+                  "checked":  "2026-10-17T15:05:20Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "new 0.1.0 package; pending ecosystem release"
+}

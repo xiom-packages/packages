@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-17T17:13:37Z",
+    "updated":  "2026-10-17T20:21:24Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -1631,6 +1631,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cuda/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "cuda.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.cudnn",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA cuDNN bindings (user-supplied runtime, nothing vendored): version, handles, 4D tensor/filter/convolution/activation/pooling descriptors, convolution forward, ReLU, max pooling, softmax, and a known-shape conv+ReLU live probe; SKIP-safe multi-soname loader (cudnn64_9.dll / cudnn64_8.dll)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cudnn/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cudnn.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5623,6 +5640,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.nvenc",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA hardware video encode (NVENC) + decode (NVDEC/cuvid) bindings for XIOM (runtime-loaded nvEncodeAPI64.dll + nvcuvid.dll via nvcuda.dll; nothing vendored)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nvenc/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "nvenc.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.3",
                          "name":  "xiom.oauth",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -9588,6 +9622,23 @@
                          "source_files":  [
                                               "usb.xi",
                                               "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.usd",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "OpenUSD (Pixar Universal Scene Description) v26.08 scene-import bindings for XIOM -- stage open/traversal, prim name/type/path + authored attributes, mesh points/face-vertex counts/indices, UsdPreviewSurface material binding/inputs/connections, and time-sample essentials; runtime-trampolined usd-core 26.8 wheel with typed errors and SKIP-safe absence",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-usd/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "package.xi",
+                                              "usd.xi"
                                           ]
                      },
                      {
