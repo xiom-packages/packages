@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  160,
                   "failed":  0,
-                  "run_by":  "orbitdb-carve",
-                  "commit":  "3bc2a61",
-                  "checked":  "2026-10-17T13:03:00Z"
+                  "run_by":  "native-session",
+                  "commit":  "ee0a74e5",
+                  "checked":  "2026-10-17T13:20:32Z"
               },
     "publish":  false,
-    "excluded_reason":  "carve pending publish: canary freeze 3bc2a61"
+    "excluded_reason":  "publish pending: canary freeze 3bc2a61; ops scope REL-20261017-1254-packages"
 }

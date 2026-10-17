@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-17T14:48:59+03:00
-# packages: 570  modules: 1096
+# generated: 2026-10-17T16:20:38+03:00
+# packages: 571  modules: 1128
 
 ## package names
 xiom.aaudio
@@ -340,6 +340,7 @@ xiom.optimizer-fw
 xiom.option
 xiom.opus
 xiom.oracle
+xiom.orbitdb
 xiom.orc
 xiom.osrelease
 xiom.otel
@@ -698,6 +699,36 @@ xiom.dac
 xiom.data
 xiom.data.batch
 xiom.data.order
+xiom.db.api.database
+xiom.db.catalog.schema
+xiom.db.catalog.schema_row
+xiom.db.catalog.schema_validator
+xiom.db.config
+xiom.db.contracts
+xiom.db.engine
+xiom.db.error
+xiom.db.ids
+xiom.db.index.btree
+xiom.db.legacy.btree
+xiom.db.legacy.btree_stdlib
+xiom.db.legacy.query
+xiom.db.legacy.types
+xiom.db.legacy.wal
+xiom.db.query.planner
+xiom.db.query.query
+xiom.db.secondary_index
+xiom.db.storage.block
+xiom.db.storage.block_store
+xiom.db.storage.byte_io
+xiom.db.storage.fault
+xiom.db.storage.free_space_map
+xiom.db.storage.page
+xiom.db.storage.page_file
+xiom.db.storage.tuple
+xiom.db.txn.transaction
+xiom.db.wal.wal
+xiom.db.wal.wal_record
+xiom.db.wal_file
 xiom.db2
 xiom.dbase
 xiom.dds
@@ -943,6 +974,7 @@ xiom.hl7
 xiom.hostfile
 xiom.html
 xiom.http
+xiom.http.body
 xiom.http.client
 xiom.http.cookie
 xiom.http.demo
@@ -973,6 +1005,7 @@ xiom.iso8583
 xiom.itest
 xiom.jev
 xiom.jev.client
+xiom.jev.compression
 xiom.jev.errors
 xiom.jev.request
 xiom.jev.response

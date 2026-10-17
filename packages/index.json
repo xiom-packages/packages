@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-17T14:48:59Z",
+    "updated":  "2026-10-17T16:20:39Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -3528,7 +3528,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.8",
+                         "version":  "0.1.9",
                          "name":  "xiom.http",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "XIOM HTTP Library -- types, parsing, client, and server",
@@ -3538,8 +3538,9 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-http/v0.1.8/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-http/v0.1.9/package.tar.gz",
                          "source_files":  [
+                                              "body.xi",
                                               "client.xi",
                                               "cookie.xi",
                                               "demo.xi",
@@ -3888,13 +3889,14 @@
                                                   "name":  "xiom.std"
                                               },
                                               {
-                                                  "version":  "0.1.7",
+                                                  "version":  "0.1.9",
                                                   "name":  "xiom.http"
                                               }
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jev/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "client.xi",
+                                              "compression.xi",
                                               "errors.xi",
                                               "jev.xi",
                                               "request.xi",
@@ -5959,6 +5961,52 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-oracle/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "oracle.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.2.1",
+                         "name":  "xiom.orbitdb",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ORBITDB Satellite -- production-grade embedded database engine: durable WAL with real fsync, crash recovery (snapshot + tail replay, torn-tail heal), typed rows + typed predicates, secondary index + ORDER/LIMIT, transactions with savepoints and in-process snapshot pins, v2 page container; zero registry dependencies",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-orbitdb/v0.2.1/package.tar.gz",
+                         "source_files":  [
+                                              "btree.xi",
+                                              "btree_stdlib.xi",
+                                              "config.xi",
+                                              "contracts.xi",
+                                              "engine.xi",
+                                              "error.xi",
+                                              "ids.xi",
+                                              "query.xi",
+                                              "secondary_index.xi",
+                                              "types.xi",
+                                              "wal.xi",
+                                              "wal_file.xi",
+                                              "database.xi",
+                                              "schema.xi",
+                                              "schema_row.xi",
+                                              "schema_validator.xi",
+                                              "btree.xi",
+                                              "planner.xi",
+                                              "query.xi",
+                                              "block.xi",
+                                              "block_store.xi",
+                                              "byte_io.xi",
+                                              "fault.xi",
+                                              "free_space_map.xi",
+                                              "page.xi",
+                                              "page_file.xi",
+                                              "tuple.xi",
+                                              "transaction.xi",
+                                              "wal.xi",
+                                              "wal_record.xi",
                                               "package.xi"
                                           ]
                      },
