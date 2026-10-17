@@ -1,0 +1,5 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/nvml_bridge.c"
+]
+

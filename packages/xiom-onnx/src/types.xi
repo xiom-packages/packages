@@ -58,6 +58,10 @@ pub fn onnx_config_default() -> OnnxConfig {
 pub const ONNX_LOAD_ABSENT: Int = 0;
 /// A candidate loaded but the entry-point set / version is unusable: FAIL.
 pub const ONNX_LOAD_ABI: Int = 1;
+/// The loaded runtime does not expose the requested execution provider (for
+/// example a CPU-only ORT build asked for DirectML): the typed SKIP state for
+/// provider-specific legs. Distinct from ONNX_LOAD_ABSENT (no runtime at all).
+pub const ONNX_EP_ABSENT: Int = 3;
 
 /// Loader/runtime failure: kind is ONNX_LOAD_ABSENT / ONNX_LOAD_ABI (or a
 /// call-failure kind below).
@@ -221,6 +225,17 @@ pub const ORT_ALLOCATOR_READONLY: Int = 2;
 pub const ORT_MEM_TYPE_CPU_INPUT: Int = -2;
 pub const ORT_MEM_TYPE_CPU_OUTPUT: Int = -1;
 pub const ORT_MEM_TYPE_DEFAULT: Int = 0;
+
+// =========================================================================
+// DirectML device expectations (oracle: dml_provider_factory.h @ v1.31.0)
+// =========================================================================
+
+/// DirectML `device_id` 0: the default DXGI adapter, typically the primary
+/// display GPU. DML device ids are DXGI adapter indices in
+/// `IDXGIFactory::EnumAdapters` order (0-based); a negative id is invalid and
+/// an id beyond the adapter count fails EP creation. On the recorded live
+/// host DXGI adapter 0 is the RTX 3070 Ti.
+pub const ORT_DML_DEVICE_DEFAULT: Int = 0;
 
 // =========================================================================
 // Dtype byte sizes (oracle: element sizes of ONNXTensorElementDataType;

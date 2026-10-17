@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-17T21:46:13+03:00
-# packages: 574  modules: 1131
+# generated: 2026-10-17T22:50:19+03:00
+# packages: 581  modules: 1138
 
 ## package names
 xiom.aaudio
@@ -99,10 +99,13 @@ xiom.cpio
 xiom.crc
 xiom.cron
 xiom.csv
+xiom.cublas
 xiom.cuda
 xiom.cudnn
 xiom.cue
+xiom.cufft
 xiom.curl
+xiom.cusparse
 xiom.dac
 xiom.data
 xiom.db2
@@ -323,7 +326,9 @@ xiom.ntp
 xiom.ntriples
 xiom.nuclear
 xiom.numpy
+xiom.nvapi
 xiom.nvenc
+xiom.nvml
 xiom.oauth
 xiom.obj
 xiom.odbc
@@ -340,6 +345,7 @@ xiom.openssl
 xiom.optimizer
 xiom.optimizer-fw
 xiom.option
+xiom.optix
 xiom.opus
 xiom.oracle
 xiom.orbitdb
@@ -504,6 +510,7 @@ xiom.telnet
 xiom.template
 xiom.tensor
 xiom.tensorflow
+xiom.tensorrt
 xiom.term
 xiom.terraform
 xiom.text-markup
@@ -696,9 +703,12 @@ xiom.cpio
 xiom.crc
 xiom.cron
 xiom.csv
+xiom.cublas
 xiom.cudnn
 xiom.cue
+xiom.cufft
 xiom.curl
+xiom.cusparse
 xiom.dac
 xiom.data
 xiom.data.batch
@@ -1121,7 +1131,9 @@ xiom.ntp
 xiom.ntriples
 xiom.nuclear
 xiom.numpy
+xiom.nvapi
 xiom.nvenc
+xiom.nvml
 xiom.oauth
 xiom.obj
 xiom.ogg
@@ -1166,6 +1178,7 @@ xiom.openpgl.ffi
 xiom.optimizer
 xiom.optimizer_fw
 xiom.option
+xiom.optix
 xiom.opus
 xiom.opus.abi
 xiom.opus.ffi
@@ -1544,6 +1557,7 @@ xiom.tensorflow.ops
 xiom.tensorflow.session
 xiom.tensorflow.tensor
 xiom.tensorflow.types
+xiom.tensorrt
 xiom.term
 xiom.terraform
 xiom.text_markup

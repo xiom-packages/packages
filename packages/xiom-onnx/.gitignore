@@ -28,3 +28,4 @@ deps/
 # ORT profiling dumps (enable->disable order keeps these out)
 onnx_suite_prof*
 onnx_profile*
+onnxruntime_profile*

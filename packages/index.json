@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-17T21:46:13Z",
+    "updated":  "2026-10-17T22:50:20Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -1618,6 +1618,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.cublas",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA cuBLAS bindings for XIOM (runtime-loaded cublas64_13/12/11/10.dll; user-supplied CUDA math runtime, nothing vendored): handle lifecycle, setStream, version, sgemm/dgemm, axpy/dot/scal/nrm2, gemv, typed SKIP/error classification, driver-side device-memory helpers",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cublas/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cublas.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.2.0",
                          "name":  "xiom.cuda",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -1670,6 +1687,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.cufft",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA cuFFT bindings for XIOM (runtime-loaded cufft64_12/11/10.dll; user-supplied CUDA FFT runtime, nothing vendored): 1D/2D plans, destroy, setStream, version, plan-size estimates, R2C/C2R/C2C/D2Z/Z2D/Z2Z execution, typed SKIP/error classification, driver-side device-memory helpers",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cufft/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cufft.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.curl",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM HTTP client model: URL parsing/normalization, request and response envelopes, redirect semantics, cookies, auth header shapes, retry policy and keep-alive pool accounting (no sockets, no TLS)",
@@ -1682,6 +1716,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-curl/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "curl.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.cusparse",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA cuSPARSE bindings for XIOM (runtime-loaded cusparse64_13/12/11/10.dll; user-supplied CUDA sparse runtime, nothing vendored): handle lifecycle, setStream, version, legacy mat descriptor, CSR/dense descriptors, SpMV (f32/f64) and SpMM (f64) with buffer-size query + external buffer, typed SKIP/error classification, driver-side device-memory helpers",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cusparse/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cusparse.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5641,6 +5692,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.nvapi",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA NVAPI presence/identity/telemetry bindings for XIOM (runtime-loaded nvapi64.dll via nvapi_QueryInterface; interface + driver versions, physical GPU enumeration, GPU 0 identity, temperature, utilization; nothing vendored)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nvapi/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "nvapi.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.nvenc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "NVIDIA hardware video encode (NVENC) + decode (NVDEC/cuvid) bindings for XIOM (runtime-loaded nvEncodeAPI64.dll + nvcuvid.dll via nvcuda.dll; nothing vendored)",
@@ -5653,6 +5721,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nvenc/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "nvenc.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.nvml",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA NVML telemetry bindings for XIOM (runtime-loaded nvml.dll; driver version, device identity, memory, utilization, temperature, power, clocks, fan, PCIe, energy; nothing vendored)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nvml/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "nvml.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5746,17 +5831,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.onnx",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "ONNX Runtime bindings for XIOM -- cross-framework model inference",
+                         "description":  "ONNX Runtime bindings for XIOM -- cross-framework model inference (incl. DirectML EP)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-onnx/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-onnx/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "env.xi",
                                               "io.xi",
@@ -5959,6 +6044,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-option/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "option.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.optix",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA OptiX ray-tracing engine bindings for XIOM (reference-only dynamic loader, ABI 118; nothing vendored): device context create/destroy/validate + options, PTX module load, raygen/miss/hitgroup program groups, SBT build, pipeline create/link, launch-params buffer, launch; typed errors; SKIP-safe when the user\u0027s nvoptix.dll is absent",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-optix/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "optix.xi",
                                               "package.xi"
                                           ]
                      },
@@ -9022,6 +9124,23 @@
                                               "tensor.xi",
                                               "types.xi",
                                               "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.tensorrt",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NVIDIA TensorRT 10.x bindings (loader-only; runtime user-supplied; nothing vendored): builder/runtime factories, logger plumbing, network definition basics, builder config, build+serialize/deserialize, execution context, tensor addresses, enqueueV3, version query; SKIP-safe when the runtime is absent",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tensorrt/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "package.xi",
+                                              "tensorrt.xi"
                                           ]
                      },
                      {

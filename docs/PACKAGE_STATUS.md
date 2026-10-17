@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.6` -- generated 2026-10-17T18:52:26Z.
+Toolchain pin: `v0.64.6` -- generated 2026-10-17T19:50:23Z.
 
 ## Summary
 
-- packages tracked: 574
-- incubating: 292
+- packages tracked: 581
+- incubating: 299
 - ported: 1
 - stable: 281
 - publish enabled: 0
@@ -363,9 +363,12 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.consul | xiom-consul | incubating | tests/test_conformance.xi | pass 24/24 | 3d5baddd | False | publish pending: next scope delta |
 | xiom.context | xiom-context | incubating | tests/test_conformance.xi | pass 23/23 | d509e4c4 | False | publish pending: next scope delta |
 | xiom.countdown | xiom-countdown | incubating | tests/test_conformance.xi | pass 22/22 | 9ed381f7 | False | publish pending: next scope delta |
+| xiom.cublas | xiom-cublas | incubating | tests/test_conformance.xi | pass 62/62 | 929c233c | False | new package (0.1.0): not on the publish allowlist yet -- native lane owns the allowlist append + scope enumeration at merge |
 | xiom.cuda | xiom-cuda | incubating | tests/test_conformance.xi | pass 5/5 | 4bb65d14 | False | published in eco-v0.1.126 (2026-10-10) |
 | xiom.cudnn | xiom-cudnn | incubating | tests/test_conformance.xi | pass 60/60 | 38c41345 | False | published in eco-v0.1.197 (2026-10-17, 0.1.0; sha256 a1377f4c...) |
+| xiom.cufft | xiom-cufft | incubating | tests/test_conformance.xi | pass 45/45 | 929c233c | False | new package (0.1.0): not on the publish allowlist yet -- native lane owns the allowlist append + scope enumeration at merge |
 | xiom.curl | xiom-curl | incubating | tests/test_conformance.xi | pass 26/26 | 8f231b87 | False | publish pending: next scope delta |
+| xiom.cusparse | xiom-cusparse | incubating | tests/test_conformance.xi | pass 56/56 | 929c233c | False | new package (0.1.0): not on the publish allowlist yet -- native lane owns the allowlist append + scope enumeration at merge |
 | xiom.dac | xiom-dac | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.data | xiom-data | incubating | tests/test_conformance.xi | pass 24/24 | 546b9bac | False | publish pending: next scope delta |
 | xiom.db2 | xiom-db2 | incubating | tests/test_conformance.xi | pass 22/22 | 77d7ec35 | False | publish pending: next scope delta |
@@ -488,11 +491,13 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.nrd | xiom-nrd | incubating | tests/test_conformance.xi | pass 29/29 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- NRD reference loader) |
 | xiom.nuclear | xiom-nuclear | incubating | tests/test_conformance.xi | pass 27/27 | 9cd53156 | False | publish pending: next scope delta |
 | xiom.numpy | xiom-numpy | incubating | tests/test_conformance.xi | pass 150/150 | 5165e0c5 | False | published in eco-v0.1.196 (2026-10-17, 0.1.0; sha256 0eaa9185...) |
+| xiom.nvapi | xiom-nvapi | incubating | tests/test_conformance.xi | pass 25/25 | 6d42b87a | False | new package 0.1.0; publish gated on the ops scope flow |
 | xiom.nvenc | xiom-nvenc | incubating | tests/test_conformance.xi | pass 67/67 | 38c41345 | False | published in eco-v0.1.197 (2026-10-17, 0.1.0; sha256 9ff4eb1d...) |
+| xiom.nvml | xiom-nvml | incubating | tests/test_conformance.xi | pass 40/40 | 6d42b87a | False | new package 0.1.0; publish gated on the ops scope flow |
 | xiom.oauth | xiom-oauth | incubating | tests/test_conformance.xi | pass 25/25 | 72cfe406 | False | category harmonization patch bump (registry metadata) |
 | xiom.odbc | xiom-odbc | incubating | tests/test_conformance.xi | pass 5/5 | 31d0cc0e | False | not allowlisted: pending ops scope + native-lane allowlist append |
 | xiom.oidn | xiom-oidn | incubating | tests/test_conformance.xi | pass 4/4 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- OIDN loader tier) |
-| xiom.onnx | xiom-onnx | incubating | tests/test_conformance.xi | pass 56/56 | 84bdc431 | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 1c1c599b...) |
+| xiom.onnx | xiom-onnx | incubating | tests/test_conformance.xi | pass 60/60 | bd2854bf | False |  |
 | xiom.openal | xiom-openal | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.openblas | xiom-openblas | incubating | tests/test_conformance.xi | pass 42/42 | 38c41345 | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 a6740ae1...) |
 | xiom.opencv | xiom-opencv | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -501,6 +506,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.opensl | xiom-opensl | incubating |  | pass 4/4 | 0bb6c374 | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 A6 legacy audio tail) |
 | xiom.openssl | xiom-openssl | incubating | tests/test_conformance.xi | pass 4/4 | ec7a7e2e | False | publish pending: bindings batch 20 (eco-v0.1.119) |
 | xiom.optimizer-fw | xiom-optimizer-fw | incubating | tests/test_conformance.xi | pass 25/25 | ecf76d12 | False | publish pending: next scope delta |
+| xiom.optix | xiom-optix | incubating | tests/test_conformance.xi | pass 37/37 | c261c2ed | False | new package (0.1.0): not on the publish allowlist yet -- allowlist append + scope enumeration owned by the packages/native lane at merge |
 | xiom.opus | xiom-opus | incubating | tests/test_conformance.xi | pass 26/26 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- libopus 1.6.1 streaming audio) |
 | xiom.oracle | xiom-oracle | incubating | tests/test_conformance.xi | pass 22/22 | f487102b | False | publish pending: owner scope decision (parallel-lane implementation) |
 | xiom.orbitdb | xiom-orbitdb | incubating | tests/test_conformance.xi | pass 160/160 | ee0a74e5 | False | published in eco-v0.1.196 (2026-10-17, 0.2.1; sha256 c8fc6548...) |
@@ -569,6 +575,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.svm | xiom-svm | incubating | tests/test_conformance.xi | pass 23/23 | 0d9d0635 | False | publish pending: next scope delta |
 | xiom.tensor | xiom-tensor | incubating | tests/test_conformance.xi | pass 29/29 | cd0604a4 | False | publish pending: next scope delta |
 | xiom.tensorflow | xiom-tensorflow | incubating | tests/test_conformance.xi | pass 17/17 | ec548542 | False | published in eco-v0.1.194 (2026-10-17, 0.1.0; sha256 0f4bb6a5...) |
+| xiom.tensorrt | xiom-tensorrt | incubating | tests/test_conformance.xi | pass 55/55 | 1d3c2426 | False |  |
 | xiom.terraform | xiom-terraform | incubating | tests/test_conformance.xi | pass 24/24 | 7f471e67 | False | publish pending: next scope delta |
 | xiom.text-markup | xiom-text-markup | incubating | tests/test_conformance.xi | pass 26/26 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.timer | xiom-timer | incubating | tests/test_conformance.xi | pass 21/21 | e295e6fc | False | publish pending: next scope delta |

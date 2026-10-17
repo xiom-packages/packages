@@ -133,6 +133,7 @@ pub const ORT_API_GetTensorMemoryInfo: Int = 194;
 pub const ORT_API_SynchronizeBoundInputs: Int = 202;
 pub const ORT_API_SynchronizeBoundOutputs: Int = 203;
 pub const ORT_API_SessionOptionsAppendExecutionProvider: Int = 216;
+pub const ORT_API_GetExecutionProviderApi: Int = 195;
 
 /// OrtApiBase member indices (2 members: the whole struct).
 pub const ORT_BASE_GetApi: Int = 0;
@@ -142,7 +143,7 @@ pub const ORT_BASE_GetVersionString: Int = 1;
 pub const ONNX_CALL_FAILED: Int = 2;
 
 // =========================================================================
-// Declared surface (the 94 OrtApi entry points this package binds; the
+// Declared surface (the 96 OrtApi entry points this package binds; the
 // SPEC.md coverage table mirrors this list 1:1)
 // =========================================================================
 
@@ -227,6 +228,7 @@ pub fn onnx_surface_slots() -> Vec[Int]
   v.push(ORT_API_CreateAllocator);
   v.push(ORT_API_ReleaseAllocator);
   v.push(ORT_API_GetTensorMemoryInfo);
+  v.push(ORT_API_GetExecutionProviderApi);
   v.push(ORT_API_CreateRunOptions);
   v.push(ORT_API_RunOptionsSetRunLogVerbosityLevel);
   v.push(ORT_API_RunOptionsSetRunLogSeverityLevel);
@@ -251,7 +253,7 @@ pub fn onnx_surface_slots() -> Vec[Int]
 }
 
 /// The C API names of the declared surface, index-aligned with
-/// `onnx_surface_slots()` (94 entries; plus the 2 OrtApiBase entries).
+/// `onnx_surface_slots()` (96 entries; plus the 2 OrtApiBase entries).
 /// Complexity: O(n).
 pub fn onnx_surface_names() -> Vec[Str]
   requires: true
@@ -332,6 +334,7 @@ pub fn onnx_surface_names() -> Vec[Str]
   v.push("CreateAllocator");
   v.push("ReleaseAllocator");
   v.push("GetTensorMemoryInfo");
+  v.push("GetExecutionProviderApi");
   v.push("CreateRunOptions");
   v.push("RunOptionsSetRunLogVerbosityLevel");
   v.push("RunOptionsSetRunLogSeverityLevel");
