@@ -114,6 +114,22 @@ void xiom_http_headers_free(void* list) {
 
 /* --- Deterministic libcurl stub ---------------------------------------- */
 
+/* Raw request-body capture (0.1.9 binary path). libcurl's POSTFIELDS pointer
+ * is only valid until the transfer ends, so the stub copies the bytes when
+ * POSTFIELDSIZE is set (libcurl reads exactly that many bytes, NUL included).
+ * The raw-bytes probe reads the snapshot back through the two accessors at
+ * the bottom, proving the FFI seam saw the exact caller bytes. */
+static const unsigned char* stub_postfields = NULL;
+static unsigned char stub_body_snapshot[4096];
+static long long stub_body_len = -1;
+
+long long xiom_probe_last_body_len(void) { return stub_body_len; }
+
+long long xiom_probe_last_body_byte(long long off) {
+  if (off < 0 || off >= stub_body_len) return -1;
+  return (long long)stub_body_snapshot[off];
+}
+
 /* Expected values pinned by http.xi (SPEC documents 30s/10s/64 KiB timeouts
  * and buffer). A heap pointer fed in as the "long" cannot match these. */
 static int stub_long_option_ok(long long option, long long value) {
@@ -133,9 +149,23 @@ void* curl_easy_init(void) { return malloc(16); }
 
 int curl_easy_setopt(void* h, long long option, const void* value) {
   (void)h;
+  /* STRINGPOINT/OBJECTPOINT sites pass real pointers; remember POSTFIELDS so
+   * the adjacent POSTFIELDSIZE call can snapshot exactly `size` bytes. */
+  if (option == 10015) { /* CURLOPT_POSTFIELDS */
+    stub_postfields = (const unsigned char*)value;
+    return 0;
+  }
   /* Variadic ABI: for LONG options libcurl reads va_arg(param, long) -- the
    * register/stack slot as an integer value, NOT a dereference. */
   long v = (long)(intptr_t)value;
+  if (option == 60) { /* CURLOPT_POSTFIELDSIZE */
+    if (stub_postfields && v >= 0 && v <= (long)sizeof(stub_body_snapshot)) {
+      memcpy(stub_body_snapshot, stub_postfields, (size_t)v);
+      stub_body_len = (long long)v;
+    } else {
+      stub_body_len = -2; /* capture impossible: fail the probe assertion */
+    }
+  }
   if (!stub_long_option_ok(option, (long long)v)) {
     return 43; /* CURLE_BAD_FUNCTION_ARGUMENT */
   }

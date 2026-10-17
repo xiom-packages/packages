@@ -39,6 +39,14 @@
 //       --c-source packages\xiom-http\tests\probe_bridge.c
 module http_root_probe
 
+// Probe-only snapshot accessors provided by tests/probe_bridge.c. They return
+// the exact bytes the stub received at CURLOPT_POSTFIELDS/POSTFIELDSIZE, so
+// the raw-bytes leg is verified at the package's own FFI transport seam.
+extern "C" {
+  fn xiom_probe_last_body_len() -> Int;
+  fn xiom_probe_last_body_byte(offset: Int) -> Int;
+}
+
 use xiom.http;
 use xiom.http.headers;
 use xiom.http.types;
@@ -52,6 +60,8 @@ pub fn main() -> Int {
   failed = failed + check_unsupported_method();
   failed = failed + check_headers_closed_port();
   failed = failed + check_empty_headers_closed_port();
+  failed = failed + check_binary_body_exact();
+  failed = failed + check_binary_body_mismatch();
   if failed == 0 {
     io.println("[PASS] probe_root_module: all checks passed");
   } else {
@@ -129,6 +139,85 @@ fn check_headers_closed_port() -> Int {
       };
       io.println("[FAIL] closed-port http_request: unexpected error text: " + e);
       return 1;
+    },
+  };
+}
+
+// Binary frame: gzip magic plus NUL, DEL, and every high-byte class.
+fn binary_frame() -> Vec[UInt8] {
+  var v: Vec[UInt8] = Vec[UInt8].new();
+  v.push(31);
+  v.push(139);
+  v.push(8);
+  v.push(0);
+  v.push(127);
+  v.push(128);
+  v.push(129);
+  v.push(254);
+  v.push(255);
+  return v;
+}
+
+fn check_binary_body_exact() -> Int {
+  var frame: Vec[UInt8] = binary_frame();
+  var res: Result[HttpClientResponse, HttpBytesRequestError] = http_request_bytes("http://127.0.0.1:1/", "POST", frame, 9, "");
+  match res {
+    Ok(resp) => {
+      io.println("[FAIL] binary body: closed-port request returned Ok (status " + convert.to_string(resp.status) + ")");
+      return 1;
+    },
+    Err(e) => {
+      match e {
+        HttpBytesRequestError.Transport(_) => {},
+        _ => {
+          io.println("[FAIL] binary body: expected Transport error after the transfer attempt");
+          return 1;
+        },
+      };
+    },
+  };
+  var n: Int = unsafe { xiom_probe_last_body_len() };
+  if n != 9 {
+    io.println("[FAIL] binary body: captured length " + convert.to_string(n) + ", expected 9");
+    return 1;
+  };
+  var expect: Vec[UInt8] = binary_frame();
+  var i: Int = 0;
+  while i < 9 {
+    var got: Int = unsafe { xiom_probe_last_body_byte(i) };
+    if got != (expect[i] as Int) {
+      io.println("[FAIL] binary body: byte " + convert.to_string(i) + " = " + convert.to_string(got) + ", expected " + convert.to_string(expect[i] as Int));
+      return 1;
+    };
+    i = i + 1;
+  };
+  io.println("[PASS] binary body: 0x00 + 0x80..0xFF preserved exactly through CURLOPT_POSTFIELDS/POSTFIELDSIZE");
+  return 0;
+}
+
+fn check_binary_body_mismatch() -> Int {
+  var frame: Vec[UInt8] = binary_frame();
+  var res: Result[HttpClientResponse, HttpBytesRequestError] = http_request_bytes("http://127.0.0.1:1/", "POST", frame, 8, "");
+  match res {
+    Ok(_) => {
+      io.println("[FAIL] binary body mismatch: expected typed Err, got Ok");
+      return 1;
+    },
+    Err(e) => {
+      match e {
+        HttpBytesRequestError.BodyLengthMismatch(declared, actual) => {
+          if declared == 8 && actual == 9 {
+            io.println("[PASS] binary body mismatch: typed LengthMismatch(8, 9) before any FFI call");
+            return 0;
+          };
+          io.println("[FAIL] binary body mismatch: fields declared=" + convert.to_string(declared) + " actual=" + convert.to_string(actual));
+          return 1;
+        },
+        _ => {
+          io.println("[FAIL] binary body mismatch: expected BodyLengthMismatch, got another variant");
+          return 1;
+        },
+      };
     },
   };
 }

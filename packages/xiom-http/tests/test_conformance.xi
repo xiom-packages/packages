@@ -1,6 +1,7 @@
 module xiom.http.tests
 
 use xiom.http.types;
+use xiom.http.body;
 use xiom.http.status;
 use xiom.http.mime;
 use xiom.http.url;
@@ -94,6 +95,9 @@ pub fn run_all_tests() -> Result[Unit, Str] {
   results.push(test_server_listen_error());
   results.push(test_server_handle_error());
   results.push(test_server_close());
+  results.push(test_body_bytes_exact_preservation());
+  results.push(test_body_length_mismatch());
+  results.push(test_body_length_negative());
 
   var i: Int = 0;
   while i < results.len() {
@@ -707,6 +711,79 @@ fn test_headers_blob_parse_roundtrip() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
+// --- Raw-bytes request body (xiom.http.body, 0.1.9) -------------------------
+
+fn binary_frame() -> Vec[UInt8] {
+  var v: Vec[UInt8] = Vec[UInt8].new();
+  v.push(31);
+  v.push(139);
+  v.push(8);
+  v.push(0);
+  v.push(127);
+  v.push(128);
+  v.push(129);
+  v.push(254);
+  v.push(255);
+  return v;
+}
+
+fn test_body_bytes_exact_preservation() -> Result[Unit, Str] {
+  var frame: Vec[UInt8] = binary_frame();
+  match http_bytes_body(frame, 9) {
+    Ok(b) => {
+      try(assert_int_eq(b.content_length, 9, "body bytes: declared length kept"));
+      try(assert_int_eq(b.bytes.len(), 9, "body bytes: span length kept"));
+      var wire: Vec[UInt8] = http_bytes_body_wire(&b);
+      try(assert_int_eq(wire.len(), 9, "body bytes: wire length exact"));
+      var i: Int = 0;
+      while i < 9 {
+        try(assert_int_eq(wire[i], b.bytes[i], "body bytes: wire byte " + xiom.convert.int_to_string(i) + " exact"));
+        i = i + 1;
+      };
+      try(assert_int_eq(wire[3], 0, "body bytes: NUL preserved"));
+      try(assert_int_eq(wire[5], 128, "body bytes: 0x80 preserved"));
+      try(assert_int_eq(wire[8], 255, "body bytes: 0xFF preserved"));
+    },
+    Err(e) => { return Err("FAIL: body bytes: unexpected Err: " + http_body_error_message(&e)); },
+  };
+  return Ok(Unit);
+}
+
+fn test_body_length_mismatch() -> Result[Unit, Str] {
+  var frame: Vec[UInt8] = binary_frame();
+  match http_bytes_body(frame, 8) {
+    Ok(_) => { return Err("FAIL: body length mismatch -- expected Err, got Ok"); },
+    Err(e) => {
+      match e {
+        HttpBodyError.LengthMismatch(declared, actual) => {
+          try(assert_int_eq(declared, 8, "body length mismatch: declared field"));
+          try(assert_int_eq(actual, 9, "body length mismatch: actual field"));
+          try(assert_str_eq(http_body_error_message(&e), "http body: Content-Length 8 does not match body length 9", "body length mismatch: message"));
+        },
+        HttpBodyError.NegativeLength(_) => { return Err("FAIL: body length mismatch -- got NegativeLength"); },
+      };
+    },
+  };
+  return Ok(Unit);
+}
+
+fn test_body_length_negative() -> Result[Unit, Str] {
+  var frame: Vec[UInt8] = binary_frame();
+  match http_bytes_body(frame, -1) {
+    Ok(_) => { return Err("FAIL: body negative length -- expected Err, got Ok"); },
+    Err(e) => {
+      match e {
+        HttpBodyError.NegativeLength(declared) => {
+          try(assert_int_eq(declared, -1, "body negative length: declared field"));
+          try(assert_str_eq(http_body_error_message(&e), "http body: negative Content-Length -1", "body negative length: message"));
+        },
+        HttpBodyError.LengthMismatch(_, _) => { return Err("FAIL: body negative length -- got LengthMismatch"); },
+      };
+    },
+  };
+  return Ok(Unit);
+}
+
 fn try(res: Result[Unit, Str]) {
   match res {
     Ok(_) => {},
@@ -787,6 +864,9 @@ fn main() -> Int {
   failures = failures + run_case("headers blob reject invalid names", test_headers_blob_reject_invalid_names());
   failures = failures + run_case("headers blob reject invalid values", test_headers_blob_reject_invalid_values());
   failures = failures + run_case("headers blob parse roundtrip", test_headers_blob_parse_roundtrip());
-  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(52 - failures) + "/52 passed");
+  failures = failures + run_case("body bytes exact preservation", test_body_bytes_exact_preservation());
+  failures = failures + run_case("body length mismatch", test_body_length_mismatch());
+  failures = failures + run_case("body negative length", test_body_length_negative());
+  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(55 - failures) + "/55 passed");
   return failures;
 }

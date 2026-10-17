@@ -16,7 +16,11 @@ HTTP/1.1 types, request/response parsers, client helpers, and a (stub) server sh
 > custom request headers (`xiom.http.headers.http_headers_blob` +
 > `xiom.http.http_request`; `Authorization: Bearer` proven on the wire via the
 > shim's curl_slist path). Suite **52/52 x2** on v0.64.6. Published as a
-> single tag `xiom-http/v0.1.8` (sha256 `0e707f55...`, 2026-10-16).
+> single tag `xiom-http/v0.1.8` (sha256 `0e707f55...`, 2026-10-16). 0.1.9
+> adds the binary-safe body path: `xiom.http.body` + `http_request_bytes`
+> transmit `Vec[UInt8]` bytes exactly (no UTF-8 re-encode, NUL-safe) with a
+> typed `HttpBytesRequestError`; the Str-body API is unchanged. Suite
+> **55/55 x2** on v0.64.6.
 
 ## Consumer quickstart (3 lines)
 
@@ -62,9 +66,11 @@ method-routing `http_send`; **custom request headers since 0.1.8** (incl.
 `xiom.http.headers.http_headers_blob` and send it through
 `xiom.http.http_request`; `http_send` now forwards every declared
 `HttpRequest.headers` entry (pre-0.1.8 it consulted Content-Type only and then
-dropped it); typed `Err(Str)` failure taxonomy; response `status` / `body` /
-`headers` capture; TLS through the libcurl CA bundle (set `CURL_CA_BUNDLE`,
-recipe above).
+dropped it); **binary request bodies since 0.1.9** via
+`xiom.http.http_request_bytes(url, method, Vec[UInt8], content_length, blob)`
+with typed `HttpBytesRequestError`; typed `Err(Str)` failure taxonomy for the
+Str-body wrappers; response `status` / `body` / `headers` capture; TLS through
+the libcurl CA bundle (set `CURL_CA_BUNDLE`, recipe above).
 
 ```xiom
 use xiom.http;
@@ -78,6 +84,23 @@ match http_headers_blob(pairs) {
   Err(e) => { /* invalid name or value; fix the pair, nothing was sent */ },
 };
 ```
+
+Binary bodies (0.1.9) use `Vec[UInt8]` plus an explicit Content-Length:
+
+```xiom
+use xiom.http;                 // http_request_bytes, HttpBytesRequestError
+var gz: Vec[UInt8] = /* exact gzip bytes */;
+match http_request_bytes(url, "POST", gz, gz.len(), blob) {
+  Ok(resp) => { /* bytes were sent exactly; no UTF-8 re-encode */ },
+  Err(HttpBytesRequestError.BodyLengthMismatch(d, a)) => { /* d != a */ },
+  Err(HttpBytesRequestError.Transport(msg)) => { /* libcurl failure */ },
+  Err(_) => { /* negative length or unsupported method */ },
+};
+```
+
+The bytes go to libcurl through `CURLOPT_POSTFIELDS`/`CURLOPT_POSTFIELDSIZE`
+without a cstr conversion, so `0x00` and `0x80..0xFF` survive. Headers are the
+same CRLF blob; set `Content-Encoding` / `Content-Type` there yourself.
 
 Not yet in the surface (tracked in `ROADMAP.md`): keep-alive control,
 per-call timeouts, streaming request/response bodies, and a pluggable TLS
@@ -103,6 +126,7 @@ drives the header path offline through the deterministic probe bridge.
 | `xiom.http.mime` | MIME mapping |
 | `xiom.http.url` | URL parsing |
 | `xiom.http.cookie` | cookie helpers (see also the `xiom.cookie` package) |
+| `xiom.http.body` | raw-bytes body validation + exact wire copy (`http_bytes_body`) |
 | `xiom.http.headers` | header-list builder for custom request headers (`http_headers_blob`) |
 | `xiom.http.client` | client-side helpers |
 | `xiom.http.server` | **stub** (see below) |
@@ -169,12 +193,35 @@ Custom request headers (incl. `Authorization`), the xiom.jev live-leg blocker
   the header path offline; `probe_real_libcurl.xi` proves the live header
   roundtrip against `tests/echo_headers_server.ps1` (SKIP-safe).
 
+## 0.1.9 changes
+
+Binary-safe request bodies (gzip frames, images, protobuf, ...). The Str-body
+entries are unchanged.
+
+- New pure module `xiom.http.body`: `http_bytes_body(bytes, content_length)`
+  validates a `Vec[UInt8]` span against an explicit Content-Length and returns
+  the typed `HttpBodyError.LengthMismatch` / `NegativeLength` variants;
+  `http_bytes_body_wire` copies the bytes exactly (no conversion).
+- New root entry `http_request_bytes(url, method, body, content_length,
+  headers) -> Result[HttpClientResponse, HttpBytesRequestError]`. The vector
+  pointer goes to `CURLOPT_POSTFIELDS` with `CURLOPT_POSTFIELDSIZE =
+  content_length`, so libcurl reads exactly those bytes: NUL-safe, high-byte-
+  safe, no `xiom_str_to_cstr`. `Transport` wraps the existing libcurl error
+  text; the other variants are returned before any FFI call.
+- `http_request`'s header/perform internals were factored into
+  `setup_request_headers` / `perform_request_common`; its behavior and error
+  text are unchanged.
+- Suite grows 52 -> 55 checks (binary preservation, mismatch, negative
+  length); the offline `probe_root_module` bridge now snapshots
+  POSTFIELDS/POSTFIELDSIZE and verifies a `0x00 + 0x80..0xFF` frame byte-for-
+  byte through `http_request_bytes` (7 `[PASS]` checks x2).
+
 ## Contracts and tests
 
 - `http_parse_request` / `http_parse_response`: `requires: input.len() > 0` (do not call
   with an empty string; an empty input traps as a contract violation).
 - Parser KATs (request line, POST body, response line, header parsing, malformed header)
-  live in `tests/test_conformance.xi` (52 checks) -- added in 0.1.1 after a consumer-only
+  live in `tests/test_conformance.xi` (55 checks) -- added in 0.1.1 after a consumer-only
   defect (missing import + bare `&mut Int` cursor) shipped green on 0.1.0; the 0.1.4
   checks pin printable-ASCII rendering in `src/url.xi` and `src/types.xi`; the 0.1.8
   checks pin the header-list builder in `src/headers.xi` (goldens, reject rules,

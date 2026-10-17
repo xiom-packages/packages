@@ -126,6 +126,30 @@ HTTP cookie parsing and serialization.
 
 ---
 
+### `xiom.http.body` (`src/body.xi`) -- 0.1.9
+
+Pure raw-bytes request-body layer (no FFI, no I/O). It carries the exact body
+bytes plus the caller-declared `Content-Length` and validates them before any
+transfer starts. Bytes are never UTF-8 encoded, trimmed, or NUL-terminated.
+
+**Types:**
+- `HttpBytesBody { bytes: Vec[UInt8]; content_length: Int; }`
+- `HttpBodyError = enum { LengthMismatch(declared: Int, actual: Int); NegativeLength(declared: Int); }`
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `http_bytes_body` | `(bytes: Vec[UInt8], content_length: Int) -> Result[HttpBytesBody, HttpBodyError]` | Validate the span length against the declared length |
+| `http_bytes_body_wire` | `(body: &HttpBytesBody) -> Vec[UInt8]` | Exact byte-for-byte copy for the wire (no conversion) |
+| `http_body_error_message` | `(err: &HttpBodyError) -> Str` | Deterministic, secret-free error text |
+
+Validation (frozen): a negative `content_length` returns
+`HttpBodyError.NegativeLength(declared)`; any mismatch returns
+`HttpBodyError.LengthMismatch(declared, actual)` where `actual` is
+`bytes.len()`. A matching pair returns the body unchanged, including `0x00`
+and `0x80..0xFF`.
+
+---
+
 ### `xiom.http.headers` (`src/headers.xi`)
 
 Deterministic header-list builder for the client's custom-header path (0.1.8).
@@ -168,6 +192,7 @@ Production HTTP client backed by libcurl. This is the primary entry point for HT
 | `http_delete` | `(url: Str) -> Result[HttpClientResponse, Str]` | HTTP DELETE request |
 | `http_download` | `(url: Str, path: Str) -> Result[Unit, Str]` | Download to a file on disk |
 | `http_request` | `(url: Str, method: Str, body: Str, headers: Str) -> Result[HttpClientResponse, Str]` | Headers-capable request (0.1.8; see below) |
+| `http_request_bytes` | `(url: Str, method: Str, body: Vec[UInt8], content_length: Int, headers: Str) -> Result[HttpClientResponse, HttpBytesRequestError]` | Binary-safe request body (0.1.9; see below) |
 
 All functions:
 1. Initialize a libcurl easy handle via `curl_easy_init()`
@@ -644,4 +669,64 @@ same `requires` shape as the public wrappers, and the new private helper
 and POST it through `xiom.http.http_request(endpoint, "POST", body, blob)` --
 the 401-until-headers note in jev SPEC section 8 can be retired once jev
 switches its transport call to this entry.
+
+---
+
+## 0.1.9 -- raw-bytes request bodies (2026-10-17)
+
+The Str-body client entries re-encode a `Str` via `encoding.utf8_encode` and
+`xiom_str_to_cstr` before handing it to libcurl, corrupting binary payloads
+(surfaced by the xiom.jev S8 gzip frame). This pass adds a bounded second
+path; the existing Str-body entries are untouched and byte-identical.
+
+### New entry
+
+`xiom.http.http_request_bytes(url, method, body: Vec[UInt8], content_length:
+Int, headers: Str) -> Result[HttpClientResponse, HttpBytesRequestError]`.
+
+- `body` is the exact byte span; `content_length` is the caller-declared
+  Content-Length. Validation runs before any FFI call through
+  `xiom.http.body.http_bytes_body`.
+- The vector's data pointer goes straight to `CURLOPT_POSTFIELDS`, and
+  `CURLOPT_POSTFIELDSIZE` is set to `content_length`. libcurl therefore reads
+  exactly those bytes: no UTF-8 conversion, no cstr conversion, no NUL
+  truncation. A frame containing `0x00` and `0x80..0xFF` reaches the transport
+  unchanged.
+- Methods and the body-carrying set are the same as `http_request`
+  (POST/PUT/PATCH send a body; GET/DELETE/HEAD/OPTIONS ignore it but still
+  validate the length).
+- `headers` is the unchanged `http_headers_blob` CRLF blob, so callers set
+  `Content-Type` / `Content-Encoding` themselves; libcurl forwards the lines
+  verbatim.
+- The transport internals shared with `http_request` were factored into
+  `setup_request_headers` / `perform_request_common`; `http_request`'s
+  observable behavior and error text are unchanged.
+
+### Typed errors
+
+`HttpBytesRequestError = enum { BodyLengthMismatch(declared, actual);
+BodyLengthNegative(declared); UnsupportedMethod(method); Transport(message); }`.
+
+`BodyLengthMismatch` / `BodyLengthNegative` / `UnsupportedMethod` are returned
+before any FFI call; `Transport` wraps the existing libcurl error text. The
+typed variants are the primary contract; `xiom.http.body.http_body_error_message`
+renders deterministic text where a string is needed.
+
+### Evidence (compiler v0.64.6)
+
+- `tests/test_conformance.xi`: **55/55 x2** via
+  `port.ps1 -Package xiom.http -TimeoutSec 240` (program_exit=0 both runs).
+  Three new checks: a gzip-like frame with `0x00`/`0x7F`/`0x80`/`0x81`/`0xFE`/
+  `0xFF` is preserved byte-for-byte through `http_bytes_body_wire`; the
+  mismatch and negative-length typed variants with their golden messages.
+- `tests/probe_root_module.xi` + `tests/probe_bridge.c` x2 exit 0, now with
+  seven `[PASS]` checks. The bridge stub snapshots the bytes at
+  `CURLOPT_POSTFIELDSIZE` (libcurl's exact-read contract) and exposes
+  `xiom_probe_last_body_len` / `xiom_probe_last_body_byte`; the new offline leg
+  sends the same binary frame through `http_request_bytes` to a closed port and
+  asserts every byte is exact, plus the typed `LengthMismatch(8, 9)` rejection
+  before any FFI call.
+- No bridge production change was needed: `Vec[UInt8].as_mut_ptr()` already
+  supplies a raw `*UInt8` that stays alive through `curl_easy_perform`, so the
+  cstr/FFI seam does not obstruct exact binary transmission.
 

@@ -8,6 +8,7 @@ use xiom.ptr;
 use xiom.string;
 use xiom.encoding;
 use xiom.convert.tostring;
+use xiom.http.body;
 
 // --- XIOM FFI Bridge --------------------------------------------------------
 
@@ -53,6 +54,16 @@ pub type HttpClientResponse = {
   body: Str;
   headers: Str;
 } derive[Clone]
+
+// Typed outcome of the raw-bytes request entry (0.1.9). Body validation
+// happens before any FFI call, so a caller can distinguish a malformed
+// body/length pair from an actual transport failure without parsing text.
+pub enum HttpBytesRequestError {
+  BodyLengthMismatch(declared: Int, actual: Int),
+  BodyLengthNegative(declared: Int),
+  UnsupportedMethod(method: Str),
+  Transport(message: Str),
+}
 
 // --- CURL Option Constants --------------------------------------------------
 
@@ -503,6 +514,74 @@ fn set_request_method(handle: *UInt8, method: Str) -> Result[Unit, Str] {
   return Ok(());
 }
 
+fn is_supported_method(method: Str) -> Bool {
+  return method == "GET" || method == "POST" || method == "PUT" || method == "PATCH" || method == "DELETE" || method == "HEAD" || method == "OPTIONS";
+}
+
+fn method_has_body(method: Str) -> Bool {
+  return method == "POST" || method == "PUT" || method == "PATCH";
+}
+
+// setup_request_headers builds and installs the curl_slist for the CRLF blob
+// produced by xiom.http.headers.http_headers_blob. An empty blob returns a
+// null list and makes no CURLOPT_HTTPHEADER call (exact wrapper behavior).
+// On failure the partial list is released here; callers only ever receive a
+// fully installed list.
+fn setup_request_headers(handle: *UInt8, headers: Str) -> Result[*UInt8, Str] {
+  var header_list: *UInt8 = ptr_null();
+  if string.str_len(headers) == 0 {
+    return Ok(header_list);
+  };
+  var headers_cstr: *UInt8 = str_to_cstr(headers);
+  if ptr.is_null[UInt8](headers_cstr) {
+    return Err("xiom_str_to_cstr failed for headers");
+  };
+  unsafe { header_list = xiom_http_headers_build(headers_cstr); }
+  unsafe { xiom_free_cstr(headers_cstr); }
+  if ptr.is_null[UInt8](header_list) {
+    return Err("failed to build curl_slist from header blob");
+  };
+  var rc_h: Int = unsafe { curl_easy_setopt(handle, CURLOPT_HTTPHEADER(), header_list) };
+  if rc_h != 0 {
+    unsafe { xiom_http_headers_free(header_list); }
+    return Err(string.str_concat("CURLOPT_HTTPHEADER failed: ", curl_error_string(rc_h)));
+  };
+  return Ok(header_list);
+}
+
+// perform_request_common executes the transfer and captures status/body/
+// headers, then releases every request resource exactly once. Shared by the
+// Str-body http_request and the raw-bytes http_request_bytes entries.
+fn perform_request_common(handle: *UInt8, header_list: *UInt8, url_cstr: *UInt8, body_cstr: *UInt8) -> Result[HttpClientResponse, Str] {
+  var files = open_temp_files();
+  match files {
+    Err(e) => { cleanup_http_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
+    Ok(fds) => {
+      var perf = perform_and_collect(handle, fds.body, fds.headers);
+      var status: Int = get_response_code(handle);
+      var resp_body: Str = read_file_to_str(fds.body);
+      var resp_headers: Str = read_file_to_str(fds.headers);
+      close_temp_files(fds.body, fds.headers);
+      cleanup_temp_files();
+      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
+      match perf { Err(e) => { return Err(e); }, Ok(_) => {}, };
+      return Ok(HttpClientResponse{ status: status, body: resp_body, headers: resp_headers });
+    },
+  };
+  return Err("unreachable");
+}
+
+fn bytes_request_body_error(e: HttpBodyError) -> HttpBytesRequestError {
+  match e {
+    HttpBodyError.LengthMismatch(declared, actual) => {
+      return HttpBytesRequestError.BodyLengthMismatch(declared, actual);
+    },
+    HttpBodyError.NegativeLength(declared) => {
+      return HttpBytesRequestError.BodyLengthNegative(declared);
+    },
+  };
+}
+
 // --- URL Checking -----------------------------------------------------------
 
 fn check_url(url_cstr: *UInt8, handle: *UInt8) -> Bool {
@@ -776,11 +855,10 @@ pub fn http_request(url: Str, method: Str, body: Str, headers: Str) -> Result[Ht
   requires: string.str_len(url) > 0
   requires: string.str_len(method) > 0
 {
-  var known: Bool = method == "GET" || method == "POST" || method == "PUT" || method == "PATCH" || method == "DELETE" || method == "HEAD" || method == "OPTIONS";
-  if !known {
+  if !is_supported_method(method) {
     return Err(string.str_concat("http_request: unsupported method ", method));
   };
-  var has_body: Bool = method == "POST" || method == "PUT" || method == "PATCH";
+  var has_body: Bool = method_has_body(method);
 
   var url_cstr: *UInt8 = str_to_cstr(url);
   if ptr.is_null[UInt8](url_cstr) {
@@ -805,23 +883,10 @@ pub fn http_request(url: Str, method: Str, body: Str, headers: Str) -> Result[Ht
 
   // Custom headers: an empty blob keeps the exact wrapper behavior (no
   // CURLOPT_HTTPHEADER call at all); a non-empty blob must build a list.
-  if string.str_len(headers) > 0 {
-    var headers_cstr: *UInt8 = str_to_cstr(headers);
-    if ptr.is_null[UInt8](headers_cstr) {
-      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
-      return Err("xiom_str_to_cstr failed for headers");
-    };
-    unsafe { header_list = xiom_http_headers_build(headers_cstr); }
-    unsafe { xiom_free_cstr(headers_cstr); }
-    if ptr.is_null[UInt8](header_list) {
-      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
-      return Err("failed to build curl_slist from header blob");
-    };
-    var rc_h: Int = unsafe { curl_easy_setopt(handle, CURLOPT_HTTPHEADER(), header_list) };
-    if rc_h != 0 {
-      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
-      return Err(string.str_concat("CURLOPT_HTTPHEADER failed: ", curl_error_string(rc_h)));
-    };
+  var header_res = setup_request_headers(handle, headers);
+  match header_res {
+    Err(e) => { cleanup_http_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
+    Ok(list) => { header_list = list; },
   };
 
   var method_res = set_request_method(handle, method);
@@ -849,20 +914,102 @@ pub fn http_request(url: Str, method: Str, body: Str, headers: Str) -> Result[Ht
     };
   };
 
-  var files = open_temp_files();
-  match files {
-    Err(e) => { cleanup_http_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
-    Ok(fds) => {
-      var perf = perform_and_collect(handle, fds.body, fds.headers);
-      var status: Int = get_response_code(handle);
-      var resp_body: Str = read_file_to_str(fds.body);
-      var resp_headers: Str = read_file_to_str(fds.headers);
-      close_temp_files(fds.body, fds.headers);
-      cleanup_temp_files();
-      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
-      match perf { Err(e) => { return Err(e); }, Ok(_) => {}, };
-      return Ok(HttpClientResponse{ status: status, body: resp_body, headers: resp_headers });
-    },
+  return perform_request_common(handle, header_list, url_cstr, body_cstr);
+}
+
+// --- Raw-Bytes Request Entry (0.1.9) ----------------------------------------
+//
+// http_request_bytes is the binary-safe companion of http_request. It takes
+// the request body as a byte span (Vec[UInt8]) plus the caller-declared
+// Content-Length, and transmits those bytes EXACTLY: the vector's data pointer
+// goes to CURLOPT_POSTFIELDS with an explicit CURLOPT_POSTFIELDSIZE, so there
+// is no UTF-8 re-encode, no cstr conversion, and no NUL truncation. A frame
+// containing 0x00 and 0x80..0xFF reaches libcurl unchanged.
+//
+// Validation happens before any FFI call:
+//   - the method must be one of GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS
+//     (otherwise HttpBytesRequestError.UnsupportedMethod);
+//   - content_length must be non-negative (BodyLengthNegative);
+//   - content_length must equal body.len() (BodyLengthMismatch).
+// Transport failures are reported as HttpBytesRequestError.Transport(text).
+// Header bytes are the unchanged CRLF blob from http_headers_blob; callers set
+// Content-Type / Content-Encoding themselves.
+//
+// The body is sent for POST/PUT/PATCH and ignored (but still length-checked)
+// for the bodyless methods, matching http_request.
+fn http_request_bytes_raw(url: Str, method: Str, body: Vec[UInt8], content_length: Int, headers: Str) -> Result[HttpClientResponse, Str]
+  requires: string.str_len(url) > 0
+{
+  var has_body: Bool = method_has_body(method);
+
+  var url_cstr: *UInt8 = str_to_cstr(url);
+  if ptr.is_null[UInt8](url_cstr) {
+    return Err("xiom_str_to_cstr failed for URL");
   };
-  return Err("unreachable");
+
+  var handle: *UInt8 = ptr_null();
+  unsafe { handle = curl_easy_init(); }
+  if ptr.is_null[UInt8](handle) {
+    unsafe { xiom_free_cstr(url_cstr); }
+    return Err("curl_easy_init returned null handle");
+  };
+
+  var header_list: *UInt8 = ptr_null();
+  var no_body_cstr: *UInt8 = ptr_null();
+
+  var setup = setup_common_options(handle, url_cstr);
+  match setup {
+    Err(e) => { cleanup_http_request(handle, header_list, url_cstr, no_body_cstr); return Err(e); },
+    Ok(_) => {},
+  };
+
+  var header_res = setup_request_headers(handle, headers);
+  match header_res {
+    Err(e) => { cleanup_http_request(handle, header_list, url_cstr, no_body_cstr); return Err(e); },
+    Ok(list) => { header_list = list; },
+  };
+
+  var method_res = set_request_method(handle, method);
+  match method_res {
+    Err(e) => { cleanup_http_request(handle, header_list, url_cstr, no_body_cstr); return Err(e); },
+    Ok(_) => {},
+  };
+
+  var body_bytes: Vec[UInt8] = body;
+  if has_body {
+    var body_ptr: *UInt8 = ptr_null();
+    unsafe { body_ptr = body_bytes.as_mut_ptr(); }
+    var rc_b: Int = unsafe { curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_ptr) };
+    if rc_b != 0 {
+      cleanup_http_request(handle, header_list, url_cstr, no_body_cstr);
+      return Err(string.str_concat("CURLOPT_POSTFIELDS failed: ", curl_error_string(rc_b)));
+    };
+    var rc_s: Int = unsafe { curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), make_long_value(content_length)) };
+    if rc_s != 0 {
+      cleanup_http_request(handle, header_list, url_cstr, no_body_cstr);
+      return Err(string.str_concat("CURLOPT_POSTFIELDSIZE failed: ", curl_error_string(rc_s)));
+    };
+  };
+
+  return perform_request_common(handle, header_list, url_cstr, no_body_cstr);
+}
+
+pub fn http_request_bytes(url: Str, method: Str, body: Vec[UInt8], content_length: Int, headers: Str) -> Result[HttpClientResponse, HttpBytesRequestError]
+  requires: string.str_len(url) > 0
+  requires: string.str_len(method) > 0
+{
+  if !is_supported_method(method) {
+    return Err(HttpBytesRequestError.UnsupportedMethod(method));
+  };
+  var checked = http_bytes_body(body, content_length);
+  match checked {
+    Ok(request_body) => {
+      match http_request_bytes_raw(url, method, request_body.bytes, request_body.content_length, headers) {
+        Ok(resp) => { return Ok(resp); },
+        Err(e) => { return Err(HttpBytesRequestError.Transport(e)); },
+      };
+    },
+    Err(e) => { return Err(bytes_request_body_error(e)); },
+  };
+  return Err(HttpBytesRequestError.Transport("unreachable"));
 }
