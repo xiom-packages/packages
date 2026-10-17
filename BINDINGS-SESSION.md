@@ -1535,6 +1535,18 @@ torch/libtorch/tensorflow/blas/openblas; B-34 filed; 566/0)**:
   branch-side `COMPILER_VERSION` bump still pending (owner/sibling);
   B-32 (m358) + B-34 ride the v0.64.7 wave.
 
+**UPDATE 2026-10-17 11:58Z (branch pin bump DONE -- COMPILER_VERSION
+v0.64.6 + 566 records repinned; morning state)**: closes the 00:45Z
+MORNING TODO.
+- **`COMPILER_VERSION` -> v0.64.6** (matches the published stdlib 0.64.6
+  and main's repin `ec548542`); `status.ps1 -Action repin` updated all
+  **566** records (run totals/commits preserved); validate **566/0**.
+- Morning state: miniaudio 0.5.0 PUBLISHED; M2 wave (torch/libtorch/
+  tensorflow/blas + openblas fix) merged to main; gps + libtorch scopes
+  LIVE (560); M2 publish in flight with packages; B-34 acked (v0.64.7
+  batch).  Relay inbox zero (the stdlib 0.64.6 announcement is
+  to-all -- the bus correctly refuses other-lane moves).
+
 **UPDATE 2026-10-16 23:30Z (miniaudio 0.5.0 handle surface LANDED --
 engine ask delivered; merge+publish relayed; wave parked overnight)**:
 owner asked for the delivery + merge relay, then pause.
