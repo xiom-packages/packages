@@ -1555,6 +1555,31 @@ torch/libtorch/tensorflow/blas/openblas; B-34 filed; 566/0)**:
   alias-unification batch (1548-stdlib-6/2100 family); B-32 stays
   m358.  Both ride v0.64.7; nothing else in flight on this lane.
 
+**UPDATE 2026-10-17 13:15Z (GPU VENDOR BACKLOG -- AMD + NVIDIA added)**:
+owner asked to backlog both vendor sets (on top of the accelerator-extras
+line in `-1254-bindings`).
+- **AMD -- landed in-tree, green, unpublished (publish on consumption)**:
+  `xiom.fidelityfx` 0.1.0 (FidelityFX SDK 2.3.0: FSR2/FSR3 + frame gen;
+  43/43 x2 + 35/35 SKIP), `xiom.rpr` 0.1.0 (Radeon ProRender 3.1.7.1;
+  35/35 x2 + 9/9 SKIP).
+- **AMD -- backlog (not yet launched, on request)**: `xiom.hip` (HIP
+  SDK/ROCm runtime loader; MIT), `xiom.rocblas`/`xiom.miopen`
+  (+hipBLASLt on demand), `xiom.amf` (AMF hardware codec SDK; MIT),
+  `xiom.ags` (GPU services; optional), Ryzen AI/XDNA NPU (on demand).
+- **NVIDIA -- published**: `xiom.cuda` 0.2.0 (driver API; live RTX 3070
+  Ti; eco-v0.1.126).
+- **NVIDIA -- landed in-tree, green, unpublished (publish on
+  consumption)**: `xiom.dlss` 0.1.0 (NGX; 21), `xiom.nrd` 0.1.0 (29),
+  `xiom.rtxdi` 0.1.0 (RTXDI+RTXGI; 33).
+- **NVIDIA -- backlog (not yet launched, on request)**: `xiom.cudnn`,
+  `xiom.cublas` (+cufft/cusparse on demand), `xiom.tensorrt`,
+  `xiom.nvenc` (Video Codec SDK: NVENC/NVDEC), `xiom.nvml` +
+  `xiom.nvapi` (utils/telemetry), OptiX (optional ray tracing).
+- **Shared**: DirectML execution-provider leg for `xiom.onnx`
+  (vendor-neutral Windows GPU ML path across AMD/NVIDIA/Intel).
+- Rule: accelerators stay loader-only (closed/driver SDKs user-supplied,
+  nothing vendored; SKIP-safe; live legs need the hardware).
+
 **UPDATE 2026-10-17 12:20Z (remaining builds LAUNCHED -- openblas real
 accel + arrow real backend; USD prep in flight)**: acting on the
 doorbell's own remaining-queue list.
