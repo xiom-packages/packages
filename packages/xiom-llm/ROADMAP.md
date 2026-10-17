@@ -8,10 +8,12 @@ Lane: llama.cpp-family runner tier of the ML/AI coverage program.
 Current: v0.1.0, milestones M1 + M2 complete, M3 first and second halves
 (generation loop + sampling, the append-only KV cache + longer-context
 attention, and Q4_K-class dequantization with the neighboring Q5_0) complete
-plus the ASCII-safe tokenizer completion (GPT-2 escape layer, GPT-2 regex
-pre-tokenizer, SPM scored-merge core) and conformance-green (254/254 x2).
-Remaining: the benchmark harness, WPM, and real non-ASCII vocabularies
-(blocked on `xiom.gguf`). `publish: false` pending ops scope + allowlist.
+plus the tokenizer completion (GPT-2 escape layer, GPT-2 regex
+pre-tokenizer, SPM scored-merge core) and real-vocabulary loading (lossless
+GGUF string bytes, SPM U+2581 normalization + `<0xXX>` byte fallback,
+BOS/EOS insertion flags, escaped GPT-2 vocab loader); conformance-green
+(302/302 x2). Remaining: the benchmark harness and WPM (`"bert"`).
+`publish: false` pending ops scope + allowlist.
 
 ## M1 -- vocab + byte-level BPE (DONE, 2026-10-16)
 
@@ -105,32 +107,41 @@ first, fixture dims chosen so every oracle value is exact.
    * escape layer -- DONE as exact pure surfaces (`llm_gpt2_byte_to_codepoint`
      / `_codepoint_to_byte`, `llm_utf8_append`, `llm_gpt2_escape` /
      `llm_gpt2_unescape` / `llm_gpt2_unescape_str`); all-256-byte inverse
-     pinned. Real GGUF vocabularies with escaped non-ASCII token strings
-     remain blocked: `xiom.gguf` 0.1.3 rejects any byte outside 0x20..0x7E
-     with `gguf: string is not printable ASCII` (probe recorded in
-     `docs/probe-nonascii-gguf.md`, test `t83`).
+     pinned. RESOLVED: the current `xiom.gguf` accepts arbitrary string
+     bytes and exposes the lossless `gguf_kv_str_bytes` /
+     `gguf_kv_arr_str_bytes` accessors, so real escaped vocabularies load
+     (`docs/probe-nonascii-gguf.md`, test `t83`).
    * regex pre-tokenizer -- DONE for the GPT-2 expression with a
      hand-rolled ASCII byte matcher (`llm_gpt2_pretokenize`), exact chunk
      goldens; Unicode category classes are the documented ASCII subset.
-   * SPM -- DONE for the core: `LlmSpmVocab` extraction (tokens, exact f32
-     `tokenizer.ggml.scores` folded to a common exponent), score-ordered
-     merge traversal with leftmost ties, encode/decode and error arms.
-     SentencePiece `▁` normalization / byte fallback, WPM (`"bert"`) and the
-     `add_bos_token` / `add_eos_token` flags REMAIN.
+   * SPM -- DONE for the core and real vocabularies: `LlmSpmVocab`
+     extraction over `gguf_kv_arr_str_bytes` (non-ASCII tokens including
+     U+2581), exact f32 `tokenizer.ggml.scores` folded to a common exponent,
+     score-ordered merge traversal with leftmost ties, `▁` normalization
+     (space on encode, back on decode), `<0xXX>` byte fallback, encode/
+     decode and error arms. WPM (`"bert"`) REMAINS.
+   * BOS/EOS insertion -- DONE: `tokenizer.ggml.add_bos_token` /
+     `add_eos_token` are extracted as 0/1 flags (absent -> 0) and applied by
+     `llm_spm_encode`.
+   * real GPT-2 vocabularies -- DONE: `llm_gpt2_vocab_from_gguf` reads the
+     escaped token/merge arrays through the lossless byte accessors and
+     applies the `bytes_to_unicode` inverse to every key, so the existing
+     raw-byte BPE encode/decode is exact.
 6. Acceptance: prompt -> generated ids -> decode roundtrip on the tiny
    fixture; escape-layer golden vectors (hand-computed byte-unicode
    table values). **DONE**: greedy and seeded prompt -> ids -> decode
    roundtrips are green, the cached multi-position loop adds a
    two-token-prompt roundtrip, the escape-layer vectors are pinned, and the
-   suite is green (254/254 x2).
+   suite is green (302/302 x2).
 
 ## Maintenance / cross-lane items
 
 * **xiom.gguf string-array fix (XGGUF-ARRSTR)**: RESOLVED -- fixed in
   `xiom.gguf` 0.1.3 (origin for element types 6/8/12); the M1 workaround
   was deleted in M2a and the suite re-greened (SPEC.md section 9).
-* **xiom.gguf UTF-8 strings**: non-ASCII string support unblocks the
-  real-vocab escape layer (M3 tokenizer completion).
+* **xiom.gguf UTF-8 strings**: RESOLVED -- string values accept arbitrary
+  bytes and `gguf_kv_str_bytes` / `gguf_kv_arr_str_bytes` read them
+  losslessly; the real GPT-2/SPM loaders consume those accessors.
 * **xiom.gguf builder type 8/9**: the builder rejects `q8_0`/`q8_1` tensor
   infos, forcing the M2b fixture to carry Q8_0 block bytes in f32-declared
   slices (SPEC.md section 8 item 7). Lifting this lets the fixture declare

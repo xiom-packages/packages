@@ -14,13 +14,15 @@
 //     (recorded in SPEC.md; MIT, read-only reference).
 //
 // Documented M1 subset (see SPEC.md sections 5-6 for the exact rules):
-//   * xiom.gguf restricts GGUF strings to printable ASCII (0x20..0x7E), so
-//     the vocabulary domain of this milestone is printable ASCII. The GPT-2
-//     bytes_to_unicode escape layer and the GPT-2 regex pre-tokenizer are
-//     implemented as separate pure surfaces (SPEC.md 10.6); llm_bpe_encode
-//     itself still treats token strings as raw byte sequences (the fixture
-//     stores a literal space token). Real escaped vocabularies remain
-//     blocked at the container (docs/probe-nonascii-gguf.md).
+//   * the GGUF container now stores string values as arbitrary bytes, and
+//     both loaders read them through the lossless byte accessors. The
+//     M1 fixture still stores a literal space token and is loaded verbatim
+//     by llm_vocab_from_gguf; llm_gpt2_vocab_from_gguf is the real-vocab
+//     path and applies the bytes_to_unicode inverse to every token/merge
+//     key. The GPT-2 escape layer and regex pre-tokenizer remain separate
+//     pure surfaces (SPEC.md 10.6). llm_bpe_encode/decode themselves treat
+//     token strings as raw byte sequences. The resolved container probe is
+//     recorded in docs/probe-nonascii-gguf.md.
 //   * merge entries split at the first space at byte index >= 1 exactly as
 //     llama.cpp `word.find(' ', 1)`; entries without such a space are dead
 //     pairs that still occupy their rank index.
@@ -60,6 +62,7 @@
 module xiom.llm
 
 use xiom.string;
+use xiom.string.builder;
 use xiom.string.compare;
 use xiom.gguf;
 use xiom.tensor;
@@ -134,9 +137,9 @@ fn _err_scale(m: Str) -> Result[LlmScale, Str] {
 
 /// Tokenizer vocabulary extracted from a GGUF header (M1 surface).
 ///
-/// `tokens[i]` is the string of token id `i` (byte buffer as stored in the
-/// GGUF metadata; over the M1 printable-ASCII domain this is also the raw
-/// decoded byte sequence). `token_types[i]` mirrors the file's
+/// `tokens[i]` is the string of token id `i` (opaque byte buffer; the real
+/// GPT-2 loader stores the unescaped raw bytes, the ASCII-safe loader the
+/// verbatim file bytes). `token_types[i]` mirrors the file's
 /// `tokenizer.ggml.token_type` array when present, else 1
 /// (LLAMA_TOKEN_TYPE_NORMAL, the llama.cpp default); `has_types` is 0/1.
 /// `merge_l[i]`/`merge_r[i]` are the two parts of merge entry `i`; its rank
@@ -146,7 +149,10 @@ fn _err_scale(m: Str) -> Result[LlmScale, Str] {
 /// the corresponding key is absent.
 ///
 /// Fields are implementation details; use the llm_* accessors. A value is
-/// only produced by llm_vocab_from_gguf, so the invariants always hold.
+/// only produced by llm_vocab_from_gguf (verbatim bytes) or
+/// llm_gpt2_vocab_from_gguf (escaped keys unescaped to raw bytes), so the
+/// invariants always hold. `add_bos`/`add_eos` are the normalized 0/1
+/// insertion flags (absent -> 0).
 pub type LlmVocab = {
   model: Str;
   tokens: Vec[Str];
@@ -156,6 +162,8 @@ pub type LlmVocab = {
   merge_r: Vec[Str];
   bos: Int;
   eos: Int;
+  add_bos: Int;
+  add_eos: Int;
 }
 
 /// Exact scaled-integer representation of a real number: the value is
@@ -172,7 +180,9 @@ pub type LlmScale = {
 /// token string, `scores[i] / 2^score_e` its exact file score (all scores are
 /// normalised to the common exponent `score_e` at extraction), and
 /// `token_types[i]` mirrors the file array (default 1). `bos`/`eos` are -1
-/// when absent. A value is only produced by llm_spm_vocab_from_gguf.
+/// when absent; `add_bos`/`add_eos` are the normalized 0/1 insertion flags
+/// from `tokenizer.ggml.add_bos_token` / `add_eos_token` (absent -> 0). A
+/// value is only produced by llm_spm_vocab_from_gguf.
 pub type LlmSpmVocab = {
   model: Str;
   tokens: Vec[Str];
@@ -182,6 +192,8 @@ pub type LlmSpmVocab = {
   token_types: Vec[Int];
   bos: Int;
   eos: Int;
+  add_bos: Int;
+  add_eos: Int;
 }
 
 // --------------------------------------------------
@@ -197,6 +209,35 @@ fn _str_is(s: Str, want: Str) -> Bool {
 fn _byte_at(s: Str, pos: Int) -> Int {
   let raw: UInt8 = string.byte_at(s, pos);
   return (raw as Int) & 0xFF;
+}
+
+// Copy the bytes of `s` into a fresh vector (Str is an opaque byte buffer).
+fn _str_bytes(s: Str) -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
+  let n = string.str_len(s);
+  var i = 0;
+  while i < n {
+    out.push((_byte_at(s, i) as UInt8));
+    i = i + 1;
+  }
+  return out;
+}
+
+// Build a Str from arbitrary bytes (no UTF-8 validation; the GGUF container
+// stores tokenizer strings as opaque bytes).
+fn _bytes_to_str(raw: &Vec[UInt8]) -> Str {
+  return builder.sb_to_str(raw);
+}
+
+// Copy the slice raw[a..b] into a fresh byte vector.
+fn _bytes_slice(raw: &Vec[UInt8], a: Int, b: Int) -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
+  var i = a;
+  while i < b {
+    out.push(raw[i]);
+    i = i + 1;
+  }
+  return out;
 }
 
 // First occurrence of byte `b` in `s` at index >= `from`, else -1.
@@ -272,6 +313,24 @@ fn _kv_index_or_neg(g: &Gguf, key: Str) -> Int {
   return -1;
 }
 
+// Optional 0/1 insertion flag (`tokenizer.ggml.add_bos_token` /
+// `add_eos_token`). Absent -> 0; any nonzero integer -> 1; non-integer ->
+// the caller-supplied error message.
+fn _read_add_flag(g: &Gguf, key: Str, err: Str) -> Result[Int, Str] {
+  let i = _kv_index_or_neg(g, key);
+  if i < 0 {
+    return _ok_int(0);
+  }
+  let v = gguf_kv_int(g, i);
+  if !v.is_ok {
+    return _err_int(err);
+  }
+  if v.value != 0 {
+    return _ok_int(1);
+  }
+  return _ok_int(0);
+}
+
 /// Extract the tokenizer vocabulary from a GGUF header parsed by
 /// xiom.gguf. Params: g - the parsed header. Returns: the LlmV ocab with
 /// tokens, merge table, optional token types and optional bos/eos ids.
@@ -292,11 +351,12 @@ pub fn llm_vocab_from_gguf(g: &Gguf) -> Result[LlmVocab, Str] {
   if !mt.is_ok || mt.value != 8 {
     return _err_vocab("llm: tokenizer model is not a string");
   }
-  let mr = gguf_kv_str(g, mi);
+  let mr = gguf_kv_str_bytes(g, mi);
   if !mr.is_ok {
     return _err_vocab("llm: tokenizer model is not a string");
   }
-  let model: Str = mr.value;
+  let model_raw: Vec[UInt8] = mr.value;
+  let model: Str = _bytes_to_str(&model_raw);
   if !_str_is(model, "gpt2") {
     return _err_vocab("llm: unsupported tokenizer model");
   }
@@ -322,11 +382,12 @@ pub fn llm_vocab_from_gguf(g: &Gguf) -> Result[LlmVocab, Str] {
   var tokens = Vec[Str].new();
   var e = 0;
   while e < n_tokens {
-    let er = gguf_kv_arr_str(g, ti, e);
+    let er = gguf_kv_arr_str_bytes(g, ti, e);
     if !er.is_ok {
       return _err_vocab("llm: tokenizer tokens is not a string array");
     }
-    let s: Str = er.value;
+    let raw: Vec[UInt8] = er.value;
+    let s: Str = _bytes_to_str(&raw);
     tokens.push(s);
     e = e + 1;
   }
@@ -353,11 +414,12 @@ pub fn llm_vocab_from_gguf(g: &Gguf) -> Result[LlmVocab, Str] {
   var merge_r = Vec[Str].new();
   var m = 0;
   while m < n_merges {
-    let mr2 = gguf_kv_arr_str(g, gi, m);
+    let mr2 = gguf_kv_arr_str_bytes(g, gi, m);
     if !mr2.is_ok {
       return _err_vocab("llm: tokenizer merges is not a string array");
     }
-    let entry: Str = mr2.value;
+    let entry_raw: Vec[UInt8] = mr2.value;
+    let entry: Str = _bytes_to_str(&entry_raw);
     // llama.cpp: pos = word.find(' ', 1); no pos -> the ("", "") dead pair.
     let pos = _find_byte(entry, 32, 1);
     if pos < 0 {
@@ -428,6 +490,17 @@ pub fn llm_vocab_from_gguf(g: &Gguf) -> Result[LlmVocab, Str] {
     eos = ev.value;
   }
 
+  let abr = _read_add_flag(g, "tokenizer.ggml.add_bos_token", "llm: add_bos token flag is not an integer");
+  if !abr.is_ok {
+    return _err_vocab(abr.error);
+  }
+  let add_bos: Int = abr.value;
+  let aer = _read_add_flag(g, "tokenizer.ggml.add_eos_token", "llm: add_eos token flag is not an integer");
+  if !aer.is_ok {
+    return _err_vocab(aer.error);
+  }
+  let add_eos: Int = aer.value;
+
   let vocab = LlmVocab{
     model: model;
     tokens: tokens;
@@ -437,6 +510,216 @@ pub fn llm_vocab_from_gguf(g: &Gguf) -> Result[LlmVocab, Str] {
     merge_r: merge_r;
     bos: bos;
     eos: eos;
+    add_bos: add_bos;
+    add_eos: add_eos;
+  };
+  return _ok_vocab(vocab);
+}
+
+// Unescape a GPT-2 vocabulary string (escaped UTF-8 -> raw bytes) into a Str.
+fn _gpt2_unescape_token(s: Str) -> Result[Str, Str] {
+  var raw = Vec[UInt8].new();
+  let ur = llm_gpt2_unescape_str(s, &mut raw);
+  if !ur.is_ok {
+    return _err_str(ur.error);
+  }
+  return _ok_str(_bytes_to_str(&raw));
+}
+
+/// Extract a REAL GPT-2 vocabulary over the lossless byte accessors,
+/// applying the `bytes_to_unicode` inverse to every vocabulary and merge-table
+/// string. GPT-2 GGUF files store token strings in escaped form (for example
+/// the space token is the two bytes C4 A0 for U+0120); after this loader the
+/// `LlmVocab` token/merge strings are the RAW bytes they denote (space is
+/// 0x20), so the existing byte-level `llm_bpe_encode` / `llm_bpe_decode`
+/// operate directly on raw text. The transform is a bijection over bytes, so
+/// merge ranks and token ids are unchanged.
+///
+/// `llm_vocab_from_gguf` remains the ASCII-safe path that stores strings
+/// verbatim (the M1 fixtures); this function is the real-vocab path. Error
+/// messages match the ASCII loader; an escaped string that is not valid UTF-8
+/// or contains a codepoint outside the GPT-2 map propagates
+/// `llm: invalid utf8` / `llm: codepoint not in gpt2 byte map`.
+pub fn llm_gpt2_vocab_from_gguf(g: &Gguf) -> Result[LlmVocab, Str] {
+  let mi = _kv_index_or_neg(g, "tokenizer.ggml.model");
+  if mi < 0 {
+    return _err_vocab("llm: tokenizer model missing");
+  }
+  let mt = gguf_kv_type(g, mi);
+  if !mt.is_ok || mt.value != 8 {
+    return _err_vocab("llm: tokenizer model is not a string");
+  }
+  let mr = gguf_kv_str_bytes(g, mi);
+  if !mr.is_ok {
+    return _err_vocab("llm: tokenizer model is not a string");
+  }
+  let model_raw: Vec[UInt8] = mr.value;
+  let model: Str = _bytes_to_str(&model_raw);
+  if !_str_is(model, "gpt2") {
+    return _err_vocab("llm: unsupported tokenizer model");
+  }
+
+  let ti = _kv_index_or_neg(g, "tokenizer.ggml.tokens");
+  if ti < 0 {
+    return _err_vocab("llm: tokenizer tokens missing");
+  }
+  let tt = gguf_kv_type(g, ti);
+  if !tt.is_ok || tt.value != 9 {
+    return _err_vocab("llm: tokenizer tokens is not a string array");
+  }
+  let ta = gguf_kv_arr_type(g, ti);
+  if !ta.is_ok || ta.value != 8 {
+    return _err_vocab("llm: tokenizer tokens is not a string array");
+  }
+  let tc = gguf_kv_arr_count(g, ti);
+  if !tc.is_ok {
+    return _err_vocab("llm: tokenizer tokens is not a string array");
+  }
+  let n_tokens = tc.value;
+  var tokens = Vec[Str].new();
+  var e = 0;
+  while e < n_tokens {
+    let er = gguf_kv_arr_str_bytes(g, ti, e);
+    if !er.is_ok {
+      return _err_vocab("llm: tokenizer tokens is not a string array");
+    }
+    let raw: Vec[UInt8] = er.value;
+    let escaped: Str = _bytes_to_str(&raw);
+    let ur = _gpt2_unescape_token(escaped);
+    if !ur.is_ok {
+      return _err_vocab(ur.error);
+    }
+    let s: Str = ur.value;
+    tokens.push(s);
+    e = e + 1;
+  }
+
+  let gi = _kv_index_or_neg(g, "tokenizer.ggml.merges");
+  if gi < 0 {
+    return _err_vocab("llm: tokenizer merges missing");
+  }
+  let gt = gguf_kv_type(g, gi);
+  if !gt.is_ok || gt.value != 9 {
+    return _err_vocab("llm: tokenizer merges is not a string array");
+  }
+  let ga = gguf_kv_arr_type(g, gi);
+  if !ga.is_ok || ga.value != 8 {
+    return _err_vocab("llm: tokenizer merges is not a string array");
+  }
+  let gc = gguf_kv_arr_count(g, gi);
+  if !gc.is_ok {
+    return _err_vocab("llm: tokenizer merges is not a string array");
+  }
+  let n_merges = gc.value;
+  var merge_l = Vec[Str].new();
+  var merge_r = Vec[Str].new();
+  var m = 0;
+  while m < n_merges {
+    let mr2 = gguf_kv_arr_str_bytes(g, gi, m);
+    if !mr2.is_ok {
+      return _err_vocab("llm: tokenizer merges is not a string array");
+    }
+    let entry_raw: Vec[UInt8] = mr2.value;
+    let entry: Str = _bytes_to_str(&entry_raw);
+    let pos = _find_byte(entry, 32, 1);
+    if pos < 0 {
+      merge_l.push("");
+      merge_r.push("");
+    } else {
+      let left_esc = string.str_slice(entry, 0, pos);
+      let right_esc = string.str_slice(entry, pos + 1, string.str_len(entry));
+      let lr = _gpt2_unescape_token(left_esc);
+      if !lr.is_ok {
+        return _err_vocab(lr.error);
+      }
+      let rr = _gpt2_unescape_token(right_esc);
+      if !rr.is_ok {
+        return _err_vocab(rr.error);
+      }
+      let left: Str = lr.value;
+      let right: Str = rr.value;
+      merge_l.push(left);
+      merge_r.push(right);
+    }
+    m = m + 1;
+  }
+
+  var has_types = 0;
+  var token_types = Vec[Int].new();
+  let si = _kv_index_or_neg(g, "tokenizer.ggml.token_type");
+  if si >= 0 {
+    let st = gguf_kv_type(g, si);
+    if !st.is_ok || st.value != 9 {
+      return _err_vocab("llm: token types are not an integer array");
+    }
+    let sa = gguf_kv_arr_type(g, si);
+    if !sa.is_ok || !_type_is_integer(sa.value) {
+      return _err_vocab("llm: token types are not an integer array");
+    }
+    let sc = gguf_kv_arr_count(g, si);
+    if !sc.is_ok || sc.value < n_tokens {
+      return _err_vocab("llm: token type count smaller than token count");
+    }
+    has_types = 1;
+    var k = 0;
+    while k < n_tokens {
+      let kr = gguf_kv_arr_int(g, si, k);
+      if !kr.is_ok {
+        return _err_vocab("llm: token types are not an integer array");
+      }
+      let tv: Int = kr.value;
+      token_types.push(tv);
+      k = k + 1;
+    }
+  } else {
+    var d = 0;
+    while d < n_tokens {
+      token_types.push(1);
+      d = d + 1;
+    }
+  }
+
+  var bos = -1;
+  let bi = _kv_index_or_neg(g, "tokenizer.ggml.bos_token_id");
+  if bi >= 0 {
+    let bv = gguf_kv_int(g, bi);
+    if !bv.is_ok {
+      return _err_vocab("llm: bos token id is not an integer");
+    }
+    bos = bv.value;
+  }
+  var eos = -1;
+  let ei = _kv_index_or_neg(g, "tokenizer.ggml.eos_token_id");
+  if ei >= 0 {
+    let ev = gguf_kv_int(g, ei);
+    if !ev.is_ok {
+      return _err_vocab("llm: eos token id is not an integer");
+    }
+    eos = ev.value;
+  }
+
+  let abr = _read_add_flag(g, "tokenizer.ggml.add_bos_token", "llm: add_bos token flag is not an integer");
+  if !abr.is_ok {
+    return _err_vocab(abr.error);
+  }
+  let add_bos: Int = abr.value;
+  let aer = _read_add_flag(g, "tokenizer.ggml.add_eos_token", "llm: add_eos token flag is not an integer");
+  if !aer.is_ok {
+    return _err_vocab(aer.error);
+  }
+  let add_eos: Int = aer.value;
+
+  let vocab = LlmVocab{
+    model: model;
+    tokens: tokens;
+    has_types: has_types;
+    token_types: token_types;
+    merge_l: merge_l;
+    merge_r: merge_r;
+    bos: bos;
+    eos: eos;
+    add_bos: add_bos;
+    add_eos: add_eos;
   };
   return _ok_vocab(vocab);
 }
@@ -492,6 +775,18 @@ pub fn llm_vocab_eos(v: &LlmVocab) -> Int {
   return v.eos;
 }
 
+/// BOS insertion flag (`tokenizer.ggml.add_bos_token`, normalized to 0/1;
+/// absent -> 0).
+pub fn llm_vocab_add_bos(v: &LlmVocab) -> Int {
+  return v.add_bos;
+}
+
+/// EOS insertion flag (`tokenizer.ggml.add_eos_token`, normalized to 0/1;
+/// absent -> 0).
+pub fn llm_vocab_add_eos(v: &LlmVocab) -> Int {
+  return v.add_eos;
+}
+
 /// Number of merge-table entries (rank = index).
 pub fn llm_vocab_merge_count(v: &LlmVocab) -> Int {
   let lefts: Vec[Str] = v.merge_l;
@@ -524,8 +819,8 @@ pub fn llm_vocab_find_token(v: &LlmVocab, s: Str) -> Int {
 // --------------------------------------------------
 
 /// Encode `text` into token ids with llama.cpp-family byte-level BPE.
-/// Params: v - the vocabulary; text - the byte sequence to encode (M1
-/// domain: printable ASCII, see SPEC.md section 6). Returns: the token ids.
+/// Params: v - the vocabulary (raw-byte token strings); text - the byte
+/// sequence to encode (see SPEC.md section 6). Returns: the token ids.
 /// Semantics: the text is one work chunk (the regex pre-tokenizer is
 /// deferred); symbols start as single bytes; while an adjacent pair has a
 /// merge rank, the fresh minimum-rank pair (leftmost on ties) is merged;
@@ -599,8 +894,7 @@ pub fn llm_bpe_encode(v: &LlmVocab, text: Str) -> Result[Vec[Int], Str] {
 }
 
 /// Decode token ids back to their byte sequence (concatenation of the
-/// token strings; over the M1 printable-ASCII domain the identity escape
-/// makes this the raw text). Params: v - the vocabulary; ids - the token
+/// raw-byte token strings). Params: v - the vocabulary; ids - the token
 /// ids. Returns: the decoded byte sequence; an empty id list decodes to "".
 /// Error case: an id outside 0..size-1 -> `llm: token id out of range`.
 pub fn llm_bpe_decode(v: &LlmVocab, ids: &Vec[Int]) -> Result[Str, Str] {
@@ -1064,11 +1358,12 @@ pub fn llm_spm_vocab_from_gguf(g: &Gguf) -> Result[LlmSpmVocab, Str] {
   if !mt.is_ok || mt.value != 8 {
     return _err_spm("llm: tokenizer model is not a string");
   }
-  let mr = gguf_kv_str(g, mi);
+  let mr = gguf_kv_str_bytes(g, mi);
   if !mr.is_ok {
     return _err_spm("llm: tokenizer model is not a string");
   }
-  let model: Str = mr.value;
+  let model_raw: Vec[UInt8] = mr.value;
+  let model: Str = _bytes_to_str(&model_raw);
   if !_str_is(model, "llama") {
     return _err_spm("llm: spm tokenizer model is not llama");
   }
@@ -1093,11 +1388,12 @@ pub fn llm_spm_vocab_from_gguf(g: &Gguf) -> Result[LlmSpmVocab, Str] {
   var tokens = Vec[Str].new();
   var e = 0;
   while e < n_tokens {
-    let er = gguf_kv_arr_str(g, ti, e);
+    let er = gguf_kv_arr_str_bytes(g, ti, e);
     if !er.is_ok {
       return _err_spm("llm: tokenizer tokens is not a string array");
     }
-    let s: Str = er.value;
+    let raw: Vec[UInt8] = er.value;
+    let s: Str = _bytes_to_str(&raw);
     tokens.push(s);
     e = e + 1;
   }
@@ -1236,6 +1532,17 @@ pub fn llm_spm_vocab_from_gguf(g: &Gguf) -> Result[LlmSpmVocab, Str] {
     eos = ev2.value;
   }
 
+  let abr = _read_add_flag(g, "tokenizer.ggml.add_bos_token", "llm: add_bos token flag is not an integer");
+  if !abr.is_ok {
+    return _err_spm(abr.error);
+  }
+  let add_bos: Int = abr.value;
+  let aer = _read_add_flag(g, "tokenizer.ggml.add_eos_token", "llm: add_eos token flag is not an integer");
+  if !aer.is_ok {
+    return _err_spm(aer.error);
+  }
+  let add_eos: Int = aer.value;
+
   let vocab = LlmSpmVocab{
     model: model;
     tokens: tokens;
@@ -1245,6 +1552,8 @@ pub fn llm_spm_vocab_from_gguf(g: &Gguf) -> Result[LlmSpmVocab, Str] {
     token_types: token_types;
     bos: bos;
     eos: eos;
+    add_bos: add_bos;
+    add_eos: add_eos;
   };
   return _ok_spm(vocab);
 }
@@ -1298,24 +1607,156 @@ pub fn llm_spm_eos(v: &LlmSpmVocab) -> Int {
   return v.eos;
 }
 
-/// SPM tokenize: scored merge traversal over the vocabulary. Symbols start as
-/// single bytes; while any adjacent pair concatenates to a token string, the
-/// candidate with the HIGHEST score is merged (ties to the leftmost pair, as
-/// llama.cpp's SPM bigram queue); repeat. Each final symbol must exist in the
-/// vocabulary. Empty text -> empty id list. Error case:
-/// `llm: spm byte not in vocabulary` (a final single-byte symbol has no
-/// token).
-pub fn llm_spm_encode(v: &LlmSpmVocab, text: Str) -> Result[Vec[Int], Str] {
-  let toks: Vec[Str] = v.tokens;
-  let ss: Vec[Int] = v.scores;
-  var syms = Vec[Str].new();
+/// BOS insertion flag (`tokenizer.ggml.add_bos_token`, 0/1; absent -> 0).
+pub fn llm_spm_add_bos(v: &LlmSpmVocab) -> Int {
+  return v.add_bos;
+}
+
+/// EOS insertion flag (`tokenizer.ggml.add_eos_token`, 0/1; absent -> 0).
+pub fn llm_spm_add_eos(v: &LlmSpmVocab) -> Int {
+  return v.add_eos;
+}
+
+// Uppercase `<0xXX>` byte-fallback token name for byte `b` (0..255).
+fn _spm_byte_token_name(b: Int) -> Str {
+  let hex = "0123456789ABCDEF";
+  let hi = b / 16;
+  let lo = b % 16;
+  let hs = string.str_slice(hex, hi, hi + 1);
+  let ls = string.str_slice(hex, lo, lo + 1);
+  return "<0x" + hs + ls + ">";
+}
+
+// Byte value of a `<0xXX>` byte-fallback token, else -1.
+fn _spm_byte_token_value(s: Str) -> Int {
+  if string.str_len(s) != 6 {
+    return -1;
+  }
+  if _byte_at(s, 0) != 60 || _byte_at(s, 1) != 48 || _byte_at(s, 2) != 120 || _byte_at(s, 5) != 62 {
+    return -1;
+  }
+  let hi = _hex_digit(_byte_at(s, 3));
+  let lo = _hex_digit(_byte_at(s, 4));
+  if hi < 0 || lo < 0 {
+    return -1;
+  }
+  return hi * 16 + lo;
+}
+
+// SPM input normalization: replace every ASCII space (0x20) with the
+// SentencePiece word-boundary marker U+2581 (UTF-8 E2 96 81). All other
+// bytes are copied verbatim, so ASCII-only text without spaces is unchanged.
+fn _spm_normalize(text: Str) -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
   let n = string.str_len(text);
   var i = 0;
   while i < n {
-    let s = string.str_slice(text, i, i + 1);
-    syms.push(s);
+    let b = _byte_at(text, i);
+    if b == 32 {
+      out.push((226 as UInt8));
+      out.push((150 as UInt8));
+      out.push((129 as UInt8));
+    } else {
+      out.push((b as UInt8));
+    }
     i = i + 1;
   }
+  return out;
+}
+
+// Split normalized SPM bytes into symbols at UTF-8 codepoint boundaries.
+// Invalid UTF-8 bytes become one-byte symbols (so byte fallback can still
+// represent them); valid sequences stay together (a multi-byte character is
+// one symbol, matching llama.cpp's codepoint-based SPM traversal).
+fn _spm_symbols(raw: &Vec[UInt8]) -> Vec[Str] {
+  var out = Vec[Str].new();
+  var pos = 0;
+  let n = raw.len();
+  while pos < n {
+    let dr = _utf8_decode_at(raw, pos);
+    var next = pos + 1;
+    if dr.is_ok {
+      let pair: Vec[Int] = dr.value;
+      let nv: Int = pair[1];
+      next = nv;
+    }
+    let chunk = _bytes_slice(raw, pos, next);
+    out.push(_bytes_to_str(&chunk));
+    pos = next;
+  }
+  return out;
+}
+
+// Bytes emitted by one SPM token on decode: `<0xXX>` yields the raw byte,
+// U+2581 yields an ASCII space, everything else is copied verbatim.
+fn _spm_token_bytes(s: Str) -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
+  let bv = _spm_byte_token_value(s);
+  if bv >= 0 {
+    out.push((bv as UInt8));
+    return out;
+  }
+  let raw = _str_bytes(s);
+  let n = raw.len();
+  var i = 0;
+  while i < n {
+    let b = (raw[i] as Int) & 0xFF;
+    if b == 226 && i + 2 < n {
+      let b1 = (raw[i + 1] as Int) & 0xFF;
+      let b2 = (raw[i + 2] as Int) & 0xFF;
+      if b1 == 150 && b2 == 129 {
+        out.push((32 as UInt8));
+        i = i + 3;
+        continue;
+      }
+    }
+    out.push((b as UInt8));
+    i = i + 1;
+  }
+  return out;
+}
+
+// Append the byte-fallback ids for every byte of `sym` to `ids`. Fails when
+// any byte has no `<0xXX>` token.
+fn _spm_byte_fallback(tokens: &Vec[Str], sym: Str, ids: &mut Vec[Int]) -> Result[Int, Str] {
+  let raw = _str_bytes(sym);
+  var tmp = Vec[Int].new();
+  var i = 0;
+  while i < raw.len() {
+    let b = (raw[i] as Int) & 0xFF;
+    let name = _spm_byte_token_name(b);
+    let id = _find_spm_token_ids(tokens, name);
+    if id < 0 {
+      return _err_int("llm: spm byte not in vocabulary");
+    }
+    tmp.push(id);
+    i = i + 1;
+  }
+  var j = 0;
+  while j < tmp.len() {
+    let tid: Int = tmp[j];
+    ids.push(tid);
+    j = j + 1;
+  }
+  return _ok_int(tmp.len());
+}
+
+/// SPM tokenize: scored merge traversal over the vocabulary. Input spaces are
+/// normalized to U+2581 (`▁`) before traversal; symbols start at UTF-8
+/// codepoint boundaries. While any adjacent pair concatenates to a token
+/// string, the candidate with the HIGHEST score is merged (ties to the
+/// leftmost pair, as llama.cpp's SPM bigram queue); repeat. Final symbols map
+/// to token ids; an unknown symbol falls back to its per-byte `<0xXX>`
+/// tokens when the vocabulary provides them. BOS/EOS ids are prepended /
+/// appended when the header sets `add_bos_token` / `add_eos_token` and the
+/// id exists. Empty text -> empty id list (plus BOS/EOS when flagged). Error
+/// case: `llm: spm byte not in vocabulary` (an unknown symbol whose bytes
+/// have no fallback token).
+pub fn llm_spm_encode(v: &LlmSpmVocab, text: Str) -> Result[Vec[Int], Str] {
+  let toks: Vec[Str] = v.tokens;
+  let ss: Vec[Int] = v.scores;
+  let norm = _spm_normalize(text);
+  var syms = _spm_symbols(&norm);
   while syms.len() >= 2 {
     var best_at = -1;
     var best_score = 0;
@@ -1357,20 +1798,47 @@ pub fn llm_spm_encode(v: &LlmSpmVocab, text: Str) -> Result[Vec[Int], Str] {
   while k < syms.len() {
     let s3: Str = syms[k];
     let id2 = _find_spm_token_ids(&toks, s3);
-    if id2 < 0 {
-      return _err_ids("llm: spm byte not in vocabulary");
+    if id2 >= 0 {
+      ids.push(id2);
+    } else {
+      let br = _spm_byte_fallback(&toks, s3, &mut ids);
+      if !br.is_ok {
+        return _err_ids(br.error);
+      }
     }
-    ids.push(id2);
     k = k + 1;
   }
-  return _ok_ids(ids);
+
+  // Optional BOS/EOS insertion from tokenizer.ggml.add_bos_token /
+  // add_eos_token (absent flags default to 0, preserving the M3 core
+  // behavior for headers without the flags).
+  var out = Vec[Int].new();
+  let ab: Int = v.add_bos;
+  let bvid: Int = v.bos;
+  if ab != 0 && bvid >= 0 {
+    out.push(bvid);
+  }
+  var q2 = 0;
+  while q2 < ids.len() {
+    let iv: Int = ids[q2];
+    out.push(iv);
+    q2 = q2 + 1;
+  }
+  let ae: Int = v.add_eos;
+  let evid: Int = v.eos;
+  if ae != 0 && evid >= 0 {
+    out.push(evid);
+  }
+  return _ok_ids(out);
 }
 
-/// Decode SPM ids by concatenating token strings. Error case:
-/// `llm: token id out of range`.
+/// Decode SPM ids: concatenate token bytes with SentencePiece normalization
+/// applied in reverse. `▁` (U+2581) becomes an ASCII space and `<0xXX>`
+/// byte-fallback tokens contribute the raw byte; every other token is copied
+/// verbatim. Error case: `llm: token id out of range`.
 pub fn llm_spm_decode(v: &LlmSpmVocab, ids: &Vec[Int]) -> Result[Str, Str] {
   let toks: Vec[Str] = v.tokens;
-  var out = "";
+  var out = Vec[UInt8].new();
   var i = 0;
   while i < ids.len() {
     let id: Int = ids[i];
@@ -1378,10 +1846,15 @@ pub fn llm_spm_decode(v: &LlmSpmVocab, ids: &Vec[Int]) -> Result[Str, Str] {
       return _err_str("llm: token id out of range");
     }
     let s: Str = toks[id];
-    out = out + s;
+    let part = _spm_token_bytes(s);
+    var j = 0;
+    while j < part.len() {
+      out.push(part[j]);
+      j = j + 1;
+    }
     i = i + 1;
   }
-  return _ok_str(out);
+  return _ok_str(_bytes_to_str(&out));
 }
 
 // --------------------------------------------------

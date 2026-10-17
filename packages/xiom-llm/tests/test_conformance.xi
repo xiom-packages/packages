@@ -17,6 +17,7 @@
 module llm_tests
 use xiom.io; use xiom.test;
 use xiom.string; use xiom.string.compare;
+use xiom.string.builder;
 use xiom.gguf;
 use xiom.llm;
 
@@ -2435,6 +2436,31 @@ fn u8v(vals: &Vec[Int]) -> Vec[UInt8] {
   return out;
 }
 
+// Build a Str holding arbitrary raw bytes (used for non-ASCII token strings
+// in the builder-based GGUF fixtures).
+fn str_of_bytes(vals: &Vec[Int]) -> Str {
+  let raw = u8v(vals);
+  return builder.sb_to_str(&raw);
+}
+
+fn str_u8v(s: Str) -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
+  let n = string.str_len(s);
+  var i = 0;
+  while i < n {
+    let b: UInt8 = string.byte_at(s, i);
+    out.push(b);
+    i = i + 1;
+  }
+  return out;
+}
+
+fn str_bytes_eq(s: Str, want: &Vec[Int]) -> Bool {
+  let got = str_u8v(s);
+  let w = u8v(want);
+  return bytes_eq(&got, &w);
+}
+
 fn s1(a: Str) -> Vec[Str] {
   var v = Vec[Str].new();
   v.push(a);
@@ -2902,21 +2928,402 @@ fn t82() -> Int {
   return sum;
 }
 
-// Non-ASCII GGUF probe: container-level blocker for real GPT-2/SPM vocabularies.
+// Non-ASCII GGUF probe (resolved): the container now accepts arbitrary
+// string bytes and the byte accessors return them losslessly.
 fn t83() -> Int {
   var sum = 0;
   let buf = raw_nonascii_gguf();
   let pr = gguf_parse(&buf);
+  sum = sum + report(pr.is_ok, "non-ascii gguf probe: parsed (container fixed)");
   if pr.is_ok {
-    sum = sum + report(false, "non-ascii gguf probe: unexpectedly parsed");
-  } else {
-    let got: Str = pr.error;
-    sum = sum + report(str_eq(got, "gguf: string is not printable ASCII"), "non-ascii gguf probe: exact rejection");
+    let g = pr.value;
+    let ki = gguf_find_kv(&g, "tokenizer.ggml.model");
+    if ki.is_ok {
+      let br = gguf_kv_str_bytes(&g, ki.value);
+      // "gpt2" + C4 A0: six bytes.
+      var w6 = Vec[Int].new();
+      w6.push(103); w6.push(112); w6.push(116); w6.push(50); w6.push(196); w6.push(160);
+      let raw = br.value;
+      sum = sum + report(br.is_ok && bytes_eq(&raw, &u8v(&w6)), "non-ascii gguf probe: byte accessor is lossless");
+    } else {
+      sum = sum + report(false, "non-ascii gguf probe: model key missing");
+    }
   }
   // The escape layer itself produces exactly those bytes for a space.
   var e = Vec[UInt8].new();
   let er = llm_gpt2_escape(&u8v(&want1(32)), &mut e);
   sum = sum + report(er.is_ok && bytes_eq(&e, &u8v(&want2(196, 160))), "non-ascii probe: escape emits C4 A0");
+  return sum;
+}
+
+// --------------------------------------------------
+//  Real-vocabulary fixtures (non-ASCII token bytes)
+// --------------------------------------------------
+
+// Real-SPM fixture tokens: ASCII pieces, U+2581 (E2 96 81) word-boundary
+// pieces, a non-ASCII UTF-8 token (C3 A9 = "é"), a <0xXX> byte fallback and
+// control tokens. Ids: 0 a, 1 b, 2 c, 3 ab, 4 ▁, 5 ▁a, 6 ▁ab, 7 é,
+// 8 <0x7A>, 9 <s>, 10 </s>.
+fn spm_real_tokens() -> Vec[Str] {
+  var t = Vec[Str].new();
+  t.push("a");
+  t.push("b");
+  t.push("c");
+  t.push("ab");
+  t.push(str_of_bytes(&want3(226, 150, 129)));
+  t.push(str_of_bytes(&want4(226, 150, 129, 97)));
+  t.push(str_of_bytes(&want5(226, 150, 129, 97, 98)));
+  t.push(str_of_bytes(&want2(195, 169)));
+  t.push("<0x7A>");
+  t.push("<s>");
+  t.push("</s>");
+  return t;
+}
+
+// f32 bits: a/b/c -1, ab -10, ▁ -5, ▁a -2, ▁ab -1, é -3, <0x7A> -20,
+// <s>/</s> -100. The ordering makes " ab" merge ▁a before ▁ab, and "ab"
+// merge directly to id 3.
+fn spm_real_score_bits() -> Vec[Int] {
+  var v = Vec[Int].new();
+  v.push(3212836864);  // -1.0   a
+  v.push(3212836864);  // -1.0   b
+  v.push(3212836864);  // -1.0   c
+  v.push(3240099840);  // -10.0  ab
+  v.push(3231711232);  // -5.0   ▁
+  v.push(3221225472);  // -2.0   ▁a
+  v.push(3212836864);  // -1.0   ▁ab
+  v.push(3225419776);  // -3.0   é
+  v.push(3248488448);  // -20.0  <0x7A>
+  v.push(3267887104);  // -100.0 <s>
+  v.push(3267887104);  // -100.0 </s>
+  return v;
+}
+
+// Raw header: model "llama", the 11 tokens above, an f32 score array, and
+// (when with_flags != 0) bos/eos ids plus add_bos_token/add_eos_token = 1.
+// Token payloads are written byte-for-byte, including non-ASCII bytes.
+fn raw_spm_real_gguf(tokens: &Vec[Str], bits: &Vec[Int], with_flags: Int) -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
+  out.push((71 as UInt8));
+  out.push((71 as UInt8));
+  out.push((85 as UInt8));
+  out.push((70 as UInt8));
+  wu32(out, 3);
+  wu64(out, 0);
+  if with_flags != 0 {
+    wu64(out, 7);
+  } else {
+    wu64(out, 3);
+  }
+  wascii(out, "tokenizer.ggml.model");
+  wu32(out, 8);
+  wascii(out, "llama");
+  wascii(out, "tokenizer.ggml.tokens");
+  wu32(out, 9);
+  wu32(out, 8);
+  wu64(out, tokens.len());
+  var t = 0;
+  while t < tokens.len() {
+    let ts: Str = tokens[t];
+    wascii(out, ts);
+    t = t + 1;
+  }
+  wascii(out, "tokenizer.ggml.scores");
+  wu32(out, 9);
+  wu32(out, 6);
+  wu64(out, bits.len());
+  var k = 0;
+  while k < bits.len() {
+    let b: Int = bits[k];
+    wu32(out, b);
+    k = k + 1;
+  }
+  if with_flags != 0 {
+    wascii(out, "tokenizer.ggml.bos_token_id");
+    wu32(out, 4);
+    wu32(out, 9);
+    wascii(out, "tokenizer.ggml.eos_token_id");
+    wu32(out, 4);
+    wu32(out, 10);
+    wascii(out, "tokenizer.ggml.add_bos_token");
+    wu32(out, 4);
+    wu32(out, 1);
+    wascii(out, "tokenizer.ggml.add_eos_token");
+    wu32(out, 4);
+    wu32(out, 1);
+  }
+  while out.len() % 32 != 0 {
+    out.push((0 as UInt8));
+  }
+  return out;
+}
+
+fn spm_real_vocab(with_flags: Int) -> LlmSpmVocab {
+  let tokens = spm_real_tokens();
+  let bits = spm_real_score_bits();
+  let buf = raw_spm_real_gguf(&tokens, &bits, with_flags);
+  let pr = gguf_parse(&buf);
+  let g = pr.value;
+  let vr = llm_spm_vocab_from_gguf(&g);
+  return vr.value;
+}
+
+fn check_spm_decode(v: &LlmSpmVocab, ids: &Vec[Int], want: Str, name: Str) -> Int {
+  let r = llm_spm_decode(v, ids);
+  if !r.is_ok {
+    let got: Str = r.error;
+    return report(false, name + " (Err: " + got + ")");
+  }
+  let got: Str = r.value;
+  return report(str_eq(got, want), name);
+}
+
+fn check_spm_decode_bytes(v: &LlmSpmVocab, ids: &Vec[Int], want: &Vec[Int], name: Str) -> Int {
+  let r = llm_spm_decode(v, ids);
+  if !r.is_ok {
+    let got: Str = r.error;
+    return report(false, name + " (Err: " + got + ")");
+  }
+  let got: Str = r.value;
+  return report(str_bytes_eq(got, want), name);
+}
+
+// t84: real SPM extraction over non-ASCII GGUF tokens (byte accessors).
+fn t84() -> Int {
+  var sum = 0;
+  let v = spm_real_vocab(0);
+  let model = llm_spm_model(&v);
+  sum = sum + report(str_eq(model, "llama"), "spm real model llama");
+  sum = sum + report(llm_spm_size(&v) == 11, "spm real size 11");
+  let t4 = llm_spm_token(&v, 4);
+  let t7 = llm_spm_token(&v, 7);
+  sum = sum + report(t4.is_ok && str_bytes_eq(t4.value, &want3(226, 150, 129)), "spm real token 4 = U+2581 (E2 96 81)");
+  sum = sum + report(t7.is_ok && str_bytes_eq(t7.value, &want2(195, 169)), "spm real token 7 = é (C3 A9)");
+  let s0 = llm_spm_score(&v, 0);
+  let s6 = llm_spm_score(&v, 6);
+  sum = sum + report(s0.is_ok && s0.value.m == 0 - 8388608 && s0.value.e == 23, "spm real score a = -1.0 (e=23)");
+  sum = sum + report(s6.is_ok && s6.value.m == 0 - 8388608 && s6.value.e == 23, "spm real score ▁ab = -1.0");
+  let marker = str_of_bytes(&want3(226, 150, 129));
+  let accent = str_of_bytes(&want2(195, 169));
+  sum = sum + report(llm_spm_find_token(&v, marker) == 4, "spm real find ▁ = 4");
+  sum = sum + report(llm_spm_find_token(&v, accent) == 7, "spm real find é = 7");
+  sum = sum + report(llm_spm_add_bos(&v) == 0 && llm_spm_add_eos(&v) == 0, "spm real flags absent default 0");
+  return sum;
+}
+
+// t85: SentencePiece ▁ normalization on encode, reverse on decode, non-ASCII
+// token, byte-fallback path, and roundtrips.
+fn t85() -> Int {
+  var sum = 0;
+  let v = spm_real_vocab(0);
+  sum = sum + check_spm_encode(&v, " ", &want1(4), "spm real space -> ▁ (id 4)");
+  sum = sum + check_spm_encode(&v, " ab", &want1(6), "spm real ' ab' -> ▁ab (id 6)");
+  sum = sum + check_spm_encode(&v, "ab", &want1(3), "spm real ab -> id 3");
+  sum = sum + check_spm_encode(&v, "a", &want1(0), "spm real a -> id 0");
+  sum = sum + check_spm_encode(&v, "é", &want1(7), "spm real é -> id 7 (non-ASCII)");
+  sum = sum + check_spm_encode(&v, "z", &want1(8), "spm real z -> byte fallback <0x7A>");
+  sum = sum + check_spm_decode(&v, &want1(4), " ", "spm real decode ▁ -> space");
+  sum = sum + check_spm_decode(&v, &want1(6), " ab", "spm real decode ▁ab -> ' ab'");
+  sum = sum + check_spm_decode_bytes(&v, &want1(7), &want2(195, 169), "spm real decode é bytes");
+  sum = sum + check_spm_decode(&v, &want1(8), "z", "spm real decode byte fallback -> z");
+
+  let texts = Vec[Str].new();
+  texts.push(" ");
+  texts.push(" ab");
+  texts.push("ab");
+  texts.push(str_of_bytes(&want2(195, 169)));
+  texts.push("z");
+  var ok = 1;
+  var i = 0;
+  while i < texts.len() {
+    let tx: Str = texts[i];
+    let er = llm_spm_encode(&v, tx);
+    if !er.is_ok {
+      ok = 0;
+    } else {
+      let ids: Vec[Int] = er.value;
+      let dr = llm_spm_decode(&v, &ids);
+      if !dr.is_ok {
+        ok = 0;
+      } else {
+        let back: Str = dr.value;
+        if !str_eq(back, tx) {
+          ok = 0;
+        }
+      }
+    }
+    i = i + 1;
+  }
+  sum = sum + report(ok == 1, "spm real encode/decode roundtrip (5 texts, incl ▁ + é)");
+  return sum;
+}
+
+// t86: BOS/EOS insertion flags from tokenizer.ggml.add_bos_token /
+// add_eos_token.
+fn t86() -> Int {
+  var sum = 0;
+  let v = spm_real_vocab(1);
+  sum = sum + report(llm_spm_add_bos(&v) == 1 && llm_spm_add_eos(&v) == 1, "spm flags read 1/1");
+  sum = sum + report(llm_spm_bos(&v) == 9 && llm_spm_eos(&v) == 10, "spm flagged bos/eos 9/10");
+  sum = sum + check_spm_encode(&v, "ab", &want3(9, 3, 10), "spm encode inserts BOS/EOS");
+  sum = sum + check_spm_encode(&v, "", &want2(9, 10), "spm empty text still gets BOS/EOS");
+  sum = sum + check_spm_encode(&v, " ", &want3(9, 4, 10), "spm ▁ with BOS/EOS");
+  sum = sum + check_spm_encode(&v, "z", &want3(9, 8, 10), "spm byte fallback with BOS/EOS");
+  return sum;
+}
+
+// --------------------------------------------------
+//  GPT-2 real-vocabulary fixture (builder, escaped non-ASCII keys)
+// --------------------------------------------------
+
+// Escaped GPT-2 tokens: ids 0 h, 1 i, 2 hi, 3 Ġ (U+0120 = space), 4 Ġhi
+// (" hi"), 5 Ã (raw byte C3), 6 © (raw byte A9), 7 Ã© (raw bytes C3 A9 =
+// "é"). The loader applies bytes_to_unicode inverse to every key.
+fn gpt2_real_tokens() -> Vec[Str] {
+  var t = Vec[Str].new();
+  t.push("h");
+  t.push("i");
+  t.push("hi");
+  t.push(str_of_bytes(&want2(196, 160)));
+  t.push(str_of_bytes(&want4(196, 160, 104, 105)));
+  t.push(str_of_bytes(&want2(195, 131)));
+  t.push(str_of_bytes(&want2(194, 169)));
+  t.push(str_of_bytes(&want4(195, 131, 194, 169)));
+  return t;
+}
+
+// Escaped merge table in rank order: "Ġ h", "h i", "Ġh i", "Ã ©".
+// Rank 0 ("Ġ h") precedes rank 1 ("h i") so " hi" merges to the single token
+// id 4 (BPE picks the lowest rank first, exactly as llama.cpp does).
+fn gpt2_real_merges() -> Vec[Str] {
+  var m = Vec[Str].new();
+  m.push(str_of_bytes(&want3(196, 160, 32)) + "h");
+  m.push("h i");
+  m.push(str_of_bytes(&want3(196, 160, 104)) + " i");
+  m.push(str_of_bytes(&want3(195, 131, 32)) + str_of_bytes(&want2(194, 169)));
+  return m;
+}
+
+fn gpt2_real_buffer() -> Vec[UInt8] {
+  let tokens = gpt2_real_tokens();
+  let merges = gpt2_real_merges();
+  var b = gguf_builder_new();
+  let a1 = gguf_builder_add_kv_str(&mut b, "tokenizer.ggml.model", "gpt2");
+  let a2 = gguf_builder_add_kv_arr_str(&mut b, "tokenizer.ggml.tokens", &tokens);
+  let a3 = gguf_builder_add_kv_arr_str(&mut b, "tokenizer.ggml.merges", &merges);
+  let a4 = gguf_builder_add_kv_int(&mut b, "tokenizer.ggml.bos_token_id", 4, 0);
+  let a5 = gguf_builder_add_kv_int(&mut b, "tokenizer.ggml.eos_token_id", 4, 1);
+  let a6 = gguf_builder_add_kv_int(&mut b, "tokenizer.ggml.add_bos_token", 7, 1);
+  let a7 = gguf_builder_add_kv_int(&mut b, "tokenizer.ggml.add_eos_token", 7, 0);
+  let fr = gguf_builder_finish(&b);
+  return fr.value;
+}
+
+// t87: GPT-2 real-vocab loading over escaped keys, raw-byte encode/decode.
+fn t87() -> Int {
+  var sum = 0;
+  let buf = gpt2_real_buffer();
+  let pr = gguf_parse(&buf);
+  sum = sum + report(pr.is_ok, "gpt2 real gguf built + parsed");
+  if !pr.is_ok {
+    return sum;
+  }
+  let g = pr.value;
+  let vr = llm_gpt2_vocab_from_gguf(&g);
+  if !vr.is_ok {
+    let got: Str = vr.error;
+    return sum + report(false, "gpt2 real vocab loaded (Err: " + got + ")");
+  }
+  let v = vr.value;
+  let model = llm_vocab_model(&v);
+  sum = sum + report(str_eq(model, "gpt2"), "gpt2 real model");
+  sum = sum + report(llm_vocab_size(&v) == 8, "gpt2 real size 8");
+  let t3 = llm_vocab_token(&v, 3);
+  let t7 = llm_vocab_token(&v, 7);
+  sum = sum + report(t3.is_ok && str_bytes_eq(t3.value, &want1(32)), "gpt2 real token 3 unescaped to space");
+  sum = sum + report(t7.is_ok && str_bytes_eq(t7.value, &want2(195, 169)), "gpt2 real token 7 unescaped to é bytes");
+  sum = sum + report(llm_vocab_merge_count(&v) == 4, "gpt2 real merge count 4");
+  let m0 = llm_vocab_merge(&v, 0);
+  let m3 = llm_vocab_merge(&v, 3);
+  sum = sum + report(m0.is_ok && str_bytes_eq(m0.value, &want3(32, 32, 104)), "gpt2 real merge 0 = ' h' (escaped side unescaped)");
+  sum = sum + report(m3.is_ok && str_bytes_eq(m3.value, &want3(195, 32, 169)), "gpt2 real merge 3 = C3 + space + A9");
+  sum = sum + report(llm_vocab_add_bos(&v) == 1 && llm_vocab_add_eos(&v) == 0, "gpt2 real flags 1/0");
+  sum = sum + report(llm_vocab_bos(&v) == 0 && llm_vocab_eos(&v) == 1, "gpt2 real bos/eos 0/1");
+  sum = sum + check_encode(&v, " hi", &want1(4), "gpt2 real encode ' hi' -> id 4");
+  sum = sum + check_encode(&v, "hi", &want1(2), "gpt2 real encode hi -> id 2");
+  sum = sum + check_encode(&v, str_of_bytes(&want2(195, 169)), &want1(7), "gpt2 real encode é -> id 7");
+  sum = sum + check_decode(&v, &want1(4), " hi", "gpt2 real decode id 4 -> ' hi'");
+  let d7 = llm_bpe_decode(&v, &want1(7));
+  sum = sum + report(d7.is_ok && str_bytes_eq(d7.value, &want2(195, 169)), "gpt2 real decode id 7 -> é bytes");
+  return sum;
+}
+
+// t88: the ASCII-safe loader keeps escaped keys verbatim; the real loader
+// rejects invalid escaped strings with exact messages.
+fn t88() -> Int {
+  var sum = 0;
+  let buf = gpt2_real_buffer();
+  let pr = gguf_parse(&buf);
+  let g = pr.value;
+  let ar = llm_vocab_from_gguf(&g);
+  sum = sum + report(ar.is_ok, "gpt2 ascii-safe loader still accepts header");
+  if ar.is_ok {
+    let av = ar.value;
+    let t3 = llm_vocab_token(&av, 3);
+    sum = sum + report(t3.is_ok && str_bytes_eq(t3.value, &want2(196, 160)), "gpt2 ascii-safe loader keeps escaped C4 A0");
+  } else {
+    sum = sum + report(false, "gpt2 ascii-safe loader result");
+  }
+
+  // A literal space token is not a valid escaped GPT-2 vocabulary string.
+  var bad_tokens = Vec[Str].new();
+  bad_tokens.push(" ");
+  var b = gguf_builder_new();
+  let a1 = gguf_builder_add_kv_str(&mut b, "tokenizer.ggml.model", "gpt2");
+  let a2 = gguf_builder_add_kv_arr_str(&mut b, "tokenizer.ggml.tokens", &bad_tokens);
+  let a3 = gguf_builder_add_kv_arr_str(&mut b, "tokenizer.ggml.merges", &Vec[Str].new());
+  let fr = gguf_builder_finish(&b);
+  let br = gguf_parse(&fr.value);
+  let bg = br.value;
+  sum = sum + expect_vocab_err(llm_gpt2_vocab_from_gguf(&bg), "llm: codepoint not in gpt2 byte map", "gpt2 real literal-space token rejected");
+
+  // Truncated UTF-8 in an escaped token.
+  var bad2 = Vec[Str].new();
+  bad2.push(str_of_bytes(&want1(196)));
+  var b2 = gguf_builder_new();
+  let c1 = gguf_builder_add_kv_str(&mut b2, "tokenizer.ggml.model", "gpt2");
+  let c2 = gguf_builder_add_kv_arr_str(&mut b2, "tokenizer.ggml.tokens", &bad2);
+  let c3 = gguf_builder_add_kv_arr_str(&mut b2, "tokenizer.ggml.merges", &Vec[Str].new());
+  let fr2 = gguf_builder_finish(&b2);
+  let br2 = gguf_parse(&fr2.value);
+  let bg2 = br2.value;
+  sum = sum + expect_vocab_err(llm_gpt2_vocab_from_gguf(&bg2), "llm: invalid utf8", "gpt2 real truncated utf8 token rejected");
+  return sum;
+}
+
+// t89: non-integer BOS/EOS insertion flags fail closed with exact messages.
+fn t89() -> Int {
+  var sum = 0;
+  let empty = Vec[Str].new();
+
+  var b = gguf_builder_new();
+  let a1 = gguf_builder_add_kv_str(&mut b, "tokenizer.ggml.model", "gpt2");
+  let a2 = gguf_builder_add_kv_arr_str(&mut b, "tokenizer.ggml.tokens", &empty);
+  let a3 = gguf_builder_add_kv_arr_str(&mut b, "tokenizer.ggml.merges", &empty);
+  let a4 = gguf_builder_add_kv_float(&mut b, "tokenizer.ggml.add_bos_token", 6, "0000803f");
+  let fr = gguf_builder_finish(&b);
+  let pr = gguf_parse(&fr.value);
+  let g = pr.value;
+  sum = sum + expect_vocab_err(llm_gpt2_vocab_from_gguf(&g), "llm: add_bos token flag is not an integer", "add_bos non-integer flag rejected");
+
+  var b2 = gguf_builder_new();
+  let c1 = gguf_builder_add_kv_str(&mut b2, "tokenizer.ggml.model", "llama");
+  let c2 = gguf_builder_add_kv_arr_str(&mut b2, "tokenizer.ggml.tokens", &empty);
+  let c3 = gguf_builder_add_kv_str(&mut b2, "tokenizer.ggml.add_eos_token", "yes");
+  let fr2 = gguf_builder_finish(&b2);
+  let pr2 = gguf_parse(&fr2.value);
+  let g2 = pr2.value;
+  sum = sum + expect_spm_err(llm_spm_vocab_from_gguf(&g2), "llm: add_eos token flag is not an integer", "add_eos non-integer flag rejected");
   return sum;
 }
 
@@ -3008,6 +3415,12 @@ fn main() -> Int {
   failed = failed + t81();
   failed = failed + t82();
   failed = failed + t83();
+  failed = failed + t84();
+  failed = failed + t85();
+  failed = failed + t86();
+  failed = failed + t87();
+  failed = failed + t88();
+  failed = failed + t89();
   if failed == 0 {
     io.println("xiom.llm: all tests passed");
   }

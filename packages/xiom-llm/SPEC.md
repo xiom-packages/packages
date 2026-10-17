@@ -47,16 +47,22 @@ Implemented in 0.1.0 (M1 + M2):
   `bytes_to_unicode` escape/unescape layer as exact integer/UTF-8 surfaces
   (`llm_gpt2_*`, `llm_utf8_append`), the GPT-2 regex pre-tokenizer over the
   ASCII byte domain (`llm_gpt2_pretokenize`), and SPM (`"llama"`) vocabulary
-  extraction + scored-merge tokenize/decode (`llm_spm_*`). Real non-ASCII
-  vocabularies still cannot be loaded; the exact container failure is pinned
-  in `docs/probe-nonascii-gguf.md` and test `t83`.
+  extraction + scored-merge tokenize/decode (`llm_spm_*`).
+* real-vocabulary loading (M3 remainder follow-up, 2026-10-17, section 10.6):
+  `xiom.gguf` now accepts arbitrary string bytes and exposes the lossless
+  `gguf_kv_str_bytes` / `gguf_kv_arr_str_bytes` accessors, so both loaders
+  read real vocabularies. `llm_spm_vocab_from_gguf` loads non-ASCII tokens,
+  U+2581 (`▁`) normalization is applied on encode/decode, byte fallback
+  (`<0xXX>`) is supported, and `tokenizer.ggml.add_bos_token` /
+  `add_eos_token` are honored. `llm_gpt2_vocab_from_gguf` loads a real
+  escaped GPT-2 vocabulary and applies the `bytes_to_unicode` inverse to
+  every token/merge key. `docs/probe-nonascii-gguf.md` records the resolved
+  container probe (test `t83`).
 
 Declared for later milestones (section 10):
 
 * benchmark harness (M3 second half remainder);
-* WPM (`"bert"`) vocabulary/tokenize path and the remaining tokenizer flags
-  (BOS/EOS insertion, `tokenizer.ggml.add_bos_token` /
-  `add_eos_token`), section 10.6.
+* WPM (`"bert"`) vocabulary/tokenize path (section 10.6).
 
 ## 2. Non-goals
 
@@ -74,8 +80,10 @@ Declared for later milestones (section 10):
   the append-only KV cache and longer-context attention. Q4_K-class / Q5_0
   dequantization landed with the M3 second-half remainder; Q4_0/Q5_1/Q6_K
   remain unscheduled.
-* No UTF-8 vocabularies in M1: `xiom.gguf` parses printable-ASCII strings
-  only (see section 4).
+* No UTF-8 restriction in the container: the current `xiom.gguf` stores
+  string values as opaque bytes (section 4); the ASCII-only M1 domain survives only
+  as the historic fixture domain. Real SPM/GPT-2 vocabularies are loaded
+  through the byte accessors (section 10.6).
 
 ## 3. Dependencies and references
 
@@ -95,21 +103,29 @@ Declared for later milestones (section 10):
 ## 4. Container integration (over xiom.gguf)
 
 `xiom.gguf` parses the GGUF v2/v3 header: metadata KV table and tensor-info
-table, with `f32`/`f64` values as raw-byte hex and strings restricted to
-printable ASCII (0x20..0x7E). xiom.llm consumes the parsed `Gguf` value;
-it never re-parses bytes in M1.
+table, with `f32`/`f64` values as raw-byte hex and string values as opaque
+byte sequences (normally UTF-8; embedded NUL is the only rejected byte).
+`gguf_kv_str_bytes` / `gguf_kv_arr_str_bytes` return the exact bytes and
+`gguf_kv_str_utf8` / `gguf_kv_arr_str_utf8` add a strict UTF-8 check.
+xiom.llm consumes the parsed `Gguf` value through the byte accessors; it
+never re-parses container bytes.
 
-Metadata keys read by `llm_vocab_from_gguf` (all in the
-`tokenizer.ggml.` family, the llama.cpp names):
+Metadata keys read by `llm_vocab_from_gguf` / `llm_gpt2_vocab_from_gguf`
+(all in the `tokenizer.ggml.` family, the llama.cpp names):
 
 | Key | Type | Required | Meaning |
 |---|---|---|---|
-| `tokenizer.ggml.model` | string | yes | tokenizer family; M1 requires exactly `gpt2` |
+| `tokenizer.ggml.model` | string | yes | tokenizer family; `gpt2` for the GPT-2 loaders |
 | `tokenizer.ggml.tokens` | string array | yes | token id -> token string (id = index) |
 | `tokenizer.ggml.merges` | string array | yes (gpt2) | merge table; rank = index |
 | `tokenizer.ggml.token_type` | integer array | no | per-token type; default 1 (normal) |
 | `tokenizer.ggml.bos_token_id` | integer | no | BOS id; -1 when absent |
 | `tokenizer.ggml.eos_token_id` | integer | no | EOS id; -1 when absent |
+| `tokenizer.ggml.add_bos_token` | integer/bool | no | BOS insertion flag (0/1; absent -> 0) |
+| `tokenizer.ggml.add_eos_token` | integer/bool | no | EOS insertion flag (0/1; absent -> 0) |
+
+Metadata keys read by `llm_spm_vocab_from_gguf`: the same keys plus
+`tokenizer.ggml.scores` (f32 array, section 10.6).
 
 Tensor infos (names, dims, ggml types, offsets, data section) are visible
 through `xiom.gguf` and are the input of the M2 loading plan (section
@@ -122,9 +138,12 @@ through `xiom.gguf` and are the input of the M2 loading plan (section
 1. `tokenizer.ggml.model` must exist, be a string (GGUF type 8) and equal
    `gpt2`; anything else is an error (section 7).
 2. `tokenizer.ggml.tokens` must exist and be an array of strings (GGUF
-   value type 9, element type 8). The elements are copied in order; token
-   id = index. An empty list is accepted (every later lookup then fails
-   closed at use sites).
+   value type 9, element type 8). The elements are copied in order through
+   `gguf_kv_arr_str_bytes` (lossless, including bytes >= 0x80); token id =
+   index. An empty list is accepted (every later lookup then fails closed
+   at use sites). The ASCII-safe loader stores the bytes verbatim; the real
+   GPT-2 loader (`llm_gpt2_vocab_from_gguf`) additionally applies the
+   `bytes_to_unicode` inverse (section 10.6).
 3. `tokenizer.ggml.merges` must exist and be an array of strings. Each
    entry is split at the **first space at byte index >= 1** (llama.cpp
    `word.find(' ', 1)`): `left = entry[0..pos]`,
@@ -144,31 +163,35 @@ through `xiom.gguf` and are the input of the M2 loading plan (section
 
 `LlmVocab` invariants: `token_types.len() == tokens.len()`;
 `merge_l.len() == merge_r.len()`; `has_types` is 0/1; `bos`/`eos` are -1
-when absent. A value is only produced by `llm_vocab_from_gguf`.
+when absent; `add_bos`/`add_eos` are 0/1. A value is only produced by
+`llm_vocab_from_gguf` or `llm_gpt2_vocab_from_gguf`.
 
 Accessors (all pure; Str values are copies):
 
 | Function | Returns | Notes |
 |---|---|---|
-| `llm_vocab_model(v)` | `Str` | "gpt2" in M1 |
+| `llm_vocab_model(v)` | `Str` | "gpt2" |
 | `llm_vocab_size(v)` | `Int` | `tokens.len()` |
 | `llm_vocab_token(v, i)` | `Result[Str, Str]` | Err when i outside 0..size-1 |
 | `llm_vocab_token_type(v, i)` | `Result[Int, Str]` | stored value or 1; Err when out of range |
 | `llm_vocab_bos(v)` / `llm_vocab_eos(v)` | `Int` | -1 when absent |
+| `llm_vocab_add_bos(v)` / `llm_vocab_add_eos(v)` | `Int` | 0/1 insertion flags |
 | `llm_vocab_merge_count(v)` | `Int` | rank count |
 | `llm_vocab_merge(v, i)` | `Result[Str, Str]` | `left + " " + right` (dead: single space) |
 | `llm_vocab_find_token(v, s)` | `Int` | id or -1; duplicate strings resolve to the **highest** id (llama.cpp `token_to_id` overwrite) |
 
 ## 6. Byte-level BPE semantics (implemented)
 
-M1 operates on a **printable-ASCII byte domain** (0x20..0x7E): that is the
-only domain representable in a `Gguf` string today. The GPT-2
-`bytes_to_unicode` escape layer (`llm_gpt2_*`: identity for 0x21..0x7E;
-byte 0x20 escapes to U+0120) and the regex pre-tokenizer
-(`llm_gpt2_pretokenize`) are implemented as separate pure surfaces
-(section 10.6); `llm_bpe_encode` itself keeps the raw-byte domain. M1's
-synthetic fixture stores the space as a literal token, i.e. the escape is
-the identity **by fixture construction**, not by file semantics.
+`llm_bpe_encode` / `llm_bpe_decode` operate on the **raw byte domain** of
+the token strings, now arbitrary bytes. The GPT-2 `bytes_to_unicode`
+escape layer (`llm_gpt2_*`: identity for 0x21..0x7E; byte 0x20 escapes to
+U+0120) and the regex pre-tokenizer (`llm_gpt2_pretokenize`) remain
+separate pure surfaces (section 10.6). Real GPT-2 vocabularies are read by
+`llm_gpt2_vocab_from_gguf`, which applies the escape inverse to the stored
+keys, so BPE runs directly over raw bytes. M1's synthetic fixture stores
+the space as a literal token, i.e. the escape is the identity **by fixture
+construction**, not by file semantics; the ASCII-safe loader
+(`llm_vocab_from_gguf`) keeps that behavior.
 
 `llm_bpe_encode(v, text) -> Result[Vec[Int], Str]`:
 
@@ -295,7 +318,14 @@ Tokenizer completion (M3 remainder):
   `llm: spm score hex is invalid`, `llm: spm score overflow`
   (`llm_spm_vocab_from_gguf`; the model/tokens/token_type/bos/eos messages
   are the same as the GPT-2 extractor)
-* `llm: spm byte not in vocabulary` (`llm_spm_encode`)
+* `llm: add_bos token flag is not an integer`,
+  `llm: add_eos token flag is not an integer` (both loaders, when the
+  optional insertion flag is present but not an integer)
+* `llm: spm byte not in vocabulary` (`llm_spm_encode`: an unknown symbol
+  whose bytes have no `<0xXX>` fallback token)
+* `llm: invalid utf8`, `llm: codepoint not in gpt2 byte map`
+  (`llm_gpt2_vocab_from_gguf`: a stored token/merge key is not a valid
+  escaped GPT-2 string)
 * `llm: token index out of range`, `llm: token id out of range`
   (SPM accessors / decode, same messages as the GPT-2 surface)
 
@@ -305,15 +335,16 @@ Tokenizer completion (M3 remainder):
    per-character byte tokens for an unknown final symbol and silently
    drops bytes with no token. M1 fails closed with the deterministic
    errors above (no silent data loss).
-2. **ASCII domain / escape layer.** The GPT-2 `bytes_to_unicode`
-   escape/unescape layer is implemented as pure byte/codepoint surfaces
-   (section 10.6) and pinned against hand-computed vectors, but a real GGUF
-   vocabulary containing the escaped non-ASCII token strings cannot be read:
-   `xiom.gguf` 0.1.3 still rejects any string byte outside 0x20..0x7E
-   (`gguf: string is not printable ASCII`; exact probe in
-   `docs/probe-nonascii-gguf.md`, test `t83`). `llm_bpe_encode` therefore
-   keeps the raw-byte ASCII behavior and does not apply the escape
-   automatically.
+2. **ASCII domain / escape layer (resolved).** The GPT-2
+   `bytes_to_unicode` escape/unescape layer is implemented as pure
+   byte/codepoint surfaces (section 10.6) and pinned against hand-computed
+   vectors. `xiom.gguf` now accepts arbitrary string bytes, so
+   `llm_gpt2_vocab_from_gguf` reads real escaped vocabularies and applies
+   the inverse to every token/merge key; `llm_vocab_from_gguf` keeps the
+   old verbatim (ASCII-safe) behavior for the M1 fixtures.
+   `llm_bpe_encode` itself stays raw-byte and does not escape input
+   automatically. The old container failure is retained as a resolved probe
+   in `docs/probe-nonascii-gguf.md` (test `t83`).
 3. **Regex pre-tokenizer subset.** llama.cpp splits text with model-family
    regexes before BPE. `llm_gpt2_pretokenize` implements the GPT-2
    expression `'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|
@@ -327,9 +358,11 @@ Tokenizer completion (M3 remainder):
    values ignored); M1 errors when the count is *smaller*, same as
    llama.cpp.
 6. **No special-token partitioning.** llama.cpp splits special tokens
-   (`<s>`, `</s>`, ...) by their attrs before BPE and can add BOS/EOS per
-   model flags; M1 encodes raw text only (BOS/EOS insertion is declared
-   for M3 alongside the generation loop).
+   (`<s>`, `</s>`, ...) by their attrs before BPE. xiom.llm still encodes
+   raw text only; separately, the SPM encode path honors the
+   `tokenizer.ggml.add_bos_token` / `add_eos_token` flags by prepending /
+   appending the declared bos/eos ids. The flags default to 0 when absent,
+   so the M3 ASCII fixtures are unchanged.
 7. **Quantized tensor infos in the M2 fixture (M2b).** `xiom.gguf`'s
    builder rejects GGML types 8 (`q8_0`) and 9 (`q8_1`), so the fixture
    cannot declare a type-8 tensor. The three FFN matrices are therefore
@@ -339,12 +372,15 @@ Tokenizer completion (M3 remainder):
    exercised on real container tensor data, but the container carries no
    type-8 tensor info. Lifting this needs a `xiom.gguf` builder change
    (out of lane scope).
-8. **SPM normalization / WPM not implemented.** `llm_spm_encode` is the
-   scored-merge core over the token strings as stored, with fail-closed
-   unknown-byte handling. SentencePiece's `▁` (U+2581) normalization and
-   byte-fallback pieces are not applied, and WPM (`"bert"`) remains
-   unimplemented; both need the non-ASCII string domain above for real
-   vocabularies. The SPM core is pinned on ASCII scored fixtures.
+8. **SPM normalization / WPM.** `llm_spm_encode` applies SentencePiece
+   word-boundary normalization by mapping every ASCII space to the UTF-8
+   marker U+2581 (`▁`, E2 96 81) before traversal, and `llm_spm_decode`
+   maps it back to a space. Symbols are split at strict UTF-8 codepoint
+   boundaries (invalid bytes become one-byte symbols); an unknown final
+   symbol falls back to its per-byte `<0xXX>` tokens when the vocabulary
+   provides them. llm.cpp prepends a leading `▁` unconditionally; xiom.llm
+   only rewrites spaces (documented deviation, keeps the ASCII fixtures and
+   empty-text behavior unchanged). WPM (`"bert"`) remains unimplemented.
 
 ## 9. XGGUF-ARRSTR: string-array offset workaround (RESOLVED)
 
@@ -581,8 +617,9 @@ IMPLEMENTED in M3b, 2026-10-16 -- second half: KV cache + longer context]**
   identity RoPE table for every position (valid over the fixture domain);
   caller-supplied per-position tables are `llm_forward_cache`'s contract.
 
-**Deferred:** the package-local benchmark harness, WPM (`"bert"`) and the
-BOS/EOS insertion flags (section 10.6). Q4_K-class dequantization
+**Deferred:** the package-local benchmark harness and WPM (`"bert"`)
+(section 10.6); the BOS/EOS insertion flags and real-vocabulary loading
+are implemented. Q4_K-class dequantization
 (`llm_dequant_q4_k`) and the neighboring Q5_0 (`llm_dequant_q5_0`) landed
 with the M3 second-half remainder (section 10.3); the GPT-2 escape layer,
 ASCII pre-tokenizer and SPM core landed with the tokenizer completion
@@ -592,7 +629,8 @@ fixture is implemented (the M3 fixture is 1 layer).
 ### 10.6 Tokenizer milestones
 
 **[IMPLEMENTED in the M3 remainder, 2026-10-17 -- ASCII-safe surfaces;
-real non-ASCII vocabularies remain container-blocked]**
+real-vocabulary loading completed on 2026-10-17 once `xiom.gguf` exposed
+lossless string bytes]**
 
 GPT-2 escape layer (pure functions, no GGUF dependency):
 
@@ -625,34 +663,62 @@ Regex pre-tokenizer:
   backtracking rule `\s+(?!\S)` followed by `\s+`. Empty text yields an
   empty chunk list.
 
+Real GPT-2 vocabulary loading:
+
+* `llm_gpt2_vocab_from_gguf(g) -> Result[LlmVocab, Str]` -- reads the
+  tokens/merges arrays through `gguf_kv_arr_str_bytes` and applies
+  `llm_gpt2_unescape` to every token and to both sides of every merge entry
+  (the loader splits the raw entry at the first space at byte index >= 1
+  first, preserving the `find(' ', 1)` dead-pair rule). GGUF GPT-2 files
+  store escaped keys (`C4 A0` for the space token, `C3 83 C2 A9` for the raw
+  bytes `C3 A9` of "é"); the resulting `LlmVocab` holds raw bytes, so the
+  existing `llm_bpe_encode` / `llm_bpe_decode` are exact. Token types,
+  bos/eos and the insertion flags follow the same rules as
+  `llm_vocab_from_gguf`; an invalid escaped key propagates
+  `llm: invalid utf8` / `llm: codepoint not in gpt2 byte map`.
+* `llm_vocab_from_gguf` is unchanged for the ASCII-safe fixtures: it also
+  reads bytes losslessly but stores them verbatim (no unescape).
+
 SPM (`tokenizer.ggml.model == "llama"`):
 
 * `LlmSpmVocab` (model, tokens, scores, score_e, has_types, token_types,
-  bos, eos) produced only by `llm_spm_vocab_from_gguf(g)`.
-* `llm_spm_vocab_from_gguf` -- model must be exactly `llama`; tokens must be
-  a string array; `tokenizer.ggml.scores` is optional (an f32 array, element
-  type 6, at least one value per token) and is decoded through
-  `llm_f32_to_scaled` into exact `(m, e)` values, then folded to the common
-  exponent `score_e = max(e)` so plain Int comparison is exact. Missing
-  scores default to 0. Token types / bos / eos follow the GPT-2 extraction
-  rules. Errors are listed in section 7.
+  bos, eos, add_bos, add_eos) produced only by
+  `llm_spm_vocab_from_gguf(g)`.
+* `llm_spm_vocab_from_gguf` -- model must be exactly `llama`; tokens are
+  read through `gguf_kv_arr_str_bytes` (arbitrary non-ASCII bytes, including
+  the U+2581 marker E2 96 81); `tokenizer.ggml.scores` is optional (an f32
+  array, element type 6, at least one value per token) and is decoded
+  through `llm_f32_to_scaled` into exact `(m, e)` values, then folded to the
+  common exponent `score_e = max(e)` so plain Int comparison is exact.
+  Missing scores default to 0. Token types / bos / eos follow the GPT-2
+  extraction rules; `add_bos_token` / `add_eos_token` are normalized to 0/1
+  (absent -> 0). Errors are listed in section 7.
 * Accessors: `llm_spm_model`, `llm_spm_size`, `llm_spm_token`,
   `llm_spm_score` (returns the normalised `LlmScale`), `llm_spm_find_token`
-  (highest duplicate id), `llm_spm_bos`, `llm_spm_eos`.
-* `llm_spm_encode(v, text) -> Result[Vec[Int], Str]` -- scored merge
-  traversal: symbols start as single bytes; while any adjacent pair
-  concatenates to a vocabulary token, the candidate with the highest score
-  is merged (ties to the leftmost pair), one merge per step; final symbols
-  map exactly to ids. Empty text -> empty list. Error:
-  `llm: spm byte not in vocabulary` (fail closed).
-* `llm_spm_decode(v, ids) -> Result[Str, Str]` -- token-string
-  concatenation; error `llm: token id out of range`.
+  (highest duplicate id), `llm_spm_bos`, `llm_spm_eos`, `llm_spm_add_bos`,
+  `llm_spm_add_eos`.
+* `llm_spm_encode(v, text) -> Result[Vec[Int], Str]` -- SentencePiece
+  normalization then scored merge traversal. Every ASCII space in `text` is
+  rewritten to U+2581 (`▁`, E2 96 81); symbols start at strict UTF-8
+  codepoint boundaries (invalid bytes become one-byte symbols). While any
+  adjacent pair concatenates to a vocabulary token, the candidate with the
+  highest score is merged (ties to the leftmost pair), one merge per step.
+  Each final symbol maps exactly to an id; an unknown symbol falls back to
+  its per-byte `<0xXX>` tokens when the vocabulary provides them. When
+  `add_bos_token` / `add_eos_token` is 1 and the id exists, the BOS id is
+  prepended and the EOS id appended. Empty text -> empty list (plus
+  BOS/EOS when flagged). Error: `llm: spm byte not in vocabulary` (fail
+  closed when a byte has no fallback token).
+* `llm_spm_decode(v, ids) -> Result[Str, Str]` -- concatenates token bytes
+  with the normalization reversed: U+2581 becomes an ASCII space and
+  `<0xXX>` byte-fallback tokens contribute their raw byte; other tokens are
+  copied verbatim. Error `llm: token id out of range`.
 
-Still declared: WPM (`"bert"`) extraction/tokenize, SentencePiece `▁`
-normalization and byte fallback, and the `add_bos_token` / `add_eos_token`
-flags (all need the non-ASCII GGUF string domain for real vocabularies).
+Still declared: WPM (`"bert"`) extraction/tokenize. The SPM marker
+normalization, `<0xXX>` byte fallback and the `add_bos_token` /
+`add_eos_token` flags are implemented.
 
-## 11. Test matrix (254 checks, `tests/test_conformance.xi`)
+## 11. Test matrix (302 checks, `tests/test_conformance.xi`)
 
 All checks run against a synthetic deterministic fixture built with
 `xiom.gguf`'s builder: 6 metadata KVs, one tensor info
@@ -764,7 +830,8 @@ dmin = 0.25 -> shared `E = 12`, value 1.25 exactly `5120`); and the Q4_K
 empty / bad-length rejects. Every golden is hand-computed from the integer
 formula, not from a float reference.
 
-Tokenizer completion additions (checks 183-254, tests `t74`-`t83`):
+Tokenizer completion additions (checks 183-254, tests `t74`-`t82`; the
+resolved non-ASCII probe is `t83`):
 
 * escape layer (`t74`): hand-computed `bytes_to_unicode` anchors
   (0x21->33, 0x7E->126, 0x20->288, 0x7F->289, 0xA1->161, 0xAD->323,
@@ -792,10 +859,39 @@ Tokenizer completion additions (checks 183-254, tests `t74`-`t83`):
   and id-range rejects.
 * SPM extraction errors (`t82`): a `gpt2` model header, an integer scores
   array, and a short f32 scores array, each with the exact message.
-* non-ASCII probe (`t83`): a raw GGUF string `gpt2` + C4 A0 is rejected by
-  `gguf_parse` with exactly `gguf: string is not printable ASCII`, while
-  `llm_gpt2_escape([0x20])` emits C4 A0 (the container blocker for real
-  vocabularies). Recorded in `docs/probe-nonascii-gguf.md`.
+* non-ASCII probe (`t83`, resolved): the raw GGUF string `gpt2` + C4 A0 now
+  parses, `gguf_kv_str_bytes` returns all six bytes losslessly, and
+  `llm_gpt2_escape([0x20])` still emits C4 A0. Recorded in
+  `docs/probe-nonascii-gguf.md`.
+
+Real-vocabulary additions (checks 255-302, tests `t84`-`t89`):
+
+* real SPM extraction (`t84`): a raw GGUF with tokens `a b c ab ▁ ▁a ▁ab é
+  <0x7A> <s> </s>` (U+2581 = E2 96 81, é = C3 A9) and f32 scores; asserts
+  model/size, the exact marker and non-ASCII token bytes, folded score
+  values (`-1.0 -> (m=-8388608, e=23)`), find hits for `▁`/`é`, and absent
+  flags defaulting to 0.
+* SPM normalization / fallback (`t85`): `" " -> [4]`, `" ab" -> [6]`,
+  `"ab" -> [3]`, `"a" -> [0]`, `"é" -> [7]`, `"z" -> [8]` (the `<0x7A>`
+  byte fallback); decode reverses `▁` to a space, the non-ASCII token to
+  C3 A9, and `<0x7A>` to `z`; a five-text encode/decode roundtrip includes
+  the marker and `é`.
+* BOS/EOS flags (`t86`): `add_bos_token=1` / `add_eos_token=1` are read as
+  1/1, bos/eos are 9/10, `"ab" -> [9,3,10]`, empty -> `[9,10]`,
+  `" " -> [9,4,10]` and `"z" -> [9,8,10]`.
+* real GPT-2 loading (`t87`): a builder-made non-ASCII GGUF with escaped
+  keys (`Ġ` C4 A0, `Ã` C3 83, `©` C2 A9, `Ã©` C3 83 C2 A9) and escaped
+  merges; asserts size 8, the unescaped raw-byte tokens (space, C3 A9),
+  unescaped merge sides, flags/bos/eos, `" hi" -> [4]`, `"hi" -> [2]`,
+  `"é" -> [7]`, and raw-byte decodes.
+* real GPT-2 errors / ASCII path (`t88`): `llm_vocab_from_gguf` still keeps
+  the escaped C4 A0 key verbatim, while `llm_gpt2_vocab_from_gguf` rejects
+  a literal-space token (`llm: codepoint not in gpt2 byte map`) and a
+  truncated UTF-8 token (`llm: invalid utf8`).
+* flag errors (`t89`): a non-integer `add_bos_token` (f32) and a
+  non-integer `add_eos_token` (string) yield
+  `llm: add_bos token flag is not an integer` /
+  `llm: add_eos token flag is not an integer`.
 
 Golden-logit provenance (checks 75-78). The fixture is built so every integer
 step is exact: token 1 embedding row `[4,4,0,0]` (mean square 8, rms 2) ->
@@ -828,8 +924,13 @@ free functions over `&Vec[UInt8]` and introduced no new compiler defect
 helpers all compile on v0.64.6). The tokenizer completion (escape layer,
 ASCII pre-tokenizer, SPM core) added only free functions over `Str`,
 `Vec[Str]`, `Vec[Int]` and `Vec[UInt8]`, plus one new struct type; it
-compiles on v0.64.6 with no new compiler defect. The raw-GGUF test helpers
-hand-write header bytes because `xiom.gguf` has no float-array builder entry.
+compiles on v0.64.6 with no new compiler defect. The real-vocabulary
+follow-up (byte accessors in both loaders, U+2581 normalization, byte
+fallback, flags, escaped GPT-2 loader) also compiles on v0.64.6 with no new
+compiler defect; `xiom.string.builder`'s `sb_to_str` is used to materialize
+`Str` values from arbitrary bytes. The raw-GGUF test helpers hand-write
+header bytes because `xiom.gguf` has no float-array builder entry; the
+escaped GPT-2 fixture is built with the builder plus `sb_to_str`.
 
 ## 13. Reference notes
 

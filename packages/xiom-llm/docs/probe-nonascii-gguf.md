@@ -2,18 +2,11 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-# Probe: non-ASCII GGUF strings (tokenizer escape-layer blocker)
+# Probe: non-ASCII GGUF strings (RESOLVED)
 
-Date: 2026-10-17. Dependency: `xiom.gguf` 0.1.3 (path `../xiom-gguf`).
+Date: 2026-10-17. Dependency: `xiom.gguf` path `../xiom-gguf`.
 
-## Purpose
-
-M2/M3 assumed the real-vocabulary GPT-2/SPM escape layer was blocked by
-`xiom.gguf`'s printable-ASCII string domain. This probe re-checks 0.1.3,
-which carries the XGGUF-ARRSTR origin fix but (as verified) not a UTF-8 /
-non-ASCII string domain.
-
-## Minimal failing case
+## Original blocker (xiom.gguf 0.1.3)
 
 A GGUF v3 header with one metadata KV:
 
@@ -22,35 +15,48 @@ A GGUF v3 header with one metadata KV:
 * value bytes: `67 70 74 32 C4 A0` (`gpt2` followed by the UTF-8 encoding of
   U+0120, the GPT-2 escaped form of byte 0x20)
 
-Header bytes: magic `GGUF`, version 3, `n_tensors = 0`, `n_kv = 1`, then the
-KV, then zero padding to the 32-byte alignment boundary.
-
-## Result
-
-`gguf_parse` returns (exact):
+`gguf_parse` returned exactly:
 
 ```
 Err("gguf: string is not printable ASCII")
 ```
 
-Cause: `_rd_str` in `xiom-gguf/src/gguf.xi` rejects any string byte `< 32` or
-`> 126`. `gguf_builder_add_kv_str` / `gguf_builder_add_kv_arr_str` reject the
-same bytes, so the fixture builder cannot bypass the check.
+`_rd_str` rejected every string byte `< 32` or `> 126`, and the builder
+rejected the same bytes, so real GPT-2/SPM vocabularies could not be loaded.
 
-Consequence for `xiom.llm`:
+## Resolution
 
-* the GPT-2 `bytes_to_unicode` escape/unescape layer and its golden vectors
-  are implemented as pure byte/codepoint surfaces (`llm_gpt2_*`,
-  `llm_utf8_append`) and tested directly;
-* a real GGUF vocabulary containing escaped tokens (for example `U+0120` for
-  space, or SPM's `U+2581` `▁` marker) still cannot be loaded, because
-  `llm_vocab_from_gguf` / `llm_spm_vocab_from_gguf` only see parsed strings;
-* the regex pre-tokenizer and SPM core are therefore pinned over the
-  ASCII-safe domain (literal space, plain ASCII pieces). See SPEC.md
-  sections 8 and 10.6.
+`xiom.gguf` now copies string payloads byte-for-byte (NUL remains the only
+rejected byte because `Str` is NUL-terminated) and exposes:
+
+* `gguf_kv_str_bytes(g, i)` / `gguf_kv_arr_str_bytes(g, i, e)` -- lossless
+  raw bytes, including bytes >= 0x80;
+* `gguf_kv_str_utf8(g, i)` / `gguf_kv_arr_str_utf8(g, i, e)` -- strict
+  UTF-8 validation when callers want text.
+
+The builder accepts arbitrary string bytes (`gguf_builder_add_kv_str` /
+`gguf_builder_add_kv_arr_str`), so the probe fixture now parses and can be
+built in-code.
+
+Consequences for `xiom.llm`:
+
+* `llm_spm_vocab_from_gguf` reads real SPM vocabularies through the byte
+  accessors, including U+2581 (`▁`, E2 96 81); encode rewrites spaces to
+  the marker and decode maps it back, with `<0xXX>` byte fallback.
+* `llm_gpt2_vocab_from_gguf` reads escaped GPT-2 tokens/merges and applies
+  the `bytes_to_unicode` inverse to every key, yielding raw-byte tokens for
+  the existing BPE encode/decode.
+* `tokenizer.ggml.add_bos_token` / `add_eos_token` are extracted and applied
+  by `llm_spm_encode`.
 
 ## Reproduction
 
-The probe is pinned in `tests/test_conformance.xi` (`t83`): it builds the
-header above and asserts the exact error string, and asserts that
-`llm_gpt2_escape([0x20])` produces `C4 A0`.
+Pinned in `tests/test_conformance.xi`:
+
+* `t83` -- the header above parses, `gguf_kv_str_bytes` returns all six
+  bytes (`gpt2` + C4 A0) losslessly, and `llm_gpt2_escape([0x20])` still
+  emits C4 A0.
+* `t84`-`t86` -- real SPM vocabulary, `▁` normalization/round-trip, byte
+  fallback and BOS/EOS flags.
+* `t87`-`t88` -- builder-made escaped GPT-2 vocabulary, unescape, raw-byte
+  encode/decode, and the invalid-escape error arms.
