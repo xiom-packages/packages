@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  32,
                   "failed":  0,
-                  "run_by":  "am:feat-blas-fold",
-                  "commit":  "30c0d1ac",
-                  "checked":  "2026-10-17T00:41:38Z"
+                  "run_by":  "native-session",
+                  "commit":  "ec548542",
+                  "checked":  "2026-10-17T11:09:33Z"
               },
     "publish":  false,
     "excluded_reason":  "published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 a6740ae1...)"
