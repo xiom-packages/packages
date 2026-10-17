@@ -674,6 +674,37 @@ fn test_matmul_invalid_handle_err() -> TestResult {
 }
 
 // ---------------------------------------------------------------------------
+// Phase-3d acceleration dispatch seam
+// ---------------------------------------------------------------------------
+// The offline suite is linked with the xiom.openblas stub bridge, so the
+// typed leg marker must resolve to SelfContained and matmul must run the
+// pure-XIOM fallback. These checks pin the decision function itself; the
+// fractional golden below pins the fallback arithmetic independently of the
+// openblas surface.
+
+fn test_accel_leg_offline() -> TestResult {
+  return xiom.test.assert(acceleration_leg() == AccelLeg.SelfContained,
+    "dispatch: acceleration_leg() == SelfContained on the offline/stub leg");
+}
+
+fn test_accel_leg_labels() -> TestResult {
+  let self_name = acceleration_leg_name(&AccelLeg.SelfContained);
+  let real_name = acceleration_leg_name(&AccelLeg.OpenBlasReal);
+  return xiom.test.assert(self_name == "self-contained" && real_name == "openblas-real",
+    "dispatch: typed leg markers map to stable labels");
+}
+
+fn test_matmul_fallback_fractional_golden() -> TestResult {
+  var a = mk(&fd4(1.5, 2.0, 3.0, 4.5), &v2(2, 2));
+  var b = mk(&fd4(0.5, 1.0, 2.0, -1.0), &v2(2, 2));
+  let h = nd(array_matmul(&a, &b));
+  return xiom.test.assert(shape_is(h, v2(2, 2))
+    && get_2d(h, 0, 0, 4.75) && get_2d(h, 0, 1, -0.5)
+    && get_2d(h, 1, 0, 10.5) && get_2d(h, 1, 1, -1.5),
+    "dispatch: self-contained matmul fractional golden [[4.75,-0.5],[10.5,-1.5]]");
+}
+
+// ---------------------------------------------------------------------------
 // Phase-3a broadcasting -- golden values (hand-computed f64)
 // ---------------------------------------------------------------------------
 
@@ -1387,6 +1418,10 @@ pub fn main() -> Int {
   results.push(test_matmul_inner_mismatch_err());
   results.push(test_matmul_rank_mismatch_err());
   results.push(test_matmul_invalid_handle_err());
+
+  results.push(test_accel_leg_offline());
+  results.push(test_accel_leg_labels());
+  results.push(test_matmul_fallback_fractional_golden());
 
   results.push(test_broadcast_add_row_golden());
   results.push(test_broadcast_add_left_golden());

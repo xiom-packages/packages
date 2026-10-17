@@ -1,7 +1,7 @@
 # xiom.numpy -- Roadmap
 
 **Module**: `xiom.numpy`
-**Last updated**: 2026-10-16
+**Last updated**: 2026-10-17
 
 ## Status
 
@@ -9,7 +9,7 @@
 |-------|-------------|--------|
 | 1 | Core Foundation -- types, extern C, safe wrappers, conformance tests | Done -- GREEN 30/30 x2 (v0.64.5, 2026-10-16; link bridge `bridge/numpy_bridge.c`) |
 | 2 | C bridge -- compile numpy_c_* bridge .obj, link against system NumPy + OpenBLAS | Pending |
-| 3 | Linear algebra -- SVD, inv, reductions (sum, mean, max) | Done -- GREEN 147/147 x2 (v0.64.6, 2026-10-16); Phase-3a broadcasting/N-D + Phase-3b reductions + inv + Phase-3c SVD |
+| 3 | Linear algebra -- SVD, inv, reductions (sum, mean, max) | Done -- GREEN 150/150 x2 (v0.64.6, 2026-10-17); Phase-3a broadcasting/N-D + Phase-3b reductions + inv + Phase-3c SVD + Phase-3d OpenBLAS dispatch |
 | 4 | Broadcasting + reshaping -- reshape, transpose | DONE (first half) -- GREEN 103/103 x2 (v0.64.6, 2026-10-16) |
 | 5 | Advanced -- FFT, random, advanced indexing | Pending |
 | 6 | Interop -- zero-copy tensor sharing with xiom.libtorch, xiom.pandas | Pending |
@@ -61,6 +61,18 @@ columns so `U^T U == I` holds). Returns `U [m,n]`, diagonal `S [n,n]`
 (descending), `Vt [n,n]` with `A = U * S * Vt` (S-as-diagonal is a documented
 deviation from NumPy's 1-D `s`; tolerances are pinned in SPEC.md). Suite grew
 130 -> 147 checks (17 new) and is GREEN x2. **Phase 3 is complete.**
+
+Phase-3d (2026-10-17, v0.64.6): typed acceleration dispatch seam
+`AccelLeg { SelfContained, OpenBlasReal }` + `acceleration_leg()`, derived
+from `xiom.openblas.backend_is_real()`. `array_matmul` and the 2-D
+`array_dot` path use `xiom.openblas.gemm` on the real leg and numpy's own
+row-major triple loop on the offline/stub leg, with identical validation and
+typed `Err` behavior. Suite grew 147 -> 150 (typed marker, stable labels,
+fractional fallback golden) and is GREEN x2. The optional real-leg probe
+`tests/probe_numpy_real_leg.xi` + `tests/run_real_leg.ps1` is VERIFIED 6/6 x2
+against OpenBLAS v0.3.34 (runner sets `XIOM_NO_DEP_PORT_ARGS=1` to keep the
+dependency's auto-applied stub bridge out of the real-linked artifact).
+`array_inv` remains self-contained this pass.
 
 ## Phase 4 -- Broadcasting + reshaping
 

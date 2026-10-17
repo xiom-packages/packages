@@ -1,7 +1,7 @@
 # xiom.numpy -- SPEC
 
-**Phase**: 3 complete (Core Storage + linear algebra) | **Priority**: CRITICAL
-**Status**: Phase 3 COMPLETE -- 147/147 conformance checks x2 (compiler v0.64.6, 2026-10-16); Phase-3a broadcasting + N-D + reshape/transpose (103/103) and Phase-3b reductions + `array_inv` (130/130) were v0.64.6; Phase-3c adds self-contained one-sided Jacobi `array_svd` (147/147). Phase-1 link bridge retained at `bridge/numpy_bridge.c` as the acceleration seam (not called by the module)
+**Phase**: 3 complete + Phase-3d acceleration dispatch (Core Storage + linear algebra) | **Priority**: CRITICAL
+**Status**: Phase 3 COMPLETE -- 150/150 conformance checks x2 (compiler v0.64.6, 2026-10-17); Phase-3a broadcasting + N-D + reshape/transpose (103/103) and Phase-3b reductions + `array_inv` (130/130) were v0.64.6; Phase-3c added self-contained one-sided Jacobi `array_svd` (147/147); Phase-3d adds the typed `AccelLeg` dispatch seam routing `array_matmul` through real OpenBLAS when linked and the self-contained fallback otherwise (150/150). Phase-1 link bridge retained at `bridge/numpy_bridge.c` (not called by the module)
 **Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend) -- consumed as a PATH dep (`xiom.toml`) for the Phase-2b `dot`/`matmul` compute path.
 
 ## What it wraps
@@ -161,6 +161,47 @@ We compile a thin C bridge that calls `PyArray_*` functions (which are C, not Py
   checks (13 SVD goldens/reconstruction/orthogonality, 3 SVD error-paths, 1
   contract marker).
 
+## Phase-3d design note: acceleration dispatch over xiom.openblas (2026-10-17)
+- `xiom.openblas` now has a real cblas/LAPACK leg (values when linked) and the
+  documented stub leg (pure-XIOM reference loops, backend marker 0). numpy
+  consumes that surface through one **typed dispatch decision**:
+  `acceleration_leg() -> AccelLeg` where `AccelLeg` is
+  `SelfContained | OpenBlasReal`. The marker is derived only from
+  `xiom.openblas.backend_is_real()`; no environment probing. `acceleration_leg_name`
+  gives the stable labels `self-contained` / `openblas-real`.
+- `array_matmul` / `array_dot` (2-D path): when the leg is `OpenBlasReal`, the
+  operands are marshalled into the openblas row-major pool and multiplied by
+  `xiom.openblas.gemm` (real `cblas_dgemm`). On `SelfContained` -- the offline
+  stub leg, or any build without a real BLAS -- numpy runs its own row-major
+  triple loop over the flat f64 arena. Both legs share the exact same
+  validation/error surface (rank, inner-dimension, empty dimension, invalid
+  handle), and numpy pool-allocation failures propagate as typed `Err`
+  (`?`), so the real path fails closed too.
+- The dispatch decision is fail-closed: only the explicit real leg marker
+  selects acceleration; everything else stays self-contained.
+- The offline suite is linked with the dependency's stub bridge (auto-applied
+  `port.args.json`), so it pins `acceleration_leg() == AccelLeg.SelfContained`,
+  the two stable labels, and a fractional matmul golden computed by the
+  fallback. This keeps the suite offline-deterministic and FFI-free.
+- Result equivalence: both legs implement the same row-major C-order product
+  with the same validation; the suite's integer/fractional goldens are exact
+  under f64 for the documented tolerances. The optional real-leg probe
+  `tests/probe_numpy_real_leg.xi` is run by `tests/run_real_leg.ps1` against
+  the pinned OpenBLAS v0.3.34 build and is VERIFIED 6/6 checks x2 (2026-10-17):
+  `AccelLeg.OpenBlasReal`, 2x2 and 2x3*3x2 integer goldens, the same
+  fractional matmul golden as the offline fallback, `dot`, and `inv`. The
+  runner sets `XIOM_NO_DEP_PORT_ARGS=1`; otherwise the path dependency's
+  `port.args.json` auto-applies the stub bridge and adding
+  `openblas_real_marker.c` produces a duplicate `xiom_openblas_backend` symbol.
+  The offline suite (150/150 x2) is the authoritative `SelfContained` gate.
+- `array_inv` intentionally stays on its self-contained Gauss-Jordan path in
+  this pass: the openblas LAPACK surface exposes `solve`, not `inv`, so a real
+  leg would require n unit-vector solves and a different singular/near-singular
+  contract. It remains the documented acceleration target behind the same
+  `NDArray` surface.
+- Suite: 150/150 conformance checks GREEN x2 (v0.64.6, 2026-10-17); 3 new
+  dispatch/equivalence checks.
+
 ## Phase-1 status and provenance (2026-10-16)
 - The conformance suite (`tests/test_conformance.xi`, 30 checks) links the
   package-local Phase-1 bridge `bridge/numpy_bridge.c` via `port.args.json`
@@ -239,6 +280,11 @@ pub fn transpose(arr: &NDArray) -> Result[NDArray, Str]
 - `array_svd` is implemented (Phase-3c, self-contained one-sided Jacobi,
   fail-closed; 2-D `m >= n`; returns `U [m,n]`, diagonal `S [n,n]`, `Vt [n,n]`
   with `A = U * S * Vt`).
+- Phase-3d adds the public dispatch seam: `pub enum AccelLeg
+  { SelfContained, OpenBlasReal }`, `pub fn acceleration_leg() -> AccelLeg`
+  (derived from `xiom.openblas.backend_is_real()`), and
+  `pub fn acceleration_leg_name(leg: &AccelLeg) -> Str`. `array_matmul` and
+  the 2-D `array_dot` path dispatch on it; the public ndarray API is unchanged.
 
 ## Contract coverage target
 - Shape compatibility: `requires: a.ndim == b.ndim` for elementwise ops

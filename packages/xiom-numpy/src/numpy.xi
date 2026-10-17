@@ -13,17 +13,20 @@ use xiom.math;
 // Python, no FFI on any creation/access path -- registry consumers cannot
 // assume a Python+numpy install, so native storage is the contract.
 //
-// Phase 2b (this pass) lands the element-wise and linear-algebra leg on top of
-// that storage, still with no FFI on the compute path:
-//   * add/sub/mul/div are pure-XIOM element-wise loops with a same-shape rule
-//     (identical ndim + extents) that fails closed with a typed Err; div is
-//     fail-closed on any zero divisor element.
-//   * dot/matmul delegate to the xiom.openblas declared surface (pure-XIOM
-//     reference paths: dot for 1-D inner products, gemm for 2-D products over
-//     the pool's row-major layout, which matches this arena's layout).
+// Phase 2b lands the element-wise and linear-algebra leg on top of that
+// storage; Phase 3d adds the acceleration dispatch seam:
+//   * add/sub/mul/div are pure-XIOM element-wise loops with broadcasting and
+//     a fail-closed typed Err surface; div is fail-closed on any zero divisor.
+//   * dot delegates to the xiom.openblas declared surface (reference path on
+//     the stub leg, cblas_ddot on the real leg).
+//   * matmul dispatches on the typed `AccelLeg` marker: real OpenBLAS
+//     (xiom.openblas.backend_is_real()) marshals into the pool and calls
+//     cblas_dgemm via xiom.openblas.gemm; the stub/offline leg (and any build
+//     without a real BLAS) runs numpy's own row-major triple loop, so the
+//     conformance suite needs no FFI and stays offline-deterministic.
 // The C-bridge seam (bridge/numpy_bridge.c, wired via port.args.json) is
-// retained for a future PyArray_* / real-BLAS acceleration behind the same
-// NDArray surface; nothing in this module calls it.
+// retained for a future PyArray_* path behind the same NDArray surface;
+// nothing in this module calls it.
 
 pub type NDArray = Int;
 pub type DType = Int;
@@ -34,6 +37,44 @@ pub const DTYPE_FLOAT32: Int = 2;
 pub const DTYPE_FLOAT64: Int = 3;
 
 const ND_MAX_ELEMS: Int = 1000000;
+
+// ---------------------------------------------------------------------------
+// Phase-3d: acceleration dispatch decision seam.
+// ---------------------------------------------------------------------------
+// Numeric heavy ops resolve their implementation through `acceleration_leg()`.
+// The marker is typed so a dispatch decision cannot be confused with an
+// arbitrary Int; it is derived once from the xiom.openblas linked-leg marker:
+//   * AccelLeg.OpenBlasReal -- the artifact is linked against real OpenBLAS
+//     (xiom.openblas.backend_is_real() == true), so heavy ops marshal into the
+//     openblas pool and call cblas_*/LAPACK.
+//   * AccelLeg.SelfContained -- the documented offline/stub leg (no real BLAS
+//     linked). numpy runs its own pure-XIOM loops, which keeps the conformance
+//     suite offline-deterministic and needs no FFI.
+// This is a fail-closed decision: only the explicit real marker selects the
+// accelerated path; anything else stays self-contained.
+
+pub enum AccelLeg {
+  SelfContained,
+  OpenBlasReal,
+}
+
+/// The acceleration leg this build resolves to. Derived from the linked
+/// xiom.openblas leg marker, never from an environment probe.
+pub fn acceleration_leg() -> AccelLeg {
+  if xiom.openblas.backend_is_real() {
+    return AccelLeg.OpenBlasReal;
+  }
+  return AccelLeg.SelfContained;
+}
+
+/// Stable label for the dispatch decision (used by diagnostics and the
+/// conformance suite to pin the leg without comparing enum encodings).
+pub fn acceleration_leg_name(leg: &AccelLeg) -> Str {
+  match leg {
+    AccelLeg.SelfContained => "self-contained",
+    AccelLeg.OpenBlasReal => "openblas-real",
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Handle registry (module-level state)
@@ -544,23 +585,38 @@ fn _nd_flat(i: Int) -> Vec[Float64] {
   return v;
 }
 
-// 2-D x 2-D matrix product via xiom.openblas.gemm (row-major pool layout).
-fn _nd_matmul_2d(ia: Int, ib: Int) -> Result[NDArray, Str] {
-  let sa = _nd_shape_off[ia];
-  let sb = _nd_shape_off[ib];
-  let arows = _nd_shape[sa + 0];
-  let acols = _nd_shape[sa + 1];
-  let brows = _nd_shape[sb + 0];
-  let bcols = _nd_shape[sb + 1];
-  if acols != brows {
-    return Err("numpy: array_matmul inner dimension mismatch");
+// Self-contained 2-D x 2-D product (offline/stub leg): a row-major triple
+// loop over the flat f64 arena. The accumulation order is the documented
+// fallback reference order; it is what the suite pins.
+fn _nd_matmul_self(ia: Int, ib: Int, m: Int, n: Int, k: Int) -> NDArray {
+  let abase = _nd_base[ia];
+  let bbase = _nd_base[ib];
+  var out: Vec[Float64] = Vec[Float64].new();
+  var i = 0;
+  while i < m {
+    var j = 0;
+    while j < n {
+      var sum: Float64 = 0.0;
+      var p = 0;
+      while p < k {
+        sum = sum + _nd_data[abase + i * k + p] * _nd_data[bbase + p * n + j];
+        p = p + 1;
+      };
+      out.push(sum);
+      j = j + 1;
+    };
+    i = i + 1;
   };
-  let m = arows;
-  let n = bcols;
-  let k = acols;
-  if m <= 0 || n <= 0 || k <= 0 {
-    return Err("numpy: array_matmul empty dimension");
-  };
+  var sh: Vec[Int] = Vec[Int].new();
+  sh.push(m);
+  sh.push(n);
+  return _nd_alloc_from(&out, &sh, DTYPE_FLOAT64);
+}
+
+// Real-leg 2-D x 2-D product: marshal both operands into the xiom.openblas
+// row-major pool and call gemm (cblas_dgemm when linked against real
+// OpenBLAS). Errors from the pool allocation propagate as typed Err.
+fn _nd_matmul_openblas(ia: Int, ib: Int, m: Int, n: Int, k: Int) -> Result[NDArray, Str] {
   var ma = xiom.openblas.matrix_create(m, k)?;
   var mb = xiom.openblas.matrix_create(k, n)?;
   var mc = xiom.openblas.matrix_create(m, n)?;
@@ -600,6 +656,31 @@ fn _nd_matmul_2d(ia: Int, ib: Int) -> Result[NDArray, Str] {
   sh.push(m);
   sh.push(n);
   return Ok(_nd_alloc_from(&out, &sh, DTYPE_FLOAT64));
+}
+
+// 2-D x 2-D dispatch: real OpenBLAS when the linked leg marker says so,
+// otherwise the self-contained fallback. Shape/rank validation happens here
+// so both legs share the exact same fail-closed error surface.
+fn _nd_matmul_2d(ia: Int, ib: Int) -> Result[NDArray, Str] {
+  let sa = _nd_shape_off[ia];
+  let sb = _nd_shape_off[ib];
+  let arows = _nd_shape[sa + 0];
+  let acols = _nd_shape[sa + 1];
+  let brows = _nd_shape[sb + 0];
+  let bcols = _nd_shape[sb + 1];
+  if acols != brows {
+    return Err("numpy: array_matmul inner dimension mismatch");
+  };
+  let m = arows;
+  let n = bcols;
+  let k = acols;
+  if m <= 0 || n <= 0 || k <= 0 {
+    return Err("numpy: array_matmul empty dimension");
+  };
+  if acceleration_leg() == AccelLeg.OpenBlasReal {
+    return _nd_matmul_openblas(ia, ib, m, n, k);
+  };
+  return Ok(_nd_matmul_self(ia, ib, m, n, k));
 }
 
 // numpy dot: 1-D . 1-D -> inner product (shape [1]); 2-D . 2-D -> matrix product.
@@ -878,11 +959,11 @@ pub fn array_min(arr: &NDArray, axis: Int) -> Result[NDArray, Str]
 // ---------------------------------------------------------------------------
 // Phase 3b: square-matrix inverse (Gauss-Jordan, partial pivoting).
 // ---------------------------------------------------------------------------
-// Self-contained over the flat f64 arena, so it is correct on the offline leg
-// with no live BLAS/LAPACK: xiom.openblas ships only a stub `solve`/`svd`
-// (identity/zero placeholders) and no `inv` symbol, so routing this through
-// that seam could not yield correct values. The openblas/LAPACK path remains
-// the documented acceleration target behind the same NDArray surface.
+// Self-contained over the flat f64 arena. Phase-3d deliberately leaves inv on
+// this path on BOTH legs: xiom.openblas exposes `solve`, not `inv`, so a real
+// leg would need n unit-vector dgesv_ solves and a different singular /
+// near-singular contract than the pivot-epsilon policy below. The LAPACK path
+// remains the documented acceleration target behind the same NDArray surface.
 // Fail-closed: a non-2-D operand, a non-square matrix, a matrix whose augmented
 // buffer would exceed the element cap, or a singular matrix (no pivot above the
 // tolerance while eliminating a column) all return a typed Err; no partial
@@ -1002,10 +1083,10 @@ pub fn array_inv(arr: &NDArray) -> Result[NDArray, Str]
 // ---------------------------------------------------------------------------
 // Phase 3c: singular value decomposition (one-sided Jacobi, self-contained).
 // ---------------------------------------------------------------------------
-// Self-contained over the flat f64 arena -- no BLAS/LAPACK, so it is correct
-// offline: the `xiom.openblas.svd` seam is still the Phase-1 identity/zero
-// stub, so routing this through it could not yield correct values (same
-// rationale as `array_inv`). The one-sided Jacobi method rotates each column
+// Self-contained over the flat f64 arena -- no BLAS/LAPACK on either leg, so
+// it stays deterministic offline. Phase-3d accelerates matmul only; the
+// openblas/LAPACK SVD remains the documented acceleration target. The
+// one-sided Jacobi method rotates each column
 // pair (p, q) of a working copy W of A until the columns of W are mutually
 // orthogonal; the accumulated rotations build V, and the converged column
 // norms are the singular values, so A = U * S * V^T with V orthogonal. The
