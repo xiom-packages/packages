@@ -18,6 +18,8 @@
 //   G. keep-alive semantics: the reuse latch, deadlines, PULSE_KEEPALIVE
 //   H. loopback end-to-end: pipelined reuse on one fd, silent idle expiry,
 //      PULSE_KEEPALIVE=0 close-per-request, Expect: 100-continue interim
+//   I. hook seam (pre_route + after_response)
+//   J. declared Content-Length body-cap hardening (413 before dispatch)
 //
 // Every check prints one [PASS]/[FAIL] line; the driver returns the failure
 // count as the process exit code. Offline-safe: the only network use is a
@@ -55,6 +57,18 @@ fn contains(hay: Str, needle: Str) -> Bool {
 /// occurrences counts non-overlapping occurrences of `needle` in `hay`.
 fn occurrences(hay: Str, needle: Str) -> Int {
   return string.str_split(hay, needle).len() - 1;
+}
+
+/// cl_request_bytes builds a raw non-chunked POST with the declared
+/// Content-Length and exactly `actual` body bytes (may be truncated).
+fn cl_request_bytes(declared: Int, actual: Int) -> Vec[UInt8] {
+  var raw: Vec[UInt8] = req_bytes("POST /echo HTTP/1.1\r\nHost: t\r\nContent-Type: application/json\r\nContent-Length: " + declared.to_str() + "\r\n\r\n");
+  var i: Int = 0;
+  while i < actual {
+    raw.push(97u8);
+    i = i + 1;
+  }
+  return raw;
 }
 
 /// test_handler echoes the request target as JSON for dispatched routes.
@@ -635,6 +649,28 @@ pub fn main() -> Int {
   env.remove_var("PULSE_IDLE_TIMEOUT");
   env.remove_var("PULSE_READ_TIMEOUT");
   env.remove_var("PULSE_WRITE_TIMEOUT");
+
+  // --- J. declared Content-Length body-cap hardening ------------------------
+  // A non-chunked request whose declared Content-Length exceeds the body cap
+  // must fail as "body too large" even when only a partial body arrived; the
+  // server maps any "too large" error to 413. Raw bytes only, no network.
+  let lim = http.body_limit_bytes();
+  let r_cl_limit = cl_request_bytes(lim, lim);
+  let p_cl_limit = http.parse_request(&r_cl_limit);
+  f = f + check("CL at body limit accepted", p_cl_limit.ok && p_cl_limit.body.len() == lim);
+  let r_cl_over = cl_request_bytes(lim + 1, lim + 1);
+  let p_cl_over = http.parse_request(&r_cl_over);
+  f = f + check("CL limit+1 rejected", !p_cl_over.ok && p_cl_over.error == "body too large");
+  f = f + check("CL limit+1 maps to 413 class", contains(p_cl_over.error, "too large"));
+  let r_cl_repro = cl_request_bytes(1048600, 1048600);
+  let p_cl_repro = http.parse_request(&r_cl_repro);
+  f = f + check("CL 1048600 repro rejected", !p_cl_repro.ok && p_cl_repro.error == "body too large" && p_cl_repro.body.len() == 0);
+  let r_cl_trunc_over = cl_request_bytes(1048600, 100);
+  let p_cl_trunc_over = http.parse_request(&r_cl_trunc_over);
+  f = f + check("CL oversized truncated body rejected", !p_cl_trunc_over.ok && p_cl_trunc_over.error == "body too large");
+  let r_cl_trunc_ok = req_bytes("POST /echo HTTP/1.1\r\nHost: t\r\nContent-Length: 5\r\n\r\nab");
+  let p_cl_trunc_ok = http.parse_request(&r_cl_trunc_ok);
+  f = f + check("CL truncated at/below limit unchanged", p_cl_trunc_ok.ok && p_cl_trunc_ok.body.len() == 2);
 
   if f == 0 {
     io.println("xiom.pulse: all tests passed");

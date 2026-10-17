@@ -1,6 +1,6 @@
 # xiom.pulse -- PULSE Beacon (embeddable core)
 
-> **Status:** `incubating` -- conformance-tested (165/165), recorded x2 green
+> **Status:** `incubating` -- conformance-tested (171/171), recorded x2 green
 > on XIOM v0.64.6. Current version: `0.2.0` (published in `eco-v0.1.195`,
 > sha256 `5cbf1ea8...`, 2026-10-17 -- hook seam + Server-token seam;
 > previous publish: `0.1.0` in `eco-v0.1.192`, sha256 `53fcc56e...`).
@@ -28,7 +28,10 @@ see `PROVENANCE.md`):
   frozen caps (16 KiB head, 100 header lines, 1 MiB body), Content-Length
   framing, chunked decoding (extensions ignored, trailers validated, 1 MiB
   decoded cap), `Expect: 100-continue`, TE/CL smuggling rejection, and the
-  response builders with the reviewed security-header block.
+  response builders with the reviewed security-header block. A non-chunked
+  declared `Content-Length` above the 1 MiB cap is rejected as **413**
+  `"body too large"` before dispatch -- even when only a partial body
+  arrived -- so truncated oversized bodies never parse as `ok=true`.
 - **Connection loop** (`xiom.pulse.app`): named deadlines
   (`PULSE_READ_TIMEOUT` / `PULSE_WRITE_TIMEOUT` / `PULSE_IDLE_TIMEOUT`),
   the keep-alive A/B semantics -- one-way reuse latch (`Connection: close`

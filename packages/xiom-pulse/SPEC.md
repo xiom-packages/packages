@@ -71,8 +71,15 @@ Key semantics (frozen):
 - `parse_request` never traps: failures set `ok=false` + `error`
   (`"incomplete headers"`, `"malformed request line"`, `"too many
   headers"`, `"malformed request"`, `"incomplete/malformed chunked body"`,
-  `"chunked body too large"`). Header names arrive lowercased; values are
-  trimmed; an invalid Content-Length is rejected.
+  `"chunked body too large"`, `"body too large"`). Header names arrive
+  lowercased; values are trimmed; an invalid Content-Length is rejected.
+- A non-chunked declared `Content-Length` above `body_limit_bytes()` is
+  rejected as `"body too large"` before any body bytes are copied -- even
+  when the buffer holds only a partial body. `Content-Length` equal to the
+  limit is accepted (subject to actual body completion), `limit + 1` is
+  rejected. The server maps any `"too large"` parse error to **413
+  payload_too_large**; a truncated oversized body can never reach the route
+  as `ok=true`. Chunked framing is unchanged (`"chunked body too large"`).
 - `Transfer-Encoding: chunked` alone is decoded here (chunk extensions
   ignored, trailers validated + skipped, decoded-size cap). Any other
   coding keeps the body empty for the route layer's 501 guard.
@@ -306,7 +313,7 @@ select, no threads; `accept` has no deadline and stays out of scope).
 |---|---|---|
 | Request head buffer | 16384 bytes | `http.header_limit_bytes` / `header_overflow` |
 | Header lines | 100 | `http.header_count_limit` / `parse_request` |
-| Request body (CL and decoded chunked) | 1048576 bytes | `http.body_limit_bytes`, `server.xi MAX_BODY` (kept in sync) |
+| Request body (CL and decoded chunked) | 1048576 bytes | `http.body_limit_bytes`, `server.xi MAX_BODY` (kept in sync); non-chunked declared CL over the cap -> 413 `"body too large"` |
 | Recv rounds per request | 1024 | `read_request` |
 | Recv chunk | 65536 bytes | `recv_bounded` / `socket_recv` cap |
 | Chunked raw headroom | head + 4 + 1 MiB + 16 KiB | `read_request` tcap / `request_complete` |

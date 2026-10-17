@@ -151,6 +151,9 @@ fn find_crlf(buf: &Vec[UInt8], from: Int, limit: Int) -> Int {  var i: Int = fro
 ///     ignored, trailers validated + skipped, 1 MiB decoded cap, errors:
 ///     "incomplete/malformed chunked body", "chunked body too large");
 ///     any other transfer-coding keeps the body empty for the 501 guard.
+///   - a non-chunked declared Content-Length above the body cap is
+///     rejected as "body too large" before any body bytes are copied
+///     (hardening: a truncated oversized body must never parse as ok).
 /// Complexity: O(n). Pure.
 pub fn parse_request(raw: &Vec[UInt8]) -> PulseRequest {
   var req: PulseRequest = PulseRequest{
@@ -224,6 +227,16 @@ pub fn parse_request(raw: &Vec[UInt8]) -> PulseRequest {
     }
     req.body = dec.body;
     req.ok = true;
+    return req;
+  }
+
+  // Hardening (2026-10-17): reject an oversized declared Content-Length
+  // before copying the body. The read loop may hand us a complete head
+  // plus only part of a declared body; trusting the declaration would
+  // return ok=true with truncated bytes and dispatch partial data.
+  // Chunked bodies are capped separately by decode_chunked.
+  if content_length_of(raw, hdr_end) > body_limit_bytes() {
+    req.error = "body too large";
     return req;
   }
 
