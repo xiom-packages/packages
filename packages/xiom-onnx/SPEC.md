@@ -121,6 +121,10 @@ The deprecated standalone `OrtSessionOptionsAppendExecutionProvider_DML`
 export is intentionally not used.
 
 - **Contract**: `requires: lib.api != 0`, `opts != 0`, `device_id >= 0`.
+- **DmlApi layout**: `OrtDmlApi` is append-only but its table length tracks
+  the ORT build (1.17.1 exposes slots 0-5; `GetDMLDevice` at slot 6 is newer).
+  The wrapper calls only slot 0 (`SessionOptionsAppendExecutionProvider_DML`),
+  which every DML build exposes; later slots are not probed unconditionally.
 - **CPU-only build**: `GetExecutionProviderApi("DML")` fails and
   `onnx_directml_provider_api` classifies it as `ONNX_EP_ABSENT`; the append
   wrapper propagates that typed SKIP state. No crash, suite stays green.

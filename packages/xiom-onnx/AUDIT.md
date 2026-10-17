@@ -82,6 +82,16 @@ sonames are already in the candidate list.
 All declared table indices exist unchanged in 1.17.1, 1.24.4 and 1.31.0
 (verified: v1.14.1 member list is exactly the v1.31.0 prefix).
 
+### DirectML DmlApi layout note
+
+`OrtDmlApi` is append-only, but the table length tracks the ORT build:
+ORT 1.17.1 exposes slots 0-5 only, while `GetDMLDevice` (slot 6) exists in
+newer builds. The package calls slot 0
+(`SessionOptionsAppendExecutionProvider_DML`) only, which every DML build
+exposes; an earlier unconditional slot-6 probe faulted against the 1.17.1
+inbox runtime and was removed. Do not probe later DmlApi slots without a
+capability signal.
+
 ## GPU execution providers
 
 DirectML is live in 0.2.0 (`onnx_options_append_directml`): the wrapper
