@@ -155,6 +155,9 @@ fn test_pure() -> Int {
   if types.ORT_MEM_TYPE_DEFAULT != 0 { codes_ok = false; }
   failed = failed + report(codes_ok, "types: ONNXType / OrtErrorCode / allocator / mem-type constants");
 
+  var dml_consts_ok = types.ONNX_EP_ABSENT == 3 && types.ORT_DML_DEVICE_DEFAULT == 0;
+  failed = failed + report(dml_consts_ok, "types: DirectML classification + device-default constants");
+
   var sizes_ok = true;
   if types.ort_dtype_size(types.ORT_DTYPE_FLOAT) != 4 { sizes_ok = false; }
   if types.ort_dtype_size(types.ORT_DTYPE_DOUBLE) != 8 { sizes_ok = false; }
@@ -241,14 +244,16 @@ fn test_pure() -> Int {
   // Loader oracle: the declared surface is index-aligned and complete.
   let slots = onnx_surface_slots();
   let snames = onnx_surface_names();
-  var surf_ok = slots.len() == 95 && snames.len() == 95;
+  var surf_ok = slots.len() == 96 && snames.len() == 96;
   if snames[0] != "CreateStatus" { surf_ok = false; }
   if slots[0] != 0 { surf_ok = false; }
-  if snames[94] != "SynchronizeBoundOutputs" { surf_ok = false; }
-  if slots[94] != 203 { surf_ok = false; }
+  if snames[95] != "SynchronizeBoundOutputs" { surf_ok = false; }
+  if slots[95] != 203 { surf_ok = false; }
   if slots[42] != 216 { surf_ok = false; }
   if snames[42] != "SessionOptionsAppendExecutionProvider" { surf_ok = false; }
-  failed = failed + report(surf_ok, "loader: declared surface 95 slots aligned with names");
+  if slots[75] != 195 { surf_ok = false; }
+  if snames[75] != "GetExecutionProviderApi" { surf_ok = false; }
+  failed = failed + report(surf_ok, "loader: declared surface 96 slots aligned with names");
 
   var min_ok = true;
   if onnx_parse_minor("1.31.0") != 31 { min_ok = false; }
@@ -789,6 +794,125 @@ fn test_high_level(lib: &OnnxLibrary) -> Int {
   return failed;
 }
 
+fn test_directml(lib: &OnnxLibrary, envh: Int, alloc: Int) -> Int {
+  var failed = 0;
+
+  let pr = env.onnx_available_providers(lib);
+  var has_dml = false;
+  if pr.is_ok {
+    var i = 0;
+    while i < pr.value.items.len() {
+      if pr.value.items[i] == "DmlExecutionProvider" { has_dml = true; }
+      i = i + 1;
+    };
+  }
+
+  let api = session.onnx_directml_provider_api(lib);
+  if !has_dml {
+    // CPU-only runtime: both the provider-API probe and the append must be
+    // typed SKIP states, never hard failures.
+    failed = failed + report(api.is_err && api.error.kind == types.ONNX_EP_ABSENT,
+      "directml: SKIP -- runtime exposes no DmlExecutionProvider (typed ONNX_EP_ABSENT)");
+    let or_ = session.onnx_session_options_new(lib);
+    if !or_.is_ok {
+      return failed + report(false, "directml: CreateSessionOptions -- " + or_.error.message);
+    }
+    let ar = session.onnx_options_append_directml(lib, or_.value, types.ORT_DML_DEVICE_DEFAULT);
+    failed = failed + report(ar.is_err && ar.error.kind == types.ONNX_EP_ABSENT,
+      "directml: SKIP -- DML append on a CPU-only runtime stays typed (ONNX_EP_ABSENT)");
+    session.onnx_session_options_free(lib, or_.value);
+    return failed;
+  }
+
+  failed = failed + report(api.is_ok && api.value != 0,
+    "directml: GetExecutionProviderApi(DML) exposed (OrtDmlApi table present)");
+
+  let or_ = session.onnx_session_options_new(lib);
+  if !or_.is_ok {
+    return failed + report(false, "directml: CreateSessionOptions -- " + or_.error.message);
+  }
+  let opts = or_.value;
+  let ar = session.onnx_options_append_directml(lib, opts, types.ORT_DML_DEVICE_DEFAULT);
+  failed = failed + report(ar.is_ok,
+    "directml: append EP DML with device_id=0 (default DXGI adapter)");
+  if !ar.is_ok {
+    session.onnx_session_options_free(lib, opts);
+    return failed;
+  }
+  // Disable the CPU EP fallback for this session: the fixture's Add must be
+  // handled by DML itself, so a green run is real GPU-EP execution evidence.
+  let cf = session.onnx_options_add_config(lib, opts, "session.disable_cpu_ep_fallback", "1");
+  if !cf.is_ok {
+    why(cf.error.message);
+    session.onnx_session_options_free(lib, opts);
+    return failed + report(false, "directml: disable_cpu_ep_fallback config -- " + cf.error.message);
+  }
+
+  let fr = fs.fs_read(FIXTURE);
+  if !fr.is_ok {
+    session.onnx_session_options_free(lib, opts);
+    return failed + report(false, "directml: cannot read " + FIXTURE);
+  }
+  let model: Vec[UInt8] = fr.value;
+  let sr = session.onnx_session_new_from_bytes(lib, envh, opts, &model);
+  session.onnx_session_options_free(lib, opts);
+  if !sr.is_ok {
+    return failed + report(false, "directml: CreateSessionFromArray -- " + sr.error.message);
+  }
+  let sess = sr.value;
+
+  var shape: Vec[Int] = Vec[Int].new();
+  shape.push(2);
+  var a: Vec[Float32] = Vec[Float32].new();
+  a.push(2.0);
+  a.push(3.0);
+  var b: Vec[Float32] = Vec[Float32].new();
+  b.push(4.0);
+  b.push(5.0);
+  let va = value.onnx_value_tensor_new(lib, alloc, &shape, types.ORT_DTYPE_FLOAT);
+  let vb = value.onnx_value_tensor_new(lib, alloc, &shape, types.ORT_DTYPE_FLOAT);
+  var run_ok = false;
+  if va.is_ok && vb.is_ok {
+    let wa = value.onnx_value_write_f32(lib, va.value, &a);
+    let wb = value.onnx_value_write_f32(lib, vb.value, &b);
+    var names: Vec[Str] = Vec[Str].new();
+    names.push("A");
+    names.push("B");
+    var vals: Vec[Int] = Vec[Int].new();
+    vals.push(va.value);
+    vals.push(vb.value);
+    var outs: Vec[Str] = Vec[Str].new();
+    outs.push("C");
+    if wa.is_ok && wb.is_ok {
+      let rr = session.onnx_session_run(lib, sess, 0, &names, &vals, &outs);
+      if rr.is_ok {
+        let orv = value.onnx_value_read_f32(lib, rr.value[0], 2);
+        if orv.is_ok {
+          run_ok = orv.value.items[0] == 6.0 && orv.value.items[1] == 8.0;
+        } else {
+          why(orv.error.message);
+        }
+        value.onnx_value_free(lib, rr.value[0]);
+      } else {
+        why(rr.error.message);
+      }
+    } else {
+      if !wa.is_ok { why(wa.error.message); }
+      if !wb.is_ok { why(wb.error.message); }
+    }
+  } else {
+    if !va.is_ok { why(va.error.message); }
+    if !vb.is_ok { why(vb.error.message); }
+  }
+  failed = failed + report(run_ok,
+    "directml: session on EP DML runs A(2,3)+B(4,5) -> C(6,8) exact");
+
+  if va.is_ok { value.onnx_value_free(lib, va.value); }
+  if vb.is_ok { value.onnx_value_free(lib, vb.value); }
+  session.onnx_session_free(lib, sess);
+  return failed;
+}
+
 fn test_live() -> Int {
   var failed = 0;
   let lr = onnx_load();
@@ -801,7 +925,7 @@ fn test_live() -> Int {
   let lib: OnnxLibrary = lr.value;
 
   let info = onnx_probe(&lib);
-  var probe_ok = info.version.len() > 0 && info.resolved == info.required && info.resolved == 95;
+  var probe_ok = info.version.len() > 0 && info.resolved == info.required && info.resolved == 96;
   if info.api_version < 1 { probe_ok = false; }
   if onnx_parse_minor(info.version) != info.api_version { probe_ok = false; }
   failed = failed + report(probe_ok,
@@ -847,6 +971,7 @@ fn test_live() -> Int {
   failed = failed + test_tensor_layer(&lib, alloc);
   failed = failed + test_session_layer(&lib, envh, alloc);
   failed = failed + test_high_level(&lib);
+  failed = failed + test_directml(&lib, envh, alloc);
 
   env.onnx_env_free(&lib, envh);
   let cr = onnx_close(&lib);

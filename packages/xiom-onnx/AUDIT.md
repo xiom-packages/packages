@@ -1,16 +1,17 @@
 # xiom-onnx -- System Dependency Audit
 
-> **Version:** 0.1.0 (unreleased) | **Compiler:** xiom v0.64.5 (pin) |
-> **Status:** all modules compile clean; suite x2 green (56/56, pinned ORT
-> 1.31.0 live leg) + bare-runtime run 56/56 (Windows inbox ORT 1.17.1).
+> **Version:** 0.2.0 (unreleased) | **Compiler:** xiom v0.64.6 (pin) |
+> **Status:** all modules compile clean; suite x2 green (60/60, DirectML
+> wheel 1.24.4 live leg on the RTX 3070 Ti) + 59/59 CPU-only SKIP path
+> (pinned ORT 1.31.0) + 60/60 bare-runtime run (Windows inbox ORT 1.17.1).
 
-## Compiler compatibility (v0.64.5)
+## Compiler compatibility (v0.64.6)
 
-All six modules pass `xiom --check` / `--emit-ir`; the whole package
+All module files pass `xiom --check` / `--emit-ir`; the whole package
 type-checks and runs as one unit via `tests/test_conformance.xi`
-(`port.ps1`). Namespace check: 6 modules, 0 conflicts.
+(`port.ps1`). Namespace check: 7 modules, 0 conflicts.
 
-### Compiler findings (v0.64.5)
+### Compiler findings (v0.64.6)
 
 Two codegen defects were hit and worked around inside this package; both
 reproduced with minimal scratch modules outside the package (report to the
@@ -41,14 +42,20 @@ finds a runtime via its candidate list (`XIOM_ONNX_RUNTIME` override, then
 ### Install / pin (live leg)
 
 ```
-Download: https://github.com/microsoft/onnxruntime/releases
-  -> v1.31.0 -> onnxruntime-win-x64-1.31.0.zip
-Extract to: E:\repos\onnxruntime-bin\onnxruntime-win-x64-1.31.0
-  (zip SHA256 3958D8A44984160692C1B4FFD0DE3CB48F8C39F9D34BB31E433DB06E30B82195)
+DirectML (primary, 0.2.0):
+  PyPI wheel onnxruntime_directml-1.24.4-cp312-cp312-win_amd64.whl
+  (SHA256 F2ECB68B7B7B259D2EF3112AE760149F9B5A1E7C0FBB73D539DA6250A648A614)
+  Extract to: E:\repos\onnxruntime-dml
+  $env:XIOM_ONNX_RUNTIME = "E:\repos\onnxruntime-dml\onnxruntime\capi\onnxruntime.dll"
+  $env:PATH = "E:\repos\onnxruntime-dml\onnxruntime\capi;" + $env:PATH  # DirectML.dll
+  .\scripts\port.ps1 -Package xiom.onnx -TimeoutSec 300   # x2 = 60/60
 
-Run the suite with:
+CPU-only SKIP path:
+  Official release onnxruntime-win-x64-1.31.0.zip
+  (zip SHA256 3958D8A44984160692C1B4FFD0DE3CB48F8C39F9D34BB31E433DB06E30B82195)
+  Extract to: E:\repos\onnxruntime-bin\onnxruntime-win-x64-1.31.0
   $env:XIOM_ONNX_RUNTIME = "E:\repos\onnxruntime-bin\onnxruntime-win-x64-1.31.0\lib\onnxruntime.dll"
-  .\scripts\port.ps1 -Package xiom.onnx -TimeoutSec 300
+  .\scripts\port.ps1 -Package xiom.onnx -TimeoutSec 300   # 59/59, typed SKIP
 ```
 
 Linux/macOS use the same tarballs (see the release page); the loader
@@ -67,19 +74,24 @@ sonames are already in the candidate list.
 
 | Runtime | Source | Suite result |
 |---------|--------|--------------|
-| ORT 1.31.0 (pinned) | official release zip | 56/56 -- generic `SessionOptionsAppendExecutionProvider("CPUExecutionProvider")` accepted; providers = Azure + CPU |
-| ORT 1.17.1 | Windows inbox (`C:\Windows\System32\onnxruntime.dll`) | 56/56 -- generic appender rejects "CPUExecutionProvider" with its own "Unknown provider name" oracle (accepted by the suite); providers = DML + CPU |
+| ORT 1.24.4 (DirectML) | `onnxruntime-directml` 1.24.4 wheel | 60/60 x2 -- providers = DML + CPU; `OrtDmlApi` append with `device_id=0`; DML-only session (CPU fallback disabled) gives [6,8] exact on the RTX 3070 Ti |
+| ORT 1.31.0 CPU (pinned header) | official release zip | 59/59 -- providers = Azure + CPU; the DML probe/append classify as typed `ONNX_EP_ABSENT` (SKIP) |
+| ORT 1.17.1 | Windows inbox (`C:\Windows\System32\onnxruntime.dll`) | 60/60 -- providers = DML + CPU; DML leg also live; generic appender rejects "CPUExecutionProvider" with its own "Unknown provider name" oracle (accepted by the suite) |
 | (probe) ORT 1.14.1 | python onnxruntime 1.14.1 wheel | used to cross-validate the fixture model (produces [6,8]) |
 
-All declared table indices exist unchanged in both 1.17.1 and 1.31.0
+All declared table indices exist unchanged in 1.17.1, 1.24.4 and 1.31.0
 (verified: v1.14.1 member list is exactly the v1.31.0 prefix).
 
 ## GPU execution providers
 
-Available through `SessionOptionsAppendExecutionProvider` by name when the
-runtime build ships them (CUDA / TensorRT / DML / CoreML / ...). The CPU
-package is the pinned live leg; GPU providers need their runtime builds
-(the loader path is provider-agnostic).
+DirectML is live in 0.2.0 (`onnx_options_append_directml`): the wrapper
+resolves `OrtDmlApi` via `GetExecutionProviderApi("DML")` and appends the EP
+with a DXGI adapter index. Other GPU providers (CUDA / TensorRT / CoreML /
+...) remain available through `SessionOptionsAppendExecutionProvider` by
+name when the runtime build ships them; the loader path is
+provider-agnostic. The DML device-id mapping (adapter 0 = RTX 3070 Ti) is
+recorded in PROVENANCE.md; a CPU-only build is a typed SKIP, never a
+crash.
 
 ## Production readiness
 

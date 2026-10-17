@@ -371,6 +371,69 @@ pub fn onnx_options_append_provider(lib: &OnnxLibrary, opts: Int, name: Str) -> 
   }
 }
 
+/// The DirectML execution-provider API table exposed by the loaded runtime
+/// (`OrtApi::GetExecutionProviderApi("DML", api_version, &api)`), or the
+/// typed SKIP state `ONNX_EP_ABSENT` when the runtime is a build without the
+/// DirectML EP (CPU-only). The returned pointer is owned by ORT and stays
+/// valid for the lifetime of the loaded runtime; it is an `OrtDmlApi*`.
+/// Complexity: O(len).
+pub fn onnx_directml_provider_api(lib: &OnnxLibrary) -> Result[Int, OnnxError]
+  requires: lib.api != 0
+{
+  var slot = Vec[UInt8].with_len(8);
+  unsafe {
+    let f = ort_api_slot(lib.api, ORT_API_GetExecutionProviderApi) as fn(*UInt8, UInt32, *UInt8) -> Int;
+    let st = f("DML".c_str(), lib.api_version as UInt32, slot.as_mut_ptr());
+    if st != 0 {
+      let e = onnx_status_error(lib, st, "GetExecutionProviderApi(DML)");
+      return Err(OnnxError{
+        kind: types.ONNX_EP_ABSENT;
+        message: "DirectML execution provider absent from this runtime: " + e.message,
+      });
+    }
+    let p = slot_read(&slot);
+    if p == 0 {
+      return Err(OnnxError{
+        kind: types.ONNX_EP_ABSENT;
+        message: "DirectML execution provider absent: GetExecutionProviderApi returned null",
+      });
+    }
+    return Ok(p);
+  }
+}
+
+/// Append the DirectML execution provider to the session options, targeting
+/// the adapter at `device_id`. This calls ORT's modern C API path
+/// `OrtDmlApi.SessionOptionsAppendExecutionProvider_DML(options, device_id)`
+/// (the non-deprecated replacement for the `OrtSessionOptionsAppendExecution
+/// Provider_DML` export); it carries the device id directly and needs a
+/// runtime built with DirectML. A CPU-only build yields the typed SKIP state
+/// `ONNX_EP_ABSENT`, never a hard failure.
+///
+/// Device expectations: `device_id` is a DXGI adapter index in
+/// `IDXGIFactory::EnumAdapters` enumeration order (0-based).
+/// `ORT_DML_DEVICE_DEFAULT` (0) selects the default adapter, typically the
+/// primary display GPU. Negative ids are invalid; an id beyond the adapter
+/// count fails here with ORT's own typed error. See SPEC.md for the recorded
+/// live host mapping (adapter 0 = RTX 3070 Ti).
+/// Complexity: O(len).
+pub fn onnx_options_append_directml(lib: &OnnxLibrary, opts: Int, device_id: Int) -> Result[Unit, OnnxError]
+  requires: lib.api != 0
+  requires: opts != 0
+  requires: device_id >= 0
+{
+  let ar = onnx_directml_provider_api(lib);
+  if !ar.is_ok { return Err(ar.error); }
+  unsafe {
+    let f = ort_api_slot(ar.value, 0) as fn(Int, Int32) -> Int;
+    let st = f(opts, device_id as Int32);
+    return ort_check(lib, st, "SessionOptionsAppendExecutionProvider_DML(device_id=" +
+      int_to_str(device_id) + ")");
+  }
+}
+
+
+
 // =========================================================================
 // Sessions
 // =========================================================================
