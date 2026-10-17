@@ -1,7 +1,7 @@
 # xiom.onnx -- Roadmap
 
-> **Version:** 0.1.0 (unreleased) | **Spec:** SPEC.md | **Audit:** AUDIT.md
-> **Lane:** bindings (ML/AI wave 2026-10-16) | **Compiler pin:** v0.64.5
+> **Version:** 0.2.0 (unreleased) | **Spec:** SPEC.md | **Audit:** AUDIT.md
+> **Lane:** bindings (ML/AI wave 2026-10-16) | **Compiler pin:** v0.64.6
 
 ## Phase 1: Core Foundation [DONE]
 
@@ -46,7 +46,7 @@ build-time linking, typed SKIP when the runtime is absent.
 | 3.2 | `onnx_session_output_name(s, idx)` | [DONE] (+ bulk `onnx_session_output_names`) |
 | 3.3 | `onnx_available_providers()` | [DONE] (`onnx_available_providers(lib)`) |
 | 3.4 | `onnx_session_set_providers(s, providers)` | [DONE] as `onnx_options_append_provider` (generic EP appender; typed rejection of unknown names) |
-| 3.5-3.8 | CUDA / TensorRT / DML / CoreML integration | VIA RUNTIME -- selectable by name when the runtime build ships the EP; the CPU package is the pinned live leg |
+| 3.5-3.8 | CUDA / TensorRT / DML / CoreML integration | DML LIVE -- `onnx_options_append_directml` (OrtDmlApi, device_id) + DML-only session on the 1.24.4 wheel (RTX 3070 Ti); CUDA/TensorRT/CoreML selectable by name when the runtime build ships the EP |
 | 3.9 | Provider validation | [DONE] (unknown name -> typed error; available list readable) |
 | 3.10 | Multi-input model support | [DONE] (fixture is 2-input `Add`; `Run` takes name+value vectors) |
 
@@ -71,38 +71,38 @@ build-time linking, typed SKIP when the runtime is absent.
 |------|------|--------|
 | 6.1 | Full contract verification (`xiom-verify`) | [ ] (deferred to the release wave) |
 | 6.2 | Safety audit | PARTIAL -- unsafe confined to call sites; see AUDIT.md |
-| 6.3 | Cross-platform CI | WINDOWS live-verified (2 runtime versions); Linux/macOS sonames in the loader candidate list |
+| 6.3 | Cross-platform CI | WINDOWS live-verified (DirectML 1.24.4 + CPU 1.31.0 + inbox 1.17.1); Linux/macOS sonames in the loader candidate list |
 | 6.4 | Performance benchmarks | [ ] |
 | 6.5 | Publish to XIOM registry | [ ] |
 | 6.6 | Release v1.0.0 | [ ] |
 
 | Metric | 0.1.0 stub | Now | Target |
 |--------|-----------|-----|--------|
-| Declared C API coverage | 0 (stubs) | 97/97 (95 OrtApi + 2 OrtApiBase) | 97/97 |
-| Contracts (`requires:`) | 9 | 254 | 260+ |
-| Test count | 24 | 56 (x2 green) | 50+ |
+| Declared C API coverage | 0 (stubs) | 98/98 (96 OrtApi + 2 OrtApiBase) | 98/98 |
+| Contracts (`requires:`) | 9 | 258 | 260+ |
+| Test count | 24 | 60 (x2 green on DirectML; 59 CPU-only SKIP) | 50+ |
 | Module count | 3 | 6 | 5+ |
-| FFI hooks | 0 (stubs) | 97 live table slots | 97 |
+| FFI hooks | 0 (stubs) | 98 live table slots | 98 |
 
 ## Module Contract Tracker
 
 | Module | File | Contracts (`requires:`) | Status |
 |--------|------|------------------------|--------|
 | `xiom.onnx.types` | `src/types.xi` | 0 | Public types/consts only (pure) |
-| `xiom.onnx.loader` | `src/loader.xi` | 22 | 14 pub fns; multi-soname loader + 95-slot surface |
+| `xiom.onnx.loader` | `src/loader.xi` | 22 | 14 pub fns; multi-soname loader + 96-slot surface |
 | `xiom.onnx.env` | `src/env.xi` | 9 | 6 pub fns; env + telemetry + providers |
 | `xiom.onnx.value` | `src/value.xi` | 70 | 34 pub fns; values/tensors/type-info/memory/allocators |
-| `xiom.onnx.session` | `src/session.xi` | 146 | 61 pub fns; options/session/metadata/run-options/Run/IoBinding/high-level |
+| `xiom.onnx.session` | `src/session.xi` | 150 | 63 pub fns; options/session/metadata/DirectML/run-options/Run/IoBinding/high-level |
 | `xiom.onnx.tensor` | `src/tensor.xi` | 7 | 6 pub fns; pure-XIOM tier (was `xiom.onnx.io`) |
-| **Total** | | **254** | 124 public functions |
+| **Total** | | **258** | 126 public functions |
 
 ## Test Coverage
 
 | Suite section | Tests | Focus |
 |---------------|-------|-------|
-| `types` | 6 | config, dtype table (0..26), graph-opt/levels, error codes, sizes, names |
+| `types` | 7 | config, dtype table (0..26), graph-opt/levels, error codes, DML constants, sizes, names |
 | `tensor` (pure) | 11 | constructors, no-alias, roundtrips, name ops, preprocessing stub |
-| `loader` | 4 | surface alignment (95), version parsing, candidate order, deterministic SKIP probe |
+| `loader` | 4 | surface alignment (96), version parsing, candidate order, deterministic SKIP probe |
 | `live: env/status/providers` | 4 | probe (version/api/surface), status trio, telemetry, provider enumeration |
 | `live: memory/allocators` | 3 | cpu memory info fields, allocator info, alloc/free blocks |
 | `live: tensors` | 5 | create/is/data-ptr, write/read exact, value semantics + typed failures, type/shape info, borrowed-buffer aliasing |
@@ -112,4 +112,5 @@ build-time linking, typed SKIP when the runtime is absent.
 | `live: session-owned allocator` | 1 | CreateAllocator alloc/free + release |
 | `live: error paths` | 2 | corrupted model bytes typed error, fixture byte-count check |
 | `live: high-level API` | 4 | load_model + counts/names, onnx_run exact, missing-file error, end close |
-| **Total** | **56** | `port.ps1` x2 = 56/56 (pinned ORT 1.31.0) + bare ORT 1.17.1 56/56 |
+| `live: directml` | 3 | OrtDmlApi probe, append device_id=0, DML-only session [6,8]; CPU-only runtime -> 2 typed SKIP checks |
+| **Total** | **60** | `port.ps1` x2 = 60/60 (DirectML 1.24.4 wheel) + 59/59 CPU-only SKIP (1.31.0) + inbox ORT 1.17.1 60/60 |
