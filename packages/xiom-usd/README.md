@@ -15,7 +15,8 @@ therefore builds and runs without the USD runtime and reports **SKIP**
 
 > **Status:** `incubating` -- **0.1.0** declared surface, 58-function C ABI,
 > **65/65** conformance checks green x2 on the pinned wheel; absent-runtime
-> SKIP path proven. **Lane:** bindings (`keywords: ["binding"]`).
+> SKIP path proven. Published in `eco-v0.1.197` (sha256 `f38e85aa...`,
+> 2026-10-17). **Lane:** bindings (`keywords: ["binding"]`).
 > **Platforms:** Windows x64 (the trampolines are PE/x64).
 
 ## Quick start

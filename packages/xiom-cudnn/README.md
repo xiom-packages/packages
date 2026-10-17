@@ -6,8 +6,9 @@ NVIDIA is vendored** (no headers, libraries, import libs or DLLs).
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
 > v0.64.6; **60/60 x2**, live RTX 3070 Ti: cuDNN **9.27.0.42**, driver 13.4,
-> cc 8.6, known conv+ReLU/pool/softmax values). **Lane:** bindings
-> (`keywords: ["binding"]`). Publish is gated until the coordinator's wave.
+> cc 8.6, known conv+ReLU/pool/softmax values). Published in `eco-v0.1.197`
+> (sha256 `a1377f4c...`, 2026-10-17). **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 

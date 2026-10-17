@@ -7,8 +7,9 @@ driver and are loaded at run time; **nothing is vendored**.
 
 > **Status:** `incubating` -- conformance suite green on the v0.64.6 pin
 > (67/67 x2; live RTX 3070 Ti: NVENC API 13.1, H.264 + HEVC encode, NVDEC
-> decode of the produced bitstream). **Lane:** bindings
-> (`keywords: ["binding"]`). Publish is gated on the normal ops scope flow.
+> decode of the produced bitstream). Published in `eco-v0.1.197` (sha256
+> `9ff4eb1d...`, 2026-10-17). **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
