@@ -622,3 +622,6 @@ xiom.jev
 xiom.v4l
 xiom.serial
 xiom.ros2
+# ML/AI + robotics M2 wave (torch/tensorflow/blas were early-wave seeds) + gps (R2); ops scopes confirmed LIVE 2026-10-17T11:28Z (eco-release 560; gps+libtorch staged); PROD-only
+xiom.gps
+xiom.libtorch
