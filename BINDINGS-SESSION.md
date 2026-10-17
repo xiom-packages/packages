@@ -1555,6 +1555,24 @@ torch/libtorch/tensorflow/blas/openblas; B-34 filed; 566/0)**:
   alias-unification batch (1548-stdlib-6/2100 family); B-32 stays
   m358.  Both ride v0.64.7; nothing else in flight on this lane.
 
+**UPDATE 2026-10-17 12:20Z (remaining builds LAUNCHED -- openblas real
+accel + arrow real backend; USD prep in flight)**: acting on the
+doorbell's own remaining-queue list.
+- **`feat/openblas-real`**: Phase-1 real-acceleration remainder
+  (ROADMAP unchecked set: real linked-OpenBLAS leg, cblas_* wiring via
+  raw pointers, real LAPACK, workspace query, numerical verification;
+  SKIP leg retained; official BSD-3 Windows build into E:\repos).
+- **`feat/arrow-real-backend`**: `xiom.arrow` real backend per
+  `xiom-pandas/bridge/REAL-BACKEND-REQUIREMENTS.md` (true ArrowArray/
+  ArrowSchema structs + zero-copy export/import + ownership doc; the
+  C++ pandas bridge prepared with an honest MSVC/ABI-gate note; 12-symbol
+  ABI untouched; section-6 owner decisions flagged).
+- Request `am-1792239272393-43e1df`; USD prep (`feat/usd-import`) in
+  flight from 12:11Z.  Remaining queue now: epos publish request
+  (hardware-gate), numpy grant (packages/ops), v0.64.7 re-verify rows,
+  llm/jev/pandas items (packages half), Pi smoke (arm64 release),
+  extras on demand.
+
 **UPDATE 2026-10-17 12:10Z (all remainings pass -- eco .194 verified on
 our side; stubs swept; USD prep LAUNCHED)**: continuation after the
 morning sweep.
