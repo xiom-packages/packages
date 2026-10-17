@@ -135,26 +135,22 @@ fn compute_total(shape: &Vec[Int]) -> Int {
   return total;
 }
 
-pub fn tensor_reshape(t: &Tensor, shape: &Vec[Int]) -> Tensor
+/// Reshape to a new shape (same element count; typed error on mismatch).
+/// Data is copied; strides are recomputed row-major.
+/// Complexity: O(numel).
+pub fn tensor_reshape(t: &Tensor, shape: &Vec[Int]) -> Result[Tensor, Str]
   requires: shape.len() > 0
-  ensures: result.data.len() == t.data.len()
 {
   var new_total = compute_total(shape);
   var old_total = compute_total(&t.shape);
   if new_total != old_total {
-    return Tensor{
-      data: Vec[Float32].new(),
-      shape: Vec[Int].new(),
-      strides: Vec[Int].new(),
-      device: t.device,
-      dtype: t.dtype,
-    };
+    return Err("tensor_reshape: element count mismatch");
   };
-  return Tensor{
+  return Ok(Tensor{
     data: copy_vec_float32(&t.data),
     shape: copy_vec_int(shape),
     strides: compute_strides(shape),
     device: t.device,
     dtype: t.dtype,
-  };
+  });
 }

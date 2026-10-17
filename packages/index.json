@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-17T02:18:42Z",
+    "updated":  "2026-10-17T14:04:50Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -809,8 +809,9 @@
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-blas/v0.1.0/package.tar.gz",
                          "source_files":  [
-                                              "linalg.xi",
                                               "blas.xi",
+                                              "linalg.xi",
+                                              "runtime.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4484,6 +4485,7 @@
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-libtorch/v0.1.0/package.tar.gz",
                          "source_files":  [
+                                              "loader.xi",
                                               "libtorch.xi",
                                               "package.xi"
                                           ]
@@ -5074,17 +5076,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.4.0",
+                         "version":  "0.5.0",
                          "name":  "xiom.miniaudio",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library; version/context enumeration, decode/encode, live device lifecycle + playback engine + node graph/mixing + capture, streamed WAV/FLAC/MP3 decode)",
+                         "description":  "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library; version/context enumeration, decode/encode, live device lifecycle + playback engine + node graph/mixing + capture, streamed WAV/FLAC/MP3 decode, long-lived device handles with render callbacks/stream start-stop and typed errors)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-miniaudio/v0.4.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-miniaudio/v0.5.0/package.tar.gz",
                          "source_files":  [
                                               "miniaudio.xi",
                                               "package.xi"
@@ -8921,7 +8923,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.tensorflow",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "TensorFlow C API (libtensorflow) -- Google\u0027s ML framework.",
+                         "description":  "TensorFlow C API (libtensorflow) bindings -- graph, session, tensor, ops essentials behind a multi-soname loader",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
@@ -8930,8 +8932,13 @@
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tensorflow/v0.1.0/package.tar.gz",
                          "source_files":  [
-                                              "package.xi",
-                                              "tensorflow.xi"
+                                              "graph.xi",
+                                              "loader.xi",
+                                              "ops.xi",
+                                              "session.xi",
+                                              "tensor.xi",
+                                              "types.xi",
+                                              "package.xi"
                                           ]
                      },
                      {
@@ -9193,7 +9200,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.torch",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "LibTorch bindings for XIOM -- PyTorch C++ inference",
+                         "description":  "LibTorch bindings for XIOM -- tensor types, neural-network building blocks with a real linear forward, and a multi-soname libtorch runtime tier (AOTI C ABI; typed SKIP when absent)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
@@ -9204,6 +9211,7 @@
                          "source_files":  [
                                               "ffi.xi",
                                               "nn.xi",
+                                              "runtime.xi",
                                               "types.xi",
                                               "package.xi"
                                           ]

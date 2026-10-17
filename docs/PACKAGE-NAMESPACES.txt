@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-17T02:18:42+03:00
-# packages: 570  modules: 1086
+# generated: 2026-10-17T14:04:49+03:00
+# packages: 570  modules: 1096
 
 ## package names
 xiom.aaudio
@@ -642,7 +642,9 @@ xiom.bibtex
 xiom.biology
 xiom.bitcoin
 xiom.bitfield
+xiom.blas
 xiom.blas.linalg
+xiom.blas.runtime
 xiom.ble
 xiom.bloom
 xiom.bmp
@@ -1014,6 +1016,7 @@ xiom.lemmatization
 xiom.leveldb
 xiom.lexer
 xiom.lexing
+xiom.libtorch.loader
 xiom.linter
 xiom.llm
 xiom.locale
@@ -1496,6 +1499,12 @@ xiom.telnet
 xiom.template
 xiom.template.blocks
 xiom.tensor
+xiom.tensorflow.graph
+xiom.tensorflow.loader
+xiom.tensorflow.ops
+xiom.tensorflow.session
+xiom.tensorflow.tensor
+xiom.tensorflow.types
 xiom.term
 xiom.terraform
 xiom.text_markup
@@ -1513,6 +1522,7 @@ xiom.toml
 xiom.tor
 xiom.torch.ffi
 xiom.torch.nn
+xiom.torch.runtime
 xiom.torch.types
 xiom.tracing
 xiom.training

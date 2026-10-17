@@ -1,210 +1,100 @@
-xiom.torch: XIOM LibTorch Bindings v0.1.0
+# xiom.torch -- Specification (0.1.0)
 
-== Overview ==
+Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+SPDX-License-Identifier: MIT OR Apache-2.0
 
-xiom.torch provides XIOM bindings to the LibTorch C++ API for PyTorch model
-inference. The package is organized into three layers:
+## 1. Scope and design
 
-  - xiom.torch.types: Core tensor types, device abstractions, and data type
-    enums that form the foundation for all tensor operations.
-  - xiom.torch.ffi: LibTorch C API stubs via `extern "C"`. All FFI functions
-    return stubbed results until the native LibTorch shared library is linked.
-  - xiom.torch.nn: Pure XIOM neural network building blocks (Linear, Conv2d,
-    BatchNorm2d, activations, Sequential). Data structures are fully defined;
-    forward passes are stubbed pending tensor math primitives in xiom-std.
+The tensor-level surface of the XIOM ML stack:
 
-Layer: 3.5 (Ecosystem Libraries)
-Package: xiom.torch
-Namespace: xiom.torch.*
+* **Pure tier** (`types`, `nn`): a N-dimensional Float32 tensor struct with
+  explicit strides, constructors, and neural-network building blocks with
+  a REAL linear forward -- zero runtime dependency, deterministic math.
+* **Runtime tier** (`runtime`): a multi-soname libtorch loader over the
+  AOTInductor C ABI (declared subset) and the XIOM<->libtorch tensor
+  bridge. No compile-time dependency; typed SKIP when no build is present.
 
-== LibTorch Runtime Dependency ==
+The runtime tier shares its doctrine with `xiom.libtorch` (see that
+package's SPEC/AUDIT): fail-closed surface resolution, `TORCH_ABI_VERSION`
+floor 2.9, error-code protocol, owned out-param slots.
 
-The FFI tier (xiom.torch.ffi) requires the LibTorch C++ shared library.
+## 2. Modules
 
-=== Linux (Ubuntu/Debian) ===
+| Module | File | Role |
+|---|---|---|
+| `xiom.torch.types` | `src/types.xi` | Tensor/DType/Device/TensorOptions/ModuleDef; constructors, shape, reshape |
+| `xiom.torch.nn` | `src/nn.xi` | Linear/Conv2D/BatchNorm2D/Sequential builders + real `linear_forward` |
+| `xiom.torch.runtime` | `src/runtime.xi` | loader (13 C + 1 C++ anchor) + `torch_upload/download/release/cuda_available` |
 
-  Download the LibTorch C++ distribution from https://pytorch.org:
-    wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-2.4.0%2Bcpu.zip
-    unzip libtorch-shared-with-deps-2.4.0+cpu.zip -d /opt/libtorch
+Renamed at this landing: `xiom.torch.ffi` -> `xiom.torch.runtime` (a
+module whose last segment is `ffi` cannot import the stdlib `xiom.ffi`;
+B-07 in docs/BINDINGS-COMPILER-FINDINGS.md). The declared function set of
+the tier changed accordingly (see section 4).
 
-  Set environment variables:
-    export LIBTORCH=/opt/libtorch
-    export LD_LIBRARY_PATH=$LIBTORCH/lib:$LD_LIBRARY_PATH
+## 3. Pure tier -- contracts and coverage
 
-=== Linux (Fedora/RHEL) ===
+| Function | Contract | Postcondition | Suite evidence |
+|---|---|---|---|
+| `tensor_new(shape, options)` | `shape.len() > 0`, dims > 0 | zero-filled Tensor, row-major strides, dtype/device from options | `types: tensor_new with options` |
+| `tensor_zeros(shape)` | idem | all elements 0.0 | `types: tensor_zeros [2,3]` |
+| `tensor_ones(shape)` | idem | all elements 1.0 | `types: tensor_ones [2,3]` |
+| `tensor_shape(&t)` | -- | independent shape copy (mutation-safe) | `types: tensor_shape returns an independent copy` |
+| `tensor_reshape(&t, shape)` | `shape.len() > 0`; element counts equal | `Result[Tensor, Str]`; data copied, strides recomputed; typed Err on mismatch | `types: tensor_reshape [2,2] -> [4] preserves data` + mismatch test |
+| `linear_new(in, out)` | `in > 0`, `out > 0` | weight [out,in] + bias [out], zero-initialized | `nn: linear_new(3,2)` |
+| `conv2d_new(in, out, k, s, p)` | dims > 0, k > 0 | weight [out,in,k,k] + bias [out] | `nn: conv2d_new(3,8,5,...)` |
+| `batchnorm2d_new(ch, eps)` | `ch > 0` | gamma=1, beta=0, mean=0, var=1, eps stored | `nn: batchnorm2d_new(4, 1e-3)` |
+| `sequential_new()` / `sequential_add(&mut, layer)` | -- | ordered `Vec[LayerType]` | `nn: sequential_new empty + sequential_add` |
+| `linear_forward(&layer, &input)` | trailing dim == `in_features`; leading dims row-major | REAL `y = x @ W^T + b`, output [batch, out_features] (1-D input -> batch 1) | 3 live-math tests (1-D, batched, non-trivial weights) |
 
-  Same as Ubuntu -- download the LibTorch distribution.
+Shape semantics: strides are row-major (`strides[i] = prod(shape[i+1..])`);
+the forward honors the trailing-axis stride for input indexing.
 
-=== macOS ===
+## 4. Runtime tier -- declared surface and coverage
 
-  wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.4.0.zip
-  unzip libtorch-macos-2.4.0.zip -d /opt/libtorch
-  export LIBTORCH=/opt/libtorch
-  export DYLD_LIBRARY_PATH=$LIBTORCH/lib:$DYLD_LIBRARY_PATH
+Declared C surface (13 AOTI entry points, resolved fail-closed):
 
-=== Windows ===
+| # | Entry point | Field | Used by |
+|---|---|---|---|
+| 1 | `aoti_torch_abi_version` | `f_abi_version` | version probe at load; `torch_runtime_info` |
+| 2 | `aoti_torch_dtype_float32` | `f_dtype_float32` | `torch_upload` |
+| 3 | `aoti_torch_device_type_cpu` | `f_device_type_cpu` | `torch_upload` |
+| 4 | `aoti_torch_layout_strided` | `f_layout_strided` | `torch_upload` (blob layout) |
+| 5 | `aoti_torch_empty_strided` | `f_empty_strided` | `torch_upload` |
+| 6 | `aoti_torch_delete_tensor_object` | `f_delete_tensor` | `torch_release`, internal blob cleanup |
+| 7 | `aoti_torch_create_tensor_from_blob_v2` | `f_from_blob_v2` | `torch_upload` |
+| 8 | `aoti_torch_tensor_copy_` | `f_tensor_copy` | `torch_upload` (copy-in) |
+| 9 | `aoti_torch_get_data_ptr` | `f_get_data_ptr` | `torch_download` |
+| 10 | `aoti_torch_get_numel` | `f_get_numel` | `torch_download` |
+| 11 | `aoti_torch_get_dim` | `f_get_dim` | `torch_download` |
+| 12 | `aoti_torch_get_size` | `f_get_size` | `torch_download` (shape) |
+| 13 | `aoti_torch_is_contiguous` | `f_is_contiguous` | `torch_download` guard |
+| A1 | `?is_available@cuda@torch@@YA_NXZ` | `p_cuda_available` | `torch_cuda_available` (live call) |
 
-  Download from https://pytorch.org. Extract to C:\libtorch.
+Public runtime surface:
 
-  Build with XIOM:
-    set LIBTORCH=C:\libtorch
-    set PATH=%LIBTORCH%\lib;%PATH%
+| Function | Contract | Postcondition | Suite evidence |
+|---|---|---|---|
+| `torch_runtime_surface_names` / `torch_runtime_anchor_names` | -- | the declared lists | `runtime: declared C surface 13 entry points aligned`, `declared C++ anchor` |
+| `torch_runtime_candidates` | -- | ordered candidate list | `runtime: candidate order` |
+| `torch_runtime_open` | -- | first usable build or `TORCH_LOAD_ABSENT` | `live: SKIP ...` / version line |
+| `torch_runtime_open_named` | `soname.len() > 0` | load/classify one build | `runtime: absent build classified TORCH_LOAD_ABSENT` |
+| `torch_runtime_info` | handle != 0 | version + surface counts | `live: <soname> <ver> (tensor-tier surface 13/13)` |
+| `torch_runtime_close` | handle != 0 | handle released | `live: runtime handle released` |
+| `torch_cuda_available` | anchor resolved | live bool | `live: cuda anchor callable` |
+| `torch_upload(&rt, &t)` | Float32 tensor; data length == shape product | new owning runtime handle; data COPIED (no aliasing) | `live: upload -> download ... exact; upload copies` |
+| `torch_download(&rt, h, name)` | contiguous runtime tensor | owned `Tensor` (Float32/CPU, row-major strides) | idem |
+| `torch_release(&rt, h)` | handle != 0 | owning handle released | idem |
 
-=== XIOM Build Integration ===
+Error taxonomy: `TORCH_LOAD_ABSENT` (no candidate -> SKIP),
+`TORCH_LOAD_ABI` (surface/version failure or unsupported dtype -> FAIL),
+`TORCH_CALL_FAILED` (aoti call nonzero / non-contiguous download).
 
-  xiom myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
+## 5. Notes
 
-== Module Specifications ==
-
-=== 1. xiom.torch.types -- Tensor & Device Types ===
-
-Core data types for tensor representation.
-
-Types:
-  Tensor:       { data: Vec[Float32]; shape: Vec[Int]; strides: Vec[Int];
-                  device: Device; dtype: DType; }
-  DType:        Float32 | Float64 | Int32 | Int64 | UInt8 | Bool
-  Device:       CPU | CUDA(device_id: Int)
-  TensorOptions:{ dtype: DType; device: Device; requires_grad: Bool; }
-  ModuleDef:    { name: Str; params: Vec[Tensor]; buffers: Vec[Tensor]; }
-
-Functions:
-  tensor_new(shape: &Vec[Int], options: &TensorOptions) -> Tensor
-    Creates a zero-initialized tensor with the given shape and options.
-    Computes strides automatically in row-major (C-contiguous) order.
-    requires: shape.len() > 0
-
-  tensor_zeros(shape: &Vec[Int]) -> Tensor
-    Convenience: tensor_new with Float32, CPU, no grad.
-
-  tensor_ones(shape: &Vec[Int]) -> Tensor
-    Creates a tensor filled with 1.0.
-
-  tensor_shape(t: &Tensor) -> Vec[Int]
-    Returns a clone of the shape vector.
-
-  tensor_reshape(t: &Tensor, shape: &Vec[Int]) -> Tensor
-    Returns a new tensor with the given shape. Total element count must
-    match the original. Returns an empty tensor with zero-length shape on
-    mismatch. Data is shared (cloned). Strides are recomputed.
-
-=== 2. xiom.torch.ffi -- LibTorch C API Stubs ===
-
-All functions are currently stubbed for development. Full implementation
-requires linking against the system LibTorch installation.
-
-Functions:
-  torch_load_model(path: Str) -> Result[ModuleDef, Str]      STUB
-  torch_forward(module: &ModuleDef, input: &Tensor) -> Result[Tensor, Str] STUB
-  torch_save_model(module: &ModuleDef, path: Str) -> Result[Unit, Str]  STUB
-  torch_is_cuda_available() -> Bool                            STUB (returns false)
-
-FFI symbols (extern "C"):
-  torch_c_load_model(path_ptr, path_len) -> *UInt8
-  torch_c_forward(module_ptr, input_ptr, input_len) -> *UInt8
-  torch_c_save_model(module_ptr, path_ptr, path_len) -> Int
-  torch_c_is_cuda_available() -> Int
-  torch_c_free(ptr)
-
-=== 3. xiom.torch.nn -- Neural Network Building Blocks ===
-
-Pure XIOM types for constructing neural network architectures. Forward
-passes are stubbed (zero-output) until tensor operations are available.
-
-Types:
-  Linear:       { weight: Tensor; bias: Tensor; in_features: Int;
-                  out_features: Int; }
-  Conv2d:       { weight: Tensor; bias: Tensor; in_ch: Int; out_ch: Int;
-                  kernel: Int; stride: Int; padding: Int; }
-  BatchNorm2d:  { gamma: Tensor; beta: Tensor; running_mean: Tensor;
-                  running_var: Tensor; eps: Float32; }
-  ReLU:         {}
-  Sigmoid:      {}
-  Tanh:         {}
-  Softmax:      { dim: Int; }
-  Sequential:   { layers: Vec[LayerType]; }
-  LayerType:    LinearLayer(Linear) | Conv2dLayer(Conv2d) |
-                BatchNorm2dLayer(BatchNorm2d) |
-                ReLULayer | SigmoidLayer | TanhLayer |
-                SoftmaxLayer(dim: Int)
-
-Constructors:
-  linear_new(in_features, out_features) -> Linear
-    Creates weight tensor [out_features, in_features] and bias [out_features],
-    both zero-initialized.
-    requires: in_features > 0, out_features > 0
-
-  conv2d_new(in_ch, out_ch, kernel, stride, padding) -> Conv2d
-    Creates weight [out_ch, in_ch, kernel, kernel] and bias [out_ch].
-    requires: in_ch > 0, out_ch > 0, kernel > 0, stride > 0, padding >= 0
-
-  batchnorm2d_new(num_features, eps) -> BatchNorm2d
-    Initializes gamma to ones, beta and running_mean to zeros,
-    running_var to ones.
-    requires: num_features > 0, eps > 0.0
-
-  sequential_new() -> Sequential
-    Creates an empty sequential container.
-
-  sequential_add(seq, layer)
-    Appends a layer to the sequential container.
-
-Forward passes:
-  linear_forward(layer: &Linear, input: &Tensor) -> Tensor      STUB
-    Expected: y = x * W^T + b. Returns zero tensor with shape
-    [batch_size, out_features].
-
-== Limitations ==
-
-1. FFI Stubs: All LibTorch C API calls return dummy values. Requires native
-   library linkage and runtime bridge intrinsics.
-2. No CUDA: Even with FFI, CUDA tensor operations require CUDA toolkit and
-   GPU driver. torch_is_cuda_available() always returns false.
-3. Pure CPU Tensors: The types module only supports Float32 CPU tensors.
-   Other dtypes and devices are defined but not implemented.
-4. No Automatic Differentiation: Tensors have requires_grad field but no
-   autograd engine exists.
-5. Stub Forward Passes: nn.forward functions return zero-filled tensors.
-   Actual computation requires tensor math primitives (matmul, conv2d, etc.)
-6. No Serialization: torch_save_model is a stub. PyTorch .pt/.pth files
-   cannot be loaded without full LibTorch FFI.
-
-== API Conventions ==
-
-- Constructor functions: `type_new(args) -> Type` with requires contracts.
-- Forward functions: `type_forward(&Type, &Tensor) -> Tensor`.
-- Tensor functions: `tensor_*(shape) -> Tensor` with explicit dtype/device.
-- FFI functions: return `Result[T, Str]` for fallible operations.
-- Layer container: `sequential_add(&mut Sequential, LayerType)`.
-
-== Production Readiness ==
-
-| Feature                          | Status  | Notes                        |
-|----------------------------------|---------|------------------------------|
-| Tensor types                     | Complete| Struct/enum definitions      |
-| Device/DType enums               | Complete| CPU, CUDA; all dtypes        |
-| Tensor constructors              | Complete| zeros, ones, new             |
-| Tensor reshape                   | Complete| Pure XIOM                    |
-| LibTorch FFI stubs               | Complete| extern "C" declarations      |
-| Model load/save FFI              | Stub    | Needs native LibTorch        |
-| CUDA detection                   | Stub    | Returns false                |
-| Linear layer type                | Complete| Type + constructor           |
-| Conv2d layer type                | Complete| Type + constructor           |
-| BatchNorm2d type                 | Complete| Type + constructor           |
-| Activation types                 | Complete| ReLU, Sigmoid, Tanh, Softmax |
-| Sequential container             | Complete| Type + constructor           |
-| Forward passes                   | Stub    | Needs tensor math primitives |
-| GPU/CUDA support                 | Not yet | Needs CUDA toolkit           |
-| Autograd engine                  | Not yet | Needs compiler support       |
-
-== What's Left for v1.0 ==
-
-1. **LibTorch FFI bridge** -- Implement xiom_torch_bridge.c for all extern "C"
-   symbols using the LibTorch C++ API.
-2. **Tensor math primitives** -- matmul, elementwise ops, convolutions in
-   xiom-std or xiom.blas.
-3. **Real forward passes** -- Use tensor math to implement linear_forward,
-   conv2d_forward, batch normalization, and activation functions.
-4. **Model serialization** -- Load/save PyTorch model files (.pt, .pth).
-5. **GPU support** -- CUDA tensor allocation and device transfer.
-6. **Autograd** -- Automatic differentiation for training.
+* Float32 CPU only at 0.1.0 (upload rejects other dtypes with
+  `TORCH_LOAD_ABI`; download rejects non-contiguous tensors).
+* The `Tensor.data`-honoring forward reads the trailing axis through its
+  declared stride; leading axes flatten row-major (the layout produced by
+  this package's constructors).
+* `Result` payloads are bound to locals before indexing in all package
+  code and tests (compiler finding; see AUDIT.md).
