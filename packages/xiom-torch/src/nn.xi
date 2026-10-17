@@ -28,21 +28,59 @@ pub fn linear_new(in_features: Int, out_features: Int) -> Linear
   };
 }
 
+/// Real linear forward: y = x @ W^T + b (Float32).
+///
+/// Accepts 1-D input [in_features] or n-D input with a trailing
+/// [in_features] axis (leading axes flatten row-major to the batch axis).
+/// The output is always 2-D [batch, out_features] -- the declared shape of
+/// the stub this replaced, now computed for real.  Weight/bias storage is
+/// row-major [out_features, in_features] / [out_features] (see
+/// `linear_new`); input indexing honors the tensor's declared strides for
+/// the trailing axis.
+/// Complexity: O(batch * in_features * out_features).
 pub fn linear_forward(layer: &Linear, input: &Tensor) -> Tensor
   requires: input.shape.len() > 0
+  requires: layer.in_features > 0
+  requires: input.shape[input.shape.len() - 1] == layer.in_features
 {
-  var out_shape = Vec[Int].new();
-  var in_ndim = input.shape.len();
-  var batch_size = 1;
+  let ndim = input.shape.len();
+  var batch = 1;
   var i = 0;
-  while i < in_ndim - 1 {
-    batch_size = batch_size * input.shape[i];
+  while i < ndim - 1 {
+    batch = batch * input.shape[i];
     i = i + 1;
   };
-  out_shape.push(batch_size);
-  out_shape.push(layer.out_features);
-  var result = tensor_zeros(&out_shape);
-  return result;
+  var row_stride = 1;
+  if ndim > 1 { row_stride = input.strides[0]; }
+  let last_stride = input.strides[ndim - 1];
+  let in_f = layer.in_features;
+  let out_f = layer.out_features;
+  var out_shape: Vec[Int] = Vec[Int].new();
+  out_shape.push(batch);
+  out_shape.push(out_f);
+  var opts = TensorOptions{
+    dtype: DType.Float32,
+    device: Device.CPU,
+    requires_grad: false,
+  };
+  var out = tensor_new(&out_shape, &opts);
+  var b = 0;
+  while b < batch {
+    let base = b * row_stride;
+    var o = 0;
+    while o < out_f {
+      var acc = layer.bias.data[o];
+      var k = 0;
+      while k < in_f {
+        acc = acc + input.data[base + k * last_stride] * layer.weight.data[o * in_f + k];
+        k = k + 1;
+      };
+      out.data[b * out_f + o] = acc;
+      o = o + 1;
+    };
+    b = b + 1;
+  };
+  return out;
 }
 
 pub type Conv2d = {
