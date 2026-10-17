@@ -49,7 +49,15 @@
       DONE 2026-10-16: `xiom.jev.base_url_validate` (http/https scheme,
       non-empty host; typed BadRequest); wired into `system_one`;
       offline-golden-tested (suite t39).
-- [ ] content compression (gzip/zstd) and the 32 MiB body rule (S8).
+- [ ] content compression (gzip/zstd) and the 32 MiB body rule (S8) --
+      PARTIAL 2026-10-17: `xiom.jev.compression` pins the inclusive 32 MiB
+      rule (33554432 allowed, 33554433 rejected) and enforces it in
+      `system_one` before any network call; gzip encoding is implemented over
+      the pure-XIOM stdlib seam (round-trip tested), zstd is a typed
+      "compressor is not available" path. REMAINING: end-to-end compressed
+      requests are blocked by xiom.http 0.1.8's `Str`/UTF-8 request body
+      (`str_to_cstr` corrupts binary frames); needs a binary-body entrypoint
+      upstream, then the encoded bytes can be sent with `Content-Encoding`.
 
 ## M3 -- decision-systems ergonomics
 

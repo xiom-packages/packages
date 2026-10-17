@@ -25,11 +25,15 @@
 module jev_tests
 
 use xiom.io;
+use xiom.string;
 use xiom.string.compare;
 use xiom.convert;
 use xiom.convert.tostring;
+use xiom.encoding;
+use xiom.compress.gzip;
 use xiom.serialize.json;
 use xiom.jev;
+use xiom.jev.compression;
 use xiom.jev.errors;
 use xiom.jev.types;
 use xiom.jev.request;
@@ -78,6 +82,66 @@ fn expect_bad(r: Result[Str, JevError], want: Str, name: Str) -> Int {
       return report(true, name);
     },
   };
+}
+
+// expect_bad_int is expect_bad for a Result carrying an Int payload (the
+// body-size rule).
+fn expect_bad_int(r: Result[Int, JevError], want: Str, name: Str) -> Int {
+  match r {
+    Ok(_v) => {
+      return report(false, name + " (expected BadRequest, got Ok)");
+    },
+    Err(e) => {
+      let got: Str = errors.jev_error_text(e);
+      let want_full: Str = "jev: bad request: " + want;
+      if !str_eq(got, want_full) {
+        return report(false, name + " (got: " + got + ")");
+      }
+      return report(true, name);
+    },
+  };
+}
+
+// expect_bad_bytes is expect_bad for a Result carrying an encoded byte buffer.
+fn expect_bad_bytes(r: Result[Vec[UInt8], JevError], want: Str, name: Str) -> Int {
+  match r {
+    Ok(_v) => {
+      return report(false, name + " (expected BadRequest, got Ok)");
+    },
+    Err(e) => {
+      let got: Str = errors.jev_error_text(e);
+      let want_full: Str = "jev: bad request: " + want;
+      if !str_eq(got, want_full) {
+        return report(false, name + " (got: " + got + ")");
+      }
+      return report(true, name);
+    },
+  };
+}
+
+fn expect_ok_int(r: Result[Int, JevError], want: Int, name: Str) -> Int {
+  match r {
+    Ok(v) => {
+      if v != want {
+        return report(false, name + " (got " + convert.to_string(v) + ", want " + convert.to_string(want) + ")");
+      }
+      return report(true, name);
+    },
+    Err(e) => {
+      let got: Str = errors.jev_error_text(e);
+      return report(false, name + " (got error: " + got + ")");
+    },
+  };
+}
+
+fn bytes_eq(a: &Vec[UInt8], b: &Vec[UInt8]) -> Bool {
+  if a.len() != b.len() { return false; }
+  var i: Int = 0;
+  while i < a.len() {
+    if a[i] != b[i] { return false; }
+    i = i + 1;
+  }
+  return true;
 }
 
 fn expect_parse(r: Result[Response, JevError], want: Str, name: Str) -> Int {
@@ -918,6 +982,129 @@ fn t39() -> Int {
 }
 
 // --------------------------------------------------
+//  M2 chunk 4 (S8): 32 MiB body rule and compression
+// --------------------------------------------------
+
+fn t40() -> Int {
+  var failed: Int = 0;
+  if compression.max_body_bytes() != 33554432 {
+    failed = failed + report(false, "MAX body is 33554432");
+  } else {
+    failed = failed + report(true, "MAX body is 33554432");
+  }
+  failed = failed + expect_ok_int(compression.body_size_check(0), 0, "body size 0 accepted");
+  failed = failed + expect_ok_int(compression.body_size_check(33554431), 33554431, "body size 32 MiB - 1 accepted");
+  failed = failed + expect_ok_int(compression.body_size_check(33554432), 33554432, "body size 32 MiB (inclusive) accepted");
+  failed = failed + expect_bad_int(compression.body_size_check(33554433), "request: body exceeds 32 MiB limit", "body size 32 MiB + 1 rejected");
+  failed = failed + expect_bad_int(compression.body_size_check(-1), "compression: body size is negative", "negative body size rejected");
+
+  // Synthetic buffer (no network): exact MAX, MAX-1 and MAX+1 byte lengths.
+  let max_s: Str = string.str_repeat("A", compression.max_body_bytes());
+  if max_s.len() != 33554432 {
+    failed = failed + report(false, "synthetic 32 MiB buffer has exact length");
+  } else {
+    failed = failed + report(true, "synthetic 32 MiB buffer has exact length");
+  }
+  failed = failed + expect_ok_int(compression.body_size_check(max_s.len()), 33554432, "synthetic 32 MiB buffer accepted");
+  let under_s: Str = string.str_slice(max_s, 0, 33554431);
+  if under_s.len() != 33554431 {
+    failed = failed + report(false, "synthetic 32 MiB - 1 buffer has exact length");
+  } else {
+    failed = failed + report(true, "synthetic 32 MiB - 1 buffer has exact length");
+  }
+  failed = failed + expect_ok_int(compression.body_size_check(under_s.len()), 33554431, "synthetic 32 MiB - 1 buffer accepted");
+  let over_s: Str = max_s + "A";
+  if over_s.len() != 33554433 {
+    failed = failed + report(false, "synthetic 32 MiB + 1 buffer has exact length");
+  } else {
+    failed = failed + report(true, "synthetic 32 MiB + 1 buffer has exact length");
+  }
+  failed = failed + expect_bad_int(compression.body_size_check(over_s.len()), "request: body exceeds 32 MiB limit", "synthetic 32 MiB + 1 buffer rejected");
+  return report(failed == 0, "32 MiB body rule (inclusive boundary, synthetic buffers)");
+}
+
+fn t41() -> Int {
+  var failed: Int = 0;
+  // Encoding tag <-> Content-Encoding token map.
+  if !str_eq(compression.encoding_name(compression.ENCODING_IDENTITY), "identity") { failed = failed + report(false, "identity encoding name"); } else { failed = failed + report(true, "identity encoding name"); }
+  if !str_eq(compression.encoding_name(compression.ENCODING_GZIP), "gzip") { failed = failed + report(false, "gzip encoding name"); } else { failed = failed + report(true, "gzip encoding name"); }
+  if !str_eq(compression.encoding_name(compression.ENCODING_ZSTD), "zstd") { failed = failed + report(false, "zstd encoding name"); } else { failed = failed + report(true, "zstd encoding name"); }
+  if !str_eq(compression.encoding_name(99), "") { failed = failed + report(false, "unknown encoding name is empty"); } else { failed = failed + report(true, "unknown encoding name is empty"); }
+  let gzip_tag: Result[Int, JevError] = compression.encoding_from_name("gzip");
+  failed = failed + expect_ok_int(gzip_tag, compression.ENCODING_GZIP, "encoding_from_name(gzip)");
+  failed = failed + expect_bad_int(compression.encoding_from_name("br"), "compression: unknown encoding 'br'", "encoding_from_name rejects unknown token");
+  if compression.encoding_supported(compression.ENCODING_IDENTITY) != 1 { failed = failed + report(false, "identity supported"); } else { failed = failed + report(true, "identity supported"); }
+  if compression.encoding_supported(compression.ENCODING_GZIP) != 1 { failed = failed + report(false, "gzip supported"); } else { failed = failed + report(true, "gzip supported"); }
+  if compression.encoding_supported(compression.ENCODING_ZSTD) != 0 { failed = failed + report(false, "zstd not supported"); } else { failed = failed + report(true, "zstd not supported"); }
+
+  let body: Str = "{\"state\":\"hello hello hello\",\"model\":\"jev-latest\",\"questions\":{}}";
+  let plain: Vec[UInt8] = encoding.utf8_encode(body);
+  // identity is a byte-exact pass-through.
+  let idr: Result[Vec[UInt8], JevError] = compression.compress_body(body, compression.ENCODING_IDENTITY);
+  if !idr.is_ok {
+    failed = failed + report(false, "identity body encodes");
+  } else {
+    let idv: Vec[UInt8] = idr.value;
+    failed = failed + report(bytes_eq(&idv, &plain), "identity body is byte-exact");
+  }
+  // gzip round-trip: header magic + decompressed bytes equal the input bytes.
+  let gr: Result[Vec[UInt8], JevError] = compression.compress_body(body, compression.ENCODING_GZIP);
+  if !gr.is_ok {
+    failed = failed + report(false, "gzip body compresses");
+  } else {
+    let frame: Vec[UInt8] = gr.value;
+    var magic_ok: Bool = false;
+    if frame.len() >= 2 {
+      if frame[0] == 0x1F && frame[1] == 0x8B { magic_ok = true; }
+    }
+    failed = failed + report(magic_ok, "gzip frame starts with 1F 8B");
+    let dec: Result[Vec[UInt8], Str] = gzip.gzip_decompress(&frame);
+    if !dec.is_ok {
+      failed = failed + report(false, "gzip body decompresses");
+    } else {
+      let decv: Vec[UInt8] = dec.value;
+      failed = failed + report(bytes_eq(&decv, &plain), "gzip round-trip bytes equal the UTF-8 body");
+    }
+  }
+  // Binary corpus: every byte value survives a gzip round-trip.
+  var src: Vec[UInt8] = Vec[UInt8].new();
+  var b: Int = 0;
+  while b < 256 {
+    src.push(b as UInt8);
+    b = b + 1;
+  }
+  let br: Result[Vec[UInt8], JevError] = compression.compress_bytes(&src, compression.ENCODING_GZIP);
+  if !br.is_ok {
+    failed = failed + report(false, "binary gzip bytes compress");
+  } else {
+    let bframe: Vec[UInt8] = br.value;
+    let bdec: Result[Vec[UInt8], Str] = gzip.gzip_decompress(&bframe);
+    if !bdec.is_ok {
+      failed = failed + report(false, "binary gzip bytes decompress");
+    } else {
+      let bdecv: Vec[UInt8] = bdec.value;
+      failed = failed + report(bytes_eq(&bdecv, &src), "gzip round-trip preserves all 256 byte values");
+    }
+  }
+  // Typed error arms: zstd absent and unknown tag.
+  failed = failed + expect_bad_bytes(compression.compress_bytes(&plain, compression.ENCODING_ZSTD), "compression: zstd compressor is not available", "zstd compressor absent is a typed error");
+  failed = failed + expect_bad_bytes(compression.compress_body(body, compression.ENCODING_ZSTD), "compression: zstd compressor is not available", "compress_body zstd absent is a typed error");
+  failed = failed + expect_bad_bytes(compression.compress_bytes(&plain, 99), "compression: unknown encoding 99", "unknown encoding tag is a typed error");
+  return report(failed == 0, "compression encodings (gzip round-trip, identity, typed errors)");
+}
+
+fn t42() -> Int {
+  var failed: Int = 0;
+  // The rule is checked on the logical body BEFORE compression runs. A
+  // 32 MiB + 1 repetitive body must fail typed even though gzip would shrink
+  // it far below the wire limit.
+  let over_s: Str = string.str_repeat("A", compression.max_body_bytes()) + "A";
+  failed = failed + expect_bad_bytes(compression.compress_body(over_s, compression.ENCODING_GZIP), "request: body exceeds 32 MiB limit", "oversized body rejected before gzip runs");
+  failed = failed + expect_bad_bytes(compression.compress_body(over_s, compression.ENCODING_IDENTITY), "request: body exceeds 32 MiB limit", "oversized body rejected before identity encoding");
+  return report(failed == 0, "32 MiB rule gates compression (no oversized logical body is encoded)");
+}
+
+// --------------------------------------------------
 //  Entry point
 // --------------------------------------------------
 
@@ -963,6 +1150,9 @@ fn main() -> Int {
   failed = failed + t37();
   failed = failed + t38();
   failed = failed + t39();
+  failed = failed + t40();
+  failed = failed + t41();
+  failed = failed + t42();
   if failed == 0 {
     io.println("xiom.jev: all tests passed");
   } else {

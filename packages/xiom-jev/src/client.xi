@@ -21,6 +21,10 @@
 // bounded backoff of xiom.jev.retry (xiom.time.sleep_ms between attempts). No
 // retry policy lives here; the client only drives the pure policy module.
 //
+// M2 chunk 4 (S8): the logical request body is capped at 32 MiB (inclusive;
+// see xiom.jev.compression). body_size_check runs before the header blob and
+// before any transport call, so an oversized body fails typed and offline.
+//
 // LIVE LEG (resolved 2026-10-16): the Authorization: Bearer header now goes
 // out through the xiom.http 0.1.8 custom-headers surface (see SPEC.md
 // section 8). base_url and api_key are validated up front through the pure
@@ -32,6 +36,7 @@
 module xiom.jev.client
 
 use xiom.jev;
+use xiom.jev.compression;
 use xiom.jev.errors;
 use xiom.jev.request;
 use xiom.jev.response;
@@ -108,6 +113,13 @@ pub fn system_one(base_url: Str, api_key: Str, model: Str, state: State, questio
     return _err_response(e);
   }
   let body: Str = built.value;
+  // S8 body rule: the logical request body is capped at 32 MiB (inclusive).
+  // This runs BEFORE any network call and before the header blob is built.
+  let size_ok: Result[Int, JevError] = compression.body_size_check(body.len());
+  if !size_ok.is_ok {
+    let size_err: JevError = size_ok.error;
+    return _err_response(size_err);
+  }
   var hdrs: Vec[HttpHeader] = Vec[HttpHeader].new();
   hdrs.push(HttpHeader{ name: "Authorization", value: "Bearer " + key });
   hdrs.push(HttpHeader{ name: "Content-Type", value: "application/json" });

@@ -64,6 +64,7 @@ Fixture map (tests/test_conformance.xi):
 | `xiom.jev.response` | `parse_response`, `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_argmax_label`, `answer_max_micro`, `answer_count_at_or_above`, `answer_labels_at_or_above`, `answer_sample_index`, `answer_sample_label`, `choice_answer_covers_question`, `score_round_level`, `score_normalized_micro`, `noul_yes`, `noul_confidence_micro` |
 | `xiom.jev.errors` | `JevError`, `jev_error_kind`, `jev_error_text` |
+| `xiom.jev.compression` | `max_body_bytes`, `body_size_check`, `encoding_name`, `encoding_from_name`, `encoding_supported`, `compress_bytes`, `compress_body`; constants `MAX_BODY_BYTES`, `ENCODING_IDENTITY`, `ENCODING_GZIP`, `ENCODING_ZSTD` |
 | `xiom.jev.client` | `system_one` |
 
 Per the program brief there are NO contracts (`requires:`/`ensures:`) on new
@@ -169,6 +170,12 @@ must be a subset of legend keys; distribution sums must be within +/- 2% of
 optional (S9) and its token keys are optional within it; unknown extra fields
 are ignored (forward compatibility). Answer order follows wire order.
 
+`xiom.jev.compression` (S8, section 15) adds these BadRequest reasons:
+`request: body exceeds 32 MiB limit` (body size > 33554432 bytes),
+`compression: body size is negative`, `compression: unknown encoding '<name>'`,
+`compression: unknown encoding <tag>`, and
+`compression: zstd compressor is not available`.
+
 ## 7. Selection rules (pinned)
 
 - `answer_argmax`: index of the maximum micro; ties -> lowest index; an
@@ -253,14 +260,15 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
 
 ## 10. Test strategy and evidence
 
-- Suite: `tests/test_conformance.xi` -- 39 test functions, **110/110 checks
-  passed, x2** (two consecutive runs at the end of the M2-chunk-3 lane) via
+- Suite: `tests/test_conformance.xi` -- 42 test functions, **143/143 checks
+  passed, x2** (two consecutive runs at the end of the M2-chunk-4 lane) via
   `& .\scripts\port.ps1 -Package xiom.jev -TimeoutSec 240` on compiler
-  `v0.64.6` (native-session, 2026-10-16); `program_exit=0` both runs. History:
+  `v0.64.6` (native-session, 2026-10-17); `program_exit=0` both runs. History:
   26 functions/82 checks at M1; +4 functions (retry) -> 86; +5 functions
   (structured instructions/criteria) -> 91; +4 functions (legend exposure x2,
-  api-key hygiene, base_url validation) -> 110 (the two hygiene functions emit
-  one check per case).
+  api-key hygiene, base_url validation) -> 110; +3 functions (32 MiB boundary,
+  compression encodings, pre-compression gate) -> 143 (the boundary/encoder
+  functions emit one check per case).
 - Offline/deterministic: no API key, no network, no randomness; selection
   uses hand-supplied entropy; request fixtures are compared byte-exact.
 - Link-free: the suite never imports `xiom.jev.client` (the transport links
@@ -290,6 +298,16 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
    that reads `r.value` crashes with an access violation on `v0.64.5`,
    reproduced in scratch probes during this build); the package and suite
    follow the safe patterns everywhere.
+5. **Compressed request bodies over the live transport** (S8 remainder,
+   2026-10-17): `xiom.jev.compression` can produce gzip bytes, but
+   xiom.http 0.1.8 takes a `Str` body and UTF-8 re-encodes it in
+   `str_to_cstr`, which corrupts arbitrary binary frames. `system_one` sends
+   the identity body (with the 32 MiB rule enforced) until xiom.http exposes
+   a binary-body entrypoint. See section 15.
+6. **zstd compressor**: declared as `ENCODING_ZSTD` but unavailable (typed
+   error). The in-tree `xiom.zstd` binding is vendored-C/FFI and would break
+   the package's link-free offline suite; wiring it needs a deliberate
+   FFI/port-args allowance. See section 15.
 
 ## 12. M2 progress (increment 1: retry policy)
 
@@ -385,3 +403,71 @@ through the libcurl-linked client. Fully offline-golden-tested (suite
 t36..t39): string and structured legend exposure (labels/order/text/
 structured flag/emission bytes), the api-key trim/reject matrix, and the
 base_url scheme/host matrix. No live network is involved.
+
+## 15. M2 progress (increment 4: S8 body rule and compression)
+
+Fourth M2 chunk (ROADMAP M2 bullet 8, "content compression (gzip/zstd) and
+the 32 MiB body rule (S8)"). New module `xiom.jev.compression`; the client
+applies the body rule before the POST.
+
+**The 32 MiB rule (pinned).** The limit is inclusive and counts bytes:
+
+| logical body bytes | verdict |
+|---|---|
+| 0 .. 33554431 (32 MiB - 1) | accepted |
+| 33554432 (32 MiB exactly) | accepted |
+| 33554433 (32 MiB + 1) and above | rejected: `request: body exceeds 32 MiB limit` |
+| negative size | rejected: `compression: body size is negative` |
+
+The rule applies to the logical request body produced by `build_request` (the
+uncompressed JSON bytes), BEFORE any `Content-Encoding` is applied, so
+compression cannot be used to sneak an oversized logical body past the rule.
+`xiom.jev.client.system_one` runs `compression.body_size_check(body.len())`
+immediately after `build_request` and before building the header blob or
+calling the transport, so an oversized body is rejected typed with no network
+call. `compression.compress_body` enforces the same check before it runs an
+encoder.
+
+**Encodings.** Tags are stable integers exposed as constants:
+
+| tag | token | support |
+|---|---|---|
+| `ENCODING_IDENTITY` (0) | `identity` | yes -- byte-exact pass-through |
+| `ENCODING_GZIP` (1) | `gzip` | yes -- RFC 1952 frame via the pure-XIOM stdlib `xiom.compress.gzip` (no FFI, no vendored C) |
+| `ENCODING_ZSTD` (2) | `zstd` | **no** -- typed `compression: zstd compressor is not available` |
+
+`encoding_name` / `encoding_from_name` map tags to/from the exact,
+case-sensitive Content-Encoding tokens; an unknown token yields
+`compression: unknown encoding '<name>'`, an unknown integer tag yields
+`compression: unknown encoding <tag>`. `encoding_supported` returns 1 for
+identity/gzip and 0 for zstd/unknown. `compress_bytes` encodes an owned byte
+buffer; `compress_body` converts the UTF-8 body with
+`xiom.encoding.utf8_encode` and then encodes.
+
+**Why zstd is not wired.** The in-tree `xiom.zstd` package is a vendored
+`zstd.c` binding compiled via `--c-source`; this package's suite and live
+path are deliberately link-free (only the consumer-supplied libcurl bridge is
+linked for the probe). Importing the binding would make the offline suite
+depend on a C toolchain. The typed error above is the deliberate fail-closed
+path; adding zstd later means giving this package a `port.args.json` with the
+vendored C source and allowing FFI in the suite.
+
+**Transport blocker (precise).** xiom.http 0.1.8 accepts request bodies as
+`Str` and re-encodes them to UTF-8 in `http.xi` `str_to_cstr` before the C
+call. A gzip/zstd frame is arbitrary binary and is generally not valid
+UTF-8, so the live transport cannot carry an encoded body unchanged. The
+encoders therefore are exposed for callers whose transport accepts bytes;
+`system_one` continues to send the identity JSON body (still guarded by the
+32 MiB rule). Completing end-to-end compressed requests requires a
+binary-body entrypoint in xiom.http (or a bytes-capable transport seam) --
+this is the remaining S8 work, recorded in ROADMAP.md and section 11.
+
+Fully offline-golden-tested (suite t40..t42, 33 checks): the exact boundary
+on numeric sizes and on synthetic 32 MiB-1 / 32 MiB / 32 MiB+1 buffers; the
+inclusive 32 MiB acceptance; negative-size and oversize typed errors; the
+identity byte-exact path; gzip header magic and a gzip round-trip of a JSON
+body and of all 256 byte values through the stdlib decompressor; the
+tag/token/support matrix; the unknown-token and unknown-tag error arms; the
+zstd-absent typed error through both `compress_bytes` and `compress_body`;
+and proof that an oversized logical body is rejected before any encoder runs
+(even when it would compress below the limit). No live network is involved.
