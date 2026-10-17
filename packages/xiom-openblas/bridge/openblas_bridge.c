@@ -27,14 +27,22 @@
  * Wired into the suite run via port.args.json:
  *   xiom --run tests/test_conformance.xi --c-source <pkg>/bridge/openblas_bridge.c
  *
- * Phase 2 replaces this seam with real linkage: build without --c-source
- * bridge/openblas_bridge.c and link the system OpenBLAS import library
- * (see ROADMAP.md Phase 1 remaining items).
+ * The real leg does NOT compile this file: it links the system OpenBLAS
+ * import library plus bridge/openblas_real_marker.c (marker only), so the
+ * stub symbols and the real symbols never coexist in one artifact.
+ *
+ * `xiom_openblas_backend()` is the leg marker the XIOM module consults:
+ * 0 here (stub/SKIP leg) and 1 in bridge/openblas_real_marker.c (real leg).
  */
 
+#include <stddef.h>
 #include <stdint.h>
 
 #define OBLAS_STUB_INFO (-999)
+
+int xiom_openblas_backend(void) {
+  return 0;
+}
 
 /* ---- BLAS Level 1 ------------------------------------------------------ */
 
@@ -96,7 +104,8 @@ void cblas_dgemm(int32_t order, int32_t transa, int32_t transb, int32_t m, int32
 
 void dgesvd_(unsigned char* jobu, unsigned char* jobvt, int32_t* m, int32_t* n,
              double* a, int32_t* lda, double* s, double* u, int32_t* ldu,
-             double* vt, int32_t* ldvt, double* work, int32_t* lwork, int32_t* info) {
+             double* vt, int32_t* ldvt, double* work, int32_t* lwork, int32_t* info,
+             size_t jobu_len, size_t jobvt_len) {
   (void)jobu;
   (void)jobvt;
   (void)m;
@@ -110,12 +119,15 @@ void dgesvd_(unsigned char* jobu, unsigned char* jobvt, int32_t* m, int32_t* n,
   (void)ldvt;
   (void)work;
   (void)lwork;
+  (void)jobu_len;
+  (void)jobvt_len;
   if (info == 0) return;
   *info = OBLAS_STUB_INFO;
 }
 
 void dsyev_(unsigned char* jobz, unsigned char* uplo, int32_t* n,
-            double* a, int32_t* lda, double* w, double* work, int32_t* lwork, int32_t* info) {
+            double* a, int32_t* lda, double* w, double* work, int32_t* lwork, int32_t* info,
+            size_t jobz_len, size_t uplo_len) {
   (void)jobz;
   (void)uplo;
   (void)n;
@@ -124,6 +136,8 @@ void dsyev_(unsigned char* jobz, unsigned char* uplo, int32_t* n,
   (void)w;
   (void)work;
   (void)lwork;
+  (void)jobz_len;
+  (void)uplo_len;
   if (info == 0) return;
   *info = OBLAS_STUB_INFO;
 }
