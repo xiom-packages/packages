@@ -15,8 +15,8 @@ module xiom.arrow
 // Types -- Opaque handles for Arrow C Data Interface
 // ===============================================================================
 
-pub type ArrowArray = Int
-pub type ArrowSchema = Int
+pub type ArrowArray = Int;
+pub type ArrowSchema = Int;
 
 pub type DataType = {
   id: Int;
@@ -33,7 +33,7 @@ pub type Schema = {
   fields: Vec[Field];
 } derive[Clone]
 
-pub type Array = {
+pub type DataArray = {
   handle: ArrowArray;
   length: Int;
   null_count: Int;
@@ -42,7 +42,7 @@ pub type Array = {
 
 pub type Table = {
   schema: Schema;
-  columns: Vec[Array];
+  columns: Vec[DataArray];
   num_rows: Int;
 }
 
@@ -226,6 +226,19 @@ extern "C" {
   fn arrow_record_batch_create(schema: Int, n_columns: Int, columns: Int) -> Int;
   fn arrow_record_batch_get_column(batch: Int, index: Int) -> Int;
   fn arrow_record_batch_get_schema(batch: Int) -> Int;
+
+  // Phase-2 additive surface (same C ABI: i64 in/out, 0 = failure/null).
+  // Implemented for real by bridge/arrow_real.cpp; the offline stub leg
+  // validates arguments and reports the backend unavailable.
+  fn arrow_schema_create_struct(names: Int, formats: Int, n_columns: Int) -> Int;
+  fn arrow_array_from_int64(values: Int, length: Int) -> Int;
+  fn arrow_array_from_float64(values: Int, length: Int) -> Int;
+  fn arrow_record_batch_export(batch: Int, out_schema: Int, out_array: Int) -> Int;
+  fn arrow_record_batch_import(schema_slot: Int, array_slot: Int) -> Int;
+  fn arrow_schema_release(schema_slot: Int) -> Int;
+  fn arrow_array_release(array_slot: Int) -> Int;
+  fn arrow_backend_available() -> Int;
+  fn arrow_backend_version() -> Int;
 }
 
 // ===============================================================================
@@ -415,10 +428,138 @@ pub fn record_batch_get_schema(batch: ArrowArray) -> Result[ArrowSchema, Str]
 }
 
 // ===============================================================================
+// Real-backend surface (Phase 2) -- additive to the 0.1.0 declared surface
+// ===============================================================================
+//
+// These wrappers expose the zero-copy Arrow C Data Interface handoff. All
+// struct pointers travel as Int (XIOM's i64 address convention). See SPEC.md
+// "Real backend / ABI gate" and "Ownership handoff" for the build recipe and
+// the release-callback rules.
+
+// Create a struct schema ("+s") from parallel C arrays:
+// names = char*[n_columns] (NUL-terminated), formats = char*[n_columns] (CDI
+// format strings: i/l/f/g/u/b/...). Pass raw addresses as Int.
+pub fn schema_create_struct(names: Int, formats: Int, n_columns: Int) -> Result[ArrowSchema, Str]
+  requires: names != 0
+  requires: formats != 0
+  requires: n_columns > 0
+{
+  if names == 0 { return Err("schema_create_struct: null names array"); };
+  if formats == 0 { return Err("schema_create_struct: null formats array"); };
+  if n_columns <= 0 { return Err("schema_create_struct: n_columns must be > 0"); };
+  unsafe {
+    let handle = arrow_schema_create_struct(names, formats, n_columns);
+    if handle == 0 {
+      return Err("schema_create_struct: failed (backend unavailable or bad format)");
+    };
+    Ok(handle)
+  }
+}
+
+// Build a typed Int64/Float64 Arrow array from a raw values buffer
+// (values = int64_t* / double*, length = element count). The buffer is copied
+// into Arrow-owned memory.
+pub fn array_from_int64(values: Int, length: Int) -> Result[ArrowArray, Str]
+  requires: values != 0
+  requires: length > 0
+{
+  if values == 0 { return Err("array_from_int64: null values pointer"); };
+  if length <= 0 { return Err("array_from_int64: length must be > 0"); };
+  unsafe {
+    let handle = arrow_array_from_int64(values, length);
+    if handle == 0 { return Err("array_from_int64: failed (backend unavailable)"); };
+    Ok(handle)
+  }
+}
+
+pub fn array_from_float64(values: Int, length: Int) -> Result[ArrowArray, Str]
+  requires: values != 0
+  requires: length > 0
+{
+  if values == 0 { return Err("array_from_float64: null values pointer"); };
+  if length <= 0 { return Err("array_from_float64: length must be > 0"); };
+  unsafe {
+    let handle = arrow_array_from_float64(values, length);
+    if handle == 0 { return Err("array_from_float64: failed (backend unavailable)"); };
+    Ok(handle)
+  }
+}
+
+// Export a record batch into caller-owned CDI slots (out_schema = address of
+// an ArrowSchema-sized 72-byte slot, out_array = address of an
+// ArrowArray-sized 80-byte slot). Zero copy. After success the caller owns
+// the struct pair: either pass BOTH slots to record_batch_import (which
+// consumes and releases them) or call schema_release/array_release exactly
+// once. The batch handle itself stays valid.
+pub fn record_batch_export(batch: ArrowArray, out_schema: Int, out_array: Int) -> Result[Unit, Str]
+  requires: batch != 0
+  requires: out_schema != 0
+  requires: out_array != 0
+{
+  if batch == 0 { return Err("record_batch_export: null batch handle"); };
+  if out_schema == 0 { return Err("record_batch_export: null schema slot"); };
+  if out_array == 0 { return Err("record_batch_export: null array slot"); };
+  unsafe {
+    let rc = arrow_record_batch_export(batch, out_schema, out_array);
+    if rc == 0 { return Err("record_batch_export: export failed"); };
+    Ok(())
+  }
+}
+
+// Import a CDI struct pair into a new record-batch handle. The pair is MOVED
+// and released by Arrow (release pointers become NULL) -- never release it
+// afterwards. Returns the new handle (use array_free to dispose of it).
+pub fn record_batch_import(schema_slot: Int, array_slot: Int) -> Result[ArrowArray, Str]
+  requires: schema_slot != 0
+  requires: array_slot != 0
+{
+  if schema_slot == 0 { return Err("record_batch_import: null schema slot"); };
+  if array_slot == 0 { return Err("record_batch_import: null array slot"); };
+  unsafe {
+    let handle = arrow_record_batch_import(schema_slot, array_slot);
+    if handle == 0 { return Err("record_batch_import: import failed (slot already released or invalid)"); };
+    Ok(handle)
+  }
+}
+
+// Release an exported schema/array struct that will NOT be imported. Returns
+// true when this call performed the release, false when the slot was already
+// released (idempotent ownership check; never a second release).
+pub fn schema_release(schema_slot: Int) -> Bool
+  requires: schema_slot != 0
+{
+  if schema_slot == 0 { return false; };
+  unsafe { return arrow_schema_release(schema_slot) != 0; }
+}
+
+pub fn array_release(array_slot: Int) -> Bool
+  requires: array_slot != 0
+{
+  if array_slot == 0 { return false; };
+  unsafe { return arrow_array_release(array_slot) != 0; }
+}
+
+// Linked real backend: true only when bridge/arrow_real.cpp is the linked
+// translation unit. The offline stub leg reports false.
+pub fn backend_available() -> Bool
+  requires: true
+{
+  unsafe { return arrow_backend_available() != 0; }
+}
+
+// Apache Arrow C++ version string of the linked backend ("22.0.0"), or ""
+// when the offline stub is linked.
+pub fn backend_version() -> Str {
+  let ptr = unsafe { arrow_backend_version() };
+  if ptr == 0 { return ""; };
+  unsafe { return Str::from_c_str(ptr as *UInt8); }
+}
+
+// ===============================================================================
 // High-level Array API (SPEC SAPI)
 // ===============================================================================
 
-pub fn array_new(typ: DataType, data: Vec[Int]) -> Result[Array, Str]
+pub fn array_new(typ: DataType, data: Vec[Int]) -> Result[DataArray, Str]
   requires: data.len() >= 0
 {
   let n_buffers = 2;
@@ -426,25 +567,25 @@ pub fn array_new(typ: DataType, data: Vec[Int]) -> Result[Array, Str]
   let result = array_create(length, n_buffers);
   match result {
     Ok(handle) => {
-      Ok(Array { handle: handle; length: length; null_count: 0; data_type: typ })
+      Ok(DataArray { handle: handle; length: length; null_count: 0; data_type: typ })
     };
     Err(e) => Err(e),
   }
 }
 
-pub fn array_length(arr: &Array) -> Int {
+pub fn array_length(arr: &DataArray) -> Int {
   arr.length
 }
 
-pub fn array_null_count(arr: &Array) -> Int {
+pub fn array_null_count(arr: &DataArray) -> Int {
   arr.null_count
 }
 
-pub fn array_data_type(arr: &Array) -> DataType {
+pub fn array_data_type(arr: &DataArray) -> DataType {
   arr.data_type
 }
 
-pub fn array_is_valid(arr: &Array) -> Bool {
+pub fn array_is_valid(arr: &DataArray) -> Bool {
   arr.handle != 0
 }
 
@@ -452,7 +593,7 @@ pub fn array_is_valid(arr: &Array) -> Bool {
 // High-level Table API (SPEC SAPI)
 // ===============================================================================
 
-pub fn table_new(schema: Schema, columns: Vec[Array]) -> Result[Table, Str]
+pub fn table_new(schema: Schema, columns: Vec[DataArray]) -> Result[Table, Str]
   requires: schema.fields.len() > 0
   requires: columns.len() == schema.fields.len()
 {
@@ -467,7 +608,7 @@ pub fn table_new(schema: Schema, columns: Vec[Array]) -> Result[Table, Str]
   Ok(Table { schema: schema; columns: columns; num_rows: num_rows })
 }
 
-pub fn table_column(t: &Table, idx: Int) -> Result[Array, Str]
+pub fn table_column(t: &Table, idx: Int) -> Result[DataArray, Str]
   requires: idx >= 0
   requires: idx < t.columns.len()
 {
@@ -515,5 +656,5 @@ pub fn version() -> Str {
 }
 
 pub fn is_linked() -> Bool {
-  false
+  backend_available()
 }

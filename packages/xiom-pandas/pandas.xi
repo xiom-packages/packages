@@ -15,9 +15,9 @@ module xiom.pandas
 // Opaque handle types
 // =========================================================================
 
-pub type DataFrame = Int
-pub type Series    = Int
-pub type Dtype     = Int
+pub type DataFrame = Int;
+pub type Series    = Int;
+pub type Dtype     = Int;
 
 // =========================================================================
 // Dtype constants -- columnar type encoding
@@ -53,23 +53,27 @@ pub const JOIN_OUTER: Int = 3
 // =========================================================================
 // extern "C" -- Pandas C bridge (12 functions)
 //
+// The extern names carry a `pandas_c_` prefix and ARE the C symbol names
+// (the numpy_c_* convention used by xiom.numpy). A wrapper must never be
+// named after its C symbol (language rule 10: the collision is silently
+// dropped); the `pandas_c_` prefix keeps every wrapper name distinct.
 // All pointer parameters use Int (memory address) until the compiler
-// supports typed C pointer interop.
+// supports typed C pointer interop. Handles: 0 = null/failure, > 0 = ok.
 // =========================================================================
 
 extern "C" {
-  fn dataframe_new(col_names: Int, col_types: Int, num_cols: Int) -> Int;
-  fn dataframe_from_csv(path: Int) -> Int;
-  fn dataframe_to_csv(df: Int, path: Int) -> Int;
-  fn dataframe_get_column(df: Int, col_name: Int) -> Int;
-  fn dataframe_set_column(df: Int, col_name: Int, values: Int, len: Int) -> Int;
-  fn dataframe_filter(df: Int, col_name: Int, op: Int, value: Int) -> Int;
-  fn dataframe_groupby(df: Int, col_name: Int) -> Int;
-  fn dataframe_join(left: Int, right: Int, on_col: Int, how: Int) -> Int;
-  fn series_new(dtype: Int, values: Int, len: Int) -> Int;
-  fn series_from_vec(dtype: Int, values: Int, len: Int) -> Int;
-  fn series_to_vec(series: Int, out_len: Int) -> Int;
-  fn series_apply(series: Int, func_ptr: Int) -> Int;
+  fn pandas_c_dataframe_new(col_names: Int, col_types: Int, num_cols: Int) -> Int;
+  fn pandas_c_dataframe_from_csv(path: Int) -> Int;
+  fn pandas_c_dataframe_to_csv(df: Int, path: Int) -> Int;
+  fn pandas_c_dataframe_get_column(df: Int, col_name: Int) -> Int;
+  fn pandas_c_dataframe_set_column(df: Int, col_name: Int, values: Int, len: Int) -> Int;
+  fn pandas_c_dataframe_filter(df: Int, col_name: Int, op: Int, value: Int) -> Int;
+  fn pandas_c_dataframe_groupby(df: Int, col_name: Int) -> Int;
+  fn pandas_c_dataframe_join(left: Int, right: Int, on_col: Int, how: Int) -> Int;
+  fn pandas_c_series_new(dtype: Int, values: Int, len: Int) -> Int;
+  fn pandas_c_series_from_vec(dtype: Int, values: Int, len: Int) -> Int;
+  fn pandas_c_series_to_vec(series: Int, out_len: Int) -> Int;
+  fn pandas_c_series_apply(series: Int, func_ptr: Int) -> Int;
 }
 
 // =========================================================================
@@ -87,7 +91,7 @@ pub fn dataframe_new(col_names: Int, col_types: Int, num_cols: Int) -> Result[Da
   if num_cols <= 0 {
     return Err("dataframe_new: num_cols must be > 0");
   }
-  let df: Int = unsafe { dataframe_new(col_names, col_types, num_cols) };
+  let df: Int = unsafe { pandas_c_dataframe_new(col_names, col_types, num_cols) };
   if df == 0 {
     return Err("dataframe_new: failed to create DataFrame (null handle)");
   }
@@ -105,7 +109,7 @@ pub fn dataframe_from_csv(path: Int) -> Result[DataFrame, Str] {
   if path == 0 {
     return Err("dataframe_from_csv: null path pointer");
   }
-  let df: Int = unsafe { dataframe_from_csv(path) };
+  let df: Int = unsafe { pandas_c_dataframe_from_csv(path) };
   if df == 0 {
     return Err("dataframe_from_csv: failed to read CSV (null handle)");
   }
@@ -128,7 +132,7 @@ pub fn dataframe_to_csv(df: DataFrame, path: Int) -> Result[Int, Str]
   if path == 0 {
     return Err("dataframe_to_csv: null path pointer");
   }
-  let rc: Int = unsafe { dataframe_to_csv(df, path) };
+  let rc: Int = unsafe { pandas_c_dataframe_to_csv(df, path) };
   if rc != 0 {
     return Err("dataframe_to_csv: failed to write CSV");
   }
@@ -152,7 +156,7 @@ pub fn dataframe_get_column(df: DataFrame, col_name: Int) -> Result[Series, Str]
   if col_name == 0 {
     return Err("dataframe_get_column: null column name pointer");
   }
-  let s: Int = unsafe { dataframe_get_column(df, col_name) };
+  let s: Int = unsafe { pandas_c_dataframe_get_column(df, col_name) };
   if s == 0 {
     return Err("dataframe_get_column: column not found or null Series handle");
   }
@@ -181,7 +185,7 @@ pub fn dataframe_set_column(df: DataFrame, col_name: Int, values: Int, len: Int)
   if len <= 0 {
     return Err("dataframe_set_column: len must be > 0");
   }
-  let result: Int = unsafe { dataframe_set_column(df, col_name, values, len) };
+  let result: Int = unsafe { pandas_c_dataframe_set_column(df, col_name, values, len) };
   if result == 0 {
     return Err("dataframe_set_column: failed to set column");
   }
@@ -205,7 +209,7 @@ pub fn dataframe_filter(df: DataFrame, col_name: Int, op: Int, value: Int) -> Re
   if col_name == 0 {
     return Err("dataframe_filter: null column name pointer");
   }
-  let result: Int = unsafe { dataframe_filter(df, col_name, op, value) };
+  let result: Int = unsafe { pandas_c_dataframe_filter(df, col_name, op, value) };
   if result == 0 {
     return Err("dataframe_filter: filter returned null (no matching rows or error)");
   }
@@ -228,7 +232,7 @@ pub fn dataframe_groupby(df: DataFrame, col_name: Int) -> Result[Int, Str]
   if col_name == 0 {
     return Err("dataframe_groupby: null column name pointer");
   }
-  let gb: Int = unsafe { dataframe_groupby(df, col_name) };
+  let gb: Int = unsafe { pandas_c_dataframe_groupby(df, col_name) };
   if gb == 0 {
     return Err("dataframe_groupby: groupby returned null handle");
   }
@@ -254,7 +258,7 @@ pub fn dataframe_join(left: DataFrame, right: DataFrame, on_col: Int, how: Int) 
   if on_col == 0 {
     return Err("dataframe_join: null column name pointer");
   }
-  let result: Int = unsafe { dataframe_join(left, right, on_col, how) };
+  let result: Int = unsafe { pandas_c_dataframe_join(left, right, on_col, how) };
   if result == 0 {
     return Err("dataframe_join: join returned null handle");
   }
@@ -275,7 +279,7 @@ pub fn series_new(dtype: Dtype, values: Int, len: Int) -> Result[Series, Str]
   if len <= 0 {
     return Err("series_new: len must be > 0");
   }
-  let s: Int = unsafe { series_new(dtype, values, len) };
+  let s: Int = unsafe { pandas_c_series_new(dtype, values, len) };
   if s == 0 {
     return Err("series_new: failed to create Series (null handle)");
   }
@@ -296,7 +300,7 @@ pub fn series_from_vec(dtype: Dtype, values: Int, len: Int) -> Result[Series, St
   if len <= 0 {
     return Err("series_from_vec: len must be > 0");
   }
-  let s: Int = unsafe { series_from_vec(dtype, values, len) };
+  let s: Int = unsafe { pandas_c_series_from_vec(dtype, values, len) };
   if s == 0 {
     return Err("series_from_vec: failed to create Series from Vec (null handle)");
   }
@@ -317,7 +321,7 @@ pub fn series_to_vec(series: Series, out_len: Int) -> Result[Int, Str]
   if series == 0 {
     return Err("series_to_vec: null Series handle");
   }
-  let ptr: Int = unsafe { series_to_vec(series, out_len) };
+  let ptr: Int = unsafe { pandas_c_series_to_vec(series, out_len) };
   if ptr == 0 {
     return Err("series_to_vec: failed to extract data (null pointer)");
   }
@@ -341,7 +345,7 @@ pub fn series_apply(series: Series, func_ptr: Int) -> Result[Series, Str]
   if func_ptr == 0 {
     return Err("series_apply: null function pointer");
   }
-  let result: Int = unsafe { series_apply(series, func_ptr) };
+  let result: Int = unsafe { pandas_c_series_apply(series, func_ptr) };
   if result == 0 {
     return Err("series_apply: apply returned null handle");
   }
