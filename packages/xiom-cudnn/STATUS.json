@@ -5,13 +5,13 @@
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
-                  "status":  "unknown",
-                  "passed":  null,
-                  "failed":  null,
-                  "run_by":  null,
-                  "commit":  null,
-                  "checked":  null
+                  "status":  "pass",
+                  "passed":  60,
+                  "failed":  0,
+                  "run_by":  "am:feat-cudnn",
+                  "commit":  "13c69336",
+                  "checked":  "2026-10-17T15:15:15Z"
               },
     "publish":  false,
-    "excluded_reason":  "not allowlisted: no readiness evidence recorded"
+    "excluded_reason":  "new package (cuDNN essentials head; runtime user-supplied, nothing vendored); publish gate after the NVIDIA bindings wave + owner go"
 }
