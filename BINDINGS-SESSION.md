@@ -1617,6 +1617,28 @@ arrow/pandas sync; 566/0)**:
   hardware-gated.  Compiler: v0.64.7 candidate tags being relayed
   (`compiler-compiler-v0.64.7`); not released yet.
 
+**UPDATE 2026-10-17 16:55Z (NVIDIA WAVE PART 1 LANDED: cudnn +
+nvenc; 569/0)**:
+- **`xiom.cudnn 0.1.0` LANDED** (land `78fb1ae3`; record `6970134f`):
+  cuDNN 9 essentials (25/25 loader surface; conv/act/pool/softmax +
+  workspace query; nothing vendored); gate **x2 60/60 LIVE** on cuDNN
+  9.27.0.42 (RTX 3070 Ti cc 8.6; conv parity 54/63/90/99) + typed
+  SKIP path.
+  - **LIVE-RIG NOTE**: the working recipe needs BOTH the cuDNN wheel
+    bin dir AND the cuBLAS bin dir ON PATH.  `XIOM_CUDNN_DIR` alone
+    classifies the DLL but the dependent sub-libraries fail to bind;
+    the probe then aborts (0xC0000409) instead of skipping.  Flagged
+    in the publish request; README addendum recommended to the
+    package owner.
+- **`xiom.nvenc 0.1.0` LANDED** (land `ae937669`; record `9d042f59`):
+  NVENC + NVDEC loader-only (H.264/HEVC real bitstreams + cuvid decode
+  roundtrips; typed errors); gate **x2 67/67 LIVE** on driver API 13.1
+  (forced-IDR H.264 2442B + HEVC 3920B Annex-B, NVDEC back to NV12) +
+  typed SKIP path.
+- validate **569/0**; pushed `9d042f59`; publish request
+  `REL-20261017-1653-bindings` (PART 1; part 2 agents in flight:
+  cuda-math/tensorrt/nvml-nvapi/optix/onnx-directml).
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
