@@ -51,6 +51,22 @@ fn next_rid() -> Str {
   return "r-" + req_counter.to_str();
 }
 
+/// app_set_server_token sets the process-wide `Server` header token that
+/// both response builders emit (RFC 9110 `Server: <token>`). The default is
+/// the neutral, version-free "xiom-pulse"; a product such as Station sets
+/// "xiom-pulse-station/<own version>" once before serve(). Invalid input
+/// (empty or non printable ASCII) returns false and leaves the token as-is.
+/// Complexity: O(token).
+pub fn app_set_server_token(token: Str) -> Bool {
+  return http.set_server_token(token);
+}
+
+/// app_server_token returns the current `Server` header token.
+/// Complexity: O(1).
+pub fn app_server_token() -> Str {
+  return http.server_token();
+}
+
 /// HandlerOut - one dispatched response. When `body_bytes` is non-empty the
 /// response is sent as raw bytes (icons/assets); otherwise `body` is text.
 pub type HandlerOut = {

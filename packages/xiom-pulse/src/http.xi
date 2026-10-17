@@ -31,6 +31,45 @@ pub type RouteResult = {
   body: Str;
 }
 
+/// DEFAULT_SERVER_TOKEN is the neutral, version-free Server header token.
+/// Consumers (Station or any other product) replace it through
+/// `set_server_token`/`app.app_set_server_token` so the response advertises
+/// their own release identity. Version reporting lives in `pulse_version()`.
+const DEFAULT_SERVER_TOKEN: Str = "xiom-pulse";
+
+// Process-wide Server token consulted by both response builders. The loop is
+// single-threaded, so a plain module global is the intended seam.
+var server_token_value: Str = DEFAULT_SERVER_TOKEN;
+
+/// server_token returns the current Server header token
+/// (default "xiom-pulse", version-free). Complexity: O(1).
+pub fn server_token() -> Str {
+  return server_token_value;
+}
+
+/// set_server_token replaces the Server header token used by every response
+/// builder. The token must be non-empty printable ASCII (32..126) so it can
+/// never inject CR/LF or another header line; invalid input leaves the
+/// current token unchanged and returns false. RFC 9110 `Server:
+/// <token>` shape. Complexity: O(token).
+pub fn set_server_token(token: Str) -> Bool {
+  if token.len() == 0 { return false; }
+  var i: Int = 0;
+  while i < token.len() {
+    let b = token.byte_at(i);
+    if b < 32u8 || b > 126u8 { return false; }
+    i = i + 1;
+  }
+  server_token_value = token;
+  return true;
+}
+
+/// server_header_line returns the complete `Server: <token>` header line
+/// (without CRLF) for the current token. Complexity: O(token). Pure.
+fn server_header_line() -> Str {
+  return "Server: " + server_token_value;
+}
+
 /// str_to_bytes converts Str to its raw bytes. Thin alias for the stdlib
 /// `xiom.string.slice.str_bytes` (submodule import; the root `xiom.string`
 /// does not re-export submodule functions). Complexity: O(n). Pure.
@@ -608,7 +647,7 @@ pub fn build_response_full(status: Int, content_type: Str, extra_headers: &Vec[(
   if !keep {
     head = head + "Connection: close\r\n";
   }
-  head = head + "Server: xiom-pulse/0.2.1\r\n";
+  head = head + server_header_line() + "\r\n";
   head = head + "\r\n";
   var out: Vec[UInt8] = str_to_bytes(head);
   var body_bytes: Vec[UInt8] = str_to_bytes(body);
@@ -637,7 +676,7 @@ pub fn build_response_bytes(status: Int, content_type: Str, extra_headers: &Vec[
   if !keep {
     head = head + "Connection: close\r\n";
   }
-  head = head + "Server: xiom-pulse/0.2.1\r\n";
+  head = head + server_header_line() + "\r\n";
   head = head + "\r\n";
   var out: Vec[UInt8] = str_to_bytes(head);
   var j: Int = 0;

@@ -1,8 +1,8 @@
 # xiom.pulse -- PULSE Beacon (embeddable core)
 
-> **Status:** `incubating` -- conformance-tested (153/153), recorded x2 green
-> on XIOM v0.64.6. Published: `0.1.0` in `eco-v0.1.192`
-> (sha256 `53fcc56e...`).
+> **Status:** `incubating` -- conformance-tested (165/165), recorded x2 green
+> on XIOM v0.64.6. Current version: `0.2.0` (previous publish: `0.1.0`
+> in `eco-v0.1.192`, sha256 `53fcc56e...`).
 > **Scope:** the frozen PULSE protocol core (Beacon extraction): HTTP/1.1
 > request parser + response builders, the keep-alive A/B connection loop
 > with named deadlines, the route matching mechanism and the uniform JSON
@@ -111,17 +111,45 @@ response, including short-circuits and 404/405/400/501 outcomes, with
 `HookError` (`pre_already_installed` / `after_already_installed`);
 clearing is idempotent.
 
+### Release identity + `Server` header
+
+`pulse.pulse_version()` reports the package version from the single
+`PULSE_PACKAGE_VERSION` constant in `src/pulse.xi` (`0.2.0`, kept in sync
+with `package.xi`). The response `Server` header is deliberately
+version-free and consumer-controlled: both builders emit
+`Server: xiom-pulse` by default. Set your own token once before `serve` /
+`serve_with`:
+
+```xi
+use xiom.pulse;
+use xiom.pulse.app;
+
+pub fn main() -> Int {
+  // Advertise the Station release, not the embedded core release.
+  let _ = app.app_set_server_token("xiom-pulse-station/1.4.2");
+  let _ = app.register("GET", "/health");
+  return app.serve(health);
+}
+```
+
+The token is process-wide and must be non-empty printable ASCII; empty or
+CR/LF/control input returns `false` and leaves the previous token intact,
+so a token can never inject another header line. `app.app_server_token()`
+(and `http.server_token()` / `http.set_server_token()` for direct builder
+users) exposes the same seam. The parser and both response builders are
+covered by exact byte assertions in the suite.
+
 ## Public surface
 
 | Module | Surface |
 |---|---|
-| `xiom.pulse` | `pulse_version()` |
-| `xiom.pulse.http` | `PulseRequest`, `RouteResult`, `ChunkedBody`; `parse_request`, `framed_end`, `chunked_state`, `decode_chunked`, `connection_close_requested`, `expects_continue`, `status_text`, `security_head_lines`, `build_response`, `build_response_full`, `build_response_bytes`, `with_header_line`, `header_get`, `transfer_encoding_of`, `te_is_chunked`, `content_length_of`, `raw_header_value`, `str_to_bytes`, `bytes_to_str`, `find_header_end`, `header_limit_bytes`, `header_overflow`, `header_count_limit`, `body_limit_bytes`, `bearer_token`, `idem_key_valid` |
+| `xiom.pulse` | `pulse_version()` (single `PULSE_PACKAGE_VERSION` source) |
+| `xiom.pulse.http` | `PulseRequest`, `RouteResult`, `ChunkedBody`; `parse_request`, `framed_end`, `chunked_state`, `decode_chunked`, `connection_close_requested`, `expects_continue`, `status_text`, `security_head_lines`, `server_token`, `set_server_token`, `build_response`, `build_response_full`, `build_response_bytes`, `with_header_line`, `header_get`, `transfer_encoding_of`, `te_is_chunked`, `content_length_of`, `raw_header_value`, `str_to_bytes`, `bytes_to_str`, `find_header_end`, `header_limit_bytes`, `header_overflow`, `header_count_limit`, `body_limit_bytes`, `bearer_token`, `idem_key_valid` |
 | `xiom.pulse.router` | `PulseRoute`; `route_match(method, target, defs)`, `split_target`, `parse_query`, `url_decode`, `v1_path` |
 | `xiom.pulse.envelope` | `error_body`, `ok_bool`, `single_field` |
 | `xiom.pulse.reqctx` | `set_rid`, `get_rid` |
 | `xiom.pulse.config` | `cfg_read_timeout`, `cfg_write_timeout`, `cfg_idle_timeout`, `cfg_keepalive`, `cfg_port`, `cfg_bind` |
-| `xiom.pulse.app` | `HandlerOut`, `ResponseInfo`, `PreOut`, `HookSet`, `HookError`; `register`, `routes_list`, `out_json`, `out_text`, `out_html`, `handle_route`, `dispatch_with`, `handle_connection`, `handle_connection_with`, `serve`, `serve_with`, `hooks_new`, `pre_continue`, `pre_stop`, `hooks_install_pre`, `hooks_install_after`, `hooks_clear_pre`, `hooks_clear_after`, `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code` |
+| `xiom.pulse.app` | `HandlerOut`, `ResponseInfo`, `PreOut`, `HookSet`, `HookError`; `register`, `routes_list`, `out_json`, `out_text`, `out_html`, `handle_route`, `dispatch_with`, `handle_connection`, `handle_connection_with`, `serve`, `serve_with`, `app_set_server_token`, `app_server_token`, `hooks_new`, `pre_continue`, `pre_stop`, `hooks_install_pre`, `hooks_install_after`, `hooks_clear_pre`, `hooks_clear_after`, `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code` |
 | `xiom.pulse.minimal` | the runnable example (`main`) |
 
 ## Verify
@@ -133,9 +161,10 @@ clearing is idempotent.
 `tests/test_conformance.xi` (driver with explicit `fn main`) carries the
 protocol-hardening fixtures, the keep-alive A/B decisions, the hook-seam
 checks (pre/post ordering, short-circuit, registration/clear, typed misuse),
-and five loopback end-to-end checks (pipelined reuse on one fd, silent idle
-expiry, `PULSE_KEEPALIVE=0`, `Expect: 100-continue`, hooked CORS preflight)
-over real sockets -- offline-safe, no threads.
+release-identity/Server-token byte checks, and five loopback end-to-end
+checks (pipelined reuse on one fd, silent idle expiry, `PULSE_KEEPALIVE=0`,
+`Expect: 100-continue`, hooked CORS preflight) over real sockets --
+offline-safe, no threads.
 
 Spec details: `SPEC.md` (surface, caps, A/B semantics, deviations).
 Extraction record: `PROVENANCE.md` (pinned commit + per-file SHA256).

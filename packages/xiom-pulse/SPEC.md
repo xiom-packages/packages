@@ -1,6 +1,6 @@
 # xiom.pulse -- Specification
 
-Version: 0.1.0 (incubating).
+Version: 0.2.0 (incubating).
 Pure XIOM, no FFI, no bridge C. `xiom.pulse` is the **Beacon extraction of
 the frozen PULSE protocol core**: the HTTP/1.1 request parser + response
 builders, the keep-alive A/B connection loop with named deadlines, the route
@@ -19,16 +19,22 @@ Dependencies: `xiom.std >=0.60.0 <1.0.0` only (the library modules use
 metrics / middleware / sqlite) stay **out** of this bundle: consumers
 compose them separately.
 
-Frozen identity strings are kept from the source: `pulse_version()` returns
-`"0.2.1"` and the response `Server` header is `xiom-pulse/0.2.1`; the
-**package** version is `0.1.0`.
+Version reporting has one source of truth: `src/pulse.xi` defines
+`PULSE_PACKAGE_VERSION = "0.2.0"` (kept in sync with `package.xi`) and
+`pulse_version()` returns it. The HTTP `Server` header is deliberately
+**decoupled** from the package version: both response builders emit
+`Server: <server_token>` with the neutral, version-free default
+`xiom-pulse`. Consumers replace it (process-wide, before `serve`) with
+`app.app_set_server_token(...)` / `http.set_server_token(...)`; for example
+Station sets `xiom-pulse-station/<station-version>`. The token must be
+non-empty printable ASCII, so CR/LF header injection is rejected.
 
 ## 1. Module map
 
 | Module | File | Contents |
 |---|---|---|
-| `xiom.pulse` | `src/pulse.xi` | `pulse_version()` (verbatim) |
-| `xiom.pulse.http` | `src/http.xi` | request parser, framing, chunked decoding, response builders (verbatim) |
+| `xiom.pulse` | `src/pulse.xi` | `PULSE_PACKAGE_VERSION` package-version constant; `pulse_version()` |
+| `xiom.pulse.http` | `src/http.xi` | request parser, framing, chunked decoding, response builders, Server-token seam |
 | `xiom.pulse.router` | `src/router.xi` | `PulseRoute`, query splitting/decoding, `route_match` over a caller-supplied table + inlined router shim |
 | `xiom.pulse.envelope` | `src/envelope.xi` | JSON error envelope helpers (verbatim) |
 | `xiom.pulse.reqctx` | `src/reqctx.xi` | per-request id plumbing (verbatim) |
@@ -54,7 +60,8 @@ Functions: `str_to_bytes`, `bytes_to_str`, `find_header_end`,
 `content_length_of`, `raw_header_value`, `transfer_encoding_of`,
 `te_is_chunked`, `body_limit_bytes`, `chunked_state`, `framed_end`,
 `decode_chunked`, `with_header_line`, `expects_continue`, `status_text`,
-`security_head_lines`, `build_response_full`, `build_response_bytes`,
+`security_head_lines`, `server_token`, `set_server_token`,
+`build_response_full`, `build_response_bytes`,
 `build_response`, `bearer_token`, `idem_key_valid`.
 
 Key semantics (frozen):
@@ -86,6 +93,11 @@ Key semantics (frozen):
   (`security_head_lines`); `keep=false` emits `Connection: close`,
   `keep=true` emits nothing (HTTP/1.1 default; a 1.0 peer never sees
   keep-alive).
+- Both builders emit exactly one `Server: <server_token>` line. The
+  default token is `xiom-pulse` (version-free); `set_server_token` replaces
+  it process-wide for subsequent responses and rejects empty/non-printable
+  input. `pulse_version()` reports the package version (`0.2.0`) from the
+  single `PULSE_PACKAGE_VERSION` constant.
 
 ### 2.2 `xiom.pulse.router`
 
@@ -143,6 +155,8 @@ pub fn main() -> Int {
 | `register(method, pattern) -> Int` | appends one route to the process-wide table, returns its 1-based route id |
 | `routes_list() -> Vec[(Str, Str)]` | a copy of the registered routes in registration order |
 | `out_json` / `out_text` / `out_html(status, body) -> HandlerOut` | façade builders (the frozen private `out_*` helpers made public) |
+| `app_set_server_token(token) -> Bool` | sets the process-wide `Server` header token used by both response builders; default `xiom-pulse`; false on empty/non-printable input |
+| `app_server_token() -> Str` | the current `Server` header token |
 | `handle_route(m, req, body, handler) -> HandlerOut` | the frozen pre-dispatch policy + dispatch (below) |
 | `dispatch_with(hooks, eff_method, req, body, handler) -> HandlerOut` | hook-aware dispatch: pre -> route match + policy + handler -> after (section 2.6) |
 | `handle_connection(client, handler)` | drives one accepted fd through its keep-alive cycles with an empty hook set (section 3) |
@@ -345,10 +359,14 @@ possible. Recorded deltas from the frozen files:
    `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code`,
    `dispatch_with`, `handle_connection_with`, `serve_with`), and the
    `xiom.pulse.minimal` example.
-7. **`http.xi` is byte-verbatim**, including `bearer_token` and
-   `idem_key_valid` (small pure helpers the frozen parser module ships;
-   they carry no dependency and are documented here for completeness).
-8. **`envelope.xi`, `reqctx.xi`, `pulse.xi` are byte-verbatim.**
+7. **`http.xi` is verbatim except the Server-token seam.** The request
+   parser plus `bearer_token` and `idem_key_valid` are unchanged; the two
+   response builders now emit `Server: <server_token>` instead of the
+   frozen `xiom-pulse/0.2.1` literal, with the neutral default
+   `xiom-pulse` and `set_server_token`/`server_token` as the consumer seam.
+8. **`envelope.xi` and `reqctx.xi` are byte-verbatim.** `pulse.xi` now
+   reports the package version from `PULSE_PACKAGE_VERSION` (`0.2.0`)
+   instead of the frozen product literal.
 
 ## 6. Conformance suite
 
@@ -364,6 +382,10 @@ two real fds (no threads):
   detection, builders incl. keep-flag variants, status text, security
   headers, query/URL decoding, v1 alias, router mechanism (registration
   order, `:param`, 405 + Allow, empty table).
+- D also pins identity: `pulse_version() == "0.2.0"`, the exact neutral
+  `Server: xiom-pulse` bytes on FULL and BYTES builders (exactly one
+  occurrence, no version suffix), the override path on both builders,
+  CR/LF-injection and empty-token rejection, and restore-default.
 - G: reuse latch decisions (`Connection: close` token, comma-token case,
   HTTP/1.0 no-reuse), `PULSE_KEEPALIVE`, deadline defaults/env.
 - H (E2E): pipelined two requests on one fd (two ordered responses; the

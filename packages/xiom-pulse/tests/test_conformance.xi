@@ -192,7 +192,7 @@ pub fn main() -> Int {
   var f: Int = 0;
 
   // --- A. module identity + request/response goldens -----------------------
-  f = f + check("pulse_version frozen", pulse.pulse_version() == "0.2.1");
+  f = f + check("pulse_version package 0.2.0", pulse.pulse_version() == "0.2.0");
 
   let r1 = req_bytes("GET /health HTTP/1.1\r\nHost: example\r\nX-Test: yes\r\n\r\n");
   let he1 = http.find_header_end(&r1);
@@ -362,6 +362,29 @@ pub fn main() -> Int {
   let resp_bytes_str = http.bytes_to_str(&resp_bytes, 0, resp_bytes.len());
   f = f + check("build_response_bytes length", contains(resp_bytes_str, "Content-Length: 3\r\n"));
   f = f + check("build_response_bytes keep omits close", !contains(resp_bytes_str, "Connection: close"));
+
+  // Server token seam: neutral default in BOTH builders, then override path.
+  f = f + check("server default token accessor", app.app_server_token() == "xiom-pulse");
+  f = f + check("server default header full bytes", contains(resp_str, "Server: xiom-pulse\r\n"));
+  f = f + check("server default header bytes path", contains(resp_bytes_str, "Server: xiom-pulse\r\n"));
+  f = f + check("server default exactly once full", occurrences(resp_str, "Server: ") == 1);
+  f = f + check("server default exactly once bytes", occurrences(resp_bytes_str, "Server: ") == 1);
+  f = f + check("server default version-free", !contains(resp_str, "Server: xiom-pulse/") && !contains(resp_bytes_str, "Server: xiom-pulse/"));
+
+  let set_ok = app.app_set_server_token("xiom-pulse-station/1.4.2");
+  f = f + check("server token override accepted", set_ok && app.app_server_token() == "xiom-pulse-station/1.4.2");
+  let ov_full = http.build_response(200, "{}", false);
+  let ov_full_str = http.bytes_to_str(&ov_full, 0, ov_full.len());
+  f = f + check("server override reflected full", contains(ov_full_str, "Server: xiom-pulse-station/1.4.2\r\n") && occurrences(ov_full_str, "Server: ") == 1);
+  let ov_bytes = http.build_response_bytes(200, "application/octet-stream", &no_hdrs, &raw_body, true);
+  let ov_bytes_str = http.bytes_to_str(&ov_bytes, 0, ov_bytes.len());
+  f = f + check("server override reflected bytes", contains(ov_bytes_str, "Server: xiom-pulse-station/1.4.2\r\n") && occurrences(ov_bytes_str, "Server: ") == 1);
+  let bad_tok = app.app_set_server_token("bad\r\nX-Injected: 1");
+  f = f + check("server token rejects CRLF injection", !bad_tok && app.app_server_token() == "xiom-pulse-station/1.4.2");
+  let bad_tok2 = app.app_set_server_token("");
+  f = f + check("server token rejects empty", !bad_tok2 && app.app_server_token() == "xiom-pulse-station/1.4.2");
+  let restored = app.app_set_server_token("xiom-pulse");
+  f = f + check("server token restore default", restored && app.app_server_token() == "xiom-pulse");
 
   f = f + check("security nosniff", contains(resp_str, "X-Content-Type-Options: nosniff"));
   f = f + check("security frame deny", contains(resp_str, "X-Frame-Options: DENY"));
