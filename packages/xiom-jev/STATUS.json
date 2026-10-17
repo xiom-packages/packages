@@ -6,11 +6,11 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  169,
+                  "passed":  210,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "903d7a82",
-                  "checked":  "2026-10-17T12:59:06Z"
+                  "commit":  "03f77764",
+                  "checked":  "2026-10-17T13:45:09Z"
               },
     "publish":  false,
     "excluded_reason":  "published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 ed212ee6...)"
