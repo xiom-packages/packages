@@ -1,6 +1,12 @@
 target/
 *.xiobj
 *.xibc
+*.exe
+*.exe.ll
+*.obj
+*.o
+*.ll
+*.pdb
 .vscode/
 .idea/
 *.swp
