@@ -3,9 +3,9 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: `eco-v0.1.194`
-(M2 + gps: torch / libtorch / tensorflow / blas / gps) -- through
-`eco-v0.1.194` (109 eco releases);
+**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: `eco-v0.1.196`
+(ML core tier: orbitdb 0.2.1 / numpy 0.1.0 / llm 0.1.0) -- through
+`eco-v0.1.196` (111 eco releases);
 recent cycle highlights: E-family COMPLETE (jolt 0.5.0/0.6.0/0.7.0,
 E1-E7), LIFTS live (`eco-v0.1.185`: glfw 0.6.0 + sdl3 0.20.0 -- B-22/B-15
 retired), PULSE top-tier live (`eco-v0.1.189`: brotli + ssl,
@@ -1535,6 +1535,29 @@ torch/libtorch/tensorflow/blas/openblas; B-34 filed; 566/0)**:
   branch-side `COMPILER_VERSION` bump still pending (owner/sibling);
   B-32 (m358) + B-34 ride the v0.64.7 wave.
 
+**UPDATE 2026-10-17 15:05Z (doorbell -- `eco-v0.1.195` + `eco-v0.1.196`
+LIVE; ML core tier + orbitdb shipped)**: packages confirms two more
+batches carrying this lane's packages:
+- **`eco-v0.1.195`** (run 39039228850 green; all registry live-verified;
+  validate 571/0): **gguf 0.1.4** (sha256 `0dda8b2b...`; non-ASCII string
+  values + byte/UTF-8 accessors), **http 0.1.9** (`f7b0c30f...`;
+  binary-safe bodies; jev dep satisfied), **pulse 0.2.0**
+  (`5cbf1ea8...`; hook seam + Server-token seam; PULSE `-1312` fixed,
+  Station stage 2b unblocked). README/STATUS sync `e9250141`.
+- **`eco-v0.1.196`** (run 39039898017 green; allowlist 561 -> 564; all
+  live-verified; validate 571/0): **orbitdb 0.2.1** (`c8fc6548...`;
+  160/160 x2 + db_crash 25/25; `-1245-orbitdb` fixed), **numpy 0.1.0**
+  (`0eaa9185...`; Phase-3 COMPLETE 147/147), **llm 0.1.0**
+  (`3c85e858...`; M3 COMPLETE 303/303; deps gguf 0.1.4 live).
+  Registry now carries the full ML core (arrow/openblas/pandas/jev/onnx/
+  gguf/llm/numpy) + orbitdb. README/STATUS sync `b1d49388`.
+- Remaining: numpy Phase-4/real-BLAS, llm WPM+quant formats, jev M3
+  remainder, pandas phases on the bindings arrow landing, compiler
+  re-verify queue (B-29/W1.4/W2.3/B-34 + m348-m351); owner gates open:
+  jev S6/S8, pandas section-6. Lane meanwhile launched the **NVIDIA
+  backlog execution** (7 agents: cuda-math/cudnn/tensorrt/nvenc/nvml-nvapi/
+  optix/onnx-directml; AMD hardware-gated).
+
 **UPDATE 2026-10-17 12:05Z (MORNING: v0.64.6 REPIN on bindings +
 `eco-v0.1.194` -- M2 wave + gps LIVE)**:
 - **Branch repin landed**: `d2ef7ec2` -- `COMPILER_VERSION` -> **v0.64.6**
@@ -2598,6 +2621,25 @@ bump). **`xiom.miniaudio 0.5.0`** published as a single tag
 **In-tree v0.64.6 repin landed** (`d2ef7ec2`: COMPILER_VERSION + 566
 records aligned; validate 566/0) -- the machine-wide wave is now mirrored
 in this tree. Zero open bindings relay items; validate 696 green.
+
+**UPDATE 2026-10-17 15:05Z (doorbell -- `eco-v0.1.195` + `.196` LIVE)**:
+- **`eco-v0.1.195`** (owner-ordered; run 39039228850): `xiom.gguf` 0.1.4
+  (`0dda8b2b...`; non-ASCII string values + byte/UTF-8 accessors),
+  `xiom.http` 0.1.9 (`f7b0c30f...`; binary-safe bodies, jev dep),
+  `xiom.pulse` 0.2.0 (`5cbf1ea8...`; hook seam + Server-token seam; PULSE
+  `-1312-pulse` fixed; Station stage 2b unblocked). validate 571/0.
+- **`eco-v0.1.196`** (ML/AI core tier + ORBITDB; run 39039898017): ops
+  allowlist 561->564; `xiom.orbitdb` 0.2.1 (`c8fc6548...`; 160/160 x2 +
+  db_crash 25/25 + mvcc/fault-sync green; `-1245-orbitdb` fixed),
+  `xiom.numpy` 0.1.0 (`0eaa9185...`; Phase-3 complete 147/147),
+  `xiom.llm` 0.1.0 (`3c85e858...`; M3 303/303). Registry now carries the
+  full ML core (arrow/openblas/pandas/jev/onnx/gguf/llm/numpy) + orbitdb.
+- Remaining owner gates: jev S6/S8 + pandas sec.6. Lane: **NVIDIA backlog
+  -> execution** (`8ec262b3`: 7 agents -- cuda-math/cudnn/tensorrt/nvenc/
+  nvml-nvapi/optix/onnx-directml; AMD hardware-gated); real-accel wave
+  landed (`0a87650f`: openblas real leg 42/42 x2 + arrow/pandas
+  real-backend sync/prep; bindings validate 566/0). Zero open
+  bindings-addressed relay items; validate 717 green.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3

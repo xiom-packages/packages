@@ -1,0 +1,22 @@
+#usda 1.0
+(
+    defaultPrim = "Root"
+)
+
+def Xform "Root"
+{
+    def Xform "NotMesh"
+    {
+    }
+
+    def Mesh "BrokenMesh"
+    {
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2]
+        point3f[] points = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
+    }
+
+    def Material "OrphanMaterial"
+    {
+    }
+}
