@@ -1,0 +1,8 @@
+XIOM DB (XiomDB)
+Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+
+Embedded database engine (B-Tree index, WAL, query engine) built on the XIOM
+durable-systems core.
+
+Licensed under the Apache License, Version 2.0 or the MIT license, at your
+option. See LICENSE-APACHE and LICENSE-MIT.

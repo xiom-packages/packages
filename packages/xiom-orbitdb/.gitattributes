@@ -1,0 +1,8 @@
+# XIOM ORBITDB -- line-ending rules.
+# The bash twins (scripts/*.sh) are consumed by WSL/Linux: they must stay
+# LF in the working tree or bash fails on the CR in the shebang/commands,
+# even on a Windows checkout (core.autocrlf=true here).
+*.sh text eol=lf
+*.xi text eol=lf
+*.ps1 text eol=crlf
+*.md text eol=lf

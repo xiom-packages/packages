@@ -1,0 +1,23 @@
+# XIOM ORBITDB consumer probe project -- xiom.wal 0.1.0 + xiom.btree 0.1.1.
+#
+# The compiler resolves a probe's imports against the NEAREST project
+# manifest walking up from the entry file; for tests/pkg/*.xi this file is
+# that manifest:
+#   - `.`         the probe module itself
+#   - ../../src   ORBITDB src (xiom.db.*), for the two-way format interop
+#   - the registry dependencies (installed under xiom_home, mapped to their
+#     src roots by the v0.64.2 registry dependency resolver)
+# Runner: scripts/run.ps1 tests\pkg\probe_pkg_wal.xi -TimeoutSec 180
+#         scripts/run.ps1 tests\pkg\probe_pkg_btree.xi -TimeoutSec 180
+#         scripts/run.sh tests/pkg/probe_pkg_btree.xi --timeout-sec 180
+[project]
+name = "orbitdb-pkg-probe"
+version = "0.0.0"
+root = "."
+source-roots = [
+  "../../src",
+]
+
+[dependencies]
+xiom-wal = "0.1.0"
+xiom.btree = "0.1.1"

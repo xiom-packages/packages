@@ -1,0 +1,69 @@
+# Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+# SPDX-License-Identifier: MIT OR Apache-2.0
+#
+# XIOM ORBITDB -- build artifacts, local state, editor/agent noise.
+# Policy: probe scripts and their summaries are committed; raw run output is not.
+
+# --- compiler output (a.exe/a.exe.ll land next to the compiled source) ------
+a.exe
+a.exe.ll
+a.out
+*.exe
+*.exe.ll
+*.o
+*.obj
+*.pdb
+*.ilk
+*.dll
+*.lib
+*.exp
+*.ll
+*.bc
+*.wasm
+
+# --- local build / release output -------------------------------------------
+build/
+/out/
+/bin/
+/obj/
+/dist/
+deps/
+
+# --- probe + soak output (keep scripts + summaries, not raw runs) -----------
+/probe-logs/
+/soak/
+*.mark
+
+# --- database runtime artifacts (probe stores; never commit) ----------------
+*.db
+*.wal
+*.kv
+orbitdb-*.store
+*.tmp
+/tmp/
+
+# --- BENCH-1 driver binaries (built locally; see docs/BENCH-1.md) -----------
+bench/bbolt/bin/
+
+# --- VS Code / editors ------------------------------------------------------
+.vscode/
+*.code-workspace
+.idea/
+*.swp
+*.swo
+
+# --- Kilo / Agent Manager workspace state (never commit) --------------------
+.kilo/
+
+# --- XIOM package manager local state (xiom.lock stays committed) -----------
+.xiom_ai_cache/
+.xiom-cache/
+
+# --- Secrets / env ----------------------------------------------------------
+.env
+.env.*
+
+# --- OS noise ---------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini

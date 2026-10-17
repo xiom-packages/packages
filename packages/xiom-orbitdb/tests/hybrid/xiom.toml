@@ -1,0 +1,31 @@
+# XIOM ORBITDB <-> XVECTOR hybrid probe project (source-level composition).
+#
+# The compiler resolves a probe's imports against the NEAREST project
+# manifest walking up from the entry file; for tests/hybrid/*.xi this file
+# is that manifest, so its source roots feed the checker catalog:
+#   - this directory (the probe module itself)
+#   - ../../src        = ORBITDB src   (xiom.db.*)
+#   - ../../../xiom-xvector/src = XVECTOR src (xiom.vector.*)
+# The sibling-repo layout is pinned here exactly as the integration docs
+# describe (source-level composition until both packages publish).
+# Runner: scripts/hybrid_crash_test.ps1 / .sh and
+#         scripts/run.ps1 tests\hybrid\probe_hybrid.xi
+[project]
+name = "orbitdb-hybrid"
+version = "0.0.0"
+root = "."
+source-roots = [
+  "../../src",
+  "../../../xiom-xvector/src",
+]
+
+# XVECTOR's current source tree consumes these registry packages (mirrored
+# from its own xiom.toml, 2026-10-11: xiom.vectors/every consumer module, plus
+# wal/metrics/rate/http dependencies); keep this block in lockstep with
+# theirs so the composed catalog resolves.
+[dependencies]
+xiom.wal = "0.1.0"
+xiom.metrics = "0.2.0"
+xiom.rate = "0.2.0"
+xiom.http = "0.1.4"
+xiom.vectors = "0.1.0"
