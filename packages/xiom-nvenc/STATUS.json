@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  67,
                   "failed":  0,
-                  "run_by":  "agent:ses_ebb84b23affeAqHqWXJUFehcHI",
-                  "commit":  "2804fedd",
-                  "checked":  "2026-10-17T15:15:21Z"
+                  "run_by":  "am:feat-nvenc",
+                  "commit":  "ae937669",
+                  "checked":  "2026-10-17T16:53:04Z"
               },
     "publish":  false,
     "excluded_reason":  "new package 0.1.0; publish gated on the ops scope flow"
