@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  60,
                   "failed":  0,
-                  "run_by":  "am:feat-onnx-directml-2",
-                  "commit":  "3b552a2a",
-                  "checked":  "2026-10-17T19:22:15Z"
+                  "run_by":  "am:feat-onnx-directml",
+                  "commit":  "bd2854bf",
+                  "checked":  "2026-10-17T19:46:43Z"
               },
     "publish":  false,
     "excluded_reason":  null
