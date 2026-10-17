@@ -1687,6 +1687,29 @@ nvenc; 569/0)**:
   Remaining lane watch: v0.64.7 (m351/B-33 + m358/B-32 in the cut);
   AMD side is hardware-gated.
 
+**UPDATE 2026-10-17 23:55Z (v0.64.7 RELEASED + RE-VERIFIED: B-33 FIXED;
+B-32 still red but TYPED)**:
+- **v0.64.7 RELEASED** (22:59Z; run 39076930839; linux-arm64 target
+  live; stdlib-v0.64.7; highlights = Win64 C ABI aggregates + typed
+  confined faults (exit 70), host-arch targeting, etc.).  Scratch slot
+  downloaded + SHA256SUMS verified (`%TEMP%\kilo\xiom0647\slot`).
+- **B-33 FIXED (m351 verified)**: the ros2-abi ladder on .7 COMPLETES
+  -- c2 16B-record-by-value returns 17036 (was silent death), c3
+  fields 507/509, c4 1001/1005, c5 165, "done", exit 0.  The
+  pointer-pretend workaround in xiom.ros2 0.2.0 can retire at the next
+  touch.
+- **B-32 STILL RED in-situ -- now TYPED**: restore patch + suite on .7:
+  `cols.len=140701786528232` garbage -> `[FAIL] driver mem`, **exit 1**
+  (was 0xC0000005 AV on .5/.6).  .7 made the failure SAFE and visible
+  but did not fix the in-situ field-chain element loss; **m358 remains
+  the target**.  In-repo b32 README updated with this verdict
+  (`a19f78a4`).
+- B-34 still RED (alias-unification batch not in this cut); B-29 still
+  RED (expected).  Isolated nested probes/matrix GREEN on .7.
+- Filed `REL-20261017-2350-bindings` (re-verify results to compiler).
+  No unilateral repin; the bindings pin stays **v0.64.6** until the
+  owner/sibling repin wave lands.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
