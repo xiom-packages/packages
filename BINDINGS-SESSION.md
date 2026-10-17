@@ -1600,6 +1600,23 @@ arrow/pandas sync; 566/0)**:
   (openblas version_exists rider; arrow/pandas prep only) -- the next
   bump carries them.
 
+**UPDATE 2026-10-17 15:10Z (doorbell 15:00Z: `xiom.usd` LANDED; eco
+.195/.196 LIVE; NVIDIA wave launched)**:
+- **`xiom.usd 0.1.0` LANDED** (content `6c8fa791`; record `7cea7786`;
+  note: the sibling's concurrent commit swept the staged USD checkout,
+  so content+docs share one commit -- consistent, watched): OpenUSD
+  v26.08 scene-import (58-entry C-ABI + generated trampolines; stage/
+  prim/attr/mesh/material/time; typed errors + stale-handle
+  invalidation); gate **x2 65/65 LIVE on usd_ms.dll (ABI 2608)** +
+  typed SKIP; validate **567/0**; publish request
+  `REL-20261017-1507-bindings` (NEW name; ops scope).
+- **Eco**: **`eco-v0.1.195` = gguf/http/pulse 0.2.0** + **`.196` =
+  orbitdb/numpy/llm ML core** LIVE (111 releases; sibling doorbell).
+- **NVIDIA vendor wave LAUNCHED** (sibling): 7 agents -- cuda-math/
+  cudnn/tensorrt/nvenc/nvml-nvapi/optix/onnx-directml; AMD
+  hardware-gated.  Compiler: v0.64.7 candidate tags being relayed
+  (`compiler-compiler-v0.64.7`); not released yet.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
