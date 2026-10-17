@@ -25,7 +25,8 @@ A pure-XIOM, dependency-free codec for the **header** of a GGUF container
   hex form of their raw little-endian bytes.
 * No mmap/streaming; the whole buffer is parsed in one call.
 * No inference, tokenizer or model semantics.
-* Strings/names are restricted to printable ASCII (see §5).
+* Keys and tensor names are restricted to printable ASCII; string values
+  are arbitrary bytes, normally UTF-8 (see §5).
 
 ## 3. Container layout
 
@@ -62,7 +63,7 @@ tensor table that is a multiple of the alignment.
 | 5 | i32 | `kv_ints` | sign-extended |
 | 6 | f32 | `kv_strs` | 8 hex chars of the raw LE bytes |
 | 7 | bool | `kv_ints` | 0 or 1, else error |
-| 8 | string | `kv_strs` | printable ASCII, no NUL |
+| 8 | string | `kv_strs` | length-prefixed arbitrary bytes, no NUL (usually UTF-8) |
 | 9 | array | `kv_arr_*` + `arr_ints`/`arr_strs` | homogeneous, no nesting |
 | 10 | u64 | `kv_ints` | rejected when >= 2^63 (does not fit Int) |
 | 11 | i64 | `kv_ints` | same restriction as u64 (documented) |
@@ -73,10 +74,28 @@ rejected. Counts are capped at 1,048,576.
 
 ## 5. Strings
 
-Keys, string values, array string elements and tensor names must be
-non-empty for keys/names and every byte must be in `0x20..0x7E`; NUL bytes
-are rejected with a distinct error. This keeps the `Str` (NUL-terminated)
-ABI contract sound and makes byte lengths exact.
+Metadata keys and tensor names are restricted to printable ASCII
+(`0x20..0x7E`) when non-empty. The builder rejects an empty tensor name;
+empty keys/names otherwise follow the historical behavior on both paths.
+Every string -- keys, names, values and array elements -- is
+length-prefixed.
+
+String **values** and string **array elements** are arbitrary bytes and
+receive no ASCII or UTF-8 validation: control bytes (`0x01..0x1F`, `0x7F`)
+and bytes `>= 0x80` are preserved byte-for-byte. This is required for real
+vocabularies, e.g. a GPT-2 escaped token `gpt2` + `0xC4 0xA0` (U+0120) or
+the SPM word-boundary token `0xE2 0x96 0x81` (U+2581).
+
+NUL (`0x00`) is rejected in every string with a distinct error. This is a
+representability limit of `Str` (a NUL-terminated byte container), not an
+ASCII policy: an embedded NUL could not be read back losslessly.
+
+Consumers that need text rather than bytes should call the UTF-8 accessors
+(`gguf_kv_str_utf8`, `gguf_kv_arr_str_utf8`), which return
+`Err("gguf: string is not valid UTF-8")` for malformed sequences. Byte
+access is lossless through `gguf_kv_str_bytes` / `gguf_kv_arr_str_bytes`
+(and, on the existing `Str` accessors, `string.byte_at` over the exact byte
+length).
 
 ## 6. Error catalog (exact messages)
 
@@ -89,7 +108,7 @@ Parse errors (`Err(Str)` from `gguf_parse`):
 * `gguf: integer out of Int range`
 * `gguf: string length exceeds buffer`
 * `gguf: string contains NUL byte`
-* `gguf: string is not printable ASCII`
+* `gguf: string is not printable ASCII` (keys and tensor names only)
 * `gguf: unknown value type`
 * `gguf: nested arrays are not supported`
 * `gguf: bad array element count`
@@ -107,13 +126,13 @@ Accessor errors: `gguf: key index out of range`, `gguf: tensor index out of
 range`, `gguf: dimension index out of range`, `gguf: array element out of
 range`, `gguf: value is not an integer`, `gguf: value is not a string`,
 `gguf: value is not an array`, `gguf: array is not an integer array`,
-`gguf: array is not a string array`, `gguf: key not found`,
-`gguf: tensor not found`.
+`gguf: array is not a string array`, `gguf: string is not valid UTF-8`,
+`gguf: key not found`, `gguf: tensor not found`.
 
 Builder errors: `gguf: alignment is not a power of two`,
 `gguf: bad integer type`, `gguf: bad float type`, `gguf: bad tensor type`,
 `gguf: boolean value out of range`, `gguf: key is not printable ASCII`,
-`gguf: string is not printable ASCII`, `gguf: name is not printable ASCII`,
+`gguf: name is not printable ASCII`,
 `gguf: invalid hex payload`, `gguf: negative dimension`,
 `gguf: tensor rank exceeds limit`, `gguf: duplicate tensor name`,
 `gguf: bad array element count`.
@@ -126,8 +145,9 @@ Header accessors: `gguf_version`, `gguf_kv_count`, `gguf_tensor_count`,
 `gguf_alignment`, `gguf_data_offset`, `gguf_data_len`.
 
 KV accessors: `gguf_kv_key`, `gguf_kv_type`, `gguf_kv_int`, `gguf_kv_str`,
-`gguf_kv_arr_type`, `gguf_kv_arr_count`, `gguf_kv_arr_int`,
-`gguf_kv_arr_str`, `gguf_find_kv`.
+`gguf_kv_str_bytes`, `gguf_kv_str_utf8`, `gguf_kv_arr_type`,
+`gguf_kv_arr_count`, `gguf_kv_arr_int`, `gguf_kv_arr_str`,
+`gguf_kv_arr_str_bytes`, `gguf_kv_arr_str_utf8`, `gguf_find_kv`.
 
 Tensor accessors: `gguf_tensor_name`, `gguf_tensor_ndims`,
 `gguf_tensor_type`, `gguf_tensor_offset`, `gguf_tensor_dim`,
@@ -181,6 +201,12 @@ alignment it pads to and round-trips through `gguf_parse`.
 | 22 | missing key reported |
 | 23 | missing tensor reported |
 | 24 | type-name table |
+| 25 | two string arrays: origin isolation (XGGUF-ARRSTR) |
+| 26 | integer array origin after a string array |
+| 27 | non-ASCII string values: gpt2 + C4 A0 (U+0120) and E2 96 81 (U+2581), byte-exact + UTF-8 accessor |
+| 28 | non-ASCII/control token array byte-exact; invalid UTF-8 accepted, text accessor typed error |
+| 29 | truncated string value still rejected |
+| 30 | non-ASCII key still rejected |
 
 ## 10. Documented limitations
 
@@ -188,7 +214,12 @@ alignment it pads to and round-trips through `gguf_parse`.
 * Float values are opaque raw bytes (hex); no numeric conversion.
 * Tensor extents (bytes per element) are not validated, only declared
   offsets and their bound against the data-section length.
-* Non-ASCII (UTF-8) strings are rejected.
+* String values are stored as raw bytes in `Str`, which is NUL-terminated:
+  a value containing `0x00` is rejected rather than truncated.
+* String values are not guaranteed to be UTF-8; text consumers must use the
+  UTF-8 accessors, which report malformed byte sequences with a typed error.
+* Keys and tensor names remain printable ASCII; non-ASCII names are
+  rejected.
 
 ## 11. Compiler notes (v0.61.3)
 
@@ -204,10 +235,12 @@ Runtime-checkable `ensures:` clauses (39, across the 15 functions below) were
 added to `src/gguf.xi` in the batch #46 hardening pass (compiler v0.64.1;
 `package.xi` is left for the coordinator to bump at integration). All are
 `ensures:` with no `requires:`, so the accepted-input domain is unchanged.
-Every clause is enforced as a runtime check; the 24-check conformance suite
-exercises the contracted entry points and no clause trapped. Two timed
-consecutive `& .\scripts\port.ps1 -Package xiom.gguf -TimeoutSec 90` runs
-ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the
+Every clause is enforced as a runtime check; the conformance suite (24
+checks at the time of that pass, 30 now that the non-ASCII string-value
+cases were added) exercises the contracted entry points and no clause
+trapped. Two timed consecutive `& .\scripts\port.ps1 -Package xiom.gguf
+-TimeoutSec 90` runs ended `port: PASS (passed=24 failed=0 program_exit=0
+exit=0)` with the
 clauses active (14.64 s and 14.63 s); an initial untimed run was green as
 well. None is claimed Z3-provable: `xiom-verify` was not run for this module,
 and per the batch #37 finding a bare `[OK] VERIFIED` can be a vacuous UNSAT,

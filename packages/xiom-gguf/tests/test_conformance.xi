@@ -1,14 +1,15 @@
-// XIOM -- xiom.gguf conformance tests (24 checks)
+// XIOM -- xiom.gguf conformance tests (30 checks)
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
 // Covers the documented API: minimal header layout and alignment padding,
 // every KV value family (integers with sign extension, bool, string, f32
 // raw-hex, arrays), tensor info accessors, the general.alignment override,
-// the builder round-trip, and the full error catalog (bad magic/version,
-// truncation, unknown type, NUL/non-printable strings, u64 out of Int
-// range, nested arrays, invalid alignment, tensor offsets past the data
-// section, duplicates, not-found accessors).
+// the builder round-trip, non-ASCII/control string values (raw bytes and
+// the UTF-8 text accessors), and the full error catalog (bad magic/version,
+// truncation, unknown type, NUL/non-printable keys, u64 out of Int range,
+// nested arrays, invalid alignment, tensor offsets past the data section,
+// duplicates, not-found accessors).
 //
 // Harness style mirrors xiom.safetensors: one fn tN() -> Int per check,
 // called directly from main; main prints [PASS]/[FAIL] and returns the
@@ -17,7 +18,7 @@
 
 module gguf_tests
 use xiom.io; use xiom.test;
-use xiom.string; use xiom.string.compare;
+use xiom.string; use xiom.string.builder; use xiom.string.compare;
 use xiom.gguf;
 
 // --------------------------------------------------
@@ -91,6 +92,42 @@ fn copy_prefix(src: &Vec[UInt8], n: Int) -> Vec[UInt8] {
     i = i + 1;
   }
   return v;
+}
+
+// Materialize raw bytes as a Str (the same route the codec uses).
+fn bytes_to_str(src: &Vec[UInt8]) -> Str {
+  return builder.sb_to_str(src);
+}
+
+// Copy the bytes of a Str into a fresh vector.
+fn str_to_bytes(s: Str) -> Vec[UInt8] {
+  var v = Vec[UInt8].new();
+  let n = string.str_len(s);
+  var i = 0;
+  while i < n {
+    v.push(string.byte_at(s, i));
+    i = i + 1;
+  }
+  return v;
+}
+
+// Byte-exact vector equality.
+fn bytes_eq(a: &Vec[UInt8], b: &Vec[UInt8]) -> Bool {
+  if a.len() != b.len() {
+    return false;
+  }
+  var i = 0;
+  while i < a.len() {
+    let raw_a: UInt8 = a[i];
+    let raw_b: UInt8 = b[i];
+    let x = (raw_a as Int) & 0xFF;
+    let y = (raw_b as Int) & 0xFF;
+    if x != y {
+      return false;
+    }
+    i = i + 1;
+  }
+  return true;
 }
 
 // Minimal valid buffer: version 3, no KVs, no tensors.
@@ -522,6 +559,151 @@ fn t26() -> Int {
   return report(i0.value == 7 && i1.value == 9, "mixed arrays: int origin after strings");
 }
 
+// Non-ASCII string VALUES: the exact probe from xiom.llm -- a GPT-2 escaped
+// token "gpt2" + C4 A0 (U+0120) and an SPM sentencepiece token E2 96 81
+// (U+2581) must round-trip byte-exactly.
+fn t27() -> Int {
+  var tok = Vec[UInt8].new();
+  tok.push(103);
+  tok.push(112);
+  tok.push(116);
+  tok.push(50);
+  tok.push(196);
+  tok.push(160);
+  var spm = Vec[UInt8].new();
+  spm.push(226);
+  spm.push(150);
+  spm.push(129);
+  let ts = bytes_to_str(&tok);
+  let ss = bytes_to_str(&spm);
+  var b = gguf_builder_new();
+  let a1 = gguf_builder_add_kv_str(&mut b, "token", ts);
+  let a2 = gguf_builder_add_kv_str(&mut b, "spm", ss);
+  let buf = gguf_builder_finish(&b).value;
+  let r = gguf_parse(&buf);
+  if !a1.is_ok || !a2.is_ok || !r.is_ok {
+    return report(false, "non-ASCII string KV parses");
+  }
+  let g = r.value;
+  let i1 = gguf_find_kv(&g, "token");
+  let i2 = gguf_find_kv(&g, "spm");
+  if !i1.is_ok || !i2.is_ok {
+    return report(false, "non-ASCII string KV: lookup");
+  }
+  let b1 = gguf_kv_str_bytes(&g, i1.value);
+  let b2 = gguf_kv_str_bytes(&g, i2.value);
+  if !b1.is_ok || !b2.is_ok {
+    return report(false, "non-ASCII string KV: bytes accessor");
+  }
+  let v1: Vec[UInt8] = b1.value;
+  let v2: Vec[UInt8] = b2.value;
+  if v1.len() != 6 || v2.len() != 3 {
+    return report(false, "non-ASCII string KV: byte lengths");
+  }
+  if !bytes_eq(&v1, &tok) || !bytes_eq(&v2, &spm) {
+    return report(false, "non-ASCII string KV: byte-exact values");
+  }
+  let u1 = gguf_kv_str_utf8(&g, i1.value);
+  let u2 = gguf_kv_str_utf8(&g, i2.value);
+  return report(u1.is_ok && u2.is_ok, "non-ASCII string KV: UTF-8 text accessor");
+}
+
+// A tokenizer-style string array mixing high bytes, control bytes and one
+// genuinely invalid UTF-8 byte: bytes are accepted losslessly; only the
+// explicit UTF-8 text accessor reports a typed error.
+fn t28() -> Int {
+  var t1 = Vec[UInt8].new();
+  t1.push(103);
+  t1.push(112);
+  t1.push(116);
+  t1.push(50);
+  t1.push(196);
+  t1.push(160);
+  var t2 = Vec[UInt8].new();
+  t2.push(226);
+  t2.push(150);
+  t2.push(129);
+  var t3 = Vec[UInt8].new();
+  t3.push(1);
+  t3.push(9);
+  t3.push(255);
+  var toks = Vec[Str].new();
+  toks.push(bytes_to_str(&t1));
+  toks.push(bytes_to_str(&t2));
+  toks.push(bytes_to_str(&t3));
+  var b = gguf_builder_new();
+  let ar = gguf_builder_add_kv_arr_str(&mut b, "tokens", &toks);
+  let buf = gguf_builder_finish(&b).value;
+  let r = gguf_parse(&buf);
+  if !ar.is_ok || !r.is_ok {
+    return report(false, "non-ASCII token array parses");
+  }
+  let g = r.value;
+  let fi = gguf_find_kv(&g, "tokens");
+  if !fi.is_ok {
+    return report(false, "non-ASCII token array: lookup");
+  }
+  let cnt = gguf_kv_arr_count(&g, fi.value);
+  if !cnt.is_ok || cnt.value != 3 {
+    return report(false, "non-ASCII token array: count");
+  }
+  let e0 = gguf_kv_arr_str_bytes(&g, fi.value, 0);
+  let e1 = gguf_kv_arr_str_bytes(&g, fi.value, 1);
+  let e2 = gguf_kv_arr_str_bytes(&g, fi.value, 2);
+  if !e0.is_ok || !e1.is_ok || !e2.is_ok {
+    return report(false, "non-ASCII token array: bytes accessor");
+  }
+  let v0: Vec[UInt8] = e0.value;
+  let v1: Vec[UInt8] = e1.value;
+  let v2: Vec[UInt8] = e2.value;
+  if !bytes_eq(&v0, &t1) || !bytes_eq(&v1, &t2) || !bytes_eq(&v2, &t3) {
+    return report(false, "non-ASCII token array: byte-exact elements");
+  }
+  let raw = gguf_kv_arr_str(&g, fi.value, 0);
+  if !raw.is_ok {
+    return report(false, "non-ASCII token array: Str accessor");
+  }
+  let raw_bytes = str_to_bytes(raw.value);
+  if !bytes_eq(&raw_bytes, &t1) {
+    return report(false, "non-ASCII token array: Str is byte-exact");
+  }
+  let u0 = gguf_kv_arr_str_utf8(&g, fi.value, 0);
+  let u1r = gguf_kv_arr_str_utf8(&g, fi.value, 1);
+  let u2r = gguf_kv_arr_str_utf8(&g, fi.value, 2);
+  if !u0.is_ok || !u1r.is_ok {
+    return report(false, "non-ASCII token array: valid UTF-8 elements");
+  }
+  return expect_str_err(u2r, "gguf: string is not valid UTF-8", "invalid UTF-8: text accessor typed error");
+}
+
+// Truncating a string value still reports the bounds error (length prefix
+// present, payload short).
+fn t29() -> Int {
+  var raw = Vec[UInt8].new();
+  raw.push(103);
+  raw.push(112);
+  raw.push(116);
+  raw.push(50);
+  raw.push(196);
+  raw.push(160);
+  var b = gguf_builder_new();
+  let ar = gguf_builder_add_kv_str(&mut b, "s", bytes_to_str(&raw));
+  let full = gguf_builder_finish(&b).value;
+  // Header 24 + key (8+1) + type 4 + length 8 = 45; the 6 value bytes span
+  // 45..50, so a prefix of 50 truncates the last value byte.
+  let cut = copy_prefix(&full, 50);
+  let r = gguf_parse(&cut);
+  return expect_gguf_err(r, "gguf: string length exceeds buffer", "truncated string value rejected");
+}
+
+// Keys stay printable ASCII even though string values are arbitrary bytes.
+fn t30() -> Int {
+  var buf = one_int_kv();
+  buf[32] = 196;
+  let r = gguf_parse(&buf);
+  return expect_gguf_err(r, "gguf: string is not printable ASCII", "non-ASCII key still rejected");
+}
+
 // --------------------------------------------------
 //  Main
 // --------------------------------------------------
@@ -554,6 +736,10 @@ fn main() -> Int {
   failed = failed + t24();
   failed = failed + t25();
   failed = failed + t26();
+  failed = failed + t27();
+  failed = failed + t28();
+  failed = failed + t29();
+  failed = failed + t30();
   if failed == 0 {
     io.println("xiom.gguf: all tests passed");
   }

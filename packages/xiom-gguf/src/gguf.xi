@@ -18,8 +18,13 @@
 // the u64 sign bit set and negative i64 values are rejected with a clear
 // error); i8/i16/i32 are sign-extended; f32/f64 values are preserved as
 // their raw little-endian bytes written as lowercase hex text (no float
-// arithmetic); strings and names must be printable ASCII (0x20..0x7E) with
-// no NUL byte; arrays must be homogeneous and may not nest. Tensor payload
+// arithmetic); metadata keys and tensor names must be printable ASCII
+// (0x20..0x7E), while string VALUES are arbitrary length-prefixed bytes --
+// usually UTF-8, but no ASCII or UTF-8 validation is applied, so escaped
+// GPT-2 vocabularies and SPM tokens such as U+2581 load unchanged. NUL is
+// rejected for every string because Str is NUL-terminated (a representability
+// limit, not an ASCII policy); arrays must be homogeneous and may not nest.
+// Tensor payload
 // extents are not validated (no ggml size table); only the declared offset
 // is checked against the data section length. See SPEC.md for the full
 // grammar, API contract, error catalog and limitations.
@@ -240,7 +245,10 @@ fn _rd_i32(buf: &Vec[UInt8], total: Int, pos: Int) -> Result[Int, Str] {
   return _ok_int(v);
 }
 
-// Length-prefixed (u64) printable-ASCII string at `pos`.
+// Length-prefixed (u64) byte string at `pos`. The payload is copied
+// byte-for-byte: control bytes and bytes >= 0x80 are accepted (string values
+// are arbitrary bytes, normally UTF-8). NUL is rejected because Str is
+// NUL-terminated and cannot represent an embedded NUL losslessly.
 fn _rd_str(buf: &Vec[UInt8], total: Int, pos: Int) -> Result[Str, Str] {
   let lr = _rd_u64(buf, total, pos);
   if !lr.is_ok {
@@ -256,12 +264,6 @@ fn _rd_str(buf: &Vec[UInt8], total: Int, pos: Int) -> Result[Str, Str] {
     let c = _byte_at(buf, pos + 8 + k);
     if c == 0 {
       return _err_str("gguf: string contains NUL byte");
-    }
-    if c < 32 {
-      return _err_str("gguf: string is not printable ASCII");
-    }
-    if c > 126 {
-      return _err_str("gguf: string is not printable ASCII");
     }
     out.push((c as UInt8));
     k = k + 1;
@@ -291,6 +293,64 @@ fn _rd_hex(buf: &Vec[UInt8], pos: Int, n: Int) -> Str {
 // Number of bytes `_rd_str` consumes for a validated string value.
 fn _str_consumed(s: Str) -> Int {
   return 8 + string.str_len(s);
+}
+
+// Copy the bytes of `s` into a fresh vector (Str is a byte container).
+fn _str_to_bytes(s: Str) -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
+  let n = string.str_len(s);
+  var k = 0;
+  while k < n {
+    out.push(string.byte_at(s, k));
+    k = k + 1;
+  }
+  return out;
+}
+
+// Strict RFC 3629 UTF-8 validation. `xiom.string.utf8.utf8_validate` maps
+// unrecognized lead bytes (0x80..0xC1, 0xF5..0xFF) to a one-byte ASCII
+// sequence, so it accepts e.g. 0xFF; this local scanner masks every byte to
+// 0..255 before classification and rejects those leads, overlong forms,
+// surrogates and codepoints above U+10FFFF.
+fn _utf8_valid(raw: &Vec[UInt8]) -> Bool {
+  let n = raw.len();
+  var i = 0;
+  while i < n {
+    let b0 = _byte_at(raw, i);
+    var need = 0;
+    var cp = b0;
+    if b0 <= 0x7F {
+      i = i + 1;
+    } else if (b0 & 0xE0) == 0xC0 {
+      if b0 < 0xC2 { return false; }
+      need = 1;
+      cp = b0 & 0x1F;
+    } else if (b0 & 0xF0) == 0xE0 {
+      need = 2;
+      cp = b0 & 0x0F;
+    } else if (b0 & 0xF8) == 0xF0 {
+      if b0 > 0xF4 { return false; }
+      need = 3;
+      cp = b0 & 0x07;
+    } else {
+      return false;
+    }
+    if need > 0 {
+      if i + need >= n { return false; }
+      var k = 1;
+      while k <= need {
+        let cb = _byte_at(raw, i + k);
+        if (cb & 0xC0) != 0x80 { return false; }
+        cp = (cp << 6) | (cb & 0x3F);
+        k = k + 1;
+      }
+      if need == 2 && cp < 0x800 { return false; }
+      if need == 3 && (cp < 0x10000 || cp > 0x10FFFF) { return false; }
+      if cp >= 0xD800 && cp <= 0xDFFF { return false; }
+      i = i + need + 1;
+    }
+  }
+  return true;
 }
 
 // True when every byte of `s` is hex text of even length.
@@ -563,7 +623,7 @@ fn _parse_kv_value(g: &mut Gguf, buf: &Vec[UInt8], total: Int, pos_in: Int, key:
 ///
 /// Returns Err(Str) with a deterministic message for a short buffer, bad
 /// magic, unsupported version, out-of-range counts/values, truncated
-/// entries, non-printable strings, unknown/nested array types, duplicate
+/// entries, non-printable keys/tensor names, unknown/nested array types, duplicate
 /// tensor names, invalid alignment, a data offset past the buffer, and
 /// tensor offsets past the data section (see SPEC.md).
 pub fn gguf_parse(buffer: &Vec[UInt8]) -> Result[Gguf, Str]
@@ -638,6 +698,9 @@ pub fn gguf_parse(buffer: &Vec[UInt8]) -> Result[Gguf, Str]
       return _err_gguf(keyr.error);
     }
     let key: Str = keyr.value;
+    if !_is_printable_bytes(key) {
+      return _err_gguf("gguf: string is not printable ASCII");
+    }
     pos = pos + _str_consumed(key);
     let tyr = _rd_u32(buffer, total, pos);
     if !tyr.is_ok {
@@ -662,6 +725,9 @@ pub fn gguf_parse(buffer: &Vec[UInt8]) -> Result[Gguf, Str]
       return _err_gguf(nr.error);
     }
     let name: Str = nr.value;
+    if !_is_printable_bytes(name) {
+      return _err_gguf("gguf: string is not printable ASCII");
+    }
     pos = pos + _str_consumed(name);
     let dnr = _rd_u32(buffer, total, pos);
     if !dnr.is_ok {
@@ -871,6 +937,35 @@ pub fn gguf_kv_str(g: &Gguf, i: Int) -> Result[Str, Str] {
   return _ok_str(s);
 }
 
+/// Raw bytes of the string value at index `i` (lossless; float raw-byte
+/// hex text for types 6/12). This is the preferred accessor for tokenizer
+/// vocabularies, which may contain arbitrary non-ASCII bytes.
+pub fn gguf_kv_str_bytes(g: &Gguf, i: Int) -> Result[Vec[UInt8], Str] {
+  let sr = gguf_kv_str(g, i);
+  if !sr.is_ok {
+    return _err_bytes(sr.error);
+  }
+  let s: Str = sr.value;
+  return _ok_bytes(_str_to_bytes(s));
+}
+
+/// String value at index `i`, validated as UTF-8 text.
+/// Err("gguf: string is not valid UTF-8") when the stored bytes are not
+/// well-formed UTF-8; the raw bytes remain available through
+/// gguf_kv_str_bytes.
+pub fn gguf_kv_str_utf8(g: &Gguf, i: Int) -> Result[Str, Str] {
+  let sr = gguf_kv_str(g, i);
+  if !sr.is_ok {
+    return _err_str(sr.error);
+  }
+  let s: Str = sr.value;
+  let raw = _str_to_bytes(s);
+  if !_utf8_valid(&raw) {
+    return _err_str("gguf: string is not valid UTF-8");
+  }
+  return _ok_str(s);
+}
+
 /// Array element type at index `i` (Err for non-array values).
 pub fn gguf_kv_arr_type(g: &Gguf, i: Int) -> Result[Int, Str] {
   if !_kv_in_range(g, i) {
@@ -946,6 +1041,32 @@ pub fn gguf_kv_arr_str(g: &Gguf, i: Int, e: Int) -> Result[Str, Str] {
   let off: Int = ao[i];
   let sv: Vec[Str] = g.arr_strs;
   let s: Str = sv[off + e];
+  return _ok_str(s);
+}
+
+/// Raw bytes of string/float array element `e` of entry `i` (lossless).
+pub fn gguf_kv_arr_str_bytes(g: &Gguf, i: Int, e: Int) -> Result[Vec[UInt8], Str] {
+  let sr = gguf_kv_arr_str(g, i, e);
+  if !sr.is_ok {
+    return _err_bytes(sr.error);
+  }
+  let s: Str = sr.value;
+  return _ok_bytes(_str_to_bytes(s));
+}
+
+/// String/float array element `e` of entry `i`, validated as UTF-8 text.
+/// Err("gguf: string is not valid UTF-8") for malformed byte sequences; use
+/// gguf_kv_arr_str_bytes for a lossless read.
+pub fn gguf_kv_arr_str_utf8(g: &Gguf, i: Int, e: Int) -> Result[Str, Str] {
+  let sr = gguf_kv_arr_str(g, i, e);
+  if !sr.is_ok {
+    return _err_str(sr.error);
+  }
+  let s: Str = sr.value;
+  let raw = _str_to_bytes(s);
+  if !_utf8_valid(&raw) {
+    return _err_str("gguf: string is not valid UTF-8");
+  }
   return _ok_str(s);
 }
 
@@ -1184,11 +1305,6 @@ pub fn gguf_builder_add_kv_str(b: &mut GgufBuilder, key: Str, v: Str) -> Result[
       return _err_int("gguf: key is not printable ASCII");
     }
   }
-  if !_str_is(v, "") {
-    if !_is_printable_key(v) {
-      return _err_int("gguf: string is not printable ASCII");
-    }
-  }
   _b_push_entry(b, key, 8, 0, v, 0, 0, 0);
   return _ok_int(0);
 }
@@ -1260,16 +1376,6 @@ pub fn gguf_builder_add_kv_arr_str(b: &mut GgufBuilder, key: Str, vals: &Vec[Str
   }
   if vals.len() > 1048576 {
     return _err_int("gguf: bad array element count");
-  }
-  var i = 0;
-  while i < vals.len() {
-    let v: Str = vals[i];
-    if !_str_is(v, "") {
-      if !_is_printable_key(v) {
-        return _err_int("gguf: string is not printable ASCII");
-      }
-    }
-    i = i + 1;
   }
   let aoff = b.arr_strs.len();
   var j = 0;
@@ -1502,12 +1608,9 @@ pub fn gguf_builder_finish(b: &GgufBuilder) -> Result[Vec[UInt8], Str] {
 //  Key validation used by the builder
 // --------------------------------------------------
 
-// True when `s` is non-empty and every byte is printable ASCII.
-fn _is_printable_key(s: Str) -> Bool {
+// True when every byte of `s` is printable ASCII (empty strings pass).
+fn _is_printable_bytes(s: Str) -> Bool {
   let n = string.str_len(s);
-  if n == 0 {
-    return false;
-  }
   var k = 0;
   while k < n {
     let c = string.byte_at(s, k);
@@ -1518,4 +1621,12 @@ fn _is_printable_key(s: Str) -> Bool {
     k = k + 1;
   }
   return true;
+}
+
+// True when `s` is non-empty and every byte is printable ASCII.
+fn _is_printable_key(s: Str) -> Bool {
+  if string.str_len(s) == 0 {
+    return false;
+  }
+  return _is_printable_bytes(s);
 }
