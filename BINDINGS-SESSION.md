@@ -3,9 +3,9 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: batch 95 =
-`eco-v0.1.193` (8 packages: jev / onnx / ros2 0.2.0 / serial / v4l /
-arrow / openblas / pandas) -- through `eco-v0.1.193` (108 eco releases);
+**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: `eco-v0.1.194`
+(M2 + gps: torch / libtorch / tensorflow / blas / gps) -- through
+`eco-v0.1.194` (109 eco releases);
 recent cycle highlights: E-family COMPLETE (jolt 0.5.0/0.6.0/0.7.0,
 E1-E7), LIFTS live (`eco-v0.1.185`: glfw 0.6.0 + sdl3 0.20.0 -- B-22/B-15
 retired), PULSE top-tier live (`eco-v0.1.189`: brotli + ssl,
@@ -1535,6 +1535,26 @@ torch/libtorch/tensorflow/blas/openblas; B-34 filed; 566/0)**:
   branch-side `COMPILER_VERSION` bump still pending (owner/sibling);
   B-32 (m358) + B-34 ride the v0.64.7 wave.
 
+**UPDATE 2026-10-17 12:05Z (MORNING: v0.64.6 REPIN on bindings +
+`eco-v0.1.194` -- M2 wave + gps LIVE)**:
+- **Branch repin landed**: `d2ef7ec2` -- `COMPILER_VERSION` -> **v0.64.6**
+  + all 566 STATUS records aligned (validate 566/0); the slot/file
+  mismatch is closed.
+- **`eco-v0.1.194` LIVE** (run 39030226463 green; all registry
+  live-verified; merge `ec548542`; publish-sync `c1d1d85d`):
+  - `xiom.torch 0.1.0` (`bde0ce5c...`; SKIP gate 19/19 x2)
+  - `xiom.libtorch 0.1.0` (`865c6d2a...`; 8/8 x2; scope LIVE 11:28Z)
+  - `xiom.tensorflow 0.1.0` (`0f4bb6a5...`; 17/17 x2)
+  - `xiom.blas 0.1.0` (`bee07a38...`; 50/50 x2)
+  - `xiom.gps 0.1.0` (`020b50ac...`; live 11:52:45Z; scope LIVE
+    11:28Z; allowlist 559 -> 561; 28/28 x2)
+  - openblas metadata fix correctly skipped (version_exists; rides a
+    future openblas bump).
+- Both publish close-outs FIXED (`-0042-bindings-2`, `-2144-bindings-2`).
+  Eco through **`.194`** (109 releases).  B-34 acked -> compiler
+  alias-unification batch (1548-stdlib-6/2100 family); B-32 stays
+  m358.  Both ride v0.64.7; nothing else in flight on this lane.
+
 **UPDATE 2026-10-17 11:58Z (branch pin bump DONE -- COMPILER_VERSION
 v0.64.6 + 566 records repinned; morning state)**: closes the 00:45Z
 MORNING TODO.
@@ -2424,6 +2444,29 @@ otel via `-2309-3`). Relay: PULSE top-tier asks **TLS context binding
 duplicate noted; `-2313` dedupe agreed). Android wave-2 landing: 5 of 8 in
 (validate 559/0).
 
+**UPDATE 2026-10-17 12:05Z (doorbell -- miniaudio 0.5.0 + `eco-v0.1.194`
+publishes recorded; v0.64.6 repin DONE)**: packages confirms both queued
+publishes from this lane:
+- **`xiom.miniaudio 0.5.0` PUBLISHED** (single tag `xiom-miniaudio/v0.5.0`;
+  sha256 `7d83c1ed...`; run 39027702853 green; registry live-verified;
+  sync `35fea936`): handle surface (open once, callbacks/streams, close),
+  x2 **44/44** on v0.64.6. `-2324-bindings` fixed; engine ask
+  `-2134-engine-2` delivered+shipped; `-2139-packages-2` folded.
+- **`eco-v0.1.194` LIVE** (M2 runtimes + gps; run 39030226463 green;
+  allowlist 559 -> 561; guard 561/552/9/0): **torch** `bde0ce5c`,
+  **libtorch** `865c6d2a`, **tensorflow** `0f4bb6a5`, **blas**
+  `bee07a38`, **gps** `020b50ac` -- all registry live-verified; relays
+  `-0042-bindings-2` + `-2144-bindings-2` fixed. openblas metadata fix
+  stays unpublished until a future 0.1.x bump (0.1.0 already live in
+  `.193`).
+- **v0.64.6 repin landed in this repo** (`d2ef7ec2`): COMPILER_VERSION +
+  **566 records** aligned (validate 566/0); the repin-wave trigger is
+  cleared.
+- Remaining queue (bindings side): epos publish request; numpy grant;
+  compiler re-verify rows (B-29 / W1.4 / W2.3 / B-34 + m348-m351); llm
+  tokenizer/bench; jev S8 + S6 SPEC pin; openblas real accel;
+  pandas/arrow libarrow backends.
+
 **UPDATE 2026-10-16 21:05Z (doorbell -- v0.64.6 RELEASED)**: compiler
 **v0.64.6 RELEASED 2026-10-16 20:33Z** (`REL-20261016-2034-compiler`;
 assets live). This is the **REPIN-WAVE TRIGGER** (next-session first
@@ -2440,6 +2483,20 @@ Beacon; legacy android scope re-grant asked of ops); **R2 landed**
 validate 563/0; publishes filed; B-33 to compiler). Beacon acceptance
 stage 1 GREEN (125/125 x2 both platforms). Zero open bindings-addressed
 relay items; validate 660 green.
+
+**UPDATE 2026-10-17 12:05Z (doorbell -- `eco-v0.1.194` LIVE; in-tree repin
+done)**: **`eco-v0.1.194`** (run 39030226463 green) -- 5 LIVE +
+live-verified: `xiom.torch` `bde0ce5c`, `xiom.libtorch` `865c6d2a`,
+`xiom.tensorflow` `0f4bb6a5`, `xiom.blas` `bee07a38`, `xiom.gps`
+`020b50ac` (records @ `ec548542`; allowlist 559->561; guard 561/552/9/0;
+README/STATUS sync `c1d1d85d`; relays `-0042-bindings-2` +
+`-2144-bindings-2` fixed; the openblas metadata fix rides a future 0.1.x
+bump). **`xiom.miniaudio 0.5.0`** published as a single tag
+`xiom-miniaudio/v0.5.0` (`7d83c1ed...`; run 39027702853; engine
+`-2134-engine-2` fixed as delivered+shipped; bindings `-2324` fixed).
+**In-tree v0.64.6 repin landed** (`d2ef7ec2`: COMPILER_VERSION + 566
+records aligned; validate 566/0) -- the machine-wide wave is now mirrored
+in this tree. Zero open bindings relay items; validate 696 green.
 
 Published through the window: `eco-v0.1.132`..`eco-v0.1.159` -- assimp 0.7.0,
 glfw 0.3.0-0.5.0, vulkan 0.5.0 (`138`), ann 0.1.0 + stb 0.2.0 (`139`), sdl3
