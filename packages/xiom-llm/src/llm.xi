@@ -15,12 +15,12 @@
 //
 // Documented M1 subset (see SPEC.md sections 5-6 for the exact rules):
 //   * xiom.gguf restricts GGUF strings to printable ASCII (0x20..0x7E), so
-//     the vocabulary domain of this milestone is printable ASCII, and the
-//     GPT-2 byte-to-unicode escape layer (llama.cpp unicode_byte_to_utf8,
-//     which maps byte 0x20 to U+0120 "G-dot", a non-ASCII codepoint) cannot
-//     be represented in a parsed GGUF string. M1 therefore treats token
-//     strings as raw byte sequences (the fixture stores a literal space
-//     token) and defers the escape layer and the regex pre-tokenizer to M3.
+//     the vocabulary domain of this milestone is printable ASCII. The GPT-2
+//     bytes_to_unicode escape layer and the GPT-2 regex pre-tokenizer are
+//     implemented as separate pure surfaces (SPEC.md 10.6); llm_bpe_encode
+//     itself still treats token strings as raw byte sequences (the fixture
+//     stores a literal space token). Real escaped vocabularies remain
+//     blocked at the container (docs/probe-nonascii-gguf.md).
 //   * merge entries split at the first space at byte index >= 1 exactly as
 //     llama.cpp `word.find(' ', 1)`; entries without such a space are dead
 //     pairs that still occupy their rank index.
@@ -166,6 +166,22 @@ pub type LlmVocab = {
 pub type LlmScale = {
   m: Int;
   e: Int;
+}
+
+/// SPM ("llama") vocabulary extracted from a GGUF header. `tokens[i]` is the
+/// token string, `scores[i] / 2^score_e` its exact file score (all scores are
+/// normalised to the common exponent `score_e` at extraction), and
+/// `token_types[i]` mirrors the file array (default 1). `bos`/`eos` are -1
+/// when absent. A value is only produced by llm_spm_vocab_from_gguf.
+pub type LlmSpmVocab = {
+  model: Str;
+  tokens: Vec[Str];
+  scores: Vec[Int];
+  score_e: Int;
+  has_types: Int;
+  token_types: Vec[Int];
+  bos: Int;
+  eos: Int;
 }
 
 // --------------------------------------------------
@@ -588,6 +604,771 @@ pub fn llm_bpe_encode(v: &LlmVocab, text: Str) -> Result[Vec[Int], Str] {
 /// ids. Returns: the decoded byte sequence; an empty id list decodes to "".
 /// Error case: an id outside 0..size-1 -> `llm: token id out of range`.
 pub fn llm_bpe_decode(v: &LlmVocab, ids: &Vec[Int]) -> Result[Str, Str] {
+  let toks: Vec[Str] = v.tokens;
+  var out = "";
+  var i = 0;
+  while i < ids.len() {
+    let id: Int = ids[i];
+    if id < 0 || id >= toks.len() {
+      return _err_str("llm: token id out of range");
+    }
+    let s: Str = toks[id];
+    out = out + s;
+    i = i + 1;
+  }
+  return _ok_str(out);
+}
+
+// --------------------------------------------------
+//  Tokenizer completion: GPT-2 escape layer + regex pre-tokenizer
+//  (SPEC.md 10.6)
+// --------------------------------------------------
+
+// Ok(v) for Result[Vec[Str], Str].
+fn _ok_strs(v: Vec[Str]) -> Result[Vec[Str], Str] {
+  return Ok(v);
+}
+
+// True for the 188 bytes that GPT-2 maps to their own codepoint:
+// 0x21..0x7E, 0xA1..0xAC and 0xAE..0xFF (the bytes_to_unicode `visible`
+// set from llama.cpp src/unicode.cpp).
+fn _gpt2_visible(b: Int) -> Bool {
+  if b >= 33 && b <= 126 {
+    return true;
+  }
+  if b >= 161 && b <= 172 {
+    return true;
+  }
+  return b >= 174 && b <= 255;
+}
+
+// True for ASCII letters A-Z / a-z.
+fn _is_ascii_letter(b: Int) -> Bool {
+  if b >= 65 && b <= 90 {
+    return true;
+  }
+  return b >= 97 && b <= 122;
+}
+
+// True for ASCII digits 0-9.
+fn _is_ascii_digit(b: Int) -> Bool {
+  return b >= 48 && b <= 57;
+}
+
+// True for the ASCII whitespace class used by the GPT-2 split pattern:
+// space, tab, line feed, vertical tab, form feed and carriage return.
+fn _is_ascii_space(b: Int) -> Bool {
+  if b >= 9 && b <= 13 {
+    return true;
+  }
+  return b == 32;
+}
+
+/// GPT-2 `bytes_to_unicode` mapping: byte value -> Unicode codepoint. The 188
+/// printable bytes map to themselves; the remaining 68 bytes map, in
+/// ascending byte order, to codepoints 256..323 (so 0x20 -> U+0120 = 288,
+/// 0x7F -> U+0121 = 289, 0xAD -> U+0143 = 323). Exact integer function, no
+/// table storage. Error case: `llm: byte out of range` (b outside 0..255).
+pub fn llm_gpt2_byte_to_codepoint(b: Int) -> Result[Int, Str] {
+  if b < 0 || b > 255 {
+    return _err_int("llm: byte out of range");
+  }
+  if _gpt2_visible(b) {
+    return _ok_int(b);
+  }
+  var n = 0;
+  var k = 0;
+  while k < b {
+    if !_gpt2_visible(k) {
+      n = n + 1;
+    }
+    k = k + 1;
+  }
+  return _ok_int(256 + n);
+}
+
+/// Inverse GPT-2 mapping: Unicode codepoint -> byte value. Error case:
+/// `llm: codepoint not in gpt2 byte map` (a codepoint the escape layer never
+/// produces).
+pub fn llm_gpt2_codepoint_to_byte(cp: Int) -> Result[Int, Str] {
+  if cp >= 0 && cp <= 255 && _gpt2_visible(cp) {
+    return _ok_int(cp);
+  }
+  if cp >= 256 && cp <= 323 {
+    let idx = cp - 256;
+    var n = 0;
+    var k = 0;
+    while k < 256 {
+      if !_gpt2_visible(k) {
+        if n == idx {
+          return _ok_int(k);
+        }
+        n = n + 1;
+      }
+      k = k + 1;
+    }
+  }
+  return _err_int("llm: codepoint not in gpt2 byte map");
+}
+
+/// Append the UTF-8 encoding of `cp` to `out` and return the byte count
+/// (1..4). Strict encoding (no surrogates, max U+10FFFF). Error case:
+/// `llm: codepoint out of range`.
+pub fn llm_utf8_append(cp: Int, out: &mut Vec[UInt8]) -> Result[Int, Str] {
+  if cp < 0 || cp > 1114111 {
+    return _err_int("llm: codepoint out of range");
+  }
+  if cp >= 55296 && cp <= 57343 {
+    return _err_int("llm: codepoint out of range");
+  }
+  if cp < 128 {
+    out.push((cp as UInt8));
+    return _ok_int(1);
+  }
+  if cp < 2048 {
+    out.push(((192 | (cp >> 6)) as UInt8));
+    out.push(((128 | (cp & 63)) as UInt8));
+    return _ok_int(2);
+  }
+  if cp < 65536 {
+    out.push(((224 | (cp >> 12)) as UInt8));
+    out.push(((128 | ((cp >> 6) & 63)) as UInt8));
+    out.push(((128 | (cp & 63)) as UInt8));
+    return _ok_int(3);
+  }
+  out.push(((240 | (cp >> 18)) as UInt8));
+  out.push(((128 | ((cp >> 12) & 63)) as UInt8));
+  out.push(((128 | ((cp >> 6) & 63)) as UInt8));
+  out.push(((128 | (cp & 63)) as UInt8));
+  return _ok_int(4);
+}
+
+// Decode one strict UTF-8 codepoint at `pos`; returns [codepoint, next_pos].
+// Rejects continuation-only lead bytes, truncated sequences, overlong forms,
+// surrogates and codepoints above U+10FFFF with `llm: invalid utf8`.
+fn _utf8_decode_at(buf: &Vec[UInt8], pos: Int) -> Result[Vec[Int], Str] {
+  let n = buf.len();
+  if pos < 0 || pos >= n {
+    return _err_ids("llm: invalid utf8");
+  }
+  let b0 = (buf[pos] as Int) & 0xFF;
+  var need = 0;
+  var cp = 0;
+  if b0 < 128 {
+    var one = Vec[Int].new();
+    one.push(b0);
+    one.push(pos + 1);
+    return _ok_ids(one);
+  } else if b0 >= 194 && b0 <= 223 {
+    need = 1;
+    cp = b0 & 31;
+  } else if b0 >= 224 && b0 <= 239 {
+    need = 2;
+    cp = b0 & 15;
+  } else if b0 >= 240 && b0 <= 244 {
+    need = 3;
+    cp = b0 & 7;
+  } else {
+    return _err_ids("llm: invalid utf8");
+  }
+  if pos + need >= n {
+    return _err_ids("llm: invalid utf8");
+  }
+  var k = 1;
+  while k <= need {
+    let b = (buf[pos + k] as Int) & 0xFF;
+    if b < 128 || b > 191 {
+      return _err_ids("llm: invalid utf8");
+    }
+    cp = (cp << 6) | (b & 63);
+    k = k + 1;
+  }
+  // Overlong / surrogate / out-of-range checks.
+  if need == 2 && cp < 2048 {
+    return _err_ids("llm: invalid utf8");
+  }
+  if need == 3 && (cp < 65536 || (cp >= 55296 && cp <= 57343) || cp > 1114111) {
+    return _err_ids("llm: invalid utf8");
+  }
+  var two = Vec[Int].new();
+  two.push(cp);
+  two.push(pos + need + 1);
+  return _ok_ids(two);
+}
+
+/// GPT-2 escape layer: map every input byte through `bytes_to_unicode` and
+/// append its UTF-8 encoding to `out`. Returns the number of input bytes
+/// consumed. Byte 0x20 appends the two bytes C4 A0 (U+0120); every printable
+/// byte except space appends itself. No allocation failure surface; the only
+/// error is an out-of-range UTF-8 encode (unreachable for 0..255).
+pub fn llm_gpt2_escape(bytes: &Vec[UInt8], out: &mut Vec[UInt8]) -> Result[Int, Str] {
+  var i = 0;
+  while i < bytes.len() {
+    let b = (bytes[i] as Int) & 0xFF;
+    let cr = llm_gpt2_byte_to_codepoint(b);
+    if !cr.is_ok {
+      return _err_int(cr.error);
+    }
+    let cp: Int = cr.value;
+    let ar = llm_utf8_append(cp, out);
+    if !ar.is_ok {
+      return _err_int(ar.error);
+    }
+    i = i + 1;
+  }
+  return _ok_int(i);
+}
+
+/// Inverse GPT-2 escape layer: decode strict UTF-8 codepoints from `escaped`
+/// and append the original byte values to `out`. Returns the number of input
+/// BYTES consumed. Error cases: `llm: invalid utf8` (malformed sequence) and
+/// `llm: codepoint not in gpt2 byte map` (a codepoint the escape layer never
+/// produces).
+pub fn llm_gpt2_unescape(escaped: &Vec[UInt8], out: &mut Vec[UInt8]) -> Result[Int, Str] {
+  let n = escaped.len();
+  var pos = 0;
+  while pos < n {
+    let dr = _utf8_decode_at(escaped, pos);
+    if !dr.is_ok {
+      return _err_int(dr.error);
+    }
+    let pair: Vec[Int] = dr.value;
+    let cp: Int = pair[0];
+    let next: Int = pair[1];
+    let br = llm_gpt2_codepoint_to_byte(cp);
+    if !br.is_ok {
+      return _err_int(br.error);
+    }
+    let b: Int = br.value;
+    out.push((b as UInt8));
+    pos = next;
+  }
+  return _ok_int(pos);
+}
+
+/// Convenience wrapper over `llm_gpt2_unescape` for a `Str` byte buffer (for
+/// example a token string read from the GGUF vocabulary). Returns the number
+/// of input bytes consumed.
+pub fn llm_gpt2_unescape_str(s: Str, out: &mut Vec[UInt8]) -> Result[Int, Str] {
+  var tmp = Vec[UInt8].new();
+  let n = string.str_len(s);
+  var i = 0;
+  while i < n {
+    let b = _byte_at(s, i);
+    tmp.push((b as UInt8));
+    i = i + 1;
+  }
+  return llm_gpt2_unescape(&tmp, out);
+}
+
+// Length of a GPT-2 contraction alternative starting at `pos`, or 0.
+// Pattern order: 's|'t|'re|'ve|'m|'ll|'d (lowercase, byte domain).
+fn _gpt2_contraction_len(text: Str, pos: Int) -> Int {
+  let n = string.str_len(text);
+  if pos >= n || _byte_at(text, pos) != 39 {
+    return 0;
+  }
+  if pos + 1 >= n {
+    return 0;
+  }
+  let c1 = _byte_at(text, pos + 1);
+  if c1 == 115 || c1 == 116 || c1 == 109 || c1 == 100 {
+    return 2;  // 's 't 'm 'd
+  }
+  if pos + 2 >= n {
+    return 0;
+  }
+  let c2 = _byte_at(text, pos + 2);
+  if c1 == 114 && c2 == 101 {
+    return 3;  // 're
+  }
+  if c1 == 118 && c2 == 101 {
+    return 3;  // 've
+  }
+  if c1 == 108 && c2 == 108 {
+    return 3;  // 'll
+  }
+  return 0;
+}
+
+/// GPT-2 regex pre-tokenizer over the ASCII byte domain. Hand-rolled matcher
+/// for the llama.cpp GPT-2 expression
+///   `'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+`
+/// evaluated left to right with first-alternative-wins at each position.
+/// Documented deviation (SPEC.md section 8): \p{L}, \p{N} and \s are the
+/// ASCII classes A-Z/a-z, 0-9 and {09..0D,20}; bytes >= 0x80 are classified
+/// as "other" (non-letter, non-digit, non-space). This is byte-exact for the
+/// printable-ASCII fixture domain and is the minimal matcher for the pattern
+/// shape (the package has no regex engine). Returns the chunk list; empty
+/// text yields an empty list. No error case over the byte domain.
+pub fn llm_gpt2_pretokenize(text: Str) -> Result[Vec[Str], Str] {
+  var out = Vec[Str].new();
+  let n = string.str_len(text);
+  var pos = 0;
+  while pos < n {
+    // 1. contractions
+    let clen = _gpt2_contraction_len(text, pos);
+    if clen > 0 {
+      out.push(string.str_slice(text, pos, pos + clen));
+      pos = pos + clen;
+      continue;
+    }
+    let b = _byte_at(text, pos);
+    // 2. " ?\p{L}+"
+    var q = pos;
+    if b == 32 {
+      q = pos + 1;
+    }
+    if q < n && _is_ascii_letter(_byte_at(text, q)) {
+      var e = q;
+      while e < n && _is_ascii_letter(_byte_at(text, e)) {
+        e = e + 1;
+      }
+      out.push(string.str_slice(text, pos, e));
+      pos = e;
+      continue;
+    }
+    // 3. " ?\p{N}+"
+    if q < n && _is_ascii_digit(_byte_at(text, q)) {
+      var e2 = q;
+      while e2 < n && _is_ascii_digit(_byte_at(text, e2)) {
+        e2 = e2 + 1;
+      }
+      out.push(string.str_slice(text, pos, e2));
+      pos = e2;
+      continue;
+    }
+    // 4. " ?[^\s\p{L}\p{N}]+"
+    if q < n {
+      let qb = _byte_at(text, q);
+      if !_is_ascii_space(qb) && !_is_ascii_letter(qb) && !_is_ascii_digit(qb) {
+        var e3 = q;
+        while e3 < n {
+          let eb = _byte_at(text, e3);
+          if _is_ascii_space(eb) || _is_ascii_letter(eb) || _is_ascii_digit(eb) {
+            break;
+          }
+          e3 = e3 + 1;
+        }
+        out.push(string.str_slice(text, pos, e3));
+        pos = e3;
+        continue;
+      }
+    }
+    // 5/6. whitespace: maximal run; when followed by a non-space, leave the
+    // final whitespace for the next chunk (regex `\s+(?!\S)` backtracking).
+    if _is_ascii_space(b) {
+      var e4 = pos;
+      while e4 < n && _is_ascii_space(_byte_at(text, e4)) {
+        e4 = e4 + 1;
+      }
+      if e4 < n && e4 - pos >= 2 {
+        out.push(string.str_slice(text, pos, e4 - 1));
+        pos = e4 - 1;
+      } else {
+        out.push(string.str_slice(text, pos, e4));
+        pos = e4;
+      }
+      continue;
+    }
+    // Unreachable: every byte falls into 2-6.
+    out.push(string.str_slice(text, pos, pos + 1));
+    pos = pos + 1;
+  }
+  return _ok_strs(out);
+}
+
+// --------------------------------------------------
+//  SPM tokenizer core (SPEC.md 10.6; ROADMAP lists "llama" first)
+// --------------------------------------------------
+
+// Ok(v) for Result[LlmSpmVocab, Str].
+fn _ok_spm(v: LlmSpmVocab) -> Result[LlmSpmVocab, Str] {
+  return Ok(v);
+}
+
+// Err(m) for Result[LlmSpmVocab, Str].
+fn _err_spm(m: Str) -> Result[LlmSpmVocab, Str] {
+  return Err(m);
+}
+
+// Numeric value of one hex digit, or -1.
+fn _hex_digit(c: Int) -> Int {
+  if c >= 48 && c <= 57 {
+    return c - 48;
+  }
+  if c >= 97 && c <= 102 {
+    return c - 87;
+  }
+  if c >= 65 && c <= 70 {
+    return c - 55;
+  }
+  return -1;
+}
+
+// Decode an 8-character little-endian f32 hex string (the xiom.gguf float
+// array element form) into its 32-bit pattern. Error case:
+// `llm: spm score hex is invalid`.
+fn _f32_hex_bits(hex: Str) -> Result[Int, Str] {
+  if string.str_len(hex) != 8 {
+    return _err_int("llm: spm score hex is invalid");
+  }
+  var bits = 0;
+  var k = 0;
+  while k < 4 {
+    let hi = _hex_digit(_byte_at(hex, 2 * k));
+    let lo = _hex_digit(_byte_at(hex, 2 * k + 1));
+    if hi < 0 || lo < 0 {
+      return _err_int("llm: spm score hex is invalid");
+    }
+    let bytev = hi * 16 + lo;
+    bits = bits | (bytev << (8 * k));
+    k = k + 1;
+  }
+  return _ok_int(bits);
+}
+
+// Highest token id whose string equals `s`, else -1 (same overwrite semantics
+// as the GPT-2 lookup: duplicates resolve to the highest id).
+fn _find_spm_token_ids(tokens: &Vec[Str], s: Str) -> Int {
+  var found = -1;
+  var i = 0;
+  while i < tokens.len() {
+    let t: Str = tokens[i];
+    if _str_is(t, s) {
+      found = i;
+    }
+    i = i + 1;
+  }
+  return found;
+}
+
+/// SPM (`tokenizer.ggml.model == "llama"`) vocabulary extracted from a GGUF
+/// header: tokens, optional `tokenizer.ggml.scores` (f32 array, decoded to an
+/// EXACT common-exponent integer scale), optional token types and bos/eos.
+/// Scores are normalised at extraction to one integer scale `score_e` (the
+/// maximum decoded exponent), so `scores[i] / 2^score_e` is the exact file
+/// value and plain Int comparison is exact. Missing scores default to 0 for
+/// every token (all ties). Error cases: `llm: tokenizer model missing`,
+/// `llm: tokenizer model is not a string`,
+/// `llm: spm tokenizer model is not llama`, the tokens/token_type errors from
+/// the GPT-2 extractor (same messages), `llm: spm scores are not a float
+/// array`, `llm: spm score count smaller than token count`,
+/// `llm: spm score hex is invalid`, `llm: spm score overflow`.
+pub fn llm_spm_vocab_from_gguf(g: &Gguf) -> Result[LlmSpmVocab, Str] {
+  let mi = _kv_index_or_neg(g, "tokenizer.ggml.model");
+  if mi < 0 {
+    return _err_spm("llm: tokenizer model missing");
+  }
+  let mt = gguf_kv_type(g, mi);
+  if !mt.is_ok || mt.value != 8 {
+    return _err_spm("llm: tokenizer model is not a string");
+  }
+  let mr = gguf_kv_str(g, mi);
+  if !mr.is_ok {
+    return _err_spm("llm: tokenizer model is not a string");
+  }
+  let model: Str = mr.value;
+  if !_str_is(model, "llama") {
+    return _err_spm("llm: spm tokenizer model is not llama");
+  }
+
+  let ti = _kv_index_or_neg(g, "tokenizer.ggml.tokens");
+  if ti < 0 {
+    return _err_spm("llm: tokenizer tokens missing");
+  }
+  let tt = gguf_kv_type(g, ti);
+  if !tt.is_ok || tt.value != 9 {
+    return _err_spm("llm: tokenizer tokens is not a string array");
+  }
+  let ta = gguf_kv_arr_type(g, ti);
+  if !ta.is_ok || ta.value != 8 {
+    return _err_spm("llm: tokenizer tokens is not a string array");
+  }
+  let tc = gguf_kv_arr_count(g, ti);
+  if !tc.is_ok {
+    return _err_spm("llm: tokenizer tokens is not a string array");
+  }
+  let n_tokens = tc.value;
+  var tokens = Vec[Str].new();
+  var e = 0;
+  while e < n_tokens {
+    let er = gguf_kv_arr_str(g, ti, e);
+    if !er.is_ok {
+      return _err_spm("llm: tokenizer tokens is not a string array");
+    }
+    let s: Str = er.value;
+    tokens.push(s);
+    e = e + 1;
+  }
+
+  // Scores: optional f32 array. Decode every value to (m, e), then fold to a
+  // single exact exponent. Absent -> all zero.
+  var scores = Vec[Int].new();
+  var score_e = 0;
+  let qi = _kv_index_or_neg(g, "tokenizer.ggml.scores");
+  if qi >= 0 {
+    let qt = gguf_kv_type(g, qi);
+    if !qt.is_ok || qt.value != 9 {
+      return _err_spm("llm: spm scores are not a float array");
+    }
+    let qa = gguf_kv_arr_type(g, qi);
+    if !qa.is_ok || qa.value != 6 {
+      return _err_spm("llm: spm scores are not a float array");
+    }
+    let qc = gguf_kv_arr_count(g, qi);
+    if !qc.is_ok || qc.value < n_tokens {
+      return _err_spm("llm: spm score count smaller than token count");
+    }
+    var sm = Vec[Int].new();
+    var se = Vec[Int].new();
+    var max_e = 0;
+    var k = 0;
+    while k < n_tokens {
+      let hr = gguf_kv_arr_str(g, qi, k);
+      if !hr.is_ok {
+        return _err_spm("llm: spm scores are not a float array");
+      }
+      let hex: Str = hr.value;
+      let br = _f32_hex_bits(hex);
+      if !br.is_ok {
+        return _err_spm(br.error);
+      }
+      let bits: Int = br.value;
+      let sr = llm_f32_to_scaled(bits);
+      if !sr.is_ok {
+        return _err_spm(sr.error);
+      }
+      let scl: LlmScale = sr.value;
+      let smv: Int = scl.m;
+      let sev: Int = scl.e;
+      sm.push(smv);
+      se.push(sev);
+      if sev > max_e {
+        max_e = sev;
+      }
+      k = k + 1;
+    }
+    var j = 0;
+    while j < n_tokens {
+      let mv: Int = sm[j];
+      let ev: Int = se[j];
+      let sh = max_e - ev;
+      var scaled = mv;
+      if sh > 0 {
+        if sh > 40 {
+          return _err_spm("llm: spm score overflow");
+        }
+        let mult = 1 << sh;
+        var am = mv;
+        if am < 0 {
+          am = 0 - am;
+        }
+        if am > 4000000000000000000 / mult {
+          return _err_spm("llm: spm score overflow");
+        }
+        scaled = mv * mult;
+      }
+      scores.push(scaled);
+      j = j + 1;
+    }
+    score_e = max_e;
+  } else {
+    var d = 0;
+    while d < n_tokens {
+      scores.push(0);
+      d = d + 1;
+    }
+  }
+
+  // Token types (same rules as the GPT-2 extractor).
+  var has_types = 0;
+  var token_types = Vec[Int].new();
+  let si = _kv_index_or_neg(g, "tokenizer.ggml.token_type");
+  if si >= 0 {
+    let st = gguf_kv_type(g, si);
+    if !st.is_ok || st.value != 9 {
+      return _err_spm("llm: token types are not an integer array");
+    }
+    let sa = gguf_kv_arr_type(g, si);
+    if !sa.is_ok || !_type_is_integer(sa.value) {
+      return _err_spm("llm: token types are not an integer array");
+    }
+    let sc = gguf_kv_arr_count(g, si);
+    if !sc.is_ok || sc.value < n_tokens {
+      return _err_spm("llm: token type count smaller than token count");
+    }
+    has_types = 1;
+    var tk = 0;
+    while tk < n_tokens {
+      let kr = gguf_kv_arr_int(g, si, tk);
+      if !kr.is_ok {
+        return _err_spm("llm: token types are not an integer array");
+      }
+      let tv: Int = kr.value;
+      token_types.push(tv);
+      tk = tk + 1;
+    }
+  } else {
+    var td = 0;
+    while td < n_tokens {
+      token_types.push(1);
+      td = td + 1;
+    }
+  }
+
+  var bos = -1;
+  let bi = _kv_index_or_neg(g, "tokenizer.ggml.bos_token_id");
+  if bi >= 0 {
+    let bv = gguf_kv_int(g, bi);
+    if !bv.is_ok {
+      return _err_spm("llm: bos token id is not an integer");
+    }
+    bos = bv.value;
+  }
+  var eos = -1;
+  let ei = _kv_index_or_neg(g, "tokenizer.ggml.eos_token_id");
+  if ei >= 0 {
+    let ev2 = gguf_kv_int(g, ei);
+    if !ev2.is_ok {
+      return _err_spm("llm: eos token id is not an integer");
+    }
+    eos = ev2.value;
+  }
+
+  let vocab = LlmSpmVocab{
+    model: model;
+    tokens: tokens;
+    scores: scores;
+    score_e: score_e;
+    has_types: has_types;
+    token_types: token_types;
+    bos: bos;
+    eos: eos;
+  };
+  return _ok_spm(vocab);
+}
+
+/// SPM model string ("llama").
+pub fn llm_spm_model(v: &LlmSpmVocab) -> Str {
+  return v.model;
+}
+
+/// Number of SPM tokens.
+pub fn llm_spm_size(v: &LlmSpmVocab) -> Int {
+  let toks: Vec[Str] = v.tokens;
+  return toks.len();
+}
+
+/// Token string at `i`, or `llm: token index out of range`.
+pub fn llm_spm_token(v: &LlmSpmVocab, i: Int) -> Result[Str, Str] {
+  let toks: Vec[Str] = v.tokens;
+  if i < 0 || i >= toks.len() {
+    return _err_str("llm: token index out of range");
+  }
+  let s: Str = toks[i];
+  return _ok_str(s);
+}
+
+/// Exact SPM score of token `i` as `(m, e)` with value `m / 2^e`, or
+/// `llm: token index out of range`.
+pub fn llm_spm_score(v: &LlmSpmVocab, i: Int) -> Result[LlmScale, Str] {
+  let ss: Vec[Int] = v.scores;
+  if i < 0 || i >= ss.len() {
+    return _err_scale("llm: token index out of range");
+  }
+  let m: Int = ss[i];
+  let e: Int = v.score_e;
+  return _ok_scale(LlmScale{ m: m; e: e; });
+}
+
+/// Highest token id whose string equals `s`, else -1.
+pub fn llm_spm_find_token(v: &LlmSpmVocab, s: Str) -> Int {
+  let toks: Vec[Str] = v.tokens;
+  return _find_spm_token_ids(&toks, s);
+}
+
+/// BOS id from the header, or -1 when absent.
+pub fn llm_spm_bos(v: &LlmSpmVocab) -> Int {
+  return v.bos;
+}
+
+/// EOS id from the header, or -1 when absent.
+pub fn llm_spm_eos(v: &LlmSpmVocab) -> Int {
+  return v.eos;
+}
+
+/// SPM tokenize: scored merge traversal over the vocabulary. Symbols start as
+/// single bytes; while any adjacent pair concatenates to a token string, the
+/// candidate with the HIGHEST score is merged (ties to the leftmost pair, as
+/// llama.cpp's SPM bigram queue); repeat. Each final symbol must exist in the
+/// vocabulary. Empty text -> empty id list. Error case:
+/// `llm: spm byte not in vocabulary` (a final single-byte symbol has no
+/// token).
+pub fn llm_spm_encode(v: &LlmSpmVocab, text: Str) -> Result[Vec[Int], Str] {
+  let toks: Vec[Str] = v.tokens;
+  let ss: Vec[Int] = v.scores;
+  var syms = Vec[Str].new();
+  let n = string.str_len(text);
+  var i = 0;
+  while i < n {
+    let s = string.str_slice(text, i, i + 1);
+    syms.push(s);
+    i = i + 1;
+  }
+  while syms.len() >= 2 {
+    var best_at = -1;
+    var best_score = 0;
+    var p = 0;
+    while p + 1 < syms.len() {
+      let l: Str = syms[p];
+      let r: Str = syms[p + 1];
+      let id = _find_spm_token_ids(&toks, l + r);
+      if id >= 0 {
+        let scv: Int = ss[id];
+        if best_at < 0 || scv > best_score {
+          best_score = scv;
+          best_at = p;
+        }
+      }
+      p = p + 1;
+    }
+    if best_at < 0 {
+      break;
+    }
+    var next = Vec[Str].new();
+    var q = 0;
+    while q < syms.len() {
+      if q == best_at {
+        let l2: Str = syms[q];
+        let r2: Str = syms[q + 1];
+        next.push(l2 + r2);
+        q = q + 2;
+      } else {
+        let s2: Str = syms[q];
+        next.push(s2);
+        q = q + 1;
+      }
+    }
+    syms = next;
+  }
+  var ids = Vec[Int].new();
+  var k = 0;
+  while k < syms.len() {
+    let s3: Str = syms[k];
+    let id2 = _find_spm_token_ids(&toks, s3);
+    if id2 < 0 {
+      return _err_ids("llm: spm byte not in vocabulary");
+    }
+    ids.push(id2);
+    k = k + 1;
+  }
+  return _ok_ids(ids);
+}
+
+/// Decode SPM ids by concatenating token strings. Error case:
+/// `llm: token id out of range`.
+pub fn llm_spm_decode(v: &LlmSpmVocab, ids: &Vec[Int]) -> Result[Str, Str] {
   let toks: Vec[Str] = v.tokens;
   var out = "";
   var i = 0;

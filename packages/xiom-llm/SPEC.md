@@ -43,12 +43,20 @@ Implemented in 0.1.0 (M1 + M2):
   sub-scales/mins, 4-bit quants), the 6-bit unpack helper
   `llm_k_get_scale_min_k4`, and the neighboring `llm_dequant_q5_0`
   (5-bit quants, shared f16 scale).
+* tokenizer completion (M3 remainder, 2026-10-17, section 10.6): the GPT-2
+  `bytes_to_unicode` escape/unescape layer as exact integer/UTF-8 surfaces
+  (`llm_gpt2_*`, `llm_utf8_append`), the GPT-2 regex pre-tokenizer over the
+  ASCII byte domain (`llm_gpt2_pretokenize`), and SPM (`"llama"`) vocabulary
+  extraction + scored-merge tokenize/decode (`llm_spm_*`). Real non-ASCII
+  vocabularies still cannot be loaded; the exact container failure is pinned
+  in `docs/probe-nonascii-gguf.md` and test `t83`.
 
 Declared for later milestones (section 10):
 
 * benchmark harness (M3 second half remainder);
-* tokenizer completion: escape layer, regex pre-tokenizer, SPM/WPM
-  (section 10.6).
+* WPM (`"bert"`) vocabulary/tokenize path and the remaining tokenizer flags
+  (BOS/EOS insertion, `tokenizer.ggml.add_bos_token` /
+  `add_eos_token`), section 10.6.
 
 ## 2. Non-goals
 
@@ -63,8 +71,9 @@ Declared for later milestones (section 10):
 * No sampling strategies beyond greedy argmax until the generation-loop
   milestone declares them. M3a implements greedy argmax plus a deterministic
   integer sampler (temperature / top-k / top-p over a seeded LCG); M3b adds
-  the append-only KV cache and longer-context attention. Quantization
-  breadth (Q4_K-class) remains deferred.
+  the append-only KV cache and longer-context attention. Q4_K-class / Q5_0
+  dequantization landed with the M3 second-half remainder; Q4_0/Q5_1/Q6_K
+  remain unscheduled.
 * No UTF-8 vocabularies in M1: `xiom.gguf` parses printable-ASCII strings
   only (see section 4).
 
@@ -153,13 +162,13 @@ Accessors (all pure; Str values are copies):
 ## 6. Byte-level BPE semantics (implemented)
 
 M1 operates on a **printable-ASCII byte domain** (0x20..0x7E): that is the
-only domain representable in a `Gguf` string today. Two llama.cpp stages
-are therefore deferred (declared in section 10.6): the GPT-2
-`bytes_to_unicode` escape layer (`unicode_byte_to_utf8`, identity only for
-0x21..0x7E; byte 0x20 escapes to the non-ASCII `U+0120`) and the regex
-pre-tokenizer (`unicode_regex_split`). M1's synthetic fixture stores the
-space as a literal token, i.e. the escape is the identity **by fixture
-construction**, not by file semantics.
+only domain representable in a `Gguf` string today. The GPT-2
+`bytes_to_unicode` escape layer (`llm_gpt2_*`: identity for 0x21..0x7E;
+byte 0x20 escapes to U+0120) and the regex pre-tokenizer
+(`llm_gpt2_pretokenize`) are implemented as separate pure surfaces
+(section 10.6); `llm_bpe_encode` itself keeps the raw-byte domain. M1's
+synthetic fixture stores the space as a literal token, i.e. the escape is
+the identity **by fixture construction**, not by file semantics.
 
 `llm_bpe_encode(v, text) -> Result[Vec[Int], Str]`:
 
@@ -274,19 +283,44 @@ Dequantization breadth (M3 second-half remainder):
 * `llm: q4_k scale index out of range`, `llm: q4_k scales too short`
   (`llm_k_get_scale_min_k4`)
 
+Tokenizer completion (M3 remainder):
+
+* `llm: byte out of range` (`llm_gpt2_byte_to_codepoint` outside 0..255)
+* `llm: codepoint not in gpt2 byte map`
+  (`llm_gpt2_codepoint_to_byte`, `llm_gpt2_unescape`)
+* `llm: codepoint out of range` (`llm_utf8_append`)
+* `llm: invalid utf8` (`llm_gpt2_unescape`)
+* `llm: spm tokenizer model is not llama`, `llm: spm scores are not a float
+  array`, `llm: spm score count smaller than token count`,
+  `llm: spm score hex is invalid`, `llm: spm score overflow`
+  (`llm_spm_vocab_from_gguf`; the model/tokens/token_type/bos/eos messages
+  are the same as the GPT-2 extractor)
+* `llm: spm byte not in vocabulary` (`llm_spm_encode`)
+* `llm: token index out of range`, `llm: token id out of range`
+  (SPM accessors / decode, same messages as the GPT-2 surface)
+
 ## 8. Documented deviations from llama.cpp (M1)
 
 1. **Fail-closed symbol lookup.** llama.cpp's BPE session falls back to
    per-character byte tokens for an unknown final symbol and silently
    drops bytes with no token. M1 fails closed with the deterministic
    errors above (no silent data loss).
-2. **ASCII domain / escape layer deferred.** See section 6; real
-   (non-ASCII) vocabularies cannot be read until `xiom.gguf` accepts the
-   GPT-2 escaped strings (M3 item).
-3. **No regex pre-tokenizer.** llama.cpp splits text with model-family
-   regexes before BPE. M1 treats the whole input as one chunk; that is
-   byte-exact equivalent whenever no regex chunk boundary falls inside a
-   token span, and is the declared starting point for the fixture domain.
+2. **ASCII domain / escape layer.** The GPT-2 `bytes_to_unicode`
+   escape/unescape layer is implemented as pure byte/codepoint surfaces
+   (section 10.6) and pinned against hand-computed vectors, but a real GGUF
+   vocabulary containing the escaped non-ASCII token strings cannot be read:
+   `xiom.gguf` 0.1.3 still rejects any string byte outside 0x20..0x7E
+   (`gguf: string is not printable ASCII`; exact probe in
+   `docs/probe-nonascii-gguf.md`, test `t83`). `llm_bpe_encode` therefore
+   keeps the raw-byte ASCII behavior and does not apply the escape
+   automatically.
+3. **Regex pre-tokenizer subset.** llama.cpp splits text with model-family
+   regexes before BPE. `llm_gpt2_pretokenize` implements the GPT-2
+   expression `'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|
+   \s+(?!\S)|\s+` with a hand-rolled matcher (the package has no regex
+   engine). Documented deviation: `\p{L}` / `\p{N}` / `\s` are the ASCII
+   classes A-Z/a-z, 0-9 and {09..0D,20}; bytes >= 0x80 are "other". That is
+   byte-exact over the printable-ASCII fixture domain.
 4. **token_type element type.** llama.cpp requires the array element type
    to be i32 exactly; M1 accepts any GGUF integer element type.
 5. **token_type longer than tokens.** Both accept longer arrays (extra
@@ -305,6 +339,12 @@ Dequantization breadth (M3 second-half remainder):
    exercised on real container tensor data, but the container carries no
    type-8 tensor info. Lifting this needs a `xiom.gguf` builder change
    (out of lane scope).
+8. **SPM normalization / WPM not implemented.** `llm_spm_encode` is the
+   scored-merge core over the token strings as stored, with fail-closed
+   unknown-byte handling. SentencePiece's `▁` (U+2581) normalization and
+   byte-fallback pieces are not applied, and WPM (`"bert"`) remains
+   unimplemented; both need the non-ASCII string domain above for real
+   vocabularies. The SPM core is pinned on ASCII scored fixtures.
 
 ## 9. XGGUF-ARRSTR: string-array offset workaround (RESOLVED)
 
@@ -541,23 +581,78 @@ IMPLEMENTED in M3b, 2026-10-16 -- second half: KV cache + longer context]**
   identity RoPE table for every position (valid over the fixture domain);
   caller-supplied per-position tables are `llm_forward_cache`'s contract.
 
-**Deferred (M3 second half remainder):** the package-local benchmark
-harness and the tokenizer escape/regex/SPM/WPM work (section 10.6).
-Q4_K-class dequantization (`llm_dequant_q4_k`) and the neighboring Q5_0
-(`llm_dequant_q5_0`) landed with the M3 second-half remainder (section
-10.3). No multi-layer attention kernel beyond the single-layer fixture is
-implemented (the M3 fixture is 1 layer).
+**Deferred:** the package-local benchmark harness, WPM (`"bert"`) and the
+BOS/EOS insertion flags (section 10.6). Q4_K-class dequantization
+(`llm_dequant_q4_k`) and the neighboring Q5_0 (`llm_dequant_q5_0`) landed
+with the M3 second-half remainder (section 10.3); the GPT-2 escape layer,
+ASCII pre-tokenizer and SPM core landed with the tokenizer completion
+(section 10.6). No multi-layer attention kernel beyond the single-layer
+fixture is implemented (the M3 fixture is 1 layer).
 
-### 10.6 Tokenizer milestones (deferred pieces)
+### 10.6 Tokenizer milestones
 
-* GPT-2 `bytes_to_unicode` escape/unescape layer (requires non-ASCII GGUF
-  strings; blocked on `xiom.gguf` string domain).
-* Regex pre-tokenizer families (at minimum the GPT-2/llama3 expressions
-  from `llama-vocab.cpp`) with a documented subset guarantee.
-* SPM (`tokenizer.ggml.model == "llama"`) and WPM (`"bert"`)
-  vocabulary extraction + their tokenize paths.
+**[IMPLEMENTED in the M3 remainder, 2026-10-17 -- ASCII-safe surfaces;
+real non-ASCII vocabularies remain container-blocked]**
 
-## 11. Test matrix (182 checks, `tests/test_conformance.xi`)
+GPT-2 escape layer (pure functions, no GGUF dependency):
+
+* `llm_gpt2_byte_to_codepoint(b) -> Result[Int, Str]` -- the exact
+  `bytes_to_unicode` map: the 188 visible bytes (0x21..0x7E, 0xA1..0xAC,
+  0xAE..0xFF) map to themselves; the other 68 bytes map in ascending order
+  to 256..323 (0x20 -> U+0120 = 288, 0x7F -> U+0121, 0xAD -> U+0143).
+  Error: `llm: byte out of range`.
+* `llm_gpt2_codepoint_to_byte(cp) -> Result[Int, Str]` -- exact inverse;
+  error `llm: codepoint not in gpt2 byte map`.
+* `llm_utf8_append(cp, out) -> Result[Int, Str]` -- strict UTF-8 append
+  (1..4 bytes, no surrogates/overlongs), returns the byte count; error
+  `llm: codepoint out of range`.
+* `llm_gpt2_escape(bytes, out) -> Result[Int, Str]` -- maps every input
+  byte and appends its UTF-8 form (0x20 -> C4 A0); returns the input byte
+  count.
+* `llm_gpt2_unescape(escaped, out) -> Result[Int, Str]` /
+  `llm_gpt2_unescape_str(s, out)` -- strict UTF-8 decode back to bytes;
+  returns the input byte count. Errors: `llm: invalid utf8`,
+  `llm: codepoint not in gpt2 byte map`.
+* Escape/unescape are exact inverses over all 256 bytes (pinned).
+
+Regex pre-tokenizer:
+
+* `llm_gpt2_pretokenize(text) -> Result[Vec[Str], Str]` -- the GPT-2 split
+  pattern with a hand-rolled matcher (section 8 item 3 for the ASCII
+  subset). Alternatives are tried left to right at each position:
+  contractions (`'s|'t|'re|'ve|'m|'ll|'d`), optional-space letters,
+  optional-space digits, optional-space "other" run, then the whitespace
+  backtracking rule `\s+(?!\S)` followed by `\s+`. Empty text yields an
+  empty chunk list.
+
+SPM (`tokenizer.ggml.model == "llama"`):
+
+* `LlmSpmVocab` (model, tokens, scores, score_e, has_types, token_types,
+  bos, eos) produced only by `llm_spm_vocab_from_gguf(g)`.
+* `llm_spm_vocab_from_gguf` -- model must be exactly `llama`; tokens must be
+  a string array; `tokenizer.ggml.scores` is optional (an f32 array, element
+  type 6, at least one value per token) and is decoded through
+  `llm_f32_to_scaled` into exact `(m, e)` values, then folded to the common
+  exponent `score_e = max(e)` so plain Int comparison is exact. Missing
+  scores default to 0. Token types / bos / eos follow the GPT-2 extraction
+  rules. Errors are listed in section 7.
+* Accessors: `llm_spm_model`, `llm_spm_size`, `llm_spm_token`,
+  `llm_spm_score` (returns the normalised `LlmScale`), `llm_spm_find_token`
+  (highest duplicate id), `llm_spm_bos`, `llm_spm_eos`.
+* `llm_spm_encode(v, text) -> Result[Vec[Int], Str]` -- scored merge
+  traversal: symbols start as single bytes; while any adjacent pair
+  concatenates to a vocabulary token, the candidate with the highest score
+  is merged (ties to the leftmost pair), one merge per step; final symbols
+  map exactly to ids. Empty text -> empty list. Error:
+  `llm: spm byte not in vocabulary` (fail closed).
+* `llm_spm_decode(v, ids) -> Result[Str, Str]` -- token-string
+  concatenation; error `llm: token id out of range`.
+
+Still declared: WPM (`"bert"`) extraction/tokenize, SentencePiece `▁`
+normalization and byte fallback, and the `add_bos_token` / `add_eos_token`
+flags (all need the non-ASCII GGUF string domain for real vocabularies).
+
+## 11. Test matrix (254 checks, `tests/test_conformance.xi`)
 
 All checks run against a synthetic deterministic fixture built with
 `xiom.gguf`'s builder: 6 metadata KVs, one tensor info
@@ -669,6 +764,39 @@ dmin = 0.25 -> shared `E = 12`, value 1.25 exactly `5120`); and the Q4_K
 empty / bad-length rejects. Every golden is hand-computed from the integer
 formula, not from a float reference.
 
+Tokenizer completion additions (checks 183-254, tests `t74`-`t83`):
+
+* escape layer (`t74`): hand-computed `bytes_to_unicode` anchors
+  (0x21->33, 0x7E->126, 0x20->288, 0x7F->289, 0xA1->161, 0xAD->323,
+  0xFF->255), inverse anchors, the all-256 byte/codepoint roundtrip, and the
+  out-of-range / unmapped rejects.
+* UTF-8 + escape bytes (`t75`): ASCII identity, `0x20 -> C4 A0`, the
+  `0x00/0x7F/0xAD -> C4 80 / C4 A1 / C5 83` vector, unescape back to
+  `0x20`, the all-256-byte escape/unescape roundtrip, truncated UTF-8,
+  stray continuation and unmapped-codepoint rejects, `unescape_str`, and
+  U+1F600 (4-byte) / U+00E9 (2-byte) appends plus the U+110000 reject.
+* pre-tokenizer (`t76`/`t77`): exact chunk lists for single/double spaces,
+  letter/digit alternation, trailing whitespace, empty text, `'s`/`'t`/
+  `'ll` contractions, an unknown apostrophe, newline runs, punctuation runs,
+  bare contraction, uppercase non-contraction, two-space gap, `1 2` ->
+  `["1", " 2"]`, decimal point, and leading two spaces.
+* SPM extraction (`t78`): raw GGUF (hand-written header, f32 score array)
+  with tokens `a b c ab bc` and scores `-1 -2 -3 -10 -1`; asserts model,
+  size, token(3)="ab", token(5) reject, score(0) = (-8388608, 23),
+  score(3) = -10.0 folded exactly to (-83886080, 23), find hit/miss,
+  default token type 1 and absent bos.
+* SPM encode (`t79`-`t81`): score-ordered traversal (`abc -> [0,4]` because
+  `bc` outscores `ab`, `cab -> [2,3]`), single pieces, empty text, the
+  leftmost tie-break (`abc -> [3,2]` and `abcabc -> [3,2,3,2]` with equal
+  scores), decode goldens, a four-text encode/decode roundtrip, unknown-byte
+  and id-range rejects.
+* SPM extraction errors (`t82`): a `gpt2` model header, an integer scores
+  array, and a short f32 scores array, each with the exact message.
+* non-ASCII probe (`t83`): a raw GGUF string `gpt2` + C4 A0 is rejected by
+  `gguf_parse` with exactly `gguf: string is not printable ASCII`, while
+  `llm_gpt2_escape([0x20])` emits C4 A0 (the container blocker for real
+  vocabularies). Recorded in `docs/probe-nonascii-gguf.md`.
+
 Golden-logit provenance (checks 75-78). The fixture is built so every integer
 step is exact: token 1 embedding row `[4,4,0,0]` (mean square 8, rms 2) ->
 `xn=[2,2,0,0]`; `Wq/Wk/Wv` select column 1 -> `q=k=v=[2,2,2,2]`; position-0
@@ -697,7 +825,11 @@ used by `llm_kv_cache_append`; no fresh compiler defect was encountered in
 M3b. The M3 second-half remainder (Q5_0/Q4_K dequantization) added only
 free functions over `&Vec[UInt8]` and introduced no new compiler defect
 (`Vec[Int]` locals, `<<`/`&` integer ops and `_ok_ids`/`_err_ids` leaf
-helpers all compile on v0.64.6).
+helpers all compile on v0.64.6). The tokenizer completion (escape layer,
+ASCII pre-tokenizer, SPM core) added only free functions over `Str`,
+`Vec[Str]`, `Vec[Int]` and `Vec[UInt8]`, plus one new struct type; it
+compiles on v0.64.6 with no new compiler defect. The raw-GGUF test helpers
+hand-write header bytes because `xiom.gguf` has no float-array builder entry.
 
 ## 13. Reference notes
 

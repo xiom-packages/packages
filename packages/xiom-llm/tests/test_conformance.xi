@@ -2389,6 +2389,538 @@ fn t73() -> Int {
 }
 
 // --------------------------------------------------
+//  Tokenizer completion fixtures (GPT-2 escape + pre-tokenizer + SPM)
+// --------------------------------------------------
+
+fn bytes_eq(a: &Vec[UInt8], w: &Vec[UInt8]) -> Bool {
+  if a.len() != w.len() {
+    return false;
+  }
+  var i = 0;
+  while i < a.len() {
+    let x: UInt8 = a[i];
+    let y: UInt8 = w[i];
+    if x != y {
+      return false;
+    }
+    i = i + 1;
+  }
+  return true;
+}
+
+fn strs_eq(a: &Vec[Str], w: &Vec[Str]) -> Bool {
+  if a.len() != w.len() {
+    return false;
+  }
+  var i = 0;
+  while i < a.len() {
+    let x: Str = a[i];
+    let y: Str = w[i];
+    if !str_eq(x, y) {
+      return false;
+    }
+    i = i + 1;
+  }
+  return true;
+}
+
+fn u8v(vals: &Vec[Int]) -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
+  var i = 0;
+  while i < vals.len() {
+    let x: Int = vals[i];
+    out.push((x as UInt8));
+    i = i + 1;
+  }
+  return out;
+}
+
+fn s1(a: Str) -> Vec[Str] {
+  var v = Vec[Str].new();
+  v.push(a);
+  return v;
+}
+
+fn s2(a: Str, b: Str) -> Vec[Str] {
+  var v = Vec[Str].new();
+  v.push(a);
+  v.push(b);
+  return v;
+}
+
+fn s3(a: Str, b: Str, c: Str) -> Vec[Str] {
+  var v = Vec[Str].new();
+  v.push(a);
+  v.push(b);
+  v.push(c);
+  return v;
+}
+
+fn s4(a: Str, b: Str, c: Str, d: Str) -> Vec[Str] {
+  var v = Vec[Str].new();
+  v.push(a);
+  v.push(b);
+  v.push(c);
+  v.push(d);
+  return v;
+}
+
+fn want_n6(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int) -> Vec[Int] {
+  var v = Vec[Int].new();
+  v.push(a);
+  v.push(b);
+  v.push(c);
+  v.push(d);
+  v.push(e);
+  v.push(f);
+  return v;
+}
+
+fn check_chunks(text: Str, want: &Vec[Str], name: Str) -> Int {
+  let r = llm_gpt2_pretokenize(text);
+  if !r.is_ok {
+    let got: Str = r.error;
+    return report(false, name + " (Err: " + got + ")");
+  }
+  let got_chunks: Vec[Str] = r.value;
+  return report(strs_eq(&got_chunks, want), name);
+}
+
+fn expect_spm_err(r: Result[LlmSpmVocab, Str], want: Str, name: Str) -> Int {
+  if r.is_ok {
+    return report(false, name + " (expected Err)");
+  }
+  let got: Str = r.error;
+  if !str_eq(got, want) {
+    return report(false, name + " (got: " + got + ")");
+  }
+  return report(true, name);
+}
+
+// Raw GGUF writer helpers for the SPM fixture (xiom.gguf's builder has no
+// float-array entry, and the test needs real f32 scores to pin score-order
+// traversal).
+fn wu32(out: &mut Vec[UInt8], x: Int) {
+  out.push(((x & 255) as UInt8));
+  out.push((((x >> 8) & 255) as UInt8));
+  out.push((((x >> 16) & 255) as UInt8));
+  out.push((((x >> 24) & 255) as UInt8));
+}
+
+fn wu64(out: &mut Vec[UInt8], x: Int) {
+  wu32(out, x & 0xFFFFFFFF);
+  wu32(out, (x >> 32) & 0xFFFFFFFF);
+}
+
+fn wascii(out: &mut Vec[UInt8], s: Str) {
+  let n = string.str_len(s);
+  wu64(out, n);
+  var i = 0;
+  while i < n {
+    let raw: UInt8 = string.byte_at(s, i);
+    out.push(raw);
+    i = i + 1;
+  }
+}
+
+// SPM ASCII tokens used by the scored fixtures.
+fn spm_tokens() -> Vec[Str] {
+  var t = Vec[Str].new();
+  t.push("a");   // 0
+  t.push("b");   // 1
+  t.push("c");   // 2
+  t.push("ab");  // 3
+  t.push("bc");  // 4
+  return t;
+}
+
+// Raw f32 bit patterns for -1.0, -2.0, -3.0, -10.0, -1.0 (scores of the
+// tokens above) and for five copies of -1.0 (the tie fixture).
+fn spm_score_bits_ordered() -> Vec[Int] {
+  var v = Vec[Int].new();
+  v.push(3212836864);  // -1.0  a
+  v.push(3221225472);  // -2.0  b
+  v.push(3225419776);  // -3.0  c
+  v.push(3240099840);  // -10.0 ab
+  v.push(3212836864);  // -1.0  bc
+  return v;
+}
+
+fn spm_score_bits_tied() -> Vec[Int] {
+  var v = Vec[Int].new();
+  var i = 0;
+  while i < 5 {
+    v.push(3212836864);
+    i = i + 1;
+  }
+  return v;
+}
+
+// Header: model "llama", tokens, scores (f32 array, first `score_count`
+// bit patterns written), no tensors, zero padding to the 32-byte alignment.
+fn raw_spm_gguf(tokens: &Vec[Str], bits: &Vec[Int], score_count: Int) -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
+  out.push((71 as UInt8));
+  out.push((71 as UInt8));
+  out.push((85 as UInt8));
+  out.push((70 as UInt8));
+  wu32(out, 3);
+  wu64(out, 0);
+  wu64(out, 3);
+  wascii(out, "tokenizer.ggml.model");
+  wu32(out, 8);
+  wascii(out, "llama");
+  wascii(out, "tokenizer.ggml.tokens");
+  wu32(out, 9);
+  wu32(out, 8);
+  wu64(out, tokens.len());
+  var t = 0;
+  while t < tokens.len() {
+    let ts: Str = tokens[t];
+    wascii(out, ts);
+    t = t + 1;
+  }
+  wascii(out, "tokenizer.ggml.scores");
+  wu32(out, 9);
+  wu32(out, 6);
+  wu64(out, score_count);
+  var k = 0;
+  while k < score_count {
+    let b: Int = bits[k];
+    wu32(out, b);
+    k = k + 1;
+  }
+  while out.len() % 32 != 0 {
+    out.push((0 as UInt8));
+  }
+  return out;
+}
+
+fn spm_vocab(bits: &Vec[Int]) -> LlmSpmVocab {
+  let tokens = spm_tokens();
+  let buf = raw_spm_gguf(&tokens, bits, tokens.len());
+  let pr = gguf_parse(&buf);
+  let g = pr.value;
+  let vr = llm_spm_vocab_from_gguf(&g);
+  return vr.value;
+}
+
+// Non-ASCII probe: a GGUF string value "gpt2" followed by the UTF-8 bytes
+// C4 A0 (U+0120, the escaped form of byte 0x20). The container rejects it.
+fn raw_nonascii_gguf() -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
+  out.push((71 as UInt8));
+  out.push((71 as UInt8));
+  out.push((85 as UInt8));
+  out.push((70 as UInt8));
+  wu32(out, 3);
+  wu64(out, 0);
+  wu64(out, 1);
+  wascii(out, "tokenizer.ggml.model");
+  wu32(out, 8);
+  wu64(out, 6);
+  out.push((103 as UInt8));  // g
+  out.push((112 as UInt8));  // p
+  out.push((116 as UInt8));  // t
+  out.push((50 as UInt8));   // 2
+  out.push((196 as UInt8));  // U+0120 UTF-8 byte 1
+  out.push((160 as UInt8));  // U+0120 UTF-8 byte 2
+  while out.len() % 32 != 0 {
+    out.push((0 as UInt8));
+  }
+  return out;
+}
+
+fn check_spm_encode(v: &LlmSpmVocab, text: Str, want: &Vec[Int], name: Str) -> Int {
+  let r = llm_spm_encode(v, text);
+  if !r.is_ok {
+    let got: Str = r.error;
+    return report(false, name + " (Err: " + got + ")");
+  }
+  let got_ids: Vec[Int] = r.value;
+  return report(ids_eq(&got_ids, want), name);
+}
+
+// GPT-2 bytes_to_unicode mapping: visible bytes identity, 68 escapes.
+fn t74() -> Int {
+  var sum = 0;
+  let c21 = llm_gpt2_byte_to_codepoint(33);
+  let c20 = llm_gpt2_byte_to_codepoint(32);
+  let c7e = llm_gpt2_byte_to_codepoint(126);
+  let c7f = llm_gpt2_byte_to_codepoint(127);
+  let ca1 = llm_gpt2_byte_to_codepoint(161);
+  let cad = llm_gpt2_byte_to_codepoint(173);
+  let cff = llm_gpt2_byte_to_codepoint(255);
+  if !c21.is_ok || !c20.is_ok || !c7e.is_ok || !c7f.is_ok || !ca1.is_ok || !cad.is_ok || !cff.is_ok {
+    return report(false, "gpt2 byte map accessors ok");
+  }
+  sum = sum + report(c21.value == 33, "gpt2 0x21 -> U+0021");
+  sum = sum + report(c7e.value == 126, "gpt2 0x7E -> U+007E");
+  sum = sum + report(c20.value == 288, "gpt2 0x20 -> U+0120 (288)");
+  sum = sum + report(c7f.value == 289, "gpt2 0x7F -> U+0121 (289)");
+  sum = sum + report(ca1.value == 161, "gpt2 0xA1 -> U+00A1");
+  sum = sum + report(cad.value == 323, "gpt2 0xAD -> U+0143 (323)");
+  sum = sum + report(cff.value == 255, "gpt2 0xFF -> U+00FF");
+
+  let i288 = llm_gpt2_codepoint_to_byte(288);
+  let i323 = llm_gpt2_codepoint_to_byte(323);
+  let i33 = llm_gpt2_codepoint_to_byte(33);
+  if !i288.is_ok || !i323.is_ok || !i33.is_ok {
+    return sum + report(false, "gpt2 inverse accessors ok");
+  }
+  sum = sum + report(i288.value == 32, "gpt2 U+0120 -> 0x20");
+  sum = sum + report(i323.value == 173, "gpt2 U+0143 -> 0xAD");
+  sum = sum + report(i33.value == 33, "gpt2 U+0021 -> 0x21");
+
+  var all_ok = true;
+  var b = 0;
+  while b < 256 {
+    let cr = llm_gpt2_byte_to_codepoint(b);
+    let cp: Int = cr.value;
+    let br = llm_gpt2_codepoint_to_byte(cp);
+    if !br.is_ok || br.value != b {
+      all_ok = false;
+    }
+    b = b + 1;
+  }
+  sum = sum + report(all_ok, "gpt2 byte/codepoint roundtrip (256)");
+  sum = sum + expect_int_err(llm_gpt2_byte_to_codepoint(256), "llm: byte out of range", "gpt2 byte 256 rejected");
+  sum = sum + expect_int_err(llm_gpt2_codepoint_to_byte(0), "llm: codepoint not in gpt2 byte map", "gpt2 U+0000 rejected");
+  return sum;
+}
+
+// UTF-8 + escape/unescape golden vectors.
+fn t75() -> Int {
+  var sum = 0;
+  var e0 = Vec[UInt8].new();
+  let r0 = llm_gpt2_escape(&u8v(&want2(104, 105)), &mut e0);
+  if !r0.is_ok {
+    return report(false, "escape ascii ok");
+  }
+  sum = sum + report(r0.value == 2 && bytes_eq(&e0, &u8v(&want2(104, 105))), "gpt2 escape hi -> hi");
+
+  var e1 = Vec[UInt8].new();
+  let r1 = llm_gpt2_escape(&u8v(&want1(32)), &mut e1);
+  sum = sum + report(r1.is_ok && bytes_eq(&e1, &u8v(&want2(196, 160))), "gpt2 escape 0x20 -> C4 A0");
+
+  var e2 = Vec[UInt8].new();
+  let src3 = want3(0, 127, 173);
+  let r2 = llm_gpt2_escape(&u8v(&src3), &mut e2);
+  let want_e = want_n6(196, 128, 196, 161, 197, 131);
+  sum = sum + report(r2.is_ok && r2.value == 3 && bytes_eq(&e2, &u8v(&want_e)), "gpt2 escape 0x00 0x7F 0xAD");
+
+  var d1 = Vec[UInt8].new();
+  let q1 = llm_gpt2_unescape(&u8v(&want2(196, 160)), &mut d1);
+  sum = sum + report(q1.is_ok && bytes_eq(&d1, &u8v(&want1(32))), "gpt2 unescape C4 A0 -> 0x20");
+
+  var all_bytes = Vec[UInt8].new();
+  var b = 0;
+  while b < 256 {
+    all_bytes.push((b as UInt8));
+    b = b + 1;
+  }
+  var esc = Vec[UInt8].new();
+  let er = llm_gpt2_escape(&all_bytes, &mut esc);
+  var un = Vec[UInt8].new();
+  let ur = llm_gpt2_unescape(&esc, &mut un);
+  sum = sum + report(er.is_ok && ur.is_ok && bytes_eq(&un, &all_bytes), "gpt2 escape/unescape roundtrip (256)");
+
+  var bad1 = Vec[UInt8].new();
+  sum = sum + expect_int_err(llm_gpt2_unescape(&u8v(&want1(196)), &mut bad1), "llm: invalid utf8", "gpt2 truncated utf8 rejected");
+  var bad2 = Vec[UInt8].new();
+  sum = sum + expect_int_err(llm_gpt2_unescape(&u8v(&want1(128)), &mut bad2), "llm: invalid utf8", "gpt2 stray continuation rejected");
+  var bad3 = Vec[UInt8].new();
+  sum = sum + expect_int_err(llm_gpt2_unescape(&u8v(&want1(1)), &mut bad3), "llm: codepoint not in gpt2 byte map", "gpt2 unmapped codepoint rejected");
+
+  var us = Vec[UInt8].new();
+  let usr = llm_gpt2_unescape_str("hi", &mut us);
+  sum = sum + report(usr.is_ok && bytes_eq(&us, &u8v(&want2(104, 105))), "gpt2 unescape_str hi");
+
+  var u4 = Vec[UInt8].new();
+  let a4 = llm_utf8_append(128512, &mut u4);
+  sum = sum + report(a4.is_ok && a4.value == 4 && bytes_eq(&u4, &u8v(&want4(240, 159, 152, 128))), "utf8 append U+1F600 (4 bytes)");
+  var u2 = Vec[UInt8].new();
+  let a2 = llm_utf8_append(233, &mut u2);
+  sum = sum + report(a2.is_ok && a2.value == 2 && bytes_eq(&u2, &u8v(&want2(195, 169))), "utf8 append U+00E9 (2 bytes)");
+  var uz = Vec[UInt8].new();
+  sum = sum + expect_int_err(llm_utf8_append(1114112, &mut uz), "llm: codepoint out of range", "utf8 append U+110000 rejected");
+  return sum;
+}
+
+// GPT-2 regex pre-tokenizer golden chunks.
+fn t76() -> Int {
+  var sum = 0;
+  sum = sum + check_chunks("hello world", &s2("hello", " world"), "split hello world");
+  sum = sum + check_chunks("hello  world", &s3("hello", " ", " world"), "split double space");
+  sum = sum + check_chunks("a1b2", &s4("a", "1", "b", "2"), "split letters/digits");
+  sum = sum + check_chunks("  ", &s1("  "), "split trailing whitespace run");
+  sum = sum + check_chunks("", &Vec[Str].new(), "split empty");
+  sum = sum + check_chunks("it's a test", &s4("it", "'s", " a", " test"), "split contraction 's");
+  sum = sum + check_chunks("don't", &s2("don", "'t"), "split contraction 't");
+  sum = sum + check_chunks("I'll go", &s3("I", "'ll", " go"), "split contraction 'll");
+  sum = sum + check_chunks("x'y", &s3("x", "'", "y"), "split unknown apostrophe run");
+  sum = sum + check_chunks("abc\n\ndef", &s4("abc", "\n", "\n", "def"), "split newline run");
+  sum = sum + check_chunks("hello  ", &s2("hello", "  "), "split trailing run");
+  sum = sum + check_chunks("!? x", &s2("!?", " x"), "split punctuation + space word");
+  sum = sum + check_chunks("abc \ndef", &s4("abc", " ", "\n", "def"), "split space then newline");
+  return sum;
+}
+
+// Pre-tokenizer edge cases.
+fn t77() -> Int {
+  var sum = 0;
+  sum = sum + check_chunks("'s", &s1("'s"), "split bare contraction");
+  sum = sum + check_chunks("'S", &s2("'", "S"), "split uppercase not a contraction");
+  sum = sum + check_chunks("a  b", &s3("a", " ", " b"), "split two-space gap");
+  sum = sum + check_chunks("1 2", &s2("1", " 2"), "split digit space digit");
+  sum = sum + check_chunks("3.14", &s3("3", ".", "14"), "split decimal point");
+  sum = sum + check_chunks("  hi", &s2(" ", " hi"), "split leading two spaces");
+  return sum;
+}
+
+// SPM extraction from the raw scored fixture.
+fn t78() -> Int {
+  let bits = spm_score_bits_ordered();
+  let v = spm_vocab(&bits);
+  var sum = 0;
+  let model = llm_spm_model(&v);
+  sum = sum + report(str_eq(model, "llama"), "spm model llama");
+  sum = sum + report(llm_spm_size(&v) == 5, "spm size 5");
+  let tk3 = llm_spm_token(&v, 3);
+  let tk5 = llm_spm_token(&v, 5);
+  sum = sum + report(tk3.is_ok && str_eq(tk3.value, "ab"), "spm token 3 = ab");
+  sum = sum + expect_str_err(tk5, "llm: token index out of range", "spm token 5 rejected");
+  let sc0 = llm_spm_score(&v, 0);
+  let sc3 = llm_spm_score(&v, 3);
+  if !sc0.is_ok || !sc3.is_ok {
+    return sum + report(false, "spm score accessors ok");
+  }
+  let s0: LlmScale = sc0.value;
+  let s3: LlmScale = sc3.value;
+  sum = sum + report(s0.m == -8388608 && s0.e == 23, "spm score 0 = -1.0 at e=23");
+  sum = sum + report(s3.m == -83886080 && s3.e == 23, "spm score 3 = -10.0 folded exactly");
+  sum = sum + report(llm_spm_find_token(&v, "bc") == 4, "spm find bc = 4");
+  sum = sum + report(llm_spm_find_token(&v, "zz") == -1, "spm find miss = -1");
+  let tt = v.token_types;
+  let t0: Int = tt[0];
+  sum = sum + report(t0 == 1, "spm token type default 1");
+  sum = sum + report(llm_spm_bos(&v) == -1, "spm bos absent -1");
+  return sum;
+}
+
+// SPM scored merge traversal: highest score first.
+fn t79() -> Int {
+  let bits = spm_score_bits_ordered();
+  let v = spm_vocab(&bits);
+  var sum = 0;
+  sum = sum + check_spm_encode(&v, "abc", &want2(0, 4), "spm abc -> a + bc (score order)");
+  sum = sum + check_spm_encode(&v, "ab", &want1(3), "spm ab -> ab");
+  sum = sum + check_spm_encode(&v, "bc", &want1(4), "spm bc -> bc");
+  sum = sum + check_spm_encode(&v, "a", &want1(0), "spm a -> a");
+  sum = sum + check_spm_encode(&v, "", &Vec[Int].new(), "spm empty");
+  sum = sum + check_spm_encode(&v, "cab", &want2(2, 3), "spm cab -> c + ab");
+  return sum;
+}
+
+// SPM tie-break: equal scores merge the leftmost pair.
+fn t80() -> Int {
+  let bits = spm_score_bits_tied();
+  let v = spm_vocab(&bits);
+  var sum = 0;
+  sum = sum + check_spm_encode(&v, "abc", &want2(3, 2), "spm tie -> leftmost ab");
+  sum = sum + check_spm_encode(&v, "abcabc", &want4(3, 2, 3, 2), "spm tie repeated");
+  return sum;
+}
+
+// SPM decode, roundtrip and unknown-byte failure.
+fn t81() -> Int {
+  let bits = spm_score_bits_ordered();
+  let v = spm_vocab(&bits);
+  var sum = 0;
+  let d1 = llm_spm_decode(&v, &want2(0, 4));
+  sum = sum + report(d1.is_ok && str_eq(d1.value, "abc"), "spm decode [0,4] = abc");
+  let d0 = llm_spm_decode(&v, &Vec[Int].new());
+  sum = sum + report(d0.is_ok && str_eq(d0.value, ""), "spm decode []");
+  sum = sum + expect_str_err(llm_spm_decode(&v, &want1(5)), "llm: token id out of range", "spm decode id 5 rejected");
+
+  var texts = Vec[Str].new();
+  texts.push("abc");
+  texts.push("ab");
+  texts.push("cab");
+  texts.push("bcbc");
+  var rt_ok = true;
+  var i = 0;
+  while i < texts.len() {
+    let tx: Str = texts[i];
+    let er = llm_spm_encode(&v, tx);
+    if !er.is_ok {
+      rt_ok = false;
+    } else {
+      let idsv: Vec[Int] = er.value;
+      let dr = llm_spm_decode(&v, &idsv);
+      if !dr.is_ok || !str_eq(dr.value, tx) {
+        rt_ok = false;
+      }
+    }
+    i = i + 1;
+  }
+  sum = sum + report(rt_ok, "spm encode/decode roundtrip (4 texts)");
+  sum = sum + expect_ids_err(llm_spm_encode(&v, "z"), "llm: spm byte not in vocabulary", "spm unknown byte rejected");
+  return sum;
+}
+
+// SPM extraction error arms.
+fn t82() -> Int {
+  var sum = 0;
+  let gpt2buf = header_plain("gpt2");
+  let pr = gguf_parse(&gpt2buf);
+  let g = pr.value;
+  sum = sum + expect_spm_err(llm_spm_vocab_from_gguf(&g), "llm: spm tokenizer model is not llama", "spm gpt2 model rejected");
+
+  let tokens = spm_tokens();
+  var ints = Vec[Int].new();
+  ints.push(0);
+  ints.push(0);
+  ints.push(0);
+  ints.push(0);
+  ints.push(0);
+  var b = gguf_builder_new();
+  let a1 = gguf_builder_add_kv_str(&mut b, "tokenizer.ggml.model", "llama");
+  let a2 = gguf_builder_add_kv_arr_str(&mut b, "tokenizer.ggml.tokens", &tokens);
+  let a3 = gguf_builder_add_kv_arr_int(&mut b, "tokenizer.ggml.scores", 5, &ints);
+  let fr = gguf_builder_finish(&b);
+  let wbuf = fr.value;
+  let wpr = gguf_parse(&wbuf);
+  let wg = wpr.value;
+  sum = sum + expect_spm_err(llm_spm_vocab_from_gguf(&wg), "llm: spm scores are not a float array", "spm int scores rejected");
+
+  let bits = spm_score_bits_ordered();
+  let short_buf = raw_spm_gguf(&tokens, &bits, 2);
+  let spr = gguf_parse(&short_buf);
+  let sg = spr.value;
+  sum = sum + expect_spm_err(llm_spm_vocab_from_gguf(&sg), "llm: spm score count smaller than token count", "spm short scores rejected");
+  return sum;
+}
+
+// Non-ASCII GGUF probe: container-level blocker for real GPT-2/SPM vocabularies.
+fn t83() -> Int {
+  var sum = 0;
+  let buf = raw_nonascii_gguf();
+  let pr = gguf_parse(&buf);
+  if pr.is_ok {
+    sum = sum + report(false, "non-ascii gguf probe: unexpectedly parsed");
+  } else {
+    let got: Str = pr.error;
+    sum = sum + report(str_eq(got, "gguf: string is not printable ASCII"), "non-ascii gguf probe: exact rejection");
+  }
+  // The escape layer itself produces exactly those bytes for a space.
+  var e = Vec[UInt8].new();
+  let er = llm_gpt2_escape(&u8v(&want1(32)), &mut e);
+  sum = sum + report(er.is_ok && bytes_eq(&e, &u8v(&want2(196, 160))), "non-ascii probe: escape emits C4 A0");
+  return sum;
+}
+
+// --------------------------------------------------
 //  Main
 // --------------------------------------------------
 fn main() -> Int {
@@ -2466,6 +2998,16 @@ fn main() -> Int {
   failed = failed + t71();
   failed = failed + t72();
   failed = failed + t73();
+  failed = failed + t74();
+  failed = failed + t75();
+  failed = failed + t76();
+  failed = failed + t77();
+  failed = failed + t78();
+  failed = failed + t79();
+  failed = failed + t80();
+  failed = failed + t81();
+  failed = failed + t82();
+  failed = failed + t83();
   if failed == 0 {
     io.println("xiom.llm: all tests passed");
   }

@@ -8,8 +8,10 @@ Lane: llama.cpp-family runner tier of the ML/AI coverage program.
 Current: v0.1.0, milestones M1 + M2 complete, M3 first and second halves
 (generation loop + sampling, the append-only KV cache + longer-context
 attention, and Q4_K-class dequantization with the neighboring Q5_0) complete
-and conformance-green (182/182 x2); the benchmark harness remains.
-`publish: false` pending ops scope + allowlist.
+plus the ASCII-safe tokenizer completion (GPT-2 escape layer, GPT-2 regex
+pre-tokenizer, SPM scored-merge core) and conformance-green (254/254 x2).
+Remaining: the benchmark harness, WPM, and real non-ASCII vocabularies
+(blocked on `xiom.gguf`). `publish: false` pending ops scope + allowlist.
 
 ## M1 -- vocab + byte-level BPE (DONE, 2026-10-16)
 
@@ -98,16 +100,29 @@ first, fixture dims chosen so every oracle value is exact.
    global exponent `E = max(de, dme)`. Malformed block sizes get typed
    errors. Q4_0/Q5_1/Q6_K remain unscheduled.
 5. Tokenizer: GPT-2 `bytes_to_unicode` escape/unescape and the GPT-2
-   regex pre-tokenizer, **blocked on non-ASCII GGUF strings** (see
-   maintenance item); BOS/EOS insertion flags
-   (`tokenizer.ggml.add_bos_token` / `add_eos_token`); SPM (`"llama"`)
-   and WPM (`"bert"`) extraction + tokenize paths,
-   `tokenizer.ggml.scores` handling -- **REMAINS**.
+   regex pre-tokenizer, SPM (`"llama"`) extraction + tokenize core, BOS/EOS
+   insertion flags, WPM (`"bert"`) -- **PARTIAL / DONE (2026-10-17)**:
+   * escape layer -- DONE as exact pure surfaces (`llm_gpt2_byte_to_codepoint`
+     / `_codepoint_to_byte`, `llm_utf8_append`, `llm_gpt2_escape` /
+     `llm_gpt2_unescape` / `llm_gpt2_unescape_str`); all-256-byte inverse
+     pinned. Real GGUF vocabularies with escaped non-ASCII token strings
+     remain blocked: `xiom.gguf` 0.1.3 rejects any byte outside 0x20..0x7E
+     with `gguf: string is not printable ASCII` (probe recorded in
+     `docs/probe-nonascii-gguf.md`, test `t83`).
+   * regex pre-tokenizer -- DONE for the GPT-2 expression with a
+     hand-rolled ASCII byte matcher (`llm_gpt2_pretokenize`), exact chunk
+     goldens; Unicode category classes are the documented ASCII subset.
+   * SPM -- DONE for the core: `LlmSpmVocab` extraction (tokens, exact f32
+     `tokenizer.ggml.scores` folded to a common exponent), score-ordered
+     merge traversal with leftmost ties, encode/decode and error arms.
+     SentencePiece `▁` normalization / byte fallback, WPM (`"bert"`) and the
+     `add_bos_token` / `add_eos_token` flags REMAIN.
 6. Acceptance: prompt -> generated ids -> decode roundtrip on the tiny
    fixture; escape-layer golden vectors (hand-computed byte-unicode
-   table values). **PARTIAL**: greedy and seeded prompt -> ids -> decode
-   roundtrips are green and the cached multi-position loop adds a
-   two-token-prompt roundtrip (182/182 x2); escape-layer vectors remain.
+   table values). **DONE**: greedy and seeded prompt -> ids -> decode
+   roundtrips are green, the cached multi-position loop adds a
+   two-token-prompt roundtrip, the escape-layer vectors are pinned, and the
+   suite is green (254/254 x2).
 
 ## Maintenance / cross-lane items
 
