@@ -1555,6 +1555,24 @@ torch/libtorch/tensorflow/blas/openblas; B-34 filed; 566/0)**:
   alias-unification batch (1548-stdlib-6/2100 family); B-32 stays
   m358.  Both ride v0.64.7; nothing else in flight on this lane.
 
+**UPDATE 2026-10-17 12:10Z (all remainings pass -- eco .194 verified on
+our side; stubs swept; USD prep LAUNCHED)**: continuation after the
+morning sweep.
+- **`eco-v0.1.194` verified**: torch/libtorch/tensorflow/blas/gps all
+  registry live-verified (allowlist 559->561; guard 561/552/9/0);
+  M2 request `-0042-bindings-2` + gps `-2144-bindings-2` both FIXED.
+- **Worktree stubs swept**: sessionless `android/a12-sys` worktree +
+  branch removed; `android/a3-a4` + `feat/sqlite-nested-restore-2`
+  were already cleaned earlier; orphan dirs remain file-locked (OS
+  handles; retry later).  68 live worktrees remain (idle sessions).
+- **USD importer (import campaign) -- PREP LAUNCHED**: `feat/usd-import`
+  (`am-1792238631823-at8f8f`): OpenUSD sparse light clone at pin,
+  license/provenance first, usd-core wheel as the policy-clean loader
+  leg, staged scenes/materials surface, v0.64.6 pin, x2 suites.
+- Remaining after this: v0.64.7 wave (B-29/B-32/B-33/B-34/XVC-C-18),
+  Pi/edge smoke (waits arm64 target release), accelerator extras (on
+  demand), M1/M3 (packages half).
+
 **UPDATE 2026-10-17 11:58Z (branch pin bump DONE -- COMPILER_VERSION
 v0.64.6 + 566 records repinned; morning state)**: closes the 00:45Z
 MORNING TODO.
