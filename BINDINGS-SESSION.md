@@ -1665,6 +1665,26 @@ nvenc; 569/0)**:
   `REL-20261017-1819-bindings`.  Only **onnx-directml** remains in
   flight on the NVIDIA wave.
 
+**UPDATE 2026-10-17 19:50Z (NVIDIA WAVE COMPLETE; eco-v0.1.197 LIVE)**:
+- **`eco-v0.1.197` LIVE** (run 39059605811 green; merge `38c41345`;
+  registry live-verified): **`xiom.usd 0.1.0`** (sha `f38e85aa...`),
+  **`xiom.cudnn 0.1.0`** (`a1377f4c...`), **`xiom.nvenc 0.1.0`**
+  (`9ff4eb1d...`); scope LIVE eco-release 566; allowlist 564 -> 567;
+  packages re-verified on landing (usd LIVE usd_ms path 65/65; cudnn
+  60/60 with the PATH recipe; nvenc 67/67).  Engine can consume the
+  USD importer per the accepted wishlist.
+- **`xiom.onnx 0.2.0` LANDED** (last NVIDIA unit; land `bd2854bf` +
+  record `ccb913d8`): DirectML EP leg (OrtDmlApi append + device_id;
+  DML session A(2,3)+B(4,5) -> C(6,8) EXACT; slot-0 stability
+  documented); **x2 60/60 LIVE** (onnxruntime 1.17.1 + DirectML
+  1.24.4) + 59/59 CPU-only SKIP.  Addendum filed
+  `REL-20261017-1947-bindings` (rides the part-2 batch).
+- **NVIDIA WAVE COMPLETE**: 8 units all landed; part 1 LIVE in
+  `.197`; part 2 (cublas/cufft/cusparse/tensorrt/nvml/nvapi/optix) +
+  the onnx 0.2.0 addendum queued at packages.  validate **576/0**.
+  Remaining lane watch: v0.64.7 (m351/B-33 + m358/B-32 in the cut);
+  AMD side is hardware-gated.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
