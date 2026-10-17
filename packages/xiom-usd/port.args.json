@@ -1,0 +1,8 @@
+[
+  "--cxx-standard",
+  "17",
+  "--c-source",
+  "${PACKAGE_DIR}/src/usd_bridge.cpp",
+  "--c-source",
+  "${PACKAGE_DIR}/src/usd_trampolines.cpp"
+]
