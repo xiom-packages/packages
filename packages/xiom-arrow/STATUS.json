@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  32,
                   "failed":  0,
-                  "run_by":  "bindings-lane-arrow",
-                  "commit":  "cba03d75",
-                  "checked":  "2026-10-17T13:37:17Z"
+                  "run_by":  "am:feat-arrow-real-backend",
+                  "commit":  "e30db62e",
+                  "checked":  "2026-10-17T14:13:15Z"
               },
     "publish":  false,
     "excluded_reason":  "published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 62a25672...)"
