@@ -3,9 +3,16 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: jolt 0.7.0 in
-`eco-v0.1.182` (98 eco releases; E4/E5; 159/159 x2) -- E-FAMILY COMPLETE
-(all E1-E7 wireable)** --
+**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: batch 95 =
+`eco-v0.1.193` (8 packages: jev / onnx / ros2 0.2.0 / serial / v4l /
+arrow / openblas / pandas) -- through `eco-v0.1.193` (108 eco releases);
+recent cycle highlights: E-family COMPLETE (jolt 0.5.0/0.6.0/0.7.0,
+E1-E7), LIFTS live (`eco-v0.1.185`: glfw 0.6.0 + sdl3 0.20.0 -- B-22/B-15
+retired), PULSE top-tier live (`eco-v0.1.189`: brotli + ssl,
+consumer-verified), family+Beacon (`eco-v0.1.192`), miniaudio 0.5.0
+publish-requested; v0.64.6 REPIN WAVE COMPLETE (packages 569/0; m334
+tuple closed; B-32 residual -> m358; W1.1/W1.3/W2.1 fixed; B-29/W1.4/W2.3
+still red)** --
 LIVE: jolt 0.7.0 (E4 soft bodies + E5 heightfield) + jolt 0.6.0
 (E3 motors/limits + E6 convex/compound) + jolt 0.5.0 (E1 queries + E2
 capsule + E7 contacts/sensors; 67/67 x2) + wave 2 (`eco-v0.1.178`: opus/
