@@ -4,7 +4,7 @@
 
 # xiom.gguf
 
-> **Status:** `stable` -- conformance-tested (30/30); `0.1.3` published 2026-10-16 (string-array origin fix, XGGUF-ARRSTR; live sha256 `2d79e76c...`; `0.1.2` was the previous line). The non-ASCII string-value fix and its tests are post-0.1.3 work in this tree.
+> **Status:** `stable` -- conformance-tested (30/30); `0.1.4` published 2026-10-17 (non-ASCII/control string values accepted verbatim; lossless `gguf_kv_str_bytes`/`_arr_bytes` + strict `_utf8` accessors; sha256 `0dda8b2b...`; `eco-v0.1.195`). `0.1.3` was the string-array origin fix (XGGUF-ARRSTR; `2d79e76c...`); `0.1.2` the previous line.
 
 A production-grade, dependency-free GGUF container **header** codec for
 XIOM: parse the metadata KV table and tensor-info table of llama.cpp-family

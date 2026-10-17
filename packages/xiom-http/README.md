@@ -20,7 +20,8 @@ HTTP/1.1 types, request/response parsers, client helpers, and a (stub) server sh
 > adds the binary-safe body path: `xiom.http.body` + `http_request_bytes`
 > transmit `Vec[UInt8]` bytes exactly (no UTF-8 re-encode, NUL-safe) with a
 > typed `HttpBytesRequestError`; the Str-body API is unchanged. Suite
-> **55/55 x2** on v0.64.6.
+> **55/55 x2** on v0.64.6. Published in `eco-v0.1.195` (sha256
+> `f7b0c30f...`, 2026-10-17).
 
 ## Consumer quickstart (3 lines)
 
