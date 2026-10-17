@@ -1,9 +1,10 @@
 # xiom.blas
 
-> **Status:** `incubating` -- conformance-green on compiler v0.64.5 (50/50, two
-> consecutive runs; typed-absent runtime SKIP recorded). Fold completed
+> **Status:** `incubating` -- conformance-green (50/50, two consecutive runs
+> on v0.64.6; typed-absent runtime SKIP recorded). Fold completed
 > 2026-10-17: the parked safe-linalg package is now layered over the live
-> `xiom.openblas` seam (eco-v0.1.193).
+> `xiom.openblas` seam. Published in `eco-v0.1.194` (sha256 `bee07a38...`,
+> 2026-10-17).
 > **Scope:** safe BLAS-style linear algebra -- a row-major dense `Float64`
 > matrix value type with shape-checked, typed errors and no `unsafe` at the
 > API boundary.

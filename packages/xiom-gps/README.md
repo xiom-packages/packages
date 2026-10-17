@@ -1,8 +1,9 @@
 # xiom.gps
 
 > **Status:** `incubating` -- conformance-tested (**28/28 x2** on the
-> compiler pin v0.64.5; the live-daemon leg is a typed **SKIP** on hosts
-> without gpsd);  not yet published.
+> compiler pin v0.64.5, re-verified 28/28 x2 on v0.64.6; the live-daemon leg
+> is a typed **SKIP** on hosts without gpsd); published in `eco-v0.1.194`
+> (sha256 `020b50ac...`, 2026-10-17).
 > **Scope (phase 1):** the documented **gpsd JSON protocol** (VERSION,
 > WATCH, DEVICES, DEVICE, TPV, SKY, ERROR typed; any other class passes
 > through as `Other`), the `?WATCH`/`?VERSION` request builders and a

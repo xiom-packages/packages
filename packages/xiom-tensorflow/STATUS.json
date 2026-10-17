@@ -13,5 +13,5 @@
                   "checked":  "2026-10-17T11:09:33Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (M2 ML-runtime loader slice); publish gate after a POSIX live run and a SavedModel-fixture leg"
+    "excluded_reason":  "published in eco-v0.1.194 (2026-10-17, 0.1.0; sha256 0f4bb6a5...)"
 }
