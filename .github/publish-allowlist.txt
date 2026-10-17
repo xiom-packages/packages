@@ -629,3 +629,7 @@ xiom.libtorch
 xiom.orbitdb
 xiom.numpy
 xiom.llm
+# Scene/USD + NVIDIA vendor wave part 1; ops scopes confirmed LIVE 2026-10-17T18:40Z (eco-release 566; PROD-only)
+xiom.usd
+xiom.cudnn
+xiom.nvenc
