@@ -1,7 +1,9 @@
 # xiom.pandas -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
-**Status**: Phase 1 implemented -- `pandas.xi` + tests + ROADMAP
+**Status**: Phase 1 implemented -- `pandas.xi` + tests + ROADMAP; REAL
+Arrow-backed bridge source prepared and probe-green (Arrow C++ 22.0.0,
+v0.64.6, 2026-10-17)
 **Depends on**: xiom.ffi (stdlib), xiom.arrow (Apache Arrow -- Pandas 2.0+ backend)
 
 ## What it wraps
@@ -33,12 +35,19 @@ real probe):
   checks. The stub validates arguments (0-in -> 0-out plus a nonzero
   `dataframe_to_csv` error rc) and reports "backend unavailable" on success
   paths -- it never fabricates data.
-- **Leg 2 (real, NOT BUILT)**: `bridge/xiom_pandas_arrow.cpp` (Arrow C++,
-  C++17), specced in `bridge/REAL-BACKEND-REQUIREMENTS.md`: exact symbol
-  contract, headers, C++ ABI notes, zero-copy Arrow C Data Interface points,
-  what xiom.arrow must expose, and open items. `tests/probe_real_arrow.xi`
-  is the evidence-only real-runtime probe (NOT part of port.ps1); without
-  the real bridge it fails closed.
+- **Leg 2 (real, SOURCE BUILT + PROBE GREEN, 2026-10-17)**:
+  `bridge/xiom_pandas_arrow.cpp` (Arrow C++, C++17, exception-free C ABI)
+  now implements all 12 declared `pandas_c_*` symbols. Pinned against Apache
+  Arrow C++ **22.0.0** (tag `apache-arrow-22.0.0`, commit `5aeb5f2`; pyarrow
+  22.0.0 win_amd64 wheel, sha256 `44729980...`, MSVC 19.44 ABI). The ABI gate
+  passed locally: the source builds with clang 22.1.8 (`-std=c++17`,
+  `x86_64-pc-windows-msvc`) against the wheel's headers + import libraries,
+  and `tests/probe_real_arrow.xi` returns live handles for the CSV round trip.
+  A separate local C-ABI exercise covered all 12 symbols (table new/set/get/
+  filter/groupby/join, series new/from_vec/apply/to_vec, CSV both ways) and
+  was deleted after the run; evidence is recorded in `PROVENANCE.md`/SPEC.
+  The shipped probe remains evidence-only (NOT part of port.ps1) and fails
+  closed without the real bridge.
 - **T001 reconciliation (2026-10-16)**: the suite's duplicated extern block
   is gone. Compiler v0.64.5 resolves the canonical declarations through
   `use xiom.pandas;` (verified with --emit-ir probes: raw extern calls lower
@@ -54,6 +63,79 @@ real probe):
   the C symbols moved. `pandas.xi` also gained the semicolons its `pub type`
   aliases require on v0.64.5; the module now type-checks (`--emit-ir`
   exit 0), which it did not before this pass.
+
+## Real bridge (prepared, 2026-10-17) -- pin, ABI gate, ownership
+
+`bridge/xiom_pandas_arrow.cpp` is the production C++17 realization of the 12
+declared symbols. It is **not** in `port.args.json` (the offline suite keeps
+`bridge/pandas_bridge.c`); it is linked only by the evidence probe or a
+consumer build.
+
+### Pinned release / ABI
+
+| Field | Value |
+|-------|-------|
+| Upstream | Apache Arrow 22.0.0 -- tag `apache-arrow-22.0.0`, commit `5aeb5f217f1ba39c428c9b481f393bd37097f69e` (`E:\repos\arrow`, sparse clone; Apache-2.0) |
+| Runtime/header set | pyarrow 22.0.0 win_amd64 wheel, sha256 `44729980B6C50A5F2BFCC2668D36C569CE17F8B17BCCAF470C4313DCBBF13C9D`; extracted to `E:\repos\arrow-bin\pyarrow-22.0.0` |
+| Arrow build | MSVC 19.44.35217.0, `ARROW_PACKAGE_KIND "python-wheel-windows"`; C++17-compatible public headers |
+| Bridge toolchain | clang 22.1.8 (XIOM v0.64.6), `x86_64-pc-windows-msvc`, `-std=c++17`, lld-link |
+| ACERO pin | Node names verified in Arrow 22: `"table_source"`, `"aggregate"`, `"hashjoin"` (NOT the docs' `hash_group_aggregate`/`hash_join`); `arrow::compute::Initialize()` is called once because compute kernels live in `arrow_compute.dll` |
+
+**ABI gate: PASSED locally.** Both bridges built against the wheel's headers
+and import libraries; the probe linked and ran (CSV round trip + null
+contract). An additional local C-ABI probe exercised every one of the 12
+symbols (new/set/get/filter/groupby/join, series new/from_vec/apply/to_vec,
+CSV both ways, additive free functions) -- all green; the probe was deleted
+after the run. No MSVC/MinGW mix and no fabricated build.
+
+### Implementation map
+
+| Symbol | Real implementation |
+|---|---|
+| `pandas_c_dataframe_new` | schema from `char*[n]` + `int64_t[n]` DTYPE codes; 0-row `arrow::Table` via `MakeArrayOfNull` + `Table::Make` |
+| `pandas_c_dataframe_from_csv` | `csv::TableReader::Make(io::ReadableFile::Open(path), ReadOptions(use_threads=false), ParseOptions, ConvertOptions)` -> `Read()` |
+| `pandas_c_dataframe_to_csv` | `csv::WriteCSV(*table, WriteOptions::Defaults(), io::FileOutputStream)` |
+| `pandas_c_dataframe_get_column` | `Table::GetColumnByName` -> `shared_ptr<ChunkedArray>` handle (zero-copy view of chunks) |
+| `pandas_c_dataframe_set_column` | Float64 builder from `double[len]`; replace or append field; new `Table` via `Table::Make`; input handle unchanged |
+| `pandas_c_dataframe_filter` | `compute::CallFunction(equal/not_equal/less/less_equal/greater/greater_equal)` + per-column `compute::Filter`; `value` is i64 (float columns widen; bool uses `!= 0`); string columns unsupported pending 6.5 |
+| `pandas_c_dataframe_groupby` | Acero `Declaration("aggregate", AggregateNodeOptions({hash_count_all}, {key}))` over a `table_source`; handle owns input + grouped `Table` + key |
+| `pandas_c_dataframe_join` | Acero `Declaration("hashjoin", HashJoinNodeOptions(...))` with two `table_source` inputs; JOIN_* 0..3 -> INNER/LEFT/RIGHT/FULL; suffix `_left`/`_right` avoids collisions |
+| `pandas_c_series_new` | typed builders per DTYPE: int32/int64/float32/float64 (native arrays), utf8 (`char*[n]`, NULL -> null), bool (`uint8_t[n]`) |
+| `pandas_c_series_from_vec` | declared Float64 source; cast per dtype; int32/int64/float32/float64/bool; string returns 0 |
+| `pandas_c_series_to_vec` | bridge-owned `malloc` buffer (int32/int64/float32/float64/bool); element count through `i64*`; string/binary return 0 pending 6.4/6.5 |
+| `pandas_c_series_apply` | the recommended `double (*)(double)` callback, applied per element to a Float64 result; nulls preserved; unsupported types return 0 pending 6.3 |
+
+### Ownership + additive ABI decisions (owner-pending)
+
+- Handles are bridge-owned C++ objects (Table/ChunkedArray/group-by); `df`/`series`
+  handles stay valid until freed. `dataframe_set_column`, `filter`, `groupby`,
+  and `join` return NEW handles; inputs are unchanged.
+- The real source exports `pandas_c_dataframe_free`, `pandas_c_series_free`,
+  and `pandas_c_free` (for `series_to_vec` buffers) per section 6.4, but they
+  are **not declared in `pandas.xi`** and the suite's "12 declared" marker is
+  untouched: that is an additive ABI decision for the owner.
+- `series_apply`'s concrete signature (`double (*)(double)`) and the
+  element-coercion policy are owner-pending (6.3); the implementation follows
+  the recommendation, nothing is declared.
+- `dataframe_filter`'s Float64 value ABI (bit-pattern/second entry point) is
+  owner-pending (6.5); only the declared i64 value is used.
+- Parquet (6.6) is NOT implemented; no parquet symbol/entry point was added.
+- The declared 12-symbol ABI and `pandas.xi` are unchanged.
+
+### Build / probe recipe (verified)
+
+```powershell
+$arrow = "E:\repos\arrow-bin\pyarrow-22.0.0"
+$env:CPLUS_INCLUDE_PATH = "$arrow\pyarrow\include"
+$env:PATH = "$arrow\pyarrow;$arrow\pyarrow.libs;$env:PATH"
+xiom --run packages\xiom-pandas\tests\probe_real_arrow.xi `
+    --cxx-standard 17 `
+    --c-source <repo>\packages\xiom-pandas\bridge\xiom_pandas_arrow.cpp `
+    --link arrow --link arrow_compute --link arrow_acero `
+    --link-path "$arrow\pyarrow"
+```
+
+Add `--link parquet` only when the owner-pending parquet leg is implemented.
 
 ## API surface
 
@@ -123,6 +205,7 @@ pub fn to_parquet(df: &DataFrame, path: Str) -> Result[Unit, Str]
 | Module | `pandas.xi` | 375 |
 | Tests | `tests/test_conformance.xi` | 677 |
 | Stub bridge | `bridge/pandas_bridge.c` | 174 |
+| REAL Arrow bridge | `bridge/xiom_pandas_arrow.cpp` | 821 |
 | Real-backend requirements | `bridge/REAL-BACKEND-REQUIREMENTS.md` | 152 |
 | Real-runtime probe | `tests/probe_real_arrow.xi` | 133 |
 | Roadmap | `ROADMAP.md` | 46 |

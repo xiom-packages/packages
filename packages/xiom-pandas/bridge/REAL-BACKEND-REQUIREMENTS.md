@@ -5,6 +5,22 @@ and the conformance suite is green (80/80 x2). The REAL bridge is NOT built;
 this document pins exactly what it must provide. Nothing here changes the
 current 12-symbol Phase-1 ABI -- additions are listed and marked as such.
 
+Implementation status 2026-10-17: `bridge/xiom_pandas_arrow.cpp` is now
+prepared and builds/runs against Apache Arrow C++ 22.0.0 (tag
+`apache-arrow-22.0.0`, commit `5aeb5f2`; pyarrow 22.0.0 win_amd64 wheel,
+sha256 `44729980B6C50A5F2BFCC2668D36C569CE17F8B17BCCAF470C4313DCBBF13C9D`,
+MSVC 19.44 ABI). Version-sensitive items were pinned from that release's
+headers: Acero node names are `"table_source"`, `"aggregate"`, `"hashjoin"`,
+and `arrow::compute::Initialize()` is required because Arrow 22 splits the
+compute kernels into `arrow_compute.dll`. The offline suite still links the
+stub only. `tests/probe_real_arrow.xi` passes (null contract + CSV round
+trip); a local C-ABI probe covering all 12 symbols was run and deleted.
+Owner-pending items remain exactly as section 6 states: the additive free
+functions are implemented but not declared in `pandas.xi`, `series_apply`
+uses the recommended `double (*)(double)` signature without an ABI decision,
+`dataframe_filter` still carries an i64 value (no Float64 entry point), and
+parquet is not implemented. The declared 12-symbol ABI is unchanged.
+
 ## 1. Artifact
 
 - File: `bridge/xiom_pandas_arrow.cpp` (C++17, exception-free at the C ABI).
