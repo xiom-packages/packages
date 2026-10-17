@@ -40,8 +40,11 @@ All under `E:\repos\tensorrt` (user-supplied runtime area):
 The 2.2 GB platform wheel is the only artifact needed for the live leg.
 
 Verification performed: the wheel SHA-256 matches the PyPI/NVIDIA index digest;
-the wheel contains `tensorrt_libs/nvinfer_10.dll`, `nvinfer_builder_resource_*`
-DLLs and CUDA-facing support DLLs; it contains **no headers**. The headers were
+the wheel contains `tensorrt_libs/nvinfer_10.dll`, the
+`nvinfer_builder_resource_*` DLLs, `nvinfer_plugin_10.dll` and
+`nvonnxparser_10.dll`; it contains **no headers** and no CUDA runtime DLLs
+(the live path uses the driver API `nvcuda.dll`). The bridge loads only
+`nvinfer_10.dll`; the plugin/parser DLLs are not part of the 0.1.0 surface. The headers were
 therefore fetched separately from the Apache-2.0 `NVIDIA/TensorRT` repository at
 the matching `v10.16` tag into `E:\repos\tensorrt\include` as a reference
 oracle. They are not in this repository and are not referenced by the build.
