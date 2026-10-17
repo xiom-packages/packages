@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.6` -- generated 2026-10-17T11:10:11Z.
+Toolchain pin: `v0.64.6` -- generated 2026-10-17T11:12:13Z.
 
 ## Summary
 
@@ -471,7 +471,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.metadata | xiom-metadata | incubating | tests/test_conformance.xi | pass 28/28 | b7c0bfbf | False | publish pending: next scope delta |
 | xiom.micro | xiom-micro | incubating | tests/test_conformance.xi | pass 10/10 | 57cdac5b | False | publish pending: eco-v0.1.42 |
 | xiom.microscopy | xiom-microscopy | incubating | tests/test_conformance.xi | pass 24/24 | d475ef4b | False | publish pending: next scope delta |
-| xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | pass 44/44 | ec548542 | False | publish pending: 0.5.0 (handle surface; engine ask REL-20261016-2139-packages-2) |
+| xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | pass 44/44 | ec548542 | False | published 2026-10-17 (single tag xiom-miniaudio/v0.5.0; sha256 7d83c1ed...); 0.4.0 in eco-v0.1.187; 0.3.0 in eco-v0.1.154 |
 | xiom.ml | xiom-ml | incubating | tests/test_conformance.xi | pass 18/18 | 6a19ce99 | False | publish pending: next scope delta |
 | xiom.mock | xiom-mock | incubating | tests/test_conformance.xi | pass 20/20 | 4c9f5b3e | False | publish pending: next scope delta |
 | xiom.mongo | xiom-mongo | incubating | tests/test_conformance.xi | pass 23/23 | 6f9ebf38 | False | category harmonization patch bump (registry metadata) |

@@ -13,5 +13,5 @@
                   "checked":  "2026-10-17T11:09:33Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: 0.5.0 (handle surface; engine ask REL-20261016-2139-packages-2)"
+    "excluded_reason":  "published 2026-10-17 (single tag xiom-miniaudio/v0.5.0; sha256 7d83c1ed...); 0.4.0 in eco-v0.1.187; 0.3.0 in eco-v0.1.154"
 }
