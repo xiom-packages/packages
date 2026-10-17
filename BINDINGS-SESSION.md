@@ -1530,6 +1530,7 @@ torch/libtorch/tensorflow/blas/openblas; B-34 filed; 566/0)**:
 - **M2 publish request filed** (`-0042-bindings-2`, combined):
   torch/libtorch/tensorflow = NEW names (ops scopes); blas/openblas =
   confirm registry entries; one wave batch suggested.
+- 03:15Z: **B-34 ACKED** by the compiler -> resolver/alias-unification batch (1548-stdlib-6 / 2100 family).
 - MORNING TODO: gps scope still pending (`-2144-bindings-2` acked);
   branch-side `COMPILER_VERSION` bump still pending (owner/sibling);
   B-32 (m358) + B-34 ride the v0.64.7 wave.
