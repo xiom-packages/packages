@@ -1555,6 +1555,28 @@ torch/libtorch/tensorflow/blas/openblas; B-34 filed; 566/0)**:
   alias-unification batch (1548-stdlib-6/2100 family); B-32 stays
   m358.  Both ride v0.64.7; nothing else in flight on this lane.
 
+**UPDATE 2026-10-17 14:15Z (REAL-ACCEL WAVE LANDED: openblas real leg +
+arrow/pandas sync; 566/0)**:
+- **`xiom.openblas` Phase-1 REAL LEG LANDED** (land `cff4543a`; record
+  `0a4cb027`): linked cblas + LAPACK (transA/B, SVD/eigen/solve real
+  values, workspace query, leg marker); integration **x2 42/42** on
+  the .6 slot (stub-leg gate; real-leg provenance v0.3.34 x64 LP64,
+  BSD-3; `tests/run_real_leg.ps1` -- real leg green on the branch).
+  NOTE: openblas 0.1.0 is already live (eco-v0.1.193); the tree change
+  publishes with the NEXT version bump (packages' version_exists rule).
+- **`xiom.arrow` synced to the main-line real-backend content** (land
+  `e30db62e`): record refreshed **x2 32/32** on .6
+  (`bridge/arrow_real.cpp`, port.args, real-backend probes; stub
+  suite unchanged at 32).
+- **`xiom.pandas` real Arrow-backed C++ bridge PREP landed** (same
+  land): `bridge/xiom_pandas_arrow.cpp` (821 lines) +
+  `REAL-BACKEND-REQUIREMENTS.md` + `probe_real_arrow.xi` + port.args;
+  gate **80/80** (stub backend; the bridge prep is inert until the
+  Arrow real backend lands -- pandas 2-4 follow per the program plan).
+- validate **566/0**; pushed `74e93a35`.  No publish request this pass
+  (openblas version_exists rider; arrow/pandas prep only) -- the next
+  bump carries them.
+
 **UPDATE 2026-10-17 13:15Z (GPU VENDOR BACKLOG -- AMD + NVIDIA added)**:
 owner asked to backlog both vendor sets (on top of the accelerator-extras
 line in `-1254-bindings`).
