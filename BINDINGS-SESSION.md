@@ -1577,6 +1577,24 @@ arrow/pandas sync; 566/0)**:
   (openblas version_exists rider; arrow/pandas prep only) -- the next
   bump carries them.
 
+**UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
+stays hardware-gated; DirectML exception in flight)**: owner go.
+- Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
+  (cublas+cufft+cusparse; pip math wheels; live on the host RTX 3070
+  Ti), `feat/cudnn`, `feat/tensorrt`, `feat/nvenc` (NVENC+NVDEC via
+  nv-codec-headers MIT), `feat/nvml-nvapi` (driver-present DLLs ->
+  fully live-testable), `feat/optix` (SDK fetch attempt; else loader +
+  SKIP + acquisition contract), `feat/onnx-directml` (vendor-neutral
+  accelerator leg -- the one "accelerator extras" item testable on this
+  box; extends the published xiom.onnx additively).
+- Protocol: loader-only for closed/driver SDKs (nothing vendored; NVIDIA
+  EULA runtime user-supplied; reference headers pinned), live legs on the
+  host GPU where obtainable, SKIP-safe everywhere; v0.64.6 pin; x2
+  suites; origin/bindings base; path-scoped landing.
+- **AMD**: hip/rocblas/miopen/amf/ags/NPU stay BACKLOG until an AMD card
+  exists for live legs -- no hardware-free path; the only exception
+  (DirectML) is in flight now and validated on the NVIDIA GPU.
+
 **UPDATE 2026-10-17 13:15Z (GPU VENDOR BACKLOG -- AMD + NVIDIA added)**:
 owner asked to backlog both vendor sets (on top of the accelerator-extras
 line in `-1254-bindings`).
