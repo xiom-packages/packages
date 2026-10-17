@@ -4,7 +4,7 @@
 
 TypeSafe Jev client tier: **System One** structured decisions for XIOM.
 
-> **Status:** `incubating` -- 0.1.0. Offline conformance suite **169/169 x2** on
+> **Status:** `incubating` -- 0.1.0. Offline conformance suite **210/210 x2** on
 > compiler `v0.64.6` (native-session, 2026-10-17). Live probe is SKIP-safe and
 > link-gated (see "Live probe"). Published in `eco-v0.1.193` (sha256
 > `ed212ee6...`, 2026-10-16).
@@ -26,6 +26,7 @@ coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
 | `xiom.jev.response` | `parse_response` -- typed answers + confidence + usage; `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_labels_at_or_above`, `answer_sample_index` (caller-supplied entropy), score/noul helpers |
 | `xiom.jev.retry` | `retry_is_retryable`, `retry_backoff_millis`, `default_max_attempts/base_millis/cap_millis` -- pure bounded-backoff policy |
+| `xiom.jev.beam` | `BeamLevel`/`BeamPath`/`BeamResult`, `beam_level_new`, `beam_add_option`, `beam_level_from_answer`, `beam_search` (deterministic width-K hierarchy search), guarded result accessors |
 | `xiom.jev.compression` | 32 MiB `body_size_check`, encoding tags (`identity`/`gzip`/`zstd`), `encoding_check`, `wire_uses_bytes`, `prepare_body`/`EncodedBody`, `compress_bytes`/`compress_body` (gzip; zstd typed unavailable) |
 | `xiom.jev.errors` | `JevError` (BadRequest / Transport / HttpStatus / Parse) + `jev_error_text` |
 | `xiom.jev.client` | `system_one` (identity) and `system_one_with_encoding` -- transport over xiom.http 0.1.9 (`http_request` Str / `http_request_bytes` binary) |
@@ -78,6 +79,39 @@ Read it with `types.response_legend_count/label/doc/is_structured/text/find`
 (guarded; empty for choice/noul answers) and rebuild the object with
 `types.response_legend_json`; both string and structured (object/array) S4
 legend forms round-trip.
+
+## Hierarchical beam search (M3, 2026-10-17)
+
+`xiom.jev.beam` runs a pure, deterministic beam search over a hierarchy of
+Choice probability levels. Levels use the same encoded micro probabilities as
+parsed answers, and `beam.beam_level_from_answer(&resp, i)` converts a Choice
+answer directly. `beam_search(levels, width)` expands every kept path with
+every option level by level, scores a path with the integer product of its
+option probabilities (`score = (score * micro) / 1000000`), and keeps the
+best `width` paths. Equal scores keep discovery order (previous beam order,
+then option order), so results are identical on every run and platform.
+
+```xiom
+use xiom.jev.beam;
+
+var l1: BeamLevel = beam.beam_level_new();
+beam.beam_add_option(&mut l1, "returns", 610000);
+beam.beam_add_option(&mut l1, "billing", 350000);
+// resp: Response, resolution_answer: index of a Choice answer
+var l2: BeamLevel = beam.beam_level_from_answer(&resp, resolution_answer).value;
+
+var levels: Vec[BeamLevel] = Vec[BeamLevel].new();
+levels.push(l1);
+levels.push(l2);
+let r = beam.beam_search(levels, 3);       // Result[BeamResult, JevError]
+let top = r.value.paths[0];
+```
+
+Malformed input fails typed (`JevError.BadRequest`): `beam: width must be
+positive`, `beam: missing levels`, `beam: empty children at level <n>`,
+empty/duplicate labels, out-of-range micro, and the answer-bridge arms.
+The score rule, tie order, full error table and golden values are pinned in
+`SPEC.md` section 17; suite t45..t47 cover them offline.
 
 ## Transport (xiom.http 0.1.9 headers + binary-body surface)
 

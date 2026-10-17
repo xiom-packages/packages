@@ -33,6 +33,7 @@ use xiom.encoding;
 use xiom.compress.gzip;
 use xiom.serialize.json;
 use xiom.jev;
+use xiom.jev.beam;
 use xiom.jev.compression;
 use xiom.jev.errors;
 use xiom.jev.types;
@@ -104,6 +105,40 @@ fn expect_bad_int(r: Result[Int, JevError], want: Str, name: Str) -> Int {
 
 // expect_bad_bytes is expect_bad for a Result carrying an encoded byte buffer.
 fn expect_bad_bytes(r: Result[Vec[UInt8], JevError], want: Str, name: Str) -> Int {
+  match r {
+    Ok(_v) => {
+      return report(false, name + " (expected BadRequest, got Ok)");
+    },
+    Err(e) => {
+      let got: Str = errors.jev_error_text(e);
+      let want_full: Str = "jev: bad request: " + want;
+      if !str_eq(got, want_full) {
+        return report(false, name + " (got: " + got + ")");
+      }
+      return report(true, name);
+    },
+  };
+}
+
+// expect_bad_beam is expect_bad for a Result carrying a BeamResult.
+fn expect_bad_beam(r: Result[BeamResult, JevError], want: Str, name: Str) -> Int {
+  match r {
+    Ok(_v) => {
+      return report(false, name + " (expected BadRequest, got Ok)");
+    },
+    Err(e) => {
+      let got: Str = errors.jev_error_text(e);
+      let want_full: Str = "jev: bad request: " + want;
+      if !str_eq(got, want_full) {
+        return report(false, name + " (got: " + got + ")");
+      }
+      return report(true, name);
+    },
+  };
+}
+
+// expect_bad_beam_level is expect_bad for the answer -> level bridge.
+fn expect_bad_beam_level(r: Result[BeamLevel, JevError], want: Str, name: Str) -> Int {
   match r {
     Ok(_v) => {
       return report(false, name + " (expected BadRequest, got Ok)");
@@ -1251,6 +1286,203 @@ fn t44() -> Int {
 }
 
 // --------------------------------------------------
+//  Hierarchical beam search (M3)
+// --------------------------------------------------
+
+fn beam_golden_levels() -> Vec[BeamLevel] {
+  var l1: BeamLevel = beam.beam_level_new();
+  beam.beam_add_option(&mut l1, "a", 500000);
+  beam.beam_add_option(&mut l1, "b", 300000);
+  beam.beam_add_option(&mut l1, "c", 200000);
+  var l2: BeamLevel = beam.beam_level_new();
+  beam.beam_add_option(&mut l2, "x", 500000);
+  beam.beam_add_option(&mut l2, "y", 500000);
+  var l3: BeamLevel = beam.beam_level_new();
+  beam.beam_add_option(&mut l3, "p", 400000);
+  beam.beam_add_option(&mut l3, "q", 600000);
+  var levels: Vec[BeamLevel] = Vec[BeamLevel].new();
+  levels.push(l1);
+  levels.push(l2);
+  levels.push(l3);
+  return levels;
+}
+
+fn beam_answers_response(kind: Int, prob_count: Int) -> Response {
+  var ans: Answers = types.answers_new();
+  ans.ids.push("q");
+  ans.kinds.push(kind);
+  ans.choices.push("");
+  ans.confidence_micro.push(0);
+  ans.score_micro.push(0);
+  ans.noul_micro.push(0);
+  ans.prob_starts.push(0);
+  ans.prob_counts.push(prob_count);
+  ans.legend_starts.push(0);
+  ans.legend_counts.push(0);
+  var resp: Response = types.response_new("m");
+  resp.answers = ans;
+  return resp;
+}
+
+fn t45() -> Int {
+  var failed: Int = 0;
+  // Hand-computed golden: 0.5/0.3/0.2 x 0.5/0.5 x 0.4/0.6, width 2.
+  // Best paths are a/x/q = 0.15 and a/y/q = 0.15; the tie keeps discovery
+  // order (a/x before a/y because level 2 was ranked and expanded in order).
+  let r: Result[BeamResult, JevError] = beam.beam_search(beam_golden_levels(), 2);
+  if !r.is_ok { return report(false, "beam golden search succeeds"); }
+  let res: BeamResult = r.value;
+  failed = failed + report(beam.beam_result_count(&res) == 2, "beam: width keeps two paths");
+  failed = failed + report(beam.beam_result_width(&res) == 2, "beam: result width");
+  failed = failed + report(beam.beam_result_levels(&res) == 3, "beam: result levels");
+  failed = failed + report(str_eq(beam.beam_result_path_text(&res, 0, "/"), "a/x/q"), "beam: best path golden");
+  failed = failed + report(beam.beam_result_path_score(&res, 0) == 150000, "beam: best path score golden");
+  failed = failed + report(str_eq(beam.beam_result_path_text(&res, 1, "/"), "a/y/q"), "beam: second path golden");
+  failed = failed + report(beam.beam_result_path_score(&res, 1) == 150000, "beam: second path score golden");
+  failed = failed + report(beam.beam_result_path_levels(&res, 0) == 3, "beam: path depth");
+  failed = failed + report(str_eq(beam.beam_result_path_label(&res, 0, 1), "x"), "beam: guarded path label");
+
+  // Determinism: the same input returns the same order and scores.
+  let r2: Result[BeamResult, JevError] = beam.beam_search(beam_golden_levels(), 2);
+  if !r2.is_ok {
+    failed = failed + report(false, "beam: second run succeeds");
+  } else {
+    let res2: BeamResult = r2.value;
+    failed = failed + report(str_eq(beam.beam_result_path_text(&res2, 0, "/"), beam.beam_result_path_text(&res, 0, "/")), "beam: deterministic path text");
+    failed = failed + report(beam.beam_result_path_score(&res2, 0) == beam.beam_result_path_score(&res, 0), "beam: deterministic score");
+  }
+
+  // Width 1 pins the tie to the first discovered path.
+  let r3: Result[BeamResult, JevError] = beam.beam_search(beam_golden_levels(), 1);
+  if !r3.is_ok {
+    failed = failed + report(false, "beam: width 1 search succeeds");
+  } else {
+    let res3: BeamResult = r3.value;
+    failed = failed + report(str_eq(beam.beam_result_path_text(&res3, 0, "/"), "a/x/q"), "beam: tie-break pins first discovery");
+    failed = failed + report(beam.beam_result_path_score(&res3, 0) == 150000, "beam: width 1 score");
+  }
+
+  // Full ranking: 1.5e5 (x2), 1.0e5 (x2), 0.9e5 (x2), 0.6e5 (x2).
+  let r4: Result[BeamResult, JevError] = beam.beam_search(beam_golden_levels(), 8);
+  if !r4.is_ok {
+    failed = failed + report(false, "beam: full-width search succeeds");
+  } else {
+    let res4: BeamResult = r4.value;
+    failed = failed + report(beam.beam_result_count(&res4) == 8, "beam: all eight combinations kept");
+    failed = failed + report(str_eq(beam.beam_result_path_text(&res4, 2, "/"), "a/x/p"), "beam: third path tie order");
+    failed = failed + report(str_eq(beam.beam_result_path_text(&res4, 3, "/"), "a/y/p"), "beam: fourth path tie order");
+  }
+
+  // Zero-probability options are still paths (score 0) and rank last.
+  var z: BeamLevel = beam.beam_level_new();
+  beam.beam_add_option(&mut z, "a", 1000000);
+  beam.beam_add_option(&mut z, "b", 0);
+  var zl: Vec[BeamLevel] = Vec[BeamLevel].new();
+  zl.push(z);
+  let rz: Result[BeamResult, JevError] = beam.beam_search(zl, 2);
+  if !rz.is_ok {
+    failed = failed + report(false, "beam: zero-probability search succeeds");
+  } else {
+    let resz: BeamResult = rz.value;
+    failed = failed + report(str_eq(beam.beam_result_path_text(&resz, 0, "/"), "a"), "beam: zero-probability ranked last");
+    failed = failed + report(beam.beam_result_path_score(&resz, 1) == 0, "beam: zero-probability score is 0");
+  }
+  return report(failed == 0, "beam search: golden products, determinism, tie pin");
+}
+
+fn t46() -> Int {
+  var failed: Int = 0;
+  let empty_levels: Vec[BeamLevel] = Vec[BeamLevel].new();
+  failed = failed + expect_bad_beam(beam.beam_search(empty_levels, 0), "beam: width must be positive", "beam: width 0 rejected");
+  let empty_levels2: Vec[BeamLevel] = Vec[BeamLevel].new();
+  failed = failed + expect_bad_beam(beam.beam_search(empty_levels2, -3), "beam: width must be positive", "beam: negative width rejected");
+  let empty_levels3: Vec[BeamLevel] = Vec[BeamLevel].new();
+  failed = failed + expect_bad_beam(beam.beam_search(empty_levels3, 2), "beam: missing levels", "beam: missing levels rejected");
+
+  let empty_level: BeamLevel = beam.beam_level_new();
+  var one_empty: Vec[BeamLevel] = Vec[BeamLevel].new();
+  one_empty.push(empty_level);
+  failed = failed + expect_bad_beam(beam.beam_search(one_empty, 2), "beam: empty children at level 1", "beam: empty children level 1 rejected");
+
+  var two_empty: Vec[BeamLevel] = Vec[BeamLevel].new();
+  var ok1: BeamLevel = beam.beam_level_new();
+  beam.beam_add_option(&mut ok1, "a", 1000000);
+  two_empty.push(ok1);
+  two_empty.push(beam.beam_level_new());
+  failed = failed + expect_bad_beam(beam.beam_search(two_empty, 2), "beam: empty children at level 2", "beam: empty children level 2 rejected");
+
+  var malformed: BeamLevel = beam.beam_level_new();
+  malformed.labels.push("a");
+  var malformed_lv: Vec[BeamLevel] = Vec[BeamLevel].new();
+  malformed_lv.push(malformed);
+  failed = failed + expect_bad_beam(beam.beam_search(malformed_lv, 2), "beam: level 1: malformed children", "beam: malformed children rejected");
+
+  var no_label: BeamLevel = beam.beam_level_new();
+  beam.beam_add_option(&mut no_label, "", 500000);
+  var no_label_lv: Vec[BeamLevel] = Vec[BeamLevel].new();
+  no_label_lv.push(no_label);
+  failed = failed + expect_bad_beam(beam.beam_search(no_label_lv, 2), "beam: level 1: label is empty", "beam: empty label rejected");
+
+  var low: BeamLevel = beam.beam_level_new();
+  beam.beam_add_option(&mut low, "a", -1);
+  var low_lv: Vec[BeamLevel] = Vec[BeamLevel].new();
+  low_lv.push(low);
+  failed = failed + expect_bad_beam(beam.beam_search(low_lv, 2), "beam: level 1: probability out of range", "beam: negative probability rejected");
+
+  var high: BeamLevel = beam.beam_level_new();
+  beam.beam_add_option(&mut high, "a", 1000001);
+  var high_lv: Vec[BeamLevel] = Vec[BeamLevel].new();
+  high_lv.push(high);
+  failed = failed + expect_bad_beam(beam.beam_search(high_lv, 2), "beam: level 1: probability out of range", "beam: probability above 1 rejected");
+
+  var dup: BeamLevel = beam.beam_level_new();
+  beam.beam_add_option(&mut dup, "a", 500000);
+  beam.beam_add_option(&mut dup, "a", 500000);
+  var dup_lv: Vec[BeamLevel] = Vec[BeamLevel].new();
+  dup_lv.push(dup);
+  failed = failed + expect_bad_beam(beam.beam_search(dup_lv, 2), "beam: level 1: duplicate label 'a'", "beam: duplicate label rejected");
+
+  let score_resp: Response = beam_answers_response(types.KIND_SCORE, 1);
+  failed = failed + expect_bad_beam_level(beam.beam_level_from_answer(&score_resp, 0), "beam: answer 0 is not a choice", "beam: non-choice answer rejected");
+  let no_prob_resp: Response = beam_answers_response(types.KIND_CHOICE, 0);
+  failed = failed + expect_bad_beam_level(beam.beam_level_from_answer(&no_prob_resp, 0), "beam: answer 0 has no probabilities", "beam: answer without probabilities rejected");
+  let choice_resp: Response = beam_answers_response(types.KIND_CHOICE, 1);
+  failed = failed + expect_bad_beam_level(beam.beam_level_from_answer(&choice_resp, 5), "beam: answer 5 is not a choice", "beam: out-of-range answer rejected");
+  return report(failed == 0, "beam search: typed malformed-input errors");
+}
+
+fn t47() -> Int {
+  var failed: Int = 0;
+  let parsed: Result[Response, JevError] = fan_out_response();
+  if !parsed.is_ok { return report(false, "beam bridge: fixture parses"); }
+  let resp: Response = parsed.value;
+  let lr: Result[BeamLevel, JevError] = beam.beam_level_from_answer(&resp, 0);
+  if !lr.is_ok { return report(false, "beam bridge: choice answer converts"); }
+  let l0: BeamLevel = lr.value;
+  failed = failed + report(beam.beam_level_len(&l0) == 3, "beam bridge: level length from answer");
+  failed = failed + report(str_eq(l0.labels[0], "shipping") && l0.micro[0] == 40000, "beam bridge: first encoded option");
+  failed = failed + report(l0.micro[2] == 610000, "beam bridge: encoded probability micro");
+  let l2r: Result[BeamLevel, JevError] = beam.beam_level_from_answer(&resp, 3);
+  if !l2r.is_ok { return report(false, "beam bridge: second choice answer converts"); }
+  let l2: BeamLevel = l2r.value;
+  var levels: Vec[BeamLevel] = Vec[BeamLevel].new();
+  levels.push(l0);
+  levels.push(l2);
+  let sr: Result[BeamResult, JevError] = beam.beam_search(levels, 3);
+  if !sr.is_ok {
+    failed = failed + report(false, "beam bridge: search over answers succeeds");
+  } else {
+    let res: BeamResult = sr.value;
+    // 0.61*0.40, 0.61*0.34, 0.61*0.24 in micro units.
+    failed = failed + report(str_eq(beam.beam_result_path_text(&res, 0, "/"), "returns/refund"), "beam bridge: best encoded path");
+    failed = failed + report(beam.beam_result_path_score(&res, 0) == 244000, "beam bridge: best encoded score");
+    failed = failed + report(beam.beam_result_path_score(&res, 1) == 207400, "beam bridge: second encoded score");
+    failed = failed + report(beam.beam_result_path_score(&res, 2) == 146400, "beam bridge: third encoded score");
+  }
+  return report(failed == 0, "beam search: bridge from parsed choice probabilities");
+}
+
+// --------------------------------------------------
 //  Entry point
 // --------------------------------------------------
 
@@ -1301,6 +1533,9 @@ fn main() -> Int {
   failed = failed + t42();
   failed = failed + t43();
   failed = failed + t44();
+  failed = failed + t45();
+  failed = failed + t46();
+  failed = failed + t47();
   if failed == 0 {
     io.println("xiom.jev: all tests passed");
   } else {

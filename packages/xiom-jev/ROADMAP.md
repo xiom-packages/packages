@@ -61,8 +61,13 @@
 
 ## M3 -- decision-systems ergonomics
 
-- [ ] hierarchical classification helper: beam search over Choice
-      probabilities keeping the best K paths per level (S3 cookbook).
+- [x] hierarchical classification helper: beam search over Choice
+      probabilities keeping the best K paths per level (S3 cookbook) --
+      DONE 2026-10-17: `xiom.jev.beam` (`BeamLevel`/`BeamPath`/`BeamResult`,
+      `beam_search` with configurable width, `beam_level_from_answer` bridge,
+      integer micro score product, pinned discovery-order tie-break, typed
+      `beam: ` BadRequest catalog); offline-golden-tested (suite t45..t47,
+      41 checks: hand-computed products, determinism, tie pin, all errors).
 - [ ] composite scoring helper: weighted combine of normalized scores
       (S4 pattern) with integer weights.
 - [ ] danger-zone `box` question/answer + media assets (needs the image

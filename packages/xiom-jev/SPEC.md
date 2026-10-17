@@ -65,6 +65,7 @@ Fixture map (tests/test_conformance.xi):
 | `xiom.jev.selection` | `answer_argmax`, `answer_argmax_label`, `answer_max_micro`, `answer_count_at_or_above`, `answer_labels_at_or_above`, `answer_sample_index`, `answer_sample_label`, `choice_answer_covers_question`, `score_round_level`, `score_normalized_micro`, `noul_yes`, `noul_confidence_micro` |
 | `xiom.jev.errors` | `JevError`, `jev_error_kind`, `jev_error_text` |
 | `xiom.jev.compression` | `max_body_bytes`, `body_size_check`, `encoding_name`, `encoding_from_name`, `encoding_supported`, `encoding_check`, `wire_uses_bytes`, `compress_bytes`, `compress_body`, `prepare_body`, `bytes_copy`, type `EncodedBody`; constants `MAX_BODY_BYTES`, `ENCODING_IDENTITY`, `ENCODING_GZIP`, `ENCODING_ZSTD` |
+| `xiom.jev.beam` | `beam_level_new`, `beam_add_option`, `beam_level_len`, `beam_level_from_answer`, `beam_search`, `beam_result_count/width/levels/path_levels/path_score/path_label/path_text`, `beam_path_score/levels/text`; types `BeamLevel`, `BeamPath`, `BeamResult` |
 | `xiom.jev.client` | `system_one` (identity path), `system_one_with_encoding` (explicit `Content-Encoding` selection) |
 
 Per the program brief there are NO contracts (`requires:`/`ensures:`) on new
@@ -268,16 +269,17 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
 
 ## 10. Test strategy and evidence
 
-- Suite: `tests/test_conformance.xi` -- 44 test functions, **169/169 checks
-  passed, x2** (two consecutive runs at the end of the M2-chunk-5 lane) via
+- Suite: `tests/test_conformance.xi` -- 47 test functions, **210/210 checks
+  passed, x2** (two consecutive runs at the end of the M3-beam lane) via
   `& .\scripts\port.ps1 -Package xiom.jev -TimeoutSec 240` on compiler
   `v0.64.6` (native-session, 2026-10-17); `program_exit=0` both runs. History:
   26 functions/82 checks at M1; +4 functions (retry) -> 86; +5 functions
   (structured instructions/criteria) -> 91; +4 functions (legend exposure x2,
   api-key hygiene, base_url validation) -> 110; +3 functions (32 MiB boundary,
   compression encodings, pre-compression gate) -> 143; +2 functions (encoding
-  selection/wire plan, request-builder gzip plan) -> 169 (the boundary/encoder/
-  selection functions emit one check per case).
+  selection/wire plan, request-builder gzip plan) -> 169; +3 functions
+  (beam golden/tie/determinism, beam typed errors, answer bridge) -> 210
+  (the boundary/encoder/selection/beam functions emit one check per case).
 - Offline/deterministic: no API key, no network, no randomness; selection
   uses hand-supplied entropy; request fixtures are compared byte-exact.
 - Link-free: the suite never imports `xiom.jev.client` (the transport links
@@ -513,3 +515,66 @@ conformance JSON and decompresses back to the exact `build_request` bytes.
 The client module itself stays out of the link-free suite (it links the
 libcurl bridge) and is covered by `xiom --check` plus `tests/probe_live.xi`;
 the probe gains a gzip leg behind the same SKIP-safe key gate.
+
+## 17. M3 progress (increment 1: hierarchical beam search)
+
+First M3 chunk (ROADMAP M3 bullet 1, "hierarchical classification helper:
+beam search over Choice probabilities keeping the best K paths per level").
+New module `xiom.jev.beam`; it is pure, offline and integer-only.
+
+**Input.** A hierarchy is a `Vec[BeamLevel]` in level order. Level 0 is the
+root level, level 1 its children, and so on. A `BeamLevel` holds parallel
+`labels: Vec[Str]` and `micro: Vec[Int]` vectors -- the same encoded
+probabilities already used by `Answers` (`prob_labels` / `prob_micro`, micro
+units, wire/criterion order). `beam_level_from_answer(&Response, i)` bridges
+a parsed Choice answer straight into a level, reusing its encoded
+distribution. The per-level distribution is the conditional distribution
+given any prefix; a path is one label per level.
+
+**Search.** `beam_search(levels, width)` starts with the empty path at score
+1.0 (`MICRO`), then for each level expands every kept path with every option,
+ranks the expanded paths and keeps the best `width`. The path score is the
+probability product carried in micro units, normalized after each expansion
+with truncating integer division:
+
+    score_0 = MICRO
+    score_{i+1} = (score_i * micro_i) / MICRO
+
+Integer-only arithmetic and deterministic ordering make the result identical
+on every run and platform. Zero-probability options remain valid paths with
+score 0.
+
+**Tie-breaking (pinned).** Paths are ordered by `score_micro` descending;
+equal scores keep DISCOVERY ORDER -- the previous beam order (already ranked)
+as the outer loop, then the level's option order as the inner loop. `width 1`
+therefore keeps the first-discovered path among equal maxima.
+
+**Result.** `BeamResult { width, levels, paths }` carries at most `width`
+paths, best first. Guards: `beam_result_count`, `beam_result_width`,
+`beam_result_levels`, `beam_result_path_levels`, `beam_result_path_score`
+(-1 out of range), `beam_result_path_label` (""), `beam_result_path_text`
+(join with a caller separator, ""), plus `beam_path_score/levels/text`.
+`beam_level_len` is the option count.
+
+**Typed errors.** Every malformed input is `JevError.BadRequest` with a
+stable reason (all prefixed `beam: `):
+
+| reason | trigger |
+|---|---|
+| `beam: width must be positive` | `width <= 0` (checked first) |
+| `beam: missing levels` | `levels.len() == 0` |
+| `beam: empty children at level <n>` | level `<n>` (1-based) has zero options |
+| `beam: level <n>: malformed children` | label/micro vectors drifted |
+| `beam: level <n>: label is empty` | empty option label |
+| `beam: level <n>: duplicate label '<label>'` | repeated option label in one level |
+| `beam: level <n>: probability out of range` | micro outside [0, 1000000] |
+| `beam: answer <i> is not a choice` | `beam_level_from_answer` on a non-choice/out-of-range answer |
+| `beam: answer <i> has no probabilities` | `beam_level_from_answer` on an empty distribution |
+
+**Tests (suite t45..t47, 41 checks, offline).** t45 pins a hand-computed
+three-level golden (0.5/0.3/0.2 x 0.5/0.5 x 0.4/0.6, width 2), the full
+eight-path ranking, determinism across runs, the width-1 tie pin, and
+zero-probability ordering. t46 covers every typed error arm. t47 bridges two
+parsed Choice answers (department 0.04/0.35/0.61 and resolution
+0.34/0.40/0.02/0.24) into a search and pins 244000 / 207400 / 146400 micro.
+No network, no randomness, no Float64.
