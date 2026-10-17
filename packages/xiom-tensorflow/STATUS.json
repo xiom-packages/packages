@@ -9,9 +9,8 @@
                   "passed":  74,
                   "failed":  0,
                   "run_by":  "am:feat-tensorflow-coverage",
-                  "commit":  "2fe9ac80",
-                  "checked":  "2026-10-16T23:50:43Z",
-                  "notes":  "x2 74/74 LIVE against the official CPU libtensorflow 2.18.1 (E:\\repos\\tensorflow-bin\\lib\\tensorflow.dll, sha256 07687DEFC3F36EE93E372B692D37317B348369A80B3A36201A55D69D7D9EDBA8); 109/109 declared C API slots resolved by name; SKIP leg 17/17 with no runtime present; v0.64.5; scripts/port.ps1 -TimeoutSec 300 (runs ~15s wall)"
+                  "commit":  "be30e872",
+                  "checked":  "2026-10-17T00:40:07Z"
               },
     "publish":  false,
     "excluded_reason":  "new package (M2 ML-runtime loader slice); publish gate after a POSIX live run and a SavedModel-fixture leg"
