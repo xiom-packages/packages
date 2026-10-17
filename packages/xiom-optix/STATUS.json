@@ -1,0 +1,24 @@
+{
+    "package":  "xiom.optix",
+    "stage":  "incubating",
+    "compiler":  "v0.64.6",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  37,
+                  "failed":  0,
+                  "run_by":  "optix-lane",
+                  "commit":  "889deb91",
+                  "checked":  "2026-10-17T17:13:51Z"
+              },
+  "publish": false,
+  "excluded_reason": "new package (0.1.0): not on the publish allowlist yet -- allowlist append + scope enumeration owned by the packages/native lane at merge",
+  "platforms": [
+    "windows-x64"
+  ],
+  "runtime_deps": [
+    "nvoptix.dll (NVIDIA display driver OptiX runtime; user-supplied; dynamic loader; SKIP when absent)",
+    "nvcuda.dll (NVIDIA display driver CUDA driver API; user-supplied)"
+  ]
+}
