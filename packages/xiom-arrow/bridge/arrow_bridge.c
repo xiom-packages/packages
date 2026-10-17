@@ -147,6 +147,57 @@ long long arrow_record_batch_get_schema(long long batch) {
   return 0;
 }
 
+/* Additive Phase-2 surface (declared in src/arrow.xi, implemented for real
+ * by bridge/arrow_real.cpp). The offline leg keeps the same validation and
+ * reports the backend unavailable: 0 = no handle, -1 = invalid argument,
+ * 0 = no released struct (release entry points). */
+
+long long arrow_schema_create_struct(long long names, long long formats,
+                                     long long n_columns) {
+  if (names == 0 || formats == 0 || n_columns <= 0) return -1;
+  return 0; /* Phase 1: Arrow runtime unavailable. */
+}
+
+long long arrow_array_from_int64(long long values, long long length) {
+  if (values == 0 || length <= 0) return -1;
+  return 0; /* Phase 1: Arrow runtime unavailable. */
+}
+
+long long arrow_array_from_float64(long long values, long long length) {
+  if (values == 0 || length <= 0) return -1;
+  return 0; /* Phase 1: Arrow runtime unavailable. */
+}
+
+long long arrow_record_batch_export(long long batch, long long out_schema,
+                                    long long out_array) {
+  if (batch == 0 || out_schema == 0 || out_array == 0) return -1;
+  return 0; /* Phase 1: no batch storage to export. */
+}
+
+long long arrow_record_batch_import(long long schema_slot,
+                                    long long array_slot) {
+  if (schema_slot == 0 || array_slot == 0) return -1;
+  return 0; /* Phase 1: Arrow runtime unavailable. */
+}
+
+long long arrow_schema_release(long long schema_slot) {
+  if (schema_slot == 0) return -1;
+  return 0; /* Phase 1: nothing was ever exported. */
+}
+
+long long arrow_array_release(long long array_slot) {
+  if (array_slot == 0) return -1;
+  return 0; /* Phase 1: nothing was ever exported. */
+}
+
+long long arrow_backend_available(void) {
+  return 0; /* Phase 1: real Arrow C++ backend not linked. */
+}
+
+long long arrow_backend_version(void) {
+  return 0; /* No version pointer: backend unavailable. */
+}
+
 /* =====================================================================
  * LEG 2 -- real-library loader
  * ===================================================================== */
