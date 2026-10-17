@@ -625,3 +625,7 @@ xiom.ros2
 # ML/AI + robotics M2 wave (torch/tensorflow/blas were early-wave seeds) + gps (R2); ops scopes confirmed LIVE 2026-10-17T11:28Z (eco-release 560; gps+libtorch staged); PROD-only
 xiom.gps
 xiom.libtorch
+# ML/AI core tier + ORBITDB Satellite; ops scopes confirmed LIVE 2026-10-17T14:11Z (eco-release 563; PROD-only)
+xiom.orbitdb
+xiom.numpy
+xiom.llm
