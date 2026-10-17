@@ -464,6 +464,64 @@ fn t24() -> Int {
   return report(str_eq(a, "f32") && str_eq(b, "unknown"), "type names");
 }
 
+// Two string arrays in one header: the second array must read its own
+// elements (regression for the XGGUF-ARRSTR origin defect).
+fn t25() -> Int {
+  var toks = Vec[Str].new();
+  toks.push("he");
+  toks.push("llo");
+  var merges = Vec[Str].new();
+  merges.push("h e");
+  merges.push("he llo");
+  var b = gguf_builder_new();
+  let a1 = gguf_builder_add_kv_arr_str(&mut b, "tokens", &toks);
+  let a2 = gguf_builder_add_kv_arr_str(&mut b, "merges", &merges);
+  let buf = gguf_builder_finish(&b).value;
+  let r = gguf_parse(&buf);
+  if !a1.is_ok || !a2.is_ok || !r.is_ok {
+    return report(false, "two string arrays parse");
+  }
+  let g = r.value;
+  let fi = gguf_find_kv(&g, "tokens");
+  let fj = gguf_find_kv(&g, "merges");
+  let t0 = gguf_kv_arr_str(&g, fi.value, 0);
+  let t1 = gguf_kv_arr_str(&g, fi.value, 1);
+  let m0 = gguf_kv_arr_str(&g, fj.value, 0);
+  let m1 = gguf_kv_arr_str(&g, fj.value, 1);
+  if !t0.is_ok || !t1.is_ok || !m0.is_ok || !m1.is_ok {
+    return report(false, "two string arrays: element reads");
+  }
+  let ok = str_eq(t0.value, "he") && str_eq(t1.value, "llo") && str_eq(m0.value, "h e") && str_eq(m1.value, "he llo");
+  return report(ok, "two string arrays: origin isolation");
+}
+
+// An integer array after a string array keeps its own origin.
+fn t26() -> Int {
+  var toks = Vec[Str].new();
+  toks.push("x");
+  toks.push("y");
+  toks.push("z");
+  var ints = Vec[Int].new();
+  ints.push(7);
+  ints.push(9);
+  var b = gguf_builder_new();
+  let a1 = gguf_builder_add_kv_arr_str(&mut b, "tokens", &toks);
+  let a2 = gguf_builder_add_kv_arr_int(&mut b, "dims", 4, &ints);
+  let buf = gguf_builder_finish(&b).value;
+  let r = gguf_parse(&buf);
+  if !a1.is_ok || !a2.is_ok || !r.is_ok {
+    return report(false, "mixed arrays parse");
+  }
+  let g = r.value;
+  let fi = gguf_find_kv(&g, "dims");
+  let i0 = gguf_kv_arr_int(&g, fi.value, 0);
+  let i1 = gguf_kv_arr_int(&g, fi.value, 1);
+  if !i0.is_ok || !i1.is_ok {
+    return report(false, "mixed arrays: element reads");
+  }
+  return report(i0.value == 7 && i1.value == 9, "mixed arrays: int origin after strings");
+}
+
 // --------------------------------------------------
 //  Main
 // --------------------------------------------------
@@ -494,6 +552,8 @@ fn main() -> Int {
   failed = failed + t22();
   failed = failed + t23();
   failed = failed + t24();
+  failed = failed + t25();
+  failed = failed + t26();
   if failed == 0 {
     io.println("xiom.gguf: all tests passed");
   }

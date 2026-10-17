@@ -1,8 +1,8 @@
 # xiom.torch
 
 > **Status:** `incubating` -- conformance suite green (22 checks live on
-> the pinned libtorch 2.9.0 CPU build, 19 checks pure/SKIP); not yet
-> published to the XIOM registry.
+> the pinned libtorch 2.9.0 CPU build, 19 checks pure/SKIP on v0.64.6);
+> published in `eco-v0.1.194` (sha256 `bde0ce5c...`, 2026-10-17).
 > **Scope:** Torch-style tensor types and neural-network building blocks
 > with a REAL linear forward (pure XIOM, no runtime required), plus a
 > libtorch runtime tier that moves tensors between XIOM and libtorch

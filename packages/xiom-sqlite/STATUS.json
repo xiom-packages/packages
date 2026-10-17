@@ -8,10 +8,13 @@
                   "status":  "pass",
                   "passed":  21,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "c239b90e",
-                  "checked":  "2026-10-13T17:20:30Z"
+                  "run_by":  "native-session",
+                  "commit":  "88a45273",
+                  "checked":  "2026-10-13T17:20:49Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.122 (2026-10-09, 0.3.0); 0.4.0 in eco-v0.1.174; 0.4.1 republish requested (modules fix)"
+    "excluded_reason":  "published in eco-v0.1.175 (2026-10-13, 0.4.1 modules-list fix; 0.4.0 PULSE SQL driver in eco-v0.1.174; 0.3.0 in eco-v0.1.122)",
+    "platforms":  [
+                      "windows-x64"
+                  ]
 }

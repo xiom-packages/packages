@@ -15,8 +15,8 @@ module xiom.arrow
 // Types -- Opaque handles for Arrow C Data Interface
 // ===============================================================================
 
-pub type ArrowArray = Int
-pub type ArrowSchema = Int
+pub type ArrowArray = Int;
+pub type ArrowSchema = Int;
 
 pub type DataType = {
   id: Int;
@@ -33,7 +33,7 @@ pub type Schema = {
   fields: Vec[Field];
 } derive[Clone]
 
-pub type Array = {
+pub type DataArray = {
   handle: ArrowArray;
   length: Int;
   null_count: Int;
@@ -42,7 +42,7 @@ pub type Array = {
 
 pub type Table = {
   schema: Schema;
-  columns: Vec[Array];
+  columns: Vec[DataArray];
   num_rows: Int;
 }
 
@@ -418,7 +418,7 @@ pub fn record_batch_get_schema(batch: ArrowArray) -> Result[ArrowSchema, Str]
 // High-level Array API (SPEC SAPI)
 // ===============================================================================
 
-pub fn array_new(typ: DataType, data: Vec[Int]) -> Result[Array, Str]
+pub fn array_new(typ: DataType, data: Vec[Int]) -> Result[DataArray, Str]
   requires: data.len() >= 0
 {
   let n_buffers = 2;
@@ -426,25 +426,25 @@ pub fn array_new(typ: DataType, data: Vec[Int]) -> Result[Array, Str]
   let result = array_create(length, n_buffers);
   match result {
     Ok(handle) => {
-      Ok(Array { handle: handle; length: length; null_count: 0; data_type: typ })
+      Ok(DataArray { handle: handle; length: length; null_count: 0; data_type: typ })
     };
     Err(e) => Err(e),
   }
 }
 
-pub fn array_length(arr: &Array) -> Int {
+pub fn array_length(arr: &DataArray) -> Int {
   arr.length
 }
 
-pub fn array_null_count(arr: &Array) -> Int {
+pub fn array_null_count(arr: &DataArray) -> Int {
   arr.null_count
 }
 
-pub fn array_data_type(arr: &Array) -> DataType {
+pub fn array_data_type(arr: &DataArray) -> DataType {
   arr.data_type
 }
 
-pub fn array_is_valid(arr: &Array) -> Bool {
+pub fn array_is_valid(arr: &DataArray) -> Bool {
   arr.handle != 0
 }
 
@@ -452,7 +452,7 @@ pub fn array_is_valid(arr: &Array) -> Bool {
 // High-level Table API (SPEC SAPI)
 // ===============================================================================
 
-pub fn table_new(schema: Schema, columns: Vec[Array]) -> Result[Table, Str]
+pub fn table_new(schema: Schema, columns: Vec[DataArray]) -> Result[Table, Str]
   requires: schema.fields.len() > 0
   requires: columns.len() == schema.fields.len()
 {
@@ -467,7 +467,7 @@ pub fn table_new(schema: Schema, columns: Vec[Array]) -> Result[Table, Str]
   Ok(Table { schema: schema; columns: columns; num_rows: num_rows })
 }
 
-pub fn table_column(t: &Table, idx: Int) -> Result[Array, Str]
+pub fn table_column(t: &Table, idx: Int) -> Result[DataArray, Str]
   requires: idx >= 0
   requires: idx < t.columns.len()
 {

@@ -3,18 +3,910 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-05 (12:20Z), by the main/debug session (v0.63.1
-pinned + SHA256-verified, repin 514; contract-evaluator fix confirmed:
-`varint` tuple-advance + `cobs` decode bound restored, x2-green, and
-published in `eco-v0.1.55` (0.1.3); hardening batches #1-#11 published
-across `eco-v0.1.44`-`eco-v0.1.54` -- 46 packages + `option`
-documented all-unasserted; **grpc still RED on v0.63.1** (crash+hang;
-numeric arms stay blocked) and graphql still 9/10; fleet sweep v0.63.1
-running). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-16 (21:30Z), by the coverage session (ML/AI + robotics
+program; **batches 90-94 + 2 single-tag publishes today; llm/numpy/jev/http legs
+landed; v0.64.6 RELEASED 20:33Z -- the repin wave is the top action**;
+context-window handoff -- the block below is complete for a cold start). Check
+`git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-11 11:10Z (batches 38 + 39 delivered; two native glfw fixes; supersedes the 11:00Z block below):**
+**STATE AT 2026-10-16 21:30Z (COVERAGE HANDOFF -- cold-start block; everything below it is history):**
+- **v0.64.6 RELEASED 20:33Z (gh Latest) -- REPIN WAVE = TOP ACTION (not yet started)**: download + SHA256-verify
+  `xiom-0.64.6-windows-x64.zip`; canonical-install byte-check; bump COMPILER_VERSION v0.64.5 -> v0.64.6; repin all
+  STATUS records (compiler field; ~565 files incl. today's additions); validate (~565/0) + guard; commit/push;
+  then the next-archive re-verify list: m334 tuple-namer (`-1941` verify+close), B-29 wide-int, B-32, editor W1/W2
+  rows (playground rows known-red). The watch 21:15Z line carries the original checklist.
+- **Published today (batches 90-94 + 2 single tags)**: transport 0.1.0 + otel 0.1.0 `eco-v0.1.188`
+  (`6638577d`/`830f9eab`); brotli 0.1.0 + ssl 0.1.0 + http 0.1.7 `0.189`; gles 0.2.0 `0.190`; android-sys 0.2.0
+  `0.191`; android family 7/8 + `xiom.pulse` Beacon 0.1.0 `0.192`; `xiom.android` 0.4.0 single tag (`2b9cf462`;
+  family 8/8 CLOSED, `-1305`/`-1322` closed); `xiom.gguf` 0.1.3 single tag (`2d79e76c`; XGGUF-ARRSTR fix live).
+- **Legs landed today (feat+record, all x2 green on v0.64.5)**: `llm` M1+M2a+M2b -- 79/79: vocab+BPE, ggml size
+  tables, f16/f32 dequant golden vectors, matmul/RMSNorm/RoPE/softmax/FFN, model_open, tiny-model GOLDEN LOGITS
+  (`logits[i] = -8*i` exact) + byte-sensitivity; M3 = generation/sampling/KV/Q4_K/multi-position. `numpy`
+  P1+P2a+P2b -- 83/83: real pure-XIOM storage + elementwise + dot/matmul (via `xiom.openblas`; fail-closed div);
+  Phase-3 = broadcasting/N-D/svd/inv/reductions. `jev` -- 82/82: full System One client + LIVE WIRED
+  (Authorization via http 0.1.8; M2/M3 queued). `http` 0.1.8 -- 52/52: custom headers (`http_headers_blob` +
+  `http_request`). `openblas` 32/32 (stub seam + real cblas probe evidence). `arrow` 27/27 (stub + CDI pinned).
+  `pandas` 80/80 (stub leg + real-Arrow requirements doc for the C++ bridge).
+- **Publish queue (scopes gate)**: `http` 0.1.8 = existing name -> rides ANY next eco batch (no scope, no landing).
+  `jev` scope reap filed (`REL-20261016-2108-packages`); `numpy` P2 complete on the grant queue. On ops LIVE:
+  allowlist append + wrap (batch or single tag) + env approve + live-verify + sync + relays.
+- **Incoming (bindings; ACKED; verify-on-landing)**: `xiom.serial` 0.1.0 (`-2031-bindings`; 52/52 claimed; NOT in
+  tree yet) + `xiom.ros2` 0.2.0 (`-2031-bindings-2`; 82/82 claimed; in-tree still the seed). Both new-to-registry
+  -> scopes prepped. On landing: port x2 -> scope -> allowlist -> publish.
+- **Ops**: 24-name grant-as-built queue extended + acked; jev/serial/ros2 reap filed (`2108`). Compiler findings
+  filed: `-2002` (Float64 via dlsym'd fn pointers = garbage; HIGH), `-2004` (`Array` builtin collision; MED),
+  `-2016` (`Result` fields behind `&Result` crash; HIGH); transient silent-output flake noted (unfiled).
+- **Agent-dispatch rule (hard-won)**: SPLIT + `variant: low` + act-early instruction. Max-reasoning on big briefs
+  burns the output budget and dies silently (2x llm M2 + 1x numpy P2 before the fix; 5/5 successes after).
+- **NEXT-SESSION PROMPT (paste-ready)**: "You are the packages-lane session continuing the 2026-10-16 ML/AI +
+  robotics coverage program. Cold start: pull both repos; `git log -1` both; read this block; `python
+  tools\relay.py view --lane packages`. TOP ACTION: the v0.64.6 repin wave (checklist above; watch 21:15Z line).
+  THEN: publish trio on scopes (http 0.1.8 rides any batch; jev + numpy on ops LIVE); serial/ros2 verify-on-landing;
+  next agent waves -- llm M3, numpy Phase-3, jev M2/M3, openblas real accel, bindings R2+ (v4l/gps/epos + onnx),
+  pandas/arrow real backends (libarrow-gated). RULES: agents = split + variant:low + act-early; in-package writes
+  only, no git for agents; relay ids exact + index.lock retry; routine publishes per the owner exception; nothing
+  strategic without the owner. Draft copy: %TEMP%\kilo\session-continuation-draft.md."
+
+**STATE AT 2026-10-16 11:30Z (history -- superseded by the 21:30Z block above):**
+- **Pin v0.64.5** (repin `cb364af3`; archive sha256 `bd71e2d3`; canonical install byte-identical
+  557/557). Validate **561/0**; guard **543 allowlisted / 527 ready / 16 grandfathered / 0 failures**.
+  **103 eco releases** (`eco-v0.1.86` -> `eco-v0.1.187`).
+- **Published this window (all synced + relayed)**: `xiom.template` 0.2.0 (`eco-v0.1.186`; sha
+  `bedd03a9`; stable badge; PULSE top-tier item 1, relayed `-1111`); `xiom.box2d` 0.4.0 (A02) +
+  `xiom.miniaudio` 0.4.0 (A04) (`eco-v0.1.187`; sha `04fe2147`/`382a16f0`; engine wave-5 relayed
+  `-1124`). Wait-window trio + lifts earlier: durable+postgres (`eco-v0.1.183`), redis
+  (`eco-v0.1.184`), glfw 0.6.0+sdl3 0.20.0 (`eco-v0.1.185`).
+- **PARKED GREEN -- THE ONLY GATE = OPS SCOPES**: `xiom.transport` 0.1.0 (A08; 36/36 x2; feat
+  `1c8fbf11`, record `02a3489d`; scope ask **`REL-20261015-2138-packages` OPEN**) + `xiom.otel`
+  0.1.0 (30/30 x2; feat `4d4fe157`, record `ca42abc2`; scope ask **`REL-20261015-2216-packages`
+  OPEN**). Ops lane quiet since 2026-10-15 19:45; wrap signal `-2309-3` sent. **On LIVE confirm**:
+  allowlist 543 -> 545 + wrap + tag **`eco-v0.1.188`** + approve registry-publish env + watch +
+  live-verify + README/STATUS/PACKAGE_STATUS sync + engine relay (transport = A08 seam) / PULSE
+  relay (otel). If ops stays quiet, the owner must chase or authorize an alternate scope route.
+- **Queue / expected next work**: (1) ops scopes above; (2) bindings' android-family publish
+  requests (`xiom.aaudio`/`xiom.mediandk`/`android 0.3.0` are in-tree now -- 561 packages -- but
+  NEW names need scopes before allowlist/publish); (3) pulse-sails core extraction opens when PULSE
+  files the milestone at keep-alive A+B green (`xiom.pulse` slot free; porter flow; `-1108` acked);
+  (4) TLS context + real brotli = bindings queue (`-2211` canonical pair; `-2302` duplicate agreed);
+  (5) **v0.64.6** repin + re-verify when released (compiler has m334 ready for `-1941`; B-29 +
+  B-32 open; editor W1/W2 rows re-verify).
+- **Findings filed this window (all with owning lanes)**: `-1941` tuple-namer (fix ready m334);
+  `-1942` md5 (FIXED in stdlib wave 140); `-1948` socket_connect refused-Ok (FIXED wave 143);
+  `-2303` enum-variant defects (16-probe bundle in `%TEMP%\kilo\otel-findings\enum-float\`);
+  `-2309` mixed-element tuples (stdlib `socket_recv_from` wrapper unusable on the pin -- runtime
+  primitive sound; transport wraps it directly) + `-2309-2` bare-assert mis-binding.
+- **Operations**: hourly cron watch `wku_141b5f9f9001epkcHHLGVh5P14` (mode: land + watch; processes
+  routine publish requests unattended; no new builds). A second packages window has been active
+  (dedupe note `-2313`; main window is the stated single writer for wraps/publishes). Bus validate
+  is currently RED bus-wide from `REL-20261010-1549-registry-3` (registry lane's non-ASCII glyph --
+  foreign; left to its lane). **Tool learnings**: dep-consuming suites need
+  `XIOM_HOME=%TEMP%\kilo\consumer-home` (xiom.wal etc.); the shared live stdlib
+  (`E:\xiom-lang\stdlib`) can be mid-save by the stdlib lane -- a transient compile error inside it
+  means re-run, not a package bug; merge STATUS conflicts: main side keeps publish-sync reasons +
+  platform/runtime rows (wave-3 rule) but for a delivery wave keep the landing lane's fresh records
+  + platform rows (A02/A04 rule) -- in doubt, re-run x2 and re-record after merge.
+- **Environment**: Windows; toolchain `xiom` on PATH (0.64.5); relays clone `E:\xiom-lang\xiom-relays`
+  (shared with other lanes -- leave foreign WIP alone; `python tools/relay.py` for all item ops).
+  Cold-start order: pull both repos -> read this block -> `relay.py view --lane packages` -> process
+  open asks (routine publishes per the owner exception; nothing strategic without the owner).
+
+- **WATCH 2026-10-16 12:15Z**: scopes -2138/-2216 still OPEN (no ops pass); bus validate GREEN again (registry fixed the ASCII item); bindings info-ack -1201 closed; bindings adopted the android tokens + accepted the xiom.ssl name for their TLS package; sibling session active (answered the orbitdb station wishlist). No publish this pass -- transport + otel parked green.
+- **WATCH 2026-10-16 13:15Z**: **OPS LIVE for BOTH** -- transport + otel scopes confirmed 12:58Z (eco-release 550; registry recreated 2.14.2, health ok). **The sibling packages window now drives the combined batch** (brotli 0.1.0 + ssl 0.1.0 + android family merged at `5a22868a`, records `d725a4d9`; transport + otel queued to ride; http 0.1.7 bump-ready as a rider) and is holding the wrap on the brotli scope ask (`-1302-packages`/`-2` -- duplicated by them; ops to handle). **Main window stands down from wraps/publishes this pass** to avoid a double-188; the combined wrap will include transport + otel per the 550 queue plan. If the sibling pauses before wrapping, the next pass executes: allowlist 543 -> 545 for transport+otel (+brotli when scoped; ssl/android5 already scoped) -> guard -> wrap -> tag eco-v0.1.188 -> approve -> verify -> sync -> relays (engine A08/PULSE otel; brotli/ssl to PULSE).
+- **WATCH 2026-10-16 13:25Z**: **BATCH 90 PUBLISHED** -- `xiom.transport` 0.1.0 (`6638577d...`) + `xiom.otel` 0.1.0 (`830f9eab...`) LIVE in **`eco-v0.1.188`** (run 38906425013 green; published=2). Wrap `e8b12c44` (allowlist 543 -> 545; guard 545/529/16/0); sync `b664feea`; relays `-1320-packages` (transport -> engine A08) + `-1320-packages-2` (otel -> PULSE item 3). **All waves of this session are now landed.** Remaining ecosystem: sibling batch (brotli + ssl + android family + http 0.1.7 rider) held on the brotli scope ask (`-1302`); my watch continues hourly (cron `wku_144794923001HzXeERqmqGlJMi`).
+- **WATCH 2026-10-16 14:15Z**: inbox active; ownership mostly elsewhere -- the sibling window owns the brotli/ssl/android-family first-publish batch (android now 0.4.0 per `-1322`, supersedes `-1305`; http 0.1.7 rider `-1304`) and the new bindings asks (`xiom.jni 0.1.0` publish request `-1410`; USD importer queued `-1350`). **`xiom.pulse` extraction milestone ACKED** (`-1401`: keep-alive A+B GREEN at 56eb9f8; porter flow open) -- the extraction itself is QUEUED for the next full session (this window is at its context limit; watch-mode forbids starting builds). No writes besides the ack; handoff block above stands; hourly cron continues.
+- **WATCH 2026-10-16 15:15Z**: **batch 91 LIVE (`eco-v0.1.189`: brotli + ssl + http 0.1.7 rider -- sibling); `xiom.pulse` core CARVED (`053cab87` Beacon extraction, sibling porter flow; codenames convention noted).** Template consumer-verify closed GREEN (`-1442`: 15/15 x2 both platforms on the published artifact -- independent validation of `eco-v0.1.186`). Inbox remainder sibling-owned: android family (`-1305`/`-1322`), gles 0.2.0 request (`-1510`), pulse porter input (`-1504`), bindings acks (`-1502`). No writes from this window beyond the close.
+- **WATCH 2026-10-16 16:15Z**: **batch 92 LIVE (`eco-v0.1.190`: gles 0.2.0 A9 android leg -- sibling).** **v0.64.6 imminent**: stdlib-v0.64.6 tagged at `b81430b` (e72288f + waves 151-154) -- when the compiler archive drops, the REPIN wave triggers (allowlist append + 563+ records + validate + the queued next-archive re-verify: m334 tuple fix, B-29/B-32, editor rows). Inbox sibling-owned: android family (`-1305`/`-1322`), android-sys 0.2.0 request (`-1545`), pulse porter input (`-1504`), acks (`-1502`). No writes this pass (index contention with the active sibling; watch-mode).
+- **WATCH 2026-10-16 17:15Z**: batch 93 in flight (sibling: android-sys 0.2.0 A12 remainder, wrapped twice: 8cd28ce6/ae30c919); PULSE acks: Beacon extraction CO-VERIFIED pre-publish (hashes @56eb9f8) + top-tier complete (ssl/brotli live); stdlib wave 155 (socket_bind/local_addr) + 961/962 corpus. **v0.64.6 archive NOT yet released** (gh still shows v0.64.5 Latest) -- repin wave waits. Inbox: only two info items open (sibling-owned: -1502 ack, -1504 porter input).
+- **WATCH 2026-10-16 18:15Z**: **batch 94 results -- android family 7/8 + Beacon (`xiom.pulse`) LIVE** (sibling; android legacy scope re-grant asked of ops). xvector verified+closed our old `-1937` (WSL XIOM_HOME path mangle). **v0.64.6 archive still pending** (gh: v0.64.5 Latest) -- repin wave waits. This window's context is exhausted: next full session starts from the 11:30Z handoff block + the watch lines; first priorities = v0.64.6 repin wave (when the archive drops) and xiom.pulse publish close/follow-ups.
+- **WATCH 2026-10-16 19:15Z**: inbox EMPTY (no open packages items); family 7/8 live at `eco-v0.1.192`; Beacon acceptance stage 1 GREEN (125/125 x2 both platforms) -- stage 2 (station-consumes) next; **v0.64.6 still pending**. Quiet-pass; no writes beyond this note.
+- **WATCH 2026-10-16 20:15Z**: closed `-1305`/`-1322` (android family 8/8 -- bindings' explicit request via `-1943`, now fixed too). **v0.64.6 CUT GATE FINAL: battery GREEN m334-m346; pin READY awaiting owner go** (`edb4592`) -- repin wave fires the moment the owner cuts. New queue fold noted: ML/AI + robotics bindings half (`-1921`; serial + onnx first picks).
+- **WATCH 2026-10-16 21:15Z -- v0.64.6 RELEASED (20:33Z, gh Latest)!** **REPIN WAVE IS NOW THE TOP ACTION** (not yet started; COMPILER_VERSION still v0.64.5; no repin commit). Next full session checklist: download+SHA256-verify `xiom-0.64.6-windows-x64.zip` + canonical-install byte-check -> bump COMPILER_VERSION -> repin all records (compiler field v0.64.5 -> v0.64.6; include the numpy/jev/android additions) -> validate (expect ~565/0) + guard -> commit/push -> then the NEXT-ARCHIVE RE-VERIFY list: m334 (`-1941` tuple-namer fix -- verify + close), B-29 wide-int (bindings), B-32, editor W1/W2 rows (m341-m346 verdicts), playground rows are known-red anyway; stdlib side already tagged (`b81430b`). Also live: `xiom.numpy` Phase-2b 83/83 (openblas math; publish gate = Phase-2 complete) + `xiom.jev` 82/82 re-record (publish path = scope + http 0.1.8) -- ML leg moving; inbox only playground's single-writer absorption notice (no action).
+- **WATCH 2026-10-16 22:15Z**: **REPIN ALREADY DONE by the active sibling** -- records carry `compiler: v0.64.6` (jolt/numpy verified) and their wraps run `x2 on v0.64.6`; batches past 192: ML/AI + R2 wave WRAPPED (`94ebce30`: allowlist 555 -> 559 for xiom.jev/v4l/serial/ros2; ops LIVE eco-release 558; jev 82/82; http 0.1.8 single-tag live). Inbox quiet. NOTE: this shell's PATH `xiom` shim still reports 0.64.5 -- stale shim only (sibling runs prove v0.64.6 works); leave as-is, the lane is executing correctly. No writes beyond this note.
+- **WATCH 2026-10-17 00:15Z**: `xiom.miniaudio 0.5.0` publish request (`-2324-bindings`: handle surface, x2 44/44 on v0.64.6, engine ask `-2139-2`) ACCEPTED + QUEUED -- execution next full session/resumed sibling (owner-pause window; this window at context limit). Sibling landed R2 COMPLETE (epos 29/29; validate 570/0) + owner-pause overnight note (`d4c7941d`). Inbox otherwise clear.
+- **WATCH 2026-10-17 01:15Z**: second queued publish cycle accepted: **M2 runtimes wave** (`-0042-bindings-2`: torch/libtorch/tensorflow/blas + openblas fix; v0.64.6-gated) -- QUEUED with the miniaudio 0.5.0 cycle for the next full session (order: miniaudio, then M2, or combined if timing aligns; new names pair with their ops scopes as staged). Bindings also filed B-34 (Vec[alias] generics) to compiler. Inbox now clear of opens. This pass added: **xiom.jni scope ask filed to ops** (REL-20261016-1413-packages; PROD-only; publish request -1410 acked) -- rides the android-family remainder batch; -1401 pulse milestone ack reconfirmed (dual ack with the sibling, benign).
+- **STATE 2026-10-16 22:25Z (main window -- supersedes the 22:15Z note on two points)**: **CORRECTION 1: the repin wave was THIS window's work** -- `b0ba2a6b` (archive a32bf7fa SHA256-verified 3 ways; COMPILER_VERSION + 566 records) + merge `84bdc431` (bindings R2 landings; delta repin; 569 records; namespaces 569/1079) + wrap/records `329aadfd`/`94ebce30`/`0fea9430`/`1ab852c2`. **CORRECTION 2: the PATH 0.64.5 was NOT a "stale shim"** -- it was the canonical `%LOCALAPPDATA%\xiom.new` half-deleted (554/557 files gone) by the 20:39Z fleet-swap clobber (same event as orbitdb `-2120` / engine `-2134-3`); **REPAIRED 22:12Z**: ops GO on `-2143` (no ops swap in flight), lsp exe renamed aside, image copied in, **byte-identical 558/558**, `xiom --version` = v0.64.6, `xiom-pkg.exe` back, snapshot `20261017-011653`. Leftover: delete `bin\xiom-lsp.exe.pre-0646` after the LSP next restarts. **Never ad-hoc-swap the shared homes; snapshot first (tools\home-snapshot.ps1).**
+- **STATE 22:25Z -- REPIN WAVE COMPLETE, VERDICTS + PUBLISHES**: validate **569/0**; guard **559/547/12/0**. **Re-verify on v0.64.6**: m334 tuple-namer `-1941` **VERIFIED+CLOSED** (probe exit 0 prints `ok` x2; pkg boundary `name=hi np=3`; postgres workaround retirable); B-29 bigint-bitops **STILL RED** (independently confirmed; boundary workaround stays; m335 locks did not cover this shape); B-32 nested-payload **GREEN** (probe failures=0; matrix ALL shapes incl. A/A2); editor rows: **W1.1 FIXED** (json secondary `"x"`/`42` rc 0), **W1.3 FIXED-as-designed** (hard P001 names the imported module -- was silent T001), **W2.1 FIXED** (`bare-reexport-secondary=1`), **W1.4 STILL RED** (`mk().lines[0]` garbage rc 0 -- m343/m346 did not cover), **W2.3 STILL RED** (struct `.clone()` MaybeUninit clang), W1.2 not reproduced, W1.5 design-open; 2002/2004/2016 queued next wave (m348-m350; not retested by design). **Publishes**: `xiom.http` 0.1.8 single tag `xiom-http/v0.1.8` (sha `0e707f55...`); **batch 95 = `eco-v0.1.193` -- 8 LIVE** (jev `ed212ee6`/onnx `1c1c599b`/ros2 0.2.0 `f510bb42`/serial `fdd4dde3`/v4l `0e3d5390`/arrow `62a25672`/openblas `a6740ae1`/pandas `aad9a74e`; all sha-verified + README/STATUS synced; v4l category warning for bindings). Allowlist 555 -> 559; ops scopes LIVE **eco-release 558**. **Queue**: numpy P2 83/83 in-tree (grant queue -- not yet scoped, NOT published); jev serial/ros2/v4l/onnx landings consumed; gps landed+verified x2 28/28 but no request/scope yet (NOT published); llm M3 / numpy Phase-3 / jev M2/M3 / openblas real accel / bindings R2+ (epos) / pandas-arrow real backends = next agent waves. Inbox processed: `-2115`/`-2031`/`-2031-2` fixed; `-2134-engine-2` routed to bindings (`-2139-packages-2`); playground `-2103` claim is theirs (no action). Evidence: `%TEMP%\kilo\v0646\reverify\`.
+- **STATE 2026-10-16 22:35Z (agent wave round 1 landed; round 2 dispatched)**: three split agents integrated + recorded (all x2 native-verified on v0.64.6): **jev M2a** retry policy for 429/529/503 (pure `xiom.jev.retry` module + driver; `81d6bebb`; 86/86 @ record `8ddf3cd0`), **numpy Phase-3a** NumPy broadcasting + N-D strides + reshape/transpose (`6812ddad`; 103/103), **llm M3a** sampling + single-position generation (`0c1b5e84`; 129/129). Round 2 in flight: llm M3b (KV cache + multi-position), numpy P3b (reductions + inv via openblas), jev M2b (structured instructions). Relay: `xiom.gps` publish acked + ops scope ask `-2234-packages` (landing already x2 28/28 in-tree); onnx request `-2144-bindings` closed (already live in `eco-v0.1.193`). validate 569/0; guard 559/547/12/0.
+- **STATE 2026-10-16 22:52Z (agent wave round 2 landed; round 3 dispatched)**: **numpy Phase-3b** reductions (sum/mean/max/min + axis) + self-contained Gauss-Jordan `inv` (`599e932d`; 130/130 @ record `9b2a3cbf`; svd deferred -- openblas seam stub-only, documented accel target), **jev M2b** structured instructions S3/S4/S5 (`e012c6c9`; 91/91 @ `5c3618d5`), **llm M3b** KV cache + multi-position attention + `llm_generate_cached` (`b88f5baa`; 163/163 @ `d7723f8a`; cached-vs-direct logits equivalence pinned). Round 3 in flight: llm M3c (Q4_K dequant), jev M2c (legend/S6/API-key hygiene/base_url), numpy P3c (svd self-contained). Queue: `xiom.gps` scope `-2234` await ops (publish next batch); numpy grant queue (Phase-2 gate long met); openblas real accel + pandas/arrow real backends (libarrow-gated) + bindings R2+ (epos) = later waves.
+- **STATE 2026-10-16 23:10Z (agent wave round 3 landed -- all three rounds clean)**: **llm M3c** Q4_K dequant + 6-bit scale/min unpack + Q5_0 neighbor (`39905d9f`; 182/182 @ record `9549a0a2`), **numpy Phase-3c** self-contained one-sided Jacobi SVD (U/S/Vt; rank-deficient completion; tolerances 1e-9; `11eee036`; 147/147; **Phase-3 COMPLETE**), **jev M2c** legend on score answers + api_key/base_url hygiene validators (`82ce7480`; 110/110; **BLOCKER for the owner/Architect: S6 choice/score confidence formulas are undefined in the jev SPEC -- pin them before the helper can land**). validate 569/0. Queue: `xiom.gps` scope `-2234` await ops (publish next batch); numpy grant queue (all gates green); llm tokenizer completions (the GPT-2 escape layer's non-ASCII GGUF blocker may now be gone -- XGGUF-ARRSTR fixed in gguf 0.1.3; try it), llm bench harness; jev S8 compression/32-MiB rule; openblas real accel; pandas/arrow real backends (libarrow-gated); bindings R2+ (epos).
+- **STATE 2026-10-16 23:20Z (SECOND bindings delivery merged -- OWNER PAUSE, returns 2026-10-17)**: merge `3c472618` -- **R2 COMPLETE** (`xiom.epos 0.1.0` closed-SDK loader in; all six R2 names now in-tree) + registry category sweep (9 family manifests + the v4l -2220 warn fix + kv/lz4/raylib/slang) + B-32 in-situ RED finding (bindings -> compiler `-2303`; restore parked); repin delta; namespaces 570/1086; validate **570/0**; epos verify-on-landing **29/29 x2 on v0.64.6** (SKIP path; record `b161eb2e`). **PAUSED per owner.** Overnight note for the next session: bindings' queue wave (4 agents: miniaudio handle surface, torch+libtorch, tensorflow, blas fold) may push commits to origin/bindings -- on wake: fetch, merge, repin delta, validate, verify-on-landing, record, push (the standing flow). Awaiting ops: `xiom.gps` scope `-2234` (publishes next batch); numpy grant queue; `xiom.epos` publish request not yet filed.
+- **STATE 2026-10-17 11:15Z (MORNING -- overnight delivery merged; miniaudio shipped; M2 wave awaiting scopes)**: merge `ec548542` (bindings tip `91b4e23f`, 14 commits: **M2 runtimes wave** torch/libtorch/tensorflow/blas landed + openblas metadata fix + **miniaudio 0.5.0** handle surface `c4000ba4` + B-34 probe bundle; 2 record conflicts resolved to theirs + repin delta); namespaces 570/1096; validate **570/0**; guard **559/550/9/0**. Verify-on-landing x2 on v0.64.6 (records @ ec548542 -> `0fbba02d`): miniaudio 44/44, torch 19/19 SKIP-gate, libtorch 8/8, tensorflow 17/17, blas 50/50, openblas 32/32. **PUBLISHED: `xiom.miniaudio 0.5.0` single tag `xiom-miniaudio/v0.5.0`** (sha256 `7d83c1ed...`; run 39027702853 green; registry live-verified; sync `35fea936`; engine ask `-2134-engine-2` fixed as delivered+shipped; bindings `-2324` fixed; fold `-2139-packages-2` closed). **Scope ask for the four new names filed** (`REL-20261017-1109-packages`: torch/libtorch/tensorflow/blas; pairs with gps `-2234` for one ops pass). Next on ops LIVE: allowlist 559 -> 564 (5 names) + wrap + **`eco-v0.1.194`** publish + records/README sync. Bindings: B-34 (Vec[alias] generics) filed to compiler with probe bundle (`294c28bc`; RED on .5/.6); epos publish request still pending their side. numpy grant queue unchanged (Phase-3 complete, 147/147).
+- **STATE 2026-10-17 11:58Z (M2 + gps BATCH LIVE -- `eco-v0.1.194`)**: ops LIVE 11:28Z (gps+libtorch staged as eco-release 560; ops clarified torch/tensorflow/blas were already scoped + allowlisted early-wave seeds); allowlist 559 -> 561; guard 561/552/9/0. **Published 5**: `xiom.torch` `bde0ce5c`, `xiom.libtorch` `865c6d2a`, `xiom.tensorflow` `0f4bb6a5`, `xiom.blas` `bee07a38`, `xiom.gps` `020b50ac` (run 39030226463 green; all registry live-verified; records @ ec548542; README/STATUS sync `c1d1d85d`; relays `-0042-bindings-2` + `-2144-bindings-2` fixed). openblas metadata fix stays unpublished until a future 0.1.x bump (tree 0.1.0 already live in .193 -- batch skip was correct). **PULSE 0.2 hook-seam wishlist `-1123-pulse-2` ACKED + implementation agent dispatched** (agent is probing fn-typed hook fields -- likely compiler papercut; 4 minimal probes now under `packages/xiom-pulse/docs/`). Stdlib `0.64.6` published announcement `-1100-stdlib` noted (pin already v0.64.6; test env uses the dev tree -- unchanged). Remaining queue: epos publish request (bindings side), numpy grant queue, compiler re-verify rows (B-29/W1.4/W2.3/B-34 + queued m348-m351), llm tokenizer/bench + remaining quant formats, jev S8 + S6 SPEC pin, openblas real accel, pandas/arrow libarrow backends.
+- **STATE 2026-10-17 12:16Z (in-lane wave landed; blockers turned into agents)**: **jev S8** body compression seam (gzip via `xiom.compress.gzip`; zstd typed-absent) + 32 MiB body rule (`365fa96a`; 143/143 x2 @ `25fd7fef`) -- flags a new gap: `xiom.http` Str-body path UTF-8-reencodes, corrupting binary frames (end-to-end compressed requests blocked). **llm tokenizer completions** GPT-2 escape layer (all 256 bytes exact) + hand-rolled GPT-2 pre-tokenizer (documented ASCII-class deviation) + SPM core (`d54472aa`; 254/254 x2 @ `6518e9cd`) -- real-vocab loading still blocked by `xiom.gguf` printable-ASCII string check (exact probe `docs/probe-nonascii-gguf.md`; `gpt2`+C4 A0 + SPM U+2581 rejected). **Three agents in flight**: pulse 0.2 hook seam (fn-typed-field probing; may be a compiler papercut), gguf non-ASCII string values, http binary body path. validate 570/0. Ops/registry: `eco-v0.1.194` live; epos request + numpy grant still pending.
+- **STATE 2026-10-17 12:30Z (pulse 0.2 hook seam landed; 3 compiler defects filed)**: `xiom.pulse` **pre_route + after_response hook seam** landed (`7a3abdcd`; 153/153 x2 @ record `26d81e51`; `ResponseInfo{status,bytes,duration_ms}`, `HookSet`, `PreOut` short-circuit, `hooks_install/clear/has`, `dispatch_with`/`handle_connection_with`/`serve_with`; no-hook path byte-unchanged; README consumer module-precedence line). PULSE wishlist `-1123-pulse-2` FIXED (they test on the next pulse publish). **3 fn-value compiler defects found + filed to compiler** (`REL-20261017-1227-packages`; minimized probes in `packages/xiom-pulse/docs/` + COMPILER-NOTES.md): module-global fn-typed var codegen failure, adjacent fn-typed struct fields layout miscompile, fn-alias callable-parameter crash (access violation); documented workarounds shipped (direct fn types, Vec-slot HookSet). In flight: `xiom.gguf` non-ASCII string values + `xiom.http` binary body path. validate 570/0.
+- **UPDATE 2026-10-16 15:30Z (batch-91 close-out)**: ssl + brotli README/STATUS publish-synced (`7b2af567`);
+  items `-1220-bindings`/`-1220-bindings-2` FIXED with full evidence (ssl live leg 23/23 x2 on OpenSSL
+  3.2.4 via Git mingw64 + SKIP 4/4 x2; brotli 26/26 x2); `-1442-pulse` closed (template README consumer
+  note `ad96df97`). **PULSE top-tier relay sent** (`REL-20261016-1515-packages`): all four package-path
+  asks closed (templates 0.2.0 / TLS ssl 0.1.0 / observability otel 0.1.0 + transport / compression
+  zstd + brotli). Relay push needed a stale-lock recovery (removed an 11-min-old crashed-git lock;
+  commits landed `8fbbebd`).
+- **UPDATE 2026-10-16 15:45Z**: **BATCH 92 PUBLISHED -- `xiom.gles` 0.2.0 (A9 android leg) live in
+  `eco-v0.1.190`** (sha256 `40328c2a07a1...` @15:33:47Z; run 38924693877 green). Merge `0ec65584`
+  (tip `e63dbda5`); validate 565/0; native x2 20/20 both runs (ANGLE live ES 3.0.0 + android delta
+  494/1225 present; 221/494 resolved live extension-conditional); record `319f858b`; wrap `81f922ae`;
+  sync `1df85b28`; item `-1510-bindings` fixed (sha256 ref corrected `414b514`). 565 packages in-tree.
+
+**STATE AT 2026-10-14 14:25Z (history -- wave-3 published; superseded by the 2026-10-16 11:30Z block above):**
+- **Wave-3 CLOSED end-to-end**: `REL-20261014-1331-bindings` fixed. Merge `945b795f` (tip `dd160416`;
+  README/STATUS resolved to bindings + published lines restored); validate **553/0**; regen `50b65cee`;
+  native x2 ALL GREEN @ `50b65cee` (`2d3fc725`): ffmpeg 23/23 x2 both gens (Blender 7.1.1 + GIMP 6.1.1)
+  + SKIP 3/3 x2, jolt 24, ozz 9, sdl3 72/72 x2 present + true-absent 8/8 x2 (strip the Vulkan bin from
+  PATH for the absent arm), rtxgi 28, rtxdi 33, rpr 35 + 9/9 SKIP, openpgl 14, stb 18, exr 12,
+  photometrics 43.
+- **Ops gate resolved** (`REL-20261014-1338-packages` fixed 14:07Z): `xiom.exr` + `xiom.photometrics`
+  scoped PROD-only LIVE (eco-release 539); allowlist **538 -> 540**; guard **540/524/16/0**.
+- **PUBLISHED**: wrap `52dc853b`; tag `eco-v0.1.179`; run **38577890832 green** (5m36s; published=11
+  failed=0); live sha256s verified -- ffmpeg `50f6d46b`, jolt `9315bbc7`, ozz `d655e1ef`, sdl3
+  `d0be440a`, rtxgi `60833288`, rtxdi `f1fabdcb`, rpr `140e9004`, openpgl `a5e7f5a9`, stb `690d8c5e`,
+  exr `542e0467`, photometrics `468e03ff`. Sync `0445c134` (READMEs + STATUS + PACKAGE_STATUS).
+  ffmpeg ships **0.4.1 SHIP-only** (0.4.0 never published; `-2142` fixed). Tally **95 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.179`).
+- **A05 (10)+(11) fully delivered**: HDR = stb 0.3.0 + exr 0.1.0; IES/.cube = photometrics 0.1.0
+  (pure XIOM). Engine relayed `REL-20261014-1416-packages`.
+- **Bus**: `-1331` fixed (full evidence); A05 asks `-1202`/`-1207-engine` fixed (delivered); ops loop
+  `-1407-ops` fixed; engine ACKED `-1416-packages` (adopted all 11; wiring queue: jolt->E8 water leg,
+  ozz->animation adapter sampling tier, sdl3->input device tier, stb/exr/photometrics->renderer audit
+  rows -- these are ENGINE-INTERNAL lanes consuming the packages, not asks to us). NEW engine finding
+  `-1427-engine` -> stdlib (copy_file/read_file not binary-safe: truncates at the first NUL; fleet scan
+  shows all binary reads already use `io.read_file_bytes` and no package uses copy_file on binaries --
+  data point filed `-1453-packages`). Engine nudge `-1510-engine` (to bindings) listed wave-B + the
+  upscaler wave as still-open priorities though both are LIVE since `eco-v0.1.178` (`-1259-packages`
+  unacked on their side) -- corrected `-1630-packages`. `-1509-engine` (jolt+harfbuzz port.args
+  repeated `--cxx-standard` drops C++17 for earlier TUs) -> compiler; engine merge-workaround in
+  place, our per-package port.args.json stand unchanged. `-1304`/`-1306` await bindings/owner to
+  move (packages may not). Wave-3 evidence logs: `%TEMP%\kilo\wave3\*.log`.
+- **Next up (queue unchanged otherwise)**: promotions per sec.7; next archive re-verify (m275-m294 +
+  workaround retirements; compiler m310 now carries fixes for `-1549-packages-5/-7` -- re-verify when
+  a v0.64.5 archive lands); bindings suite manifest `-2143-bindings-2` (standing queue); `-1731`
+  project-build blocker (compiler).
+- **UPDATE 2026-10-14 21:00Z**: **v0.64.5 release wave in motion** -- compiler push `1e4a444e` +
+  release dry-run 38626737822 GREEN (~20:00Z: release guard + windows-x64 + VSIX all pass); tag
+  signal sent; **archive not yet listed** -- the repin window opens the moment `gh release list`
+  shows v0.64.5 (pre-repin home snapshot REFRESHED to `20261015-000115`, 5019 files). Fix batch grew
+  since the block above: m314-m321 (`-2042`/`-2227` wide-int, `-2139` geom collision, `-1158` spawn
+  literal, `-2256`/`-2324-2/3` const-surface family, `-2119`/`-1213` probe-side) -- fold into the
+  re-verify list at the pin.
+- **UPDATE 2026-10-14 23:15Z**: **v0.64.5 tag still HELD** (stdlib candidate regressions `-2123`
+  in triage; `d80bf1b`) -- no repin yet. **E-family first delivery SHIPPED: `xiom.jolt` 0.5.0**
+  (E1 queries + E2 capsule + E7 contacts/sensors) -- merge `10167d9d` (tip `73ea38a5`; validate
+  553/0), native x2 **67/67** both runs (record `e8c6bf67`), wrap `f5f899c5`, tag **`eco-v0.1.180`**,
+  run 38651812029 green, live sha256 `1035c987...` @23:06:27Z, README/STATUS synced `e4817194`
+  (published chain deduped), item `-2101-bindings` fixed, **engine relayed** (`REL-20261014-2310-packages`;
+  E3-E6 queued sequential follow-ons). Tally **96 eco releases** (`eco-v0.1.86` -> `eco-v0.1.180`).
+  Guard now **540/524/16/0**.
+- **UPDATE 2026-10-15 01:45Z**: **`xiom.jolt` 0.6.0 (E3/E6) SHIPPED** -- merge `a857a7f2` (tip
+  `569202c4`; README/STATUS conflicts resolved + published chain restored incl. 0.4.0/0.5.0);
+  validate 553/0; native x2 **109/109** both runs (E3 motors/limits/state + full typed-error matrix;
+  E6 convex/compound + E1 query integration + contact manifold; determinism bit-identical); record
+  `64a04549`; wrap `a68a8a93` (an interrupted earlier attempt had already completed record/wrap and
+  tagged `8eef455b`; both pushed); tag **`eco-v0.1.181`**, run 38666089475 green, live sha256
+  `e5c777f8...` @01:35:43Z; README/STATUS synced `a04acef9`; item `-0002-bindings` fixed (raced by
+  the concurrent session; note appended); **engine relayed** (`REL-20261015-0158-packages`). Tally
+  **97 eco releases** (`eco-v0.1.86` -> `eco-v0.1.181`). **E4/E5 = final E-family session
+  (launched)**; v0.64.5 tag still HELD (`-2123` regression fix in progress).
+- **UPDATE 2026-10-15 05:15Z**: **`xiom.jolt` 0.7.0 (E4/E5) SHIPPED -- E-FAMILY COMPLETE** -- merge
+  `afd93d4c` (tip `51601b52`; brace-glue fixes `f0e60f90`/`6a01201d`); validate 553/0; native x2
+  **159/159** both runs (E4 soft bodies volume/grid/rope + settle/drape + bulk out-buffer + 13 typed
+  errors; E5 heightfield plateau/ramp + quantization + settle + 8 typed errors; record `954dfcfb`);
+  wrap `0780149d`; tag **`eco-v0.1.182`**; run 38684757867 green; live sha256 `b1d09efd...`
+  @05:05:29Z; README/STATUS synced `651c238f`; item `-0313-bindings` fixed; **engine relayed with the
+  family-complete notice** (`REL-20261015-0507-packages`; all E1-E7 wireable against 0.7.0). Tally
+  **98 eco releases** (`eco-v0.1.86` -> `eco-v0.1.182`). v0.64.5 tag still HELD (`-2123` fix in
+  progress); agenda/upscaler wave next after.
+- **UPDATE 2026-10-15 19:10Z**: **WAIT-WINDOW PROGRAM (owner: "all 4 in parallel")** -- while the
+  v0.64.5 archive is held: (1) `xiom.redis` rebuilt as a pure-XIOM RESP client and (3) `xiom.postgres`
+  as a pure-XIOM PG-wire client -- **background build agents running in-tree** (redis task
+  `ses_ebf0d2ef...`, postgres `ses_ebf0d073...`; they do NOT commit or touch STATUS.json; main lane
+  reviews + records + integrates on completion); (2) **`xiom.durable` publish prep DONE**: native x2
+  **152/152** both runs @ `22df7bdd` (record `e6a0889d`), ops scope ask filed
+  (`REL-20261015-1906-packages`, PROD-only) -- on LIVE confirm: allowlist 540->541 + wrap + tag +
+  publish + verify + sync (**wrap held until the build agents land**, so the regenerated
+  namespaces/index never capture agent WIP); (4) **routing**: engine ledger asks A02 (2D box2d
+  solver surface) + A04 (audio surface) FILED to bindings (`REL-20261015-1904-packages`/`-2`),
+  engine notified (`-3`); XVECTOR accelerators already staged per `-1417` (no re-file). **Tool
+  learning**: dep-consuming package suites need `XIOM_HOME=%TEMP%\kilo\consumer-home` (513 installed
+  pkgs; e.g. xiom.wal for durable) or the import is unresolved under a bare port.ps1 run.
+- **UPDATE 2026-10-15 19:55Z**: **v0.64.5 RELEASED (19:18Z) -- REPIN DONE + RE-VERIFY WAVE STARTED.**
+  Repin `cb364af3`: COMPILER_VERSION + **553 records** @ v0.64.5; archive SHA256 `bd71e2d3` verified;
+  canonical install (`%LOCALAPPDATA%\xiom.new`) **byte-identical 557/557**; validate **553/0**. Re-verify
+  verdicts on the archive (all `fixed -> verified`): `-1549-packages-5` (consumer port.args auto-apply;
+  links without --c-source; prints 3.53.4), `-7` (local fallback lands 10 files; range spec `>=0.2.0`
+  resolves + runs), `-9` (m294 witness `failures=0`), `-11` (m293 witness exit 0), `-1403` (sdl3 72/72,
+  **0 warnings** -- retire the workaround at the next binds touch). Remaining re-verify: m314-m321
+  language rows + B-2x workaround retirements (bindings/engine-owned witnesses); release-wrap items are
+  v0.64.6-queued except the wide-int half (bindings' reporter wave). **xiom.postgres LANDED**: pure-XIOM
+  PG wire v3 phase 1, **38/38 x2 on v0.64.5** (`7c8a2883`; record `47dc93ea`); ops scope ask
+  `REL-20261015-1932-packages`. Its build surfaced TWO defects, now FILED cross-lane with hardened
+  repros in `%TEMP%\kilo\pg-findings\`: `-1942-stdlib` (`xiom.crypto.md5` silent wrong digests -- HIGH;
+  postgres ships its own RFC MD5 workaround) and `-1941-compiler` (tuple mangling collision
+  `Tuple__Int__Int` vs `Tuple__Str__Int` for `Result[(Str, Int), struct]` with inline `Str::from_utf8`
+  -- HIGH; distinct from the m256 shape; blocked the first postgres suite build). `xiom.redis` build
+  agent still running; durable/postgres ops confirms pending (allowlist appends at wrap; **wrap held
+  until the agents land** so regenerated namespaces/index never capture WIP).
+- **UPDATE 2026-10-15 20:05Z**: **BOTH BUILD AGENTS LANDED -- wait-window trio ready to publish.**
+  `xiom.redis` integrated: pure-XIOM RESP client, **19/19 x2 on v0.64.5** (`5c313832`; record
+  `93918eff`); ops scope ask `REL-20261015-1948-packages-2`. **Ops LIVE confirmations (PROD-only,
+  eco-release 541)**: `xiom.durable` (`-1906` fixed) + `xiom.postgres` (`-1932` fixed); redis scope
+  confirm follows. NEW third finding filed: `REL-20261015-1948-packages` (to stdlib) --
+  `socket_connect` returns OK on
+  a refused connection (Windows; failure only at first `socket_send_all`); witnessed by redis n17 +
+  postgres + a standalone probe (`%TEMP%\kilo\pg-findings\socket-connect\probe_refused.xi`). **Wrap
+  next**: allowlist 540 -> 542 (durable+postgres; +redis on its confirm) + export-namespaces +
+  generate_index -> wrap commit -> tag `eco-v0.1.183` -> approve env -> watch -> live-verify sha256s
+  -> README/STATUS sync -> bus loop-closes.
+- **UPDATE 2026-10-15 20:15Z**: **BATCH 85 PUBLISHED -- durable + postgres LIVE; redis gate-pending.**
+  Wrap `223d71db` (allowlist 540->542; guard 542/526/16/0; namespaces 553 pkgs/1013 modules; index
+  559); tag `eco-v0.1.183`; run `38798162630` green (published=2 failed=0); live sha256s verified:
+  `xiom.durable 0.1.0` `9a5c9b4d...` + `xiom.postgres 0.1.0` `4363261c...`; sync `a908563f` (READMEs +
+  STATUS + PACKAGE_STATUS). **`xiom.redis`**: built + recorded (`5c313832`/`93918eff`, 19/19 x2 on
+  v0.64.5) but its scope ask `REL-20261015-1948-packages-2` is still open on ops -- on LIVE: allowlist
+  543 + wrap + tag **`eco-v0.1.184`** + publish + verify + sync. Findings filed this window:
+  `REL-20261015-1941` (compiler: tuple mangling collision), `-1942` (stdlib: md5 wrong digests),
+  `-1948` (stdlib: socket_connect refused-Ok).
+- **UPDATE 2026-10-15 20:45Z**: wakeup check -- `xiom.redis` scope **staged PROD-only (eco-release
+  541->542)**; ops `REL-20261015-1948-packages-2` **acked 20:35Z** ("live confirmation follows") --
+  publish stays gated on LIVE. Path armed: allowlist 542->543 + guard + export-namespaces +
+  generate_index + wrap commit + tag **`eco-v0.1.184`** + approve env + watch + live-verify +
+  README/STATUS/PACKAGE_STATUS sync + bus fix + this doc. Ops also catalog-verified batch 85
+  (528 entries; durable/postgres live). Engine v0.64.5 release-check packages rows swept: **12/12
+  VERIFIED** (`85ccec1` + `ddac087`; 34/34 registry re-probe). Next wakeup re-checks the redis gate.
+- **UPDATE 2026-10-15 21:06Z**: **BATCH 86 PUBLISHED -- WAIT-WINDOW TRIO COMPLETE.** `xiom.redis` scope
+  went LIVE 20:53Z (eco-release 542); wrap `a4351a72` (allowlist 542->543; guard 543/527/16/0); tag
+  `eco-v0.1.184`; run `38806083545` green (published=1 failed=0); live sha256 `215a95c1...` @21:00:52Z;
+  sync `ae0e601d` (README/STATUS/PACKAGE_STATUS); ops close-loop `REL-20261015-2104-packages`.
+  Tally: durable + postgres in `eco-v0.1.183`, redis in `eco-v0.1.184` -- **100 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.184`). All three window findings acked by their owning lanes (md5 +
+  socket_connect -> stdlib "behind the pin switch"; tuple collision -> compiler v0.64.6 fixer wave).
+  Queue back to the standing set: bindings manifest asks (sdl3 0.20.0 / glfw 0.6.0 follow-ups likely
+  next), promotions (bindings prep), next-archive re-verify for v0.64.6.
+- **UPDATE 2026-10-15 21:40Z**: **BATCH 87 (WAVE 4) PUBLISHED -- 101 eco releases.** `xiom.glfw 0.6.0`
+  (dispatcher lift, B-22) + `xiom.sdl3 0.20.0` (filter/watch direct handoff, B-15) live in
+  `eco-v0.1.185` (sha256s `e0acf0cc...` / `b04a0ae4...`; x2 37/37 + 72/72 on v0.64.5, 0 warnings; run
+  38810046611 green). Merge `15077563` -- **STATUS conflicts resolved to OURS** (main carries the
+  publish-sync reasons + platform/runtime rows; theirs were staler; the two lift packages re-recorded
+  fresh anyway). **`xiom.android` joined the tree** (554 packages; NOT in this batch -- not
+  allowlisted/scoped yet; expect a bindings publish request). Record `1681dc2d`; wrap `84ab71bf`; sync
+  `4c7f42fb`; bus `-2105`/`-2105-2` fixed; **engine shape-changed relay** `REL-20261015-2134-packages`
+  (sdl3/glfw handlers now direct + env-free -- engine wiring must adjust). **Tool learning**: the shared
+  live stdlib (`E:\xiom-lang\stdlib`) is edited concurrently by the stdlib lane -- a mid-save
+  `fp128_helpers.c` produced a transient compile failure; re-run, don't chase package bugs.
+- **UPDATE 2026-10-15 21:45Z**: **`xiom.transport` (A08) BUILD STARTED (owner-greenlit).** The
+  transport-class package (reliable-datagram/QUIC-class base) from the engine ledger: capability
+  facts + frame codec/fragmentation + per-channel reliability (injected clock, typed verdicts) +
+  session lifecycle/version handshake + the deterministic sim harness at the seam + loopback/null/
+  UDP backends. Background build agent running (task `ses_ebe7eae5...`; does not commit; main lane
+  reviews + x2 + records + integrates). Scope ask filed `REL-20261015-2138-packages` (PROD-only);
+  engine notified `REL-20261015-2139-packages` (shape + seam-adapter hint). On green: allowlist +
+  publish (batch 88) + engine relay with counts/sha256.
+- **UPDATE 2026-10-15 22:15Z**: **PULSE TOP-TIER DIRECTIVE processed** (`REL-20261015-2202-pulse-3`,
+  acked with routes). Findings: `xiom.template` 0.1.2 is placeholder-only -> **template 0.2.0 build
+  queued** (sections/loops/conditionals + auto-escape; stable-tier minor path); **`xiom.otel` queued**
+  (OTLP/JSON + span model + pluggable sink); **zstd is already live for PULSE** (`xiom.zstd` 0.3.0,
+  real zstd 1.5.7 raw frames = Content-Encoding: zstd); **TLS context engine + real brotli FILED to
+  bindings** (`REL-20261015-2211-packages` / `-2`; xiom.tls 0.1.3 codec + xiom.openssl 0.2.0 crypto
+  are already live -- the missing libssl-class context loader is the ask). Build queue order now:
+  A08 transport (agent running) -> template 0.2.0 -> xiom.otel. All nodes: relays clean (552 valid).
+- **UPDATE 2026-10-15 22:20Z**: **THREE PARALLEL BUILDS IN FLIGHT (owner: "continue in parallel").**
+  Background agents, each scoped to its package dir, no commits:
+  (1) `xiom.transport` 0.1.0 (A08) -- task `ses_ebe7eae5...`; scope ask `-2138-packages` (open).
+  (2) `xiom.template` **0.2.0** (PULSE item 1: sections/loops/conditionals + auto-escape; stable-tier
+  minor; existing 22 checks kept + >=14 new) -- task `ses_ebe5cbc0...` (already allowlisted; rides
+  the next batch).
+  (3) `xiom.otel` 0.1.0 (PULSE item 3: resource/span model + OTLP JSON encoder + sink seam) -- task
+  `ses_ebe5c886...`; scope ask `-2216-packages` (open).
+  Integration order on completion: review -> official x2 (v0.64.5) -> record -> commit; then batches
+  per ops scope confirms (transport + otel need LIVE; template can ride). SESSION updated.
+- **UPDATE 2026-10-15 22:52Z**: **otel + template LANDED; transport still building; otel repro
+  re-launched.** `xiom.otel` 0.1.0 integrated: **30/30 x2** on v0.64.5 (`4d4fe157`; record `ca42abc2`);
+  its build reported a Float64-in-enum mislowering finding -- a simple repro came back GREEN in-lane,
+  so the otel agent was resumed (same task) to rebuild the exact failing shapes into
+  `%TEMP%\kilo\otel-findings\enum-float\` before any cross-lane filing. `xiom.template` **0.2.0**
+  integrated: **43/43 x2** (`1e05751a`; record `e5a44b37`; blocks/auto-escape/flat data model; v0.1
+  surface byte-identical). **Wrap held until the transport agent lands** (so namespaces/index never
+  capture its WIP). Scopes: `-2138` (transport) + `-2216` (otel) both still open with ops; template
+  needs none. Publish plan: when transport lands + scopes LIVE -> one batch (transport + otel +
+  template) as `eco-v0.1.186`, else split per readiness.
+- **UPDATE 2026-10-15 23:05Z**: **enum-variant codegen finding FILED to compiler** --
+  `REL-20261015-2303-packages` (HIGH) with the 16-probe repro bundle
+  (`%TEMP%\kilo\otel-findings\enum-float\`; all three cases reproduce on v0.64.5): unqualified
+  enum + Float64 payload -> denormal bits (truncated int part); qualified construct + UNANNOTATED
+  let -> compiles but match takes NO arm; qualified + ANNOTATED let -> clang `%struct.Reverse`
+  layout collision (minimal 21-line repro, no Float64 needed); flat-struct Float64 = correct
+  (otel's shipped workaround). Suggested home: the v0.64.6 fixer wave (neighborhood of
+  `-1941-packages`). Repro bundle is read-only; nothing else pending in the lane until the
+  transport build completes (agent still running) + ops scope confirms.
+- **UPDATE 2026-10-15 23:15Z**: **ALL THREE WAVES LANDED (in-tree, recorded); publish gated on ops
+  scopes only.** `xiom.transport` 0.1.0: **36/36 x2** (`1c8fbf11`; record `02a3489d`); its build filed
+  TWO toolchain findings to compiler (HIGH: mixed-element tuples miscompiled -- stdlib
+  `socket_recv_from` wrapper unusable on the pin (runtime primitive sound; udp.xi declares it
+  directly), same family as `-1941`/m256; MEDIUM: bare `assert` mis-binds to `xiom.core.assert` in
+  some package namespaces) -- `REL-20261015-2309-packages`/`-2`. Wrap signal sent to ops
+  (`-2309-3`): on LIVE -> allowlist 543 -> 545 + wrap + **`eco-v0.1.186`** (transport + otel +
+  template together; template rides already-allowlisted if a split is preferred). Findings tally on
+  v0.64.5 this window: enum-variant (`-2303`), mixed tuples + assert (`-2309`), plus earlier md5 /
+  socket_connect / tuple-namer -- all with the owning lane. Hourly watch continues.
+- **WATCH 2026-10-15 23:20Z (pass 1)**: scopes `-2138`/`-2216` still OPEN with ops (no publish;
+  everything parked green). **A SECOND packages window is active** (created `-2210-bindings` handling
+  + a duplicate TLS/brotli routing `-2302-packages` at 23:02; its relay commits interleave with
+  ours) -- deduped via an INFO to bindings (`-2313-packages`: canonical = `-2211`/`-2211-2`; `-2302`
+  = duplicate; noted there that the MAIN window is the single writer for wraps/publishes). Attention
+  owner: consider ensuring only one packages window runs wraps to avoid a publish race; the cron
+  watch keeps checking scopes hourly.
+- **WATCH 2026-10-16 11:20Z (pass 2 / morning brief)**: **`xiom.template` 0.2.0 PUBLISHED** --
+  `eco-v0.1.186`, sha256 `bedd03a9...`, live 11:09:15Z (stable badge), sync `ba5e0310`, PULSE relayed
+  (`REL-20261016-1111-packages`). Overnight fixes to OUR findings landed: stdlib **md5** (`-1942`,
+  wave 140) + **socket_connect** (`-1948`, wave 143); compiler **tuple fix ready** (m334 for
+  `-1941`). Bindings **ACKED the canonical TLS/brotli pair** (`-2211`/`-2`) + agreed the `-2302`
+  dedupe. `pulse-sails` acked with name/scoping feedback (`REL-20261016-1108-pulse`: `xiom.pulse`
+  slot is FREE; porter flow opens at their keep-alive A+B freeze). **OPS STALLED**: scopes `-2138`
+  (transport) + `-2216` (otel) still open ~13h (ops lane quiet since 2026-10-15 19:45) -- both builds
+  parked green (36/36, 30/30), wrap signal `-2309-3` sent; owner: chase ops or authorize an alternate
+  scope route. Bus health: `REL-20261010-1549-registry-3` carries a non-ASCII char (registry lane's
+  `088143b`) so `relay.py validate` is red bus-wide -- foreign item, left for its lane to patch.
+- **WATCH 2026-10-16 11:25Z (mid-morning pass -- A02/A04 wave processed)**: **BATCH 89 PUBLISHED** --
+  `xiom.box2d 0.4.0` (A02 caller 2D-solver surface; `04fe2147...`) + `xiom.miniaudio 0.4.0` (A04 audio
+  growth; `382a16f0...`) LIVE in **`eco-v0.1.187`** (run 38892953795 green; published=2). Merge
+  `80879547` (box2d/miniaudio conflicts -> bindings: fresh records + platform rows kept); validate
+  **561/0** (android family joined the tree); regen `43173d68`; official x2 26/26 + 27/27; record
+  `e32965dd`; wrap `17533975`; sync `6811518e`; both requests fixed; **engine wave-5 relay**
+  `REL-20261016-1124-packages` (A02/A04 ledger rows adoption-ready: physics2d TD5 + audio tiers
+  A1-A5). Pulse-sails acked (`-1108-pulse`: name slot + porter-flow feedback; opens at their
+  keep-alive A+B); bindings ack `-1107` closed. **Scopes `-2138`/`-2216` still OPEN (ops quiet since
+  10-15 19:45)** -- the only remaining gate; transport + otel parked green. Totals: batch 88
+  (template 0.2.0, `eco-v0.1.186`) + batch 89 this morning.
+
+**STATE AT 2026-10-14 13:20Z (history -- superseded by the 2026-10-14 14:25Z block above; owner-directed pipeline; 94 eco releases):**
+- **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified). Validate **547/0**; guard **538
+  allowlisted / 518 ready / 20 grandfathered / 0 failures**. Tally **94 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.178`).
+- **OWNER DIRECTIVES (standing; details in the bullets further down)**: (1) **ENGINE PIPELINE = TOP
+  EXTERNAL PRIORITY** -- all engine asks urgent. (2) **TRAFFIC-LANE MANDATE + ROUTING PROTOCOL v2** --
+  route every package wishlist correctly: read the ask FIRST (its owner-direction wording decides);
+  upstream C/C++ -> bindings + clone protocol; own-reader/native -> whichever side is free/live, say
+  so in the ack; check for live sessions BEFORE routing or correcting; no duplicate work. (3) **OWNER
+  PIPELINE**: bindings finishes ALL requests -> packages MERGES -> **OPS owns the allowlist/scope
+  gate** -> batches PUBLISH -> packages RELAYS to the ENGINE lane (standing). (4) **OWNER EXCEPTION**:
+  the 17 wave names are allowlisted + baselined -- they publish UNATTENDED as each goes ready.
+  (5) **STAGING REGISTRY = owner's playground**; scope asks PROD-ONLY by default.
+- **Published 2026-10-13/14**: dx12 0.3.1 stable (`eco-v0.1.169`), opengl 0.5.0 (`.170`), gles 0.1.0
+  (`.171`), dx12 0.4.0 (`.172`), sdl3 0.18.0 (`.173`), sqlite 0.4.0/0.4.1 (`.174`/`.175`; PULSE SQL
+  driver; PULSE consumer co-verify RESOLVED 24/24 on m303+ via `--run`), wave A jolt 0.3.0 + zstd 0.3.0
+  + meshopt 0.5.0 + ffmpeg 0.3.0 (`.176`), wave B first harfbuzz 0.1.0 + basisu 0.1.0 + spz 0.1.0
+  (`.177`), **wave 2 = 12 packages opus/ogg/lz4/ktx2/vdb/phonon/fidelityfx/nis/dlss/xess/nrd/oidn**
+  (`.178`; run 38565995820 green).
+- **IN FLIGHT (bindings dedicated sessions; publish requests arrive as items)**: wave-3 path-tracer
+  set (rpr/rtxdi/rtxgi/openpgl); **A05 IES/.cube own-reader** (race resolved `-1306-packages`: stays
+  with bindings' session); **A05 HDR** (xiom.stb .hdr surface + tinyexr EXR-class). Ops heads-up for
+  the new names filed (`-1308-packages`). **HELD: ffmpeg 0.4.0** (generation fix `-2142-packages`;
+  0.3.0 live).
+- **Ops**: 17 scopes LIVE (eco 537 both; `-2155-ops` confirmed); ops owns the allowlist/scope gate
+  from now on.
+- **Open elsewhere**: compiler `-1731-packages` (project-build consumer blocker; acked; project flow
+  gated, `--run` works); bindings suite manifest `-2143-bindings-2` (standing queue). Next archive
+  (v0.64.5) carries m275-m294: sdl3 0-warning (`-1403`/m277), B-22, B-23/B-24 (m281 -- retire the
+  workarounds), B-20, rows `-1549-packages-5/-7` (bounced), `-9` (m294), `-11` (m293); pre-repin
+  snapshot `20261013-172928` taken (refresh if the shared homes change).
+- **Tool learnings**: `port.ps1 -TimeoutSec 600`+ for heavy compiles (basisu/ktx2/fidelityfx);
+  ffmpeg present-path via `C:\Program Files\Blender Foundation\Blender 5.1\blender.shared` on PATH;
+  consumer harness = xiom.toml project + kv-controlled A/B (`%TEMP%\kilo` probe dirs, consumer-home
+  with 505+ installed packages); `xiom pkg install` local fallback needs registry-shaped layout
+  (dot-named dirs are not discovered by project builds).
+
+**STATE AT 2026-10-13 11:55Z (history -- superseded by the 2026-10-14 13:20Z block above):**
+- **Pin v0.64.4** (official archive; SHA256 `44a41aea` verified; canonical install byte-identical
+  556/556; 532 records repinned). Validate **547/0**; guard **538 allowlisted / 518 ready / 20
+  grandfathered / 0 failures**. Tally: **94 eco releases** (`eco-v0.1.86` -> `eco-v0.1.178`).
+- **Published since the 18:45Z block**: batch 62 sdl3 0.16.1; **v0.64.4 gate** (repin + batch 63 jolt
+  0.2.0 / vma 0.3.0 / dxc 0.3.0, `eco-v0.1.161`); **SDK100 wave complete** (batches 64-67:
+  spirv-tools/cross/reflect + glslang + slang + sdl2 + shaderc + spirv.headers 0.1.0, sdl3 0.17.0,
+  `eco-v0.1.162`/`165`); **vulkan 0.6.0** (owner-approved SDK100 bump, `eco-v0.1.163`); **opengl
+  0.4.0** (`eco-v0.1.164`); **dx12 0.1.0/0.2.0/0.3.0** (`eco-v0.1.166`/`167`/`168`; 0.3.0 = struct-meta
+  434 shapes/2238 consts + DXGI 43 ifaces/163 wrappers + d3d12video 30/190; 31/31 x2); plus
+  **dx12 0.3.1 stable promotion** (`eco-v0.1.169`; 35/35 x2; first sec.7 gate promotion);
+  **opengl 0.5.0** (`eco-v0.1.170`; WGL wave, 28/28 x2); **gles 0.1.0** (`eco-v0.1.171`; ANGLE, 18/18 x2);
+  **dx12 0.4.0** (`eco-v0.1.172`; command recording + B-25, 42/42 x2);
+  **sdl3 0.18.0** (`eco-v0.1.173`; event readback, 61/61 x2);
+  **sqlite 0.4.0** (`eco-v0.1.174`; PULSE SQL driver, 21/21 x2);
+  **sqlite 0.4.1** (`eco-v0.1.175`; modules list, 21/21 x2);
+  **codec wave A** (`eco-v0.1.176`; jolt 0.3.0 + zstd 0.3.0 + meshopt 0.5.0 + ffmpeg 0.3.0, all x2 green);
+  **wave B first** (`eco-v0.1.177`; harfbuzz 0.1.0 + basisu 0.1.0 + spz 0.1.0, x2 green);
+  **wave 2** (`eco-v0.1.178`; opus 0.1.0 + ogg 0.2.0 + lz4 0.1.0 + ktx2 0.1.0 + vdb 0.1.0 + phonon 0.3.0
+  + fidelityfx 0.1.0 + nis 0.1.0 + dlss 0.1.0 + xess 0.1.0 + nrd 0.1.0 + oidn 0.1.0, all x2 green).
+- **v0.64.4 re-verify wave DONE**: `-1549-packages-4` VERIFIED (phantom probes -> one clean
+  `19:5 unresolved import`); `-6` VERIFIED (jolt `--cxx-standard 17`); `-5`/`-7` BOUNCED still red
+  (consumer link `undefined symbol: sqlite3_libversion`; local fallback silent no-op + ranges
+  unresolved); `-2100` VERIFIED on WSL (relative XIOM_HOME refused; absolute lands). B-13..B-20
+  verdicts filed by bindings. Ledger: `release-checks/compiler-compiler-v0.64.3.md` packages block.
+- **Stdlib durability file CLOSED (8/8 verified)**: `-1550-packages`/-2/-3/-4/-5/-6/-7/-8 all
+  `fixed -> verified` in-lane (wave 115/117/98 + crlf probes exit 0 with `XIOM_STDLIB` +
+  `XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime`; btree order-3 churn GREEN; wave118 locking probe
+  green). Caveat: the new runtime symbols reach consumers at the next compiler pin.
+- **Queue (nothing open addressed to packages)**: (1) **DONE 2026-10-13: `xiom.sqlite` 0.4.0 PULSE
+  SQL driver live in `eco-v0.1.174`** (sha256 `1e142acc...`) **+ 0.4.1 modules-list fix in
+  `eco-v0.1.175`** (sha256 `21c1f673...`; PULSE re-run pending -- consumer project-build blocker
+  filed to compiler, `REL-20261013-1731-packages`; `--run` fallback works); (2) binding batches as they
+  arrive; (3) **next compiler archive (v0.64.5+)**: repin + re-verify sdl3 compile 0 warnings
+  (m277 fixed our `-1403`), B-22, rows `-1549-packages-5/-7`, plus the compiler next-batch rows
+  (m275-m282 staged incl. m281 = B-23/B-24/B-20 fixes -- retire those workarounds at the wave
+  when the pin carries them, per G6; pre-repin home snapshot `20261013-172928` taken);
+  ALSO in the next pin: **m293 `-1549-packages-11`** (Map/Set deep ==; fixed 2914cb15) and
+  **m294 `-1549-packages-9`** (bare reads of &mut/& params; fixed f6690a77) -- both compiler-fixed,
+  re-verify at the wave;
+  (4) promotions per policy sec. 7 (vulkan 0.6.0, sdl3 0.17.0 [blocked while `-1403`
+  open], opengl (0.5.0 live; promote at next touch), the SDK100 names -- dx12 0.3.1 promoted 2026-10-13); (5) provenance retrofits at touch (16/518; audit
+  `scripts/provenance-audit.ps1`); engine codecs at the cook gate later.
+- **Platform matrix v1 LANDED (2026-10-13, ORBITDB P2 follow-up)**: `docs/PLATFORM-MATRIX.md` +
+  generator `scripts/platform-matrix.ps1` (regenerate with `-WriteReport`; declared rows from
+  optional STATUS `platforms`/`runtime_deps` -- validated + preserved by `status.ps1`
+  repin/update; derived classes compile 13 / compile+runtime-load 9 / runtime-load 14 / pure
+  497; **36 native packages on the declaration backlog**, retrofit at each touch). Bus:
+  `REL-20261012-1945-orbitdb-3` acked -> fixed (P2 delivered; P1 tracked on `-1550-orbitdb-9`).
+- **`xiom.dx12` 0.3.1 stable promotion PUBLISHED (first sec.7 gate promotion)**: bindings prep tip
+  `4afec760` merged (`46b45e76`; conflicts resolved to theirs + published-history README lines
+  restored); validate 533/0; native x2 **35/35** on v0.64.4 (RTX 3070 Ti, both runs); record
+  `261ba5f8`; wrap `1fd17353`; **`eco-v0.1.169`** (run 38397132232 green 12:30:20Z); live registry
+  sha256 `355ecc6d...` @12:26:45Z stage stable; README/STATUS synced (`b2ddfe3c`); bus
+  `REL-20261013-1207-bindings` fixed; G6 B-23/B-24 accepted rows (expiry = next pin carrying the
+  fixes). First declared platform-matrix row (windows-x64 + d3d12/dxgi deps) landed with it.
+- **`xiom.opengl` 0.5.0 PUBLISHED + `xiom.gles` 0.1.0 PUBLISHED (2026-10-13)**: opengl = full WGL
+  surface (146 cmds + 298 consts; session dc/hglrc; x2 28/28; record `d7714a92`; wrap `ee83ee45`;
+  **`eco-v0.1.170`**, run 38398625056 green; registry sha256 `daeb45a7...` @12:40:11Z; README/STATUS
+  synced `7bd22576`; item `-1222` fixed). gles = new ANGLE package (GLES 2.0/3.2 + EGL 1.5; x2
+  18/18 live; scope LIVE 13:02Z (eco 520 both, `f8e284b`); allowlist 520->521 + wrap `c106c10d`;
+  **`eco-v0.1.171`**, run 38402059528 green; registry sha256 `017b7664...` @13:06:06Z; README/STATUS
+  synced `ed6bc4da`; items `-1231`/`-1302-ops` fixed). Platform rows declared for both (windows-x64;
+  matrix declared=3, backlog 34).
+- **`xiom.dx12` 0.4.0 PUBLISHED (command recording + B-25)**: allocator/list/execute/fence signal+wait
+  (x2 42/42; record `93120d3f`; wrap `ef1b8894`; **`eco-v0.1.172`**, run 38404632334 green; registry
+  sha256 `38ff6d0b...` @13:25:27Z stage stable; README/STATUS synced `da377c75`; item `-1313` fixed).
+  B-25: single-star COM object params cross as `Int` (repro `docs/repro/bindings-pilot/ptr-cast/`;
+  INFO relayed to compiler `-1309-bindings`).
+- **`xiom.sdl3` 0.18.0 PUBLISHED (foreign-written event readback; B-11 addendum retired)**: x2
+  **61/61** (readback type=32768; KEY_DOWN decode type=768 scancode=4 key=97); record `05d5feda`;
+  wrap `f70f02ae`; **`eco-v0.1.173`**, run 38408548028 green; registry sha256 `544c59b8...`
+  @13:55:09Z; README/STATUS synced `5000800a`; item `-1338-bindings-2` fixed. The 6 known `-1403`
+  unknown-type warnings persist on v0.64.4 -- the 0-warning re-check rides the next archive (m277).
+- **`xiom.sqlite` 0.4.0 PUBLISHED -- PULSE SQL DRIVER DELIVERED (queue item 1 done)**: driver module
+  `xiom.sqlite.driver` (DSN parse/open, execute/query/query_one, explicit txns, caps; pure XIOM over
+  the FFI surface); merge `345c05ba` (clean); validate 534/0; native x2 **21/21** (all 5 driver
+  checks); record `60a0b383` + declared row windows-x64 (matrix **declared=4**, backlog 33); wrap
+  `7786a34c`; **`eco-v0.1.174`**, run 38422417970 green; registry sha256 `1e142acc...` @15:31:42Z;
+  README/STATUS synced `2269eb76`; item `-1524` fixed. **PULSE co-verify pending**
+  (`REL-20261013-1540-packages` sent); promotion optional at next touch with the sec.7 gate pack.
+  B-26 workaround = flat `RowOutcome` return of query_one. Per-touch retrofits merged
+  (`5bd95448`, tip `80a06b6b`): PROVENANCE.md (upstream pin + 25/25 declared surface) + platform row;
+  validator accepts explicit-none ([]); artifact unchanged (no republish).
+- **`xiom.sqlite` 0.4.1 (modules-list fix) PUBLISHED + CONSUMER-PATH BLOCKER found (2026-10-13)**:
+  PULSE filed `-1715-pulse` (0.4.0 not consumable: installed package.xi lacked `modules:`); we
+  shipped the requested fix (modules list + 0.4.1; record `46bccdae`, wrap `d94b9d1b`;
+  **`eco-v0.1.175`**, run 38437966256 green, live sha256 `21c1f673...`; sync `89d6b178`) and then
+  reproduced with a kv-controlled A/B in a clean `xiom.toml` project harness: **kv (single-module)
+  builds; sqlite 0.4.0/0.4.1 AND sdl3 0.18.0 fail with T001 cascades inside dependency sources;
+  a bogus `modules:` list does not change kv's result -- project-build discovery ignores the field**.
+  Filed: `REL-20261013-1731-packages` (compiler, high: full repro dirs `%TEMP%\kilo\consumer-*` +
+  build41.log) and `REL-20261013-1731-packages-2` (bindings, fleet note: 41 published + 26
+  unpublished manifests lack `modules:` -- retrofit at touch/templates). PULSE item fixed with the
+  nuance (their re-run pending); **`xiom --run` consumer flow is unaffected** (all today's consumer
+  tests used it). Consumer smoke gate proposal (PULSE sec.4 note) tracked for the publish flow.
+- **Tick 19:00Z processing (5 items)**: `-1718-pulse` acked (driver surface GREEN 24/24 in-tree;
+  0.4.1-live note + compiler caveat for their artifact rerun; doc note landed: README
+  `execute.rows_affected` = `sqlite3_changes`, last statement only, `c3e542d9`); `-1715-pulse`
+  closed by PULSE; `-1721-bindings` fixed (0.4.1 race -- already live; their tip
+  `c239b90e`/`70e71a1d` content-identical, resolve to main's published state at next merge);
+  `-1721-bindings-2` fixed (**decision: NO mass modules wave** -- field not the operative
+  discovery input per the kv-controlled repro; at-touch rollout continues; consumer-import smoke
+  gate deferred until compiler semantics settle); `-1800-bindings` fixed (at-touch split confirmed).
+  Compiler acked `-1731-packages` 18:00Z (consumer-build batch); bindings `-1721-bindings-3` in
+  flight (uncommitted working-tree file in relays -- not ours to touch). Archive still v0.64.4.
+- **ENGINE PIPELINE = TOP EXTERNAL PRIORITY (owner directive 2026-10-13 19:25Z; ALL engine asks urgent)**:
+  codec/container prep wave filed to bindings (`REL-20261013-1926-packages`, high): Wave A surfaces on
+  pinned libs (meshopt cooked wrapper; zstd container framing; ffmpeg AV1/demux) then Wave B in engine
+  order (streaming audio codec; HRTF -- note `xiom.phonon` IS Steam Audio; volumetrics; splats; KTX2/Basis;
+  HarfBuzz). **Clone-repo protocol ENFORCED in the ask**: `E:\repos\<name>` clone + CLEANUP.md row
+  (review-after) + license-on-touch + PROVENANCE.md at landing, no orphan clones; ledger verified
+  (meshoptimizer/steam-audio rows present; FFmpeg row reference-only LGPL/GPL -> keep dynamic-loader
+  model; zstd + new candidates need clones at prep). Engine asks tracked: `-1819-engine` (compiler),
+  `-1819-engine-2` + `-1903-engine` (bindings), `-1914-engine` acked with sequencing.
+- **Consumer-path isolation (2026-10-13 19:30-19:45Z)**: minimal negative baselines for the `-1731`
+  blocker: kv WITH A REAL CALL passes; minimal 2-module dep passes; + extern-bearing module passes;
+  + submodule-to-submodule import passes; + cross-module type in a Result signature passes (probes:
+  `%TEMP%\kilo\minrepo` + `consumer-minprobe` + `consumer-kv-call`; logs `minprobe-*.log`). Failure is
+  scale/generated-specific (sqlite 8 modules / sdl3 80+). Refinement filed to compiler
+  (`REL-20261013-1941-packages`, info; ASCII fixed, validate green). Secondary: `xiom pkg install`
+  local fallback writes a dot-named dir in flat layout -- project discovery ignores it until
+  normalized to the registry layout (`xiom-minprobe-0.1.0/<pkg>/src`). Ops: no scope ask needed for
+  Wave A (existing names); Wave B scope asks deferred until bindings names the upstreams.
+- **CODEC WAVE A DELIVERED (2026-10-13 21:00Z, engine priority)**: bindings ran the wave in ~1h
+  after the owner directive; merged tip `f927952b` (`11a58915`; 7 conflicts resolved -- wave READMEs
+  restored published lines; sqlite pinned to the published 0.4.1 state; PLATFORM-MATRIX add/add
+  resolved to ours); validate 534/0; native x2 **jolt 18/18, zstd 24/24, meshopt 43/43, ffmpeg
+  12/12** (present-path via Blender 5.1: FFmpeg 7.1.1 + libaom-av1, 3 real AV1 frames); record
+  `89527eac`; wrap `7caf0e42`; **`eco-v0.1.176`**, run 38468818666 green; live sha256s jolt
+  `3ac3df4e`, zstd `6288ac84`, meshopt `521dab9e`, ffmpeg `24a5c522` @21:14-21:17Z; README/STATUS
+  synced `f48acb15`; all five items fixed. **Matrix declared=8** (backlog 29). Wave B prep VERIFIED:
+  8 clones registered in CLEANUP.md (opus/ogg/vorbis/openvdb/spz/KTX/basisu/harfbuzz; pinned +
+  licensed + review-after 2026-12-01; `docs/prep/codec-wave-b.md`); `xiom.harfbuzz` 0.1.0 and
+  `xiom.basisu` 0.1.0 already prepped by bindings (their bring-up publishes will arrive as items;
+  new names -> ops scope asks before publish).
+- **Wave-B bring-up merged + engine relay flow (tick 21:00-21:30Z)**: bindings tip `41566a65` merged
+  (`ccb62224`; ffmpeg README/STATUS conflicts resolved theirs + restored published refs; validate
+  **537/0** -- harfbuzz/basisu/spz registered). Wave-A items all fixed (four packages live in
+  `eco-v0.1.176`, run 38468818666 green; registry sha256s jolt `3ac3df4e`, zstd `6288ac84`, meshopt
+  `521dab9e`, ffmpeg `24a5c522` @21:14-21:17Z; sync `f48acb15`). **Wave-B publish queued**: ffmpeg
+  0.4.0 demux + new names harfbuzz 0.1.0 / basisu 0.1.0 / spz 0.1.0 -- registry scopes with ops
+  (`REL-20261013-2122-packages`; tag on scope-live). **x2 status for wave B: harfbuzz 27/27 x2 DONE;
+  basisu/spz/ffmpeg-0.4.0 x2 + records still to run before the wrap.** Owner directive `-2125`
+  implemented: engine availability relay sent (`REL-20261013-2128-packages`; standing flow = relay
+  to engine after every publish). Clone protocol VERIFIED at the ledger (8 wave-B clones +
+  steam-audio refresh; pinned + licensed + review-after 2026-12-01).
+- **OWNER EXCEPTION -- unattended publish staged (2026-10-13 21:40Z)**: the 17 bindings-wave names
+  (harfbuzz/basisu/spz + opus/lz4/ktx2/vdb/nis + fidelityfx/dlss/xess/nrd/oidn + rpr/rtxdi/rtxgi/openpgl)
+  are in `publish-allowlist.txt` + grandfathered in `allowlist-baseline.txt` (guard **538 allowlisted /
+  508 ready / 30 grandfathered / 0 failures**; `f5e4c925`). Protocol from here: ops confirms the
+  registry scopes (their VPS pass; consolidated ask `REL-20261013-2147-packages`) -> each package
+  publishes AUTOMATICALLY on its green record at the next eco tag (batch 79 = harfbuzz/basisu/spz on
+  scope-live; ffmpeg 0.4.0 held for the generation fix `-2142-packages`). No further owner/ops
+  per-package steps; engine relay after every publish (standing). Bindings' full suite manifest:
+  `REL-20261013-2143-bindings-2` (the working queue); 13 agent sessions in flight.
+- **STAGING REGISTRY POLICY (owner, 2026-10-13 21:53Z -- KEEP IN MIND FROM NOW ON)**: the staging
+  registry is the OWNER's playground (owner tries things there); default scope/registry asks go to
+  **PRODUCTION only** unless the owner explicitly says both. This wave ended up staged on BOTH eco
+  entries (ops 21:52Z, 537 scopes) and the owner approved leaving it as-is ("ok if now we do both,
+  leave it"); eco-tag publishes go to PROD only (staging = explicit dispatch canary only). Future
+  waves: PROD-only asks unless the owner says otherwise. Ops bulk live-confirmation for the 17
+  still pending; batch 79 (harfbuzz/basisu/spz) publishes on it.
+- **WAVE B FIRST BATCH PUBLISHED (2026-10-13 22:00Z, eco-v0.1.177)**: ops bulk-confirmed all 17
+  scopes LIVE (eco 537 both; `-2155-ops`); records `ef4d32c7` (native x2: harfbuzz 27/27, basisu
+  31/31 [needs -TimeoutSec 600], spz 74/74; declared=11); wrap `d33cc940`; run 38474684402 green;
+  live sha256s harfbuzz `a768c46a`, basisu `17226cc9`, spz `26ab52a6`; README/STATUS synced
+  `e2c5bca9`; items `-2105-bindings`, `-2105-bindings-2`, `-2105-bindings-4`, `-2155-ops` all fixed;
+  **engine relayed** (`REL-20261013-2211-packages`). Remaining 14 wave names publish unattended as
+  each goes ready (owner-exception allowlist; ops scopes live). ffmpeg 0.4.0 still held
+  (`-2142-packages` generation fix).
+- **WAVE 2 PUBLISHED (2026-10-14 12:43Z, eco-v0.1.178, 12 packages)**: merge `858df12a` (tip
+  `83bce61f`; generated-doc conflicts only -> regen `3a22a083`; validate 547/0); native x2 ALL GREEN @
+  `3a22a083` -- opus 26, ogg 34, lz4 81, ktx2 41, vdb 30, phonon 6 (SKIP-path), fidelityfx 35, nis 28,
+  dlss 21, xess 24, nrd 29, oidn 4 (`323483ab`); wrap `eb21dc46`; run 38565995820 green (5m51s);
+  registry-live sha256s verified; README/STATUS synced `14fcee68`; item `-1208-bindings-3` fixed;
+  **engine relayed** (`REL-20261014-1259-packages`). A05 asks split per owner direction (correction
+  `REL-20261014-1304-packages`): **A05(10) HDR (.hdr on stb + EXR-class) = bindings prep** (stays
+  `-1223-packages`); **A05(11) IES/.cube = NATIVE LANE (packages) -- own IESNA LM-63 reader +
+  optional .cube, typed tables + battery + independent-declaration PROVENANCE; BUILD QUEUED for
+  this lane** (new-name scope ask to ops when it lands). Still in flight: path-tracer set
+  (rpr/rtxdi/rtxgi/openpgl).
+- **TRAFFIC-LANE MANDATE (owner 2026-10-14 13:04Z -- STANDING)**: this lane is the TRAFFIC LANE
+  between native and bindings: we CHOOSE the route for every ask and enforce the protocols.
+  Routing rules: (a) needs an upstream C/C++ library -> bindings prep ask with the clone-repo
+  protocol (E:\repos\<name> clone + CLEANUP.md row + license-on-touch + PROVENANCE); (b) implementable
+  as native XIOM -> THIS lane builds it (own reader; spec refs; independent-declaration PROVENANCE;
+  no clone); (c) either way: registry scope (ops; PROD-only default) -> allowlist -> unattended
+  publish -> README/STATUS sync -> item fixed -> ENGINE RELAY. A05 split is the reference case
+  (IES/.cube native, HDR/EXR bindings).
+- **ROUTING PROTOCOL v2 (owner 13:07Z: "next time direct the package wishlist traffic correctly")**:
+  before routing ANY package wishlist ask: (1) read it FULLY -- the ask's own owner-direction wording
+  decides (e.g. "native lane can provide the surface" = native; "verify and bind... vendored" =
+  bindings); (2) check for LIVE sessions/in-flight work on the topic BEFORE filing or correcting
+  (today's IES race: bindings' 13:01Z dedicated-session ack crossed the 13:04Z correction; resolved
+  by who-is-live + no-duplicate-work, `-1306-packages`); (3) state the route + rationale in the ack;
+  (4) one item per issue; corrections only as explicit supersede notes; (5) bindings also builds
+  pure-XIOM own-readers when assigned (xiom.vdb precedent) -- "native lane" names the WORKSPACE
+  ROLE, not a monopoly on own-reader builds; route own-reader work to whichever side is free/live
+  and say so. (6) never leave a wishlist unrouted or double-routed.
+- **OWNER PIPELINE (2026-10-14 13:08Z -- the end-to-end contract; "after bindings done with all
+  requests and you merge, let ops do allowlist to publish and let the engine lane")**: bindings
+  finishes ALL requests -> packages lane MERGES the integrated tips (validate/x2/records) -> **OPS
+  owns the allowlist/scope gate** (their pass; notified via `REL-20261014-1308-packages`) -> batches
+  PUBLISH (packages: wrap, tag, approve, watch, live-verify) -> README/STATUS sync -> items fixed ->
+  **packages RELAYS live availability to the ENGINE lane** (standing). Upcoming new names in flight:
+  `xiom.ies` (IES/.cube) + the EXR-class package (name at prep) -- ops heads-up filed. PROD-only
+  scope default stands.
+- **NATIVE BUILD status -- `xiom.ies` (A05(11))**: RACE RESOLVED 13:06Z -- bindings' 13:01Z ack
+  ("IESNA LM-63 + .cube own reader in a dedicated session") crossed the 13:04Z correction; the
+  correction's IES half is WITHDRAWN (`REL-20261014-1306-packages`) and **bindings' dedicated
+  session finishes IES/.cube 100%** (same native deliverable: own reader + independent-declaration
+  PROVENANCE + battery; no second build here -- no duplicate work). Packages lane then verifies x2,
+  asks the ops scope (PROD-only) for the new name, publishes, fixes `-1207-engine`, relays.
+  HDR (stb .hdr + tinyexr EXR-class) also with bindings, per `-1223`.
+  PULSE co-verify `-1305-pulse-3` fixed (artifact path resolved on m303+ via `--run`; `-1731`
+  project-flow caveat stands).
+- **Consumer-path verification (2026-10-13, scratch `XIOM_HOME`)**: today's releases install
+  cleanly from the registry (`xiom pkg info` sha256s match; all signed) and compile as real
+  consumers: **sdl3 0.18.0** -- `xiom.toml` [dependencies] only, no flags -> init+timer+events
+  green; **gles 0.1.0** -- bridge recipe `--c-source <installed>\...\gles_probe.c` -> live ANGLE
+  2.1 run (EGL 1.5 | ES 3.0.0 | D3D11). opengl/dx12 installs are clean (same bridge-recipe
+  family; the `-5` gap still requires the manual `--c-source` until the consumer build hook lands).
+- **Fleet install sweep (2026-10-13)**: `xiom pkg install` verified across the whole published
+  fleet -- **505/505 clean** (468 pure + 37 native; log `%TEMP%\kilo\install-sweep-pure.log`;
+  scratch home kept for reuse). Registry-vs-repo drift audit: **zero version mismatches** across
+  505; registry 507 = our 505 + `xiom-std` + `xiom.staging-e2e-probe`. Only the 16 grandfathered
+  names remain unpublished (never shipped); 2 extra home dirs are resolver-pulled pinned deps
+  (e.g. `xiom-http-0.1.0` beside latest).
+- **SQL driver consumer end-to-end (2026-10-13)**: installed `xiom.sqlite@0.4.0` from the registry
+  (client checksum verified `1e142acc`) + `--c-source <installed>\vendor\sqlite3.c` -->
+  `SqlDriver` DSN (`busy_timeout=5000&journal_mode=wal`) / DDL / transaction / query /
+  `value_by_name` roundtrip green ("hello"); `pulse.db` created (WAL checkpointed on clean
+  close). The PULSE recipe is pre-validated from the installed artifact.
+- **Native consumer build sweep (2026-10-13, installed artifacts; shipped `port.args.json`
+  replayed verbatim)**: live -- vulkan 0.6.0 (RTX 3070 Ti; triangle frames=2 center=65280),
+  opengl 0.5.0 (GL 4.6.0 NVIDIA 616.92), dx12 0.4.0 (device nodes=1), jolt 0.2.0 (26 C++17 TUs;
+  physics hand-off), plus sdl3/gles/sqlite above; glfw 0.5.0 compiles + SKIP-path (no glfw3.dll
+  on this box). All recipe families proven: pure loader / +C bridge / multi-C+link / C++17 TU set /
+  vendored amalgamation. The `-5` gap is tool wiring, not the data -- port.args replays exactly.
+- **Release-trail audit (2026-10-13)**: all six eco runs of the day (169-174: dx12 0.3.1,
+  opengl 0.5.0, gles 0.1.0, dx12 0.4.0, sdl3 0.18.0, sqlite 0.4.0) published exactly their
+  intended package -- no accidental republications; registry pre-check + readiness filter behaved.
+- **Ops hygiene (clobber incident `-1852-ops`)**: installs/extracts to lane-local dirs only;
+  `tools/home-snapshot.ps1` before risky windows; restore-from-snapshot after a clobber. Packages ran
+  no install/extract; timeline observation filed (`REL-20261012-1904-packages`).
+- **Operational gotchas**: duplicate doorbell deliveries (same task 2-3x -- CHECK-BEFORE-ACT: diff the
+  newest commits/items, skip already-done states, go to the report); dual-session warning (two
+  packages windows double-run doorbells -- keep ONE); shared relay repo races (index.lock retries
+  resolve; other lanes' uncommitted files are theirs); gh auth `Lefteris-Notas` (switch if it flips).
+- **Protocol (owner restated 2026-10-12)**: upstream-first + clone-repo workflow + 100% coverage on
+  EVERY package, new or old; per-touch `PROVENANCE.md` (upstream pin + license OR explicit
+  independent declaration); doctrine `docs/UPSTREAM-FIRST.md`; clones ledger `E:\repos\CLEANUP.md`
+  with review-after dates.
+
+**STATE AT 2026-10-12 14:20Z (batch 64 -- SDK100 wave on v0.64.4; one held name; history):**
+- **Batch 64 = `eco-v0.1.162` (run 38260596476 green 3m49s)**: eight packages published + live-verified
+  -- spirv-tools 0.1.0 (`24012686`), spirv-cross 0.1.0 (`a08d2d4a`), spirv-reflect 0.1.0 (`97f96c62`),
+  glslang 0.1.0 (`33898cf6`), slang 0.1.0 (`0dd5548d`), sdl2 0.1.0 (`a5bdb037`), shaderc 0.1.0
+  (`9759ab7a`), **sdl3 0.17.0** (`2f162d32`; full surface 1270/1270). All nine SDK100 x2-verified on
+  v0.64.4 before tagging (spirv-headers 10/10 x2 included). Tally: **78 eco releases**.
+- **HELD: `xiom.spirv.headers`** -- ops staged the dash name (`xiom.spirv-headers`) for the 0.1.0 scope;
+  the manifest name is dotted. Correction `REL-20261012-1405-packages` filed; it publishes alone (or
+  with the next batch) once the dotted scope is live -- allowlist re-append then. READMEs/STATUS synced
+  for the eight; bus: -1354-ops fixed (8/9 + hold note), -2231-bindings fixed (wave-1 complete: all
+  six), -2305-bindings stays acked (spirv-headers pending).
+- **New compiler finding filed**: nested fn types in fn casts warn `unknown type ... defaulting to i64`
+  on v0.64.4 (sdl3.xi:1599/1628/1640; 6x; suite green) -- `REL-20261012-1403-packages`.
+- **Batch 66: `xiom.opengl` 0.4.0 PUBLISHED**: eco-v0.1.164 (run 38291839545 green 4m9s; live
+  sha256 `328674f1` @18:37:31Z). Full generated core-profile 4.6 surface (656 cmds + 1358 consts;
+  upstream-first: Khronos OpenGL-Registry pinned `6af574a1`, PROVENANCE.md); x2 on v0.64.4 (21/21;
+  live GL 4.6 session, 656/656 resolved, buffer+shader roundtrips). Merge tip `bb1ec3b7` (clean,
+  auto-resolved 564-file repin mirror; critical files verified: vulkan 0.6.0 + records intact).
+  Bus `REL-20261012-1750-bindings` fixed. Tally: **80 eco releases**.
+- **Batch 67: `xiom.spirv.headers` 0.1.0 PUBLISHED -- SDK100 WAVE COMPLETE**: ops corrected the
+  scope to the dotted name (live 18:55Z); allowlist 519; guard 519/503/0; eco-v0.1.165 (run
+  38294446110 green 3m48s; live sha256 `a77f364a` @19:01:29Z). All eight new names + sdl3 0.17.0 +
+  vma 0.3.0 + dxc 0.3.0 + jolt 0.2.0 + vulkan 0.6.0 are now live. Bus: `-1855-ops` fixed, `-2305`
+  (wave-2) fixed. Tally: **81 eco releases**.
+- **Batch 70: `xiom.dx12` 0.3.0 PUBLISHED**: struct-metadata wave (434 shapes / 2238 size+offset
+  consts) + DXGI (43 ifaces / 163 wrappers / 246 consts / 6 fns) + d3d12video (30 ifaces / 190
+  wrappers / 661 consts / 10 shims). Merge `4970096a` (tip `aab68680`; conflicts resolved to theirs
+  + published history restored); bump `3fcb92aa` (0.2.0->0.3.0); validate 533/0; port x2 on v0.64.4
+  (**31/31**: struct sret roundtrips + oracle sizeof cross-check, DXGI 3 adapters/WARP/640x480
+  swapchain, video QI + VIDEO_DECODE chain); eco-v0.1.168 (run 38308256176; live sha256 `14ce3e67`
+  @21:05:31Z); README/STATUS synced; item `-2051` fixed. Tally: **84 eco releases**. B-23/B-24
+  (out-slot reads) are with compiler; promotion readiness next per the package ROADMAP.
+- **PROTOCOL RESTATED + TIGHTENED (owner 2026-10-12 20:36Z): upstream-first + clone-repo workflow +
+  100% coverage applies to EVERY package, new AND pre-existing.** Per-touch rule: any package merged
+  / fixed / verified / published gets a `PROVENANCE.md` (upstream pin + license OR an explicit
+  **independent** declaration) and carries 100% of its declared surface; retrofit at touch; new
+  packages must land with it. Audit tool: `scripts/provenance-audit.ps1`; generated report:
+  `docs/PROVENANCE-COMPLIANCE.md` (backlog now: **14 compliant / 519 to retrofit**). Doctrine updated
+  (`docs/UPSTREAM-FIRST.md` -- scope + two-mode provenance); paste prompt carries the per-touch line.
+- **Production asks triaged (2026-10-12 20:20Z)**: `-1946-pulse-2` acked -- **SQL driver queued** (top
+  ask: DSN + execute/query/transaction + transactional-DDL capability flag per PULSE's
+  `DESIGN-SQL-MIGRATIONS.md`; immediate path = `xiom.sqlite` 0.3.0 + the README consumer recipe until
+  the build-hook lands). **Driver requirements drafted** (`docs/requirements/pulse-sql-driver.md`,
+  `8b930eec`; recommended shape = **driver module in `xiom.sqlite` 0.4.0**: `SqlDriver.open_from_dsn/
+  execute/query/query_one/transaction_*/capabilities/last_error` as pure XIOM over the existing FFI;
+  options B/C (new `xiom.sql` package / stdlib) deferred to the second engine class).
+  **Implementation proposal filed to bindings** (`REL-20261012-2032-packages`) since they own the
+  package; **HTML/escaping answered via live packages**: `xiom.escape` 0.1.2 /
+  `xiom.template` 0.1.2 / `xiom.html` 0.1.3; `-1945-orbitdb-3` acked -- btree order-3 stays in the
+  acceptance matrix permanently, offline/vendored install design note queued; engine `-2012` relay:
+  no packages blocker (KTX2/Basis-class codecs at the cook gate later). **Compiler m277 (`29e35ef8`)
+  FIXED our `-1403`** (nested fn types; depth-aware split) -- re-run the sdl3 compile at the next
+  archive to confirm 0 warnings (row appended to the next-batch table).
+- **`-1550-packages-6` (file locking) VERIFIED (2026-10-13 03:0xZ)**: stdlib wave 118 (`a0631eb`)
+  landed `sync_io.file_lock/file_unlock/file_try_lock` (POSIX fcntl whole-file; Windows LockFileEx +
+  FAIL_IMMEDIATELY try); `tools/probes/p_wave118_shapes.xi` exit 0 in-lane on v0.64.4 with the
+  `XIOM_RUNTIME_DIR` override; item `fixed -> verified` (`909351e` in relays). Never re-lock a held
+  range (lock -> work -> unlock). Remaining `acked` stdlib/compiler items: `-1549-packages-2/-3/-5/-7/
+  -8/-9/-10/-11/-12`, `-1550-packages-9`, `-1550-packages` (root) -- re-verify rows ride the next
+  archive where applicable.
+- **Duplicate doorbell deliveries (2026-10-13 01:00Z, seen x2)**: the same cron task was delivered
+  twice; the second pass repeated the seven-item re-verify (idempotent -- probes + churn green again,
+  notes appended `ca63fbe`). Before acting on a doorbell, check the newest commits/SESSION to detect
+  an already-done cycle; if repeated, skip to the report.
+- **`-1550-packages-6` (file locking) VERIFIED (2026-10-13 01:28Z fixed / 03:0xZ verified)**: stdlib
+  wave 118 (`a0631eb`) landed real advisory locking (`sync_io.file_lock/file_unlock/file_try_lock`);
+  `p_wave118_shapes.xi` exits 0 in-lane on v0.64.4 with the `XIOM_RUNTIME_DIR` override; item moved
+  `fixed -> verified` (`909351e`/`77c4283`). Contention stays documented-advisory; consumers follow
+  lock -> work -> unlock (never re-lock a held range). Caveat: symbols reach consumers at the next
+  compiler pin.
+- **Duplicate doorbell deliveries (2026-10-13, seen x3)**: the same cron task is being delivered
+  more than once; passes 2..n repeated already-done work (re-verify notes appended, `ca63fbe` /
+  `77c4283`). **Check-before-act, sharpened**: before processing, diff the newest commits/items --
+  if the target item is already in the target state (e.g. `verified`), skip it and go to the report.
+- **Stdlib durability re-verify DONE (2026-10-13 01:0xZ)**: all seven `fixed` items VERIFIED in-lane
+  on v0.64.4 with `XIOM_STDLIB + XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime`: `p_wave115_shapes`
+  (io.fsync family, append_file_bytes parity, sync_io.read_exact) + `p_wave117_shapes`
+  (remove_dir/truncate_fd/append_line_sync) + `p_wave98_tostring_shapes` + `p_read_file_lines_crlf`
+  all exit 0; btree **order-3 churn GREEN** (order=3 ops=20000 n=4096 seed=12345; order 3 stays in the
+  acceptance matrix permanently). Caveat recorded: the symbols reach consumers at the next compiler
+  pin; until then the runtime override. Bus: `-1550-packages`/-2/-3/-4/-5/-7/-8 moved
+  `fixed -> verified` (`e4e1111`).
+- **DUAL-SESSION WARNING (2026-10-12 21:10Z)**: TWO packages-lane processes ran against this worktree
+  tonight (evidence: parallel merge `4970096a` + wrap `113af041` vs this session's `6e9a95de` +
+  `65d0703c`; both ran the dx12 x2 sweeps). Interleaving was loss-free (one worktree serializes
+  commits; watch the relay `index.lock` races) but **close one window** -- doorbells otherwise
+  double-execute. If you are reading this after a handoff, confirm a single live packages session.
+- **ORBITDB P2 answered (20:40Z)**: `docs/OFFLINE-INSTALL-DESIGN.md` (`474e081e`) -- flows: A online
+  pinned (usable today; interim guidance), B offline mirror (`xiom pkg fetch` + `file://` registry,
+  same verification), C vendored-in-repo (`--local`); platform-matrix deliverable
+  (`docs/PLATFORM-MATRIX.md` from STATUS, to build); blockers named (`-1549-packages-7` local
+  fallback + ranges; `-1548-bindings-11` build hook). Notified orbitdb
+  (`REL-20261012-2039-packages`).
+- **Batch 69: `xiom.dx12` 0.2.0 PUBLISHED (supersedes 0.1.0)**: full `d3d12.h` core surface (90
+  interfaces / 355 method wrappers / 1162 enum consts / 9 free fns; 22 struct-by-value shapes as
+  documented skips). Merge `fce153c9` (tip `b8a3b903`; README/STATUS conflicts resolved to theirs +
+  the 0.1.0 published note restored); validate 533/0; port x2 on v0.64.4 (12/12 both: live device,
+  queue create/release refcount 0, root-signature 88-byte blob); eco-v0.1.167 (run 38301605558 green
+  3m52s; live sha256 `7cfae765` @20:03:47Z); README/STATUS synced; item `-1930` noted. DXGI +
+  struct-meta are the 0.3.0 wave. Tally: **83 eco releases**.
+- **Batch 68: `xiom.dx12` 0.1.0 PUBLISHED (new name; DirectX-12 foundation)** -- ops scope live (eco
+  519; `REL-20261012-1925-ops`) -> allowlist 520 -> **eco-v0.1.166** (run 38297712793 green 3m50s;
+  live sha256 `5ff65bed` @19:28:19Z, signed). Merge `b8354f82`; validate 533/0; port x2 on v0.64.4
+  (5/5: D3D12CreateDevice `node_count=1` + allocator roundtrip on the RTX 3070 Ti); record
+  `18cd040e`; README/STATUS synced; bus `-1930`/`-1925-ops` fixed. Tally: **82 eco releases**.
+  Upstream-first: DirectX-Headers pinned `461ef513`; 0.2.0 (full ID3D12 surface + DXGI) next.
+- **Ops clobber incident (`REL-20261012-1852-ops`, to-all, high)**: installer/extract wipes non-archive
+  dirs in the target home; rules now = lane-local dirs for installs/extracts, `tools/home-snapshot.ps1`
+  before risky windows, restore-from-snapshot after a clobber. Packages ran no install/extract today;
+  timeline observation filed (`REL-20261012-1904-packages`: canonical swap was 13:35:22Z by a non-
+  packages actor). Apply lane-local dirs + snapshot for future pin work.
+- **Promotion queue (policy §7: full surface published + settle + no open defects)**: vulkan 0.6.0,
+  sdl3 0.17.0, opengl 0.4.0 and the SDK100 names become candidates as their settle windows pass
+  (sdl3 blocked while `REL-20261012-1403-packages` is open; check open items per package at
+  promotion time).
+- **`xiom.vulkan` 0.6.0 PUBLISHED (owner-approved SDK100 bump)**: eco-v0.1.163 (run
+  38276087674 green 4m22s; live sha256 `a8053f05` @16:19:51Z, 2.9 MB signed). Additive full surface
+  (845 cmds + 5983 consts + 8243 struct-meta; loadability 766/766); x2 green on v0.64.4 (22/22 RHI
+  probe, RTX 3070 Ti + skip-paths); README/STATUS synced; engine notified and **adopted same day**
+  (`REL-20261012-1622-packages` acked: pinned 0.6.0, `probe_vulkan` 14 -> 18 checks, CI 31 batteries
+  x2 green; `-1509` interop Qs stay with bindings). Mini-RHI renumbers to
+  0.7.0+ after (engine+bindings endorsed: `-1348-engine`/`-1500-bindings`). Tally: **79 eco releases**.
+- **v0.64.4 re-verify wave DONE (14:35Z)**: `REL-20261010-1549-packages-4` VERIFIED (both phantom
+  probes now fail with exactly one clean `19:5: unresolved import 'xiom.core.error'`; item verified);
+  `-6` VERIFIED (jolt 4/4 x2 with `--cxx-standard 17`; item verified); `-5` BOUNCED still red
+  (consumer build does not apply the dep's port.args.json -- exact spec resolves, link fails
+  `undefined symbol: sqlite3_libversion`); `-7` BOUNCED still red (local fallback silent no-op --
+  reports btree 0.1.1, lands nothing; range specs unresolved); `-2100` VERIFIED on WSL (relative
+  XIOM_HOME refused exit 1 + no dir; absolute installs under the home; no C:Userslefte mangling).
+  B-13..B-20 verdicts filed by bindings (`REL-20261012-1400-bindings`; B-16/B-17 still red as
+  expected). Ledger: `release-checks/compiler-compiler-v0.64.3.md` packages block
+  (`e4a858f`/`4b2e1dc` in relays); items moved on the bus.
+- **Next**: promotions per §7 as settle windows pass (flip `stage` to `stable` at the next touch,
+  noting the reason); clones ledger sweep review 2026-12-01 (`E:\repos\CLEANUP.md`); adopt
+  lane-local toolchain dirs + home snapshots per the ops hygiene rules when next repinning.
+
+**STATE AT 2026-10-12 13:52Z (v0.64.4 GATE CLEARED -- repin + batch 63 delivered; this block is the live handoff):**
+- **v0.64.4 RELEASED (13:36:58Z, run 38256358845)**; archive SHA256 `44a41aea...` verified; canonical
+  install byte-identical to the archive (556/556 files); `COMPILER_VERSION` bumped; **532 records
+  repinned** (commit `f2e6523d`). Wrap reason: the m258 `--cxx-standard` flag now works.
+- **Batch 63 = `eco-v0.1.161` (run 38257991947 green 3m44s)**, three packages x2-verified on the new
+  pin -> live-verified, README/STATUS synced, bus `REL-20261011-0008-bindings` fixed:
+  **`xiom.jolt` 0.2.0** (`f08d65ca...`; 4/4 x2 -- gate delivered) + **`xiom.vma` 0.3.0**
+  (`a1cc09e2...`; 5/5 x2) + **`xiom.dxc` 0.3.0** (`b4376744...`; 20/20 x2, real DXIL). Tally:
+  **77 eco releases** (`eco-v0.1.86` -> `eco-v0.1.161`). Guard 511/495 ready/16 grandfathered/0.
+- **Remaining queue (next work)**: (a) re-verify rows `REL-20261010-1549-packages-4/-5/-6/-7` +
+  `REL-20261010-2100-packages` and the B-13..B-20 witnesses on the v0.64.4 pin (verdict wave; B-16/
+  B-17 expected still red, do not bounce); (b) SDK100 eight new names (wave-1 five + sdl2/
+  spirv-headers/shaderc) -- ops scopes `REL-20261011-2234-packages`/`-2301-packages` pending, then
+  x2 + allowlist append + wrap; (c) sdl3 full surface bump 0.16.1->0.17.0 at its wrap; (d) vulkan
+  full surface its own owner-coordinated bump (stays 0.5.0). Watches: 2h doorbell.
+
+**STATE AT 2026-10-11 21:10Z (batch 62 delivered -- sdl3 0.16.1 PUBLISHED; this block is the live handoff):**
+- **`xiom.sdl3` 0.16.1 PUBLISHED (batch 62, merge `2fdf01f8`; B-19 package-side fix)**: `SDL_WasInit`
+  cast `fn(Int) -> UInt8` -> `UInt32` at `sdl3.xi:664` (`SDL_InitFlags` is Uint32; the old cast
+  truncated 16384 to its low byte 0 on m263+). Conflicts (sdl3 README/STATUS) resolved to bindings'
+  side + restored published-history lines; validate 524/0 post-merge; record `d5b9e571` (present
+  **59/59 x2** + absent **5/5 x2** on v0.64.3, both shapes re-run after the merge); wrap `82f242a0`;
+  tag `eco-v0.1.160`; gate approved (`environment_ids:[22424011031]`); run `38174860356` green
+  (publish job 4m34s); live sha256 `f2d99b9e...` @21:08:25Z; bus item `REL-20261011-2048-bindings`
+  fixed; README/STATUS synced. Tally: **76 eco releases** (`eco-v0.1.86` -> `eco-v0.1.160`).
+- **PENDING GATE unchanged + imminent**: v0.64.4 -- stdlib VERIFIED the refreshed archive green
+  (22:11Z: corpus 954/954, probes 288/288, modules 509/509) and was cleared to tag; compiler PIN
+  landed (`df493530`; stdlib-v0.64.4 `3df0843`); the release tag/archive is the last step. On
+  release: repin + (bindings already merged through `242ad767`) + jolt port x2 + the eleven SDK100
+  x2 runs on the new pin + publish; re-verify per the 19:55Z expectations block below (B-16/B-17 NOT
+  in the wave -- still red, do not bounce; B-18 fixed m274; B-19 shipped via 0.16.1). Watches:
+  doorbell 23:00 fired, gate bridge 23:13Z.
+- **OWNER DOCTRINE ADOPTED (2026-10-11 21:30Z): upstream-first is standing policy** --
+  `docs/UPSTREAM-FIRST.md`: no code from memory; clone the authoritative upstream at a pinned
+  commit into `E:\repos\<name>` (shared, disposable; ledger + review-after retention in
+  `E:\repos\CLEANUP.md`); per-package `PROVENANCE.md`; license whitelist (MIT/Apache-2.0/BSD/ISC/
+  zlib/PD/Unicode/RFC-first; MPL/LGPL reference-only; never GPL/AGPL/SSPL/Elastic); verification =
+  upstream vectors/parity; bindings target **100% export coverage** (complete surface, not partial).
+  Directive relayed to bindings (`REL-20261011-2131-packages`); codification ask with a paste-ready
+  block for their session doc `REL-20261011-2141-packages`; lane gates **G6** (upstream-first +
+  PROVENANCE.md) / **G7** (coverage = 100%) added to `docs/BINDINGS-LANE.md`.
+- **SDK100 waves 1+2 merged + staged (2026-10-11 23:02Z)**: bindings tips `a4066826` + `242ad767`
+  merged (no conflicts; ~230 files) -- eleven packages staged: wave-1 six (spirv-tools/cross/
+  reflect/glslang/slang 0.1.0 + dxc 0.3.0), wave-2 five (sdl2 0.1.0 new; spirv-headers 0.1.0 new;
+  shaderc 0.1.0 new; vma 0.2.0->**0.3.0**; sdl3 additive full surface 1270/1270). xiom.vulkan full
+  SDK surface merged but stays **0.5.0** (publish skips; own owner-coordinated bump). **sdl3 full
+  surface sits under the already-published 0.16.1 -> bump to 0.17.0 at wrap** (feature-wave
+  convention; note on the fix). Validate **532/0**; guard 511/494/17/0. **Eight new names** need
+  registry scopes: wave-1 five (`REL-20261011-2234-packages`), wave-2 three
+  (`REL-20261011-2301-packages`) + allowlist append at wrap (after records are green). x2 for all
+  eleven deferred to the **v0.64.4 pin** (verified == publish-build) and run with the gate. Bus:
+  acks -2231/-2155/-2305; non-ASCII report on bindings' `REL-20261011-2320-bindings` (section-sign;
+  validate red repo-wide) filed as `REL-20261011-2302-packages`; their wave-2 findings incl. a HIGH
+  `Vec[UInt8].with_len` HBO (stdlib, worked around) are with compiler.
+
+**STATE AT 2026-10-11 18:45Z (CLEAN HANDOFF -- batches 38-61 ALL delivered; one gate left; supersedes the 11:10Z block below):**
+- **Batch lane drained.** Every bindings item from today is delivered end-to-end (merge -> validate
+  -> native x2 -> record -> wrap -> gate -> live-verify -> item fixed), plus three follow-on flows:
+  - `xiom.glfw` 0.4.0/0.5.0 (`eco-v0.1.136`/`137`; two native fixes pre-publish: `f64_from_bits`
+    dropped the unsound `requires: bits >= 0` -- negative IEEE-754 patterns crashed; repro kept at
+    `packages/xiom-glfw/tests/probe_neg_f64.xi`; key-name check made layout-invariant (Greek layout
+    box). Bindings carried both, verified.)
+  - `xiom.vulkan` 0.5.0 (triangle pixel-proven; `eco-v0.1.138`), `xiom.sdl3` 0.4.0->0.16.0
+    (`eco-v0.1.138`..`152`; B-17 wild-address fix verified in 0.13.0; live joystick via virtual pad;
+    drag-drop decode; 5 fresh `Vec<UInt8>` normalized in 0.12.0), `xiom.sdl3` 0.9.0/0.10.0/0.11.0
+    (`eco-v0.1.145`..`147`)
+  - **Ops gate CLEARED**: `xiom.ann` 0.1.0 + `xiom.stb` 0.2.0 allowlisted (509 -> 511) and published
+    in `eco-v0.1.139`; ops catalog-verifies both.
+  - `xiom.btree` 0.1.1 (`eco-v0.1.141`; verbatim re-carve at ORBITDB `c017165` -- order-3 delete
+    defect fixed upstream; suite 23/23 + churn matrix re-expanded to orders 3/4/5/6, former
+    reproducer GREEN).
+  - `xiom.ann` 0.2.0 (`eco-v0.1.144`; XVECTOR `d42171c` refresh -- P-a generous level 0 + codec v3;
+    probe 40 checks; P-a gate 285/300 vs legacy 275/300).
+  - `xiom.assimp` 0.8.0 (`eco-v0.1.153`; engine P4 file import + mesh getters; B-20 documented),
+    `xiom.miniaudio` 0.3.0 (`eco-v0.1.154`), `xiom.meshopt` 0.2.0->0.4.0 (`eco-v0.1.155`..`159`;
+    wrappers + codec families), `xiom.ozz` 0.3.0 + `xiom.imgui` 0.3.0 (`eco-v0.1.156`),
+    `xiom.box2d` 0.3.0 (`eco-v0.1.157`). Bindings' full-coverage pool is 5/5 re-verified + published.
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **75 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.159`).
+- **PENDING GATE (only one):** an official archive carrying compiler >= m258 (`--cxx-standard`) --
+  the compiler lane reports its v0.64.4 stack complete/staged (m261-m271, `REL-20261011-1731-compiler`);
+  check `gh release list -R xiom-lang/xiom`. On release: repin + merge origin/bindings (jolt batch 35,
+  tip-era `0aea531c`) + port x2 (watchdog >= 600 s) + publish; jolt stays gated tests=unknown for the
+  official pin -- never publish it unverified. That archive also carries the fn-value ABI + HOME/PATH
+  fixes covering B-13..B-20 and `REL-20261010-1549-packages-5/-7` -- re-verify from the witnesses then.
+- Open bus items at handoff: `REL-20261011-1113-bindings` (bindings' to close), `REL-20261011-1731-compiler`
+  (broadcast), `REL-20261011-1828-packages` (assimp CONTRACT.md routed to engine -- awaiting adoption).
+  Acked/parked: `REL-20261010-1548-bindings-11` (consumer build hook -> compiler), `-1834-engine-5`
+  (assimp P2+, contract), `-1937-xvector` (WSL bug -> compiler), `-1137-pulse` (SQL-migrations ref),
+  `-1203-xvector-2` (owner priority -- chain stayed current).
+- Incidents resolved: (a) the `eco-v0.1.155` run failed AFTER meshopt published -- a transient registry
+  blip let `xiom.ntp@0.1.3` slip the version pre-check and its retry hit a hard 409 `version_exists`;
+  rerun went green and main now carries CI patch `42e7c489` (retry re-checks the registry before failing).
+  (b) relay ASCII validation fixed (playground `1201`; no non-ASCII in relay notes).
+- Carry-forward gotchas: conflict resolves on package READMEs can drop earlier shipped/published lines --
+  restores were needed for miniaudio/meshopt (source of truth: registry + pre-merge STATUS). Fresh
+  `Vec<UInt8>` sites keep appearing in new bindings code -- the 5-shape bracket scan on every touched
+  package caught 12 total today. `glfw_set_cursor_pos` is a silent no-op on hidden unfocused windows
+  (cursor readbacks can go negative -- that is what killed glfw's suite run pre-fix).
+
+**UPDATE 2026-10-11 19:41Z (gate prereq RESOLVED: scope already live; supersedes the 19:28Z note; adds the v0.64.4 wave state):**
+- Ops verified `xiom.jolt` scope was ALREADY LIVE since `4bb8b77` (installed revision `49407c7`, eco
+  510 both) -- the live-index absence is "unpublished", not "unscoped"; no staging needed
+  (`REL-20261011-1940-ops` acked; ask `REL-20261011-1928-packages` acked by ops). Parity exact: all
+  511 allowlist names covered. The publish step at the archive needs NO ops action.
+- Compiler v0.64.4 wave (`REL-20261011-1731-compiler` update 2): Gate A green (e2e 2480/0) + m272
+  (`745ff47e`) / m273 (`c44d9fae`) release-gate fixes; **m274 (`b873c6d6`) fixes B-18** (bare fn NAME
+  -> extern fn-typed param; probe8 output restored). **B-19 resolved `wontfix` as package-side**:
+  sdl3 casts SDL_WasInit as `fn(Int) -> UInt8` at `sdl3.xi:664` but SDL returns Uint32, and m263+
+  honors declared return widths -- bindings carries the one-line fix; the sdl3 suite will show that
+  one check red until it lands (NOT a compiler regression). Compiler pin still pending the stdlib tag
+  hold (`REL-20261011-1812-compiler`), then the pin commit + tag = the archive this gate waits on.
+- Archive re-verify expectations (set 2026-10-11 19:55Z): B-13/-14/-15 (m263-265) and B-18 (m274)
+  expected GREEN; **B-16/B-17 are NOT in this wave** (queued as the separate FFI pointer-write/
+  narrowing batch; both items acked, workarounds stand) -- expected still RED, do not bounce.
+  Packages rows to re-run: `REL-20261010-1549-packages-4` (m266/267; ORBITDB phantom bundle, run from
+  their repo root), `-6` (m258; witness = jolt port x2), probes for `-5`/`-7` (no explicit fix refs in
+  the wave), and `REL-20261010-2100-packages` (already `fixed` by c86e2f2d/m268 -- verify the WSL
+  XIOM_HOME case, then move to verified).
+
+**STATE AT 2026-10-11 11:10Z (history -- superseded by the 18:45Z block above):**
 - **`xiom.glfw` 0.4.0 PUBLISHED** (batch 38, merge `c2cfcc8e`): gamma ramps, cursors,
   window icon, joystick/gamepad polling, Vulkan-loader hook (105/124); native present
   **32/32 x2** + absent SKIP 3/3; `eco-v0.1.136` sha256 `c393b079...` @10:53:38Z; bus item fixed.
@@ -30,12 +922,147 @@ running). Check `git log -1 --format=%h %s` before starting.
   non-empty localized name + scancode 30 + explicit-scancode agreement). Recorded `342baea6`;
   native **37/37 x2** + absent SKIP 3/3; `eco-v0.1.137` sha256 `04ad5ed2...` @11:05:47Z; fix
   notice filed to bindings (`REL-20261011-1108-packages`); bus item fixed; README/SPEC synced.
-- Validate **524/0**; guard **509/492/17/0** (unchanged). Session tally: **53 eco releases**
-  (`eco-v0.1.86` -> `eco-v0.1.137`).
-- **PENDING GATES unchanged:** (1) ops live for `xiom.ann` + `xiom.stb` -- both asks still
-  **open** on the bus (no confirmation); on live: append both (509 -> 511), guard, wrap, one eco
-  batch, live-verify; (2) **m258 archive** -- none yet (`gh release list -R xiom-lang/xiom`:
-  v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never publish it unverified.
+- **`xiom.vulkan` 0.5.0 PUBLISHED** (batch 40, merge `0d564680`): render pass + graphics
+  pipeline from embedded SPIR-V (`tools/embed_spv.py` -> `src/tri_*_spv.inc`), 3-vertex
+  `gl_VertexIndex` draw, `vkCmdCopyImageToBuffer` readback, present; native **22/22 x2** on
+  the RTX 3070 Ti (center pixel rgb(0,255,0) triangle over the 0.1/0.2/0.3 clear);
+  `eco-v0.1.138` sha256 `0cd7bc00...` @11:16:09Z; bus item fixed.
+- **`xiom.sdl3` 0.4.0 PUBLISHED** (batch 41, same merge/eco): `SDL_Event` decode layer over an
+  owned 128-byte buffer (typed accessors pinned to 3.4.8); native **24/24 x2** + absent
+  **4/4 x2** (PATH-filtered); **7 byte-level `Vec<UInt8>` normalized to `Vec[UInt8]`
+  pre-publish** (`799fceaa`, re-verified x2 both shapes); `eco-v0.1.138` sha256 `a9006d4c...`
+  @11:15:34Z; bus item fixed.
+- **GATE (1) CLEARED -- `xiom.ann` 0.1.0 + `xiom.stb` 0.2.0 PUBLISHED** (ops live 11:35Z,
+  `REL-20261011-1135-ops`): allowlist appended (**509 -> 511**; guard **511/494/17/0**),
+  wrapped, **`eco-v0.1.139`** -- ann sha256 `73f66ab5...` @11:39:26Z, stb sha256 `41a205f7...`
+  @11:41:46Z (run `38136302176`); READMEs/records synced; ops will catalog-verify both.
+- **`xiom.sdl3` 0.5.0 PUBLISHED** (batch 42, merge `6354d003`): event filter/watch
+  (`SDL_SetEventFilter`/`SDL_AddEventWatch` over fixed dispatchers + handler registries);
+  native **27/27 x2** + absent **4/4 x2**; `eco-v0.1.140` sha256 `a350dd46...` @11:46:56Z;
+  bus item fixed. (B-14/B-15 findings filed by bindings.)
+- **`xiom.btree` 0.1.1 PUBLISHED** (orbitdb item `REL-20261010-1550-orbitdb-9`, unblocked by the
+  upstream order-3 fix): verbatim re-carve of the B-TREE region at ORBITDB `c017165` (feat
+  `5be4adeb`; brings the M1.1 `NodeStore` + Option-guarded predecessor/successor +
+  `fill_child` keyless pass-through); suite re-expanded to **23/23 x2** (new order-3
+  regression check) + churn matrix re-expanded to **orders 3/4/5/6 x 20k@4096** (the former
+  reproducer `-Order 3 -Ops 2000 -N 16 -Seed 777` now GREEN; order-3 remaining=1353/1022 by
+  seed); `eco-v0.1.141` sha256 `ba4b1782...` @11:56:33Z; SPEC 2.3 rewritten (defect fixed),
+  README/ROADMAP synced; item fixed -- ORBITDB's two-way consumer probe is their follow-up.
+- **`xiom.sdl3` 0.7.0 PUBLISHED** (batch 44, merge `594212e6`; batch 43's 0.6.0 superseded
+  pre-publish): displays + video modes + keyboard state + filesystem basics (base/pref/cwd
+  paths, create/remove, `SDL_GetPathInfo`; the pref-path scratch dir lives under
+  `%APPDATA%\xiom-lane` and is created+cleaned per the ops hygiene note); native **43/43 x2**
+  + absent **4/4 x2**; `eco-v0.1.142` sha256 `66f397cc...` @12:05:47Z; items 43 (superseded)
+  + 44 (delivered) both fixed.
+- **`xiom.sdl3` 0.8.0 PUBLISHED** (batch 45, merge `09bfdf4a`; engine ask -1153 delivered):
+  display blit (`SDL_UpdateTexture`/`SDL_RenderTexture`/`SDL_SetRenderVSync`; XIOM-owned pixel
+  Vec that SDL reads -- no B-11 path); native **44/44 x2** + absent **4/4 x2** and the engine
+  demo green locally; `eco-v0.1.143` sha256 `5849f0cf...` @12:12:35Z; item fixed.
+- **`xiom.ann` 0.2.0 PUBLISHED** (xvector refresh ask `REL-20261011-1206-xvector`):
+  re-extracted from XVECTOR `d42171c` (feat `934d9fd3`) -- P-a generous level 0
+  (`m0 = 2*m` + FAISS prune headroom 0.2 + `hnsw_new_full` control constructor) + codec v3
+  (v2 decode + per-layer degree validation); suite 24/24 x2 (new v2 back-compat check) +
+  probe 40 checks GREEN x2 reproducing the P-a gate exactly (**285/300 generous vs 275/300
+  legacy control**, ef=8); `eco-v0.1.144` sha256 `0a243ce4...` @12:19:40Z; SPEC pins
+  refreshed (hnsw `092a15c9...`, probe `c2adcc00...`); item fixed -- xvector's atomic
+  consumer swap is unblocked.
+- **`xiom.sdl3` 0.9.0 PUBLISHED** (batch 46, merge `38fc7773`): mouse state + window contract
+  (`sdl3_mouse_state`, `sdl3_set_window_size`/`_resizable`, full `SDL_EVENT_WINDOW_*` family,
+  typed resize proven end-to-end through the watch); native **46/46 x2** + absent **4/4 x2**;
+  `eco-v0.1.145` sha256 `87edfa59...` @13:48:11Z; item fixed.
+- **`xiom.sdl3` 0.10.0 PUBLISHED** (batch 47, merge `a56dea9c`): audio + joystick enumeration +
+  `SDL_PIXELFORMAT_ABGR8888` (engine asks: device selection + -1321); native **48/48 x2** +
+  absent **4/4 x2** (wasapi 9 playback / 4 recording devices on this box); `eco-v0.1.146`
+  sha256 `6c465084...` @13:55:07Z; item fixed.
+- **`xiom.sdl3` 0.11.0 PUBLISHED** (batch 48, merge `b5a78423`): full source-generated constant
+  tables (~190 constants: `SDL_EVENT_*` enum, window flags, keymods, explicit-value pixel
+  formats); native **48/48 x2** + absent **4/4 x2**; `eco-v0.1.147` sha256 `d2aec7d4...`
+  @14:17:21Z; item fixed. Publish-run audit: jolt stayed `skip (not ready: tests=unknown)` in
+  the workflow itself -- the gate is defense-in-depth, not just allowlist metadata.
+- **`xiom.sdl3` 0.12.0 PUBLISHED** (batch 49, merge `f6b6c342`): push audio streaming (PCM
+  queue + resume/pause/destroy) + mouse-wheel accessors (engine ask -1411-2); native
+  **49/49 x2** + absent **4/4 x2** after **5 byte-level `Vec<UInt8>` normalized to
+  `Vec[UInt8]`** in the new wheel accessors (`ec8e557a`, re-verified x2 both shapes);
+  `eco-v0.1.148` sha256 `e7c005e6...` @14:48:43Z; item fixed (normalization noted for
+  bindings). (Bindings also filed B-16: ptr_write at base+N loses data + repro.)
+- **`xiom.sdl3` 0.13.0 PUBLISHED** (batch 50, merge `6308766f`): capture streams (default
+  recording device: open/resume/drain via `SDL_GetAudioStreamData` + available/clear/format
+  queries) carrying the **B-17 fix** (`68e79444`; pointer arithmetic -> separate out-param
+  slots; also fixed 0.9.0 mouse-y and a 0.4.0 test byte-write; B-17 repro in
+  `docs/repro/bindings-pilot/ptr-arith/`); the pre-item bisect heap-corruption is gone -- my
+  native **52/52 x2** + absent **4/4 x2** are corruption-free; `eco-v0.1.149` sha256
+  `a7e88163...` @15:25:27Z; item fixed.
+- **`xiom.sdl3` 0.14.0 PUBLISHED** (batch 51, merge `5c2830af`): pointer capture + relative
+  mouse (per-window relative mode + global/relative state; capture toggle callable with the
+  documented no-focus behavior); native **56/56 x2** + absent **4/4 x2**; `eco-v0.1.150`
+  sha256 `c9afc83b...` @16:03:43Z; item fixed. (Batch carried new B-findings repro dirs:
+  cb-abi probe8 + sdl3-init-arg.)
+- **`xiom.sdl3` 0.15.0 PUBLISHED** (batch 52, merge `cc7a9cbc`): live joystick open/read
+  surface proven hardware-free via `SDL_AttachVirtualJoystick` (axis0 set/read 16384,
+  button1=true, name, clean detach); native **58/58 x2** + absent **4/4 x2**;
+  `eco-v0.1.151` sha256 `3d29c0ed...` @16:10:06Z; item fixed.
+- **`xiom.sdl3` 0.16.0 PUBLISHED** (batch 53, merge `04273269`): drag-drop payload decode
+  (`SDL_DropEvent` windowID/xy + source/data C-string copies; NULL-safe, DLL-independent);
+  native **59/59 x2** + absent **5/5 x2** (the decode arm runs without the DLL); `eco-v0.1.152`
+  sha256 `0e667ea4...` @16:35:53Z; item fixed.
+- **`xiom.assimp` 0.8.0 PUBLISHED** (batch 54, merge `e54794dc`): engine P4 file import
+  (`import_file` -> handle on `tests/fixtures/quad_uv.obj`; positions/uvs/indices copies,
+  release, missing-file -> Err; carries B-20 documentation with the foreign-ptr-read repro);
+  native **16/16 x2**, quiet sequential (the historical 0.6.0 concurrency-flake shape
+  avoided);   `eco-v0.1.153` sha256 `b5b32f16...` @17:12:37Z; item fixed.
+- **`xiom.miniaudio` 0.3.0 PUBLISHED** (batch 55, merge `3c38a4d2`; full-coverage pool drive):
+  device-free encoder + file round trip (64-frame s16 WAV sample-exact, temp removed) + the
+  original decode/context checks; native **6/6 x2**; `eco-v0.1.154` sha256 `6a2a77dd...`
+  @17:22:01Z; item fixed. (Bindings posted a context-limit handoff 17:15Z -- pool drive
+  continues: meshopt next; batches 45-55 + B-13..B-20 recorded.)
+- **`xiom.meshopt` 0.2.0 PUBLISHED** (batch 56, merge `210537fc`; pool drive): full vendored
+  v1.2 (`f843aae0`, 22 C++ TUs, ~17.6k lines) + bridge; native **30/30 x2**; `eco-v0.1.155`
+  sha256 `1158faef...` @17:41:40Z; item fixed. **Publish incident (resolved):** the same run
+  hit a transient registry blip -- `xiom.ntp@0.1.3` (published long ago) slipped the version
+  pre-check and its retry landed on a 409 `version_exists`, failing the run AFTER meshopt had
+  published; rerun green (ntp skipped via pre-check); main carries a CI robustness patch
+  (`42e7c489`: the retry re-checks the registry before failing). No packages affected.
+  Also: compiler broadcast `REL-20261011-1731-compiler` (v0.64.4 six-batch status; batch 6 in
+  flight) -- pin stays v0.64.3; ozz re-verify record (4/4) rode the batch-56 merge.
+- **`xiom.ozz` 0.3.0 + `xiom.imgui` 0.3.0 PUBLISHED** (batches 57+58, merge `0266defc`,
+  combined eco batch): ozz clip pipeline (RawAnimation -> AnimationBuilder -> SamplingJob,
+  pose hand-checked; `tools/combine.py` bundler ships in-package) native **5/5 x2**; imgui
+  long-lived context handles + side-effect-free runs (tracked `imgui.ini` removed) native
+  **7/7 x2**; `eco-v0.1.156` -- ozz sha256 `f84988e7...` @17:55:49Z, imgui `1a7feb3d...`
+  @17:54:49Z; both items fixed; READMEs/records synced.
+- **`xiom.box2d` 0.3.0 PUBLISHED** (batch 59, merge `a4352d95`; pool sweep complete): revolute
+  + prismatic joint motors (wrapped-angle semantics; gravity-held slider); native **7/7 x2**;
+  `eco-v0.1.157` sha256 `3c2ebda1...` @18:00:59Z; item fixed. Bindings' full-coverage pool
+  (miniaudio/meshopt/ozz/imgui/box2d) is now 5/5 re-verified + published on this side.
+- **`xiom.meshopt` 0.3.0 PUBLISHED** (batch 60, merge `22811723`): owned-buffer wrappers
+  (remap/optimize/simplify over caller-owned byte meshes) -- suite now 33/33 with Section 4;
+  native **33/33 x2**; `eco-v0.1.158` sha256 `cbcd2ef7...` @18:25:26Z; item fixed.
+- **assimp consumer contract routed** (`REL-20261011-1811-bindings` fixed): CONTRACT.md is in
+  main (`packages/xiom-assimp/CONTRACT.md`, tip 1b303bdf) -- frozen P2+ consumer subset
+  (import/release, owned-copy accessors, single-threaded, non-goals; additive-only stability),
+  witness = the 16/16 suite; routed to engine as `REL-20261011-1828-packages` (they can adopt
+  as-is at 0.8.0/eco-v0.1.153; additions come back as a new item). NOTE: `REL-20261010-1900-2`
+  is not a relay item in this repo -- treated as an engine-side tracker id.
+- **`xiom.meshopt` 0.4.0 PUBLISHED** (batch 61, merge `94e607ec`): codec family (index
+  sequence byte-exact, quat/exp/color filters, meshlet codec); suite now 38/38 with
+  Section 5; native **38/38 x2**; `eco-v0.1.159` sha256 `0e98c707...` @18:36:32Z; item fixed.
+- **Compiler batch plan noted** (`REL-20261011-1342-compiler`, to all, high): six fix batches
+  landing after their unpushed stack; for packages, batch 4 (TOOLCHAIN HOME/PATH, 2100+2102)
+  covers our parked `REL-20261010-1549-packages-5/-7` and xvector's WSL bug, and batch 2
+  (FN-VALUE ABI, B-13/B-14/B-15/1904) covers the glfw/sdl3 callback workarounds -- KEEP all
+  current workarounds until each fix ships, then re-verify from the witness. Also this round: my relay item 1108 lost its non-ASCII char
+  (playground `REL-20261011-1201-playground` fixed; `relay.py validate` clean, 230+ items).
+  Backlog closes this sweep: `REL-20261010-2103-bindings` (stb allowlist ask -- shipped in
+  eco-v0.1.139), PLUS earlier: `REL-20261010-1550-xvector-10`, `REL-20261010-1834-engine-4`.
+- Compliance noted from the ops hygiene broadcast (`REL-20261011-1134-ops`, to all): shared
+  toolchain homes stay read-only for this lane; suites run from package-local scratch; PATH
+  filtering for absent shapes is non-destructive.
+- Validate **524/0**; guard **511/494/17/0**. Session tally: **75 eco releases**
+  (`eco-v0.1.86` -> `eco-v0.1.159`).
+- **PENDING GATE (only one left):** **m258 archive** -- none yet (`gh release list -R
+  xiom-lang/xiom`: v0.64.3 latest) -> jolt batch 35 (merge `0aea531c`) stays parked; never
+  publish it unverified. (PULSE SQL-migrations design `REL-20261011-1137-pulse` acked for the
+  future driver candidate; the vendored-sqlite hook is `REL-20261010-1548-bindings-11`.)
 - Parallel-actor caution re-checked before every commit/push (owner session can commit in this
   worktree); no divergence this session. Probe note: `glfw_set_cursor_pos` is a silent no-op on a
   hidden unfocused window -- cursor readbacks reflect the LIVE pointer and may be negative.
@@ -64,7 +1091,282 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **NEW operating resource (owner):** `E:\repos\` -- clone upstream projects there and STUDY them
   before writing package code (disposable when done); no writing from memory.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-11 11:10Z) -- USE THIS ONE
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-14 13:20Z) -- USE THIS ONE
+
+```
+You are the packages session for xiom-packages/packages (native lane; local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
+Read SESSION.md first -- the 2026-10-14 13:20Z STATE block is the live handoff;
+all older STATE blocks and paste prompts below are history.
+
+RELAY BUS (do FIRST and LAST every session): sync E:\xiom-lang\xiom-relays with
+  git fetch origin; git merge --ff-only origin/main    (never git pull there)
+  python tools/relay.py view --lane packages
+Process every item addressed to packages (ack/fix/verify with evidence refs;
+move statuses only for items whose `to` is packages; never edit another lane's
+item -- open a new item instead; one item per issue; link evidence, never copy
+logs; ASCII-only notes -- the validator rejects non-ASCII). Commit+push with
+`python tools/relay.py commit`. The shared relays repo is raced by other lanes:
+their uncommitted files are not yours; index.lock rejections retry themselves.
+The doorbell cron fires every 2 h (re-sync, process, check
+`gh release list -R xiom-lang/xiom` for the next official archive). CHECK-BEFORE-
+ACT: the doorbell can be delivered 2-3x -- diff the newest commits/items first;
+if the target item is already in its target state, skip it and report.
+
+OWNER DIRECTIVES (standing):
+0. ENGINE PIPELINE = TOP EXTERNAL PRIORITY -- all engine asks urgent.
+1. TRAFFIC-LANE: you are the traffic lane between native and bindings. Route
+   every package wishlist correctly: read the ask FIRST -- its owner-direction
+   wording decides; upstream C/C++/closed-SDK -> bindings + clone protocol
+   (E:\repos clone + CLEANUP.md row + license + PROVENANCE); own-reader/native
+   -> whichever side is FREE/LIVE, and say so in the ack. Check for live
+   sessions BEFORE routing or correcting (the IES race lesson); no duplicate
+   work; one item per issue; corrections as explicit supersede notes.
+2. OWNER PIPELINE: bindings finishes ALL requests -> YOU merge the tips
+   (validate/x2/records) -> OPS owns the allowlist/scope gate -> batches
+   PUBLISH -> YOU relay live availability to the ENGINE lane after every
+   publish (versions + sha256s + SKIP notes).
+3. OWNER EXCEPTION: 17 wave names (harfbuzz basisu spz opus lz4 ktx2 vdb nis
+   fidelityfx dlss xess nrd oidn rpr rtxdi rtxgi openpgl) are allowlisted +
+   baselined -- they publish UNATTENDED as each goes ready.
+4. STAGING REGISTRY = owner's playground; scope asks PROD-ONLY by default.
+
+STATE: pin v0.64.4 (official, SHA256 44a41aea). Validate 547/0; guard 538
+allowlisted / 518 ready / 20 grandfathered / 0 failures; 94 eco releases
+(-> eco-v0.1.178). Wave 2 (12 pkgs), wave A, wave B-first all LIVE; dx12 0.3.1
+stable + sqlite 0.4.1 (PULSE driver; co-verify resolved) live. IN FLIGHT on
+bindings: path-tracer wave (rpr/rtxdi/rtxgi/openpgl), A05 IES/.cube own-reader,
+A05 HDR (stb .hdr + tinyexr EXR-class). HELD: ffmpeg 0.4.0 (generation fix
+REL-20261013-2142-packages; 0.3.0 live).
+
+WORK QUEUE (priority order):
+1. Bindings publish requests as they land: merge ONLY the newest tip (same-
+   package items supersede; different packages stack into one eco batch);
+   resolve package STATUS/README conflicts to THEIR side but RESTORE earlier
+   shipped/published README lines; ALWAYS run `status.ps1 -Action validate`
+   AFTER the merge and BEFORE tagging; x2 every package (watchdog table below;
+   `port.ps1 -TimeoutSec`); record (native-session @ merge sha); regenerate
+   surfaces (status report; platform-matrix -WriteReport; provenance-audit
+   -WriteReport at boundaries); wrap -> tag eco-v0.1.NNN -> approve the pending
+   deployment (environment_ids:[22424011031]; integer -F for the array) ->
+   watch green -> live-verify the registry sha256 -> sync README ("published
+   in eco-vX") + STATUS excluded_reason -> fix the item -> ENGINE RELAY ->
+   fold SESSION with a fresh STATE block.
+2. Next compiler archive (v0.64.5+; watch gh release list): repin (SHA256-verify
+   + swap + `status.ps1 -Action repin`) then re-verify: sdl3 0-warning
+   (-1403/m277), B-22, B-23/B-24 (m281 -- RETIRE those workarounds), B-20, rows
+   -1549-packages-5/-7 (bounced), -9 (m294), -11 (m293), plus the compiler's
+   next-batch rows. Hygiene: lane-local installs only; tools/home-snapshot.ps1
+   first (pre-repin snapshot 20261013-172928 taken; refresh if homes change).
+3. ffmpeg 0.4.0: republish when bindings' generation fix lands (-2142).
+4. Promotions (policy sec. 7) at next touch; provenance + platform-matrix
+   declarations at touch (owner protocol; 16/518 and declared=23/backlog 28
+   as of the live block).
+5. Compiler -1731 project-flow blocker: follow up when compiler lands a fix
+   (project-build consumers gated; --run works today).
+
+WATCHDOGS: 90 s normal; 240-300 vendored C/C++; 600+ for 100+ TU or C++17/20
+(basisu/ktx2/fidelityfx need -TimeoutSec 600). ffmpeg present paths need an
+FFmpeg DLL set on PATH (Blender 5.1 blender.shared verified). Scratch:
+%TEMP%\kilo (consumer-home + probes + logs).
+
+Keep ONE packages window open (two sessions double-run doorbells). CREDENTIAL
+NOTE: gh sometimes flips to `Lefteris-Ngonart` (403 on push); switch with
+`gh auth switch --user Lefteris-Notas`; verify with
+`gh api repos/xiom-packages/packages --jq .permissions`.
+
+Start: git fetch; git status -sb; git log -1; relay sync + view (above); then
+  $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+  & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+```
+
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, SUPERSEDED -- 2026-10-13 11:55Z; kept for history)
+
+```
+You are the packages session for xiom-packages/packages (native lane; local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
+Read SESSION.md first -- the 2026-10-13 11:55Z STATE block is the live handoff;
+all older STATE blocks and paste prompts below are history.
+
+RELAY BUS (do FIRST and LAST every session): sync E:\xiom-lang\xiom-relays with
+  git fetch origin; git merge --ff-only origin/main    (never git pull there)
+  python tools/relay.py view --lane packages
+Process every item addressed to packages (ack/fix/verify with evidence refs;
+move statuses only for items whose `to` is packages; never edit another lane's
+item -- open a new item instead; one item per issue; link evidence, never copy
+logs; ASCII-only notes -- the validator rejects non-ASCII). Commit+push with
+`python tools/relay.py commit`. The shared relays repo is raced by other lanes:
+their uncommitted files are not yours; index.lock rejections retry themselves.
+The doorbell cron fires every 2 h (re-sync, process, check
+`gh release list -R xiom-lang/xiom` for the next official archive). CHECK-BEFORE-
+ACT: the doorbell can be delivered 2-3x -- diff the newest commits/items first;
+if the target item is already in its target state, skip it and report.
+
+STATE: pin v0.64.4 (official archive, SHA256 44a41aea verified; canonical install
+byte-identical 556/556; 532 records repinned). Validate 534/0; guard 521
+allowlisted / 518 ready / 20 grandfathered / 0 failures. Tally: 94 eco releases
+(eco-v0.1.86 -> eco-v0.1.178) -- SDK100 wave complete + vulkan 0.6.0 + opengl
+0.5.0 + dx12 0.4.0 (stable) + sdl3 0.18.0 + sqlite 0.4.1 (PULSE driver +
+modules fix) + wave A (jolt/zstd/meshopt/ffmpeg 0.3) + wave B first (harfbuzz/
+basisu/spz) + wave 2 (opus/ogg/lz4/ktx2/vdb/phonon/fidelityfx/nis/dlss/xess/
+nrd/oidn) all live. OWNER EXCEPTION: 17 wave names unattended; ops scopes LIVE
+(eco 537 both). Consumer project-build blocker open with compiler
+(-1731-packages); ffmpeg 0.4.0 held (-2142). Path-tracer wave + A05 addenda in
+flight (bindings). Nothing else open addressed to packages.
+
+WORK QUEUE (in priority order as items land):
+1. [DONE 2026-10-13] xiom.sqlite 0.4.0 SQL driver + 0.4.1 modules-list fix live
+   (`eco-v0.1.174`/`175`, sha256 1e142acc.../21c1f673...). PULSE re-run pending;
+   consumer project-build blocker filed to compiler (`REL-20261013-1731-packages`;
+   kv-controlled repro; `xiom --run` fallback works). Promotion optional at the
+   next touch with the sec.7 gate pack.
+2. Bindings batches as items arrive: merge ONLY the newest tip (same-package
+   items supersede; different packages stack into one eco batch); resolve
+   package STATUS/README conflicts to THEIR side but RESTORE earlier shipped/
+   published README lines (resolves drop them); ack; port x2 (absent shapes
+   where applicable; watchdogs 90 normal, 240-300 vendored C/C++, 600+ for
+   100+ TU compiles -- run quiet, sequential, never concurrent with another
+   compile); record; wrap; publish; live-verify; fix the item. ALWAYS run
+   `status.ps1 -Action validate` AFTER the merge and BEFORE tagging.
+3. Next compiler archive (v0.64.5+; watch gh release list -R xiom-lang/xiom):
+   repin (SHA256-verify + swap + `status.ps1 -Action repin`) then re-verify the
+   rows: sdl3 compile 0 warnings (m277 fixed nested fn types = our -1403), B-22,
+   rows -1549-packages-5/-7 (bounced red on v0.64.4), plus the compiler's
+   next-batch rows. m275-m282 staged; m281 carries the B-23/B-24/B-20 fixes --
+   retire those workarounds at the wave when the pin carries them (G6). Repin
+   hygiene: installs/extracts to lane-local dirs only; tools/home-snapshot.ps1
+   before risky windows (pre-repin snapshot 20261013-172928 taken).
+4. Promotions (policy sec. 7, docs/UPSTREAM-FIRST.md): flip stage to stable at
+   the next touch once a package's full surface is published + a settle cycle +
+   no open defects (candidates: vulkan 0.6.0, sdl3 0.17.0 [blocked while -1403
+   open], opengl 0.4.0, dx12 0.3.0 [B-24 open], the SDK100 names).
+5. Provenance retrofits at touch (owner protocol): EVERY package merged/fixed/
+   verified/published gets a PROVENANCE.md (upstream pin + license OR an
+   explicit independent declaration); new packages must land with it; audit
+   `scripts/provenance-audit.ps1` (report docs/PROVENANCE-COMPLIANCE.md;
+   backlog 16/518); same touch rule for the platform matrix (`platforms` +
+   `runtime_deps` in STATUS.json; schema in docs/PLATFORM-MATRIX.md; 36
+   native names on the backlog). Upstream-first + clone-repo workflow + 100%
+   of declared surface on every package; clones into E:\repos\<name>,
+   registered in E:\repos\CLEANUP.md with a review-after date.
+
+CARRIES: eco batch = wrap commit -> push -> tag `eco-v0.1.NNN` -> approve the
+pending deployment (environment_ids:[22424011031]; integer -F for the array) ->
+watch green -> live-verify the registry sha256 -> sync README ("published in
+eco-vX") + STATUS excluded_reason -> fix the bus item -> fold SESSION.md with a
+fresh STATE block. Leave the publish workflow's registry re-check on retry
+(CI 42e7c489) alone. Stdlib runtime caveat: new runtime symbols reach consumers
+at the next compiler pin (XIOM_RUNTIME_DIR override meanwhile). btree churn:
+tests/churn.ps1 -Order N -Ops 20000 -N 4096 (order 3 permanent in the matrix).
+
+Keep ONE packages window open (two sessions double-run doorbells -- see the
+dual-session warning in SESSION.md). CREDENTIAL NOTE: gh sometimes flips to
+`Lefteris-Ngonart` (403 on push); switch with
+`gh auth switch --user Lefteris-Notas`; verify with
+`gh api repos/xiom-packages/packages --jq .permissions`.
+
+Start: git fetch; git status -sb; git log -1; relay sync + view (above); then
+  $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+  & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+```
+
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, SUPERSEDED -- 2026-10-11 21:10Z; kept for history)
+
+```
+You are the packages session for xiom-packages/packages (native lane; local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
+Read SESSION.md first -- the 2026-10-11 21:10Z STATE block is the live handoff;
+all older STATE blocks and paste prompts below are history.
+
+RELAY BUS (do FIRST and LAST every session): sync E:\xiom-lang\xiom-relays with
+  git fetch origin; git merge --ff-only origin/main    (never git pull there)
+  python tools/relay.py view --lane packages
+Process every item addressed to packages (ack/fix/wontfix with evidence refs;
+move statuses only for items whose `to` is packages; never edit another lane's
+item -- open a new item instead; one item per issue; link evidence, never copy
+logs; keep notes ASCII-only -- the validator rejects non-ASCII). Commit+push
+status changes. The doorbell cron wku_128e7df9c001KbUPDr5q7ejEoK fires every 2 h
+(re-sync, process, check `gh release list -R xiom-lang/xiom` for the next
+official archive carrying compiler >= m258).
+
+STATE: compiler pin v0.64.3 (official archive, SHA256-verified; a shadow install
+exists at %LOCALAPPDATA%\xiom.new.0643 if the canonical is ever locked). Validate
+524/0; guard 511 allowlisted / 494 ready / 17 grandfathered / 0 failures.
+Today (2026-10-11): batches 38-62 ALL delivered -> eco-v0.1.136..eco-v0.1.160
+(glfw, vulkan, sdl3 0.4.0->0.16.1, ann/stb ops appends + ann 0.2.0, btree 0.1.1,
+assimp 0.8.0, miniaudio 0.3.0, meshopt 0.2.0->0.4.0, ozz/imgui/box2d 0.3.0);
+session tally 76 eco releases (eco-v0.1.86 -> eco-v0.1.160); batch 62 = sdl3
+0.16.1 B-19 package-side width fix (published; sha256 f2d99b9e); bindings' pool
+re-verified + published; assimp CONTRACT.md routed to engine (-1828; engine
+acked, adopts at the next bump).
+PENDING GATE (imminent): compiler push landed (677d65a7 -> 87c6ca3c, m254-m274;
+Gate A green 2480/0); stdlib runs the archive/witness/revert/tag sequence (~1h
+from 20:21Z), then the compiler pin+tag = the archive. On release: repin + merge
+origin/bindings + jolt port x2 (watchdog >= 600 s) + publish 0.2.0 (jolt scope
+ALREADY LIVE per ops REL-20261011-1940-ops; never publish unverified). Re-verify
+expectations (SESSION.md 19:55Z block): B-13/14/15+B-18 green; B-16/B-17 NOT in
+the wave -- still red, do not bounce; B-19 shipped in sdl3 0.16.1; rows
+REL-20261010-1549-packages-4/-6 + REL-20261010-2100-packages to re-run from
+their witnesses.
+
+POLICY (owner, 2026-10-11): upstream-first for ALL package work -- no code from
+memory. Clone the authoritative upstream at a pinned commit into E:\repos\<name>
+(shared, disposable; never committed), study, then implement; write
+packages/<pkg>/PROVENANCE.md (upstream, commit, license, derived vs independent,
+imported vectors, re-carve steps); license whitelist MIT/Apache-2.0/BSD/ISC/zlib/
+PD/Unicode/RFC-first (MPL/LGPL reference-only; never GPL/AGPL/SSPL/Elastic);
+verification = upstream vectors/parity. Per-touch (owner 2026-10-12): EVERY
+package touched -- new or pre-existing -- states its provenance (upstream pin
+OR an explicit independent declaration) and carries 100% of its declared
+surface; retrofit at touch. Audit: scripts/provenance-audit.ps1 (report
+docs/PROVENANCE-COMPLIANCE.md; backlog 2026-10-12: 14 compliant / 519 to
+retrofit). Bindings: same clone-at-pin rule + 100%
+export coverage (complete surface, not partial). Canonical doc:
+docs/UPSTREAM-FIRST.md. Register clones in E:\repos\CLEANUP.md with a review-after
+date; sweep only at quiet moments, only when ship+verify is done and no lane
+needs the clone.
+
+CREDENTIAL NOTE: gh sometimes flips to `Lefteris-Ngonart` (403 on push); switch
+with `gh auth switch --user Lefteris-Notas`; verify with
+`gh api repos/xiom-packages/packages --jq .permissions`.
+
+Start: git fetch; git status -sb; git log -1; relay sync + view (above); then
+  $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+  & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+
+Then do, in order:
+1. PENDING GATE: the next official archive (m258+; watch `gh release list -R
+   xiom-lang/xiom`) -> repin + jolt merge/port x2/publish as above.
+2. Bindings batches as items arrive (queue was empty at handoff): merge ONLY the
+   newest tip (each item supersedes prior ones of the SAME package; DIFFERENT
+   packages stack into one eco batch), resolve package STATUS/README conflicts
+   to THEIR side (but restore earlier shipped/published README lines -- conflict
+   resolves can drop them), ack on the bus, port x2 (absent shapes where
+   applicable; watchdogs: 90 normal, 240-300 vendored C/C++, 600+ for 100+ TU
+   compiles -- assimp/meshopt/box2d/ozz/imgui/miniaudio are vendored: run quiet,
+   sequential, never concurrent with another compile), record, wrap, publish,
+   live-verify, fix the item. ALWAYS run `status.ps1 -Action validate` AFTER the
+   merge and BEFORE tagging. Run the 5-shape bracket scan on every touched
+   package (fresh `Vec<UInt8>` sites keep appearing -- normalize to `Vec[UInt8]`
+   pre-publish and re-verify x2 before recording).
+3. Non-bindings asks (xvector/engine/pulse/ops/compiler): process or route --
+   toolchain bugs become new items to compiler with their repro. Reply to engine
+   on REL-20261011-1828-packages only if they ask; new engine asks become new
+   items, scoped additively.
+4. Carry-forwards: eco batch = wrap commit -> push -> tag `eco-v0.1.NNN` -> approve
+   the pending deployment (`environment_ids:[22424011031]`, note: integer `-F`
+   for the array) -> watch green -> live-verify the registry sha256 -> sync README
+   ("published in eco-vX") + STATUS excluded_reason -> fix the bus item -> fold
+   SESSION.md. The publish workflow now re-checks the registry before failing on
+   a retry (CI patch 42e7c489 after the ntp version_exists incident) -- leave
+   that block alone. `glfw_set_cursor_pos` is a silent no-op on hidden windows
+   (cursor readbacks can be negative; pre-shipped `probe_neg_f64.xi` documents
+   the class). `xiom.btree` churn runner: `tests/churn.ps1 -Order N -Ops 20000
+   -N 4096` (matrix incl. order 3). Update SESSION.md at each wrap with a fresh
+   STATE block.
+```
+
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, SUPERSEDED -- 2026-10-11 11:10Z; kept for history)
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local
@@ -83,13 +1385,12 @@ fires every 2 h (re-sync, process, check gh release list for m258).
 
 STATE: compiler pin v0.64.3 (official archive, SHA256-verified; a shadow install
 exists at %LOCALAPPDATA%\xiom.new.0643 if the canonical is ever locked). Validate
-524/0; guard 509 allowlisted / 492 ready / 17 grandfathered / 0 failures.
-PENDING GATES: (1) ops live for xiom.ann + xiom.stb -> append both (509 -> 511),
-guard, wrap, one eco batch publish, live-verify; (2) an official archive carrying
-compiler m258 (`--cxx-standard`; check `gh release list -R xiom-lang/xiom`) ->
-repin + merge origin/bindings (jolt batch 35, tip-era 0aea531c) + port x2
-(watchdog >= 600 s) + publish; jolt's record stays gated tests=unknown for the
-official pin -- do NOT publish it unverified.
+524/0; guard 511 allowlisted / 494 ready / 17 grandfathered / 0 failures
+(xiom.ann + xiom.stb appended 2026-10-11 and published in eco-v0.1.139).
+PENDING GATE: an official archive carrying compiler m258 (`--cxx-standard`; check
+`gh release list -R xiom-lang/xiom`) -> repin + merge origin/bindings (jolt batch
+35, tip-era 0aea531c) + port x2 (watchdog >= 600 s) + publish; jolt's record stays
+gated tests=unknown for the official pin -- do NOT publish it unverified.
 
 CREDENTIAL NOTE: gh sometimes flips to `Lefteris-Ngonart` (403 on push); switch
 with `gh auth switch --user Lefteris-Notas`; verify with

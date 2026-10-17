@@ -1,6 +1,6 @@
 # xiom.tensorflow
 
-> **Status:** `conformance-tested` (unreleased, not yet published to the XIOM registry).
+> **Status:** `incubating` -- conformance-tested (17/17 x2 SKIP gate on v0.64.6; live 74/74 on libtensorflow 2.18.1 CPU); published in `eco-v0.1.194` (sha256 `0f4bb6a5...`, 2026-10-17).
 > **Scope:** TensorFlow C API (libtensorflow) bindings -- graph, session,
 > tensor and ops essentials behind a multi-soname loader.
 > **Deps:** stdlib (`xiom.std`: ffi, dl, io, os.platform); TensorFlow is

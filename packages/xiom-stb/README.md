@@ -8,7 +8,9 @@ family, the `stbi_is_hdr` family, and the HDR/LDR conversion knobs, all
 with owned-buffer interop and typed errors.
 
 > **Status:** `incubating` -- conformance suite green on the pin
-> (v0.64.4; 18/18 x2). **Lane:** bindings (`keywords: ["binding"]`).
+> (v0.64.4; 18/18 x2). Published in `eco-v0.1.139` (sha256
+> `41a205f7...`). **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.3.0` in `eco-v0.1.179` (sha256 `690d8c5e...`).
 
 ## Quick start
 

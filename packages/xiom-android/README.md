@@ -4,6 +4,8 @@ Android platform-core bindings for XIOM -- the A1 (window-core) + A5
 (assets-storage) + A2 (lifecycle-glue) + A3 (input) + A4 (sensors)
 heads of the Android SDK100 program.
 
+> **Published:** `0.4.0` (2026-10-16; sha256 `2b9cf462...`) via the single-package tag `xiom-android/v0.4.0` -- the Android family first-publish remainder.
+
 - Runtime probe for `libandroid.so` + `libnativewindow.so` with SKIP
   semantics (absent runtime -> `ANDROID_LOAD_ABSENT`; broken exports ->
   `ANDROID_LOAD_ABI` FAIL); 209-symbol declared export set.

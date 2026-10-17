@@ -8,10 +8,13 @@
                   "status":  "pass",
                   "passed":  26,
                   "failed":  0,
-                  "run_by":  "am:feat-brotli-binding",
-                  "commit":  "7e9892bc",
-                  "checked":  "2026-10-16T12:18:27Z"
+                  "run_by":  "native-session",
+                  "commit":  "5a22868a",
+                  "checked":  "2026-10-16T13:09:36Z"
               },
     "publish":  false,
-    "excluded_reason":  "not allowlisted: no readiness evidence recorded"
+    "excluded_reason":  "published in eco-v0.1.189 (2026-10-16, 0.1.0 -- new name; real RFC 7932 brotli; vendored v1.2.0)",
+    "platforms":  [
+                      "windows-x64"
+                  ]
 }

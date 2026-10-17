@@ -1,0 +1,17 @@
+# XIOM -- xiom.numpy compiler manifest
+# Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+# SPDX-License-Identifier: MIT OR Apache-2.0
+#
+# The lane manifest is package.xi (packaging, namespace checks, registry).
+# This xiom.toml exists because the v0.64.x dependency-root resolver reads
+# xiom.toml `[dependencies]` for catalog source roots (C-PULSE-02/m212); the
+# legacy package.xi `deps:` block is not consumed for catalog source roots.
+# xiom.openblas is consumed as a PATH dependency (built from this repository
+# checkout, not from $XIOM_HOME/packages). Keep it in sync with package.xi.
+
+[project]
+name = "xiom.numpy"
+version = "0.1.0"
+
+[dependencies]
+"xiom.openblas" = { path = "../xiom-openblas" }

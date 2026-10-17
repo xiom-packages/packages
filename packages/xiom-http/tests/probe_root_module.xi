@@ -12,7 +12,15 @@
 // curl_easy_perform fails fast with CURLE_COULDNT_CONNECT, so http_get
 // returns Err(error-text) and exit code is 0 when the [PASS] checks hold.
 //
-// Harness: the v0.64.2 toolchain ships only xiom_alloc in its runtime (no
+// 0.1.8 additions (custom request headers): the same closed-port pattern
+// exercises the new http_request entry through the probe bridge's
+// deterministic curl_slist stubs -- header blob build, CURLOPT_HTTPHEADER
+// setopt, and list free all run offline; the probe bridge additionally
+// validates each split line ("Name: ..." required) so a malformed blob
+// fails the probe instead of slipping through. The unsupported-method check
+// is pure (Err before any FFI call).
+//
+// Harness: the v0.64.5 toolchain ships only xiom_alloc in its runtime (no
 // xiom_str_to_cstr / xiom_free_cstr / xiom_write_byte / xiom_read_byte /
 // xiom_free_ptr symbols), so the probe links tests/probe_bridge.c. The bridge
 // also stubs libcurl deterministically and offline; since the 0.1.4 fix pass
@@ -32,11 +40,27 @@
 module http_root_probe
 
 use xiom.http;
+use xiom.http.headers;
+use xiom.http.types;
 use xiom.string;
 use xiom.io;
 use xiom.convert;
 
 pub fn main() -> Int {
+  var failed: Int = 0;
+  failed = failed + check_closed_port_get();
+  failed = failed + check_unsupported_method();
+  failed = failed + check_headers_closed_port();
+  failed = failed + check_empty_headers_closed_port();
+  if failed == 0 {
+    io.println("[PASS] probe_root_module: all checks passed");
+  } else {
+    io.println("[FAIL] probe_root_module: failures=" + convert.to_string(failed));
+  };
+  return failed;
+}
+
+fn check_closed_port_get() -> Int {
   var res: Result[HttpClientResponse, Str] = http_get("http://127.0.0.1:1/");
   match res {
     Ok(resp) => {
@@ -60,4 +84,69 @@ pub fn main() -> Int {
     },
   };
   return 0;
+}
+
+fn check_unsupported_method() -> Int {
+  var res: Result[HttpClientResponse, Str] = http_request("http://127.0.0.1:1/", "BREW", "", "");
+  match res {
+    Ok(_) => {
+      io.println("[FAIL] unsupported method returned Ok");
+      return 1;
+    },
+    Err(e) => {
+      if string.str_contains(e, "unsupported method") {
+        io.println("[PASS] unsupported method rejected before any transfer (" + e + ")");
+        return 0;
+      };
+      io.println("[FAIL] unsupported method: unexpected error text: " + e);
+      return 1;
+    },
+  };
+}
+
+fn check_headers_closed_port() -> Int {
+  var pairs: Vec[HttpHeader] = Vec[HttpHeader].new();
+  pairs.push(HttpHeader{ name: "Authorization", value: "Bearer offline-probe" });
+  pairs.push(HttpHeader{ name: "X-Offline-Probe", value: "1" });
+  var blob: Str = "";
+  match http_headers_blob(pairs) {
+    Ok(b) => { blob = b; },
+    Err(e) => {
+      io.println("[FAIL] offline header blob build: " + e);
+      return 1;
+    },
+  };
+  var res: Result[HttpClientResponse, Str] = http_request("http://127.0.0.1:1/", "POST", "offline-body", blob);
+  match res {
+    Ok(resp) => {
+      io.println("[FAIL] closed-port http_request returned Ok (status " + xiom.convert.int_to_string(resp.status) + ")");
+      return 1;
+    },
+    Err(e) => {
+      if string.str_contains(e, "curl_easy_perform failed") {
+        io.println("[PASS] headers path ran offline: slist built, CURLOPT_HTTPHEADER set, list freed");
+        return 0;
+      };
+      io.println("[FAIL] closed-port http_request: unexpected error text: " + e);
+      return 1;
+    },
+  };
+}
+
+fn check_empty_headers_closed_port() -> Int {
+  var res: Result[HttpClientResponse, Str] = http_request("http://127.0.0.1:1/", "PUT", "offline-put", "");
+  match res {
+    Ok(resp) => {
+      io.println("[FAIL] closed-port empty-headers http_request returned Ok (status " + xiom.convert.int_to_string(resp.status) + ")");
+      return 1;
+    },
+    Err(e) => {
+      if string.str_contains(e, "curl_easy_perform failed") {
+        io.println("[PASS] empty header blob keeps the wrapper path (no CURLOPT_HTTPHEADER)");
+        return 0;
+      };
+      io.println("[FAIL] closed-port empty-headers http_request: unexpected error text: " + e);
+      return 1;
+    },
+  };
 }

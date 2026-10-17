@@ -1,10 +1,11 @@
 # xiom.serial
 
 > **Status:** `incubating` -- conformance-tested (**52/52 x2** on the
-> compiler pin v0.64.5, including the live Win32 backend leg; the
+> compiler pin v0.64.5, including the live Win32 backend leg, re-verified
+> 52/52 x2 on v0.64.6; the
 > no-device SKIP legs -- empty enumeration, absent-device typed
 > classification, closed-port typed errors -- are asserted on every run);
-> not yet published.
+> published in `eco-v0.1.193` (sha256 `fdd4dde3...`, 2026-10-16).
 > **Scope (0.1.0):** Win32 UART/serial-port bindings -- enumerate; open/
 > close; configure baud/data-bits/parity/stop/flow; blocking and
 > poll-mode reads with timeouts; writes; flush/drain; typed errors; a

@@ -8,6 +8,7 @@
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,
 > `xiom.string.compare`, `xiom.math`). Tests additionally use `xiom.test`
 > and `xiom.io`.
+> **Published**: `0.1.0` in `eco-v0.1.179` (sha256 `468e03ff...`).
 
 ## What it is
 

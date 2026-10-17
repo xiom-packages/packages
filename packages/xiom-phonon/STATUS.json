@@ -6,12 +6,18 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  38,
+                  "passed":  6,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "807b7579",
-                  "checked":  "2026-10-14T12:05:22Z"
+                  "run_by":  "native-session",
+                  "commit":  "3a22a083",
+                  "checked":  "2026-10-14T12:42:24Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: bindings batch 19 (eco-v0.1.116)"
+    "excluded_reason":  "published in eco-v0.1.178 (2026-10-14, 0.3.0 -- full Steam Audio surface)",
+    "platforms":  [
+                      "windows-x64"
+                  ],
+    "runtime_deps":  [
+                         "steam-audio runtime (phonon.dll; dynamic loader; SKIP when absent)"
+                     ]
 }

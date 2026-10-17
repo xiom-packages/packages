@@ -7,7 +7,8 @@ into `vendor/` (public domain) and compiled into the test binary with
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
 > v0.64.4, **21/21 x2 on 2026-10-13** for 0.4.0; 16/16 across the 0.3.0
 > enum-model restore build cycles on v0.64.2; published since `eco-v0.1.89`;
-> 0.3.0 live in `eco-v0.1.122`; 0.4.0 publish requested).
+> 0.3.0 live in `eco-v0.1.122`; 0.4.0 in `eco-v0.1.174` (sha256
+> `1e142acc...`); **0.4.1 in `eco-v0.1.175` (sha256 `21c1f673...`, modules list)**).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -89,6 +90,13 @@ options and malformed values fail closed with `SQLITE_ERROR`.
 by design -- the nested `Result[Option[SqliteRow]]` shape corrupts the row
 on the current pin (finding B-26; repro
 `docs/repro/bindings-pilot/nested-payload/`).
+
+`execute`'s `rows_affected` follows `sqlite3_changes` -- the LAST statement
+only; multi-statement scripts do not sum (PULSE co-verify note, 2026-10-13).
+
+`execute`'s `rows_affected` follows `sqlite3_changes` -- the **LAST
+statement only**; multi-statement scripts do not sum changes (PULSE
+co-verify note, 2026-10-13).
 
 ## Registry use (consumer, verified 2026-10-09)
 

@@ -8,10 +8,17 @@
                   "status":  "pass",
                   "passed":  16,
                   "failed":  0,
-                  "run_by":  "am:android-a12-sys",
-                  "commit":  "62201d7e",
-                  "checked":  "2026-10-16T15:44:13Z"
+                  "run_by":  "native-session",
+                  "commit":  "9e11a3a7",
+                  "checked":  "2026-10-16T17:04:02Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (Android SDK100 A12 system head: log + sync + binder + nnapi + zlib + icu subset; per-lib runtime-load units); publish gate after the naming decision + first end-to-end suite run (G1)"
+    "excluded_reason":  "published in eco-v0.1.192 (2026-10-16, 0.2.0 A12 system head)",
+    "platforms":  [
+                      "android-arm64",
+                      "android-x86_64"
+                  ],
+    "runtime_deps":  [
+                         "libbinder_ndk.so, libneuralnetworks.so, libz.so, libandroidicu.so, liblog.so, libsync.so (per-lib runtime-load units; SKIP when absent)"
+                     ]
 }

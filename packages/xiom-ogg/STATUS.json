@@ -8,10 +8,13 @@
                   "status":  "pass",
                   "passed":  34,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "76c820c0",
-                  "checked":  "2026-10-14T12:05:16Z"
+                  "run_by":  "native-session",
+                  "commit":  "3a22a083",
+                  "checked":  "2026-10-14T12:42:24Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+    "excluded_reason":  "published in eco-v0.1.178 (2026-10-14, 0.2.0 -- ogg packet layer)",
+    "platforms":  [
+                      "windows-x64"
+                  ]
 }

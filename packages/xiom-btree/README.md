@@ -5,14 +5,17 @@ insert/search/delete, predecessor/successor replacement on internal deletes,
 underflow borrow/merge, inclusive range scans and in-order traversal over a
 flat append-only node array. Pure XIOM, standard library only (`xiom.std`).
 
-Extracted verbatim from ORBITDB's engine B-tree (commit `10109e1`), validated
-by the ORBITDB churn soak (orders 4/5/6, 20k ops at keyspace 4096, plus the
-quick default and seed matrices) -- see `SPEC.md` for pins and evidence.
+Extracted verbatim from ORBITDB's engine B-tree (commit `c017165`, the
+order-3 fix re-carve; originally `10109e1`), validated by the ORBITDB churn
+soak (orders 3/4/5/6, 20k ops at keyspace 4096, the former order-3
+reproducer, plus the quick default and seed matrices) -- see `SPEC.md` for
+pins and evidence.
 
-> **Status:** `incubating` -- conformance suite green on the pin (v0.64.2):
-> **22/22 x2** plus the churn matrix (orders 4/5/6 x 20k ops @ keyspace
-> 4096). Order-3 delete is a documented upstream limitation (SPEC section
-> 2.3). Published in `eco-v0.1.121` (sha256 `1ce8446e...`).
+> **Status:** `incubating` -- 0.1.1 re-carve: the order-3 delete defect is
+> fixed upstream (`c017165`); suite **23/23 x2** + churn matrix **orders
+> 3/4/5/6 x 20k ops @ keyspace 4096** (incl. the former reproducer, now
+> GREEN) on v0.64.3. 0.1.0 shipped in `eco-v0.1.121` (sha256 `1ce8446e...`);
+> 0.1.1 published in `eco-v0.1.141` (sha256 `ba4b1782...`).
 
 ## Consumer snippet
 

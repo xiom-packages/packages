@@ -1,8 +1,8 @@
 # xiom.numpy -- SPEC
 
-**Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
-**Status**: Phase 1 implemented -- types, extern C FFI, safe wrappers with contracts, 30 conformance tests
-**Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend)
+**Phase**: 3 complete (Core Storage + linear algebra) | **Priority**: CRITICAL
+**Status**: Phase 3 COMPLETE -- 147/147 conformance checks x2 (compiler v0.64.6, 2026-10-16); Phase-3a broadcasting + N-D + reshape/transpose (103/103) and Phase-3b reductions + `array_inv` (130/130) were v0.64.6; Phase-3c adds self-contained one-sided Jacobi `array_svd` (147/147). Phase-1 link bridge retained at `bridge/numpy_bridge.c` as the acceleration seam (not called by the module)
+**Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend) -- consumed as a PATH dep (`xiom.toml`) for the Phase-2b `dot`/`matmul` compute path.
 
 ## What it wraps
 NumPy C API -- the fundamental array computing library for scientific Python.
@@ -24,6 +24,164 @@ bypassing Python entirely. This is what Cython/C extensions do internally.
 NumPy's `numpy/core/include/numpy/` contains the public C API headers.
 We compile a thin C bridge that calls `PyArray_*` functions (which are C, not Python).
 
+## Phase-2a design note: native storage over the PyArray sketch (2026-10-16)
+- Decision: the core storage leg uses **native pure-XIOM storage**, not the
+  earlier `PyArray_*` C-bridge sketch. Registry consumers cannot assume a
+  Python + NumPy install, so the core type must not depend on a Python runtime.
+  `NDArray` stays an opaque `Int` handle; the bytes it names live in a
+  module-level handle registry inside `src/numpy.xi` (parallel flat arenas:
+  `Vec[Float64]` value buffer with per-slot base/size, flat shape arena with
+  per-slot offset/ndim, dtype, and a liveness flag). No FFI is used on any
+  creation, property, indexing, or free path.
+- Handles are `1 + slot index`; handle `0` is always invalid. Slots are
+  append-only, and `array_free` marks a slot dead without reusing it, so a
+  stale handle can never silently alias a later allocation (handle
+  independence and free semantics are conformance-checked).
+- The C-bridge seam is preserved, not removed: `bridge/numpy_bridge.c` +
+  `port.args.json` still link the element-wise (`add/sub/mul/div`) and
+  linear-algebra (`dot/matmul`) entry points. A future PyArray / real-BLAS
+  acceleration would be linked behind this same seam without changing the
+  `NDArray` surface; the module itself no longer calls it.
+
+## Phase-2b design note: element-wise + linear algebra on native storage (2026-10-16)
+- Element-wise `array_add`/`array_sub`/`array_mul`/`array_div` are pure-XIOM
+  loops over the Phase-2a arena. Same-shape rule: operands must have identical
+  `ndim` and identical extents on every axis, else typed
+  `Err("numpy: <op> shape mismatch")`. The result is a fresh array (same shape,
+  same dtype as the left operand) in new arena slots; operands are never
+  aliased or mutated.
+- Division policy (fail-closed): `array_div` treats any zero divisor element as
+  an error. The first `b[k] == 0.0` aborts the whole op with
+  `Err("numpy: array_div division by zero")`; no partial result is committed.
+  This is deliberate: no IEEE `inf`/`NaN` is produced.
+- `array_dot`/`array_matmul` delegate to the `xiom.openblas` declared surface
+  (`dot` for 1-D inner products, `gemm` for 2-D products). The openblas pool is
+  row-major with `index = row * cols + col`, the same layout as this arena, so
+  no transpose/marshal is needed. `array_dot` accepts 1-D . 1-D (inner product,
+  returned as shape `[1]`) or 2-D . 2-D (matrix product, identical to
+  `array_matmul`); any other rank pair fails with `Err`. `array_matmul` is
+  strictly 2-D x 2-D with a matching inner dimension. All rank/shape violations
+  are typed `Err`.
+- `xiom.openblas` is wired as a PATH dependency in `xiom.toml` (the
+  `xiom-llm` precedent); the legacy `package.xi` `deps:` block lists it too.
+- Surface deltas from the Phase-1 sketch in the API block below: `get`/`set`
+  now return typed `Result[Float64, Str]` / `Result[(), Str]` so out-of-bounds
+  and rank errors are typed (bounds are runtime facts, not static contracts);
+  `array_dtype` is exposed so the stored dtype metadata is observable.
+- Shape guard: a negative dimension, or an element product above the
+  documented `ND_MAX_ELEMS` (1000000), fails closed with `Err`.
+
+## Phase-3a design note: broadcasting, N-D strides, reshape/transpose (2026-10-16)
+- Element-wise `array_add`/`array_sub`/`array_mul`/`array_div` now broadcast
+  (NumPy rule: operands align from the right; on each axis the extents must be
+  equal or one of them is 1, else typed
+  `Err("numpy: <op> shape mismatch")`). The result carries the broadcast shape
+  and the left operand's dtype; identical-shape operands reduce exactly to the
+  Phase-2b same-shape loop. The div fail-closed policy is unchanged.
+- N-D over the flat f64 arena: row-major strides are derived per axis
+  (`_nd_strides_of_shape`); a broadcast operand uses stride 0 on stretched axes
+  (`_nd_bc_stride`). No new storage mode is added -- reshape/transpose copy into
+  fresh arena slots, so no operated array is aliased or mutated.
+- `array_reshape(arr, new_shape)`: C-order reshape; the element count must match
+  exactly, else `Err`. `array_transpose(arr)`: reverses the axis order (NumPy
+  semantics); 2-D gives `out[j, i] == in[i, j]`, 1-D is identity, N-D reverses
+  all axes. Both return copies (view semantics deferred).
+- Surface additions: `array_reshape`, `array_transpose` (typed
+  `Result[NDArray, Str]`). The Phase-2b same-shape-only misfit assertion in the
+  suite was replaced by a broadcast-incompatible case, because broadcasting now
+  makes `[2]` with `[2,2]` legal.
+- Suite: 103/103 conformance checks GREEN x2 (v0.64.6, 2026-10-16).
+
+## Phase-3b design note: reductions + matrix inverse (2026-10-16)
+- Reductions `array_sum` / `array_mean` / `array_max` / `array_min` are pure-XIOM
+  passes over the flat f64 arena, built on the Phase-3a row-major stride helper
+  (`_nd_strides_of_shape`) and the same slot-allocation path as every other op.
+  `axis == -1` is the full-array reduction ("axis omitted") and yields shape
+  `[1]` (the `dot` inner-product convention); `axis` in `[0, ndim)` reduces that
+  axis only and drops it from the result shape (a 1-D input reduced on axis 0
+  yields `[1]`). Any other axis, an invalid handle, or an empty input fails
+  closed with a typed `Err`. Reductions never alias or mutate the operand.
+  (Names carry the module's `array_` prefix, matching `array_add`/`array_reshape`
+  rather than the bare `sum`/`mean`/`max` of the original API sketch.)
+- `array_inv` is a self-contained Gauss-Jordan elimination with partial pivoting
+  over the f64 arena, so it is correct on the offline leg with no live
+  BLAS/LAPACK. Rationale: `xiom.openblas` ships only stub `solve`/`svd`
+  (identity/zero placeholders) and no `inv` symbol, so routing the inverse
+  through that seam could not yield correct values offline; the openblas/LAPACK
+  path remains the documented acceleration target behind the same `NDArray`
+  surface. Fail-closed: a non-2-D operand, a non-square matrix, a matrix whose
+  augmented buffer would exceed `ND_MAX_ELEMS`, or a singular matrix (no pivot
+  above `ND_INV_PIVOT_EPS` while eliminating a column) all return a typed `Err`;
+  no partial result is returned.
+- `svd` was deferred at Phase-3b: Gauss-Jordan is not trivially extendable to
+  SVD (SVD needs a one-sided Jacobi / eigen routine), and the
+  `xiom.openblas.svd` seam is still a Phase-1 stub. Resolved in Phase-3c below
+  with a self-contained one-sided Jacobi routine.
+- Suite: 130/130 conformance checks GREEN x2 (v0.64.6, 2026-10-16); 27 new
+  checks (14 reduction goldens/error-paths, 8 inverse goldens/error-paths, 5
+  contract markers).
+
+## Phase-3c design note: singular value decomposition (2026-10-16)
+- `array_svd` is a self-contained **one-sided Jacobi** SVD over the flat f64
+  arena (no BLAS/LAPACK), completing Phase 3. Rationale mirrors `array_inv`:
+  the `xiom.openblas.svd` seam is still the Phase-1 identity/zero stub, so
+  routing through it could not yield correct values offline; the openblas /
+  LAPACK `dgesvd_` path remains the documented acceleration target behind the
+  same `NDArray` surface.
+- Method: copy A into a working matrix W (m x n, row-major), accumulate V as
+  the identity, and repeatedly sweep every column pair (p, q), computing
+  `alpha = ||w_p||^2`, `beta = ||w_q||^2`, `gamma = w_p . w_q` and applying the
+  Jacobi rotation `t = sign(zeta) / (|zeta| + sqrt(1 + zeta^2))`,
+  `zeta = (beta - alpha) / (2 gamma)`, `c = 1/sqrt(1 + t^2)`, `s = c t` to the
+  (p, q) columns of both W and V. A pair is accepted as orthogonal when
+  `|gamma| <= ND_SVD_TOL * sqrt(alpha beta)`; sweeps repeat until every pair
+  converges or the cap `ND_SVD_MAX_SWEEPS = 100` is hit. The converged column
+  norms are the singular values, `U` columns are the normalized `W` columns,
+  and `A = U * S * V^T` because `W = A V` with `V` orthogonal.
+- Returned shapes: `U` is `m x n` (thin), `S` is the `n x n` **diagonal** matrix
+  of singular values sorted descending, and `Vt` is `n x n` with
+  `A = U * S * Vt`. S-as-a-diagonal-matrix matches the `xiom.openblas.svd`
+  seam and keeps reconstruction on the existing 2-D `array_matmul` path; it is a
+  documented deviation from NumPy's 1-D `s`.
+- Scope: 2-D with `m >= n` (tall or square). Fail-closed typed `Err` on a
+  non-2-D operand, an empty matrix, `m < n` (wide), a freed/invalid handle, or
+  failure to converge within the sweep cap; no partial result is returned.
+- Rank-deficient inputs are supported. A singular value at or below
+  `ND_SVD_ZERO_REL * sigma_max` (`ND_SVD_ZERO_REL = 1e-12`) is reported as
+  `0.0`, and its `U` column is completed to an orthonormal vector by
+  Gram-Schmidt against the other `U` columns (standard-basis candidates), so
+  `U^T U == I` holds even when `A` is rank-deficient. The completion failing to
+  find a unit vector is also a typed `Err`.
+- Tolerances (pinned, exercised in the suite): singular-value goldens `1e-9`
+  (2x2 closed form `[[2,1],[1,2]] -> 3,1`; 2x2 `[[3,0],[4,5]] ->
+  sqrt(45), sqrt(5)`; rank-1 `[[1,2],[2,4]] -> 5,0`; symmetric 3x3
+  `I + ones -> 4,1,1`), reconstruction `A == U*S*V^T` `1e-9`, and orthogonality
+  `U^T U == I` / `Vt V == I` `1e-9`.
+- Suite: 147/147 conformance checks GREEN x2 (v0.64.6, 2026-10-16); 17 new
+  checks (13 SVD goldens/reconstruction/orthogonality, 3 SVD error-paths, 1
+  contract marker).
+
+## Phase-1 status and provenance (2026-10-16)
+- The conformance suite (`tests/test_conformance.xi`, 30 checks) links the
+  package-local Phase-1 bridge `bridge/numpy_bridge.c` via `port.args.json`
+  (`--c-source ${PACKAGE_DIR}/bridge/numpy_bridge.c`; the sqlite/stb/cuda
+  house pattern). The bridge defines all 17 `numpy_c_*` symbols (ABI:
+  Int = i64, Float64 = double), validates arguments, and reports the NumPy
+  backend unavailable until the Phase-2 `PyArray_*` linkage lands; the safe
+  wrappers collapse every `<= 0` handle to `Err`, which is exactly what the
+  twelve wrapper error-path checks assert.
+- No third-party code is vendored for Phase 1: nothing was cloned or
+  extracted, no NumPy headers, no Python runtime, no OpenBLAS binaries. The
+  bridge is first-party C under the package license (MIT OR Apache-2.0),
+  calls no NumPy/Python/OpenBLAS entry points, and allocates no memory.
+- NumPy headers (Phase 2 only): `numpy/core/include/numpy/` ships under
+  BSD-3-Clause (compatible with this package's license). When Phase 2 starts,
+  use a shallow clone, record the exact commit hash in this file, and stay
+  within the house bundling policy (headers only, never the full tree).
+- BLAS: no Phase-1 check requires xiom.openblas. The later linear-algebra
+  surface from the API section (`dot`, `matmul` in Phase 2; `svd`, `inv` in
+  Phase 3) is where xiom.openblas and the NumPy C API become hard dependencies.
+
 ## API surface
 
 ```xiom
@@ -40,14 +198,14 @@ pub fn array_arange(start: Float64, stop: Float64, step: Float64) -> Result[NDAr
 pub fn array_free(arr: NDArray)
 
 // Properties
-pub fn ndim(arr: &NDArray) -> Int
-pub fn shape(arr: &NDArray) -> Vec[Int]
-pub fn dtype(arr: &NDArray) -> DType
-pub fn size(arr: &NDArray) -> Int
+pub fn array_dtype(arr: &NDArray) -> DType
+pub fn array_ndim(arr: &NDArray) -> Int
+pub fn array_shape(arr: &NDArray) -> Vec[Int]
+pub fn array_size(arr: &NDArray) -> Int
 
-// Indexing
-pub fn get(arr: &NDArray, indices: Vec[Int]) -> Float64
-pub fn set(arr: &mut NDArray, indices: Vec[Int], val: Float64)
+// Indexing (typed Err on invalid handle / rank / bounds)
+pub fn array_get(arr: &NDArray, indices: &Vec[Int]) -> Result[Float64, Str]
+pub fn array_set(arr: &mut NDArray, indices: &Vec[Int], val: Float64) -> Result[(), Str]
 
 // Element-wise ops
 pub fn add(a: &NDArray, b: &NDArray) -> Result[NDArray, Str]
@@ -70,6 +228,17 @@ pub fn max(arr: &NDArray, axis: Int) -> Result[NDArray, Str]
 pub fn reshape(arr: &NDArray, new_shape: Vec[Int]) -> Result[NDArray, Str]
 pub fn transpose(arr: &NDArray) -> Result[NDArray, Str]
 ```
+
+### Implemented surface deltas from the sketch above
+- All ops carry the `array_` prefix (`array_add`, `array_reshape`, ...), matching
+  the Phase-2b/3a implementation rather than the bare names in the sketch.
+- Reductions are implemented as `array_sum`, `array_mean`, `array_max`,
+  `array_min` (Phase-3b). `array_min` is added beyond the sketch's `max`/`mean`.
+  `axis == -1` is the full-array reduction; `axis` in `[0, ndim)` drops that axis.
+- `array_inv` is implemented (Phase-3b, self-contained Gauss-Jordan, fail-closed).
+- `array_svd` is implemented (Phase-3c, self-contained one-sided Jacobi,
+  fail-closed; 2-D `m >= n`; returns `U [m,n]`, diagonal `S [n,n]`, `Vt [n,n]`
+  with `A = U * S * Vt`).
 
 ## Contract coverage target
 - Shape compatibility: `requires: a.ndim == b.ndim` for elementwise ops

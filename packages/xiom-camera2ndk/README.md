@@ -3,6 +3,8 @@
 Android camera2 NDK bindings for XIOM -- the A8 (camera) head of the
 Android SDK100 program.
 
+> **Published:** `0.1.0` in `eco-v0.1.192` (2026-10-16; sha256 `0b7a0ba0...`).
+
 - Runtime probe for `libcamera2ndk.so` with SKIP semantics (absent
   runtime -> `CAMERA2_LOAD_ABSENT`; broken exports -> `CAMERA2_LOAD_ABI`
   FAIL, never a silent SKIP).

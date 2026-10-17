@@ -1,5 +1,16 @@
 # xiom.http ROADMAP
 
+## v0.1.8 -- Custom request headers (shipped 2026-10-16)
+- [x] Custom request headers (incl. `Authorization`) -- required by the xiom.jev live leg (M1 finding 2026-10-16). Shipped: pure builder `xiom.http.headers.http_headers_blob` + new client entry `xiom.http.http_request` (curl_slist via the bridge shims); `http_send` now forwards all declared `HttpRequest.headers`; suite 52/52 x2; live header roundtrip proven against the loopback echo endpoint
+
+## v0.1.7 -- Client surface stabilisation (in progress, 2026-10-16)
+- [x] Dedicated client probe `tests/probe_client.xi` (own surface; refused/malformed deterministic, live + loopback legs SKIP-safe) -- xvector lattice ask, REL-20261016-1129-xvector-2
+- [x] Documented client stability + limits (README + SPEC)
+- [ ] Keep-alive control + idle connection reuse for the client
+- [ ] Per-call timeouts (connect + total)
+- [ ] Streaming request/response bodies
+- [ ] Pluggable TLS hook (compose with `xiom.ssl` when it lands)
+
 ## v0.1.4 (Current)
 - [x] Fix: printable bytes render as characters, not decimal codes (all module-local copies)
 - [x] Fix: libcurl LONG options passed by value (variadic ABI), removing the heap-pointer defect and its per-call leak

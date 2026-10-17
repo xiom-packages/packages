@@ -6,12 +6,16 @@ struct crossing the boundary is declared with pinned ABI layouts in our own
 header-free C bridge.
 
 > **Status:** `incubating` -- **engine RHI bring-up + WSI + render pipeline
-> (0.5.0)**: capability probe; instance/device/queue + real submit; hidden
-> Win32 window + `VkSurfaceKHR` + swapchain + clear/present; render pass +
-> graphics pipeline from embedded SPIR-V + **3-vertex draw with pixel
-> readback** (center rgb(0,255,0) triangle over the 0.1/0.2/0.3 clear,
-> verified by `vkCmdCopyImageToBuffer`). Suite **22/22 x2** on the RTX 3070
-> Ti (v0.64.3). **Lane:** bindings (`keywords: ["binding"]`).
+> (0.5.0) + full SDK100 surface (0.6.0)**: capability probe; instance/device/
+> queue + real submit; hidden Win32 window + `VkSurfaceKHR` + swapchain +
+> clear/present; render pass + graphics pipeline from embedded SPIR-V +
+> **3-vertex draw with pixel readback** (center rgb(0,255,0) triangle over the
+> 0.1/0.2/0.3 clear, verified by `vkCmdCopyImageToBuffer`); **845 cmds + 5983
+> consts + 8243 struct-meta consts (loadability 766/766 advertised resolved)**.
+> Native **22/22 x2** on the RTX 3070 Ti (v0.64.4). 0.4.0 (WSI) shipped in
+> `eco-v0.1.135`; 0.5.0 in `eco-v0.1.138` (sha256 `0cd7bc00...`); **0.6.0
+> (SDK100) published in `eco-v0.1.163` (sha256 `a8053f05...`)**. **Lane:**
+> bindings (`keywords: ["binding"]`).
 
 ## Quick start
 

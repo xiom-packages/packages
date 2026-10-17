@@ -6,7 +6,8 @@ compiled into the test binary -- no system library, no runtime DLL.
 
 > **Status:** `incubating` -- suite green x2 on the pin (v0.64.4): 24/24 with
 > a real ratio (8192 -> 34 bytes), byte-identical round-trips, and the 0.3.0
-> ZSTC container framing surface (random-access frame index).
+> ZSTC container framing surface (random-access frame index). **0.3.0
+> published in `eco-v0.1.176` (sha256 `6288ac84...`)**.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start

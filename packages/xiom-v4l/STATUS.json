@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  14,
                   "failed":  0,
-                  "run_by":  "am:feat-v4l-binding",
-                  "commit":  "18eaf107",
-                  "checked":  "2026-10-16T21:14:43Z"
+                  "run_by":  "native-session",
+                  "commit":  "84bdc431",
+                  "checked":  "2026-10-16T21:56:02Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (V4L2 UAPI camera capture head; Linux-only device layer; Windows suite takes the recorded SKIP path; Raspberry Pi arm64 runtime leg documented in PROVENANCE/ROADMAP); publish gate after the naming decision + first live camera run (G1)"
+    "excluded_reason":  "published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 0e3d5390...)"
 }

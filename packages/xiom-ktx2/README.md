@@ -24,6 +24,7 @@ fn main() -> Int {
   }
 }
 ```
+**Published**: `0.1.0` in `eco-v0.1.178` (sha256 `3c36e2b8...`).
 
 ## What this package does
 

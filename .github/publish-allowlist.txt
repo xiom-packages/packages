@@ -558,3 +558,70 @@ xiom.wal
 xiom.btree
 # XVECTOR extraction (dense-vector primitives); ops scope confirmed LIVE 2026-10-10.
 xiom.vectors
+# XVECTOR extraction follow-on (ann HNSW) + vendored stb codecs; ops scope confirmed LIVE 2026-10-11 (eco 510).
+xiom.ann
+xiom.stb
+# SDK100 wave (owner program, 2026-10-12): shader/input packages; ops scopes confirmed LIVE 2026-10-12 (eco 518 both; dotted-name correction live 18:55Z); oracle-counted full surfaces, packages-lane x2 green on v0.64.4.
+xiom.spirv-tools
+xiom.spirv-cross
+xiom.spirv-reflect
+xiom.glslang
+xiom.slang
+xiom.sdl2
+xiom.spirv.headers
+xiom.shaderc
+# DirectX-12 leg (2026-10-12): foundation 0.1.0 + the 0.2.0 full-surface wave; ops scope confirmed LIVE 2026-10-12 (eco 519 both).
+xiom.dx12
+# GLES/EGL leg (2026-10-13): new ANGLE package (GLES 2.0/3.2 + EGL 1.5); ops scope confirmed LIVE 2026-10-13 (eco 520 both).
+xiom.gles
+# Bindings waves (OWNER EXCEPTION 2026-10-13 21:40Z): 17 new names staged ahead of readiness so merge/publish needs no owner step; grandfathered in .github/allowlist-baseline.txt until ported (each publishes on its green record at the next eco tag).
+# wave B (ready now): harfbuzz, basisu, spz; (in flight): opus, lz4, ktx2, vdb, nis
+xiom.harfbuzz
+xiom.basisu
+xiom.spz
+xiom.opus
+xiom.lz4
+xiom.ktx2
+xiom.vdb
+xiom.nis
+# upscaler wave (in flight): fidelityfx, dlss, xess, nrd, oidn
+xiom.fidelityfx
+xiom.dlss
+xiom.xess
+xiom.nrd
+xiom.oidn
+# path-tracer wave (in flight): rpr, rtxdi, rtxgi, openpgl
+xiom.rpr
+xiom.rtxdi
+xiom.rtxgi
+xiom.openpgl
+# A05 HDR + photometric wave; ops scopes confirmed LIVE 2026-10-14 (eco-release 539; PROD-only)
+xiom.exr
+xiom.photometrics
+# Wait-window trio (pure-XIOM rebuilds); ops scopes confirmed LIVE 2026-10-15 (eco-release 541/542; PROD-only)
+xiom.durable
+xiom.postgres
+xiom.redis
+# A08 transport + OTLP core; ops scopes confirmed LIVE 2026-10-16 (eco-release 550; PROD-only)
+xiom.transport
+xiom.otel
+# PULSE top-tier pair -- TLS + real brotli; ops scopes confirmed LIVE 2026-10-16 (brotli eco-release 552, ssl 550; PROD-only)
+xiom.brotli
+xiom.ssl
+# Android family first publish + JNI seam + PULSE Beacon core; ops scopes confirmed LIVE 2026-10-16 (android family + jni eco-release 550/552, pulse 553; PROD-only)
+xiom.android
+xiom.aaudio
+xiom.mediandk
+xiom.camera2ndk
+xiom.opensl
+xiom.android-sys
+xiom.jni
+xiom.pulse
+# ML/AI + robotics R2 wave + jev first publish; ops scopes confirmed LIVE 2026-10-16T21:57Z (eco-release 558; PROD-only)
+xiom.jev
+xiom.v4l
+xiom.serial
+xiom.ros2
+# ML/AI + robotics M2 wave (torch/tensorflow/blas were early-wave seeds) + gps (R2); ops scopes confirmed LIVE 2026-10-17T11:28Z (eco-release 560; gps+libtorch staged); PROD-only
+xiom.gps
+xiom.libtorch

@@ -2,7 +2,7 @@
 
 > **Status:** `incubating` -- conformance suite green (33 checks live on the
 > pinned libtorch 2.9.0 CPU build, 8 checks with the deterministic SKIP
-> path); not yet published to the XIOM registry.
+> path on v0.64.6); published in `eco-v0.1.194` (sha256 `865c6d2a...`, 2026-10-17).
 > **Scope:** LibTorch (the PyTorch C++ distribution) loader surface --
 > tensor creation/metadata/ops, training primitives, and the CUDA/JIT
 > anchor probes -- bound through the **AOTInductor C ABI** plus three

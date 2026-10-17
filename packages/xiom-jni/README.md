@@ -4,6 +4,8 @@ Android JNI seam bindings for XIOM -- the **A11 jni-seam** head of the
 Android SDK100 program (`docs/ANDROID-SDK100.md`): the `jni.h`
 interface plus the `android/bitmap.h` cluster.
 
+> **Published:** `0.1.0` in `eco-v0.1.192` (2026-10-16; sha256 `61a0ed6f...`).
+
 - Runtime loader for the pair `libjnigraphics.so` + `libnativehelper.so`
   with SKIP semantics (absent/partial -> `JNI_LOAD_ABSENT`; broken
   exports -> `JNI_LOAD_ABI` FAIL); 9-symbol declared export set

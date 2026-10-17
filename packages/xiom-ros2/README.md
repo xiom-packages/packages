@@ -1,7 +1,8 @@
 # xiom.ros2
 
 > **Status:** `incubating` -- delivered (rcl loader surface, 82/82 x2 on the
-> v0.64.5 pin); publish pending lane batch/scope.
+> v0.64.5 pin, re-verified 82/82 x2 on v0.64.6); published in `eco-v0.1.193`
+> (`0.2.0`; sha256 `f510bb42...`, 2026-10-16).
 > **Scope:** ROS 2 client-library (rcl) bindings via dynamic loading.
 > **Deps:** stdlib; **no build-time link** -- resolves the system librcl at
 > run time (typed SKIP when absent).

@@ -8,10 +8,13 @@
                   "status":  "pass",
                   "passed":  26,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "9cfad848",
-                  "checked":  "2026-10-14T12:05:14Z"
+                  "run_by":  "native-session",
+                  "commit":  "3a22a083",
+                  "checked":  "2026-10-14T12:42:24Z"
               },
     "publish":  false,
-    "excluded_reason":  "not allowlisted: first landing (wave-B codec bindings); pending publish review"
+    "excluded_reason":  "published in eco-v0.1.178 (2026-10-14, 0.1.0 -- libopus 1.6.1 streaming audio)",
+    "platforms":  [
+                      "windows-x64"
+                  ]
 }

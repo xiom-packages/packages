@@ -5,13 +5,13 @@
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
-                  "status":  "unknown",
-                  "passed":  null,
-                  "failed":  null,
-                  "run_by":  null,
-                  "commit":  null,
-                  "checked":  null
+                  "status":  "pass",
+                  "passed":  19,
+                  "failed":  0,
+                  "run_by":  "native-session",
+                  "commit":  "5c313832",
+                  "checked":  "2026-10-15T19:46:18Z"
               },
     "publish":  false,
-    "excluded_reason":  "not allowlisted: FFI bridge not linked"
+    "excluded_reason":  "published in eco-v0.1.184 (2026-10-15, 0.1.0 -- pure-XIOM RESP client)"
 }

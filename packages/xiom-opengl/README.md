@@ -19,7 +19,9 @@ broken exports -> **FAIL**. CI stays green without a GPU.
 > (146 commands / 298 enums; 24/24 resolvable core-1.0 commands resolved,
 > extensions string, swap-interval roundtrip, `wglChoosePixelFormatARB`),
 > buffer + shader roundtrips, plus the classic/core probes (4.6 classic +
-> 3.3 core, 404 extensions) and the deterministic SKIP-path test.
+> 3.3 core, 404 extensions) and the deterministic SKIP-path test. 0.4.0
+> published in `eco-v0.1.164` (sha256 `328674f1...`); **0.5.0 in
+> `eco-v0.1.170` (sha256 `daeb45a7...`)**.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start

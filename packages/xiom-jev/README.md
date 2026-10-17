@@ -1,0 +1,153 @@
+<!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
+<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
+# xiom.jev
+
+TypeSafe Jev client tier: **System One** structured decisions for XIOM.
+
+> **Status:** `incubating` -- 0.1.0. Offline conformance suite **143/143 x2** on
+> compiler `v0.64.6` (native-session, 2026-10-17). Live probe is SKIP-safe and
+> link-gated (see "Live probe"). Published in `eco-v0.1.193` (sha256
+> `ed212ee6...`, 2026-10-16).
+
+JEV = System One: fast, **structured decisions where the answer space is known
+in advance** -- routing, classification, scoring. Send a state (text or JSON)
+plus typed questions (`choice` / `score` / `noul`) in one call; get typed
+answers, probability distributions and confidence your code branches on. No
+text generation, no parsing. This package is the System One tier of the ML/AI
+coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
+
+## Modules
+
+| Module | Contents |
+|---|---|
+| `xiom.jev` | identity, `default_model`, `default_base_url`, `systemone_endpoint`, `api_key_validate`, `base_url_validate` |
+| `xiom.jev.types` | `State`, `Question` (+ builders), `Answers`, `Response` (+ guarded accessors incl. `response_legend_*`), `micro_text` |
+| `xiom.jev.request` | `build_request` -- validated JSON body (exact bytes, insertion order) |
+| `xiom.jev.response` | `parse_response` -- typed answers + confidence + usage; `api_error_detail` |
+| `xiom.jev.selection` | `answer_argmax`, `answer_labels_at_or_above`, `answer_sample_index` (caller-supplied entropy), score/noul helpers |
+| `xiom.jev.retry` | `retry_is_retryable`, `retry_backoff_millis`, `default_max_attempts/base_millis/cap_millis` -- pure bounded-backoff policy |
+| `xiom.jev.compression` | 32 MiB `body_size_check`, encoding tags (`identity`/`gzip`/`zstd`), `compress_bytes`/`compress_body` (gzip; zstd typed unavailable) |
+| `xiom.jev.errors` | `JevError` (BadRequest / Transport / HttpStatus / Parse) + `jev_error_text` |
+| `xiom.jev.client` | `system_one` -- transport over the xiom.http 0.1.8 headers surface |
+
+## Quick start (offline shape)
+
+```xiom
+use xiom.jev.types;
+use xiom.jev.request;
+use xiom.jev.response;
+use xiom.jev.selection;
+
+// 1. questions
+var qs: Vec[Question] = Vec[Question].new();
+var d: Question = types.question_choice("department", "Which team should handle this?");
+types.question_add_option(&mut d, "returns", "Exchanges, wrong or damaged items");
+types.question_add_option(&mut d, "billing", "Charges, invoices, payment problems");
+qs.push(d);
+
+// 2. request body (send it with xiom.jev.client.system_one)
+let body: Result[Str, JevError] = request.build_request("jev-latest", types.state_text(ticket), qs);
+
+// 3. typed answers (parse the endpoint's response body)
+let r: Result[Response, JevError] = response.parse_response(raw);
+let resp: Response = r.value;
+let first: Str = selection.answer_argmax_label(&resp, 0);   // "returns"
+
+// 4. deterministic probabilistic selection: caller supplies the entropy
+let pick: Int = selection.answer_sample_index(&resp, 0, my_seed_value);
+```
+
+Every 0..1 quantity is carried as **Int micro units** (1.0 = 1000000), so the
+core is float-free and deterministic; `types.micro_text(610000)` renders
+`"0.61"`. Tie rules, rounding and the exact entropy interval semantics are
+pinned in `SPEC.md` section 7.
+
+**Structured instructions/criteria (M2, 2026-10-16):** `instructions` and
+every criteria entry may be an object or array, not just a string
+(S3/S4/S5). Use the `*_json` builders with a parsed `JsonValue`:
+`question_set_instructions_json`, `question_add_option_json`,
+`question_add_level_json`, `question_set_noul_criteria_json`. A set doc is
+emitted verbatim and overrides the string form, so string questions and
+their byte-exact fixtures are unchanged; string, object and array entries
+can be mixed in one question. Validation counts an instruction/level as
+present when its string is non-empty or its doc is set.
+
+**Score legend (M2, 2026-10-16):** a score answer's `legend`
+(level -> description) is now carried through parsing, not just validated.
+Read it with `types.response_legend_count/label/doc/is_structured/text/find`
+(guarded; empty for choice/noul answers) and rebuild the object with
+`types.response_legend_json`; both string and structured (object/array) S4
+legend forms round-trip.
+
+## Transport (xiom.http 0.1.8 headers surface)
+
+`xiom.jev.client.system_one(base_url, api_key, model, state, questions)`
+builds the body, attaches `Authorization: Bearer <api_key>` +
+`Content-Type: application/json` via `xiom.http.headers`, and sends it to
+`<base_url>/v1/systemone` through `xiom.http.http_request` (NO new FFI; TLS
+is the consumer's libcurl bridge). Failures map onto the typed `JevError`
+catalog.
+
+**Live leg (resolved 2026-10-16):** xiom.http 0.1.8 ships the custom-headers
+surface, so the API receives the bearer token; a valid key now yields a 2xx
+([PASS] in the probe).
+
+**Input hygiene (M2, 2026-10-16):** before the POST, `system_one` validates
+both transport inputs through the pure helpers `xiom.jev.base_url_validate`
+(scheme must be http/https, host non-empty) and `xiom.jev.api_key_validate`
+(trims the key, then requires printable ASCII, rejecting internal
+whitespace/control/non-ASCII) -- malformed input fails as a typed
+`BadRequest` before any network call. The trimmed key is sent; the raw key is
+never logged or stored.
+
+**Retry (M2, 2026-10-16):** transient non-2xx statuses (429 / 503 / 529) are
+retried up to `xiom.jev.retry.default_max_attempts()` total attempts with the
+deterministic bounded backoff of `xiom.jev.retry` (500 ms base doubling to a
+30 s cap, no jitter); the client sleeps via `xiom.time.sleep_ms`. Transport
+failures are not retried. The policy core is offline-golden-tested.
+
+**Body rule and compression (M2, 2026-10-17):** `system_one` rejects a
+request body above **33554432 bytes (32 MiB)** with the typed
+`request: body exceeds 32 MiB limit` before building headers or touching the
+network; exactly 32 MiB is allowed (inclusive). `xiom.jev.compression`
+exposes the same `body_size_check` for callers, plus `identity` and `gzip`
+encoders (`compress_body`, pure stdlib RFC 1952, no FFI) and a typed
+`compression: zstd compressor is not available` path. The live client still
+sends the identity JSON body: xiom.http 0.1.8 takes a `Str` and UTF-8
+re-encodes it, which cannot carry a binary gzip frame -- end-to-end
+compressed requests wait on a binary-body entrypoint upstream (SPEC.md
+section 15).
+
+## Live probe
+
+`tests/probe_live.xi` performs ONE real call only when `TYPESAFE_API_KEY` is
+set, else SKIPs (exit 0). It is an evidence file, not part of the offline
+suite (port.ps1 runs `tests/test_conformance.xi`). Invocation on
+Windows (repo root `E:\xiom-packages\packages`):
+
+```powershell
+$env:XIOM_STDLIB = "E:\xiom-lang\stdlib"
+$env:TYPESAFE_API_KEY = "<key>"          # omit to SKIP; never committed
+xiom --run packages\xiom-jev\tests\probe_live.xi `
+  --c-source packages\xiom-http\bridge\xiom_http_shims.c `
+  --link curl --link-path <scratch-dir-with-curl.lib>
+```
+
+(Pass `--c-source` absolute if your compiler links from a scratch cwd; put
+`libcurl-x64.dll` on `PATH` and set `CURL_CA_BUNDLE` for TLS, per the
+xiom.http README recipe.) Dependency-free surface check without any link:
+`xiom --check packages\xiom-jev\tests\probe_live.xi`.
+
+## Tests
+
+```powershell
+$env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+$env:XIOM_STDLIB = "E:\xiom-lang\stdlib"
+& .\scripts\port.ps1 -Package xiom-jev -TimeoutSec 180
+```
+
+Offline and deterministic: request shapes are compared byte-for-byte against
+the exact JSON pinned in the public TypeSafe docs, canned responses are
+parsed and every probability/confidence/noul is checked in micro units, and
+selection is exercised with hand-supplied entropy. No API key, no network,
+no randomness. Fixture sources are recorded in `SPEC.md` sections 2 and 10.

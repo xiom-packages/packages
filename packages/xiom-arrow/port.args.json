@@ -1,0 +1,5 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/bridge/arrow_bridge.c",
+  "--no-contracts"
+]

@@ -35,7 +35,8 @@ broken exports -> **FAIL**.  CI stays green without a runtime.
 > `GL_RENDERER` strings, `eglQueryString(EGL_EXTENSIONS)` = 16 extensions
 > (7 `EGL_ANDROID_*`), live **ES2 context** + real `glClear` -- recorded
 > run in `docs/repro/recorded-gles-android.txt`.  **0.1.0** (ANGLE-only
-> surface) was published in `eco-v0.1.171` (sha256 `017b7664...`).
+> surface) was published in `eco-v0.1.171` (sha256 `017b7664...`); **0.2.0 in
+> `eco-v0.1.190` (sha256 `40328c2a...`)**.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start

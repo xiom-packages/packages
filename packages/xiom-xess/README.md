@@ -11,6 +11,7 @@ Intel XeSS (Super Resolution) bindings for XIOM via a dynamic loader.
   typed wrappers and pinned-struct serializers.
 - **Nothing vendored**: reference-only clone + independent declarations
   (`PROVENANCE.md`); the package itself is MIT OR Apache-2.0.
+- **Published**: `0.1.0` in `eco-v0.1.178` (sha256 `ef39949b...`).
 
 ```xiom
 module demo

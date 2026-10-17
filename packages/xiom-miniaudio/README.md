@@ -18,8 +18,10 @@ the test binary -- no system audio library at link time.
 > start/stop cycles, typed errors, 4-slot registry) plus the live
 > auto/WASAPI open legs). 0.2.0 shipped in `eco-v0.1.114`; 0.3.0
 > published in `eco-v0.1.154` (sha256 `6a2a77dd...`); 0.4.0 in
-> `eco-v0.1.187`.
+> `eco-v0.1.187`; 0.5.0 single tag `xiom-miniaudio/v0.5.0` (sha256
+> `7d83c1ed...`, 2026-10-17).
 > **Lane:** bindings (`keywords: ["binding"]`).
+> **Published**: `0.5.0` (single tag `xiom-miniaudio/v0.5.0`, sha256 `7d83c1ed...`).
 
 ## Quick start
 

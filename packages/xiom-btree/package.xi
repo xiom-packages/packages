@@ -10,7 +10,7 @@
 
 package xiom_btree {
   name: "xiom.btree";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM in-memory B-tree index: insert/search/delete with predecessor/successor replacement, underflow borrow/merge, inclusive range scans and in-order traversal over a flat append-only node array";
   categories: ["database", "systems"];
   keywords: ["btree", "index", "database", "storage"];

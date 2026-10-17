@@ -1,0 +1,20 @@
+# XIOM -- xiom.jev compiler manifest
+# Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+# SPDX-License-Identifier: MIT OR Apache-2.0
+#
+# The lane manifest is package.xi (packaging, namespace checks, registry).
+# This xiom.toml exists because the v0.64.x dependency-root resolver reads
+# xiom.toml `[dependencies]` for catalog source roots; the legacy package.xi
+# `deps:` block is not consumed for catalog source roots. xiom.http is
+# consumed as a PATH dependency: the coverage-program siblings are built from
+# this repository checkout and are not (yet) installed under
+# $XIOM_HOME/packages on the lane machine. The conformance suite does not
+# import the transport module, so it needs no sibling resolution; the live
+# probe and `--check` of src/client.xi do. Keep it in sync with package.xi.
+
+[project]
+name = "xiom.jev"
+version = "0.1.0"
+
+[dependencies]
+"xiom.http" = { path = "../xiom-http" }

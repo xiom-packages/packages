@@ -18,7 +18,15 @@
  * therefore fails this probe: the value is a heap address, so TIMEOUT etc.
  * do not match and setup_common_options returns an error. STRINGPOINT and
  * OBJECTPOINT options (URL, USERAGENT, POSTFIELDS, CUSTOMREQUEST, WRITEDATA,
- * HEADERDATA, ...) keep passing real pointers untouched.
+ * HEADERDATA, CURLOPT_HTTPHEADER, ...) keep passing real pointers untouched.
+ *
+ * Since 0.1.8 the bridge also carries the custom-header path: a copy of the
+ * xiom_http_headers_build / xiom_http_headers_free helpers (same splitting
+ * code as bridge/xiom_http_shims.c) plus deterministic curl_slist stubs, so
+ * http_request's header path links and runs offline. The probe copy of
+ * xiom_http_headers_build additionally VALIDATES each split line ("Name: "
+ * prefix required) and returns NULL on malformed input -- an offline pin of
+ * the blob contract that the production shim leaves to libcurl.
  */
 #include <stdint.h>
 #include <stdlib.h>
@@ -57,6 +65,51 @@ void xiom_copy_from_vec(unsigned char* c_buf, const unsigned char* vec_data,
   if (n > vec_len - offset) n = vec_len - offset;
   if (n <= 0) return;
   memcpy(c_buf + offset, vec_data, (size_t)n);
+}
+
+/* --- Custom request headers (0.1.8) -------------------------------------
+ * Probe copy of the shim helpers (bridge/xiom_http_shims.c). The splitter is
+ * identical; additionally each split line must look like "Name: ..." or the
+ * build fails (NULL) -- the offline pin described in the header comment.
+ * The curl_slist stand-ins this copy calls are defined at the bottom. */
+
+struct curl_slist;
+
+extern struct curl_slist* curl_slist_append(struct curl_slist* list, const char* s);
+extern void curl_slist_free_all(struct curl_slist* list);
+
+void* xiom_http_headers_build(const unsigned char* blob) {
+  struct curl_slist* list = NULL;
+  const char* p;
+  if (!blob || !blob[0]) return NULL;
+  p = (const char*)blob;
+  for (;;) {
+    const char* eol = strstr(p, "\r\n");
+    size_t n = eol ? (size_t)(eol - p) : strlen(p);
+    if (n > 0) {
+      char* line = (char*)malloc(n + 1);
+      struct curl_slist* next;
+      if (!line) { curl_slist_free_all(list); return NULL; }
+      memcpy(line, p, n);
+      line[n] = 0;
+      if (!strstr(line, ": ")) { /* malformed blob line: fail loud */
+        free(line);
+        curl_slist_free_all(list);
+        return NULL;
+      }
+      next = curl_slist_append(list, line);
+      free(line);
+      if (!next) { curl_slist_free_all(list); return NULL; }
+      list = next;
+    }
+    if (!eol) break;
+    p = eol + 2;
+  }
+  return (void*)list;
+}
+
+void xiom_http_headers_free(void* list) {
+  if (list) curl_slist_free_all((struct curl_slist*)list);
 }
 
 /* --- Deterministic libcurl stub ---------------------------------------- */
@@ -105,4 +158,41 @@ void curl_easy_cleanup(void* h) { free(h); }
 const char* curl_easy_strerror(long long code) {
   (void)code;
   return "Couldn't connect to server";
+}
+
+/* --- Deterministic curl_slist stand-ins (0.1.8 header path) ------------- */
+
+struct curl_slist {
+  struct curl_slist* next;
+  char* line;
+};
+
+struct curl_slist* curl_slist_append(struct curl_slist* list, const char* s) {
+  struct curl_slist* node;
+  struct curl_slist* tail;
+  char* copy;
+  size_t n;
+  if (!s) return NULL;
+  node = (struct curl_slist*)malloc(sizeof(struct curl_slist));
+  if (!node) return NULL;
+  n = strlen(s);
+  copy = (char*)malloc(n + 1);
+  if (!copy) { free(node); return NULL; }
+  memcpy(copy, s, n + 1);
+  node->next = NULL;
+  node->line = copy;
+  if (!list) return node;
+  tail = list;
+  while (tail->next) tail = tail->next;
+  tail->next = node;
+  return list;
+}
+
+void curl_slist_free_all(struct curl_slist* list) {
+  while (list) {
+    struct curl_slist* next = list->next;
+    free(list->line);
+    free(list);
+    list = next;
+  }
 }

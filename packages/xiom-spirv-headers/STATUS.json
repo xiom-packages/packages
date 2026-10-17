@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  10,
                   "failed":  0,
-                  "run_by":  "sdk100-spirv-headers",
-                  "commit":  "3501b249",
-                  "checked":  "2026-10-11T22:03:31Z"
+                  "run_by":  "native-session",
+                  "commit":  "674dea9d",
+                  "checked":  "2026-10-12T13:57:24Z"
               },
     "publish":  false,
-    "excluded_reason":  "not allowlisted: SDK100 program slice B4; coordinator merge + allowlist pending"
+    "excluded_reason":  "published in eco-v0.1.165 (2026-10-12)"
 }

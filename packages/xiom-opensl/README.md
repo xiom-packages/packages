@@ -3,6 +3,8 @@
 Android legacy-audio bindings for XIOM -- the A6 (OpenSL ES / OpenMAX AL
 / AMidi) tail of the Android SDK100 program.
 
+> **Published:** `0.1.0` in `eco-v0.1.192` (2026-10-16; sha256 `22cee06c...`).
+
 - Runtime probe for `libOpenSLES.so` + `libOpenMAXAL.so` +
   `libamidi.so` with SKIP semantics (all absent -> `OPENSL_LOAD_ABSENT`;
   partial load or broken exports -> `OPENSL_LOAD_ABI` FAIL).
