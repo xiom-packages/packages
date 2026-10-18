@@ -1687,6 +1687,24 @@ nvenc; 569/0)**:
   Remaining lane watch: v0.64.7 (m351/B-33 + m358/B-32 in the cut);
   AMD side is hardware-gated.
 
+**UPDATE 2026-10-18 16:15Z (retargeted v0.64.7 re-verify COMPLETE -- 8 staged
+fixes verified FIXED; batteries green; workaround retirement unlocked)**:
+- **B-16 / B-17 / B-18 / B-19 / B-22 / B-23 / B-25 / B-26 all verified fixed
+  on v0.64.7** -- repro bundles re-run; outputs and new statuses recorded in
+  `docs/BINDINGS-COMPILER-FINDINGS.md`.
+- Batteries: **glfw 37/37 x2 LIVE** (GLFW 3.4.0 win64 fetched; 3/3 absent
+  SKIP) + **sdl3 72/72 x2 LIVE**; STATUS records updated
+  (run_by `reverify-v0.64.7`).
+- Retirement candidates unlocked: sqlite `Result[Option[SqliteRow]]` restore
+  (B-26), dx12 Int-typed handles / bare null (B-25/B-23), dispatcher
+  simplification (B-18); pointer arithmetic usable again (byte-index stays
+  the lane default -- no churn planned).
+- Verdict filed to compiler: `REL-20261018-1540-bindings`; the
+  `-0000-bindings` plan item closed.
+- Remaining reds at .7: B-29 / B-34 / W1.4 / W2.3 (v0.64.8); B-32 in-situ
+  parked (isolated green).  Housekeeping: the four locked orphan worktree
+  dirs DELETED (locks cleared).
+
 **UPDATE 2026-10-18 15:05Z (doorbell: LANE REPIN to v0.64.7 LANDED)**:
 installed compiler = **v0.64.7** (`%LOCALAPPDATA%\xiom.new`; was v0.64.6
 at the 23:55Z block).  Suites now run on .7; the re-verify verdicts
