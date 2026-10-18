@@ -94,15 +94,25 @@ nested-payload probe + matrix GREEN; B-33 ladder GREEN (m351 verified
 fixed -- record-by-value returns 17036, done, exit 0); B-34 vec-alias
 probe STILL RED; B-29 bigint-bitops STILL RED.
 
-## Status
+## Status: RETIRED on v0.64.7
 
-- xiom.sqlite STAYS at the flat RowOutcome shape (restore parked; the
-  package tree is unchanged from 0.4.1).
-- **B-32 filed** to the compiler lane with this bundle (m358 still queued).
-- Re-attempt the restore when B-32 is fixed; re-run this bundle first.
+- **B-32 is RETIRED.**  The real restore (branch `feat/sqlite-restore`,
+  agent-built against the current package) is GREEN on v0.64.7:
+  `xiom.sqlite 0.5.0` restores `query_one -> Result[Option[SqliteRow]]`,
+  retires the flat `RowOutcome`, and passes **x2 21/21** -- including
+  `driver mem: caps, execute/query/query_one, by-name access`, the
+  exact path that failed under the workaround.  Landed on bindings
+  (`b3cbe464` + record `287675fd`; validate 576/0).
+- The 2026-10-17 "still red on .7" verdict above was produced with the
+  STALE `restore-0.5.0-attempt.patch` bundle (it predates the current
+  package and carries old DBG instrumentation) -- NOT a compiler
+  regression.  Corrected with the compiler lane
+  (REL-20261018-1803-bindings); m358 can close.
+- Future B-32-class re-verifies: use the LANDED package state, not the
+  patch bundle below.
 
 ## Files
 
-- `restore-0.5.0-attempt.patch` -- the complete restore attempt (sqlite
-  src + docs + instrumented suite) as applied 2026-10-15
+- `restore-0.5.0-attempt.patch` -- HISTORICAL: the original 2026-10-15
+  attempt (stale; kept for the record)
 - `probe-nearmiss/` -- `probe.xi` + `ptypes.xi` (the seven green variants)
