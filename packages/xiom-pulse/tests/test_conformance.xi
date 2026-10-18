@@ -206,7 +206,7 @@ pub fn main() -> Int {
   var f: Int = 0;
 
   // --- A. module identity + request/response goldens -----------------------
-  f = f + check("pulse_version package 0.2.0", pulse.pulse_version() == "0.2.0");
+  f = f + check("pulse_version package 0.2.2", pulse.pulse_version() == "0.2.2");
 
   let r1 = req_bytes("GET /health HTTP/1.1\r\nHost: example\r\nX-Test: yes\r\n\r\n");
   let he1 = http.find_header_end(&r1);
