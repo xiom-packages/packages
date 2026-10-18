@@ -146,3 +146,5 @@ profile (no multi-profile API yet). See [`SPEC.md`](SPEC.md) §7.
 Package code: MIT OR Apache-2.0. TensorRT itself is governed by the NVIDIA SLA
 and is **not** redistributed. TensorRT reference headers are Apache-2.0 and are
 not redistributed either. Full details: [`PROVENANCE.md`](PROVENANCE.md).
+
+**Published:** `0.1.0` in `eco-v0.1.199` (sha256 `17d40789...`, 2026-10-18; registry live-verified).

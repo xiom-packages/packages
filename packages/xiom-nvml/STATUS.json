@@ -13,5 +13,5 @@
                   "checked":  "2026-10-17T19:58:42Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package 0.1.0; publish gated on the ops scope flow"
+    "excluded_reason":  "published in eco-v0.1.199 (2026-10-18, 0.1.0; sha256 0aa65326...)"
 }

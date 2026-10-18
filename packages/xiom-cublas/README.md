@@ -78,3 +78,5 @@ Remove-Item Env:\XIOM_CUBLAS_DIR
 
 See `SPEC.md` (ABI pin, entry points, test contract), `PROVENANCE.md`
 (wheel/header pins + NVIDIA license record) and `AUDIT.md` (run evidence).
+
+**Published:** `0.1.0` in `eco-v0.1.199` (sha256 `930f602b...`, 2026-10-18; registry live-verified).

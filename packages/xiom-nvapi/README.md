@@ -48,3 +48,5 @@ scripts/port.ps1 -Package xiom.nvapi -TimeoutSec 180
 
 Expected: 25 `[PASS]`, exit 0 (or a SKIP line on a host without an NVIDIA
 driver/GPU).
+
+**Published:** `0.1.0` in `eco-v0.1.199` (sha256 `80873598...`, 2026-10-18; registry live-verified).

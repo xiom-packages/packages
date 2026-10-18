@@ -97,3 +97,5 @@ Live host (NVIDIA RTX): 37/37 PASS. Runtime absent: 15/15 PASS with the live
 legs reported as SKIP. See `AUDIT.md`, `docs/COVERAGE.md`, `SPEC.md`
 (surface and pin), `PROVENANCE.md` (license/acquisition) and `ROADMAP.md`
 (Phase 2).
+
+**Published:** `0.1.0` in `eco-v0.1.199` (sha256 `012dd8b6...`, 2026-10-18; registry live-verified).
