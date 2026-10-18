@@ -1,20 +1,17 @@
-// B-27 minimal shape -- bitwise ops and integer division on integer values
-// >= 2^31 compute wrong results (observed while building xiom.dlss 0.1.0:
-// NVSDK_NGX_Result failure codes are 0xBAD00000 | N, and the upstream
-// SUCCEED/FAILED macros are bitwise).
+// B-29 witness (corrected 2026-10-18): big-int bitops >= 2^31 are EXACT;
+// the original B-27/B-29 probe compared ops on 3132620800 (0xBAB80000)
+// against expectations derived from 3134193664 (0xBAD00000) -- a probe
+// defect, confirmed by compiler triage (m335) and this corrected run.
 //
-// Build+run (workdir = this directory, toolchain + XIOM_STDLIB resolved as
-// in the bundle README):
-//   xiom --run probe.xi
+// Build+run:  xiom --run probe.xi      (exit 0 = all exact)
 //
-// Expected (v0.64.5+ fix): shift20=2989 and_mask=3132620800 div20=2989.
-// Observed on v0.64.4 (2026-10-13, 1/1 build): shift20=2987,
-// and_mask=3132096512 (0xBAC00000), div20=2987 -- the 0xBAD00000 literal
-// loses its 0x0D00000 nibble through these ops.  Controls on the same build:
-// 2147483648 >> 20 = 2048, 3000000000 >> 20 = 2861, 3132620800 - 3132620800
-// = 0 (comparisons, subtraction and printing are faithful).
-//
-// Exit 0 = all values correct (bug absent), 1 = bug present.
+// Verified values (v0.64.7, and exact on v0.64.5 per m335):
+//   3134193664 (0xBAD00000): >>20 = 2989, &0xFFF00000 = 3134193664, /2^20 = 2989
+//   3132620800 (0xBAB80000): >>20 = 2987, &0xFFF00000 = 3132096512 (0xBAB00000),
+//                            /2^20 = 2987
+//   0xBAD00000 literal == 3134193664 decimal (parity exact)
+// Status: B-29 CLOSED as not-a-compiler-defect; the ngx boundary-arithmetic
+// workaround is a retirement candidate at the next xiom.dlss/nis touch.
 module bigint_bitops_probe
 
 use xiom.io;
@@ -42,16 +39,27 @@ fn i2s(n: Int) -> Str {
 }
 
 fn main() -> Int {
-  let shift20 = 3132620800 >> 20;
-  let and_mask = 3132620800 & 4293918720;
-  let div20 = 3132620800 / 1048576;
-  io.println("shift20=" + i2s(shift20)
-    + " and_mask=" + i2s(and_mask)
-    + " div20=" + i2s(div20));
-  if shift20 == 2989 && and_mask == 3132620800 && div20 == 2989 {
-    io.println("B-27: fixed (all three ops correct)");
+  let intended = 3134193664;
+  let hexv = 0xBAD00000;
+  let shift20 = intended >> 20;
+  let and_mask = intended & 4293918720;
+  let div20 = intended / 1048576;
+
+  let other = 3132620800;
+  let o_shift20 = other >> 20;
+  let o_and_mask = other & 4293918720;
+  let o_div20 = other / 1048576;
+
+  io.println("0xBAD00000: shift20=" + i2s(shift20) + " and_mask=" + i2s(and_mask) + " div20=" + i2s(div20));
+  io.println("control 0xBAB80000: shift20=" + i2s(o_shift20) + " and_mask=" + i2s(o_and_mask) + " div20=" + i2s(o_div20));
+
+  let ok = intended == hexv
+    && shift20 == 2989 && and_mask == 3134193664 && div20 == 2989
+    && o_shift20 == 2987 && o_and_mask == 3132096512 && o_div20 == 2987;
+  if ok {
+    io.println("B-29: exact (NOT-A-COMPILER-DEFECT)");
     return 0;
   }
-  io.println("B-27: REPRO (expected shift20=2989 and_mask=3132620800 div20=2989)");
+  io.println("B-29: mismatch");
   return 1;
 }
