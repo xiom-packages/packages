@@ -1827,6 +1827,24 @@ pin/slot v0.64.7 consistent)**:
   retirement unlocked (B-33 fixed per the ros2-abi ladder; B-32/B-34/
   B-29 remain red; B-29 boundary workaround stays).
 
+**UPDATE 2026-10-18 18:05Z (B-32 RETIRED -- xiom.sqlite 0.5.0 LANDED)**:
+- **`xiom.sqlite 0.5.0` LANDED** (sibling-launched retirement wave;
+  branch `feat/sqlite-restore`; land `b3cbe464` + record `287675fd`):
+  `query_one -> Result[Option[SqliteRow]]` restored, flat `RowOutcome`
+  RETIRED; **x2 21/21 on v0.64.7** including `driver mem: caps,
+  execute/query/query_one, by-name access` -- the exact nested path that
+  failed under the workaround; validate **576/0**.
+- **CORRECTION filed to the compiler** (`REL-20261018-1803-bindings`):
+  B-32 is RETIRED -- my earlier "still red on .7" verdict used the
+  STALE `restore-0.5.0-attempt.patch` bundle (predates the current
+  package, old DBG instrumentation), NOT a compiler regression; **m358
+  can close**.  b32 README updated to RETIRED (`9caa6caa`).
+- Publish request `REL-20261018-1803-bindings-2` (xiom.sqlite 0.5.0;
+  existing name; API change documented; in-tree consumers updated in
+  the same land).
+- Remaining reds: **B-34** (alias-unification batch pending cut),
+  **B-29** (boundary-arithmetic workaround stays shipped).
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
