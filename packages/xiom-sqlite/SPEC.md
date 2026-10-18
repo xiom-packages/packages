@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sqlite` |
-| Version | 0.4.0 |
+| Version | 0.5.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SQLite -- https://sqlite.org/ |
 | Upstream version | **3.53.4** (amalgamation build 3530400; `libversion_number` = 3053004) |
 | Upstream license | Public domain (blessing text in `vendor/LICENSE`) |
 | Package license | MIT OR Apache-2.0 (everything outside `vendor/`) |
 | Platform | Windows x64 (primary); no platform-specific XIOM code |
-| Compiler pin | xiom v0.64.4 |
+| Compiler pin | xiom v0.64.7 |
 
 ## 2. Vendored path (G2 pin)
 
@@ -57,7 +57,7 @@ vendored (CLI only, not needed by the library API).
 |--------|------|------|
 | `xiom.sqlite` | `src/sqlite.xi` | Package entry. Public API facade; **no unsafe**; delegates to `xiom.sqlite.ffi` |
 | `xiom.sqlite.ffi` | `src/ffi.xi` | **The only module with `unsafe` and `extern "C"`.** All foreign calls and pointer/memory handling confined here; exposes typed safe wrappers |
-| `xiom.sqlite.types` | `src/types.xi` | Value/row/result/error types (+ `RowOutcome`); pure |
+| `xiom.sqlite.types` | `src/types.xi` | Value/row/result/error types; pure |
 | `xiom.sqlite.rows` | `src/rows.xi` | Materializes statements into owned values (`query_all`, `count_rows`, `query_one`, by-name access); pure |
 | `xiom.sqlite.query` | `src/query.xi` | SQL query builder; pure |
 | `xiom.sqlite.schema` | `src/schema.xi` | DDL builder; pure |
@@ -95,7 +95,7 @@ API (`SqlDriver`):
 | `SqlDriver.open_from_dsn(dsn)` | open + apply `busy_timeout` / `journal_mode`; closes the handle on any failure |
 | `SqlDriver.execute(sql)` | non-query (result rows discarded); Ok = rows affected + last insert rowid |
 | `SqlDriver.query(sql)` | `SqliteResult` (typed values by index; column names for by-name access) |
-| `SqlDriver.query_one(sql)` | flat `RowOutcome { has_row, row }` -- first row or empty |
+| `SqlDriver.query_one(sql)` | `Result[Option[SqliteRow]]` -- first row or Ok(None) |
 | `SqlDriver.transaction_begin/commit/rollback` | explicit transaction control |
 | `SqlDriver.in_transaction()` | true while an explicit transaction is open (`sqlite3_get_autocommit`) |
 | `SqlDriver.last_error()` | `{code, message}` of the connection's most recent error |
@@ -116,11 +116,14 @@ The driver owns no migrations policy (locks, batches, ordering and the
 backup fence are the runner's).  The `-- no-transaction` escape is runner
 policy: sqlite reports `transactional_ddl == true`.
 
-`query_one` returns a flat `RowOutcome` instead of
-`Result[Option[SqliteRow]]` deliberately: the nested payload corrupts
-struct-with-Vec values on the current pin (finding B-26; repro
-`docs/repro/bindings-pilot/nested-payload/`). Restore the nested shape only
-after the compiler fix, re-tested from that bundle.
+`query_one` returns `Result[Option[SqliteRow]]` (restored at 0.5.0): the
+nested payload corruption (finding B-26) is fixed on the v0.64.7 toolchain.
+B-26 re-verify (2026-10-18): the lane's repro bundle
+`docs/repro/bindings-pilot/nested-payload/` reports `failures=0`, with every
+shape at len=2 (`probe.xi` 2/2/2 and `matrix.xi` all green), matching the
+compiler fix m283 `3ef4d6a9`. The flat `RowOutcome` workaround is retired.
+Extraction uses the Option accessors (`is_some` / `value`), the package's
+established style; the suite pins that path.
 
 ## 4. Test contract
 
@@ -181,9 +184,16 @@ restored, everything else stays avoided. Documented in
    `migrate_up`/`migrate_down`.
 7. **Nested enum payloads (`Result[Option[T]]`) corrupt struct-with-Vec
    payloads** (B-26; found 2026-10-13 while building the 0.4.0 driver).
-   Extracting the struct from the nested payload leaves its `Vec` length
-   reading as a pointer-like value; using the value crashes (0xC0000005).
+   Extracting the struct from the nested payload left its `Vec` length
+   reading as a pointer-like value; using the value crashed (0xC0000005).
    Flat struct payloads and single-level `Option` extraction are correct.
-   Workaround shipped: `query_one` returns the flat `RowOutcome`; repro
-   `docs/repro/bindings-pilot/nested-payload/` (re-test after the compiler
-   fix).
+   FIXED by compiler m283 `3ef4d6a9`; re-verified on v0.64.7 (2026-10-18)
+   from `docs/repro/bindings-pilot/nested-payload/` -- `failures=0`, every
+   shape len=2. 0.5.0 retires the flat `RowOutcome` and restores
+   `Result[Option[SqliteRow]]`; the suite reads the result through the
+   `is_some` / `value` accessors.
+   In-situ note (B-32): this package's compilation unit still lowers
+   `match Some(row)` on the nested payload through the erased `Option`
+   base (a dead stack box), so the package and its docs use the accessor
+   form. That is a compiler-side residual, not an API difference; do not
+   switch the suite to pattern extraction until B-32 is fixed.

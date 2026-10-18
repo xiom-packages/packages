@@ -1,11 +1,13 @@
 // xiom.sqlite.driver -- SQL driver facade for consumers (PULSE runner).
 //
 // Deliverable of docs/requirements/pulse-sql-driver.md (option A, released
-// as 0.4.0): a `driver` module exposing `SqlDriver` -- open from a DSN,
-// execute, query / query_one, explicit transactions with a rollback-on-error
-// discipline, capability flags, and error mapping that never loses the
-// SQLite code/message pair.  The driver owns NO migrations policy: locks,
-// batches, ordering and the backup fence stay with the PULSE runner.
+// as 0.4.0; 0.5.0 restores `query_one` to the natural
+// `Result[Option[SqliteRow], SqliteError]`): a `driver` module exposing
+// `SqlDriver` -- open from a DSN, execute, query / query_one, explicit
+// transactions with a rollback-on-error discipline, capability flags, and
+// error mapping that never loses the SQLite code/message pair.  The driver
+// owns NO migrations policy: locks, batches, ordering and the backup fence
+// stay with the PULSE runner.
 //
 // Structure: this module imports package siblings (ffi/types/rows) plus the
 // stdlib string/convert helpers.  No `unsafe` and no extern declarations --
@@ -303,12 +305,12 @@ pub fn SqlDriver.query(drv: &SqlDriver, sql: Str) -> Result[SqliteResult, Sqlite
   return rows.query_all(drv.db, sql);
 }
 
-/// Run a query and return its first row as a flat RowOutcome (`has_row`
-/// false when the result is empty; `row` is then an empty placeholder).
-/// Deliberately not `Result[Option[SqliteRow]]` -- nested enum payloads
-/// corrupt struct-with-Vec values on the current pin (finding B-26).
+/// Run a query and return its first row (Ok(None) when the result is
+/// empty).  RESTORED at 0.5.0 to `Result[Option[SqliteRow]]`: B-26 is
+/// re-verified fixed on the v0.64.7 toolchain and the flat RowOutcome
+/// workaround is retired.
 /// Complexity: O(columns) for the returned row.
-pub fn SqlDriver.query_one(drv: &SqlDriver, sql: Str) -> Result[RowOutcome, SqliteError]
+pub fn SqlDriver.query_one(drv: &SqlDriver, sql: Str) -> Result[Option[SqliteRow], SqliteError]
   requires: drv.db != 0
   requires: sql.len() > 0
 {

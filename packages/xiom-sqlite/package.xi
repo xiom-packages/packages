@@ -1,6 +1,6 @@
 package xiom_sqlite {
   name: "xiom.sqlite";
-  version: "0.4.1";
+  version: "0.5.0";
   description: "SQLite bindings for XIOM (vendored amalgamation 3.53.4) + SQL driver facade";
   categories: ["database"];
   keywords: ["sqlite", "database", "embedded", "sql", "binding"];
