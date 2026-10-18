@@ -1718,6 +1718,21 @@ B-32 still red but TYPED)**:
   No unilateral repin; the bindings pin stays **v0.64.6** until the
   owner/sibling repin wave lands.
 
+**UPDATE 2026-10-18 15:10Z (REPIN DELTA v0.64.7 PUSHED -- slot verified)**:
+- The machine slot moved to **v0.64.7** (`XIOM Compiler v0.64.7`;
+  stdlib-v0.64.7 production publish green per relay `e043e71`) --
+  the repin is now in effect machine-wide.
+- Sanity on the new slot: **xiom.sqlite flat-shape 21/21** (driver
+  mem/tx/err/file all green) + **xiom.nvenc 67/67 LIVE** (driver 13.1
+  H.264/HEVC encode+decode roundtrips) -- **no .7 regressions** on the
+  lane's active packages.
+- **Repin delta pushed** (`04a06c9d`): `COMPILER_VERSION`
+  v0.64.6 -> **v0.64.7** + **576 STATUS records aligned**
+  (`status.ps1 -Action repin`); validate **576/0**.
+- Part 2 publish still queued at packages; the .7 re-verify item
+  (`-2350`) open at compiler; **B-32 (m358)** remains the only
+  prepared re-verify (re-ran on .7: still red but TYPED).
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
