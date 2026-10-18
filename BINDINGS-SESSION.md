@@ -1687,6 +1687,19 @@ nvenc; 569/0)**:
   Remaining lane watch: v0.64.7 (m351/B-33 + m358/B-32 in the cut);
   AMD side is hardware-gated.
 
+**UPDATE 2026-10-18 16:20Z (NVIDIA WAVE FULLY PUBLISHED -- .198 + .199;
+all 7 part-2 names live)**: relay confirms the completion.
+- `eco-v0.1.198`: `xiom.onnx 0.2.0` (DirectML EP; existing name).
+- `eco-v0.1.199`: cublas 0.1.0, cufft 0.1.0, cusparse 0.1.0, tensorrt
+  0.1.0, nvml 0.1.0, nvapi 0.1.0, optix 0.1.0 -- all registry
+  live-verified (shas in `-1819-bindings` history); scopes LIVE
+  eco-release 573; allowlist 567 -> 574; packages verified on-landing x2
+  LIVE on v0.64.7 (62/45/56/55/40/25/37).
+- `-1819` FIXED.  The whole NVIDIA program is out (build wave -> publish ->
+  verify).  Open relay to bindings: only the two to-all compiler info items
+  (no action).  Remaining: v0.64.8 reds (B-29/B-34/W1.4/W2.3), B-32
+  in-situ parked, Pi smoke, AMD backlog, packages-half items.
+
 **UPDATE 2026-10-18 16:15Z (retargeted v0.64.7 re-verify COMPLETE -- 8 staged
 fixes verified FIXED; batteries green; workaround retirement unlocked)**:
 - **B-16 / B-17 / B-18 / B-19 / B-22 / B-23 / B-25 / B-26 all verified fixed
