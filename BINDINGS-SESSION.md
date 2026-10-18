@@ -1687,6 +1687,24 @@ nvenc; 569/0)**:
   Remaining lane watch: v0.64.7 (m351/B-33 + m358/B-32 in the cut);
   AMD side is hardware-gated.
 
+**UPDATE 2026-10-18 16:40Z (B-26 retirement wave LAUNCHED -- sqlite restore;
+coordinated plan acked by packages)**: continuing on the unlocked workarounds.
+- **`feat/sqlite-restore`** (`am-1792341243306-9qysun`): `xiom.sqlite`
+  0.4.1 -> 0.5.0 -- restore `query_one -> Result[Option[SqliteRow]]`
+  (B-26 verified fixed on v0.64.7), remove the flat `RowOutcome`, suite
+  updated, x2 on the pin.
+- Coordination: **`-1254` ACKED by packages**: llm real vocabs DONE
+  (302/302 x2) + bench harness dispatched; pandas 2-4 queued behind our
+  arrow backend (now landed -- unblocked); **jev S6 formulas + S8 v0.2.0
+  schemas + pandas section-6 ABI need the OWNER pin** (flagged, not
+  guessed); accelerator extras on demand confirmed.
+- B-27/B-28 (stdlib): filed + fixed (stale v0.64.4 bundled snapshot; fix
+  on stdlib main, probe 312). v0.64.6/7 pins bundle the fixed stdlib ->
+  the retirement gate is OPEN (candidates: fidelityfx `owned_bytes` /
+  local byte-store writers; optional cleanup wave, not forced).
+- Remaining reds at .7: B-29/B-34/W1.4/W2.3 (v0.64.8); B-32 in-situ
+  parked.  Relay open to bindings: compiler info items only.
+
 **UPDATE 2026-10-18 16:20Z (NVIDIA WAVE FULLY PUBLISHED -- .198 + .199;
 all 7 part-2 names live)**: relay confirms the completion.
 - `eco-v0.1.198`: `xiom.onnx 0.2.0` (DirectML EP; existing name).
