@@ -1764,6 +1764,25 @@ B-32 still red but TYPED)**:
   (`-2350`) open at compiler; **B-32 (m358)** remains the only
   prepared re-verify (re-ran on .7: still red but TYPED).
 
+**UPDATE 2026-10-18 16:25Z (NVIDIA WAVE FULLY LIVE: eco .198 + .199;
+pin/slot v0.64.7 consistent)**:
+- **`eco-v0.1.198`**: **`xiom.onnx 0.2.0`** LIVE (sha `4c230691...`;
+  15:53:57Z; packages verify-on-landing **x2 60/60 LIVE DirectML**).
+- **`eco-v0.1.199`** (run 39143579568 green; scope LIVE eco-release
+  573; allowlist 567 -> 574; all verify-on-landing **x2 LIVE on
+  v0.64.7**): `xiom.cublas 0.1.0` (`930f602b...`), `xiom.cufft 0.1.0`
+  (`3163d647...`), `xiom.cusparse 0.1.0` (`c1dc295f...`),
+  `xiom.tensorrt 0.1.0` (`17d40789...`), `xiom.nvml 0.1.0`
+  (`0aa65326...`), `xiom.nvapi 0.1.0` (`80873598...`),
+  `xiom.optix 0.1.0` (`012dd8b6...`).  **THE WHOLE NVIDIA WAVE IS
+  OUT** (part 1 in .197, onnx in .198, part 2 in .199).
+- **Pin/slot CONSISTENT at v0.64.7** (branch `COMPILER_VERSION` +
+  machine slot + 576 records).
+- Sibling's .7 re-verify (`76674292`): **B-16/B-17/B-18/B-19/B-22/
+  B-23/B-25/B-26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 LIVE;
+  retirement unlocked (B-33 fixed per the ros2-abi ladder; B-32/B-34/
+  B-29 remain red; B-29 boundary workaround stays).
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
