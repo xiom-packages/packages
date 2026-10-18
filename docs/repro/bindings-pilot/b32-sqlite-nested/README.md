@@ -77,11 +77,28 @@ Bundle caveats (hit on this re-run):
   (the other 7 files apply cleanly; `src/types.xi` still matches the
   patch's recorded new blob `61eb2d5b`).
 
+## v0.64.7 re-attempt (2026-10-17T23:50Z): STILL RED -- now TYPED
+
+Same in-situ failure on v0.64.7 (scratch slot; SHA256SUMS OK):
+
+    DBG q1 ok=true
+    DBG out some=true
+    DBG cols.len=140701786528232   <- pointer-like garbage (B-32 signature)
+    [FAIL] driver mem: caps, execute/query/query_one, by-name access
+    exit code: 1   <- TYPED fault (was 0xC0000005 AV on .5/.6)
+
+So the .7 "Win64 C ABI aggregates + typed confined faults" wave made the
+failure SAFE and visible (exit 1, no AV/silent death) but did NOT fix the
+in-situ field-chain element loss.  Controls on the same slot:
+nested-payload probe + matrix GREEN; B-33 ladder GREEN (m351 verified
+fixed -- record-by-value returns 17036, done, exit 0); B-34 vec-alias
+probe STILL RED; B-29 bigint-bitops STILL RED.
+
 ## Status
 
 - xiom.sqlite STAYS at the flat RowOutcome shape (restore parked; the
   package tree is unchanged from 0.4.1).
-- **B-32 filed** to the compiler lane with this bundle.
+- **B-32 filed** to the compiler lane with this bundle (m358 still queued).
 - Re-attempt the restore when B-32 is fixed; re-run this bundle first.
 
 ## Files
