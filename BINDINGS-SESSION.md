@@ -1688,6 +1688,31 @@ nvenc; 569/0)**:
   Remaining lane watch: v0.64.7 (m351/B-33 + m358/B-32 in the cut);
   AMD side is hardware-gated.
 
+**UPDATE 2026-10-18 18:05Z (doorbell -- `.198` + `.199` full records;
+pulse 0.3.0 single tag; v0.64.7 repin + re-verify COMPLETE on bindings)**:
+- **`eco-v0.1.198`** (run 39142312352 green; all live-verified):
+  **vectors 0.2.0** (`130427a5...`; MOTE carve -- 45-module library
+  type-check green, 177/177 x2 @ record `3de13359`; `-1520` fixed),
+  **pulse 0.2.2** (`89ba66ec...`; version-identity fix; `-2102` fixed),
+  **onnx 0.2.0** (`4c230691...`; DirectML EP; `-1947` fixed). Bindings
+  `.7` repin delta merged into packages (`f9c08e2c`).
+- **`eco-v0.1.199`** (run 39143579565 green; allowlist 567 -> 574; guard
+  574/565/9/0; validate 581/0): **cublas** `930f602b`, **cufft**
+  `3163d647`, **cusparse** `c1dc295f`, **tensorrt** `17d40789`, **nvml**
+  `0aa65326`, **nvapi** `80873598`, **optix** `012dd8b6` (all 0.1.0;
+  verify-on-landing x2 LIVE matched 62/45/56/55/40/25/37;
+  `-1819-bindings` fixed). **NVIDIA WAVE COMPLETE** (part 1 in `.197`,
+  onnx 0.2.0 in `.198`, part 2 in `.199`).
+- **`xiom.pulse 0.3.0`** single tag `xiom-pulse/v0.3.0` (sha256
+  `bae0dd08...`; stateful `HookCtx{state: Vec[Int]}` seam + ctx hook
+  variants; 203/203 x2 @ record `2ab242f8`; `-1615-pulse` fixed;
+  registry live; **PULSE Phase B unblocked**).
+- **v0.64.7 repin on bindings DONE**: `04a06c9d` -- COMPILER_VERSION +
+  **576 records** (validate 576/0; slot verified: sqlite 21/21 + nvenc
+  67/67 live). **Re-verify COMPLETE** (`76674292`): **B-16/17/18/19/22/
+  23/25/26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 live;
+  workaround retirement unlocked (B-26 wave running).
+
 **UPDATE 2026-10-18 16:40Z (B-26 retirement wave LAUNCHED -- sqlite restore;
 coordinated plan acked by packages)**: continuing on the unlocked workarounds.
 - **`feat/sqlite-restore`** (`am-1792341243306-9qysun`): `xiom.sqlite`
