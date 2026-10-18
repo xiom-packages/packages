@@ -1,0 +1,11 @@
+[project]
+name = "xiom.vectors"
+version = "0.2.0"
+root = "src"
+source-roots = ["src"]
+
+[dependencies]
+xiom.wal = "0.1.0"
+xiom.metrics = "0.2.0"
+xiom.rate = "0.2.0"
+xiom.http = "0.1.9"

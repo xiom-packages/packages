@@ -1,0 +1,8 @@
+XIOM Vector (XiomVector)
+Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+
+Vector database engine: dense vectors, distance metrics, flat and HNSW ANN,
+collections, segments, payload filtering, WAL-backed writes.
+
+Licensed under the Apache License, Version 2.0 or the MIT license, at your
+option. See LICENSE-APACHE and LICENSE-MIT.

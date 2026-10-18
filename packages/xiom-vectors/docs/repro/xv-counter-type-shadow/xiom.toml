@@ -1,0 +1,16 @@
+# XVC-C-14 repro project: a minimal manifest so the two user modules
+# resolve from src/ (the shadow needs cross-module struct types, which a
+# single-file unit cannot express).
+#
+# Run from this directory (see README.md):
+#   xiom -o $env:TEMP\xv_counter_shadow.exe src\main.xi
+[project]
+name = "repro.counter_shadow"
+version = "0.0.1"
+root = "src"
+source-roots = [
+  "src",
+]
+
+[dependencies]
+xiom.metrics = "0.2.0"
