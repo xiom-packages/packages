@@ -633,3 +633,11 @@ xiom.llm
 xiom.usd
 xiom.cudnn
 xiom.nvenc
+# NVIDIA vendor wave part 2; ops scopes confirmed LIVE 2026-10-18T16:05Z (eco-release 573; PROD-only)
+xiom.cublas
+xiom.cufft
+xiom.cusparse
+xiom.tensorrt
+xiom.nvml
+xiom.nvapi
+xiom.optix
