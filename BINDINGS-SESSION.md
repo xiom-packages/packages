@@ -1687,6 +1687,14 @@ nvenc; 569/0)**:
   Remaining lane watch: v0.64.7 (m351/B-33 + m358/B-32 in the cut);
   AMD side is hardware-gated.
 
+**UPDATE 2026-10-18 15:05Z (doorbell: LANE REPIN to v0.64.7 LANDED)**:
+installed compiler = **v0.64.7** (`%LOCALAPPDATA%\xiom.new`; was v0.64.6
+at the 23:55Z block).  Suites now run on .7; the re-verify verdicts
+above stand (B-33 FIXED; B-32 red-in-situ but TYPED; B-34/B-29 red).
+No new eco beyond `.197`; no new bindings-addressed items.  Pending
+triggers: next fixer wave for B-32/B-29/B-34; ros2 B-33 workaround
+retirement at its next touch.
+
 **UPDATE 2026-10-17 23:55Z (v0.64.7 RELEASED + RE-VERIFIED: B-33 FIXED;
 B-32 still red but TYPED)**:
 - **v0.64.7 RELEASED** (22:59Z; run 39076930839; linux-arm64 target
