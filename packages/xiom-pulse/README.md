@@ -1,6 +1,6 @@
 # xiom.pulse -- PULSE Beacon (embeddable core)
 
-> **Status:** `incubating` -- conformance-tested (171/171), recorded x2 green
+> **Status:** `incubating` -- conformance-tested (203/203), recorded x2 green
 > on XIOM v0.64.7. Current version: `0.2.2` (published in `eco-v0.1.198`,
 > sha256 `89ba66ec...`, 2026-10-18 -- version-identity fix: the artifact now
 > reports 0.2.2 and the suite pins the declared version; `0.2.1` in
@@ -118,6 +118,49 @@ response, including short-circuits and 404/405/400/501 outcomes, with
 `HookError` (`pre_already_installed` / `after_already_installed`);
 clearing is idempotent.
 
+### Stateful hooks: `HookCtx` (rate-limiter seam)
+
+Stateless fn-pointer hooks cannot carry per-install state. The additive
+stateful variants take a `&mut HookCtx` tail argument, where `HookCtx` is a
+consumer-managed handle bag (`Vec[Int]`); the core never interprets it. The
+same bag goes to the pre hook before routing and to the after hooks exactly
+once per outcome, so a pre-hook mutation is visible to the after hook.
+Stateless hooks run first, then stateful hooks; mixing both in one
+`HookSet` is supported, and the stateless API (plus no-hook behavior) is
+unchanged.
+
+```xi
+// Token bucket in the bag: state[0] = count, state[1] = limit.
+fn limiter(req: &PulseRequest, _body: Str, ctx: &mut HookCtx) -> PreOut {
+  let n = app.hookctx_get(ctx, 0) + 1;
+  let _ = app.hookctx_set(ctx, 0, n);
+  if n > app.hookctx_get(ctx, 1) {
+    return app.pre_stop(app.out_json(429, "{\"error\":{\"code\":\"rate_limited\",\"message\":\"too many requests\"}}"));
+  }
+  return app.pre_continue();
+}
+
+pub fn main() -> Int {
+  let _ = app.register("GET", "/health");
+  var hooks = app.hooks_new();
+  let _ = app.hooks_install_pre_ctx(&mut hooks, limiter);
+  var ctx = app.hookctx_new();
+  let _ = app.hookctx_push(&mut ctx, 0);    // count
+  let _ = app.hookctx_push(&mut ctx, 100);  // limit
+  return app.serve_with_ctx(health, &hooks, &mut ctx);
+}
+```
+
+API: `hookctx_new`, `hookctx_get(ctx, i)`, `hookctx_set(ctx, i, v)`,
+`hookctx_len`, `hookctx_push`, `hookctx_clear`;
+`hooks_install_pre_ctx` / `hooks_install_after_ctx` (with
+`pre_ctx_already_installed` / `after_ctx_already_installed`);
+`dispatch_with_ctx(hooks, ctx, eff_method, req, body, handler)`,
+`handle_connection_with_ctx(client, handler, hooks, ctx)` and
+`serve_with_ctx(handler, hooks, ctx)`. `serve_with` /
+`handle_connection_with` supply a fresh bag automatically; use the `_ctx`
+variants to own a bucket across keep-alive cycles and reconnects.
+
 ### Release identity + `Server` header
 
 `pulse.pulse_version()` reports the package version from the single
@@ -156,7 +199,7 @@ covered by exact byte assertions in the suite.
 | `xiom.pulse.envelope` | `error_body`, `ok_bool`, `single_field` |
 | `xiom.pulse.reqctx` | `set_rid`, `get_rid` |
 | `xiom.pulse.config` | `cfg_read_timeout`, `cfg_write_timeout`, `cfg_idle_timeout`, `cfg_keepalive`, `cfg_port`, `cfg_bind` |
-| `xiom.pulse.app` | `HandlerOut`, `ResponseInfo`, `PreOut`, `HookSet`, `HookError`; `register`, `routes_list`, `out_json`, `out_text`, `out_html`, `handle_route`, `dispatch_with`, `handle_connection`, `handle_connection_with`, `serve`, `serve_with`, `app_set_server_token`, `app_server_token`, `hooks_new`, `pre_continue`, `pre_stop`, `hooks_install_pre`, `hooks_install_after`, `hooks_clear_pre`, `hooks_clear_after`, `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code` |
+| `xiom.pulse.app` | `HandlerOut`, `ResponseInfo`, `PreOut`, `HookCtx`, `HookSet`, `HookError`; `register`, `routes_list`, `out_json`, `out_text`, `out_html`, `handle_route`, `dispatch_with`, `dispatch_with_ctx`, `handle_connection`, `handle_connection_with`, `handle_connection_with_ctx`, `serve`, `serve_with`, `serve_with_ctx`, `app_set_server_token`, `app_server_token`, `hooks_new`, `pre_continue`, `pre_stop`, `hooks_install_pre`, `hooks_install_after`, `hooks_install_pre_ctx`, `hooks_install_after_ctx`, `hooks_clear_pre`, `hooks_clear_after`, `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code`, `hookctx_new`, `hookctx_get`, `hookctx_set`, `hookctx_len`, `hookctx_push`, `hookctx_clear` |
 | `xiom.pulse.minimal` | the runnable example (`main`) |
 
 ## Verify
@@ -167,7 +210,9 @@ covered by exact byte assertions in the suite.
 
 `tests/test_conformance.xi` (driver with explicit `fn main`) carries the
 protocol-hardening fixtures, the keep-alive A/B decisions, the hook-seam
-checks (pre/post ordering, short-circuit, registration/clear, typed misuse),
+checks (pre/post ordering, short-circuit, registration/clear, typed misuse,
+stateful `HookCtx` accessors, limiter short-circuit, stateless+stateful
+mixing),
 release-identity/Server-token byte checks, and five loopback end-to-end
 checks (pipelined reuse on one fd, silent idle expiry, `PULSE_KEEPALIVE=0`,
 `Expect: 100-continue`, hooked CORS preflight) over real sockets --

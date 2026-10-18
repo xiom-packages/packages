@@ -113,6 +113,54 @@ fn hook_handler(_req: &PulseRequest, _m: &PulseRoute, _body: Str) -> HandlerOut 
   return app.out_text(201, "hello");
 }
 
+// Stateful-hook observability (section K): the ctx bag carries handles and
+// the mix hooks record their relative order in one string.
+var ctx_order: Str = "";
+var ctx_after_seen: Int = -1;
+var ctx_after_status: Int = 0;
+
+fn mix_pre_order(_req: &PulseRequest, _body: Str) -> PreOut {
+  ctx_order = ctx_order + "pre;";
+  return app.pre_continue();
+}
+
+fn mix_pre_ctx(_req: &PulseRequest, _body: Str, ctx: &mut HookCtx) -> PreOut {
+  ctx_order = ctx_order + "prectx;";
+  let _ = app.hookctx_push(ctx, 7);
+  return app.pre_continue();
+}
+
+fn mix_after_order(_req: &PulseRequest, _body: Str, _out: &HandlerOut, _info: &ResponseInfo) {
+  ctx_order = ctx_order + "after;";
+}
+
+fn mix_after_ctx(_req: &PulseRequest, _body: Str, out: &HandlerOut, _info: &ResponseInfo, ctx: &mut HookCtx) {
+  ctx_order = ctx_order + "afterctx;";
+  ctx_after_seen = app.hookctx_get(ctx, 0);
+  ctx_after_status = out.status;
+}
+
+/// limiter_bump is the Phase B shape: the bag holds [count, limit]; the pre
+/// hook pulls both, increments the count and short-circuits with 429 once the
+/// count exceeds the limit.
+fn limiter_bump(_req: &PulseRequest, _body: Str, ctx: &mut HookCtx) -> PreOut {
+  let n = app.hookctx_get(ctx, 0) + 1;
+  let _ = app.hookctx_set(ctx, 0, n);
+  let limit = app.hookctx_get(ctx, 1);
+  if n > limit {
+    return app.pre_stop(app.out_json(429, "{\"error\":{\"code\":\"rate_limited\",\"message\":\"too many requests\"}}"));
+  }
+  return app.pre_continue();
+}
+
+/// limiter_after records the final status so the test can prove the after
+/// hook observed the 429 short-circuit.
+var limiter_after_status: Int = 0;
+
+fn limiter_after(_req: &PulseRequest, _body: Str, out: &HandlerOut, _info: &ResponseInfo, ctx: &mut HookCtx) {
+  limiter_after_status = out.status;
+}
+
 /// bind_listener binds 127.0.0.1 on the first free port at/after `seed`
 /// (SO_REUSEADDR best-effort). Returns (listener_fd, port); (0, -1) when
 /// the whole range is busy.
@@ -202,11 +250,64 @@ fn e2e_round_trip_with(seed: Int, request: Str, hooks: &HookSet) -> Str {
   return http.bytes_to_str(&all, 0, all.len());
 }
 
+/// e2e_round_trip_ctx is e2e_round_trip_with with a caller-owned HookCtx
+/// (drives app.handle_connection_with_ctx over one real fd).
+fn e2e_round_trip_ctx(seed: Int, request: Str, hooks: &HookSet, ctx: &mut HookCtx) -> Str {
+  let lp = bind_listener(seed);
+  let lfd = lp.0;
+  if lfd <= 0 { return "BIND_FAIL"; }
+  let port = lp.1;
+  let cr = socket.socket_tcp();
+  if cr.is_err {
+    socket.socket_close(lfd);
+    return "CONN_FAIL";
+  }
+  let cfd = cr.value;
+  let cn = socket.socket_connect(cfd, "127.0.0.1", port);
+  if cn.is_err {
+    socket.socket_close(cfd);
+    socket.socket_close(lfd);
+    return "CONN_FAIL";
+  }
+  let bytes = http.str_to_bytes(request);
+  let _snd = socket.socket_send(cfd, &bytes);
+  let ar = socket.socket_accept(lfd);
+  if ar.is_err {
+    socket.socket_close(cfd);
+    socket.socket_close(lfd);
+    return "ACCEPT_FAIL";
+  }
+  let conn = ar.value;
+  app.handle_connection_with_ctx(conn, test_handler, hooks, ctx);
+  socket.socket_close(conn);
+  var all: Vec[UInt8] = Vec[UInt8].new();
+  var rounds: Int = 0;
+  var done: Bool = false;
+  while !done && rounds < 64 && all.len() < 262144 {
+    let rr = socket.socket_recv_timeout(cfd, 65536, 3000);
+    if rr.is_err {
+      done = true;
+    } else if rr.value.len() == 0 {
+      done = true;
+    } else {
+      var i: Int = 0;
+      while i < rr.value.len() {
+        all.push(rr.value[i]);
+        i = i + 1;
+      }
+    }
+    rounds = rounds + 1;
+  }
+  socket.socket_close(cfd);
+  socket.socket_close(lfd);
+  return http.bytes_to_str(&all, 0, all.len());
+}
+
 pub fn main() -> Int {
   var f: Int = 0;
 
   // --- A. module identity + request/response goldens -----------------------
-  f = f + check("pulse_version package 0.2.2", pulse.pulse_version() == "0.2.2");
+  f = f + check("pulse_version package 0.3.0", pulse.pulse_version() == "0.3.0");
 
   let r1 = req_bytes("GET /health HTTP/1.1\r\nHost: example\r\nX-Test: yes\r\n\r\n");
   let he1 = http.find_header_end(&r1);
@@ -671,6 +772,139 @@ pub fn main() -> Int {
   let r_cl_trunc_ok = req_bytes("POST /echo HTTP/1.1\r\nHost: t\r\nContent-Length: 5\r\n\r\nab");
   let p_cl_trunc_ok = http.parse_request(&r_cl_trunc_ok);
   f = f + check("CL truncated at/below limit unchanged", p_cl_trunc_ok.ok && p_cl_trunc_ok.body.len() == 2);
+
+  // --- K. stateful hook seam (HookCtx) --------------------------------------
+  // Handle-bag accessors: push/len/get/set/clear, out-of-range safe.
+  var bag = app.hookctx_new();
+  f = f + check("ctx new is empty", app.hookctx_len(&bag) == 0);
+  let pushed_idx = app.hookctx_push(&mut bag, 7);
+  f = f + check("ctx push index/len/get", pushed_idx == 0 && app.hookctx_len(&bag) == 1 && app.hookctx_get(&bag, 0) == 7);
+  f = f + check("ctx get out of range is 0", app.hookctx_get(&bag, -1) == 0 && app.hookctx_get(&bag, 99) == 0);
+  f = f + check("ctx set out of range false", !app.hookctx_set(&mut bag, 1, 5));
+  f = f + check("ctx set in range true", app.hookctx_set(&mut bag, 0, 11) && app.hookctx_get(&bag, 0) == 11);
+  f = f + check("ctx clear non-empty true", app.hookctx_clear(&mut bag) && app.hookctx_len(&bag) == 0);
+  f = f + check("ctx clear idempotent false", !app.hookctx_clear(&mut bag));
+
+  // Pre-hook mutation is visible to the stateful after hook.
+  var hs_mut = app.hooks_new();
+  let _ma = app.hooks_install_after_ctx(&mut hs_mut, mix_after_ctx);
+  var bag_mut = app.hookctx_new();
+  let _bm = app.hookctx_push(&mut bag_mut, 42);
+  ctx_after_seen = -1;
+  ctx_after_status = 0;
+  let out_mut = app.dispatch_with_ctx(&hs_mut, &mut bag_mut, "GET", &p_hook_req, "", hook_handler);
+  f = f + check("ctx mutation visible in after", out_mut.status == 201 && ctx_after_seen == 42 && ctx_after_status == 201);
+
+  // Mixing stateless + stateful: stateless first, then stateful; mutation
+  // made by the stateful pre hook is visible to the stateful after hook.
+  var hs_mix = app.hooks_new();
+  let _mp = app.hooks_install_pre(&mut hs_mix, mix_pre_order);
+  let _mpc = app.hooks_install_pre_ctx(&mut hs_mix, mix_pre_ctx);
+  let _ma2 = app.hooks_install_after(&mut hs_mix, mix_after_order);
+  let _mac = app.hooks_install_after_ctx(&mut hs_mix, mix_after_ctx);
+  ctx_order = "";
+  hook_handler_calls = 0;
+  ctx_after_seen = -1;
+  var bag_mix = app.hookctx_new();
+  let out_mix = app.dispatch_with_ctx(&hs_mix, &mut bag_mix, "GET", &p_hook_req, "", hook_handler);
+  f = f + check("mixed hook order", out_mix.status == 201 && ctx_order == "pre;prectx;after;afterctx;");
+  f = f + check("mixed hooks run stateless first", hook_handler_calls == 1);
+  f = f + check("mixed hooks share ctx", app.hookctx_len(&bag_mix) == 1 && ctx_after_seen == 7);
+
+  // Phase B limiter shape: bag = [count, limit]; short-circuit on the
+  // request after the limit and keep mutating the same bag.
+  var hs_lim = app.hooks_new();
+  let _lp = app.hooks_install_pre_ctx(&mut hs_lim, limiter_bump);
+  let _la = app.hooks_install_after_ctx(&mut hs_lim, limiter_after);
+  var bag_lim = app.hookctx_new();
+  let _l0 = app.hookctx_push(&mut bag_lim, 0);
+  let _l1 = app.hookctx_push(&mut bag_lim, 3);
+  hook_handler_calls = 0;
+  limiter_after_status = 0;
+  let lim1 = app.dispatch_with_ctx(&hs_lim, &mut bag_lim, "GET", &p_hook_req, "", hook_handler);
+  let lim2 = app.dispatch_with_ctx(&hs_lim, &mut bag_lim, "GET", &p_hook_req, "", hook_handler);
+  let lim3 = app.dispatch_with_ctx(&hs_lim, &mut bag_lim, "GET", &p_hook_req, "", hook_handler);
+  let lim4 = app.dispatch_with_ctx(&hs_lim, &mut bag_lim, "GET", &p_hook_req, "", hook_handler);
+  f = f + check("limiter allows first three", lim1.status == 201 && lim2.status == 201 && lim3.status == 201);
+  f = f + check("limiter short-circuits Nth", lim4.status == 429 && contains(lim4.body, "rate_limited"));
+  f = f + check("limiter counter persisted", app.hookctx_get(&bag_lim, 0) == 4);
+  f = f + check("limiter skips handler on stop", hook_handler_calls == 3);
+  f = f + check("limiter after sees 429", limiter_after_status == 429);
+  var bag_404 = app.hookctx_new();
+  ctx_after_status = 0;
+  let out_ctx_404 = app.dispatch_with_ctx(&hs_mut, &mut bag_404, "GET", &p_hook_missing, "", hook_handler);
+  f = f + check("ctx after sees policy 404", out_ctx_404.status == 404 && ctx_after_status == 404);
+
+  // Empty-hook and stateless-only paths stay byte-identical to the
+  // hook-free dispatch (the ctx-carrying path with no ctx hooks included).
+  let base_plain = app.handle_route(m_reg, &p_hook_req, "", hook_handler);
+  var bag_none = app.hookctx_new();
+  let base_ctx = app.dispatch_with_ctx(&hs_empty, &mut bag_none, "GET", &p_hook_req, "", hook_handler);
+  let base_plain_resp = http.build_response_full(base_plain.status, base_plain.content_type, &base_plain.headers, base_plain.body, false);
+  let base_ctx_resp = http.build_response_full(base_ctx.status, base_ctx.content_type, &base_ctx.headers, base_ctx.body, false);
+  let base_plain_bytes = http.bytes_to_str(&base_plain_resp, 0, base_plain_resp.len());
+  let base_ctx_bytes = http.bytes_to_str(&base_ctx_resp, 0, base_ctx_resp.len());
+  f = f + check("empty hooks ctx path byte-identical", base_plain_bytes == base_ctx_bytes);
+
+  var hs_stateless = app.hooks_new();
+  let _sp = app.hooks_install_pre(&mut hs_stateless, hook_pre_order);
+  let _sa = app.hooks_install_after(&mut hs_stateless, hook_after_observe);
+  var bag_stateless = app.hookctx_new();
+  hook_order = "";
+  let stat_plain = app.dispatch_with(&hs_stateless, "GET", &p_hook_req, "", hook_handler);
+  let stat_order_plain = hook_order;
+  hook_order = "";
+  let stat_ctx = app.dispatch_with_ctx(&hs_stateless, &mut bag_stateless, "GET", &p_hook_req, "", hook_handler);
+  let stat_order_ctx = hook_order;
+  let stat_plain_resp = http.build_response_full(stat_plain.status, stat_plain.content_type, &stat_plain.headers, stat_plain.body, false);
+  let stat_ctx_resp = http.build_response_full(stat_ctx.status, stat_ctx.content_type, &stat_ctx.headers, stat_ctx.body, false);
+  let stat_plain_bytes = http.bytes_to_str(&stat_plain_resp, 0, stat_plain_resp.len());
+  let stat_ctx_bytes = http.bytes_to_str(&stat_ctx_resp, 0, stat_ctx_resp.len());
+  f = f + check("stateless-only ctx bytes identical", stat_plain_bytes == stat_ctx_bytes);
+  f = f + check("stateless-only hook order unchanged", stat_order_plain == "pre;handler;after;" && stat_order_ctx == stat_order_plain);
+  f = f + check("stateless hooks ignore ctx bag", app.hookctx_len(&bag_stateless) == 0);
+
+  // Typed error arms + coexistence of stateless and stateful registration.
+  var hs_cerr = app.hooks_new();
+  let ipc1 = app.hooks_install_pre_ctx(&mut hs_cerr, limiter_bump);
+  let ipc2 = app.hooks_install_pre_ctx(&mut hs_cerr, limiter_bump);
+  let iac1 = app.hooks_install_after_ctx(&mut hs_cerr, limiter_after);
+  let iac2 = app.hooks_install_after_ctx(&mut hs_cerr, limiter_after);
+  let ipc_err = ipc2.unwrap_err();
+  let iac_err = iac2.unwrap_err();
+  let ipc_code = app.hook_error_code(&ipc_err);
+  let iac_code = app.hook_error_code(&iac_err);
+  f = f + check("install pre_ctx ok", ipc1.is_ok() && app.hooks_has_pre(&hs_cerr));
+  f = f + check("duplicate pre_ctx rejected typed", ipc2.is_err() && ipc_code == "pre_ctx_already_installed");
+  f = f + check("install after_ctx ok", iac1.is_ok() && app.hooks_has_after(&hs_cerr));
+  f = f + check("duplicate after_ctx rejected typed", iac2.is_err() && iac_code == "after_ctx_already_installed");
+  let ip_mix = app.hooks_install_pre(&mut hs_cerr, mix_pre_order);
+  let ia_mix = app.hooks_install_after(&mut hs_cerr, mix_after_order);
+  f = f + check("stateless coexists with stateful", ip_mix.is_ok() && ia_mix.is_ok());
+  f = f + check("clear removes both pre kinds", app.hooks_clear_pre(&mut hs_cerr) && !app.hooks_has_pre(&hs_cerr));
+  f = f + check("clear leaves after installed", app.hooks_has_after(&hs_cerr));
+  f = f + check("clear all removes after kinds", app.hooks_clear(&mut hs_cerr) && !app.hooks_has_after(&hs_cerr));
+
+  // Real-fd plumbing: handle_connection_with_ctx carries the caller's bag.
+  env.set_var("PULSE_KEEPALIVE", "0");
+  env.set_var("PULSE_IDLE_TIMEOUT", "300");
+  env.set_var("PULSE_READ_TIMEOUT", "5000");
+  env.set_var("PULSE_WRITE_TIMEOUT", "5000");
+  var hs_e2e_ctx = app.hooks_new();
+  let _ecp = app.hooks_install_pre_ctx(&mut hs_e2e_ctx, limiter_bump);
+  let _eca = app.hooks_install_after_ctx(&mut hs_e2e_ctx, limiter_after);
+  var bag_e2e = app.hookctx_new();
+  let _e0 = app.hookctx_push(&mut bag_e2e, 0);
+  let _e1 = app.hookctx_push(&mut bag_e2e, 5);
+  limiter_after_status = 0;
+  let e2e_ctx_out = e2e_round_trip_ctx(18910, "GET /hello HTTP/1.1\r\nHost: t\r\n\r\n", &hs_e2e_ctx, &mut bag_e2e);
+  f = f + check("e2e ctx pre hook ran", app.hookctx_get(&bag_e2e, 0) == 1);
+  f = f + check("e2e ctx response ok", contains(e2e_ctx_out, "HTTP/1.1 200 OK"));
+  f = f + check("e2e ctx after hook observed", limiter_after_status == 200);
+  env.remove_var("PULSE_KEEPALIVE");
+  env.remove_var("PULSE_IDLE_TIMEOUT");
+  env.remove_var("PULSE_READ_TIMEOUT");
+  env.remove_var("PULSE_WRITE_TIMEOUT");
 
   if f == 0 {
     io.println("xiom.pulse: all tests passed");

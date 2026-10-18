@@ -96,23 +96,85 @@ pub type PreOut = {
   response: HandlerOut;
 }
 
+/// HookCtx is the per-install state bag handed to the stateful hook
+/// variants: an opaque Vec[Int] of consumer-managed handles (for example a
+/// rate-limiter bucket counter). The core never interprets the slots; it
+/// only carries the same value through the pre hook, routing/handler and the
+/// after hook (and across keep-alive cycles when the caller owns it through
+/// serve_with_ctx / handle_connection_with_ctx).
+pub type HookCtx = {
+  state: Vec[Int];
+}
+
+/// hookctx_new returns an empty handle bag. Complexity: O(1).
+pub fn hookctx_new() -> HookCtx {
+  return HookCtx{ state: Vec[Int].new() };
+}
+
+/// hookctx_len reports the number of handles in the bag.
+/// Complexity: O(1).
+pub fn hookctx_len(ctx: &HookCtx) -> Int {
+  return ctx.state.len();
+}
+
+/// hookctx_get reads handle `i`; out-of-range indices read as 0 (the bag is
+/// a plain slot vector and never traps). Complexity: O(1).
+pub fn hookctx_get(ctx: &HookCtx, i: Int) -> Int {
+  if i < 0 || i >= ctx.state.len() { return 0; }
+  return ctx.state[i];
+}
+
+/// hookctx_set writes handle `i`; false when `i` is out of range.
+/// Complexity: O(1).
+pub fn hookctx_set(ctx: &mut HookCtx, i: Int, v: Int) -> Bool {
+  if i < 0 || i >= ctx.state.len() { return false; }
+  ctx.state[i] = v;
+  return true;
+}
+
+/// hookctx_push appends one handle and returns its index.
+/// Complexity: O(1) amortized.
+pub fn hookctx_push(ctx: &mut HookCtx, v: Int) -> Int {
+  ctx.state.push(v);
+  return ctx.state.len() - 1;
+}
+
+/// hookctx_clear drops every handle; returns whether the bag was non-empty.
+/// Clearing is idempotent. Complexity: O(1).
+pub fn hookctx_clear(ctx: &mut HookCtx) -> Bool {
+  let had = ctx.state.len() > 0;
+  ctx.state = Vec[Int].new();
+  return had;
+}
+
 /// HookSet is the opt-in hook seam. A fresh set (hooks_new) has no hooks and
 /// leaves dispatch byte-identical to the hook-free core.
 ///
-/// The pre hook is `fn(&PulseRequest, Str) -> PreOut`: it runs after the
-/// request parses and before route matching; the second argument is the
-/// decoded body. The after hook is
+/// The stateless pre hook is `fn(&PulseRequest, Str) -> PreOut`: it runs after
+/// the request parses and before route matching; the second argument is the
+/// decoded body. The stateless after hook is
 /// `fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)`: it runs once per
 /// dispatched response, including pre-hook short-circuits and the frozen
 /// policy responses (400/404/405/501).
 ///
-/// Both are written as direct fn types: an fn-typed alias used as a callable
-/// parameter miscompiles at 0.64.6. Hooks live in one-element vectors because
-/// adjacent fn-typed struct fields are laid out incorrectly (both defects are
-/// minimized in docs/COMPILER-NOTES.md); do not simplify the slots.
+/// The stateful variants add a `&mut HookCtx` tail argument:
+/// `fn(&PulseRequest, Str, &mut HookCtx) -> PreOut` and
+/// `fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo, &mut HookCtx)`. They
+/// are dispatched by dispatch_with_ctx / handle_connection_with_ctx /
+/// serve_with_ctx; the stateless variants run in the same order when both are
+/// installed (stateless first, then stateful). The stateless variants never
+/// see the bag.
+///
+/// All slots are written as direct fn types: an fn-typed alias used as a
+/// callable parameter miscompiles at 0.64.6. Hooks live in one-element
+/// vectors because adjacent fn-typed struct fields are laid out incorrectly
+/// (both defects are minimized in docs/COMPILER-NOTES.md); do not simplify
+/// the slots.
 pub type HookSet = {
   pre: Vec[fn(&PulseRequest, Str) -> PreOut];
   after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)];
+  pre_ctx: Vec[fn(&PulseRequest, Str, &mut HookCtx) -> PreOut];
+  after_ctx: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo, &mut HookCtx)];
 }
 
 /// HookError is the typed misuse error for hook registration. Clearing is
@@ -120,6 +182,8 @@ pub type HookSet = {
 pub enum HookError {
   PreAlreadyInstalled,
   AfterAlreadyInstalled,
+  PreCtxAlreadyInstalled,
+  AfterCtxAlreadyInstalled,
 }
 
 // error_status_body injects the HTTP status into an error envelope
@@ -158,7 +222,7 @@ pub fn out_html(status: Int, body: Str) -> HandlerOut {
 /// hooks_new returns an empty hook set: dispatch through it behaves exactly
 /// like the hook-free core. Complexity: O(1).
 pub fn hooks_new() -> HookSet {
-  return HookSet{ pre: Vec[fn(&PulseRequest, Str) -> PreOut].new(); after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)].new() };
+  return HookSet{ pre: Vec[fn(&PulseRequest, Str) -> PreOut].new(); after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)].new(); pre_ctx: Vec[fn(&PulseRequest, Str, &mut HookCtx) -> PreOut].new(); after_ctx: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo, &mut HookCtx)].new() };
 }
 
 /// pre_continue is the "dispatch normally" pre-hook decision.
@@ -190,46 +254,72 @@ pub fn hooks_install_after(hs: &mut HookSet, h: fn(&PulseRequest, Str, &HandlerO
   return Ok(true);
 }
 
-/// hooks_clear_pre removes the pre hook; returns true when one was installed.
-/// Clearing is idempotent. Complexity: O(1).
-pub fn hooks_clear_pre(hs: &mut HookSet) -> Bool {
-  let had = hs.pre.len() > 0;
-  hs.pre = Vec[fn(&PulseRequest, Str) -> PreOut].new();
-  return had;
+/// hooks_install_pre_ctx registers the one stateful pre hook. A second
+/// install is misuse: Err(PreCtxAlreadyInstalled). A stateless pre hook may
+/// coexist with it (stateless runs first). Complexity: O(1).
+pub fn hooks_install_pre_ctx(hs: &mut HookSet, h: fn(&PulseRequest, Str, &mut HookCtx) -> PreOut) -> Result[Bool, HookError] {
+  if hs.pre_ctx.len() > 0 { return Err(PreCtxAlreadyInstalled); }
+  hs.pre_ctx.push(h);
+  return Ok(true);
 }
 
-/// hooks_clear_after removes the after hook; returns true when one was
-/// installed. Clearing is idempotent. Complexity: O(1).
-pub fn hooks_clear_after(hs: &mut HookSet) -> Bool {
-  let had = hs.after.len() > 0;
-  hs.after = Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)].new();
-  return had;
+/// hooks_install_after_ctx registers the one stateful after hook. A second
+/// install is misuse: Err(AfterCtxAlreadyInstalled). A stateless after hook
+/// may coexist with it (stateless runs first). Complexity: O(1).
+pub fn hooks_install_after_ctx(hs: &mut HookSet, h: fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo, &mut HookCtx)) -> Result[Bool, HookError] {
+  if hs.after_ctx.len() > 0 { return Err(AfterCtxAlreadyInstalled); }
+  hs.after_ctx.push(h);
+  return Ok(true);
 }
 
-/// hooks_clear removes both hooks; returns true when either was installed.
+/// hooks_clear_pre removes both the stateless and the stateful pre hook;
+/// returns true when either was installed. Clearing is idempotent.
 /// Complexity: O(1).
+pub fn hooks_clear_pre(hs: &mut HookSet) -> Bool {
+  let had = hs.pre.len() > 0 || hs.pre_ctx.len() > 0;
+  hs.pre = Vec[fn(&PulseRequest, Str) -> PreOut].new();
+  hs.pre_ctx = Vec[fn(&PulseRequest, Str, &mut HookCtx) -> PreOut].new();
+  return had;
+}
+
+/// hooks_clear_after removes both the stateless and the stateful after hook;
+/// returns true when either was installed. Clearing is idempotent.
+/// Complexity: O(1).
+pub fn hooks_clear_after(hs: &mut HookSet) -> Bool {
+  let had = hs.after.len() > 0 || hs.after_ctx.len() > 0;
+  hs.after = Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)].new();
+  hs.after_ctx = Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo, &mut HookCtx)].new();
+  return had;
+}
+
+/// hooks_clear removes both hooks (stateless and stateful); returns true when
+/// anything was installed. Complexity: O(1).
 pub fn hooks_clear(hs: &mut HookSet) -> Bool {
   let had_pre = hooks_clear_pre(hs);
   let had_after = hooks_clear_after(hs);
   return had_pre || had_after;
 }
 
-/// hooks_has_pre / hooks_has_after report registration state.
-/// Complexity: O(1).
+/// hooks_has_pre / hooks_has_after report registration state (either the
+/// stateless or the stateful variant). Complexity: O(1).
 pub fn hooks_has_pre(hs: &HookSet) -> Bool {
-  return hs.pre.len() > 0;
+  return hs.pre.len() > 0 || hs.pre_ctx.len() > 0;
 }
 
 pub fn hooks_has_after(hs: &HookSet) -> Bool {
-  return hs.after.len() > 0;
+  return hs.after.len() > 0 || hs.after_ctx.len() > 0;
 }
 
 /// hook_error_code is the stable misuse code for logs and tests:
-/// "pre_already_installed" / "after_already_installed". Complexity: O(1).
+/// "pre_already_installed" / "after_already_installed" /
+/// "pre_ctx_already_installed" / "after_ctx_already_installed".
+/// Complexity: O(1).
 pub fn hook_error_code(e: &HookError) -> Str {
   match e {
     PreAlreadyInstalled => { return "pre_already_installed"; }
     AfterAlreadyInstalled => { return "after_already_installed"; }
+    PreCtxAlreadyInstalled => { return "pre_ctx_already_installed"; }
+    AfterCtxAlreadyInstalled => { return "after_ctx_already_installed"; }
   }
 }
 
@@ -264,6 +354,50 @@ pub fn dispatch_with(hooks: &HookSet, eff_method: Str, req: &PulseRequest, body:
     let info = ResponseInfo{ status: out.status; bytes: response_body_bytes(&out); duration_ms: time.monotonic_ms() - t0 };
     let ah = hooks.after[0];
     ah(req, body, &out, &info);
+  }
+  return out;
+}
+
+/// dispatch_with_ctx is the stateful variant of dispatch_with: the stateless
+/// pre hook (when installed) runs first, then the stateful pre hook with
+/// `ctx`; the first short-circuit wins. Routing/policy/handler follow, then
+/// the stateless after hook and the stateful after hook, each exactly once
+/// (including short-circuits and 400/404/405/501). Mutations a pre hook makes
+/// to the bag are visible to the after hooks. With no hooks installed it
+/// returns exactly what the hook-free dispatch returns.
+/// Complexity: O(request) + hook bodies.
+pub fn dispatch_with_ctx(hooks: &HookSet, ctx: &mut HookCtx, eff_method: Str, req: &PulseRequest, body: Str, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut) -> HandlerOut {
+  let t0 = time.monotonic_ms();
+  var out: HandlerOut = HandlerOut{ status: 200; content_type: CONTENT_TEXT; headers: Vec[(Str, Str)].new(); body: ""; body_bytes: Vec[UInt8].new() };
+  var short_circuited: Bool = false;
+  if hooks.pre.len() > 0 {
+    let ph = hooks.pre[0];
+    let pd = ph(req, body);
+    if pd.short_circuit {
+      out = pd.response;
+      short_circuited = true;
+    }
+  }
+  if !short_circuited && hooks.pre_ctx.len() > 0 {
+    let phc = hooks.pre_ctx[0];
+    let pdc = phc(req, body, ctx);
+    if pdc.short_circuit {
+      out = pdc.response;
+      short_circuited = true;
+    }
+  }
+  if !short_circuited {
+    out = dispatch_one(eff_method, req, body, handler);
+  }
+  if hooks.after.len() > 0 {
+    let info = ResponseInfo{ status: out.status; bytes: response_body_bytes(&out); duration_ms: time.monotonic_ms() - t0 };
+    let ah = hooks.after[0];
+    ah(req, body, &out, &info);
+  }
+  if hooks.after_ctx.len() > 0 {
+    let infoc = ResponseInfo{ status: out.status; bytes: response_body_bytes(&out); duration_ms: time.monotonic_ms() - t0 };
+    let ahc = hooks.after_ctx[0];
+    ahc(req, body, &out, &infoc, ctx);
   }
   return out;
 }
@@ -527,9 +661,19 @@ pub fn handle_connection(client: Int, handler: fn(&PulseRequest, &PulseRoute, St
   handle_connection_with(client, handler, &hooks);
 }
 
-/// handle_connection_with serves one accepted connection through its
+/// handle_connection_with serves one accepted connection through the
+/// stateless hook path (it supplies a fresh empty HookCtx for the whole
+/// connection, so any stateful hooks installed in `hooks` run against a
+/// per-connection bag). Use handle_connection_with_ctx to own the bag.
+/// Complexity: O(request) per cycle.
+pub fn handle_connection_with(client: Int, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut, hooks: &HookSet) {
+  var ctx = hookctx_new();
+  handle_connection_with_ctx(client, handler, hooks, &mut ctx);
+}
+
+/// handle_connection_with_ctx serves one accepted connection through its
 /// keep-alive cycles (the frozen Phase A+B loop, minus the dropped product
-/// hooks) and dispatches through `hooks`:
+/// hooks) and dispatches through `hooks` + `ctx`:
 ///   * per-connection trailing buffer carried across cycles (h11 rule 4);
 ///   * one-way reuse latch: `Connection: close` token, HTTP/1.0 peers and
 ///     incomplete/oversize framing all close after the response;
@@ -539,10 +683,13 @@ pub fn handle_connection(client: Int, handler: fn(&PulseRequest, &PulseRoute, St
 ///     close on a deadline before the request completes on cycle 0;
 ///   * EOF mid-message closes with no answer (h11 rule 6);
 ///   * `PULSE_KEEPALIVE=0` restores close-per-request.
+/// The same `ctx` is passed to every pre/after hook for every cycle on the
+/// connection (stateful hooks see their own mutations across keep-alive
+/// cycles; passing an empty HookSet is byte-identical to the hook-free core).
 /// Exported so consumers and tests can drive one connection without owning
-/// the accept loop (serve_with() is the loop). Sets quit_requested on
+/// the accept loop (serve_with_ctx() is the loop). Sets quit_requested on
 /// `X-Pulse-Quit: 1`. Complexity: O(request) per cycle.
-pub fn handle_connection_with(client: Int, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut, hooks: &HookSet) {
+pub fn handle_connection_with_ctx(client: Int, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut, hooks: &HookSet, ctx: &mut HookCtx) {
   var conn_open: Bool = true;
   var keep: Bool = config.cfg_keepalive();
   var buf: Vec[UInt8] = Vec[UInt8].new();
@@ -605,7 +752,7 @@ pub fn handle_connection_with(client: Int, handler: fn(&PulseRequest, &PulseRout
         let body_str = http.bytes_to_str(&req.body, 0, req.body.len());
         var eff_method: Str = req.method;
         if req.method == "HEAD" { eff_method = "GET"; }
-        let out = dispatch_with(hooks, eff_method, &req, body_str, handler);
+        let out = dispatch_with_ctx(hooks, ctx, eff_method, &req, body_str, handler);
         var resp: Vec[UInt8] = Vec[UInt8].new();
         if out.body_bytes.len() > 0 {
           resp = http.build_response_bytes(out.status, out.content_type, &out.headers, &out.body_bytes, reuse);
@@ -654,11 +801,23 @@ pub fn serve(handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut) -> Int 
   return serve_with(handler, &hooks);
 }
 
-/// serve_with runs the frozen accept loop: bind PULSE_BIND:PULSE_PORT, accept
-/// one connection at a time and hand it to handle_connection_with with
-/// `handler` and `hooks`. Returns 0 on the clean shutdown path (X-Pulse-Quit)
-/// and 1 when the socket/bind/listen/accept fails. Complexity: O(runtime).
+/// serve_with runs the stateless accept loop: it supplies one fresh
+/// HookCtx for the whole run (stateful hooks installed in `hooks` share it
+/// across all connections). Use serve_with_ctx to own the bag.
+/// Complexity: O(runtime).
 pub fn serve_with(handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut, hooks: &HookSet) -> Int {
+  var ctx = hookctx_new();
+  return serve_with_ctx(handler, hooks, &mut ctx);
+}
+
+/// serve_with_ctx runs the frozen accept loop: bind PULSE_BIND:PULSE_PORT,
+/// accept one connection at a time and hand it to
+/// handle_connection_with_ctx with `handler`, `hooks` and the caller-owned
+/// `ctx`. The same bag is carried across every connection for the process
+/// lifetime (a rate-limiter bucket therefore survives keep-alive cycles and
+/// reconnects). Returns 0 on the clean shutdown path (X-Pulse-Quit) and 1
+/// when the socket/bind/listen/accept fails. Complexity: O(runtime).
+pub fn serve_with_ctx(handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut, hooks: &HookSet, ctx: &mut HookCtx) -> Int {
   let sr = socket.socket_tcp();
   if sr.is_err {
     io.println("pulse: socket create failed");
@@ -699,7 +858,7 @@ pub fn serve_with(handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut, ho
       return 1;
     }
     let client = ar.value;
-    handle_connection_with(client, handler, hooks);
+    handle_connection_with_ctx(client, handler, hooks, ctx);
     socket.socket_close(client);
   }
 

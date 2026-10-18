@@ -209,40 +209,69 @@ pub type PreOut = {
   response: HandlerOut;
 }
 
+pub type HookCtx = {
+  state: Vec[Int];   // consumer-managed handles; the core never interprets it
+}
+
 pub type HookSet = {
   pre: Vec[fn(&PulseRequest, Str) -> PreOut];
   after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)];
+  pre_ctx: Vec[fn(&PulseRequest, Str, &mut HookCtx) -> PreOut];
+  after_ctx: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo, &mut HookCtx)];
 }
 
 pub enum HookError {
   PreAlreadyInstalled,
   AfterAlreadyInstalled,
+  PreCtxAlreadyInstalled,
+  AfterCtxAlreadyInstalled,
 }
 ```
 
 | Fn | Behavior |
 |---|---|
-| `hooks_new() -> HookSet` | an empty set (both slots empty) |
+| `hooks_new() -> HookSet` | an empty set (all four slots empty) |
 | `pre_continue() -> PreOut` | "dispatch normally" |
 | `pre_stop(response) -> PreOut` | short-circuit with `response` |
-| `hooks_install_pre(hs, h) -> Result[Bool, HookError]` | installs the single pre hook; a second install is `Err(PreAlreadyInstalled)` |
-| `hooks_install_after(hs, h) -> Result[Bool, HookError]` | installs the single after hook; a second install is `Err(AfterAlreadyInstalled)` |
-| `hooks_clear_pre` / `hooks_clear_after` / `hooks_clear(hs) -> Bool` | removes one/both; returns whether anything was installed; idempotent |
-| `hooks_has_pre` / `hooks_has_after(hs) -> Bool` | registration state |
-| `hook_error_code(e) -> Str` | `"pre_already_installed"` / `"after_already_installed"` |
+| `hooks_install_pre(hs, h) -> Result[Bool, HookError]` | installs the single stateless pre hook; a second stateless install is `Err(PreAlreadyInstalled)` |
+| `hooks_install_after(hs, h) -> Result[Bool, HookError]` | installs the single stateless after hook; a second stateless install is `Err(AfterAlreadyInstalled)` |
+| `hooks_install_pre_ctx(hs, h) -> Result[Bool, HookError]` | installs the single stateful pre hook; a second stateful install is `Err(PreCtxAlreadyInstalled)` |
+| `hooks_install_after_ctx(hs, h) -> Result[Bool, HookError]` | installs the single stateful after hook; a second stateful install is `Err(AfterCtxAlreadyInstalled)` |
+| `hooks_clear_pre` / `hooks_clear_after` / `hooks_clear(hs) -> Bool` | removes the stateless and stateful hooks of that kind (both for `hooks_clear`); returns whether anything was installed; idempotent |
+| `hooks_has_pre` / `hooks_has_after(hs) -> Bool` | registration state of either variant |
+| `hook_error_code(e) -> Str` | `"pre_already_installed"` / `"after_already_installed"` / `"pre_ctx_already_installed"` / `"after_ctx_already_installed"` |
+| `hookctx_new() -> HookCtx` | an empty handle bag |
+| `hookctx_len(ctx) -> Int` / `hookctx_get(ctx, i) -> Int` | bag size; out-of-range reads return 0 (never traps) |
+| `hookctx_set(ctx, i, v) -> Bool` / `hookctx_push(ctx, v) -> Int` | write a slot (false when out of range) / append a handle, returning its index |
+| `hookctx_clear(ctx) -> Bool` | drops every handle; returns whether the bag was non-empty; idempotent |
+| `dispatch_with_ctx(hooks, ctx, eff_method, req, body, handler) -> HandlerOut` | the stateful dispatch path (below) |
+| `handle_connection_with_ctx(client, handler, hooks, ctx)` | the keep-alive loop with a caller-owned bag, shared across cycles |
+| `serve_with_ctx(handler, hooks, ctx) -> Int` | the accept loop with a caller-owned bag, shared across connections |
+
+Stateful hook semantics: the stateless variants run first, then the stateful
+variants (pre: stateless `pre` then `pre_ctx`; after: stateless `after` then
+`after_ctx`); the first pre short-circuit wins. The same bag is passed to the
+pre hook (before routing) and to the after hooks (exactly once per dispatch
+outcome, including short-circuits and 400/404/405/501), so a pre-hook
+mutation is visible to the after hooks. Stateless hooks never see the bag.
+Mixing stateless and stateful hooks in one `HookSet` is supported.
+`handle_connection_with` and `serve_with` supply a fresh bag automatically;
+use the `_ctx` variants when the bag must be owned by the consumer (for
+example a limiter bucket that survives keep-alive cycles and reconnects).
 
 Call order for one parsed request (the `dispatch_with` path used by the
 connection loop):
 
 1. **pre hook** runs after `parse_request`, before `v1_path`/`route_match`,
-   with the decoded body. `pre_continue()` falls through; `pre_stop(resp)`
-   skips route matching and the handler and uses `resp` (e.g. an OPTIONS
-   preflight 204).
+   with the decoded body (stateless `pre` first, then `pre_ctx` with the
+   bag). `pre_continue()` falls through; `pre_stop(resp)` skips route
+   matching and the handler and uses `resp` (e.g. an OPTIONS preflight 204).
 2. **dispatch**: routing, the frozen TE/CL policy, 404/405, then the
    registered handler.
 3. **after hook** runs exactly once per dispatch outcome -- including
    pre-hook short-circuits and the policy responses -- and observes the
-   final `HandlerOut` plus `ResponseInfo{status, bytes, duration_ms}`. The
+   final `HandlerOut` plus `ResponseInfo{status, bytes, duration_ms}`
+   (stateless `after` first, then `after_ctx` with the bag). The
    per-request id is available through `reqctx.get_rid()`.
 
 The seam does not wrap outcomes that bypass dispatch: parse failures,
@@ -364,7 +393,11 @@ possible. Recorded deltas from the frozen files:
    `hooks_new`, `pre_continue`, `pre_stop`, `hooks_install_pre`,
    `hooks_install_after`, `hooks_clear_pre`, `hooks_clear_after`,
    `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code`,
-   `dispatch_with`, `handle_connection_with`, `serve_with`), and the
+   `dispatch_with`, `handle_connection_with`, `serve_with`), the stateful
+   hook seam (`HookCtx` + `hookctx_new`/`hookctx_get`/`hookctx_set`/
+   `hookctx_len`/`hookctx_push`/`hookctx_clear`, `hooks_install_pre_ctx`,
+   `hooks_install_after_ctx`, `dispatch_with_ctx`,
+   `handle_connection_with_ctx`, `serve_with_ctx`), and the
    `xiom.pulse.minimal` example.
 7. **`http.xi` is verbatim except the Server-token seam.** The request
    parser plus `bearer_token` and `idem_key_valid` are unchanged; the two
@@ -408,6 +441,15 @@ two real fds (no threads):
   policy-outcome observation (404), pre-hook short-circuit (no handler),
   registration/clear (including idempotent clear), and the typed misuse
   errors (`pre_already_installed` / `after_already_installed`).
+- K (stateful hook seam): `HookCtx` accessors (new/push/len/get/set/clear,
+  out-of-range safety), pre-hook mutation visible in the stateful after hook,
+  stateless+stateful ordering in one set, the token-bucket shape
+  (`[count, limit]` in the bag) with a 429 short-circuit on the request after
+  the limit and handler skipping, policy-404 observation, byte-identical
+  empty-hook and stateless-only dispatch through the ctx path, the typed
+  `pre_ctx_already_installed` / `after_ctx_already_installed` arms,
+  stateless/stateful coexistence, clear semantics, and one real-fd
+  `handle_connection_with_ctx` round trip.
 
 ## 7. Provenance
 
