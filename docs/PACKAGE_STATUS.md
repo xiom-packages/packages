@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.7` -- generated 2026-10-18T15:56:48Z.
+Toolchain pin: `v0.64.7` -- generated 2026-10-18T15:58:05Z.
 
 ## Summary
 
@@ -411,7 +411,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.geom3d | xiom-geom3d | incubating | tests/test_conformance.xi | pass 27/27 | a3fb80eb | False | publish pending: next scope delta |
 | xiom.git2 | xiom-git2 | incubating | tests/test_conformance.xi | pass 24/24 | fd38977f | False | publish pending: next scope delta |
 | xiom.gles | xiom-gles | incubating | tests/test_conformance.xi | pass 20/20 | c7e08b20 | False | published in eco-v0.1.190 (2026-10-16, 0.2.0 A9 android leg; 0.1.0 in eco-v0.1.171) |
-| xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | b0391d1b | False | published in eco-v0.1.185 (2026-10-15, 0.6.0 dispatcher lift; 0.5.0 in eco-v0.1.137; 0.4.0 in eco-v0.1.136) |
+| xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | pass 37/37 | 41e6448d | False | published in eco-v0.1.137 (2026-10-11; 0.4.0 in eco-v0.1.136) |
 | xiom.glslang | xiom-glslang | incubating | tests/test_conformance.xi | pass 29/29 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.golden | xiom-golden | incubating | tests/test_conformance.xi | pass 35/35 | fd38977f | False | publish pending: next scope delta |
 | xiom.gpio | xiom-gpio | incubating | tests/test_conformance.xi | pass 21/21 | 9dde8219 | False | category harmonization patch bump (registry metadata) |
@@ -547,7 +547,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.saml | xiom-saml | incubating | tests/test_conformance.xi | pass 28/28 | fcadeee8 | False | publish pending: next scope delta |
 | xiom.scipy | xiom-scipy | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.sdl2 | xiom-sdl2 | incubating | tests/test_conformance.xi | pass 16/16 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
-| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 72/72 | b0391d1b | False | published in eco-v0.1.185 (2026-10-15, 0.20.0 filter/watch direct handoff; 0.19.0 in eco-v0.1.179; 0.18.0 in eco-v0.1.173; 0.17.0 in eco-v0.1.162) |
+| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 72/72 | 41e6448d | False | published in eco-v0.1.173 (2026-10-13, 0.18.0 readback wave; 0.17.0 in eco-v0.1.162; 0.16.1 in eco-v0.1.160; 0.16.0 in eco-v0.1.152; 0.15.0 in eco-v0.1.151) |
 | xiom.sectest | xiom-sectest | incubating | tests/test_conformance.xi | pass 22/22 | fc1702a9 | False | publish pending: next scope delta |
 | xiom.semaphore | xiom-semaphore | incubating | tests/test_conformance.xi | pass 23/23 | df934ed2 | False | publish pending: next scope delta |
 | xiom.serial | xiom-serial | incubating | tests/test_conformance.xi | pass 52/52 | 84bdc431 | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 fdd4dde3...) |

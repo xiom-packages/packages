@@ -1687,6 +1687,32 @@ nvenc; 569/0)**:
   Remaining lane watch: v0.64.7 (m351/B-33 + m358/B-32 in the cut);
   AMD side is hardware-gated.
 
+**UPDATE 2026-10-18 16:15Z (retargeted v0.64.7 re-verify COMPLETE -- 8 staged
+fixes verified FIXED; batteries green; workaround retirement unlocked)**:
+- **B-16 / B-17 / B-18 / B-19 / B-22 / B-23 / B-25 / B-26 all verified fixed
+  on v0.64.7** -- repro bundles re-run; outputs and new statuses recorded in
+  `docs/BINDINGS-COMPILER-FINDINGS.md`.
+- Batteries: **glfw 37/37 x2 LIVE** (GLFW 3.4.0 win64 fetched; 3/3 absent
+  SKIP) + **sdl3 72/72 x2 LIVE**; STATUS records updated
+  (run_by `reverify-v0.64.7`).
+- Retirement candidates unlocked: sqlite `Result[Option[SqliteRow]]` restore
+  (B-26), dx12 Int-typed handles / bare null (B-25/B-23), dispatcher
+  simplification (B-18); pointer arithmetic usable again (byte-index stays
+  the lane default -- no churn planned).
+- Verdict filed to compiler: `REL-20261018-1540-bindings`; the
+  `-0000-bindings` plan item closed.
+- Remaining reds at .7: B-29 / B-34 / W1.4 / W2.3 (v0.64.8); B-32 in-situ
+  parked (isolated green).  Housekeeping: the four locked orphan worktree
+  dirs DELETED (locks cleared).
+
+**UPDATE 2026-10-18 15:05Z (doorbell: LANE REPIN to v0.64.7 LANDED)**:
+installed compiler = **v0.64.7** (`%LOCALAPPDATA%\xiom.new`; was v0.64.6
+at the 23:55Z block).  Suites now run on .7; the re-verify verdicts
+above stand (B-33 FIXED; B-32 red-in-situ but TYPED; B-34/B-29 red).
+No new eco beyond `.197`; no new bindings-addressed items.  Pending
+triggers: next fixer wave for B-32/B-29/B-34; ros2 B-33 workaround
+retirement at its next touch.
+
 **UPDATE 2026-10-17 23:55Z (v0.64.7 RELEASED + RE-VERIFIED: B-33 FIXED;
 B-32 still red but TYPED)**:
 - **v0.64.7 RELEASED** (22:59Z; run 39076930839; linux-arm64 target
@@ -1709,6 +1735,21 @@ B-32 still red but TYPED)**:
 - Filed `REL-20261017-2350-bindings` (re-verify results to compiler).
   No unilateral repin; the bindings pin stays **v0.64.6** until the
   owner/sibling repin wave lands.
+
+**UPDATE 2026-10-18 15:10Z (REPIN DELTA v0.64.7 PUSHED -- slot verified)**:
+- The machine slot moved to **v0.64.7** (`XIOM Compiler v0.64.7`;
+  stdlib-v0.64.7 production publish green per relay `e043e71`) --
+  the repin is now in effect machine-wide.
+- Sanity on the new slot: **xiom.sqlite flat-shape 21/21** (driver
+  mem/tx/err/file all green) + **xiom.nvenc 67/67 LIVE** (driver 13.1
+  H.264/HEVC encode+decode roundtrips) -- **no .7 regressions** on the
+  lane's active packages.
+- **Repin delta pushed** (`04a06c9d`): `COMPILER_VERSION`
+  v0.64.6 -> **v0.64.7** + **576 STATUS records aligned**
+  (`status.ps1 -Action repin`); validate **576/0**.
+- Part 2 publish still queued at packages; the .7 re-verify item
+  (`-2350`) open at compiler; **B-32 (m358)** remains the only
+  prepared re-verify (re-ran on .7: still red but TYPED).
 
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.

@@ -8,16 +8,10 @@
                   "status":  "pass",
                   "passed":  72,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "b0391d1b",
-                  "checked":  "2026-10-15T21:26:30Z"
+                  "run_by":  "reverify-v0.64.7",
+                  "commit":  "41e6448d",
+                  "checked":  "2026-10-18T15:39:14Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.185 (2026-10-15, 0.20.0 filter/watch direct handoff; 0.19.0 in eco-v0.1.179; 0.18.0 in eco-v0.1.173; 0.17.0 in eco-v0.1.162)",
-    "platforms":  [
-                      "windows-x64"
-                  ],
-    "runtime_deps":  [
-                         "SDL3 runtime (SDL3.dll; dynamic loader; SKIP when absent)"
-                     ]
+    "excluded_reason":  "published in eco-v0.1.173 (2026-10-13, 0.18.0 readback wave; 0.17.0 in eco-v0.1.162; 0.16.1 in eco-v0.1.160; 0.16.0 in eco-v0.1.152; 0.15.0 in eco-v0.1.151)"
 }
