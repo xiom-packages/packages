@@ -1,10 +1,12 @@
 # xiom.pulse -- PULSE Beacon (embeddable core)
 
 > **Status:** `incubating` -- conformance-tested (171/171), recorded x2 green
-> on XIOM v0.64.6. Current version: `0.2.1` (published in `eco-v0.1.197`,
-> sha256 `1bf45a48...`, 2026-10-17 -- body-cap hardening; `0.2.0` in
-> `eco-v0.1.195` -- hook seam + Server-token seam; previous publish: `0.1.0`
-> in `eco-v0.1.192`, sha256 `53fcc56e...`).
+> on XIOM v0.64.7. Current version: `0.2.2` (published in `eco-v0.1.198`,
+> sha256 `89ba66ec...`, 2026-10-18 -- version-identity fix: the artifact now
+> reports 0.2.2 and the suite pins the declared version; `0.2.1` in
+> `eco-v0.1.197` -- body-cap hardening; `0.2.0` in `eco-v0.1.195` -- hook
+> seam + Server-token seam; previous publish: `0.1.0` in `eco-v0.1.192`,
+> sha256 `53fcc56e...`).
 > **Scope:** the frozen PULSE protocol core (Beacon extraction): HTTP/1.1
 > request parser + response builders, the keep-alive A/B connection loop
 > with named deadlines, the route matching mechanism and the uniform JSON

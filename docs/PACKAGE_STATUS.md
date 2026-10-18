@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.7` -- generated 2026-10-18T15:49:38Z.
+Toolchain pin: `v0.64.7` -- generated 2026-10-18T15:56:48Z.
 
 ## Summary
 
@@ -497,7 +497,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.oauth | xiom-oauth | incubating | tests/test_conformance.xi | pass 25/25 | 72cfe406 | False | category harmonization patch bump (registry metadata) |
 | xiom.odbc | xiom-odbc | incubating | tests/test_conformance.xi | pass 5/5 | 31d0cc0e | False | not allowlisted: pending ops scope + native-lane allowlist append |
 | xiom.oidn | xiom-oidn | incubating | tests/test_conformance.xi | pass 4/4 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- OIDN loader tier) |
-| xiom.onnx | xiom-onnx | incubating | tests/test_conformance.xi | pass 60/60 | ceccf069 | False |  |
+| xiom.onnx | xiom-onnx | incubating | tests/test_conformance.xi | pass 60/60 | ceccf069 | False | published in eco-v0.1.198 (2026-10-18, 0.2.0; sha256 4c230691...) |
 | xiom.openal | xiom-openal | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.openblas | xiom-openblas | incubating | tests/test_conformance.xi | pass 42/42 | 38c41345 | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 a6740ae1...) |
 | xiom.opencv | xiom-opencv | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -529,7 +529,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.protobuf | xiom-protobuf | incubating | tests/test_conformance.xi | pass 49/49 | 84140793 | False | publish pending: eco-v0.1.43 |
 | xiom.proxy | xiom-proxy | incubating | tests/test_conformance.xi | pass 20/20 | d85a0ee6 | False | category harmonization patch bump (registry metadata) |
 | xiom.pulsar | xiom-pulsar | incubating | tests/test_conformance.xi | pass 27/27 | 00c21919 | False | category harmonization patch bump (registry metadata) |
-| xiom.pulse | xiom-pulse | incubating | tests/test_conformance.xi | pass 171/171 | 1aef3a88 | False | published in eco-v0.1.197 (2026-10-17, 0.2.1; sha256 1bf45a48...) |
+| xiom.pulse | xiom-pulse | incubating | tests/test_conformance.xi | pass 171/171 | 1aef3a88 | False | published in eco-v0.1.198 (2026-10-18, 0.2.2; sha256 89ba66ec...) |
 | xiom.puppet | xiom-puppet | incubating | tests/test_conformance.xi | pass 26/26 | 8c0ac311 | False | publish pending: next scope delta |
 | xiom.pwm | xiom-pwm | incubating | tests/test_conformance.xi | pass 20/20 | 599f89c9 | False | publish pending: next scope delta |
 | xiom.randomforest | xiom-randomforest | incubating | tests/test_conformance.xi | pass 24/24 | 3ff86363 | False | publish pending: next scope delta |
@@ -590,7 +590,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.v4l | xiom-v4l | incubating | tests/test_conformance.xi | pass 14/14 | 84bdc431 | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 0e3d5390...) |
 | xiom.vault | xiom-vault | incubating | tests/test_conformance.xi | pass 28/28 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.vdb | xiom-vdb | incubating | tests/test_conformance.xi | pass 30/30 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- pure-XIOM vdb reader) |
-| xiom.vectors | xiom-vectors | incubating | tests/test_conformance.xi | pass 177/177 | 6933b2b3 | False | publish pending: MOTE 0.2.0 owner greenlight received 2026-10-18; library type-check 45 modules GREEN; suite 177/177 x2 |
+| xiom.vectors | xiom-vectors | incubating | tests/test_conformance.xi | pass 177/177 | 6933b2b3 | False | published in eco-v0.1.198 (2026-10-18, 0.2.0; sha256 130427a5...) |
 | xiom.video | xiom-video | incubating | tests/test_conformance.xi | pass 24/24 | e23f8e3a | False | publish pending: next scope delta |
 | xiom.vma | xiom-vma | incubating | tests/test_full_surface.xi | pass 5/5 | f2e6523d | False | published in eco-v0.1.161 (2026-10-12; 0.2.0 in eco-v0.1.124) |
 | xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 22/22 | 1aa5be5b | False | published in eco-v0.1.163 (2026-10-12; 0.5.0 in eco-v0.1.138; 0.4.0 in eco-v0.1.135) |

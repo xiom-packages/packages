@@ -1,6 +1,7 @@
 # xiom.onnx
 
-> **Status:** `incubating` -- 0.2.0 (unreleased). Full ONNX Runtime C API
+> **Status:** `incubating` -- 0.2.0 (published in `eco-v0.1.198`, sha256
+> `4c230691...`, 2026-10-18). Full ONNX Runtime C API
 > binding delivered: 98/98 declared entry points bound and live-verified,
 > plus the DirectML execution-provider leg; suite x2 green (60/60) on the
 > DirectML wheel, 59/59 on the CPU-only SKIP path.

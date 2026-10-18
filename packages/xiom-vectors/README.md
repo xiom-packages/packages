@@ -11,8 +11,8 @@ SPDX-License-Identifier: MIT OR Apache-2.0
 
 - **MOTE artifact** `xiom.vectors` 0.2.0, stage `incubating` (embedded, in-process tier).
 - **Source pin:** xvector `c858ec1` (frozen handoff; lattice-only `api/router.xi`, `api/replica.xi`, `api/httpd.xi` excluded by standing order).
-- **Conformance:** `tests/test_conformance.xi` PASS **177/177 x2** on compiler v0.64.7.
-- **Publish:** gated on owner greenlight.
+- **Conformance:** `tests/test_conformance.xi` PASS **177/177 x2** on compiler v0.64.7; 45-module library type-check GREEN (carve deviations documented in the carve commit: primitives split `xiom.vector.primitives` for internal imports with the public `xiom.vectors` kept, dangling `xiom.core.ids` import removed, `core.shim` import in schema, `xiom.http 0.1.9` dep, shipped `xiom.toml`).
+- **Published:** `0.2.0` in `eco-v0.1.198` (sha256 `130427a5...`, 2026-10-18; owner greenlight received).
 
 [![XIOM](https://img.shields.io/badge/XIOM-v0.22.1-blue)](https://github.com/XIOM-lang/XIOM.git )
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
