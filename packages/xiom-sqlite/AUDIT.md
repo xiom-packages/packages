@@ -1,6 +1,6 @@
 # AUDIT: xiom.sqlite
 
-## Status (2026-10-13)
+## Status (2026-10-18)
 
 Real vendored implementation -- the previous "FFI bridge not linked" stubs are
 gone (`src/connection.xi` and `src/demo.xi` deleted). The package compiles and
@@ -8,12 +8,12 @@ its conformance suite is green on the pinned compiler.
 
 | Item | State |
 |------|-------|
-| Compiler | xiom v0.64.4 |
+| Compiler | xiom v0.64.7 |
 | Upstream | SQLite 3.53.4 amalgamation, vendored (public domain) |
 | Link model | `--c-source vendor/sqlite3.c` (static, no soname) |
 | FFI confinement | all `unsafe`/`extern` in `src/ffi.xi` only |
 | Suite | `tests/test_conformance.xi`, 21 checks |
-| Runs | **21/21 PASS x2 on v0.64.4 (2026-10-13, 0.4.0 driver wave)**; 16/16 PASS x6 consecutive build+run cycles + pin matrix x1 with the restored enum model (v0.64.2, 2026-10-09) |
+| Runs | **21/21 PASS x2 on v0.64.7 (2026-10-18, 0.5.0 nested `query_one` restore)**; 21/21 PASS x2 on v0.64.4 (2026-10-13, 0.4.0 driver wave); 16/16 PASS x6 consecutive build+run cycles + pin matrix x1 with the restored enum model (v0.64.2, 2026-10-09) |
 
 ## Provenance
 
@@ -37,9 +37,12 @@ its conformance suite is green on the pinned compiler.
   the const-resolution recursion on this pin.
 - 0.4.0 adds `xiom.sqlite.driver` (PULSE contract): DSN parse/open,
   execute/query/query_one, explicit transactions with `in_transaction`, and
-  capability flags. `query_one` returns a flat `RowOutcome` because the
-  nested `Result[Option[SqliteRow]]` payload corrupts struct-with-Vec values
-  on this pin (B-26; repro `docs/repro/bindings-pilot/nested-payload/`).
+  capability flags. 0.5.0 restores `query_one -> Result[Option[SqliteRow]]`
+  after B-26 was re-verified fixed on v0.64.7 (bundle
+  `docs/repro/bindings-pilot/nested-payload/`, failures=0, all shapes len=2);
+  the public `RowOutcome` workaround is gone. The first-row hand-off helper
+  is private; the suite reads the result via `is_some` / `value` because the
+  in-situ `match` lowering residual is compiler-side B-32.
 
 ## Known limitations
 

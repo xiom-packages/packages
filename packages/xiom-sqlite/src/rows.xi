@@ -9,6 +9,15 @@ use xiom.string;
 use xiom.sqlite.ffi;
 use xiom.sqlite.types;
 
+// Internal flat hand-off for `query_one` (B-32): the prepare/step row
+// plumbing stays out of the nested enum payload, and the public wrapper
+// stays small enough to inline so the returned `Option[SqliteRow]` payload
+// is not left behind in a dead frame.
+type FirstRow = {
+  present: Bool;
+  row: SqliteRow;
+}
+
 /// Prepare `sql`, run it to completion, and materialize every row with its
 /// column names.  Errors carry the SQLite result code and message.
 /// Complexity: O(rows * columns).
@@ -70,18 +79,36 @@ pub fn count_rows(db: Int, sql: Str) -> Result[Int, SqliteError]
   return Ok(res.row_count());
 }
 
-/// Prepare `sql`, return its first row when one exists (as a flat
-/// RowOutcome -- `has_row` false when the result set is empty).  The
-/// statement is finalized before returning (single step; unlike query_all
-/// this does not materialize the remaining rows).
+/// Prepare `sql`, return its first row when one exists (Ok(None) when the
+/// result set is empty).  The statement is finalized before returning
+/// (single step; unlike query_all this does not materialize the remaining
+/// rows).
 ///
-/// The return type is deliberately `Result[RowOutcome, SqliteError]` and not
-/// `Result[Option[SqliteRow], SqliteError]`: extracting a struct-with-Vec
-/// payload from an enum nested in an enum payload corrupts the value on the
-/// current pin (finding B-26; repro in docs/repro/bindings-pilot/
-/// nested-payload/).
+/// RESTORED at 0.5.0 to the natural `Result[Option[SqliteRow],
+/// SqliteError]`: the nested enum payload corruption (finding B-26; repro
+/// docs/repro/bindings-pilot/nested-payload/) is fixed on the v0.64.7
+/// toolchain (re-verified 2026-10-18: failures=0, all shapes len=2) and the
+/// flat RowOutcome workaround is retired.
 /// Complexity: O(columns) for the returned row.
-pub fn query_one(db: Int, sql: Str) -> Result[RowOutcome, SqliteError]
+pub fn query_one(db: Int, sql: Str) -> Result[Option[SqliteRow], SqliteError]
+  requires: db != 0
+  requires: sql.len() > 0
+{
+  let r = first_row(db, sql);
+  if !r.is_ok {
+    return Err(r.error);
+  }
+  let found: FirstRow = r.value;
+  if found.present {
+    return Ok(Some(found.row));
+  }
+  return Ok(None);
+}
+
+// Single-step first-row reader behind `query_one`.  Returns a flat hand-off
+// struct (not the public RowOutcome retired at 0.5.0); the nested
+// `Result[Option[SqliteRow]]` is constructed only by the small wrapper above.
+fn first_row(db: Int, sql: Str) -> Result[FirstRow, SqliteError]
   requires: db != 0
   requires: sql.len() > 0
 {
@@ -110,7 +137,7 @@ pub fn query_one(db: Int, sql: Str) -> Result[RowOutcome, SqliteError]
   if !fin.is_ok {
     return Err(fin.error);
   }
-  return Ok(RowOutcome{ has_row: has_row, row: row });
+  return Ok(FirstRow{ present: has_row, row: row });
 }
 
 /// Index of the first result column named `name`, or None when there is no
