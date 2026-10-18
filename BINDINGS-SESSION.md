@@ -3,11 +3,12 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: `eco-v0.1.197`
-(scene + NVIDIA wave: usd 0.1.0 / cudnn 0.1.0 / nvenc 0.1.0 / pulse 0.2.1)
--- through `eco-v0.1.197` (112 eco releases); NVIDIA wave COMPLETE
-(part 2 cublas/cufft/cusparse/tensorrt/nvml/nvapi/optix landed, 576/0,
-publish requested; onnx 0.2.0 DirectML landed 60/60 live);
+**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: `eco-v0.1.199`
+(NVIDIA wave COMPLETE: cublas/cufft/cusparse/tensorrt/nvml/nvapi/optix;
+`eco-v0.1.198` = vectors 0.2.0 + pulse 0.2.2 + onnx 0.2.0 DML) -- through
+`eco-v0.1.199` (114 eco releases); **pin = v0.64.7** (repin delta pushed;
+slot verified; .7 re-verify: B-16/17/18/19/22/23/25/26 FIXED; glfw 37/37 +
+sdl3 72/72 x2; retirement unlocked; B-26 sqlite restore wave launched);
 recent cycle highlights: E-family COMPLETE (jolt 0.5.0/0.6.0/0.7.0,
 E1-E7), LIFTS live (`eco-v0.1.185`: glfw 0.6.0 + sdl3 0.20.0 -- B-22/B-15
 retired), PULSE top-tier live (`eco-v0.1.189`: brotli + ssl,
