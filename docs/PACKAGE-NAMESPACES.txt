@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-17T22:50:19+03:00
-# packages: 581  modules: 1138
+# generated: 2026-10-18T18:49:34+03:00
+# packages: 581  modules: 1182
 
 ## package names
 xiom.aaudio
@@ -1633,6 +1633,50 @@ xiom.vault.unseal
 xiom.vcf
 xiom.vdb
 xiom.vdf
+xiom.vector.api.http_service
+xiom.vector.api.json_fast
+xiom.vector.api.vector_api
+xiom.vector.collection.collection
+xiom.vector.collection.schema
+xiom.vector.collection.validator
+xiom.vector.core.shim
+xiom.vector.distance.cosine
+xiom.vector.distance.dot
+xiom.vector.distance.l2
+xiom.vector.durability.manifest_file
+xiom.vector.durability.recovery
+xiom.vector.durability.snapshot
+xiom.vector.durability.wal
+xiom.vector.durability.wal_file
+xiom.vector.durability.wal_segment
+xiom.vector.durability.write_ahead_events
+xiom.vector.engine
+xiom.vector.engine.core
+xiom.vector.error
+xiom.vector.hnsw
+xiom.vector.ids
+xiom.vector.index
+xiom.vector.index.ann_index
+xiom.vector.index.flat_index
+xiom.vector.index.hnsw
+xiom.vector.index.quantize
+xiom.vector.observability.metrics
+xiom.vector.payload.filter_ast
+xiom.vector.payload.filter_eval
+xiom.vector.payload.payload
+xiom.vector.primitives
+xiom.vector.query.filter_plan
+xiom.vector.query.pagination
+xiom.vector.query.search_request
+xiom.vector.query.search_service
+xiom.vector.search
+xiom.vector.segment.manifest
+xiom.vector.segment.segment
+xiom.vector.segment.segment_file
+xiom.vector.segment.segment_state
+xiom.vector.storage.id_map
+xiom.vector.storage.vector_store
+xiom.vector.types
 xiom.vectors
 xiom.video
 xiom.video.avi

@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-17T22:50:20Z",
+    "updated":  "2026-10-18T18:49:34Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -7056,7 +7056,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.1",
+                         "version":  "0.2.2",
                          "name":  "xiom.pulse",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "PULSE Beacon -- the embeddable protocol core (HTTP/1.1 request parser + response builders, keep-alive A/B connection loop with named deadlines, route mechanism, JSON error envelope); one core, two products -- the Station product consumes this same package (pure XIOM, stdlib-only)",
@@ -7066,7 +7066,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pulse/v0.2.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pulse/v0.2.2/package.tar.gz",
                          "source_files":  [
                                               "config.xi",
                                               "envelope.xi",
@@ -9924,19 +9924,79 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.vectors",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Dense vectors, cosine/dot/L2 distance, normalization, bounded top-K, and the WAL value codec",
+                         "description":  "XVECTOR MOTE -- embedded vector database engine: dense vectors, distance metrics, flat + HNSW ANN, collections, segments, payload filtering, WAL-backed durability and recovery; in-process only (no socket, no daemon)",
                          "dependencies":  [
+                                              {
+                                                  "version":  "0.1.0",
+                                                  "name":  "xiom.wal"
+                                              },
+                                              {
+                                                  "version":  "0.2.0",
+                                                  "name":  "xiom.metrics"
+                                              },
+                                              {
+                                                  "version":  "0.2.0",
+                                                  "name":  "xiom.rate"
+                                              },
+                                              {
+                                                  "version":  "0.1.9",
+                                                  "name":  "xiom.http"
+                                              },
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vectors/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vectors/v0.2.0/package.tar.gz",
                          "source_files":  [
+                                              "engine.xi",
+                                              "error.xi",
+                                              "hnsw.xi",
+                                              "ids.xi",
+                                              "index.xi",
+                                              "primitives.xi",
+                                              "search.xi",
+                                              "types.xi",
                                               "vectors.xi",
+                                              "http_service.xi",
+                                              "json_fast.xi",
+                                              "vector_api.xi",
+                                              "collection.xi",
+                                              "schema.xi",
+                                              "validator.xi",
+                                              "shim.xi",
+                                              "cosine.xi",
+                                              "dot.xi",
+                                              "l2.xi",
+                                              "manifest_file.xi",
+                                              "recovery.xi",
+                                              "snapshot.xi",
+                                              "wal.xi",
+                                              "wal_file.xi",
+                                              "wal_segment.xi",
+                                              "write_ahead_events.xi",
+                                              "core.xi",
+                                              "ann_index.xi",
+                                              "flat_index.xi",
+                                              "hnsw.xi",
+                                              "quantize.xi",
+                                              "metrics.xi",
+                                              "filter_ast.xi",
+                                              "filter_eval.xi",
+                                              "payload.xi",
+                                              "filter_plan.xi",
+                                              "pagination.xi",
+                                              "search_request.xi",
+                                              "search_service.xi",
+                                              "manifest.xi",
+                                              "segment.xi",
+                                              "segment_file.xi",
+                                              "segment_state.xi",
+                                              "id_map.xi",
+                                              "vector_store.xi",
                                               "package.xi"
                                           ]
                      },

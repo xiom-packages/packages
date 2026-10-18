@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  177,
                   "failed":  0,
-                  "run_by":  "mote-carve",
-                  "commit":  "c858ec1",
-                  "checked":  "2026-10-18T15:39:37Z"
+                  "run_by":  "native-session",
+                  "commit":  "6933b2b3",
+                  "checked":  "2026-10-18T15:49:26Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish gated on OWNER GREENLIGHT (xvector handoff, freeze c858ec1); mote tier"
+    "excluded_reason":  "publish pending: MOTE 0.2.0 owner greenlight received 2026-10-18; library type-check 45 modules GREEN; suite 177/177 x2"
 }
