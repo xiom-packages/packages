@@ -1845,6 +1845,25 @@ pin/slot v0.64.7 consistent)**:
 - Remaining reds: **B-34** (alias-unification batch pending cut),
   **B-29** (boundary-arithmetic workaround stays shipped).
 
+**UPDATE 2026-10-18 19:20Z (B-29 CLOSED as PROBE DEFECT; B-34 witness
+delivered -- remaining-red loop closed)**:
+- **B-29 CLOSED -- NOT a compiler defect** (compiler triage m335 was
+  right): the old probe compared ops on `3132620800` (0xBAB80000)
+  against expectations derived from `0xBAD00000` (3134193664).
+  Corrected witness on v0.64.7: `0xBAD00000` EXACT
+  (2989/3134193664/2989) + control EXACT (2987/3132096512/2987) +
+  decimal/hex literal parity exact (`parity=exact`, exit 0).  Probe
+  rewritten in-repo (`cf6b4fa3`); the ngx boundary-arithmetic
+  workaround is now a **retirement candidate** (next dlss/nis touch).
+- **B-34 witness + exact command delivered** to the compiler
+  (`REL-20261018-1915-bindings`; -1802 acked): cross-module
+  `Vec[alias]` generics still RED on .5 + .7 (T001); files at
+  `docs/repro/bindings-pilot/vec-alias-generic/`; matrix includes
+  literal/typed/as-cast/fn-returned variants; local-alias control
+  green.
+- Net red state: **B-34 only** (alias-unification batch, next cut).
+  B-32 retired; B-29 closed; B-33 fixed on .7.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
