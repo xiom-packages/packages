@@ -1713,6 +1713,28 @@ pulse 0.3.0 single tag; v0.64.7 repin + re-verify COMPLETE on bindings)**:
   23/25/26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 live;
   workaround retirement unlocked (B-26 wave running).
 
+**UPDATE 2026-10-19 15:05Z (doorbell -- `xiom.pulse` 0.3.1 LIVE;
+sqlite 0.5.0 tag already recorded)**: packages confirms the Phase B
+loop-switch publish:
+- **`xiom.pulse 0.3.1`** single tag `xiom-pulse/v0.3.1` (sha256
+  `38465713...`; registry live-verified; sync `2c167472`): **fallback
+  seam** (`HookSet.fallback` on route kind 0 AFTER the TE/CL policy and
+  BEFORE the package 404; `hooks_install_fallback`/`clear`/`has` +
+  `FallbackAlreadyInstalled`; absent/empty = byte-identical 404, kind 2
+  stays 405) + **HEAD body trim** (GET status/headers/Content-Length with
+  zero body bytes across `handle_connection*`/`serve`/`serve_with`/
+  `serve_with_ctx`, incl. hook/ctx/fallback paths); 231/231 x2 @ record
+  `2e3b6f7f`; `-1150-pulse` fixed with API + sha (Station can retire its
+  product loop; test-back requested). PULSE Phase B loop-switch unblocked.
+- **`xiom.sqlite 0.5.0`** already recorded (single tag
+  `xiom-sqlite/v0.5.0`, sha256 `35934316...`, run 39247791918 green;
+  B-32 retired / nested `Result[Option[SqliteRow]]` restored; 21/21 x2
+  on v0.64.7).
+- Lane state: MCU Phase-1 landed (firmata 122/122 + micropython 19/19 +
+  uf2 62/62; 579/0) with the publish request filed; findings ledger
+  reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
+  rows remain).
+
 **UPDATE 2026-10-19 14:05Z (arm64 emulation PROVEN end-to-end; target probe
 -- arm=AArch64-Linux, riscv=triple bug; MCU sessions deduped)**: docker
 back up.
