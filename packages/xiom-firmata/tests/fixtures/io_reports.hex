@@ -1,0 +1,28 @@
+# Recorded board <-> host input trace (Firmata 2.5).
+# One frame per line; the suite feeds the concatenated stream and polls.
+#   90 01 00   DIGITAL_MESSAGE port 0, pin 0 high
+#   91 20 00   DIGITAL_MESSAGE port 1, pin 13 high
+#   9f 03 00   DIGITAL_MESSAGE port 15, mask 3 (high group bits preserved)
+#   e0 2a 00   ANALOG_MESSAGE channel 0 = 42
+#   e1 7f 07   ANALOG_MESSAGE channel 1 = 1023
+#   e2 00 08   ANALOG_MESSAGE channel 2 = 1024
+#   c3 01      REPORT_ANALOG channel 3 enable
+#   d2 00      REPORT_DIGITAL port 2 disable
+#   f4 0d 01   SET_PIN_MODE pin 13 OUTPUT (loopback decode)
+#   f5 0d 01   SET_DIGITAL_PIN_VALUE pin 13 HIGH (loopback decode)
+#   ff         SYSTEM_RESET
+#   f8         MIDI clock (one-byte realtime; decoded as Other)
+#   f0 6b f7   CAPABILITY_QUERY (unknown sysex; decoded as Other)
+90 01 00
+91 20 00
+9f 03 00
+e0 2a 00
+e1 7f 07
+e2 00 08
+c3 01
+d2 00
+f4 0d 01
+f5 0d 01
+ff
+f8
+f0 6b f7

@@ -1,0 +1,24 @@
+# Golden host -> board byte stream (the exact concatenation produced by the
+# encoders in SPEC.md sec. 3, in this order):
+#   version query, firmware query, SET_PIN_MODE 13 OUTPUT,
+#   SET_PIN_MODE 14 ANALOG, SET_PIN_MODE 9 PWM,
+#   SET_DIGITAL_PIN_VALUE 13 HIGH, 0 LOW,
+#   DIGITAL_MESSAGE port 1 mask 0x2A,
+#   ANALOG_MESSAGE pin 9 = 1023, pin 15 = 16383,
+#   REPORT_ANALOG channel 0 enable, channel 15 disable,
+#   REPORT_DIGITAL port 1 enable, port 15 disable, SYSTEM_RESET.
+f9
+f0 79 f7
+f4 0d 01
+f4 0e 02
+f4 09 03
+f5 0d 01
+f5 00 00
+91 2a 00
+e9 7f 07
+ef 7f 7f
+c0 01
+cf 00
+d1 01
+df 00
+ff
