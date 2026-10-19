@@ -36,11 +36,13 @@
       forms round-trip) and `xiom.jev.types` gains
       `response_legend_count/label/doc/is_structured/text/find/json`;
       offline-golden-tested (suite t36..t37).
-- [ ] confidence formula helpers (S6 choice/score exact formulas) for
-      verification and for callers computing their own statistics -- PINNED
-      (SPEC.md section 19.1, owner GO 2026-10-19): choice
-      `(p_max - 1/n)/(1 - 1/n)`, score `max(0, 1 - spread/MAD_unif)`, noul
-      `|2p-1|`; implementation queued.
+- [x] confidence formula helpers (S6 choice/score exact formulas) for
+      verification and for callers computing their own statistics -- DONE
+      2026-10-19: `xiom.jev.confidence` (`confidence_choice_micro`,
+      `confidence_score_micro`) implements the pinned choice
+      `(p_max - 1/n)/(1 - 1/n)` and score `max(0, 1 - spread/MAD_unif)`
+      formulas with lowest-index tie breaking, `n == 1` certainty, and one
+      half-up micro rounding; offline-golden-tested (suite t48, 15 checks).
 - [x] api key hygiene per S2: trim, reject internal whitespace/control/
       non-ASCII before the call -- DONE 2026-10-16:
       `xiom.jev.api_key_validate` (typed BadRequest; returns the trimmed key);
@@ -68,10 +70,12 @@
       integer micro score product, pinned discovery-order tie-break, typed
       `beam: ` BadRequest catalog); offline-golden-tested (suite t45..t47,
       41 checks: hand-computed products, determinism, tie pin, all errors).
-- [ ] composite scoring helper: weighted combine of normalized scores
-      (S4 pattern) with integer weights -- PINNED (SPEC.md section 19.3):
-      sum(s_i*w_i)/sum(w_i), integer weights >= 0, one half-up rounding,
-      typed guards; implementation queued.
+- [x] composite scoring helper: weighted combine of normalized scores
+      (S4 pattern) with integer weights -- DONE 2026-10-19:
+      `xiom.jev.confidence.composite_score_micro` /
+      `composite_weights_valid` implement sum(s_i*w_i)/sum(w_i) with integer
+      weights >= 0, Float64 widening, one half-up rounding, clamp, and typed
+      guards; offline-golden-tested (suite t49, 19 checks).
 - [ ] danger-zone `box` question/answer + media assets -- PINNED (SPEC.md
       sections 19.2/19.4, owner GO): `BoxQuestion{type,instructions?}`,
       `BoxAnswer{type,box{top,bottom,left,right},confidence|null}`, `assets`

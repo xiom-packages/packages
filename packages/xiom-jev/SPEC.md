@@ -643,9 +643,11 @@ in `[0,1]`, sum 1 within the existing tolerance). All results are on the same
 - New helpers: `confidence_choice_micro(probabilities)`,
   `confidence_score_micro(probabilities)` (pure; no transport dependency).
 - Goldens: choice `(0.6,0.3,0.1)` -> 0.4; `(0.8,0.1,0.1)` -> 0.7;
-  `(0.5,0.5)` -> 0; `(1,0,0)` -> 1. Score `(0,0.57,0.43)` -> 0.35 (reference
-  example); `(0,0.5,0.5)` -> 0.25; `(0.5,0,0.5)` -> 0; `(0,0,1)` -> 1;
-  `(0.1,0.1,0.8)` -> 0.7 (reference example scaled).
+  `(0.5,0.5)` -> 0; `(1,0,0)` -> 1. Score `(0,0.57,0.43)` -> 0.355 (the
+  reference renders 0.35 at two decimals; the formula is authoritative);
+  `(0,0.5,0.5)` -> 0.25; `(0.5,0,0.5)` -> 0; `(0,0,1)` -> 1;
+  `(0.1,0.1,0.8)` -> 0.55 under the Score formula (0.7 is the Choice value
+  for the same distribution; corrected 2026-10-19).
 
 ### 19.2 S8 v0.2.0 wire schema (pinned)
 
@@ -757,4 +759,48 @@ The v0.2.0 API has **no batch or streaming endpoint** (only
 3. Batch helper (`batch_collect`).
 Each lands with its own suite increments x2 on the pin; the live probe stays
 SKIP-safe. No guesswork remains in this SPEC.
+
+### 19.7 Implementation status (2026-10-19)
+
+Item 1 of section 19.6 is DONE; items 2 and 3 remain queued.
+
+`xiom.jev.confidence` (registered in `package.xi`) is pure and transport-free.
+Exact API shape:
+
+- `confidence_choice_micro(probabilities: &Vec[Int]) -> Int`
+- `confidence_score_micro(probabilities: &Vec[Int]) -> Int`
+- `composite_score_micro(scores: &Vec[Int], weights: &Vec[Int]) -> Result[Int, JevError]`
+- `composite_weights_valid(weights: &Vec[Int]) -> Bool`
+
+Inputs are micro-unit distributions (`1.0 = 1000000`), matching parsed
+answers. Formulas run in Float64 and round half-up to micro exactly once.
+Defensive guards (not reachable from a validated answer): an empty
+distribution returns 0 for both confidence helpers, and a one-level score
+distribution returns `MICRO`. Score tie breaking uses the lowest index
+(strict `>` during the argmax scan).
+
+Composite guard order and exact typed messages:
+empty scores or weights -> `composite: no scores`; length mismatch ->
+`composite: length mismatch`; score outside `[0, MICRO]` ->
+`composite: score out of range`; negative weight ->
+`composite: negative weight`; weight sum zero ->
+`composite: all weights are zero` (the one message pinned in 19.3).
+
+Two numeric details in the 19.1 golden list are clarified here (the formula
+text above is implemented verbatim; both cases are tested in suite t48):
+
+- `(0, 0.57, 0.43)` has exact confidence `1 - 0.43 / (2/3) = 0.355`, which
+  is `355000` micro after the pinned half-up rounding. The reference docs
+  render `0.355` as `0.35` at two decimal places; the test pins `355000`.
+- `(0.1, 0.1, 0.8)` under the pinned Score formula is `0.55` (`spread =
+  0.3`, `MAD_unif = 2/3`), tested as `550000`. The listed `0.7` is the
+  Choice formula's value for the same top probability
+  (`(0.8 - 1/3)/(2/3)`), not the Score formula's value; it is recorded here
+  rather than silently changing the pin or the formula.
+
+Evidence: suite t48 (15 checks) covers every 19.1 golden plus empty,
+single-level and tie-index guards; suite t49 (19 checks) covers every 19.3
+golden plus half-up rounding, clamping, order stability, weight validity and
+every typed guard. Package total: **244/244 x2** on compiler `v0.64.8`
+(2026-10-19).
 

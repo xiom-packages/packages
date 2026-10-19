@@ -35,6 +35,7 @@ use xiom.serialize.json;
 use xiom.jev;
 use xiom.jev.beam;
 use xiom.jev.compression;
+use xiom.jev.confidence;
 use xiom.jev.errors;
 use xiom.jev.types;
 use xiom.jev.request;
@@ -194,6 +195,23 @@ fn bytes_eq(a: &Vec[UInt8], b: &Vec[UInt8]) -> Bool {
     i = i + 1;
   }
   return true;
+}
+
+// vec2 / vec3 build small Int vectors for the confidence and composite
+// fixtures without repeating the Vec boilerplate at every call site.
+fn vec2(a: Int, b: Int) -> Vec[Int] {
+  var v: Vec[Int] = Vec[Int].new();
+  v.push(a);
+  v.push(b);
+  return v;
+}
+
+fn vec3(a: Int, b: Int, c: Int) -> Vec[Int] {
+  var v: Vec[Int] = Vec[Int].new();
+  v.push(a);
+  v.push(b);
+  v.push(c);
+  return v;
 }
 
 fn expect_parse(r: Result[Response, JevError], want: Str, name: Str) -> Int {
@@ -1483,6 +1501,110 @@ fn t47() -> Int {
 }
 
 // --------------------------------------------------
+//  S6 confidence formulas (SPEC.md section 19.1)
+// --------------------------------------------------
+
+fn t48() -> Int {
+  var failed: Int = 0;
+
+  // Choice goldens.
+  let c1: Vec[Int] = vec3(600000, 300000, 100000);
+  let c2: Vec[Int] = vec3(800000, 100000, 100000);
+  let c3: Vec[Int] = vec2(500000, 500000);
+  let c4: Vec[Int] = vec3(1000000, 0, 0);
+  failed = failed + report(confidence.confidence_choice_micro(&c1) == 400000, "confidence choice: (0.6,0.3,0.1) -> 0.4");
+  failed = failed + report(confidence.confidence_choice_micro(&c2) == 700000, "confidence choice: (0.8,0.1,0.1) -> 0.7");
+  failed = failed + report(confidence.confidence_choice_micro(&c3) == 0, "confidence choice: (0.5,0.5) -> 0");
+  failed = failed + report(confidence.confidence_choice_micro(&c4) == 1000000, "confidence choice: (1,0,0) -> 1");
+
+  // Score goldens. The docs' (0,0.57,0.43) display value 0.35 is the exact
+  // result 0.355 shown at two decimals; half-up to micro is 355000.
+  let s1: Vec[Int] = vec3(0, 570000, 430000);
+  let s2: Vec[Int] = vec3(0, 500000, 500000);
+  let s3: Vec[Int] = vec3(500000, 0, 500000);
+  let s4: Vec[Int] = vec3(0, 0, 1000000);
+  let s5: Vec[Int] = vec3(100000, 100000, 800000);
+  failed = failed + report(confidence.confidence_score_micro(&s1) == 355000, "confidence score: (0,0.57,0.43) -> 0.355 (SPEC display 0.35)");
+  failed = failed + report(confidence.confidence_score_micro(&s2) == 250000, "confidence score: (0,0.5,0.5) -> 0.25");
+  failed = failed + report(confidence.confidence_score_micro(&s3) == 0, "confidence score: (0.5,0,0.5) -> 0");
+  failed = failed + report(confidence.confidence_score_micro(&s4) == 1000000, "confidence score: (0,0,1) -> 1");
+  failed = failed + report(confidence.confidence_score_micro(&s5) == 550000, "confidence score: (0.1,0.1,0.8) -> 0.55 (pinned formula)");
+
+  // Guards: empty, single level, and lowest-index tie breaking.
+  let empty: Vec[Int] = Vec[Int].new();
+  let one_only: Vec[Int] = Vec[Int].new();
+  one_only.push(1000000);
+  failed = failed + report(confidence.confidence_choice_micro(&empty) == 0, "confidence choice: empty -> 0");
+  failed = failed + report(confidence.confidence_score_micro(&empty) == 0, "confidence score: empty -> 0");
+  failed = failed + report(confidence.confidence_score_micro(&one_only) == 1000000, "confidence score: single level -> 1");
+  // (0.4,0.4,0.2): m=0 on the tie. With m=1 the result would be 100000.
+  let tie1: Vec[Int] = vec3(400000, 400000, 200000);
+  failed = failed + report(confidence.confidence_score_micro(&tie1) == 0, "confidence score: tie keeps lowest index");
+  // (0.1,0.45,0.45): m=1 on the tie. With m=2 the result would be 25000.
+  let tie2: Vec[Int] = vec3(100000, 450000, 450000);
+  failed = failed + report(confidence.confidence_score_micro(&tie2) == 175000, "confidence score: adjacent tie keeps lowest index");
+
+  return report(failed == 0, "S6 confidence formulas: choice/score goldens, guards, tie pin");
+}
+
+// --------------------------------------------------
+//  Composite scoring (SPEC.md section 19.3)
+// --------------------------------------------------
+
+fn t49() -> Int {
+  var failed: Int = 0;
+
+  // Goldens.
+  let sa: Vec[Int] = vec2(400000, 900000);
+  let w11: Vec[Int] = vec2(1, 1);
+  let w31: Vec[Int] = vec2(3, 1);
+  let sb: Vec[Int] = vec2(0, 1000000);
+  let w05: Vec[Int] = vec2(0, 5);
+  failed = failed + expect_ok_int(confidence.composite_score_micro(&sa, &w11), 650000, "composite: ([400000,900000],[1,1]) -> 650000");
+  failed = failed + expect_ok_int(confidence.composite_score_micro(&sa, &w31), 525000, "composite: ([400000,900000],[3,1]) -> 525000");
+  failed = failed + expect_ok_int(confidence.composite_score_micro(&sb, &w05), 1000000, "composite: ([0,1000000],[0,5]) -> 1000000");
+
+  // One half-up rounding at the end: 0.5 micro rounds to 1.
+  let s_half: Vec[Int] = vec2(0, 1);
+  failed = failed + expect_ok_int(confidence.composite_score_micro(&s_half, &w11), 1, "composite: half-up rounding at the end");
+  // Clamp and order stability: reversing the operands keeps the same value.
+  let s_top: Vec[Int] = vec2(1000000, 1000000);
+  failed = failed + expect_ok_int(confidence.composite_score_micro(&s_top, &w11), 1000000, "composite: result clamped to MICRO");
+  let s_rev: Vec[Int] = vec2(900000, 400000);
+  let w13: Vec[Int] = vec2(1, 3);
+  failed = failed + expect_ok_int(confidence.composite_score_micro(&s_rev, &w13), 525000, "composite: no reordering, weights applied by index");
+
+  // Weight validity.
+  failed = failed + report(confidence.composite_weights_valid(&w11), "composite weights: positive weights valid");
+  failed = failed + report(confidence.composite_weights_valid(&w05), "composite weights: zero weight with positive sum valid");
+  let wneg: Vec[Int] = vec2(1, -1);
+  let wzero: Vec[Int] = vec2(0, 0);
+  let wempty: Vec[Int] = Vec[Int].new();
+  failed = failed + report(!confidence.composite_weights_valid(&wneg), "composite weights: negative weight invalid");
+  failed = failed + report(!confidence.composite_weights_valid(&wzero), "composite weights: all-zero invalid");
+  failed = failed + report(!confidence.composite_weights_valid(&wempty), "composite weights: empty invalid");
+
+  // Typed guards.
+  let empty: Vec[Int] = Vec[Int].new();
+  failed = failed + expect_bad_int(confidence.composite_score_micro(&empty, &w11), "composite: no scores", "composite: empty scores rejected");
+  failed = failed + expect_bad_int(confidence.composite_score_micro(&sa, &empty), "composite: no scores", "composite: empty weights rejected");
+  let short: Vec[Int] = Vec[Int].new();
+  short.push(1);
+  failed = failed + expect_bad_int(confidence.composite_score_micro(&sa, &short), "composite: length mismatch", "composite: length mismatch rejected");
+  let sneg: Vec[Int] = vec2(-1, 0);
+  failed = failed + expect_bad_int(confidence.composite_score_micro(&sneg, &w11), "composite: score out of range", "composite: negative score rejected");
+  let shigh: Vec[Int] = vec2(1000001, 0);
+  failed = failed + expect_bad_int(confidence.composite_score_micro(&shigh, &w11), "composite: score out of range", "composite: score above MICRO rejected");
+  let s_ok: Vec[Int] = vec2(100, 200);
+  let w_bad: Vec[Int] = vec2(1, -1);
+  failed = failed + expect_bad_int(confidence.composite_score_micro(&s_ok, &w_bad), "composite: negative weight", "composite: negative weight rejected");
+  let w_zero2: Vec[Int] = vec2(0, 0);
+  failed = failed + expect_bad_int(confidence.composite_score_micro(&s_ok, &w_zero2), "composite: all weights are zero", "composite: all-zero weights rejected");
+
+  return report(failed == 0, "composite scoring: goldens, rounding, weights, typed guards");
+}
+
+// --------------------------------------------------
 //  Entry point
 // --------------------------------------------------
 
@@ -1536,6 +1658,8 @@ fn main() -> Int {
   failed = failed + t45();
   failed = failed + t46();
   failed = failed + t47();
+  failed = failed + t48();
+  failed = failed + t49();
   if failed == 0 {
     io.println("xiom.jev: all tests passed");
   } else {

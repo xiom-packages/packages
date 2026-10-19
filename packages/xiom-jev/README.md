@@ -4,7 +4,7 @@
 
 TypeSafe Jev client tier: **System One** structured decisions for XIOM.
 
-> **Status:** `incubating` -- 0.1.0. Offline conformance suite **210/210 x2** on
+> **Status:** `incubating` -- 0.1.0. Offline conformance suite **244/244 x2** on
 > compiler `v0.64.8` (native-session, 2026-10-19). Live probe is SKIP-safe and
 > link-gated (see "Live probe"). Published in `eco-v0.1.193` (sha256
 > `ed212ee6...`, 2026-10-16).
@@ -28,6 +28,7 @@ coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
 | `xiom.jev.retry` | `retry_is_retryable`, `retry_backoff_millis`, `default_max_attempts/base_millis/cap_millis` -- pure bounded-backoff policy |
 | `xiom.jev.beam` | `BeamLevel`/`BeamPath`/`BeamResult`, `beam_level_new`, `beam_add_option`, `beam_level_from_answer`, `beam_search` (deterministic width-K hierarchy search), guarded result accessors |
 | `xiom.jev.compression` | 32 MiB `body_size_check`, encoding tags (`identity`/`gzip`/`zstd`), `encoding_check`, `wire_uses_bytes`, `prepare_body`/`EncodedBody`, `compress_bytes`/`compress_body` (gzip; zstd typed unavailable) |
+| `xiom.jev.confidence` | `confidence_choice_micro`, `confidence_score_micro` (S6 formulas), `composite_score_micro`, `composite_weights_valid` -- pure micro-unit statistics |
 | `xiom.jev.errors` | `JevError` (BadRequest / Transport / HttpStatus / Parse) + `jev_error_text` |
 | `xiom.jev.client` | `system_one` (identity) and `system_one_with_encoding` -- transport over xiom.http 0.1.9 (`http_request` Str / `http_request_bytes` binary) |
 
@@ -113,12 +114,42 @@ empty/duplicate labels, out-of-range micro, and the answer-bridge arms.
 The score rule, tie order, full error table and golden values are pinned in
 `SPEC.md` section 17; suite t45..t47 cover them offline.
 
-The other M3 items (danger-zone `box` question/answer + media assets, and
+The remaining M3 items (danger-zone `box` question/answer + media assets, and
 batch/streaming ergonomics) were **pinned by the owner on 2026-10-19**
 (`SPEC.md` section 19): box/media now has an exact wire shape, and batch is
 caller-side aggregation only (`batch_collect`; no streaming endpoint exists in
-v0.2.0). Implementation is queued; until it lands, `box` responses still fail
-closed as an unknown answer type.
+v0.2.0). Implementation of those two items is queued; until it lands, `box`
+responses still fail closed as an unknown answer type.
+
+## Confidence and composite scoring (M3, 2026-10-19)
+
+`xiom.jev.confidence` implements the pinned S6 formulas and the composite
+scoring pattern over the same micro-unit distributions returned by
+`parse_response`:
+
+- `confidence_choice_micro(&probs)` -- `(p_max - 1/n) / (1 - 1/n)`,
+  clamped to `[0,1]`, half-up to micro once at the end.
+- `confidence_score_micro(&probs)` -- `max(0, 1 - spread/MAD_unif)` with
+  `m` the maximum-probability index (lowest index on a tie); `n == 1`
+  returns `1.0`.
+- `composite_score_micro(&scores, &weights)` -- integer weights `>= 0`,
+  `round_half_up(sum(s_i*w_i) / sum(w_i))`, widened to Float64, rounded
+  once, clamped to `[0, MICRO]`; typed `BadRequest` guards.
+- `composite_weights_valid(&weights)` -- non-empty, all weights `>= 0`,
+  sum `> 0`.
+
+```xiom
+use xiom.jev.confidence;
+
+let probs: Vec[Int] = ...;                 // micro units from a parsed answer
+let c: Int = confidence.confidence_score_micro(&probs);
+let blended = confidence.composite_score_micro(&scores, &weights); // Result[Int, JevError]
+```
+
+Exact goldens live in suite t48..t49. `SPEC.md` section 19.7 records the two
+pin-text details worth knowing: `(0,0.57,0.43)` displays as `0.35` but its
+exact half-up micro value is `355000`, and the score formula gives
+`(0.1,0.1,0.8) -> 0.55` (the pin's `0.7` is the Choice formula's value).
 
 ## Transport (xiom.http 0.1.9 headers + binary-body surface)
 
