@@ -97,7 +97,10 @@ wait expired).
 
 The copy uses binary `fs_write`; `fs_copy` is deliberately not used because
 it is text-mode and would corrupt firmware bytes.  The written file is read
-back and compared byte-for-byte before completion detection.
+back and compared byte-for-byte before completion detection.  If the board
+reboots immediately (the volume/file disappears after the write, before the
+read-back finishes), the result is COMPLETE with `verified = false` rather
+than a verify error.
 
 ## Errors and SKIP
 

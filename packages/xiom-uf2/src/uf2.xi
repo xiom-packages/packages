@@ -323,6 +323,20 @@ fn _basename(path: Str) -> Str {
   return path;
 }
 
+fn _flash_complete_unverified(source_path: Str, dest: Str, bytes: Int, blocks: Int, elapsed: Int) -> Uf2FlashResult {
+  return Uf2FlashResult{
+    status: UF2_FLASH_COMPLETE;
+    source_path: source_path;
+    dest_path: dest;
+    source_bytes: bytes;
+    copied_bytes: bytes;
+    blocks: blocks;
+    verified: false;
+    elapsed_ms: elapsed;
+    detail: "volume/file disappeared before read-back (board rebooted)";
+  };
+}
+
 fn _file_bytes(path: Str) -> Result[Vec[UInt8], Str] {
   let sz = fs.fs_size(path);
   if !sz.is_ok { return Err(sz.error); }
@@ -878,18 +892,36 @@ pub fn uf2_flash_to_mount(source_path: Str, mount_dir: Str, timeout_ms: Int, pol
     return Err(_err(UF2_ERR_IO, "flash: cannot write " + dest + ": " + wr.error));
   }
 
+  // The bootloader may reset as soon as the file is closed.  A volume that
+  // disappears here is completion, not a write failure.
+  if !fs.fs_exists(dest) || !fs.fs_is_dir(mount_dir) {
+    return Ok(_flash_complete_unverified(source_path, dest, data.len(), parsed.value.num_blocks, io.time_now() - started));
+  }
+
   let back_sz = fs.fs_size(dest);
   if !back_sz.is_ok {
+    if !fs.fs_exists(dest) || !fs.fs_is_dir(mount_dir) {
+      return Ok(_flash_complete_unverified(source_path, dest, data.len(), parsed.value.num_blocks, io.time_now() - started));
+    }
     return Err(_err(UF2_ERR_VERIFY, "flash: cannot stat the written file: " + back_sz.error));
   }
   if back_sz.value != data.len() {
+    if !fs.fs_exists(dest) || !fs.fs_is_dir(mount_dir) {
+      return Ok(_flash_complete_unverified(source_path, dest, data.len(), parsed.value.num_blocks, io.time_now() - started));
+    }
     return Err(_err(UF2_ERR_VERIFY, "flash: written size " + _itoa(back_sz.value) + " != " + _itoa(data.len())));
   }
   let back = fs.fs_read_range(dest, 0, data.len());
   if !back.is_ok {
+    if !fs.fs_exists(dest) || !fs.fs_is_dir(mount_dir) {
+      return Ok(_flash_complete_unverified(source_path, dest, data.len(), parsed.value.num_blocks, io.time_now() - started));
+    }
     return Err(_err(UF2_ERR_VERIFY, "flash: cannot read back the written file: " + back.error));
   }
   if !_bytes_equal(&back.value, &data) {
+    if !fs.fs_exists(dest) || !fs.fs_is_dir(mount_dir) {
+      return Ok(_flash_complete_unverified(source_path, dest, data.len(), parsed.value.num_blocks, io.time_now() - started));
+    }
     return Err(_err(UF2_ERR_VERIFY, "flash: read-back differs from the source"));
   }
 

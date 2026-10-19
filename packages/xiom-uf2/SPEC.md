@@ -171,7 +171,10 @@ zeros.
 5. Write with `fs_write` (binary `wb`).  `fs_copy` is deliberately NOT used:
    it is text-mode and would corrupt binary data.
 6. Read the destination back (`fs_size` + `fs_read_range`) and compare size
-   and every byte; a mismatch is `VERIFY`.
+   and every byte; a mismatch is `VERIFY`.  The board may reset as soon as
+   the file is closed, so if the destination or the mount disappears during
+   verification the result is COMPLETE with `verified = false` (the
+   disappearance is the completion signal, not a write failure).
 7. Completion detection: poll `fs_exists(dest)` and `fs_is_dir(mount_dir)`
    every `poll_ms`; COMPLETE when either disappears (the bootloader reboots
    when the last block lands).  If the volume is still mounted when
