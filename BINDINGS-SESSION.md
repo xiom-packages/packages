@@ -1713,6 +1713,22 @@ pulse 0.3.0 single tag; v0.64.7 repin + re-verify COMPLETE on bindings)**:
   23/25/26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 live;
   workaround retirement unlocked (B-26 wave running).
 
+**UPDATE 2026-10-19 11:55Z (findings-ledger reconciliation -- B-13/14/15,
+B-30, B-31 verified FIXED on v0.64.7; B-27/28 stdlib fixes bundled)**:
+morning continuation -- all stale rows re-probed.
+- cb-abi: B-13 probes 2/4/5 = 42 across param/local/cast paths; B-14
+  explicit `-> Unit` `return;` accepted; B-15 multi-arg element-call
+  result usable (probe7 compiles+runs).
+- B-30 owned-slot cast+mutate block compiles+runs; B-31 const-alias
+  `--emit-ir` exit 0 (stack overflow gone).
+- B-27/B-28: stdlib probe 312 green on the installed pin (fixes bundled
+  since v0.64.6) -- retirement of `owned_bytes`/byte-writer workarounds is
+  now possible (optional cleanup wave).
+- Ledger updated (7 rows); verdicts relayed to compiler.  Open rows now:
+  B-21 (acked), B-24 (fix-staged untested).
+- Context: sqlite 0.5.0 publish queued packages-side for the morning;
+  pulse 0.3.0 HookCtx live (PULSE Phase B unblocked).
+
 **UPDATE 2026-10-18 16:40Z (B-26 retirement wave LAUNCHED -- sqlite restore;
 coordinated plan acked by packages)**: continuing on the unlocked workarounds.
 - **`feat/sqlite-restore`** (`am-1792341243306-9qysun`): `xiom.sqlite`
