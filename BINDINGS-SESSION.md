@@ -2000,6 +2000,28 @@ uf2; validate 579/0)**:
 - v0.64.8 cut is GO (owner; stdlib gate in progress; the B-34
   alias-resolution fix is a candidate) -- watch for the release.
 
+**UPDATE 2026-10-19 18:05Z (v0.64.8 RELEASED + B-34 VERIFIED FIXED --
+B-SERIES ZERO-OPEN)**:
+- **v0.64.8 RELEASED** (17:49Z; annotated tag `4d040604b`; run
+  39296778685 green; stdlib-v0.64.8; highlights: scoped arena for
+  frame-shaped memory, zero-capacity Vec fix, m360 i128 div/rem, m368
+  Vec-drop reclaim, m369 catalog index scan/cache, m370 generic-struct
+  Vec elements, C-ORBIT-12/13, XVC-C-20, **B-34**).  Scratch slot
+  downloaded + SHA256SUMS OK (`%TEMP%\kilo\xiom0648\slot`).
+- **B-34 VERIFIED FIXED on .8**: the vec-alias-generic witness
+  compiles + runs (exit 1 = len; NO T001) -- cross-module
+  `Vec[alias]` unification works.  Filed
+  `REL-20261019-1801-bindings` (verification to compiler).
+- Spot-checks on .8: nested-payload failures=0 (B-26/B-32 stay
+  retired-green); corrected B-29 witness exact.
+- **B-SERIES ZERO-OPEN**: B-29 closed (probe defect); B-32 retired
+  (.7) + published (`xiom-sqlite/v0.5.0`); B-33 fixed (m351); B-34
+  fixed (.8); B-16..B-26 verified fixed; remaining ledger rows
+  B-21/B-24 are other lanes'.
+- Pending: bindings repin to v0.64.8 (owner/sibling wave; pin still
+  v0.64.7); MCU publish still queued at packages; stdlib registry
+  403 publisher_not_mapped blocker is packages-side.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
