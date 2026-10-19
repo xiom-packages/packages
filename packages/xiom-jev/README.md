@@ -114,10 +114,11 @@ The score rule, tie order, full error table and golden values are pinned in
 `SPEC.md` section 17; suite t45..t47 cover them offline.
 
 The other M3 items (danger-zone `box` question/answer + media assets, and
-batch/streaming ergonomics) are **not implemented**: their wire/API shapes are
-not pinned. `SPEC.md` section 18 and `ROADMAP.md` list the exact owner pins
-required before implementation; `box` responses still fail closed as an
-unknown answer type.
+batch/streaming ergonomics) were **pinned by the owner on 2026-10-19**
+(`SPEC.md` section 19): box/media now has an exact wire shape, and batch is
+caller-side aggregation only (`batch_collect`; no streaming endpoint exists in
+v0.2.0). Implementation is queued; until it lands, `box` responses still fail
+closed as an unknown answer type.
 
 ## Transport (xiom.http 0.1.9 headers + binary-body surface)
 

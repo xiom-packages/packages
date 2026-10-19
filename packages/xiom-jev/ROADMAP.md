@@ -37,10 +37,10 @@
       `response_legend_count/label/doc/is_structured/text/find/json`;
       offline-golden-tested (suite t36..t37).
 - [ ] confidence formula helpers (S6 choice/score exact formulas) for
-      verification and for callers computing their own statistics -- BLOCKED:
-      SPEC.md does not pin the exact S6 choice/score formulas (only the noul
-      `|2p-1|` spread). Skipped cleanly in the M2-chunk-3 lane rather than
-      inventing semantics; needs the Architect to pin the formulas first.
+      verification and for callers computing their own statistics -- PINNED
+      (SPEC.md section 19.1, owner GO 2026-10-19): choice
+      `(p_max - 1/n)/(1 - 1/n)`, score `max(0, 1 - spread/MAD_unif)`, noul
+      `|2p-1|`; implementation queued.
 - [x] api key hygiene per S2: trim, reject internal whitespace/control/
       non-ASCII before the call -- DONE 2026-10-16:
       `xiom.jev.api_key_validate` (typed BadRequest; returns the trimmed key);
@@ -69,19 +69,19 @@
       `beam: ` BadRequest catalog); offline-golden-tested (suite t45..t47,
       41 checks: hand-computed products, determinism, tie pin, all errors).
 - [ ] composite scoring helper: weighted combine of normalized scores
-      (S4 pattern) with integer weights.
-- [ ] danger-zone `box` question/answer + media assets -- BLOCKED on owner
-      pins (SPEC.md section 18): no `box` request/answer schema, no
-      `TypeSafe-Danger-Zone-Images` serialization, no media representation or
-      vision-model requirements, and no box fixtures are pinned; section 6
-      still rejects `box` as an unknown answer type.
+      (S4 pattern) with integer weights -- PINNED (SPEC.md section 19.3):
+      sum(s_i*w_i)/sum(w_i), integer weights >= 0, one half-up rounding,
+      typed guards; implementation queued.
+- [ ] danger-zone `box` question/answer + media assets -- PINNED (SPEC.md
+      sections 19.2/19.4, owner GO): `BoxQuestion{type,instructions?}`,
+      `BoxAnswer{type,box{top,bottom,left,right},confidence|null}`, `assets`
+      map with `Asset{type:"image",format,data_base64|part}`, header
+      `TypeSafe-Danger-Zone-Images: true` required; implementation queued.
 - [ ] batch/streaming ergonomics: multiple requests in flight with the same
       question set; caller-side scheduling only (no async runtime here) --
-      BLOCKED on owner pins (SPEC.md section 18): no API shape (module,
-      function/type signatures), question-set reuse semantics,
-      result-ordering/partial-failure rules, streaming framing, cancellation
-      or backpressure are pinned, and it is unspecified whether a
-      package-level API is in scope at all.
+      PINNED (SPEC.md section 19.5): v0.2.0 has no batch/streaming endpoint;
+      package exposes only the pure `batch_collect` aggregation helper
+      (stable order, per-item typed errors); streaming out of scope.
 
 ## Tracking notes
 

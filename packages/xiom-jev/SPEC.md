@@ -613,3 +613,148 @@ Pins required before either item can be implemented:
 
 Suite evidence for this lane: 47 functions, **210/210 checks x2** on compiler
 `v0.64.8`, unchanged because no surface was added.
+
+## 19. Owner pins resolved (owner GO, 2026-10-19)
+
+The owner granted GO for all previously owner-pinned items. The pins below are
+authoritative; they supersede section 18 and the S6/S8 entries in section 11.
+Sources: `docs.typesafe.ai/confidence` (confidence formulas) and
+`api.typesafe.ai/openapi.json` **v0.2.0** (wire schema), retrieved 2026-10-19.
+
+### 19.1 S6 confidence formulas (pinned)
+
+Inputs are the answer's probability distribution (already validated: finite,
+in `[0,1]`, sum 1 within the existing tolerance). All results are on the same
+`[0,1]` scale and converted to micro units at the boundary.
+
+- **Noul** (unchanged): `confidence = |2p - 1|`.
+- **Choice** with `n >= 2` options and top probability `p_max`:
+  `confidence = (p_max - 1/n) / (1 - 1/n)`; equivalently `(n*p_max - 1)/(n - 1)`.
+  Clamp to `[0,1]`. Only the top probability counts.
+- **Score** with `n >= 1` levels indexed `0..n-1`, probabilities `p_i`, and
+  `m` = index of the maximum probability (lowest index on a tie):
+  `spread = sum_i p_i * |i - m|`;
+  `MAD_unif = (1/n) * sum_i |i - (n-1)/2|`;
+  `confidence = max(0, 1 - spread / MAD_unif)`. For `n == 1` the confidence is
+  `1.0` (a single level is certain; MAD_unif is 0 -- special-cased, no division).
+- Rounding: compute in Float64, round **half-up** to micro once at the end
+  (`round(x * 1e6)`), clamp to `[0, MICRO]`. Reject non-finite inputs with the
+  existing Parse/BadRequest classes; `n == 0` is structurally impossible.
+- New helpers: `confidence_choice_micro(probabilities)`,
+  `confidence_score_micro(probabilities)` (pure; no transport dependency).
+- Goldens: choice `(0.6,0.3,0.1)` -> 0.4; `(0.8,0.1,0.1)` -> 0.7;
+  `(0.5,0.5)` -> 0; `(1,0,0)` -> 1. Score `(0,0.57,0.43)` -> 0.35 (reference
+  example); `(0,0.5,0.5)` -> 0.25; `(0.5,0,0.5)` -> 0; `(0,0,1)` -> 1;
+  `(0.1,0.1,0.8)` -> 0.7 (reference example scaled).
+
+### 19.2 S8 v0.2.0 wire schema (pinned)
+
+Endpoint `POST /v1/systemone`, security `HTTPBearer`.
+
+Request `SystemOneRequest` (required: `model`, `state`, `questions`):
+- `model: string`; `state: string | object | array`.
+- `questions: object` (minProperties 1) mapping caller-chosen name ->
+  `Question` discriminated on `type` (`noul | choice | score | box`).
+- `questions[name].instructions` (all types): `string | object | array | null`,
+  optional. Already supported by section 13 (string + structured docs).
+- `NoulQuestion`: `type`, optional `instructions`, optional `criteria`
+  `{true?, false?}` whose values are `string | object | array | null`.
+- `ChoiceQuestion`: `type`, optional `instructions`, required `criteria`
+  object (minProperties 1, maxProperties 255) mapping choice name ->
+  `string | object | array | null`.
+- `ScoreQuestion`: `type`, optional `instructions`, required `criteria`
+  array (minItems 1, maxItems 10) of `string | object | array` (null is NOT
+  allowed in score criteria per the schema).
+- `BoxQuestion`: `type`, optional `instructions`; no criteria.
+- Optional `assets: object` (minProperties 1) mapping an opaque placeholder
+  (recommend UUID) -> `Asset`: `{type:"image", format:"png"|"jpg"|"jpeg"
+  (required with data_base64), data_base64?: string, part?: string}`. Assets
+  are referenced by their placeholder appearing as or inside strings in
+  `state`, instructions, or criteria. With `part`, `data_base64` is ignored
+  and the bytes ride a multipart part of that name.
+- Headers: `TypeSafe-Danger-Zone-Images: true` is REQUIRED for box questions
+  and assets; `TypeSafe-Danger-Zone-Long-Context: true` optional for long
+  context. Emit only when needed.
+
+Response `SystemOneResponse` (required: `model`, `answers`, `usage`):
+- `answers: object` (minProperties 1) mapping question name -> `Answer`
+  discriminated on `type`.
+- `NoulAnswer`: `type:"noul"`, `noul: number`.
+- `ChoiceAnswer`: `type:"choice"`, `choice: string`, `confidence: number`,
+  `probabilities: {string: number}`.
+- `ScoreAnswer`: `type:"score"`, `score: number`, `confidence: number`,
+  `legend: {string: string|object|array}`, `probabilities: {string: number}`.
+- `BoxAnswer`: `type:"box"`, `box: {top,bottom,left,right: number}` (required;
+  fractions of image height/width, 0..1, top/bottom measured from the top,
+  left/right from the left; each coordinate is the expected edge position),
+  `confidence: number | null` (required member; null when the model gives none).
+- `usage: {input_tokens: integer, output_tokens: integer}` (required on the
+  wire in v0.2.0). The client keeps its tolerant read (`has_usage`) for
+  forward compatibility — no breaking change to parsed answers.
+- Errors: 422 `HTTPValidationError {detail: [{loc: (string|integer)[], msg,
+  type, input?, ctx?}]}` — the existing 422 mapping stays.
+
+The one deviation to record: score criteria `null` entries are rejected
+(schema says `string | object | array` only); structured instructions remain
+accepted on all question types.
+
+### 19.3 Composite scoring (pinned)
+
+Pure weighted combine of normalized scores with **integer weights**:
+- Inputs: `scores: Vec[Int]` (micro units, each in `[0, MICRO]`),
+  `weights: Vec[Int]` (raw integers, `>= 0`).
+- Validation (typed `BadRequest`): empty vectors; length mismatch;
+  any score outside `[0, MICRO]`; any negative weight; sum of weights == 0
+  (`composite: all weights are zero`).
+- Formula: `result = round_half_up( sum_i s_i * w_i / sum_i w_i )` in Float64,
+  rounded once at the end, clamped to `[0, MICRO]`; `Int` overflow is avoided
+  by widening the products/sums to Float64.
+- Ordering: results are deterministic; no reordering. Helpers:
+  `composite_score_micro(scores, weights) -> Result[Int, JevError]` and
+  `composite_weights_valid(weights) -> Bool`.
+- Goldens: `([400000, 900000], [1,1]) -> 650000`;
+  `([400000, 900000], [3,1]) -> 525000`; `([0, 1000000], [0,5]) -> 1000000`;
+  `all-zero weights -> BadRequest`; length mismatch -> BadRequest.
+
+### 19.4 Danger-zone box + media (pinned)
+
+- `BoxQuestion` / `BoxAnswer` / `Asset` exactly as section 19.2.
+- Box geometry is **normalized floats** (`top`, `bottom`, `left`, `right` in
+  `[0,1]`, bottom >= top, right >= left, all finite), carried in micro units
+  (`1e6`) inside the package; parse errors name the offending field.
+- Base64: JSON mode uses `data_base64` with `format`; the package validates
+  base64 shape (`A-Za-z0-9+/` with correct padding) and rejects empty data.
+  Multipart mode is a transport concern: the package builds the asset map
+  with `part` and documents the multipart layout (JSON request first as
+  `request`, then one image part per asset name). JSON/base64 is what the
+  offline suite exercises byte-exactly; multipart gets a build-plan test only.
+- The `TypeSafe-Danger-Zone-Images: true` header is emitted by the client
+  when any box question or any asset is present; absence is a `BadRequest`
+  when a box question is present (fail-closed).
+- Answer parsing: `box` becomes a first-class answer (no longer the
+  fail-closed unknown type); `confidence` is `Option`-shaped (null allowed);
+  the other answer kinds are unchanged.
+
+### 19.5 Batch/streaming (pinned)
+
+The v0.2.0 API has **no batch or streaming endpoint** (only
+`POST /v1/systemone`). Pins:
+- **Batch is caller-side scheduling ONLY** (matches the ROADMAP): the package
+  exposes a pure aggregation helper, no I/O and no async runtime:
+  `batch_collect(results: Vec[Result[Str, JevError]]) -> BatchOutcome` where
+  `BatchOutcome { successes: Vec[(index, Str)]; failures: Vec[(index, JevError)];
+  ok: Bool }` — stable input order, per-item typed errors, `ok` = no failures.
+  This gives consumers deterministic partial-failure handling without owning
+  a runtime.
+- **Streaming is NOT implemented** (no SSE/NDJSON/chunked contract exists in
+  v0.2.0); the SPEC records it as out of scope until the reference defines a
+  framing. No API is invented.
+
+### 19.6 Implementation order and evidence
+
+1. S6 helpers + composite scoring (pure; exact goldens above).
+2. S8 box/media request+answer support (header + asset emission; box parse).
+3. Batch helper (`batch_collect`).
+Each lands with its own suite increments x2 on the pin; the live probe stays
+SKIP-safe. No guesswork remains in this SPEC.
+
