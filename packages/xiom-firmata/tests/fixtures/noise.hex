@@ -1,0 +1,4 @@
+# Resynchronization trace: two garbage bytes (a leading NUL and 0x42) before
+# a valid REPORT_VERSION. The session must consume one byte per framing
+# error and then decode the version report.
+00 42 f9 02 05
