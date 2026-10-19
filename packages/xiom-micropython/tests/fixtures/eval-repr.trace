@@ -1,0 +1,4 @@
+# xiom.micropython byte-trace fixture -- the eval helper in repr form:
+# write b"print(repr(1+2))\x04"   read b"OK3\r\n\x04\x04>"
+>7072696E74287265707228312B32292904
+<4F4B330D0A04043E
