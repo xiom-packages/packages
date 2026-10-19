@@ -8,7 +8,8 @@ into `vendor/` (public domain) and compiled into the test binary with
 > v0.64.7, **21/21 x2 on 2026-10-18** for 0.5.0 -- `query_one` restored to
 > `Result[Option[SqliteRow]]`; 16/16 across the 0.3.0 enum-model restore
 > build cycles on v0.64.2; published since `eco-v0.1.89`; 0.3.0 live in
-> `eco-v0.1.122`; 0.4.1 live; 0.5.0 restore requested).
+> `eco-v0.1.122`; 0.4.1 live; **0.5.0 published as single tag
+> `xiom-sqlite/v0.5.0` (sha256 `35934316...`, 2026-10-19; B-32 retired)**).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
