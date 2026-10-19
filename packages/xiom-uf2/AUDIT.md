@@ -44,7 +44,7 @@ Command:
 .\scripts\port.ps1 -Package xiom.uf2 -TimeoutSec 300
 ```
 
-Result: **58 passed / 0 failed / program exit 0**, twice (x2) on v0.64.7.
+Result: **62 passed / 0 failed / program exit 0**, twice (x2) on v0.64.7.
 `STATUS.json` records the tested commit.  Coverage map:
 `docs/COVERAGE.md`.
 

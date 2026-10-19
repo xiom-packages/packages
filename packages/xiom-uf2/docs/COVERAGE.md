@@ -4,7 +4,7 @@
 > SPDX-License-Identifier: MIT OR Apache-2.0
 >
 > Policy: 100% of the declared surface (`SPEC.md` sec. 5) is implemented
-> and evidenced.  Runs x2 at 58/58 on v0.64.7 (`STATUS.json`).
+> and evidenced.  Runs x2 at 62/62 on v0.64.7 (`STATUS.json`).
 
 ## 1. Format functions (11/11)
 

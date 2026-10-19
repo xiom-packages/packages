@@ -1,6 +1,6 @@
 # xiom.uf2
 
-> **Status:** `incubating` -- conformance-tested (**58/58 x2** on compiler pin
+> **Status:** `incubating` -- conformance-tested (**62/62 x2** on compiler pin
 > v0.64.7; host-side format + flash legs; absent volume = SKIP); not yet
 > published.
 > **Scope (0.1.0):** UF2 512-byte block/image build, parse and validation
@@ -112,7 +112,7 @@ board stay green.
 
 ## Tests
 
-`scripts/port.ps1 -Package xiom.uf2 -TimeoutSec 300` -- 58 checks:
+`scripts/port.ps1 -Package xiom.uf2 -TimeoutSec 300` -- 62 checks:
 synthetic block goldens, every structural rejection, 256/476-byte image
 roundtrips, out-of-order and no-flash/file-container images, catalogs,
 basename/mount probes, flash SKIP and typed source errors, a real binary

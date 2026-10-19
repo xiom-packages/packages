@@ -641,6 +641,14 @@ fn test_validate_payload() -> Int {
 
   ok = uf2_block_is_uf2(&img) && !uf2_block_is_uf2(&bad);
   failed = failed + report(ok, "is_uf2: true for valid start magics, false after corruption");
+
+  let vb = valid_block();
+  let vbr = uf2_block_validate(&vb);
+  var cb = clone_vec(&vb);
+  put_u32(&mut cb, 0, 0);
+  let cbr = uf2_block_validate(&cb);
+  ok = vbr.is_ok && !cbr.is_ok && cbr.error.kind == UF2_ERR_MAGIC;
+  failed = failed + report(ok, "block-validate: valid block Ok, corrupted start magic -> MAGIC");
   return failed;
 }
 
@@ -710,6 +718,18 @@ fn test_flash_args_and_skip() -> Int {
     ok = ok && streq(r5.value.detail, "no mount/volume present");
   }
   failed = failed + report(ok, "flash-skip: absent mount -> Ok status SKIP, not an error");
+
+  let w1 = uf2_flash_wait_complete("", mdir, 0, 1);
+  ok = !w1.is_ok && w1.error.kind == UF2_ERR_ARG;
+  failed = failed + report(ok, "flash-wait-args: empty destination -> ARG");
+
+  let w2 = uf2_flash_wait_complete("x.uf2", mdir, -1, 1);
+  ok = !w2.is_ok && w2.error.kind == UF2_ERR_ARG;
+  failed = failed + report(ok, "flash-wait-args: negative timeout -> ARG");
+
+  let w3 = uf2_flash_wait_complete("x.uf2", mdir, 10, 0);
+  ok = !w3.is_ok && w3.error.kind == UF2_ERR_ARG;
+  failed = failed + report(ok, "flash-wait-args: poll 0 with a timeout -> ARG");
   return failed;
 }
 
