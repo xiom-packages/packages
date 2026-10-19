@@ -91,9 +91,11 @@ function Resolve-Compiler {
         }
     }
 
-    $cmd = Get-Command xiom -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($cmd) {
-        $candidates += @{ Path = $cmd.Source; Source = "installed" }
+    $cmds = Get-Command xiom -CommandType Application -All -ErrorAction SilentlyContinue
+    foreach ($cmd in @($cmds)) {
+        if ($cmd -and $cmd.Source) {
+            $candidates += @{ Path = $cmd.Source; Source = "installed" }
+        }
     }
 
     $releaseDir = if ($env:XIOM_RELEASE_DIR) { $env:XIOM_RELEASE_DIR } else { $script:DefaultReleaseDir }
