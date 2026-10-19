@@ -1954,6 +1954,30 @@ launched; arm64 emulation proven)**:
   bundled; only B-21/B-24 rows remain).  B-34 witness item still open
   at the compiler (fix already upstream for the next cut).
 
+**UPDATE 2026-10-19 15:00Z (MCU PHASE-1 LANDED: firmata + micropython +
+uf2; validate 579/0)**:
+- **`xiom.firmata 0.1.0` LANDED** (land `84165c27`; record `0c0ecfb0`):
+  pure-XIOM Firmata 2.x host bindings (encode/decode/frame_len/session
+  with port shadow + resync; typed errors; fixture-pinned traces);
+  **x2 122/122** on v0.64.7 (transport SKIP seam by design).
+- **`xiom.micropython 0.1.0` LANDED** (land `cd376f1f`; record
+  `fc5bcf33`): host REPL protocol (Ctrl-A/B/C/D, exec/raw/eval framing,
+  enter/exit, traceback passthrough, byte-trace fixtures); **x2 19/19**
+  after the EOL fix below.
+- **`xiom.uf2 0.1.0` LANDED** (land `c927516d`; record `8d59486d`):
+  UF2 codec (block/image build/parse/validate, family catalog,
+  FILECONTAINER) + BOOTSEL mount flashing seam (typed SKIP; copy +
+  read-back verified); **x2 62/62**.
+- **NEW TRAP (recipe addendum)**: line-oriented hex/trace fixtures are
+  CRLF-sensitive on Windows checkouts (autocrlf) -- the micropython
+  fixtures failed 11 loads until `packages/xiom-micropython/
+  .gitattributes` (`tests/fixtures/*.trace text eol=lf`) + re-checkout.
+  Other packages with such fixtures should carry the same guard.
+- validate **579/0**; pushed `8d59486d`; publish request
+  `REL-20261019-1454-bindings` (3 NEW names; combined MCU Phase-1).
+- v0.64.8 cut is GO (owner; stdlib gate in progress; the B-34
+  alias-resolution fix is a candidate) -- watch for the release.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
