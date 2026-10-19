@@ -25,7 +25,8 @@ param(
     [string]$CompilerRoot = "E:\repos\xiom-arm64",
     [string]$Stdlib = "E:\xiom-lang\stdlib",
     [string]$Image = "xiom-arm64-emu:trixie",
-    [int]$CompileTimeoutSec = 0
+    [int]$CompileTimeoutSec = 0,
+    [int]$HardTimeoutSec = 1200
 )
 
 $ErrorActionPreference = "Continue"
@@ -46,7 +47,7 @@ if ($Package) {
 }
 
 $target = "/repo/$rel"
-$cmd = "XIOM_STDLIB=/stdlib /xiom/bin/xiom --timeout $CompileTimeoutSec --run '$target'"
+$cmd = "timeout $HardTimeoutSec env XIOM_STDLIB=/stdlib /xiom/bin/xiom --timeout $CompileTimeoutSec --run '$target'"
 
 Write-Host "arm64 emulation: $rel"
 Write-Host "  image:  $Image"

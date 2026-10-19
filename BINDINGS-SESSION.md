@@ -1757,6 +1757,22 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-19 20:10Z (MCU agents stopped+worktrees removed; Agent
+Manager offline; arm64 sweep hardened+restarted)**:
+- **MCU Phase-1 agents**: confirmed finished (worktrees clean at delivered
+  commits).  Sessions stopped (stop timeouts were IPC lag; the registry now
+  shows none) and the three worktrees removed (`feat/firmata`,
+  `feat/micropython`, `feat/uf2-2` branches kept).  Deliveries landed;
+  publish deferred to the next cycle.
+- **Agent Manager is currently OFFLINE for all sessions** (driver
+  included) -- that is why the cards looked stalled; tree/relay work
+  continues independently.
+- **arm64 fleet sweep**: serial's emulated compile ran 35+ min at 109% CPU
+  (slow, not hung).  Harness now wraps each run in a hard per-suite
+  `timeout` (default 1200s); the stuck sweep was killed and restarted.
+- Ghost cards (`micropython-2`/`uf2-3`) are stale registry entries with no
+  worktrees; they reconcile on extension reload.
+
 **UPDATE 2026-10-19 19:30Z (arm64 gpio PASSES; fleet sweep fixed+restarted)**:
 - **arm64 gpio suite: all 21 tests passed** (emulated, official
   linux-arm64 compiler) -- first fleet package green under arm64.
