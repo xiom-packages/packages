@@ -1,6 +1,6 @@
 package xiom_pandas {
   name: "xiom.pandas";
-  version: "0.1.0";
+  version: "0.2.0";
   description: "Pandas Arrow-backed DataFrame and Series operations with zero Python overhead";
   categories: ["data", "ai-ml"];
   keywords: ["pandas", "dataframe", "arrow", "analytics"];

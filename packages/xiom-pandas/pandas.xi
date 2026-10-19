@@ -51,12 +51,15 @@ pub const JOIN_RIGHT: Int = 2
 pub const JOIN_OUTER: Int = 3
 
 // =========================================================================
-// extern "C" -- Pandas C bridge (12 functions)
+// extern "C" -- Pandas C bridge (18 functions)
 //
 // The extern names carry a `pandas_c_` prefix and ARE the C symbol names
 // (the numpy_c_* convention used by xiom.numpy). A wrapper must never be
 // named after its C symbol (language rule 10: the collision is silently
 // dropped); the `pandas_c_` prefix keeps every wrapper name distinct.
+// One owner-pinned exception: the additive f64 filter entry is
+// `pandas_dataframe_filter_f64` (exact section-8 name) and its wrapper is
+// `dataframe_filter_f64`, so the collision rule still holds.
 // All pointer parameters use Int (memory address) until the compiler
 // supports typed C pointer interop. Handles: 0 = null/failure, > 0 = ok.
 // =========================================================================
@@ -74,6 +77,12 @@ extern "C" {
   fn pandas_c_series_from_vec(dtype: Int, values: Int, len: Int) -> Int;
   fn pandas_c_series_to_vec(series: Int, out_len: Int) -> Int;
   fn pandas_c_series_apply(series: Int, func_ptr: Int) -> Int;
+  fn pandas_c_dataframe_free(df: Int) -> Int;
+  fn pandas_c_series_free(series: Int) -> Int;
+  fn pandas_c_free(ptr: Int) -> Int;
+  fn pandas_dataframe_filter_f64(df: Int, col_name: Int, op: Int, bits: Int) -> Int;
+  fn pandas_c_dataframe_from_parquet(path: Int) -> Int;
+  fn pandas_c_dataframe_to_parquet(df: Int, path: Int) -> Int;
 }
 
 // =========================================================================
@@ -353,6 +362,135 @@ pub fn series_apply(series: Series, func_ptr: Int) -> Result[Series, Str]
 }
 
 // =========================================================================
+// dataframe_free -- release a DataFrame handle (additive ownership, 0.2.0)
+//
+// Returns Ok(0) or Err(message). The handle is invalid after this call.
+// requires: df != 0
+// =========================================================================
+
+pub fn dataframe_free(df: DataFrame) -> Result[Int, Str]
+  requires: df != 0
+{
+  if df == 0 {
+    return Err("dataframe_free: null DataFrame handle");
+  }
+  let rc: Int = unsafe { pandas_c_dataframe_free(df) };
+  if rc == 0 {
+    return Err("dataframe_free: free failed (invalid or already-freed handle)");
+  }
+  return Ok(0);
+}
+
+// =========================================================================
+// series_free -- release a Series handle (additive ownership, 0.2.0)
+//
+// Returns Ok(0) or Err(message). The handle is invalid after this call.
+// requires: series != 0
+// =========================================================================
+
+pub fn series_free(series: Series) -> Result[Int, Str]
+  requires: series != 0
+{
+  if series == 0 {
+    return Err("series_free: null Series handle");
+  }
+  let rc: Int = unsafe { pandas_c_series_free(series) };
+  if rc == 0 {
+    return Err("series_free: free failed (invalid or already-freed handle)");
+  }
+  return Ok(0);
+}
+
+// =========================================================================
+// series_buffer_free -- release a buffer returned by series_to_vec
+//
+// Additive ownership (0.2.0). pandas_c_free is the bridge-owned malloc
+// release path for series_to_vec buffers. Returns Ok(0) or Err(message).
+// requires: ptr != 0
+// =========================================================================
+
+pub fn series_buffer_free(ptr: Int) -> Result[Int, Str]
+  requires: ptr != 0
+{
+  if ptr == 0 {
+    return Err("series_buffer_free: null buffer pointer");
+  }
+  let rc: Int = unsafe { pandas_c_free(ptr) };
+  if rc == 0 {
+    return Err("series_buffer_free: free failed (invalid buffer pointer)");
+  }
+  return Ok(0);
+}
+
+// =========================================================================
+// dataframe_filter_f64 -- filter with an IEEE-754 f64 comparison value
+//
+// Additive entry point (section-8 decision 5). `bits` is the binary64 bit
+// pattern carried as an Int64; it is compared against the column without a
+// pointer cast. The existing dataframe_filter(df, col, op, value: Int) entry
+// is unchanged. Returns Ok(DataFrame) or Err(message).
+// requires: df != 0
+// =========================================================================
+
+pub fn dataframe_filter_f64(df: DataFrame, col_name: Int, op: Int, bits: Int) -> Result[DataFrame, Str]
+  requires: df != 0
+{
+  if df == 0 {
+    return Err("dataframe_filter_f64: null DataFrame handle");
+  }
+  if col_name == 0 {
+    return Err("dataframe_filter_f64: null column name pointer");
+  }
+  let result: Int = unsafe { pandas_dataframe_filter_f64(df, col_name, op, bits) };
+  if result == 0 {
+    return Err("dataframe_filter_f64: filter returned null (no matching rows or error)");
+  }
+  return Ok(result);
+}
+
+// =========================================================================
+// dataframe_from_parquet -- read a DataFrame through the Arrow Parquet
+// component (parquet::arrow::OpenFile + FileReader::ReadTable)
+//
+// path: raw pointer to null-terminated C string.
+// Returns Ok(DataFrame) or Err(message).
+// =========================================================================
+
+pub fn dataframe_from_parquet(path: Int) -> Result[DataFrame, Str] {
+  if path == 0 {
+    return Err("dataframe_from_parquet: null path pointer");
+  }
+  let df: Int = unsafe { pandas_c_dataframe_from_parquet(path) };
+  if df == 0 {
+    return Err("dataframe_from_parquet: failed to read Parquet (null handle or backend unavailable)");
+  }
+  return Ok(df);
+}
+
+// =========================================================================
+// dataframe_to_parquet -- write a DataFrame through the Arrow Parquet
+// component (parquet::arrow::WriteTable)
+//
+// Returns Ok(0) or Err(message). requires: df != 0
+// =========================================================================
+
+pub fn dataframe_to_parquet(df: DataFrame, path: Int) -> Result[Int, Str]
+  requires: df != 0
+{
+  if df == 0 {
+    return Err("dataframe_to_parquet: null DataFrame handle");
+  }
+  if path == 0 {
+    return Err("dataframe_to_parquet: null path pointer");
+  }
+  let rc: Int = unsafe { pandas_c_dataframe_to_parquet(df, path) };
+  if rc != 0 {
+    return Err("dataframe_to_parquet: failed to write Parquet (backend unavailable or I/O error)");
+  }
+  return Ok(0);
+}
+
+// =========================================================================
 // Utility: dtype_name -- human-readable name for a Dtype constant
 // =========================================================================
 
@@ -371,5 +509,5 @@ pub fn dtype_name(dtype: Dtype) -> Str {
 // =========================================================================
 
 pub fn version() -> Str {
-  "0.1.0"
+  "0.2.0"
 }
