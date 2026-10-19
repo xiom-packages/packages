@@ -17,12 +17,12 @@ $summary = @()
 foreach ($p in $Packages) {
     $suite = Join-Path $root ("packages\xiom-{0}\tests\test_conformance.xi" -f $p)
     if (-not (Test-Path -LiteralPath $suite)) {
-        Write-Output "$p: MISSING"
+        Write-Output "${p}: MISSING"
         $summary += ("{0}: MISSING" -f $p)
         continue
     }
     $log = Join-Path $OutDir ("{0}.log" -f $p)
-    Write-Output "$p: running (arm64 emulation) ..."
+    Write-Output "${p}: running (arm64 emulation) ..."
     & $harness -Package $p -Image $Image *> $log
     $rc = $LASTEXITCODE
     $verdict = (Select-String -Path $log -Pattern "all tests passed|suite green|FAIL" |
