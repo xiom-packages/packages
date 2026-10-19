@@ -1,8 +1,9 @@
 # xiom.pulse -- PULSE Beacon (embeddable core)
 
 > **Status:** `incubating` -- conformance-tested (231/231), recorded x2 green
-> on XIOM v0.64.7. Current version: `0.3.0` (single tag `xiom-pulse/v0.3.0`,
-> sha256 `bae0dd08...`, 2026-10-18 -- stateful HookCtx seam; `0.2.2` in
+> on XIOM v0.64.7. Current version: `0.3.1` (single tag `xiom-pulse/v0.3.1`,
+> sha256 `38465713...`, 2026-10-19 -- unmatched-route fallback seam + HEAD
+> body trim; `0.3.0` in `xiom-pulse/v0.3.0` -- stateful HookCtx seam; `0.2.2` in
 > `eco-v0.1.198` -- version-identity fix; `0.2.1` in `eco-v0.1.197` -- body-cap
 > hardening; `0.2.0` in `eco-v0.1.195` -- hook seam + Server-token seam;
 > previous publish: `0.1.0` in `eco-v0.1.192`, sha256 `53fcc56e...`).
