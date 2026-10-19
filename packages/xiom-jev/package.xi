@@ -23,7 +23,7 @@
 
 package xiom_jev {
   name: "xiom.jev";
-  version: "0.1.0";
+  version: "0.2.0";
   description: "TypeSafe Jev client tier (System One structured decisions): typed questions (choice/score/noul/box) with optional danger-zone image assets -> typed answers with probabilities and confidence, plus deterministic selection (argmax, threshold, sample-by-probability from caller-supplied entropy); float-free micro-unit core";
   categories: ["ai-ml"];
   keywords: ["jev", "typesafe", "decision", "system-one", "choice", "score", "noul", "box", "image", "probability", "confidence", "selection"];
