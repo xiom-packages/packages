@@ -70,14 +70,15 @@ carry. The module still keeps free functions only (no methods/lambdas).
 
 | Leg | Command | Run 1 | Run 2 | Logs |
 |---|---|---|---|---|
-| Pure/fixture (this host; no transport) | `scripts/port.ps1 -Package xiom.firmata -TimeoutSec 300` | PASS 121/121 (exit 0) | PASS 121/121 (exit 0) | `%TEMP%\kilo\firmata-runs\run-a.log`, `run-b.log` |
+| Pure/fixture (this host; no transport) | `scripts/port.ps1 -Package xiom.firmata -TimeoutSec 300` | PASS 122/122 (exit 0) | PASS 122/122 (exit 0) | `%TEMP%\kilo\firmata-runs\run-a.log`, `run-b.log` (PowerShell transcripts) |
 
 Highlights: every encoder byte golden + the concatenated host-command
 stream; 17 framing checks; handshake (Version 2.5 + `StandardFirmata`);
 10 IO/report/set/reset frames; 4 string forms (ASCII, 14-bit U+00E9,
 NUL-terminated, empty); 9 decode error shapes; the session shadow
-accumulate/clear and incoming-report update; 4 resynchronization
-scenarios; reset; the explicit transport SKIP note. Namespace check:
+accumulate/clear and incoming-report update; the short-shadow guard
+(`INVALID_ARG`, no panic); 4 resynchronization scenarios; reset; the
+explicit transport SKIP note. Namespace check:
 1 module (`xiom.firmata`), 0 conflicts (stdlib namespace 2006 modules).
 
 ## 5. Process notes for the next agent
@@ -87,7 +88,7 @@ scenarios; reset; the explicit transport SKIP note. Namespace check:
   repo-root fallback for runners that start elsewhere.
 - A missing fixture is a FAIL (repository artifact); absent hardware is
   the SKIP note and never a failure.
-- `STATUS.json` records the code commit `99094c30` and the x2 run count.
+- `STATUS.json` records the code commit `4113fb53` and the x2 run count.
   If the suite is re-run after a code change, update `STATUS.json` (run
   `scripts/status.ps1 -Action update ...` or edit the fields in the same
   commit as the change).

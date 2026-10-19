@@ -1,6 +1,6 @@
 # xiom.firmata
 
-> **Status:** `incubating` -- conformance-tested (**121/121 x2** on the
+> **Status:** `incubating` -- conformance-tested (**122/122 x2** on the
 > compiler pin v0.64.7; fixture-driven, no hardware or transport required);
 > not yet published.
 > **Scope (0.1.0):** pure-XIOM host-side Firmata 2.x bindings -- version and
@@ -172,8 +172,8 @@ No hardware is needed for the suite: feed recorded traces instead.
 ## Evidence
 
 - Suite: `scripts/port.ps1 -Package xiom.firmata -TimeoutSec 300` --
-  **121/121 x2** on v0.64.7 (logs `%TEMP%\kilo\firmata-runs\run-a/b.log`;
-  recorded in `STATUS.json` at commit `99094c30`).
+  **122/122 x2** on v0.64.7 (logs `%TEMP%\kilo\firmata-runs\run-a/b.log`;
+  recorded in `STATUS.json` at commit `4113fb53`).
 - Per-function coverage: `docs/COVERAGE.md`; byte tables, declared subset
   and re-pin procedure: `SPEC.md`; upstream references: `PROVENANCE.md`;
   lane audit and probes: `AUDIT.md`.

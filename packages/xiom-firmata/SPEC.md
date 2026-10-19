@@ -129,7 +129,7 @@ ENCODER/SERIAL/PULLUP`); ranges (`FIRMATA_MAX_PIN` 127, `FIRMATA_MAX_PORT`
 | PWM write | pin 0..15, value 0..16383 |
 | analog report | channel 0..15, value is `Bool` |
 | digital report | port 0..15, value is `Bool` |
-| session digital write | pin 0..127 (port = pin/8, bit = pin%8) |
+| session digital write | pin 0..127 (port = pin/8, bit = pin%8); the 16-entry port shadow must be intact (`INVALID_ARG` otherwise, no panic) |
 | digital mask helper | mask 0..16383, bit 0..13 |
 
 Violations return `OUT_OF_RANGE` with the offending value in `code`; a
@@ -187,7 +187,7 @@ on caller input (no input-condition `requires` clauses).
 
 ## 7. 100% coverage table (0.1.0)
 
-The suite (`tests/test_conformance.xi`, 121 checks) covers every public
+The suite (`tests/test_conformance.xi`, 122 checks) covers every public
 function. Representative checks (full names and the complete matrix are in
 `docs/COVERAGE.md`):
 
@@ -220,7 +220,7 @@ function. Representative checks (full names and the complete matrix are in
 | `firmata_session_begin_handshake` | queues `f9 f0 79 f7` |
 | `firmata_session_is_ready` | false before, true after both reports |
 | `firmata_session_set_pin_mode` | queue golden + invalid-queues-nothing |
-| `firmata_session_digital_write` | 5 writes incl. shadow accumulation/clear + incoming update |
+| `firmata_session_digital_write` | 5 writes incl. shadow accumulation/clear + incoming update; short-shadow guard -> `INVALID_ARG` |
 | `firmata_session_pwm_write` | queue golden + invalid |
 | `firmata_session_enable_analog_report` | queue golden + invalid |
 | `firmata_session_enable_digital_report` | queue golden + invalid |

@@ -4,8 +4,8 @@
 > SPDX-License-Identifier: MIT OR Apache-2.0
 >
 > Every public function in the declared 0.1.0 surface (`SPEC.md` sec. 4)
-> maps to at least one conformance check. Suite: 121 checks, 121/121 x2 on
-> compiler pin v0.64.7 (commit `99094c30`). This file is the detailed
+> maps to at least one conformance check. Suite: 122 checks, 122/122 x2 on
+> compiler pin v0.64.7 (commit `4113fb53`). This file is the detailed
 > companion to the summary table in `SPEC.md` sec. 7.
 
 ## 1. Encoders
@@ -54,7 +54,7 @@
 | `firmata_session_begin_handshake` | queues `f9 f0 79 f7`; second drain empty |
 | `firmata_session_is_ready` | false before handshake; true after both reports; false after firmware-only; false after reset |
 | `firmata_session_set_pin_mode` | queues `f4 0d 01`; invalid pin queues nothing |
-| `firmata_session_digital_write` | pin 13 high; pin 8 high (accumulate); pin 13 low (clear); incoming `90 01 00` updates shadow then pin 2 high -> `90 05 00`; invalid pin queues nothing |
+| `firmata_session_digital_write` | pin 13 high; pin 8 high (accumulate); pin 13 low (clear); incoming `90 01 00` updates shadow then pin 2 high -> `90 05 00`; invalid pin queues nothing; hand-built short shadow -> `INVALID_ARG` (no panic) |
 | `firmata_session_pwm_write` | queues `e9 7f 07`; invalid pin queues nothing |
 | `firmata_session_enable_analog_report` | queues `c0 01`; invalid channel queues nothing |
 | `firmata_session_enable_digital_report` | queues `d1 01`; invalid port queues nothing |
