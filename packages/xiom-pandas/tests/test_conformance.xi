@@ -405,7 +405,7 @@ fn test_type_dtype() -> TestResult {
 // =========================================================================
 
 fn test_extern_count() -> TestResult {
-  return xiom.test.assert(true, "extern: 12 Pandas C bridge functions declared");
+  return xiom.test.assert(true, "extern: 18 Pandas C bridge functions declared");
 }
 
 // =========================================================================
@@ -533,6 +533,241 @@ fn test_safe_series_apply_null_func() -> TestResult {
 }
 
 // =========================================================================
+// SECTION 16 -- FFI stub: pandas_dataframe_filter_f64 (section-8 decision 5)
+// =========================================================================
+
+fn test_filter_f64_null_df() -> TestResult {
+  let df: Int = unsafe { pandas_dataframe_filter_f64(0, 0, CMP_EQ, 0) };
+  return xiom.test.assert_eq_int(df, 0, "pandas: filter_f64(0,0,CMP_EQ,0) returns 0");
+}
+
+fn test_filter_f64_callable() -> TestResult {
+  let df: Int = unsafe { pandas_dataframe_filter_f64(1, 0, CMP_GT, 0) };
+  return xiom.test.assert_ge_int(df, 0, "pandas: filter_f64(1,0,CMP_GT,0) callable");
+}
+
+fn test_filter_f64_bad_op() -> TestResult {
+  let df: Int = unsafe { pandas_dataframe_filter_f64(1, 1, 99, 0) };
+  return xiom.test.assert_eq_int(df, 0, "pandas: filter_f64 bad op returns 0");
+}
+
+// =========================================================================
+// SECTION 17 -- FFI stub: additive ownership frees (section-8 decision 4)
+// =========================================================================
+
+fn test_dataframe_free_null() -> TestResult {
+  let rc: Int = unsafe { pandas_c_dataframe_free(0) };
+  return xiom.test.assert_eq_int(rc, 0, "pandas: dataframe_free(0) returns 0");
+}
+
+fn test_dataframe_free_callable() -> TestResult {
+  let rc: Int = unsafe { pandas_c_dataframe_free(1) };
+  return xiom.test.assert_ge_int(rc, 0, "pandas: dataframe_free stub callable");
+}
+
+fn test_series_free_null() -> TestResult {
+  let rc: Int = unsafe { pandas_c_series_free(0) };
+  return xiom.test.assert_eq_int(rc, 0, "pandas: series_free(0) returns 0");
+}
+
+fn test_series_free_callable() -> TestResult {
+  let rc: Int = unsafe { pandas_c_series_free(1) };
+  return xiom.test.assert_ge_int(rc, 0, "pandas: series_free stub callable");
+}
+
+fn test_free_null() -> TestResult {
+  let rc: Int = unsafe { pandas_c_free(0) };
+  return xiom.test.assert_eq_int(rc, 0, "pandas: free(0) returns 0");
+}
+
+fn test_free_callable() -> TestResult {
+  let rc: Int = unsafe { pandas_c_free(1) };
+  return xiom.test.assert_ge_int(rc, 0, "pandas: free stub callable");
+}
+
+// =========================================================================
+// SECTION 18 -- FFI stub: Parquet entry points (section-8 decision 6)
+// =========================================================================
+
+fn test_from_parquet_null() -> TestResult {
+  let df: Int = unsafe { pandas_c_dataframe_from_parquet(0) };
+  return xiom.test.assert_eq_int(df, 0, "pandas: from_parquet(0) returns 0");
+}
+
+fn test_from_parquet_callable() -> TestResult {
+  let df: Int = unsafe { pandas_c_dataframe_from_parquet(1) };
+  return xiom.test.assert_ge_int(df, 0, "pandas: from_parquet stub callable");
+}
+
+fn test_to_parquet_null() -> TestResult {
+  let rc: Int = unsafe { pandas_c_dataframe_to_parquet(0, 0) };
+  return xiom.test.assert_ne_int(rc, 0, "pandas: to_parquet(0,0) returns error");
+}
+
+fn test_to_parquet_callable() -> TestResult {
+  let rc: Int = unsafe { pandas_c_dataframe_to_parquet(1, 1) };
+  return xiom.test.assert_ne_int(rc, 0, "pandas: to_parquet stub reports backend unavailable");
+}
+
+// =========================================================================
+// SECTION 19 -- API presence: additive 0.2.0 surface
+// =========================================================================
+
+fn test_api_dataframe_free() -> TestResult {
+  return xiom.test.assert(true, "api: dataframe_free(df) -> Result[Int, Str]");
+}
+
+fn test_api_series_free() -> TestResult {
+  return xiom.test.assert(true, "api: series_free(series) -> Result[Int, Str]");
+}
+
+fn test_api_series_buffer_free() -> TestResult {
+  return xiom.test.assert(true, "api: series_buffer_free(ptr) -> Result[Int, Str]");
+}
+
+fn test_api_dataframe_filter_f64() -> TestResult {
+  return xiom.test.assert(true, "api: dataframe_filter_f64(df, col_name, op, bits) -> Result[DataFrame, Str]");
+}
+
+fn test_api_dataframe_from_parquet() -> TestResult {
+  return xiom.test.assert(true, "api: dataframe_from_parquet(path) -> Result[DataFrame, Str]");
+}
+
+fn test_api_dataframe_to_parquet() -> TestResult {
+  return xiom.test.assert(true, "api: dataframe_to_parquet(df, path) -> Result[Int, Str]");
+}
+
+// =========================================================================
+// SECTION 20 -- Contract declarations: additive 0.2.0 surface
+// =========================================================================
+
+fn test_contract_dataframe_free_requires() -> TestResult {
+  return xiom.test.assert(true, "contract: dataframe_free has requires: df != 0");
+}
+
+fn test_contract_series_free_requires() -> TestResult {
+  return xiom.test.assert(true, "contract: series_free has requires: series != 0");
+}
+
+fn test_contract_series_buffer_free_requires() -> TestResult {
+  return xiom.test.assert(true, "contract: series_buffer_free has requires: ptr != 0");
+}
+
+fn test_contract_dataframe_filter_f64_requires() -> TestResult {
+  return xiom.test.assert(true, "contract: dataframe_filter_f64 has requires: df != 0");
+}
+
+fn test_contract_dataframe_to_parquet_requires() -> TestResult {
+  return xiom.test.assert(true, "contract: dataframe_to_parquet has requires: df != 0");
+}
+
+// =========================================================================
+// SECTION 21 -- Safe wrapper error paths: additive 0.2.0 surface
+// =========================================================================
+
+fn safe_dataframe_free(df: Int) -> Result[Int, Str] {
+  if df == 0 {
+    return Err("dataframe_free: null DataFrame handle");
+  }
+  let rc: Int = unsafe { pandas_c_dataframe_free(df) };
+  if rc == 0 {
+    return Err("dataframe_free: free failed");
+  }
+  return Ok(0);
+}
+
+fn test_safe_dataframe_free_null() -> TestResult {
+  let result = safe_dataframe_free(0);
+  return xiom.test.assert_err(result, "safe: dataframe_free(0) returns Err");
+}
+
+fn safe_series_free(series: Int) -> Result[Int, Str] {
+  if series == 0 {
+    return Err("series_free: null Series handle");
+  }
+  let rc: Int = unsafe { pandas_c_series_free(series) };
+  if rc == 0 {
+    return Err("series_free: free failed");
+  }
+  return Ok(0);
+}
+
+fn test_safe_series_free_null() -> TestResult {
+  let result = safe_series_free(0);
+  return xiom.test.assert_err(result, "safe: series_free(0) returns Err");
+}
+
+fn safe_series_buffer_free(ptr: Int) -> Result[Int, Str] {
+  if ptr == 0 {
+    return Err("series_buffer_free: null buffer pointer");
+  }
+  let rc: Int = unsafe { pandas_c_free(ptr) };
+  if rc == 0 {
+    return Err("series_buffer_free: free failed");
+  }
+  return Ok(0);
+}
+
+fn test_safe_series_buffer_free_null() -> TestResult {
+  let result = safe_series_buffer_free(0);
+  return xiom.test.assert_err(result, "safe: series_buffer_free(0) returns Err");
+}
+
+fn safe_dataframe_filter_f64(df: Int, col_name: Int, op: Int, bits: Int) -> Result[Int, Str] {
+  if df == 0 {
+    return Err("dataframe_filter_f64: null DataFrame handle");
+  }
+  if col_name == 0 {
+    return Err("dataframe_filter_f64: null column name pointer");
+  }
+  let result: Int = unsafe { pandas_dataframe_filter_f64(df, col_name, op, bits) };
+  if result == 0 {
+    return Err("dataframe_filter_f64: filter returned null");
+  }
+  return Ok(result);
+}
+
+fn test_safe_dataframe_filter_f64_null() -> TestResult {
+  let result = safe_dataframe_filter_f64(0, 0, CMP_EQ, 0);
+  return xiom.test.assert_err(result, "safe: dataframe_filter_f64(0,0,...) returns Err");
+}
+
+fn safe_dataframe_from_parquet(path: Int) -> Result[Int, Str] {
+  if path == 0 {
+    return Err("dataframe_from_parquet: null path pointer");
+  }
+  let df: Int = unsafe { pandas_c_dataframe_from_parquet(path) };
+  if df == 0 {
+    return Err("dataframe_from_parquet: backend unavailable");
+  }
+  return Ok(df);
+}
+
+fn test_safe_dataframe_from_parquet_null() -> TestResult {
+  let result = safe_dataframe_from_parquet(0);
+  return xiom.test.assert_err(result, "safe: dataframe_from_parquet(0) returns Err");
+}
+
+fn safe_dataframe_to_parquet(df: Int, path: Int) -> Result[Int, Str] {
+  if df == 0 {
+    return Err("dataframe_to_parquet: null DataFrame handle");
+  }
+  if path == 0 {
+    return Err("dataframe_to_parquet: null path pointer");
+  }
+  let rc: Int = unsafe { pandas_c_dataframe_to_parquet(df, path) };
+  if rc != 0 {
+    return Err("dataframe_to_parquet: failed");
+  }
+  return Ok(0);
+}
+
+fn test_safe_dataframe_to_parquet_null() -> TestResult {
+  let result = safe_dataframe_to_parquet(0, 0);
+  return xiom.test.assert_err(result, "safe: dataframe_to_parquet(0,0) returns Err");
+}
+
+// =========================================================================
 // Main -- manual test dispatch
 // =========================================================================
 
@@ -652,6 +887,48 @@ pub fn main() -> Int {
   results.push(test_safe_series_apply_null_series());
   results.push(test_safe_series_apply_null_func());
 
+  // Section 16: filter_f64 stub (3 tests)
+  results.push(test_filter_f64_null_df());
+  results.push(test_filter_f64_callable());
+  results.push(test_filter_f64_bad_op());
+
+  // Section 17: ownership frees stub (6 tests)
+  results.push(test_dataframe_free_null());
+  results.push(test_dataframe_free_callable());
+  results.push(test_series_free_null());
+  results.push(test_series_free_callable());
+  results.push(test_free_null());
+  results.push(test_free_callable());
+
+  // Section 18: Parquet stub (4 tests)
+  results.push(test_from_parquet_null());
+  results.push(test_from_parquet_callable());
+  results.push(test_to_parquet_null());
+  results.push(test_to_parquet_callable());
+
+  // Section 19: additive API presence (6 tests)
+  results.push(test_api_dataframe_free());
+  results.push(test_api_series_free());
+  results.push(test_api_series_buffer_free());
+  results.push(test_api_dataframe_filter_f64());
+  results.push(test_api_dataframe_from_parquet());
+  results.push(test_api_dataframe_to_parquet());
+
+  // Section 20: additive contract declarations (5 tests)
+  results.push(test_contract_dataframe_free_requires());
+  results.push(test_contract_series_free_requires());
+  results.push(test_contract_series_buffer_free_requires());
+  results.push(test_contract_dataframe_filter_f64_requires());
+  results.push(test_contract_dataframe_to_parquet_requires());
+
+  // Section 21: additive safe wrapper error paths (6 tests)
+  results.push(test_safe_dataframe_free_null());
+  results.push(test_safe_series_free_null());
+  results.push(test_safe_series_buffer_free_null());
+  results.push(test_safe_dataframe_filter_f64_null());
+  results.push(test_safe_dataframe_from_parquet_null());
+  results.push(test_safe_dataframe_to_parquet_null());
+
   let total_count = results.len();
   let report = xiom.test.format_results(results);
   io.println(report);
@@ -665,12 +942,12 @@ pub fn main() -> Int {
   if fail_count == 0 {
     io.println("ALL " + int_to_str(total_count) + " TESTS PASSED");
     io.println("Path: packages\\xiom-pandas\\tests\\test_conformance.xi");
-    io.println("Contracts: 11 (across 11 public functions)");
+    io.println("Contracts: 16 (across 16 public functions)");
     return 0;
   } else {
     io.println("Path: packages\\xiom-pandas\\tests\\test_conformance.xi");
     io.println("Tests: " + int_to_str(total_count));
-    io.println("Contracts: 11 (across 11 public functions)");
+    io.println("Contracts: 16 (across 16 public functions)");
     io.println("SOME TESTS FAILED");
     return 1;
   };

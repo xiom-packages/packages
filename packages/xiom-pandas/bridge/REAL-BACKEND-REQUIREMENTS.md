@@ -5,21 +5,17 @@ and the conformance suite is green (80/80 x2). The REAL bridge is NOT built;
 this document pins exactly what it must provide. Nothing here changes the
 current 12-symbol Phase-1 ABI -- additions are listed and marked as such.
 
-Implementation status 2026-10-17: `bridge/xiom_pandas_arrow.cpp` is now
-prepared and builds/runs against Apache Arrow C++ 22.0.0 (tag
-`apache-arrow-22.0.0`, commit `5aeb5f2`; pyarrow 22.0.0 win_amd64 wheel,
-sha256 `44729980B6C50A5F2BFCC2668D36C569CE17F8B17BCCAF470C4313DCBBF13C9D`,
-MSVC 19.44 ABI). Version-sensitive items were pinned from that release's
-headers: Acero node names are `"table_source"`, `"aggregate"`, `"hashjoin"`,
-and `arrow::compute::Initialize()` is required because Arrow 22 splits the
-compute kernels into `arrow_compute.dll`. The offline suite still links the
-stub only. `tests/probe_real_arrow.xi` passes (null contract + CSV round
-trip); a local C-ABI probe covering all 12 symbols was run and deleted.
-Owner-pending items remain exactly as section 6 states: the additive free
-functions are implemented but not declared in `pandas.xi`, `series_apply`
-uses the recommended `double (*)(double)` signature without an ABI decision,
-`dataframe_filter` still carries an i64 value (no Float64 entry point), and
-parquet is not implemented. The declared 12-symbol ABI is unchanged.
+Implementation status 2026-10-19 (0.2.0): `bridge/xiom_pandas_arrow.cpp` is
+implemented against Apache Arrow C++ 22.0.0 (tag `apache-arrow-22.0.0`,
+commit `5aeb5f2`; pyarrow 22.0.0 win_amd64 wheel, sha256
+`44729980B6C50A5F2BFCC2668D36C569CE17F8B17BCCAF470C4313DCBBF13C9D`, MSVC
+19.44 ABI) **without Acero headers or symbols**. Group-by uses
+`arrow::compute::Grouper`; join is the bridge-side Grouper+Take fallback;
+`series_apply` is Float64-only; the three ownership frees, the f64 filter
+entry point and Parquet (`parquet::arrow::OpenFile`/`ReadTable`/`WriteTable`)
+are implemented and declared in `pandas.xi` (18 symbols). The offline suite
+stays on the stub and is green 110/110 x2; `tests/probe_real_arrow.xi` is
+green against the real bridge (see section 9).
 
 ## 1. Artifact
 
@@ -166,3 +162,53 @@ port.ps1. Shape:
 - evidence model mirrors xiom-http 0.1.4/0.1.5: local run against the real
   library, output pasted into the package notes; CI keeps running only the
   offline suite.
+
+## 8. OWNER DECISIONS (2026-10-19, owner GO)
+
+Section 6 is now RESOLVED. Decisions below are authoritative; implement the bridge against these (additive only, pandas.xi + suite marker in the SAME change).
+
+1. ACERO: do NOT require Acero declarations at build time. Use the bridge-side fallback (section 2 table) for hash_join/hash_group_aggregate when the installed Arrow lacks the exact declaration; the build must succeed on the pinned Arrow 22.0.0 without Acero headers.
+2. TableGroupBy: use the release-available compute/exec API; if the class header path is absent in Arrow 22.0.0, use the Acero-free group_by fallback (aggregate in the bridge over the Arrow table). No alternate Arrow release pin.
+3. series_apply callback ABI: double (*)(double) (f64 in, f64 out), applied per element; the pandas.xi side wraps the XIOM callback accordingly. Coercion policy: Float64 only -- every stored value is f64 by the package model, so no element coercion; no NA channel exists (NA/NaN policies remain unpinned and out of scope).
+4. OWNERSHIP ADDITIONS: YES -- add pandas_c_dataframe_free(handle), pandas_c_series_free(handle), pandas_c_free(ptr) for series_to_vec buffers. Additive; update pandas.xi and the suite's '12 declared' marker in the same change.
+5. dataframe_filter value ABI: add an additive f64 entry point pandas_dataframe_filter_f64(df, column, op, bits) comparing IEEE-754 f64 bit patterns (bits as Int64); the existing Int entry stays unchanged. No ABI break.
+6. Parquet: use the Arrow parquet component -- parquet::arrow::OpenFile + FileReader::ReadTable (reader) and parquet::arrow::WriteTable (writer) against the pinned Arrow 22.0.0 build including its Thrift/zstd/snappy transitive deps. No separate parquet implementation.
+
+Free functions policy (the 'additive free functions' item): YES -- the ownership frees above are the additive free functions; keep existing 12 wrappers byte-identical.
+
+## 9. IMPLEMENTATION RECORD (2026-10-19, xiom.pandas 0.2.0)
+
+| Decision | Implementation | Evidence |
+|---|---|---|
+| 1. No Acero build requirement | No `arrow/acero` include, no Acero symbol. Group-by uses `arrow::compute::Grouper` (`arrow/compute/row/grouper.h`); join uses Grouper ids + `arrow::compute::Take`. | `clang++ -std=c++17 -c` against an Arrow 22.0.0 include tree with `arrow/acero` deleted succeeds; `llvm-nm -u` shows no Acero reference; the probe links `arrow + arrow_compute + parquet` only (no `arrow_acero`). |
+| 2. TableGroupBy | `arrow/compute/exec/group_by.h` is absent in 22.0.0; the Acero-free bridge aggregate is used. Output is the key column plus Int64 `count` in grouper order. | Probe leg 3 returns a live group-by handle from a 3-row CSV. |
+| 3. series_apply | `double (*)(double)`, per element, Float64-only. Non-Float64 series and null elements return 0. NaN passes through; NA/NaN policy is out of scope. | Probe leg 5 (C callback `x*2`) returns 3.0/5.0/7.0. |
+| 4. Ownership frees | `pandas_c_dataframe_free`, `pandas_c_series_free`, `pandas_c_free` declared in `pandas.xi`; wrappers `dataframe_free`, `series_free`, `series_buffer_free`. The suite's extern marker is now 18. | Probe legs 2/5 free a DataFrame, a Series and a `series_to_vec` buffer. |
+| 5. dataframe_filter_f64 | Owner-pinned symbol `pandas_dataframe_filter_f64(df, column, op, bits)`; bits are the binary64 pattern in an Int64, decoded with `memcpy`. The Int entry is unchanged. | Probe leg 6 (`x > 2.0`) returns one data row. |
+| 6. Parquet | `parquet::arrow::OpenFile` + `FileReader::ReadTable` and `parquet::arrow::WriteTable` from the Arrow 22.0.0 Parquet component (`parquet.lib`; Thrift/zstd/snappy are transitive deps of that component). | Probe leg 7 writes/reads a 3-row Parquet file and round-trips it to CSV. |
+
+**Build / link shape (real leg):**
+
+```powershell
+$arrow = "E:\repos\arrow-bin\pyarrow-22.0.0"
+$env:CPLUS_INCLUDE_PATH = "<arrow-include-without-arrow/acero>"
+$env:PATH = "$arrow\pyarrow;$arrow\pyarrow.libs;$env:PATH"
+xiom --run packages\xiom-pandas\tests\probe_real_arrow.xi `
+    --cxx-standard 17 `
+    --c-source packages\xiom-pandas\bridge\xiom_pandas_arrow.cpp `
+    --c-source packages\xiom-pandas\tests\probe_real_arrow_callback.c `
+    --link arrow --link arrow_compute --link parquet `
+    --link-path "$arrow\pyarrow"
+```
+
+**SKIP-safe behavior:** the offline suite never links Arrow or Parquet. When
+the Parquet headers are absent, `XIOM_PANDAS_HAVE_PARQUET` compiles the two
+Parquet entry points as backend-unavailable stubs (0 / 1), so the bridge still
+builds; the probe prints `[SKIP]` for the Parquet leg if the write reports the
+backend unavailable and no file was produced. Missing Arrow entirely keeps the
+real leg optional: `port.ps1` still runs the deterministic stub suite.
+
+**Known limitation (not an owner-pending ABI item):** `dataframe_groupby`
+returns an opaque bridge-owned handle; the section-8 ownership set contains
+only the three frees, so a group-by consumer/free remains a future additive
+addition. The 0.2.0 probe frees DataFrames/Series/buffers only.
