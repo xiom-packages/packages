@@ -2091,6 +2091,27 @@ B-SERIES ZERO-OPEN)**:
   v0.64.7); MCU publish still queued at packages; stdlib registry
   403 publisher_not_mapped blocker is packages-side.
 
+**UPDATE 2026-10-19 19:25Z (repin v0.64.8 DONE; B-LEDGER FULLY CLOSED;
+pandas 2-4 launched; MCU publish deferred)**:
+- **v0.64.8 repin COMPLETE** (`COMPILER_VERSION` = v0.64.8 + records
+  aligned via the sibling's re-verify `fa12730a`): **B-21/B-24 verified
+  FIXED -> the findings ledger is FULLY CLOSED**; glfw 37/37 + sdl3
+  72/72 x2 batteries; `scripts/emulate-arm64.ps1` harness added.
+- **MCU publish DEFERRED by owner decision**: firmata/micropython/uf2
+  stay LANDED but unpublished; a fresh request goes in next cycle
+  (`REL-20261019-1454-bindings` closed with that note).
+- **Pandas bridge section-6 decisions RESOLVED (owner GO)** --
+  `REL-20261019-1917-packages`, section 8 (commit `108fdeae`):
+  Acero-free fallbacks (build on Arrow 22 without Acero), TableGroupBy
+  fallback, `series_apply` f64 (Float64-only; NA out of scope),
+  ADDITIVE ownership frees (`pandas_c_dataframe_free` /
+  `pandas_c_series_free` / `pandas_c_free` + pandas.xi + the
+  "12 declared" marker), additive `dataframe_filter_f64`, Arrow-22
+  parquet component (no separate stack).  **Pandas phases 2-4 agent
+  LAUNCHED** (`am-1792437729398-crb6ad`; branch `feat/pandas-2-4`);
+  existing 12 wrappers stay byte-identical.
+- epos scope ask filed (ships next batch when ops stages it).
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
