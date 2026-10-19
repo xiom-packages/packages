@@ -9,9 +9,9 @@ stdlib `E:\xiom-lang\stdlib`, 2006 module namespaces). Suite entry:
 
 ## 1. Suite evidence (x2, committed tree)
 
-Feature commit: the commit carrying this file; the tested hash is recorded
-in `STATUS.json` `tests.commit` (record commit follows the tested feature
-commit, as usual for the lane).
+Feature commit: `69469b16407c7b20a70a71865e94cef1be0d9ecd` (the tree
+tested x2; `STATUS.json` records this hash). The record commit that fills
+STATUS/AUDIT changes docs only.
 
 Both runs are identical and warning-free:
 

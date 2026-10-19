@@ -9,8 +9,8 @@
                   "passed":  19,
                   "failed":  0,
                   "run_by":  "am:feat-micropython-2",
-                  "commit":  null,
-                  "checked":  null
+                  "commit":  "69469b16407c7b20a70a71865e94cef1be0d9ecd",
+                  "checked":  "2026-10-19T13:42:03Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: new name (MCU Phase-1 wave 2026-10-19); registry scope + allowlist entry queued"
