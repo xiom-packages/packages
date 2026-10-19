@@ -1757,6 +1757,24 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-19 18:10Z (relay check -- v0.64.8 repin MADE REAL; MCU
+publish DEFERRED to next cycle; duplicates swept)**:
+- **v0.64.8 repin completed**: the driver record claimed it, but the tree
+  was still pinned v0.64.7 while the installed slot is v0.64.8 -> bumped
+  `COMPILER_VERSION` + `status.ps1 -Action repin` (**579 records**),
+  validate **579/0**.
+- **MCU**: Phase-1 landed earlier (firmata 122/122, micropython 19/19,
+  uf2 62/62; 579/0) but per owner "not this cycle" the publish request
+  `REL-20261019-1454-bindings` is **CLOSED as deferred to the NEXT
+  cycle** (do not publish now).
+- Duplicates swept: `feat/micropython-2` + `feat/uf2-3` worktrees and
+  branches removed; `feat/uf2` placeholder deleted; live = firmata,
+  micropython, uf2-2.
+- Relay inbox: only to-all compiler/playground info items (v0.64.8 GO +
+  release + absorption claim).  Registry blocker: `-1755-stdlib`
+  (publisher_not_mapped) blocks the stdlib .8 registry publish --
+  packages/ops side.  Agent Manager: no busy sessions.
+
 **UPDATE 2026-10-19 14:05Z (arm64 emulation PROVEN end-to-end; target probe
 -- arm=AArch64-Linux, riscv=triple bug; MCU sessions deduped)**: docker
 back up.
