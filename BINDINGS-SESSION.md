@@ -1713,6 +1713,24 @@ pulse 0.3.0 single tag; v0.64.7 repin + re-verify COMPLETE on bindings)**:
   23/25/26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 live;
   workaround retirement unlocked (B-26 wave running).
 
+**UPDATE 2026-10-19 13:10Z (MCU Phase-1 wave -- firmata + micropython + uf2;
+compiler owner-request filed; post-restart recovery)**: owner go.
+- **Launched**: `feat/firmata` (session `ses_eabe3783...`, wt-2); the PC
+  restart dropped the other two -> relaunched (`am-1792415294827-v179h9`):
+  `feat/micropython` (raw-REPL client) + `feat/uf2` (format + flashing).
+  All host-side, fixture-testable (no hardware), v0.64.7 pin, x2,
+  origin/bindings base.
+- **Compiler relay filed**: `REL-20261019-1220-bindings` -- owner request
+  for the MCU/bare-metal program (Cortex-M thumbv6m/v7em/v8m + RISC-V
+  riscv32imc/imac, no_std profile, startup/linker contracts, QEMU
+  Cortex-M/riscv32 emulated CI; vendor SDK licenses clean for static use).
+- **QEMU/arm64**: `xiom-arm64-emu:trixie` (clang-19) image built before
+  the restart; Docker engine restarting -> suite proof re-run pending.
+  `xiom-arm64-emu:bookworm` (clang 14) too old for suite IR (hello-world
+  green).
+- Post-restart: stray `a.out.ll` removed; relay item committed
+  (`c9d4f9f`); tree clean.
+
 **UPDATE 2026-10-19 12:20Z (QEMU/arm64 emulation PROVEN; MCU package plan
 backlogged)**: owner go for QEMU.
 - **arm64 emulation via Docker Desktop** (no sudo): official
