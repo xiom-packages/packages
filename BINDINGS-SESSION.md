@@ -1713,6 +1713,28 @@ pulse 0.3.0 single tag; v0.64.7 repin + re-verify COMPLETE on bindings)**:
   23/25/26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 live;
   workaround retirement unlocked (B-26 wave running).
 
+**UPDATE 2026-10-19 18:15Z (v0.64.8 RELEASED + REPINNED; B-34 VERIFIED
+FIXED -- bindings findings ALL CLOSED)**: doorbell tick.
+- **v0.64.8 LIVE (17:49Z) + repinned** (installed v0.64.8; tag
+  `4d040604b`, run 39296778685; arena/Vec/alias fixes + the engine
+  memory/threads fixes).  The registry publish hit
+  `publisher_not_mapped` (403; tag-ref retry requested by the release
+  lane -- not ours).
+- **B-34 VERIFIED FIXED on v0.64.8**: `vec-alias-generic/probe.xi`
+  compiles + runs (returns length=1; was `T001` on .5/.6/.7).  Findings
+  doc row added + the B-33 row updated to FIXED (m351, .7).  Relay INFO
+  to compiler `REL-20261019-1801-bindings-2`.
+- **Every bindings findings row is now closed/resolved**: B-13/14/15,
+  B-30, B-31 fixed (.7); B-26/B-32 retired (sqlite 0.5.0 live with the
+  restored nested shape); B-27/28 stdlib fixes bundled; B-29 closed as
+  a probe defect; B-33 fixed (m351); B-34 fixed (.8).  **No open
+  compiler findings from this lane.**
+- Eco: `xiom.sqlite 0.5.0` LIVE (morning merge `772e9f34`; B-32
+  retired); MCU Phase-1 publish request filed (firmata/micropython/uf2).
+  Relay tip `bafca5f`; note: repo-wide validate flags other lanes' items
+  (`-2057-engine` missing History; previously a registry non-ASCII) --
+  theirs to fix.
+
 **UPDATE 2026-10-19 15:05Z (doorbell -- `xiom.pulse` 0.3.1 LIVE;
 sqlite 0.5.0 tag already recorded)**: packages confirms the Phase B
 loop-switch publish:
