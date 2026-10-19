@@ -1204,6 +1204,27 @@ fn test_session_commands() -> Int {
   inv_ok = inv_ok && inv5.error.kind == FIRMATA_ERR_OUT_OF_RANGE;
   failed = failed + report(inv_ok, "session commands: 5 invalid arguments -> OUT_OF_RANGE and queue nothing");
 
+  // A hand-built session with a corrupt (short) port shadow must not index
+  // out of bounds; it returns a typed error instead of panicking.
+  var broken = FirmataSession{
+    rx: Vec[UInt8].new();
+    out: Vec[UInt8].new();
+    ports: Vec[Int].new();
+    rx_limit: 16;
+    version_received: false;
+    version_major: 0;
+    version_minor: 0;
+    firmware_received: false;
+    firmware_name: "";
+  };
+  let bw = firmata_session_digital_write(&mut broken, 0, true);
+  var bridge_ok = false;
+  if !bw.is_ok {
+    bridge_ok = bw.error.kind == FIRMATA_ERR_INVALID_ARG;
+  }
+  bridge_ok = bridge_ok && firmata_session_take_output(&mut broken).len() == 0;
+  failed = failed + report(bridge_ok, "session_digital_write: uninitialized port shadow -> INVALID_ARG (no panic)");
+
   // Reset clears state but preserves the configured limit.
   s.rx_limit = 123;
   firmata_session_reset(&mut s);

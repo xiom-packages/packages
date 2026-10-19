@@ -955,6 +955,9 @@ pub fn firmata_session_digital_write(s: &mut FirmataSession, pin: Int, high: Boo
   if pin < 0 || pin > FIRMATA_MAX_PIN {
     return Err(_err(FIRMATA_ERR_OUT_OF_RANGE, pin, "session_digital_write: pin must be 0..127"));
   }
+  if s.ports.len() < FIRMATA_SESSION_PORTS {
+    return Err(_err(FIRMATA_ERR_INVALID_ARG, s.ports.len(), "session_digital_write: port shadow is not initialized"));
+  }
   let port: Int = pin / 8;
   let bit: Int = pin % 8;
   var scale = 1;
