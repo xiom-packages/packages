@@ -166,3 +166,16 @@ port.ps1. Shape:
 - evidence model mirrors xiom-http 0.1.4/0.1.5: local run against the real
   library, output pasted into the package notes; CI keeps running only the
   offline suite.
+
+## 8. OWNER DECISIONS (2026-10-19, owner GO)
+
+Section 6 is now RESOLVED. Decisions below are authoritative; implement the bridge against these (additive only, pandas.xi + suite marker in the SAME change).
+
+1. ACERO: do NOT require Acero declarations at build time. Use the bridge-side fallback (section 2 table) for hash_join/hash_group_aggregate when the installed Arrow lacks the exact declaration; the build must succeed on the pinned Arrow 22.0.0 without Acero headers.
+2. TableGroupBy: use the release-available compute/exec API; if the class header path is absent in Arrow 22.0.0, use the Acero-free group_by fallback (aggregate in the bridge over the Arrow table). No alternate Arrow release pin.
+3. series_apply callback ABI: double (*)(double) (f64 in, f64 out), applied per element; the pandas.xi side wraps the XIOM callback accordingly. Coercion policy: Float64 only -- every stored value is f64 by the package model, so no element coercion; no NA channel exists (NA/NaN policies remain unpinned and out of scope).
+4. OWNERSHIP ADDITIONS: YES -- add pandas_c_dataframe_free(handle), pandas_c_series_free(handle), pandas_c_free(ptr) for series_to_vec buffers. Additive; update pandas.xi and the suite's '12 declared' marker in the same change.
+5. dataframe_filter value ABI: add an additive f64 entry point pandas_dataframe_filter_f64(df, column, op, bits) comparing IEEE-754 f64 bit patterns (bits as Int64); the existing Int entry stays unchanged. No ABI break.
+6. Parquet: use the Arrow parquet component -- parquet::arrow::OpenFile + FileReader::ReadTable (reader) and parquet::arrow::WriteTable (writer) against the pinned Arrow 22.0.0 build including its Thrift/zstd/snappy transitive deps. No separate parquet implementation.
+
+Free functions policy (the 'additive free functions' item): YES -- the ownership frees above are the additive free functions; keep existing 12 wrappers byte-identical.
