@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  122,
                   "failed":  0,
-                  "run_by":  "am:feat-firmata",
-                  "commit":  "84165c27",
-                  "checked":  "2026-10-19T14:52:52Z"
+                  "run_by":  "native-session",
+                  "commit":  "925f1557",
+                  "checked":  "2026-10-19T18:10:30Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: new name (xiom.firmata host protocol bindings, MCU Phase-1 wave 2026-10-19); ops scope not yet requested"
