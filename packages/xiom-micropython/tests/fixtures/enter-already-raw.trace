@@ -1,0 +1,4 @@
+# xiom.micropython byte-trace fixture -- re-entering the raw REPL when the
+# device is already in raw mode: the banner has no leading CRLF.
+>01
+<726177205245504C3B204354524C2D4220746F20657869740D0A3E

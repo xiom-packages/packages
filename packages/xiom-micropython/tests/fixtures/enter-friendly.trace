@@ -1,0 +1,7 @@
+# xiom.micropython byte-trace fixture -- entering the raw REPL from the
+# friendly REPL. The trace is the documented exchange
+# docs/reference/repl.rst: write b"\x01", read
+# b"\r\nraw REPL; CTRL-B to exit\r\n>".
+#   > host bytes (hex)   < device bytes (hex)
+>01
+<0D0A726177205245504C3B204354524C2D4220746F20657869740D0A3E
