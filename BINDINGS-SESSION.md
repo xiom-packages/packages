@@ -1713,6 +1713,27 @@ pulse 0.3.0 single tag; v0.64.7 repin + re-verify COMPLETE on bindings)**:
   23/25/26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 live;
   workaround retirement unlocked (B-26 wave running).
 
+**UPDATE 2026-10-19 12:20Z (QEMU/arm64 emulation PROVEN; MCU package plan
+backlogged)**: owner go for QEMU.
+- **arm64 emulation via Docker Desktop** (no sudo): official
+  `xiom-0.64.7-linux-arm64.tar.gz` (sha256 `de219935...` verified) runs in
+  an arm64 container; hello-world compiles+runs.  Cached toolchain image
+  `xiom-arm64-emu:bookworm` (clang 14) builds; clang 14 is too old for the
+  suite IR (typed-pointer mismatch vs the lane's Windows **clang 22**) ->
+  trixie/clang-19 image building.
+- Unblocks: **Pi/edge arm64 smoke** (codegen/ABI) without hardware;
+  device-I/O legs stay SKIP.  **NOT for AMD** (no ROCm/AMF GPU emulation)
+  -- AMD stays backlog per owner.
+- **MCU plan (backlog)**: direct XIOM-on-MCU needs bare-metal targets
+  (thumbv6m/v7em/riscv32) + no_std runtime -> compiler program (Phase 2).
+  Phase 1 (now, bindings, host-companion packages): `xiom.firmata`,
+  `xiom.micropython`, `xiom.uf2` (+ picotool orchestration, BSD-3);
+  esptool/OpenOCD/arduino-cli = GPL -> user-tool orchestration only;
+  Arduino AVR core LGPL -> no vendoring.  Vendor SDKs clean for future
+  on-MCU packages: Pico SDK BSD-3, STM32 HAL BSD-3, ESP-IDF / Zephyr /
+  CMSIS Apache-2.0.  QEMU has Cortex-M boards (micro:bit nRF51, STM32,
+  netduino) + riscv32 -> emulated MCU CI possible post-target.
+
 **UPDATE 2026-10-19 11:55Z (findings-ledger reconciliation -- B-13/14/15,
 B-30, B-31 verified FIXED on v0.64.7; B-27/28 stdlib fixes bundled)**:
 morning continuation -- all stale rows re-probed.
