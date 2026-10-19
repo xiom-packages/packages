@@ -76,11 +76,14 @@
       `composite_weights_valid` implement sum(s_i*w_i)/sum(w_i) with integer
       weights >= 0, Float64 widening, one half-up rounding, clamp, and typed
       guards; offline-golden-tested (suite t49, 19 checks).
-- [ ] danger-zone `box` question/answer + media assets -- PINNED (SPEC.md
-      sections 19.2/19.4, owner GO): `BoxQuestion{type,instructions?}`,
-      `BoxAnswer{type,box{top,bottom,left,right},confidence|null}`, `assets`
-      map with `Asset{type:"image",format,data_base64|part}`, header
-      `TypeSafe-Danger-Zone-Images: true` required; implementation queued.
+- [x] danger-zone `box` question/answer + media assets -- DONE 2026-10-19:
+      `question_box` (`KIND_BOX`, optional instructions, no criteria),
+      `build_request_with_assets` with byte-exact `assets`
+      (`Asset{format,data_base64|part}` + base64 shape validation),
+      automatic `TypeSafe-Danger-Zone-Images: true` via
+      `danger_zone_images_required` in the client, and first-class box answer
+      parsing (micro-unit edges, Option-shaped null confidence, typed
+      member/geometry errors); suite t50..t52, 49 checks.
 - [ ] batch/streaming ergonomics: multiple requests in flight with the same
       question set; caller-side scheduling only (no async runtime here) --
       PINNED (SPEC.md section 19.5): v0.2.0 has no batch/streaming endpoint;

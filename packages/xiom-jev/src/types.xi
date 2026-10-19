@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
 // The System One data model. A State is either text or a JSON document; a
-// Question is one typed primitive (choice / score / noul); a Response holds
-// one Answer per question, in wire order, with the full probability
-// distribution and (for choice/score) confidence.
+// Question is one typed primitive (choice / score / noul / box); a Response
+// holds one Answer per question, in wire order, with the full probability
+// distribution and (for choice/score/box) confidence.
 //
 // Float-free core (house style): every 0..1 quantity on the wire (a
 // probability, a confidence, a noul) is carried in this package as an Int in
@@ -17,7 +17,7 @@
 // round-half-away-from-zero; see SPEC.md section 6.
 //
 // Answers uses parallel vectors (no struct-per-answer vector): for answer i,
-// kinds[i] is 0 choice / 1 score / 2 noul, and the probability distribution
+// kinds[i] is 0 choice / 1 score / 2 noul / 3 box, and the probability distribution
 // is the slice prob_micro[prob_starts[i] .. prob_starts[i] + prob_counts[i]]
 // with labels at the same offsets in prob_labels. Wire order is preserved
 // (the stdlib JSON object keeps insertion order). Accessors guard every
@@ -42,6 +42,7 @@ pub const MICRO: Int = 1000000;
 pub const KIND_CHOICE: Int = 0;
 pub const KIND_SCORE: Int = 1;
 pub const KIND_NOUL: Int = 2;
+pub const KIND_BOX: Int = 3;
 
 // --------------------------------------------------
 //  State
@@ -68,6 +69,54 @@ pub fn state_json(doc: JsonValue) -> State {
 }
 
 // --------------------------------------------------
+//  Assets (danger-zone images, S8 v0.2.0)
+// --------------------------------------------------
+
+/// Asset is one danger-zone media entry, referenced from state/instructions/
+/// criteria by the AssetEntry placeholder. Two wire forms:
+///   base64: format ("png" | "jpg" | "jpeg") + data_base64;
+///   part:   part names a multipart part; data_base64 is ignored.
+/// The placeholder substitution itself is server-side.
+pub type Asset = {
+  format: Str;
+  data_base64: Str;
+  part: Str;
+}
+
+/// AssetEntry maps a caller-chosen placeholder to an Asset; build order is
+/// the emission order of the `assets` object.
+pub type AssetEntry = {
+  placeholder: Str;
+  asset: Asset;
+}
+
+/// asset_image_base64 builds an inline (JSON) image asset. `format` must be
+/// "png", "jpg" or "jpeg"; `data_base64` must be non-empty valid base64
+/// (validated by build_request_with_assets). Complexity: O(1). Pure.
+pub fn asset_image_base64(format: Str, data_base64: Str) -> Asset {
+  return Asset{ format: format, data_base64: data_base64, part: "" };
+}
+
+/// asset_image_part builds a multipart image asset: `part` names the part.
+/// data_base64 stays empty and is ignored on the wire. Complexity: O(1).
+/// Pure.
+pub fn asset_image_part(part: Str) -> Asset {
+  return Asset{ format: "", data_base64: "", part: part };
+}
+
+/// asset_entry pairs a placeholder (recommend a UUID) with an Asset.
+/// Complexity: O(1). Pure.
+pub fn asset_entry(placeholder: Str, asset: Asset) -> AssetEntry {
+  return AssetEntry{ placeholder: placeholder, asset: asset };
+}
+
+/// assets_new returns an empty asset list (emitted as no `assets` member).
+/// Complexity: O(1). Pure.
+pub fn assets_new() -> Vec[AssetEntry] {
+  return Vec[AssetEntry].new();
+}
+
+// --------------------------------------------------
 //  Questions
 // --------------------------------------------------
 
@@ -77,7 +126,9 @@ pub fn state_json(doc: JsonValue) -> State {
 ///   KIND_SCORE:  texts[i] is level i's description, in order; labels[i] is
 ///                the level number rendered as text ("0", "1", ...);
 ///   KIND_NOUL:   instructions is the yes/no question; noul_yes/noul_no are
-///                the optional criteria descriptions ("" = absent).
+///                the optional criteria descriptions ("" = absent);
+///   KIND_BOX:    instructions is the optional danger-zone box prompt (no
+///                criteria); an absent instruction is omitted on the wire.
 ///
 /// Structured forms (S3/S4/S5): `instructions` and each criteria entry may be
 /// a string, an object or an array. The `*_doc` / `criterion_docs` fields
@@ -208,6 +259,25 @@ pub fn question_noul(id: Str, instructions: Str) -> Question {
   };
 }
 
+/// question_box starts a danger-zone Box question (S8 v0.2.0). It carries no
+/// criteria; `instructions` is optional (pass "" to omit it from the wire).
+/// Complexity: O(1). Pure.
+pub fn question_box(id: Str, instructions: Str) -> Question {
+  return Question{
+    kind: KIND_BOX,
+    id: id,
+    instructions: instructions,
+    labels: Vec[Str].new(),
+    texts: Vec[Str].new(),
+    noul_yes: "",
+    noul_no: "",
+    instructions_doc: json.json_null(),
+    criterion_docs: Vec[JsonValue].new(),
+    noul_yes_doc: json.json_null(),
+    noul_no_doc: json.json_null(),
+  };
+}
+
 /// question_set_noul_criteria sets the optional Noul criteria descriptions
 /// (what a yes and a no mean). Pass "" to omit one side.
 /// Complexity: O(1). Mutates q.
@@ -235,8 +305,10 @@ pub fn question_set_noul_criteria_json(q: &mut Question, yes_means: JsonValue, n
 /// Answers is the parallel-vector answer set of one Response (see the
 /// module header for the layout and micro units). choices[i] is the selected
 /// option for a choice answer ("" otherwise); confidence_micro is -1 for
-/// noul answers (the API returns no confidence for them); score_micro and
-/// noul_micro are 0 unless their kind applies. The legend of a score answer
+/// noul answers (the API returns no confidence for them) and for a box
+/// answer whose wire confidence is null (Option-shaped: -1 = none);
+/// score_micro, noul_micro and the box edges are 0 unless their kind
+/// applies. The legend of a score answer
 /// is the level -> description map reported by the API (S4), kept in
 /// legend_starts/legend_counts/legend_labels parallel to the probabilities;
 /// legend_docs holds each description as its raw JSON value (string or
@@ -249,6 +321,10 @@ pub type Answers = {
   confidence_micro: Vec[Int];
   score_micro: Vec[Int];
   noul_micro: Vec[Int];
+  box_top_micro: Vec[Int];
+  box_bottom_micro: Vec[Int];
+  box_left_micro: Vec[Int];
+  box_right_micro: Vec[Int];
   prob_starts: Vec[Int];
   prob_counts: Vec[Int];
   prob_labels: Vec[Str];
@@ -280,6 +356,10 @@ pub fn answers_new() -> Answers {
     confidence_micro: Vec[Int].new(),
     score_micro: Vec[Int].new(),
     noul_micro: Vec[Int].new(),
+    box_top_micro: Vec[Int].new(),
+    box_bottom_micro: Vec[Int].new(),
+    box_left_micro: Vec[Int].new(),
+    box_right_micro: Vec[Int].new(),
     prob_starts: Vec[Int].new(),
     prob_counts: Vec[Int].new(),
     prob_labels: Vec[Str].new(),
@@ -380,6 +460,43 @@ pub fn response_noul_micro(r: &Response, i: Int) -> Int {
   if i < 0 || i >= a.noul_micro.len() { return 0; }
   if a.kinds[i] != KIND_NOUL { return 0; }
   return a.noul_micro[i];
+}
+
+/// response_box_top_micro is a box answer's top edge in micro units (-1 when
+/// answer i is not a box answer or i is out of range). Complexity: O(1).
+pub fn response_box_top_micro(r: &Response, i: Int) -> Int {
+  let a: Answers = r.answers;
+  if i < 0 || i >= a.box_top_micro.len() { return -1; }
+  if a.kinds[i] != KIND_BOX { return -1; }
+  return a.box_top_micro[i];
+}
+
+/// response_box_bottom_micro is a box answer's bottom edge in micro units
+/// (-1 when answer i is not a box answer or i is out of range).
+/// Complexity: O(1).
+pub fn response_box_bottom_micro(r: &Response, i: Int) -> Int {
+  let a: Answers = r.answers;
+  if i < 0 || i >= a.box_bottom_micro.len() { return -1; }
+  if a.kinds[i] != KIND_BOX { return -1; }
+  return a.box_bottom_micro[i];
+}
+
+/// response_box_left_micro is a box answer's left edge in micro units (-1
+/// when answer i is not a box answer or i is out of range). Complexity: O(1).
+pub fn response_box_left_micro(r: &Response, i: Int) -> Int {
+  let a: Answers = r.answers;
+  if i < 0 || i >= a.box_left_micro.len() { return -1; }
+  if a.kinds[i] != KIND_BOX { return -1; }
+  return a.box_left_micro[i];
+}
+
+/// response_box_right_micro is a box answer's right edge in micro units (-1
+/// when answer i is not a box answer or i is out of range). Complexity: O(1).
+pub fn response_box_right_micro(r: &Response, i: Int) -> Int {
+  let a: Answers = r.answers;
+  if i < 0 || i >= a.box_right_micro.len() { return -1; }
+  if a.kinds[i] != KIND_BOX { return -1; }
+  return a.box_right_micro[i];
 }
 
 /// response_prob_count is the number of probability entries of answer i
@@ -567,11 +684,12 @@ pub fn response_output_tokens(r: &Response) -> Int {
 // --------------------------------------------------
 
 /// kind_name renders a kind tag as the API type string ("choice", "score",
-/// "noul"; "" for an unknown tag). Complexity: O(1). Pure.
+/// "noul", "box"; "" for an unknown tag). Complexity: O(1). Pure.
 pub fn kind_name(kind: Int) -> Str {
   if kind == KIND_CHOICE { return "choice"; }
   if kind == KIND_SCORE { return "score"; }
   if kind == KIND_NOUL { return "noul"; }
+  if kind == KIND_BOX { return "box"; }
   return "";
 }
 

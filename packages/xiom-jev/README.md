@@ -4,15 +4,16 @@
 
 TypeSafe Jev client tier: **System One** structured decisions for XIOM.
 
-> **Status:** `incubating` -- 0.1.0. Offline conformance suite **244/244 x2** on
+> **Status:** `incubating` -- 0.1.0. Offline conformance suite **293/293 x2** on
 > compiler `v0.64.8` (native-session, 2026-10-19). Live probe is SKIP-safe and
 > link-gated (see "Live probe"). Published in `eco-v0.1.193` (sha256
 > `ed212ee6...`, 2026-10-16).
 
 JEV = System One: fast, **structured decisions where the answer space is known
 in advance** -- routing, classification, scoring. Send a state (text or JSON)
-plus typed questions (`choice` / `score` / `noul`) in one call; get typed
-answers, probability distributions and confidence your code branches on. No
+plus typed questions (`choice` / `score` / `noul` / danger-zone `box`, with
+optional image assets) in one call; get typed answers, probability
+distributions and confidence your code branches on. No
 text generation, no parsing. This package is the System One tier of the ML/AI
 coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
 
@@ -21,8 +22,8 @@ coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
 | Module | Contents |
 |---|---|
 | `xiom.jev` | identity, `default_model`, `default_base_url`, `systemone_endpoint`, `api_key_validate`, `base_url_validate` |
-| `xiom.jev.types` | `State`, `Question` (+ builders), `Answers`, `Response` (+ guarded accessors incl. `response_legend_*`), `micro_text` |
-| `xiom.jev.request` | `build_request` -- validated JSON body (exact bytes, insertion order) |
+| `xiom.jev.types` | `State`, `Question` (+ builders incl. `question_box`), `Asset`/`AssetEntry` (+ builders), `Answers`, `Response` (+ guarded accessors incl. `response_legend_*` and `response_box_*_micro`), `micro_text` |
+| `xiom.jev.request` | `build_request`, `build_request_with_assets`, `danger_zone_images_required` -- validated JSON body (exact bytes, insertion order) |
 | `xiom.jev.response` | `parse_response` -- typed answers + confidence + usage; `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_labels_at_or_above`, `answer_sample_index` (caller-supplied entropy), score/noul helpers |
 | `xiom.jev.retry` | `retry_is_retryable`, `retry_backoff_millis`, `default_max_attempts/base_millis/cap_millis` -- pure bounded-backoff policy |
@@ -30,7 +31,7 @@ coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
 | `xiom.jev.compression` | 32 MiB `body_size_check`, encoding tags (`identity`/`gzip`/`zstd`), `encoding_check`, `wire_uses_bytes`, `prepare_body`/`EncodedBody`, `compress_bytes`/`compress_body` (gzip; zstd typed unavailable) |
 | `xiom.jev.confidence` | `confidence_choice_micro`, `confidence_score_micro` (S6 formulas), `composite_score_micro`, `composite_weights_valid` -- pure micro-unit statistics |
 | `xiom.jev.errors` | `JevError` (BadRequest / Transport / HttpStatus / Parse) + `jev_error_text` |
-| `xiom.jev.client` | `system_one` (identity) and `system_one_with_encoding` -- transport over xiom.http 0.1.9 (`http_request` Str / `http_request_bytes` binary) |
+| `xiom.jev.client` | `system_one` (identity), `system_one_with_encoding`, `system_one_with_assets`, `system_one_with_assets_and_encoding` -- transport over xiom.http 0.1.9 (`http_request` Str / `http_request_bytes` binary) |
 
 ## Quick start (offline shape)
 
@@ -114,12 +115,50 @@ empty/duplicate labels, out-of-range micro, and the answer-bridge arms.
 The score rule, tie order, full error table and golden values are pinned in
 `SPEC.md` section 17; suite t45..t47 cover them offline.
 
-The remaining M3 items (danger-zone `box` question/answer + media assets, and
-batch/streaming ergonomics) were **pinned by the owner on 2026-10-19**
-(`SPEC.md` section 19): box/media now has an exact wire shape, and batch is
-caller-side aggregation only (`batch_collect`; no streaming endpoint exists in
-v0.2.0). Implementation of those two items is queued; until it lands, `box`
-responses still fail closed as an unknown answer type.
+## Danger-zone box and media (M3, 2026-10-19)
+
+`box` is a first-class question and answer type (S8 v0.2.0, `SPEC.md`
+sections 19.2/19.4). A box question has no criteria and optional
+instructions; image assets travel as a placeholder -> `Asset` map and are
+referenced from state/instructions/criteria strings. Placeholder substitution
+is server-side.
+
+```xiom
+use xiom.jev.types;
+use xiom.jev.request;
+
+var qs: Vec[Question] = Vec[Question].new();
+qs.push(types.question_box("target", "Where is the invoice total?"));
+
+var assets: Vec[AssetEntry] = types.assets_new();
+assets.push(types.asset_entry("page", types.asset_image_base64("png", png_b64)));
+// multipart form: types.asset_image_part("page_image")
+
+let body = request.build_request_with_assets(
+  "jev-latest", types.state_text("Find the total on page page"), qs, assets);
+// emits ..."assets":{"page":{"type":"image","format":"png","data_base64":"..."}}
+```
+
+`build_request` is unchanged and byte-identical; the no-asset path omits
+`assets`. The client emits `TypeSafe-Danger-Zone-Images: true` automatically
+when any box question or any asset is present
+(`request.danger_zone_images_required`), so a box question cannot go out
+without the capability header.
+
+Assets are validated: non-empty base64 with `A-Za-z0-9+/` and correct `=`
+padding, `format` in `png`/`jpg`/`jpeg` required with `data_base64`, and a
+`part` form ignores `data_base64` entirely. Box answers parse
+`{type:"box",box:{top,bottom,left,right},confidence}` into micro units:
+edges are required finite numbers in `[0,1]` with `bottom >= top` and
+`right >= left`; `confidence` is required and may be `null` (stored as the
+Option-shaped none, -1 micro). Every malformed member has a typed Parse
+reason (see `SPEC.md` section 19.7). Suite t50..t52 cover the exact bytes,
+the header predicate and all parse errors offline.
+
+The remaining M3 item (batch/streaming ergonomics) is **pinned by the owner
+on 2026-10-19** (`SPEC.md` section 19.5) but not yet implemented: v0.2.0 has
+no batch or streaming endpoint, so only a pure caller-side `batch_collect`
+aggregation helper is planned; streaming is out of scope.
 
 ## Confidence and composite scoring (M3, 2026-10-19)
 

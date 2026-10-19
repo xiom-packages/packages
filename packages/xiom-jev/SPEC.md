@@ -59,14 +59,14 @@ Fixture map (tests/test_conformance.xi):
 | Module | M1 public surface |
 |---|---|
 | `xiom.jev` | `default_model`, `default_base_url`, `version`, `systemone_endpoint`, `api_key_validate`, `base_url_validate` |
-| `xiom.jev.types` | `state_text`, `state_json`, `question_choice`, `question_add_option`, `question_add_option_json`, `question_score`, `question_add_level`, `question_add_level_json`, `question_noul`, `question_set_noul_criteria`, `question_set_noul_criteria_json`, `question_set_instructions_json`, `doc_is_set`, `answers_new`, `response_new`, accessors (`response_count/id/kind/find/choice/confidence_micro/score_micro/noul_micro/prob_count/prob_label/prob_micro/prob_find/prob_total_micro/legend_count/legend_label/legend_doc/legend_is_structured/legend_text/legend_find/legend_json/has_usage/input_tokens/output_tokens`), `kind_name`, `micro_text`, constants `MICRO`, `KIND_CHOICE`, `KIND_SCORE`, `KIND_NOUL` |
-| `xiom.jev.request` | `build_request` |
+| `xiom.jev.types` | `state_text`, `state_json`, `question_choice`, `question_add_option`, `question_add_option_json`, `question_score`, `question_add_level`, `question_add_level_json`, `question_noul`, `question_set_noul_criteria`, `question_set_noul_criteria_json`, `question_box`, `question_set_instructions_json`, `doc_is_set`, types `Asset`/`AssetEntry`, `asset_image_base64`, `asset_image_part`, `asset_entry`, `assets_new`, `answers_new`, `response_new`, accessors (`response_count/id/kind/find/choice/confidence_micro/score_micro/noul_micro/box_top_micro/box_bottom_micro/box_left_micro/box_right_micro/prob_count/prob_label/prob_micro/prob_find/prob_total_micro/legend_count/legend_label/legend_doc/legend_is_structured/legend_text/legend_find/legend_json/has_usage/input_tokens/output_tokens`), `kind_name`, `micro_text`, constants `MICRO`, `KIND_CHOICE`, `KIND_SCORE`, `KIND_NOUL`, `KIND_BOX` |
+| `xiom.jev.request` | `build_request`, `build_request_with_assets`, `danger_zone_images_required` |
 | `xiom.jev.response` | `parse_response`, `api_error_detail` |
 | `xiom.jev.selection` | `answer_argmax`, `answer_argmax_label`, `answer_max_micro`, `answer_count_at_or_above`, `answer_labels_at_or_above`, `answer_sample_index`, `answer_sample_label`, `choice_answer_covers_question`, `score_round_level`, `score_normalized_micro`, `noul_yes`, `noul_confidence_micro` |
 | `xiom.jev.errors` | `JevError`, `jev_error_kind`, `jev_error_text` |
 | `xiom.jev.compression` | `max_body_bytes`, `body_size_check`, `encoding_name`, `encoding_from_name`, `encoding_supported`, `encoding_check`, `wire_uses_bytes`, `compress_bytes`, `compress_body`, `prepare_body`, `bytes_copy`, type `EncodedBody`; constants `MAX_BODY_BYTES`, `ENCODING_IDENTITY`, `ENCODING_GZIP`, `ENCODING_ZSTD` |
 | `xiom.jev.beam` | `beam_level_new`, `beam_add_option`, `beam_level_len`, `beam_level_from_answer`, `beam_search`, `beam_result_count/width/levels/path_levels/path_score/path_label/path_text`, `beam_path_score/levels/text`; types `BeamLevel`, `BeamPath`, `BeamResult` |
-| `xiom.jev.client` | `system_one` (identity path), `system_one_with_encoding` (explicit `Content-Encoding` selection) |
+| `xiom.jev.client` | `system_one` (identity path), `system_one_with_encoding` (explicit `Content-Encoding` selection), `system_one_with_assets`, `system_one_with_assets_and_encoding` (danger-zone media + automatic `TypeSafe-Danger-Zone-Images: true`) |
 
 Per the program brief there are NO contracts (`requires:`/`ensures:`) on new
 functions; every accessor guards its indices (out-of-range returns ""/-1/0 as
@@ -88,11 +88,22 @@ documented) and every rejected input returns a stable typed error string.
 ## 5. Request shape and validation
 
 Body (insertion-ordered, compact): `{"state":...,"model":...,"questions":{id:
-{"type","instructions",["criteria"]}}}`. Choice criteria = object of option ->
-description (empty description -> `null`, per S3); Score criteria = ordered
-array of level descriptions; Noul criteria = object emitted only when at
-least one of true/false is non-empty, keys in order `true`, `false` (S5).
-Question ids are never sent to the model (S2/S3) but are the answer keys.
+{"type","instructions",["criteria"]}}[, "assets":{placeholder:Asset}]}`.
+Choice criteria = object of option -> description (empty description ->
+`null`, per S3); Score criteria = ordered array of level descriptions; Noul
+criteria = object emitted only when at least one of true/false is non-empty,
+keys in order `true`, `false` (S5). Box (S8 v0.2.0) is
+`{"type":"box","instructions":...}` with no criteria; its optional
+instructions are omitted when absent. Question ids are never sent to the
+model (S2/S3) but are the answer keys.
+
+Assets (S8 v0.2.0, section 19.2) are emitted after `questions`, in caller
+order, as `{"type":"image","format","data_base64"}` for an inline image or
+`{"type":"image","part"}` for a multipart image. `format` is `png`, `jpg` or
+`jpeg` and is required with `data_base64`; with `part`, `data_base64` is
+ignored entirely (not validated, not emitted). Placeholder substitution
+(placeholder -> image) happens server-side; this package only emits the map.
+An empty asset list omits `assets`, keeping the pre-0.2.0 bytes unchanged.
 
 Structured forms (M2 chunk 2, S3/S4/S5): `instructions` and each criteria
 entry may be a string, an object or an array. The `*_json` builders in
@@ -105,7 +116,8 @@ carries no string). A Choice criterion's JSON-null doc falls back to the
 string rule ("" -> `null`).
 
 Rejections (BadRequest). Order: model -> state -> question count -> per
-question (id, duplicates, instructions, kind-specific):
+question (id, duplicates, instructions, kind-specific) -> per asset
+(placeholder, duplicates, format/base64):
 
 | Reason string |
 |---|
@@ -123,10 +135,17 @@ question (id, duplicates, instructions, kind-specific):
 | `request: question '<id>': score has more than 10 levels` |
 | `request: question '<id>': score level <j>: description is empty` |
 | `request: question '<id>': unknown question kind` |
+| `request: asset <i>: placeholder is empty` (i = 0-based position) |
+| `request: duplicate asset placeholder '<p>'` |
+| `request: asset '<p>': data_base64 is empty` |
+| `request: asset '<p>': data_base64 requires format` |
+| `request: asset '<p>': unknown format '<f>'` |
+| `request: asset '<p>': invalid base64` (shape: non-empty, `A-Za-z0-9+/`, length multiple of 4, at most two trailing `=`) |
 
 `instructions is empty` and `score level <j>: description is empty` fire
 only when BOTH the string is empty and no structured doc is set for that
-position.
+position (Box instructions are optional and exempt). Question validation
+runs first (in caller order), then asset validation (in caller order).
 
 ## 6. Error catalog
 
@@ -146,7 +165,8 @@ Response Parse reasons (all prefixed `response: `; per-answer ones use
   `model is not a string`, `model is empty`, `missing answers`,
   `answers is not an object`, `answers is empty`, `answer '<id>': not an
   object`, `answer '<id>': missing type`, `answer '<id>': type is not a
-  string`, `answer '<id>': unknown answer type '<t>'` (includes `box` in M1).
+  string`, `answer '<id>': unknown answer type '<t>'` (the four known types
+  are `choice`, `score`, `noul` and `box`).
 - choice: `missing choice`, `choice is not a string`, `choice is empty`,
   `missing probabilities`, `probabilities is not an object`, `probabilities
   is empty`, `probability '<l>' is not a number`, `probability '<l>' out of
@@ -159,6 +179,14 @@ Response Parse reasons (all prefixed `response: `; per-answer ones use
   empty`, `probability '<l>' is not in legend`, plus the choice set above
   (probabilities/confidence/sum).
 - noul: `missing noul`, `noul is not a number`, `noul out of range`.
+- box (S8 v0.2.0, first-class): `missing box`, `box is not an object`,
+  `missing box.<edge>`, `box.<edge> is not a number`, `box.<edge> is not
+  finite`, `box.<edge> out of range` (each edge in [0,1]),
+  `box bottom is above top`, `box right is left of left`, `missing
+  confidence` (a required member), `confidence is not a number`,
+  `confidence out of range`. `<edge>` is `top`, `bottom`, `left` or `right`.
+  A JSON-null confidence is accepted and stored as none (-1 micro); edges are
+  stored in micro units.
 - usage: `usage is not an object`, `usage.input_tokens is not a number`,
   `usage.input_tokens out of range`, `usage.output_tokens is not a number`,
   `usage.output_tokens out of range`.
@@ -253,8 +281,10 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
    1e-6`; here the parser requires `micro[choice] == max` after rounding and
    additionally requires |sum - 1| <= 0.02 (same tolerance as S9, applied in
    micro).
-3. **`box` answers rejected** as unknown type in M1 (danger-zone API, needs
-   `TypeSafe-Danger-Zone-Images` and vision models; S8).
+3. ~~**`box` answers rejected** as unknown type in M1~~ RESOLVED 2026-10-19
+   (section 19.4): `box` is a first-class question and answer type; the
+   client emits `TypeSafe-Danger-Zone-Images: true` whenever a box question
+   or any asset is present.
 4. ~~**Structured instructions/criteria not built**~~ RESOLVED 2026-10-16
    (M2 chunk 2): object/array/string forms are accepted through the `*_json`
    builders (see section 5 and section 13); the plain-string builders and the
@@ -269,17 +299,19 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
 
 ## 10. Test strategy and evidence
 
-- Suite: `tests/test_conformance.xi` -- 47 test functions, **210/210 checks
-  passed, x2** (two consecutive runs at the end of the M3-pin-gate lane) via
-  `& .\scripts\port.ps1 -Package xiom.jev -TimeoutSec 240` on compiler
-  `v0.64.8` (native-session, 2026-10-19); `program_exit=0` both runs. History:
+- Suite: `tests/test_conformance.xi` -- 50 test functions, **293/293 checks
+  passed, x2** via `& .\scripts\port.ps1 -Package xiom.jev -TimeoutSec 240`
+  on compiler `v0.64.8` (native-session, 2026-10-19); `program_exit=0` both
+  runs. History:
   26 functions/82 checks at M1; +4 functions (retry) -> 86; +5 functions
   (structured instructions/criteria) -> 91; +4 functions (legend exposure x2,
   api-key hygiene, base_url validation) -> 110; +3 functions (32 MiB boundary,
   compression encodings, pre-compression gate) -> 143; +2 functions (encoding
   selection/wire plan, request-builder gzip plan) -> 169; +3 functions
-  (beam golden/tie/determinism, beam typed errors, answer bridge) -> 210
-  (the boundary/encoder/selection/beam functions emit one check per case).
+  (beam golden/tie/determinism, beam typed errors, answer bridge) -> 210;
+  +2 functions (S6 confidence, composite scoring) -> 244; +3 functions (Box
+  request/header, assets/base64, Box answer) -> 293 (the boundary/encoder/
+  selection/beam functions emit one check per case).
 - Offline/deterministic: no API key, no network, no randomness; selection
   uses hand-supplied entropy; request fixtures are compared byte-exact.
 - Link-free: the suite never imports `xiom.jev.client` (the transport links
@@ -762,7 +794,8 @@ SKIP-safe. No guesswork remains in this SPEC.
 
 ### 19.7 Implementation status (2026-10-19)
 
-Item 1 of section 19.6 is DONE; items 2 and 3 remain queued.
+Items 1 and 2 of section 19.6 are DONE; item 3 (`batch_collect`) remains
+queued.
 
 `xiom.jev.confidence` (registered in `package.xi`) is pure and transport-free.
 Exact API shape:
@@ -801,6 +834,46 @@ text above is implemented verbatim; both cases are tested in suite t48):
 Evidence: suite t48 (15 checks) covers every 19.1 golden plus empty,
 single-level and tie-index guards; suite t49 (19 checks) covers every 19.3
 golden plus half-up rounding, clamping, order stability, weight validity and
-every typed guard. Package total: **244/244 x2** on compiler `v0.64.8`
+every typed guard.
+
+Item 2 (S8 v0.2.0 danger-zone box + media) is DONE. Exact API shape:
+
+- `xiom.jev.types.KIND_BOX = 3`, `question_box(id, instructions)`,
+  `Asset { format, data_base64, part }`, `AssetEntry { placeholder, asset }`,
+  `asset_image_base64(format, data_base64)`, `asset_image_part(part)`,
+  `asset_entry(placeholder, asset)`, `assets_new()`, and the guarded
+  `response_box_top_micro/response_box_bottom_micro/response_box_left_micro/
+  response_box_right_micro` accessors (-1 for a non-box/out-of-range answer).
+- `xiom.jev.request.build_request_with_assets(model, state, questions,
+  assets)` emits the optional `assets` member after `questions`;
+  `build_request` delegates with an empty list and stays byte-identical.
+  `danger_zone_images_required(questions, assets)` returns 1 for any Box
+  question or any asset.
+- `xiom.jev.client.system_one_with_assets` (identity) and
+  `system_one_with_assets_and_encoding` add the asset map and emit
+  `TypeSafe-Danger-Zone-Images: true` exactly when the predicate says so, so a
+  Box question can never be sent without the capability header (the
+  fail-closed state of 19.4 is unreachable through this builder).
+- Box answers parse as `type:"box"`, `box:{top,bottom,left,right}` (required
+  finite numbers in [0,1], `bottom >= top`, `right >= left`) and a required
+  `confidence` member that may be JSON null. Edges and confidence are stored
+  in micro units; null confidence is the Option-shaped none (-1 micro), the
+  same sentinel as noul (distinguished by the kind tag).
+
+Base64 validation is shape-only: non-empty, `A-Za-z0-9+/`, length a multiple
+of 4, at most two trailing `=`. Multipart `part` assets ignore `data_base64`
+entirely. Placeholder substitution is server-side; the documented multipart
+layout is the JSON request as `request` followed by one image part per asset
+name (the offline client sends the JSON asset map; the part form names the
+transport part).
+
+Evidence: suite t50 (8 checks) pins the exact Box request bytes with and
+without instructions plus the header predicate; t51 (13 checks) pins the
+byte-exact base64/part asset emission and every asset/base64 validation arm,
+including part-ignores-data; t52 (28 checks) parses normal and null-
+confidence Box answers and pins every member/geometry/confidence Parse error.
+Box non-finite edges are additionally guarded in code (`is not finite`); a
+non-finite number cannot reach it through `json_parse`, which already rejects
+non-finite JSON numbers. Package total: **293/293 x2** on compiler `v0.64.8`
 (2026-10-19).
 

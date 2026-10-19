@@ -3,9 +3,10 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
 // JEV = System One: fast, structured decisions where the answer space is
-// known in advance (routing, classification, scoring). Send a state and
-// typed questions; get typed answers, probability distributions and
-// confidence that code branches on -- no text generation, no parsing.
+// known in advance (routing, classification, scoring, image boxes). Send a
+// state and typed questions (choice / score / noul / box, with optional
+// danger-zone image assets); get typed answers, probability distributions
+// and confidence that code branches on -- no text generation, no parsing.
 // This package is the System One tier of the XIOM ML/AI coverage program;
 // it pairs with the xiom.llm runner tier (System Two text).
 //

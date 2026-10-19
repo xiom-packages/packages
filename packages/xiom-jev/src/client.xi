@@ -33,6 +33,13 @@
 // Content-Encoding: gzip. The supported/unsupported selection is the pure
 // compression.encoding_check gate, so zstd stays a typed BadRequest.
 //
+// Danger-zone box + media (S8 v0.2.0, SPEC.md sections 19.2/19.4): the asset
+// map travels through build_request_with_assets, and the client emits
+// `TypeSafe-Danger-Zone-Images: true` exactly when
+// request.danger_zone_images_required says so (any Box question or any
+// asset). A box question therefore can never go out without the capability
+// header.
+//
 // LIVE LEG (resolved 2026-10-16): the Authorization: Bearer header now goes
 // out through the xiom.http 0.1.8 custom-headers surface (see SPEC.md
 // section 8). base_url and api_key are validated up front through the pure
@@ -212,6 +219,29 @@ pub fn system_one(base_url: Str, api_key: Str, model: Str, state: State, questio
 /// Complexity: O(body + network). Effector: performs one HTTP request when
 /// reached; pure up to the transport call.
 pub fn system_one_with_encoding(base_url: Str, api_key: Str, model: Str, state: State, questions: Vec[Question], encoding: Int) -> Result[Response, JevError] {
+  let no_assets: Vec[AssetEntry] = Vec[AssetEntry].new();
+  return _system_one_full(base_url, api_key, model, state, questions, no_assets, encoding);
+}
+
+/// system_one_with_assets is system_one plus danger-zone media assets (S8
+/// v0.2.0). Assets are validated by build_request_with_assets and the
+/// `TypeSafe-Danger-Zone-Images: true` header is emitted automatically when
+/// any Box question or any asset is present.
+/// Complexity: O(body + network). Effector: performs one HTTP request when
+/// reached; pure up to the transport call.
+pub fn system_one_with_assets(base_url: Str, api_key: Str, model: Str, state: State, questions: Vec[Question], assets: Vec[AssetEntry]) -> Result[Response, JevError] {
+  return _system_one_full(base_url, api_key, model, state, questions, assets, compression.ENCODING_IDENTITY);
+}
+
+/// system_one_with_assets_and_encoding combines the asset map with an
+/// explicit Content-Encoding selection (identity or gzip).
+/// Complexity: O(body + network). Effector: performs one HTTP request when
+/// reached; pure up to the transport call.
+pub fn system_one_with_assets_and_encoding(base_url: Str, api_key: Str, model: Str, state: State, questions: Vec[Question], assets: Vec[AssetEntry], encoding: Int) -> Result[Response, JevError] {
+  return _system_one_full(base_url, api_key, model, state, questions, assets, encoding);
+}
+
+fn _system_one_full(base_url: Str, api_key: Str, model: Str, state: State, questions: Vec[Question], assets: Vec[AssetEntry], encoding: Int) -> Result[Response, JevError] {
   let endpoint: Str = jev.systemone_endpoint(base_url);
   if endpoint.len() == 0 {
     return _err_bad("client: base_url is empty");
@@ -231,7 +261,11 @@ pub fn system_one_with_encoding(base_url: Str, api_key: Str, model: Str, state: 
     let enc_err: JevError = enc_ok.error;
     return _err_response(enc_err);
   }
-  let built: Result[Str, JevError] = request.build_request(model, state, questions);
+  // Danger-zone capability gate (S8 v0.2.0): any Box question or any asset
+  // requires TypeSafe-Danger-Zone-Images: true. Computed before the builder
+  // consumes questions/assets.
+  let danger: Int = request.danger_zone_images_required(&questions, &assets);
+  let built: Result[Str, JevError] = request.build_request_with_assets(model, state, questions, assets);
   if !built.is_ok {
     let e: JevError = built.error;
     return _err_response(e);
@@ -247,6 +281,9 @@ pub fn system_one_with_encoding(base_url: Str, api_key: Str, model: Str, state: 
   var hdrs: Vec[HttpHeader] = Vec[HttpHeader].new();
   hdrs.push(HttpHeader{ name: "Authorization", value: "Bearer " + key });
   hdrs.push(HttpHeader{ name: "Content-Type", value: "application/json" });
+  if danger == 1 {
+    hdrs.push(HttpHeader{ name: "TypeSafe-Danger-Zone-Images", value: "true" });
+  }
   // Prepare the encoded payload only when a non-identity mode is selected.
   var wire_bytes: Vec[UInt8] = Vec[UInt8].new();
   var wire_length: Int = 0;

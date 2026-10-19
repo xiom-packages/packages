@@ -27,12 +27,22 @@
 // instruction is "present" when either the string is non-empty or a doc is
 // set; a Score level is present when its string is non-empty or its doc is
 // set (a structured level carries no string).
+//
+// Danger-zone box + media (S8 v0.2.0, SPEC.md sections 19.2/19.4): a Box
+// question carries type + optional instructions and no criteria. Assets are
+// emitted as an insertion-ordered `assets` object after `questions`; each
+// entry is {"type":"image","format","data_base64"} for inline base64 or
+// {"type":"image","part"} for multipart. Placeholder substitution is
+// server-side. base64 shape is validated (A-Za-z0-9+/ plus correct '='
+// padding, non-empty); `data_base64` without `format` is rejected, and with
+// `part` the data_base64 member is ignored entirely.
 
 module xiom.jev.request
 
 use xiom.jev.errors;
 use xiom.jev.types;
 use xiom.serialize.json;
+use xiom.string;
 use xiom.string.compare;
 use xiom.convert;
 
@@ -63,11 +73,15 @@ fn _validate_question(questions: &Vec[Question], i: Int) -> Str {
   if _dup_id(questions, i) {
     return "request: duplicate question id '" + id + "'";
   }
-  let instructions: Str = q.instructions;
-  if instructions.len() == 0 && types.doc_is_set(q.instructions_doc) == 0 {
-    return "request: question '" + id + "': instructions is empty";
-  }
   let kind: Int = q.kind;
+  // Box instructions are optional (S8 v0.2.0); every other kind keeps the
+  // M1 rule (string non-empty or a structured doc set).
+  if kind != types.KIND_BOX {
+    let instructions: Str = q.instructions;
+    if instructions.len() == 0 && types.doc_is_set(q.instructions_doc) == 0 {
+      return "request: question '" + id + "': instructions is empty";
+    }
+  }
   if kind == types.KIND_CHOICE {
     let n: Int = q.labels.len();
     if n == 0 {
@@ -111,7 +125,7 @@ fn _validate_question(questions: &Vec[Question], i: Int) -> Str {
     }
     return "";
   }
-  if kind == types.KIND_NOUL {
+  if kind == types.KIND_NOUL || kind == types.KIND_BOX {
     return "";
   }
   return "request: question '" + id + "': unknown question kind";
@@ -182,6 +196,15 @@ fn _question_object(q: &Question) -> JsonValue {
     qobj = json.json_set(qobj, "criteria", _score_criteria(q));
     return qobj;
   }
+  if q.kind == types.KIND_BOX {
+    // S8 v0.2.0 BoxQuestion: type + optional instructions, no criteria.
+    if q.instructions.len() == 0 && types.doc_is_set(q.instructions_doc) == 0 {
+      var bare: JsonValue = json.json_object_new();
+      bare = json.json_set(bare, "type", json.json_string(types.kind_name(q.kind)));
+      return bare;
+    }
+    return qobj;
+  }
   let yes: Str = q.noul_yes;
   let no: Str = q.noul_no;
   let yes_doc: JsonValue = q.noul_yes_doc;
@@ -206,16 +229,140 @@ fn _question_object(q: &Question) -> JsonValue {
 }
 
 // --------------------------------------------------
+//  Assets
+// --------------------------------------------------
+
+// _b64_char_ok is 1 for A-Z / a-z / 0-9 / '+' / '/'.
+fn _b64_char_ok(b: Int) -> Int {
+  if b >= 65 && b <= 90 { return 1; }
+  if b >= 97 && b <= 122 { return 1; }
+  if b >= 48 && b <= 57 { return 1; }
+  if b == 43 || b == 47 { return 1; }
+  return 0;
+}
+
+// _base64_ok validates base64 SHAPE only (SPEC.md 19.4): non-empty, a
+// multiple of 4 bytes, only A-Za-z0-9+/ in the data section and at most two
+// trailing '=' padding bytes (none before them). Unused trailing bits are not
+// inspected.
+fn _base64_ok(s: Str) -> Bool {
+  let n: Int = s.len();
+  if n == 0 { return false; }
+  if n % 4 != 0 { return false; }
+  var pad: Int = 0;
+  let last: Int = (string.byte_at(s, n - 1) as Int) & 0xFF;
+  let prev: Int = (string.byte_at(s, n - 2) as Int) & 0xFF;
+  if last == 61 { pad = pad + 1; }
+  if prev == 61 { pad = pad + 1; }
+  if pad > 2 { return false; }
+  if pad == 1 && last != 61 { return false; }
+  let data_len: Int = n - pad;
+  var i: Int = 0;
+  while i < data_len {
+    let b: Int = (string.byte_at(s, i) as Int) & 0xFF;
+    if _b64_char_ok(b) == 0 { return false; }
+    i = i + 1;
+  }
+  return true;
+}
+
+fn _dup_asset_placeholder(assets: &Vec[AssetEntry], i: Int) -> Bool {
+  let p: Str = assets[i].placeholder;
+  var j: Int = 0;
+  while j < i {
+    let other: Str = assets[j].placeholder;
+    if compare.str_compare(other, p) == 0 { return true; }
+    j = j + 1;
+  }
+  return false;
+}
+
+fn _known_image_format(f: Str) -> Bool {
+  if compare.str_compare(f, "png") == 0 { return true; }
+  if compare.str_compare(f, "jpg") == 0 { return true; }
+  if compare.str_compare(f, "jpeg") == 0 { return true; }
+  return false;
+}
+
+// _validate_asset returns "" when asset i is well formed, else the exact
+// BadRequest reason. A part form ignores data_base64 (S8 v0.2.0).
+fn _validate_asset(assets: &Vec[AssetEntry], i: Int) -> Str {
+  let placeholder: Str = assets[i].placeholder;
+  if placeholder.len() == 0 {
+    return "request: asset " + convert.to_string(i) + ": placeholder is empty";
+  }
+  if _dup_asset_placeholder(assets, i) {
+    return "request: duplicate asset placeholder '" + placeholder + "'";
+  }
+  let a: Asset = assets[i].asset;
+  let part: Str = a.part;
+  if part.len() > 0 { return ""; }
+  let data: Str = a.data_base64;
+  let format: Str = a.format;
+  if data.len() == 0 {
+    return "request: asset '" + placeholder + "': data_base64 is empty";
+  }
+  if format.len() == 0 {
+    return "request: asset '" + placeholder + "': data_base64 requires format";
+  }
+  if !_known_image_format(format) {
+    return "request: asset '" + placeholder + "': unknown format '" + format + "'";
+  }
+  if !_base64_ok(data) {
+    return "request: asset '" + placeholder + "': invalid base64";
+  }
+  return "";
+}
+
+fn _asset_object(a: &Asset) -> JsonValue {
+  var obj: JsonValue = json.json_object_new();
+  obj = json.json_set(obj, "type", json.json_string("image"));
+  if a.part.len() > 0 {
+    obj = json.json_set(obj, "part", json.json_string(a.part));
+    return obj;
+  }
+  obj = json.json_set(obj, "format", json.json_string(a.format));
+  obj = json.json_set(obj, "data_base64", json.json_string(a.data_base64));
+  return obj;
+}
+
+/// danger_zone_images_required is 1 when a Box question or at least one
+/// asset is present, else 0. The client emits
+/// `TypeSafe-Danger-Zone-Images: true` exactly when this returns 1, so a box
+/// question can never go out without the capability header.
+/// Complexity: O(questions). Pure.
+pub fn danger_zone_images_required(questions: &Vec[Question], assets: &Vec[AssetEntry]) -> Int {
+  if assets.len() > 0 { return 1; }
+  var i: Int = 0;
+  while i < questions.len() {
+    if questions[i].kind == types.KIND_BOX { return 1; }
+    i = i + 1;
+  }
+  return 0;
+}
+
+// --------------------------------------------------
 //  Builder
 // --------------------------------------------------
 
 /// build_request returns the JSON body for a System One evaluation of
 /// `state` against `questions` on `model` (see the module header for the
-/// exact shape and the validation catalog). On rejection the Result carries
+/// exact shape and the validation catalog). This is the no-assets entry and
+/// stays byte-identical to the M1/M2 output. On rejection the Result carries
 /// JevError.BadRequest with a stable reason string; on success the body is
 /// compact JSON with keys in the order "state", "model", "questions" and
 /// criteria in caller order. Complexity: O(total input). Pure.
 pub fn build_request(model: Str, state: State, questions: Vec[Question]) -> Result[Str, JevError] {
+  let empty: Vec[AssetEntry] = Vec[AssetEntry].new();
+  return build_request_with_assets(model, state, questions, empty);
+}
+
+/// build_request_with_assets is build_request plus the danger-zone `assets`
+/// map (S8 v0.2.0). Assets are validated and emitted as an insertion-ordered
+/// object after `questions`: {"placeholder":{"type":"image",...}}. An empty
+/// asset list omits the member entirely, so the existing byte-exact
+/// fixtures are unchanged. Complexity: O(total input). Pure.
+pub fn build_request_with_assets(model: Str, state: State, questions: Vec[Question], assets: Vec[AssetEntry]) -> Result[Str, JevError] {
   if model.len() == 0 {
     return Err(JevError.BadRequest("request: model is empty"));
   }
@@ -228,6 +375,14 @@ pub fn build_request(model: Str, state: State, questions: Vec[Question]) -> Resu
   var i: Int = 0;
   while i < questions.len() {
     let reason: Str = _validate_question(&questions, i);
+    if reason.len() > 0 {
+      return Err(JevError.BadRequest(reason));
+    }
+    i = i + 1;
+  }
+  i = 0;
+  while i < assets.len() {
+    let reason: Str = _validate_asset(&assets, i);
     if reason.len() > 0 {
       return Err(JevError.BadRequest(reason));
     }
@@ -248,5 +403,16 @@ pub fn build_request(model: Str, state: State, questions: Vec[Question]) -> Resu
   }
   root = json.json_set(root, "model", json.json_string(model));
   root = json.json_set(root, "questions", questions_obj);
+  if assets.len() > 0 {
+    var assets_obj: JsonValue = json.json_object_new();
+    i = 0;
+    while i < assets.len() {
+      let placeholder: Str = assets[i].placeholder;
+      let a: Asset = assets[i].asset;
+      assets_obj = json.json_set(assets_obj, placeholder, _asset_object(&a));
+      i = i + 1;
+    }
+    root = json.json_set(root, "assets", assets_obj);
+  }
   return Ok(json.json_stringify(root));
 }

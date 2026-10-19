@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
 // TypeSafe Jev client tier ("System One" structured decisions): a state
-// (text or JSON) plus typed questions (choice / score / noul) in one
-// request, out come typed answers with probability distributions and
-// confidence, plus deterministic selection helpers (argmax / threshold /
-// sample-by-probability from caller-supplied entropy).
+// (text or JSON) plus typed questions (choice / score / noul / danger-zone
+// box, with optional image assets) in one request, out come typed answers
+// with probability distributions and confidence, plus deterministic
+// selection helpers (argmax / threshold / sample-by-probability from
+// caller-supplied entropy).
 //
 // Wire references (read-only; recorded in SPEC.md section 2): the public
 // TypeSafe documentation at https://docs.typesafe.ai, the OpenAPI schema at
@@ -23,9 +24,9 @@
 package xiom_jev {
   name: "xiom.jev";
   version: "0.1.0";
-  description: "TypeSafe Jev client tier (System One structured decisions): typed questions (choice/score/noul) -> typed answers with probabilities and confidence, plus deterministic selection (argmax, threshold, sample-by-probability from caller-supplied entropy); float-free micro-unit core";
+  description: "TypeSafe Jev client tier (System One structured decisions): typed questions (choice/score/noul/box) with optional danger-zone image assets -> typed answers with probabilities and confidence, plus deterministic selection (argmax, threshold, sample-by-probability from caller-supplied entropy); float-free micro-unit core";
   categories: ["ai-ml"];
-  keywords: ["jev", "typesafe", "decision", "system-one", "choice", "score", "noul", "probability", "confidence", "selection"];
+  keywords: ["jev", "typesafe", "decision", "system-one", "choice", "score", "noul", "box", "image", "probability", "confidence", "selection"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];

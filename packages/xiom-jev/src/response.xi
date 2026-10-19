@@ -11,8 +11,11 @@
 //   choice: {"type","choice","confidence","probabilities"}          (style A)
 //   score:  {"type","score","confidence","legend","probabilities"}  (style B)
 //   noul:   {"type","noul"}                                          (style C)
-// Unknown extra fields are ignored (forward compatibility); the "box"
-// answer type of the danger-zone API is rejected as unknown in M1.
+//   box:    {"type":"box","box":{top,bottom,left,right},"confidence"} (style D)
+// Unknown extra fields are ignored (forward compatibility). The danger-zone
+// box answer is first-class (SPEC.md 19.2/19.4): each edge is a normalized
+// 0..1 float in micro units and confidence is a required member that may be
+// JSON null (Option-shaped: -1 micro = none).
 //
 // Fail-closed validation, all rejections JevError.Parse with stable reason
 // strings pinned in SPEC.md section 6: the root must be an object with a
@@ -234,6 +237,10 @@ fn _parse_choice_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
   out.confidence_micro.push(_micro_of_unit(cf));
   out.score_micro.push(0);
   out.noul_micro.push(0);
+  out.box_top_micro.push(0);
+  out.box_bottom_micro.push(0);
+  out.box_left_micro.push(0);
+  out.box_right_micro.push(0);
   out.prob_starts.push(out.prob_labels.len());
   out.prob_counts.push(labels.len());
   out.legend_starts.push(out.legend_labels.len());
@@ -357,6 +364,10 @@ fn _parse_score_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
   out.confidence_micro.push(_micro_of_unit(cf));
   out.score_micro.push(math.round(sf * 1000000.0));
   out.noul_micro.push(0);
+  out.box_top_micro.push(0);
+  out.box_bottom_micro.push(0);
+  out.box_left_micro.push(0);
+  out.box_right_micro.push(0);
   out.prob_starts.push(out.prob_labels.len());
   out.prob_counts.push(labels.len());
   var j: Int = 0;
@@ -395,6 +406,101 @@ fn _parse_noul_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
   out.confidence_micro.push(-1);
   out.score_micro.push(0);
   out.noul_micro.push(_micro_of_unit(nf));
+  out.box_top_micro.push(0);
+  out.box_bottom_micro.push(0);
+  out.box_left_micro.push(0);
+  out.box_right_micro.push(0);
+  out.prob_starts.push(out.prob_labels.len());
+  out.prob_counts.push(0);
+  out.legend_starts.push(out.legend_labels.len());
+  out.legend_counts.push(0);
+  return "";
+}
+
+// _box_member reads one required box edge as a finite normalized number.
+// It returns the exact Parse reason (already id-prefixed) on failure.
+fn _box_member(id: Str, bv: JsonValue, name: Str) -> Result[Float64, Str] {
+  let o: Option[JsonValue] = _field(bv, name);
+  if !o.is_some {
+    return Err(_msg(id, "missing box." + name));
+  }
+  let v: JsonValue = o.value;
+  if !_num_of(v) {
+    return Err(_msg(id, "box." + name + " is not a number"));
+  }
+  let f: Float64 = _num_value(v);
+  // NaN/inf detection without a stdlib helper: finite * 0.0 is exactly 0.0,
+  // while both NaN and +/-inf yield NaN (and NaN == 0.0 is false).
+  if !(f * 0.0 == 0.0) {
+    return Err(_msg(id, "box." + name + " is not finite"));
+  }
+  if !_unit_ok(f) {
+    return Err(_msg(id, "box." + name + " out of range"));
+  }
+  return Ok(f);
+}
+
+fn _parse_box_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
+  let bo: Option[JsonValue] = _field(av, "box");
+  if !bo.is_some {
+    return _msg(id, "missing box");
+  }
+  let bv: JsonValue = bo.value;
+  var box_ok: Bool = false;
+  match bv {
+    JsonValue.Object(_body) => {
+      box_ok = true;
+    },
+    _ => {},
+  };
+  if !box_ok {
+    return _msg(id, "box is not an object");
+  }
+  let top_r: Result[Float64, Str] = _box_member(id, bv, "top");
+  if !top_r.is_ok { return top_r.error; }
+  let bottom_r: Result[Float64, Str] = _box_member(id, bv, "bottom");
+  if !bottom_r.is_ok { return bottom_r.error; }
+  let left_r: Result[Float64, Str] = _box_member(id, bv, "left");
+  if !left_r.is_ok { return left_r.error; }
+  let right_r: Result[Float64, Str] = _box_member(id, bv, "right");
+  if !right_r.is_ok { return right_r.error; }
+  let top: Float64 = top_r.value;
+  let bottom: Float64 = bottom_r.value;
+  let left: Float64 = left_r.value;
+  let right: Float64 = right_r.value;
+  if bottom < top {
+    return _msg(id, "box bottom is above top");
+  }
+  if right < left {
+    return _msg(id, "box right is left of left");
+  }
+  // confidence is a REQUIRED member but may be null (Option-shaped result).
+  let co: Option[JsonValue] = _field(av, "confidence");
+  if !co.is_some {
+    return _msg(id, "missing confidence");
+  }
+  let cv: JsonValue = co.value;
+  var conf_micro: Int = -1;
+  match cv {
+    JsonValue.Null => {},
+    JsonValue.Number(f) => {
+      if !_unit_ok(f) {
+        return _msg(id, "confidence out of range");
+      }
+      conf_micro = _micro_of_unit(f);
+    },
+    _ => {
+      return _msg(id, "confidence is not a number");
+    },
+  };
+  out.choices.push("");
+  out.confidence_micro.push(conf_micro);
+  out.score_micro.push(0);
+  out.noul_micro.push(0);
+  out.box_top_micro.push(_micro_of_unit(top));
+  out.box_bottom_micro.push(_micro_of_unit(bottom));
+  out.box_left_micro.push(_micro_of_unit(left));
+  out.box_right_micro.push(_micro_of_unit(right));
   out.prob_starts.push(out.prob_labels.len());
   out.prob_counts.push(0);
   out.legend_starts.push(out.legend_labels.len());
@@ -425,6 +531,8 @@ fn _parse_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
     kind = types.KIND_SCORE;
   } elif compare.str_compare(ts, "noul") == 0 {
     kind = types.KIND_NOUL;
+  } elif compare.str_compare(ts, "box") == 0 {
+    kind = types.KIND_BOX;
   } else {
     return _msg(id, "unknown answer type '" + ts + "'");
   }
@@ -433,6 +541,8 @@ fn _parse_answer(id: Str, av: JsonValue, out: &mut Answers) -> Str {
     reason = _parse_choice_answer(id, av, out);
   } elif kind == types.KIND_SCORE {
     reason = _parse_score_answer(id, av, out);
+  } elif kind == types.KIND_BOX {
+    reason = _parse_box_answer(id, av, out);
   } else {
     reason = _parse_noul_answer(id, av, out);
   }

@@ -531,7 +531,7 @@ fn t13() -> Int {
   failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{}}"), "response: answers is empty", "empty answers rejected");
   failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":[]}"), "response: answers is not an object", "non-object answers rejected");
   failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"box\":{}}}}"), "response: answer 'q': missing type", "missing answer type rejected");
-  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\"}}}"), "response: answer 'q': unknown answer type 'box'", "box answer type rejected (M1)");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\"}}}"), "response: answer 'q': missing box", "box answer requires box geometry");
   failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":true,\"noul\":0.5}}}"), "response: answer 'q': type is not a string", "non-string answer type rejected");
   failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":[]}}"), "response: answer 'q': not an object", "non-object answer rejected");
   return report(failed == 0, "response Parse catalog 1 (12 structural cases)");
@@ -1605,6 +1605,188 @@ fn t49() -> Int {
 }
 
 // --------------------------------------------------
+//  Danger-zone box + media (SPEC.md sections 19.2/19.4)
+// --------------------------------------------------
+
+fn one_box_questions() -> Vec[Question] {
+  var qs: Vec[Question] = Vec[Question].new();
+  qs.push(types.question_box("target", ""));
+  return qs;
+}
+
+fn one_asset(placeholder: Str, a: Asset) -> Vec[AssetEntry] {
+  var assets: Vec[AssetEntry] = Vec[AssetEntry].new();
+  assets.push(types.asset_entry(placeholder, a));
+  return assets;
+}
+
+fn t50() -> Int {
+  var failed: Int = 0;
+
+  // Box question with no instructions: both instruction members are omitted.
+  let no_assets: Vec[AssetEntry] = types.assets_new();
+  let qs: Vec[Question] = one_box_questions();
+  failed = failed + report(request.danger_zone_images_required(&qs, &no_assets) == 1, "header: box question requires danger-zone images");
+  let built: Result[Str, JevError] = request.build_request_with_assets("m", types.state_text("x"), qs, no_assets);
+  if !built.is_ok {
+    failed = failed + report(false, "box request (no instructions) builds");
+  } else {
+    let want: Str = "{\"state\":\"x\",\"model\":\"m\",\"questions\":{\"target\":{\"type\":\"box\"}}}";
+    failed = failed + report(str_eq(built.value, want), "box request byte-exact (type only, instructions omitted)");
+  }
+
+  // Box question with instructions travels through the no-assets entry.
+  var qs2: Vec[Question] = Vec[Question].new();
+  qs2.push(types.question_box("target", "Where is the total?"));
+  let built2: Result[Str, JevError] = request.build_request("m", types.state_text("x"), qs2);
+  if !built2.is_ok {
+    failed = failed + report(false, "box request with instructions builds");
+  } else {
+    let want2: Str = "{\"state\":\"x\",\"model\":\"m\",\"questions\":{\"target\":{\"type\":\"box\",\"instructions\":\"Where is the total?\"}}}";
+    failed = failed + report(str_eq(built2.value, want2), "box request byte-exact (with instructions)");
+  }
+
+  // Structured instructions (object form) are emitted verbatim.
+  var qobj: Question = types.question_box("target", "");
+  types.question_set_instructions_json(&mut qobj, jv("{\"question\":\"Locate the total\"}"));
+  var qs3: Vec[Question] = Vec[Question].new();
+  qs3.push(qobj);
+  let built3: Result[Str, JevError] = request.build_request("m", types.state_text("x"), qs3);
+  if !built3.is_ok {
+    failed = failed + report(false, "box structured instructions build");
+  } else {
+    let want3: Str = "{\"state\":\"x\",\"model\":\"m\",\"questions\":{\"target\":{\"type\":\"box\",\"instructions\":{\"question\":\"Locate the total\"}}}}";
+    failed = failed + report(str_eq(built3.value, want3), "box request byte-exact (object instructions)");
+  }
+
+  // A JSON-null instructions doc means "not set": the member is omitted.
+  var qnull: Question = types.question_box("target", "");
+  types.question_set_instructions_json(&mut qnull, json.json_null());
+  var qs4: Vec[Question] = Vec[Question].new();
+  qs4.push(qnull);
+  let built4: Result[Str, JevError] = request.build_request("m", types.state_text("x"), qs4);
+  if !built4.is_ok {
+    failed = failed + report(false, "box null instructions build");
+  } else {
+    let want4: Str = "{\"state\":\"x\",\"model\":\"m\",\"questions\":{\"target\":{\"type\":\"box\"}}}";
+    failed = failed + report(str_eq(built4.value, want4), "box request byte-exact (null instructions omitted)");
+  }
+
+  // Header semantics: no box and no asset -> 0; an asset alone -> 1.
+  var plain: Vec[Question] = Vec[Question].new();
+  plain.push(types.question_noul("q", "Is it?"));
+  let empty_assets: Vec[AssetEntry] = types.assets_new();
+  failed = failed + report(request.danger_zone_images_required(&plain, &empty_assets) == 0, "header: no box and no assets -> not required");
+  let asset_only: Vec[AssetEntry] = one_asset("img", types.asset_image_base64("png", "aGVsbG8="));
+  failed = failed + report(request.danger_zone_images_required(&plain, &asset_only) == 1, "header: any asset requires danger-zone images");
+
+  return report(failed == 0, "box request + capability header semantics");
+}
+
+fn t51() -> Int {
+  var failed: Int = 0;
+
+  // Byte-exact JSON emission: inline base64 first, multipart part second.
+  var qs: Vec[Question] = one_box_questions();
+  var assets: Vec[AssetEntry] = types.assets_new();
+  assets.push(types.asset_entry("img_a", types.asset_image_base64("png", "aGVsbG8=")));
+  assets.push(types.asset_entry("img_b", types.asset_image_part("image_1")));
+  let built: Result[Str, JevError] = request.build_request_with_assets("m", types.state_text("x"), qs, assets);
+  if !built.is_ok {
+    failed = failed + report(false, "assets request builds");
+  } else {
+    let want: Str = "{\"state\":\"x\",\"model\":\"m\",\"questions\":{\"target\":{\"type\":\"box\"}},\"assets\":{\"img_a\":{\"type\":\"image\",\"format\":\"png\",\"data_base64\":\"aGVsbG8=\"},\"img_b\":{\"type\":\"image\",\"part\":\"image_1\"}}}";
+    failed = failed + report(str_eq(built.value, want), "assets byte-exact (base64 + part forms)");
+  }
+
+  // Valid base64 shapes accepted.
+  let b1: Result[Str, JevError] = request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), one_asset("a", types.asset_image_base64("jpg", "AA==")));
+  failed = failed + report(b1.is_ok, "assets: padded base64 accepted");
+  let b2: Result[Str, JevError] = request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), one_asset("a", types.asset_image_base64("jpeg", "AAA=")));
+  failed = failed + report(b2.is_ok, "assets: one-pad base64 accepted");
+
+  // Validation arms.
+  failed = failed + expect_bad(request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), one_asset("a", types.asset_image_base64("png", ""))), "request: asset 'a': data_base64 is empty", "assets: empty data rejected");
+  failed = failed + expect_bad(request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), one_asset("a", types.asset_image_base64("", "aGVsbG8="))), "request: asset 'a': data_base64 requires format", "assets: data without format rejected");
+  failed = failed + expect_bad(request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), one_asset("a", types.asset_image_base64("gif", "aGVsbG8="))), "request: asset 'a': unknown format 'gif'", "assets: unknown format rejected");
+  failed = failed + expect_bad(request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), one_asset("a", types.asset_image_base64("png", "abc"))), "request: asset 'a': invalid base64", "assets: unpadded length rejected");
+  failed = failed + expect_bad(request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), one_asset("a", types.asset_image_base64("png", "ab$d"))), "request: asset 'a': invalid base64", "assets: non-base64 character rejected");
+  failed = failed + expect_bad(request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), one_asset("a", types.asset_image_base64("png", "a==="))), "request: asset 'a': invalid base64", "assets: over-padded base64 rejected");
+  failed = failed + expect_bad(request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), one_asset("", types.asset_image_base64("png", "aGVsbG8="))), "request: asset 0: placeholder is empty", "assets: empty placeholder rejected");
+
+  var dup: Vec[AssetEntry] = types.assets_new();
+  dup.push(types.asset_entry("same", types.asset_image_base64("png", "aGVsbG8=")));
+  dup.push(types.asset_entry("same", types.asset_image_part("scan")));
+  failed = failed + expect_bad(request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), dup), "request: duplicate asset placeholder 'same'", "assets: duplicate placeholder rejected");
+
+  // With `part`, data_base64 is ignored (not validated, not emitted).
+  let raw: Asset = Asset{ format: "gif", data_base64: "!!!", part: "scan" };
+  var part_assets: Vec[AssetEntry] = one_asset("scan", raw);
+  let part_built: Result[Str, JevError] = request.build_request_with_assets("m", types.state_text("x"), one_box_questions(), part_assets);
+  if !part_built.is_ok {
+    failed = failed + report(false, "assets: part form ignoring data builds");
+  } else {
+    let want_part: Str = "{\"state\":\"x\",\"model\":\"m\",\"questions\":{\"target\":{\"type\":\"box\"}},\"assets\":{\"scan\":{\"type\":\"image\",\"part\":\"scan\"}}}";
+    failed = failed + report(str_eq(part_built.value, want_part), "assets: part form ignores data_base64");
+  }
+
+  return report(failed == 0, "asset JSON emission + base64/shape validation");
+}
+
+fn t52() -> Int {
+  var failed: Int = 0;
+
+  // Normal box answer: fractions -> micro, confidence -> micro.
+  let body: Str = "{\"model\":\"m\",\"answers\":{\"target\":{\"type\":\"box\",\"box\":{\"top\":0.1,\"bottom\":0.9,\"left\":0.2,\"right\":0.8},\"confidence\":0.75}}}";
+  let r: Result[Response, JevError] = response.parse_response(body);
+  if !r.is_ok {
+    failed = failed + report(false, "box answer parses");
+  } else {
+    let resp: Response = r.value;
+    failed = failed + report(types.response_count(&resp) == 1, "box: answer count");
+    failed = failed + report(types.response_kind(&resp, 0) == types.KIND_BOX, "box: first-class kind tag");
+    failed = failed + report(str_eq(types.kind_name(types.response_kind(&resp, 0)), "box"), "box: kind_name");
+    failed = failed + report(types.response_box_top_micro(&resp, 0) == 100000, "box: top micro");
+    failed = failed + report(types.response_box_bottom_micro(&resp, 0) == 900000, "box: bottom micro");
+    failed = failed + report(types.response_box_left_micro(&resp, 0) == 200000, "box: left micro");
+    failed = failed + report(types.response_box_right_micro(&resp, 0) == 800000, "box: right micro");
+    failed = failed + report(types.response_confidence_micro(&resp, 0) == 750000, "box: confidence micro");
+    failed = failed + report(types.response_prob_count(&resp, 0) == 0, "box: no probability distribution");
+  }
+
+  // Null confidence is a required member but means "none" (-1).
+  let null_body: Str = "{\"model\":\"m\",\"answers\":{\"target\":{\"type\":\"box\",\"box\":{\"top\":0,\"bottom\":1,\"left\":0,\"right\":1},\"confidence\":null}}}";
+  let nr: Result[Response, JevError] = response.parse_response(null_body);
+  if !nr.is_ok {
+    failed = failed + report(false, "box null confidence parses");
+  } else {
+    let nresp: Response = nr.value;
+    failed = failed + report(types.response_confidence_micro(&nresp, 0) == -1, "box: null confidence -> none");
+    failed = failed + report(types.response_box_top_micro(&nresp, 0) == 0, "box: zero edge preserved (guarded accessor)");
+    failed = failed + report(types.response_box_bottom_micro(&nresp, 0) == 1000000, "box: full-height edge");
+  }
+
+  // Geometry and member errors (all typed Parse reasons).
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"confidence\":0.5}}}"), "response: answer 'q': missing box", "box: missing geometry rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":5,\"confidence\":0.5}}}"), "response: answer 'q': box is not an object", "box: non-object geometry rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"bottom\":0.9,\"left\":0.2,\"right\":0.8},\"confidence\":0.5}}}"), "response: answer 'q': missing box.top", "box: missing top rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":0.1,\"left\":0.2,\"right\":0.8},\"confidence\":0.5}}}"), "response: answer 'q': missing box.bottom", "box: missing bottom rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":0.1,\"bottom\":0.9,\"right\":0.8},\"confidence\":0.5}}}"), "response: answer 'q': missing box.left", "box: missing left rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":0.1,\"bottom\":0.9,\"left\":0.2},\"confidence\":0.5}}}"), "response: answer 'q': missing box.right", "box: missing right rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":\"x\",\"bottom\":0.9,\"left\":0.2,\"right\":0.8},\"confidence\":0.5}}}"), "response: answer 'q': box.top is not a number", "box: non-number edge rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":1.5,\"bottom\":0.9,\"left\":0.2,\"right\":0.8},\"confidence\":0.5}}}"), "response: answer 'q': box.top out of range", "box: edge above 1 rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":-0.1,\"bottom\":0.9,\"left\":0.2,\"right\":0.8},\"confidence\":0.5}}}"), "response: answer 'q': box.top out of range", "box: negative edge rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":0.6,\"bottom\":0.4,\"left\":0.2,\"right\":0.8},\"confidence\":0.5}}}"), "response: answer 'q': box bottom is above top", "box: inverted vertical edges rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":0.1,\"bottom\":0.9,\"left\":0.7,\"right\":0.4},\"confidence\":0.5}}}"), "response: answer 'q': box right is left of left", "box: inverted horizontal edges rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":0.1,\"bottom\":0.9,\"left\":0.2,\"right\":0.8}}}}"), "response: answer 'q': missing confidence", "box: missing confidence member rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":0.1,\"bottom\":0.9,\"left\":0.2,\"right\":0.8},\"confidence\":\"x\"}}}"), "response: answer 'q': confidence is not a number", "box: non-number confidence rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":0.1,\"bottom\":0.9,\"left\":0.2,\"right\":0.8},\"confidence\":1.5}}}"), "response: answer 'q': confidence out of range", "box: confidence out of range rejected");
+  failed = failed + expect_parse(response.parse_response("{\"model\":\"m\",\"answers\":{\"q\":{\"type\":\"box\",\"box\":{\"top\":0.1,\"bottom\":0.9,\"left\":0.2,\"right\":0.8},\"confidence\":-0.5}}}"), "response: answer 'q': confidence out of range", "box: negative confidence rejected");
+
+  return report(failed == 0, "box answer parse: micros, null confidence, every typed error");
+}
+
+// --------------------------------------------------
 //  Entry point
 // --------------------------------------------------
 
@@ -1660,6 +1842,9 @@ fn main() -> Int {
   failed = failed + t47();
   failed = failed + t48();
   failed = failed + t49();
+  failed = failed + t50();
+  failed = failed + t51();
+  failed = failed + t52();
   if failed == 0 {
     io.println("xiom.jev: all tests passed");
   } else {
