@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.7` -- generated 2026-10-19T12:04:57Z.
+Toolchain pin: `v0.64.7` -- generated 2026-10-19T12:13:48Z.
 
 ## Summary
 
@@ -529,7 +529,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.protobuf | xiom-protobuf | incubating | tests/test_conformance.xi | pass 49/49 | 84140793 | False | publish pending: eco-v0.1.43 |
 | xiom.proxy | xiom-proxy | incubating | tests/test_conformance.xi | pass 20/20 | d85a0ee6 | False | category harmonization patch bump (registry metadata) |
 | xiom.pulsar | xiom-pulsar | incubating | tests/test_conformance.xi | pass 27/27 | 00c21919 | False | category harmonization patch bump (registry metadata) |
-| xiom.pulse | xiom-pulse | incubating | tests/test_conformance.xi | pass 203/203 | bd81c8cf | False | published 2026-10-18 (single tag xiom-pulse/v0.3.0; sha256 bae0dd08...); 0.2.2 in eco-v0.1.198; 0.2.1 in eco-v0.1.197; 0.2.0 in eco-v0.1.195 |
+| xiom.pulse | xiom-pulse | incubating | tests/test_conformance.xi | pass 231/231 | 44bbb34b | False | published 2026-10-18 (single tag xiom-pulse/v0.3.0; sha256 bae0dd08...); 0.2.2 in eco-v0.1.198; 0.2.1 in eco-v0.1.197; 0.2.0 in eco-v0.1.195 |
 | xiom.puppet | xiom-puppet | incubating | tests/test_conformance.xi | pass 26/26 | 8c0ac311 | False | publish pending: next scope delta |
 | xiom.pwm | xiom-pwm | incubating | tests/test_conformance.xi | pass 20/20 | 599f89c9 | False | publish pending: next scope delta |
 | xiom.randomforest | xiom-randomforest | incubating | tests/test_conformance.xi | pass 24/24 | 3ff86363 | False | publish pending: next scope delta |
