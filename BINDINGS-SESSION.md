@@ -2135,6 +2135,28 @@ pandas 2-4 launched; MCU publish deferred)**:
   existing 12 wrappers stay byte-identical.
 - epos scope ask filed (ships next batch when ops stages it).
 
+**UPDATE 2026-10-19 21:00Z (PANDAS 2-4 LANDED: xiom.pandas 0.2.0;
+validate 579/0)**:
+- **`xiom.pandas 0.2.0` LANDED** (land `ca612b98`; record `24191eb5`):
+  phases 2-4 real Arrow bridge per the owner-approved section-8 pins --
+  Acero-free groupby/join fallbacks (builds on Arrow 22.0.0 WITHOUT
+  Acero headers), TableGroupBy fallback, `series_apply` f64
+  (Float64-only; NA/NaN out of scope), ADDITIVE ownership frees
+  (`pandas_c_dataframe_free` / `pandas_c_series_free` / `pandas_c_free`
+  + pandas.xi + the declared-marker), additive
+  `dataframe_filter_f64(bits: Int64)`, Arrow-22 parquet component
+  (OpenFile/ReadTable/WriteTable; no separate stack).  18 C symbols;
+  **existing 12 wrappers byte-identical**.
+- Gates: agent record **110/110 x2 on v0.64.8 (Acero-free REAL
+  bridge)**; the landed-tree gate re-ran 110/110 x2 (stub/absent-
+  backend legs; live evidence in the record + PROVENANCE);
+  validate **579/0**; pushed `24191eb5`.
+- Publish request `REL-20261019-2049-bindings` (existing name;
+  additive-only).
+- Compiler watch: a NEW defect was filed packages-side -- Err(Str)
+  payload lost on direct Err to Vec.push (v0.64.8; jev probe); not
+  this lane's, watch the compiler ack.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
