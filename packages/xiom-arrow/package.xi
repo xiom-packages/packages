@@ -1,6 +1,6 @@
 package xiom_arrow {
   name: "xiom.arrow";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Apache Arrow in-memory columnar format with Pandas backend and zero-copy data sharing";
   categories: ["data"];
   keywords: ["arrow", "columnar", "dataframe", "zero-copy", "pandas"];

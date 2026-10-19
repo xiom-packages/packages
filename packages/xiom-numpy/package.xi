@@ -1,6 +1,6 @@
 package xiom_numpy {
   name: "xiom.numpy";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "NumPy C API -- the fundamental array computing library for scientific Python.";
   categories: ["ai-ml", "science"];
   keywords: ["numpy", "arrays", "ndarray", "scientific"];
