@@ -1757,6 +1757,21 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-19 19:00Z (registry thread fixed; compiler scoped MCU +
+fixed riscv; pandas P3 live; arm64 fleet sweep started)**:
+- Relay: `-1755` registry blocker **RESOLVED** -- xiom-std 0.64.8 LIVE
+  (independent verification, sha256 + OIDC provenance, tag refs retried).
+  Compiler: **MCU request SCOPED** + **riscv link triple FIXED**
+  (`383fe9dc6` -- our `-1419` finding) -> re-probe when the next tag
+  ships.  Pulse 0.2.2 published (ops dogfood retest queued).
+- Packages: **eco-v0.1.200 LIVE** (llm 0.2.0 / numpy 0.1.1 / openblas
+  0.1.1 / arrow 0.1.1) + **pandas 0.2.0 single tag (Phase-3)**;
+  validate 584/0; MCU acknowledged parked.
+- arm64: gpio suite still compiling (emulated); **fleet sweep started in
+  the background** (`scripts/emulate-arm64-fleet.ps1` ->
+  `%TEMP%\kilo\arm64-fleet\{pkg}.log` + summary): serial/mqtt/i2c/spi/
+  adc/pwm/sensor/can/ble/zigbee/hid/usb/modbus.
+
 **UPDATE 2026-10-19 18:45Z (v0.64.8 re-verify COMPLETE -- B-21/B-24 fixed;
 batteries green; arm64 harness added)**: continuation.
 - **Last two findings verified FIXED on v0.64.8**: B-21 (`&mut` of a
