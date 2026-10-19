@@ -1757,6 +1757,13 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-19 19:30Z (arm64 gpio PASSES; fleet sweep fixed+restarted)**:
+- **arm64 gpio suite: all 21 tests passed** (emulated, official
+  linux-arm64 compiler) -- first fleet package green under arm64.
+- Fleet sweep script had a PS 5.1 parse bug (`"$p:"` -> drive-variable
+  reference); fixed to `${p}` and restarted in the background (13 suites,
+  summary -> `%TEMP%\kilo\arm64-fleet\summary.txt`).
+
 **UPDATE 2026-10-19 19:00Z (registry thread fixed; compiler scoped MCU +
 fixed riscv; pandas P3 live; arm64 fleet sweep started)**:
 - Relay: `-1755` registry blocker **RESOLVED** -- xiom-std 0.64.8 LIVE
