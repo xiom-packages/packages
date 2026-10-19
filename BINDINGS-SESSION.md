@@ -1713,6 +1713,23 @@ pulse 0.3.0 single tag; v0.64.7 repin + re-verify COMPLETE on bindings)**:
   23/25/26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 live;
   workaround retirement unlocked (B-26 wave running).
 
+**UPDATE 2026-10-19 14:05Z (arm64 emulation PROVEN end-to-end; target probe
+-- arm=AArch64-Linux, riscv=triple bug; MCU sessions deduped)**: docker
+back up.
+- **Suite proof**: `xiom.mqtt` conformance suite **PASSES under arm64
+  emulation** (trixie/clang-19 image, `--timeout 0` for the slow emulated
+  compile -- clang-19 accepts the IR; the earlier 300s cut was the xiom
+  default).  Harness: `docker run --platform linux/arm64` + mounted
+  repo/stdlib + official `xiom-0.64.7-linux-arm64` (sha256 verified).
+- **Target probe**: `--target arm` = AArch64 **linux** PIE (not
+  Cortex-M); `--target riscv` emits triple `riscv64gc-unknown-linux-gnu`
+  -> clang rejects it -> riscv target not linkable as shipped (compiler
+  finding relayed).  MCU request stands (thumbv6m/v7em + proper riscv32
+  targets + no_std).
+- MCU wave: duplicate micropython/uf2 sessions stopped; live sessions =
+  firmata (`ses_eabe3783`), micropython (wt-1), uf2 (wt-2).
+- sqlite 0.5.0 PUBLISHED (tag; sha 35934316) per the driver record.
+
 **UPDATE 2026-10-19 13:10Z (MCU Phase-1 wave -- firmata + micropython + uf2;
 compiler owner-request filed; post-restart recovery)**: owner go.
 - **Launched**: `feat/firmata` (session `ses_eabe3783...`, wt-2); the PC
