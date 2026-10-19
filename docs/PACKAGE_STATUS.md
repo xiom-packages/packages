@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.7` -- generated 2026-10-19T11:50:27Z.
+Toolchain pin: `v0.64.7` -- generated 2026-10-19T11:52:01Z.
 
 ## Summary
 
@@ -562,7 +562,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.spirv-tools | xiom-spirv-tools | incubating | tests/test_conformance.xi | pass 39/39 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
 | xiom.spz | xiom-spz | incubating | tests/test_conformance.xi | pass 74/74 | ccb62224 | False | published in eco-v0.1.177 (2026-10-13, 0.1.0 -- new package; splat compression) |
 | xiom.sql | xiom-sql | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: stub body |
-| xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | pass 21/21 | b3cbe464 | False | published in eco-v0.1.122 (2026-10-09, 0.3.0); 0.4.0 in eco-v0.1.174; 0.4.1 live; 0.5.0 nested query_one restore requested (2026-10-18) |
+| xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | pass 21/21 | 772e9f34 | False | published in eco-v0.1.122 (2026-10-09, 0.3.0); 0.4.0 in eco-v0.1.174; 0.4.1 live; 0.5.0 nested query_one restore requested (2026-10-18) |
 | xiom.ssh2 | xiom-ssh2 | incubating | tests/test_conformance.xi | pass 24/24 | 0da2fa55 | False | publish pending: eco-v0.1.37 (v0.62.3 result-payload fix) |
 | xiom.ssl | xiom-ssl | incubating | tests/test_conformance.xi | pass 23/23 | 5a22868a | False | published in eco-v0.1.189 (2026-10-16, 0.1.0 -- new name; PULSE TLS context binding; libssl loader) |
 | xiom.static | xiom-static | incubating | tests/test_conformance.xi | pass 25/25 | 50742952 | False |  |
