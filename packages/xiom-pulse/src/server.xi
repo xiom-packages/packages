@@ -165,6 +165,14 @@ pub fn hookctx_clear(ctx: &mut HookCtx) -> Bool {
 /// installed (stateless first, then stateful). The stateless variants never
 /// see the bag.
 ///
+/// `fallback` is the unmatched-route seam:
+/// `fn(&PulseRequest, Str) -> HandlerOut` receives the parsed request and the
+/// decoded body when route matching yields kind 0 (no registered route). Its
+/// HandlerOut replaces the package JSON 404, so a site/static tree can serve
+/// files and supply a custom 404 body. It is not consulted for kind 2
+/// (method mismatch -> 405) and the TE/CL framing policy runs first. An absent
+/// or empty fallback leaves the package 404 byte-identical.
+///
 /// All slots are written as direct fn types: an fn-typed alias used as a
 /// callable parameter miscompiles at 0.64.6. Hooks live in one-element
 /// vectors because adjacent fn-typed struct fields are laid out incorrectly
@@ -175,6 +183,7 @@ pub type HookSet = {
   after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)];
   pre_ctx: Vec[fn(&PulseRequest, Str, &mut HookCtx) -> PreOut];
   after_ctx: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo, &mut HookCtx)];
+  fallback: Vec[fn(&PulseRequest, Str) -> HandlerOut];
 }
 
 /// HookError is the typed misuse error for hook registration. Clearing is
@@ -184,6 +193,7 @@ pub enum HookError {
   AfterAlreadyInstalled,
   PreCtxAlreadyInstalled,
   AfterCtxAlreadyInstalled,
+  FallbackAlreadyInstalled,
 }
 
 // error_status_body injects the HTTP status into an error envelope
@@ -222,7 +232,7 @@ pub fn out_html(status: Int, body: Str) -> HandlerOut {
 /// hooks_new returns an empty hook set: dispatch through it behaves exactly
 /// like the hook-free core. Complexity: O(1).
 pub fn hooks_new() -> HookSet {
-  return HookSet{ pre: Vec[fn(&PulseRequest, Str) -> PreOut].new(); after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)].new(); pre_ctx: Vec[fn(&PulseRequest, Str, &mut HookCtx) -> PreOut].new(); after_ctx: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo, &mut HookCtx)].new() };
+  return HookSet{ pre: Vec[fn(&PulseRequest, Str) -> PreOut].new(); after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)].new(); pre_ctx: Vec[fn(&PulseRequest, Str, &mut HookCtx) -> PreOut].new(); after_ctx: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo, &mut HookCtx)].new(); fallback: Vec[fn(&PulseRequest, Str) -> HandlerOut].new() };
 }
 
 /// pre_continue is the "dispatch normally" pre-hook decision.
@@ -272,6 +282,30 @@ pub fn hooks_install_after_ctx(hs: &mut HookSet, h: fn(&PulseRequest, Str, &Hand
   return Ok(true);
 }
 
+/// hooks_install_fallback registers the one unmatched-route fallback. A
+/// second install is misuse: Err(FallbackAlreadyInstalled). The fallback
+/// receives (request, decoded body) and its HandlerOut replaces the package
+/// 404 for route kind 0 only. Complexity: O(1).
+pub fn hooks_install_fallback(hs: &mut HookSet, h: fn(&PulseRequest, Str) -> HandlerOut) -> Result[Bool, HookError] {
+  if hs.fallback.len() > 0 { return Err(FallbackAlreadyInstalled); }
+  hs.fallback.push(h);
+  return Ok(true);
+}
+
+/// hooks_clear_fallback removes the unmatched-route fallback; returns true
+/// when one was installed. Clearing is idempotent. Complexity: O(1).
+pub fn hooks_clear_fallback(hs: &mut HookSet) -> Bool {
+  let had = hs.fallback.len() > 0;
+  hs.fallback = Vec[fn(&PulseRequest, Str) -> HandlerOut].new();
+  return had;
+}
+
+/// hooks_has_fallback reports whether an unmatched-route fallback is
+/// installed. Complexity: O(1).
+pub fn hooks_has_fallback(hs: &HookSet) -> Bool {
+  return hs.fallback.len() > 0;
+}
+
 /// hooks_clear_pre removes both the stateless and the stateful pre hook;
 /// returns true when either was installed. Clearing is idempotent.
 /// Complexity: O(1).
@@ -292,12 +326,13 @@ pub fn hooks_clear_after(hs: &mut HookSet) -> Bool {
   return had;
 }
 
-/// hooks_clear removes both hooks (stateless and stateful); returns true when
-/// anything was installed. Complexity: O(1).
+/// hooks_clear removes every hook (pre, after and the unmatched-route
+/// fallback); returns true when anything was installed. Complexity: O(1).
 pub fn hooks_clear(hs: &mut HookSet) -> Bool {
   let had_pre = hooks_clear_pre(hs);
   let had_after = hooks_clear_after(hs);
-  return had_pre || had_after;
+  let had_fallback = hooks_clear_fallback(hs);
+  return had_pre || had_after || had_fallback;
 }
 
 /// hooks_has_pre / hooks_has_after report registration state (either the
@@ -312,7 +347,8 @@ pub fn hooks_has_after(hs: &HookSet) -> Bool {
 
 /// hook_error_code is the stable misuse code for logs and tests:
 /// "pre_already_installed" / "after_already_installed" /
-/// "pre_ctx_already_installed" / "after_ctx_already_installed".
+/// "pre_ctx_already_installed" / "after_ctx_already_installed" /
+/// "fallback_already_installed".
 /// Complexity: O(1).
 pub fn hook_error_code(e: &HookError) -> Str {
   match e {
@@ -320,6 +356,7 @@ pub fn hook_error_code(e: &HookError) -> Str {
     AfterAlreadyInstalled => { return "after_already_installed"; }
     PreCtxAlreadyInstalled => { return "pre_ctx_already_installed"; }
     AfterCtxAlreadyInstalled => { return "after_ctx_already_installed"; }
+    FallbackAlreadyInstalled => { return "fallback_already_installed"; }
   }
 }
 
@@ -348,7 +385,7 @@ pub fn dispatch_with(hooks: &HookSet, eff_method: Str, req: &PulseRequest, body:
     }
   }
   if !short_circuited {
-    out = dispatch_one(eff_method, req, body, handler);
+    out = dispatch_one_with_fallback(hooks, eff_method, req, body, handler);
   }
   if hooks.after.len() > 0 {
     let info = ResponseInfo{ status: out.status; bytes: response_body_bytes(&out); duration_ms: time.monotonic_ms() - t0 };
@@ -387,7 +424,7 @@ pub fn dispatch_with_ctx(hooks: &HookSet, ctx: &mut HookCtx, eff_method: Str, re
     }
   }
   if !short_circuited {
-    out = dispatch_one(eff_method, req, body, handler);
+    out = dispatch_one_with_fallback(hooks, eff_method, req, body, handler);
   }
   if hooks.after.len() > 0 {
     let info = ResponseInfo{ status: out.status; bytes: response_body_bytes(&out); duration_ms: time.monotonic_ms() - t0 };
@@ -425,13 +462,56 @@ pub fn routes_list() -> Vec[(Str, Str)] {
   return out;
 }
 
-/// dispatch_one routes one registered request: the `/v1` alias prefix is
-/// stripped first (router.v1_path), then the table is matched and the
-/// matched route is handed to `handler`. Complexity: O(request).
-fn dispatch_one(eff_method: Str, req: &PulseRequest, body_str: Str, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut) -> HandlerOut {
+/// dispatch_one_with_fallback routes one registered request (the `/v1` alias
+/// prefix is stripped first, router.v1_path) plus the unmatched-route
+/// fallback seam: after the frozen TE/CL policy, a kind-0 match consults
+/// `hooks.fallback` and uses its HandlerOut instead of the package 404.
+/// kind 2 still yields 405 and matched routes still reach `handler`; an
+/// empty fallback slot is byte-identical to handle_route.
+/// Complexity: O(request).
+fn dispatch_one_with_fallback(hooks: &HookSet, eff_method: Str, req: &PulseRequest, body_str: Str, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut) -> HandlerOut {
   let tgt = router.v1_path(req.target);
   let m = router.route_match(eff_method, tgt, &route_table);
-  return handle_route(m, &req, body_str, handler);
+  let policy = framing_policy_error(req);
+  if policy.status != 0 { return policy; }
+  if m.kind == 0 {
+    if hooks.fallback.len() > 0 {
+      let fb = hooks.fallback[0];
+      return fb(req, body_str);
+    }
+    return out_json(404, envelope.error_body("not_found", "not found"));
+  }
+  if m.kind == 2 {
+    return method_not_allowed_out(&m);
+  }
+  return handler(req, &m, body_str);
+}
+
+/// framing_policy_error applies the frozen Transfer-Encoding policy:
+///   * `chunked` + Content-Length -> 400 (classic CL.TE smuggling shape);
+///   * any other non-chunked Transfer-Encoding -> 501.
+/// Returns status 0 (an empty HandlerOut) when the framing is acceptable.
+/// Complexity: O(headers).
+fn framing_policy_error(req: &PulseRequest) -> HandlerOut {
+  let te_hdr = http.header_get(req, "transfer-encoding");
+  if te_hdr.len() > 0 {
+    if !http.te_is_chunked(te_hdr) {
+      return out_json(501, envelope.error_body("unsupported_transfer_encoding", "Transfer-Encoding is not supported"));
+    }
+    if http.header_get(req, "content-length").len() > 0 {
+      return out_json(400, envelope.error_body("bad_request", "Transfer-Encoding with Content-Length is ambiguous"));
+    }
+  }
+  return HandlerOut{ status: 0; content_type: CONTENT_TEXT; headers: Vec[(Str, Str)].new(); body: ""; body_bytes: Vec[UInt8].new() };
+}
+
+/// method_not_allowed_out builds the frozen 405 response with the
+/// deduplicated Allow list captured by route_match.
+/// Complexity: O(allow).
+fn method_not_allowed_out(m: &PulseRoute) -> HandlerOut {
+  var hs: Vec[(Str, Str)] = Vec[(Str, Str)].new();
+  hs.push(("Allow", m.allow));
+  return HandlerOut{ status: 405; content_type: CONTENT_JSON; headers: hs; body: error_status_body(405, envelope.error_body("method_not_allowed", "method not allowed")); body_bytes: Vec[UInt8].new() };
 }
 
 /// handle_route applies the frozen pre-dispatch policy and dispatches a
@@ -443,29 +523,18 @@ fn dispatch_one(eff_method: Str, req: &PulseRequest, body_str: Str, handler: fn(
 ///   * kind 0 -> the JSON 404 envelope; kind 2 -> 405 with the Allow list;
 ///   * otherwise the registered handler receives the request (the body is
 ///     already decoded by the parser).
+/// The unmatched-route fallback is a HookSet seam, so this hook-free entry
+/// point always emits the package 404 (dispatch_with / dispatch_with_ctx
+/// consult the fallback).
 /// Complexity: O(body).
 pub fn handle_route(m: PulseRoute, req: &PulseRequest, body: Str, handler: fn(&PulseRequest, &PulseRoute, Str) -> HandlerOut) -> HandlerOut {
-  // Transfer-Encoding policy (chunked support since 2026-10-08):
-  //   * `chunked` alone -> decoded body reaches the route;
-  //   * `chunked` + Content-Length -> 400: ambiguous framing is the classic
-  //     CL.TE smuggling shape and is refused outright;
-  //   * any other coding -> 501 (unsupported transfer-coding, RFC 9110).
-  let te_hdr = http.header_get(req, "transfer-encoding");
-  if te_hdr.len() > 0 {
-    if !http.te_is_chunked(te_hdr) {
-      return out_json(501, envelope.error_body("unsupported_transfer_encoding", "Transfer-Encoding is not supported"));
-    }
-    if http.header_get(req, "content-length").len() > 0 {
-      return out_json(400, envelope.error_body("bad_request", "Transfer-Encoding with Content-Length is ambiguous"));
-    }
-  }
+  let policy = framing_policy_error(req);
+  if policy.status != 0 { return policy; }
   if m.kind == 0 {
     return out_json(404, envelope.error_body("not_found", "not found"));
   }
   if m.kind == 2 {
-        var hs: Vec[(Str, Str)] = Vec[(Str, Str)].new();
-        hs.push(("Allow", m.allow));
-        return HandlerOut{ status: 405; content_type: CONTENT_JSON; headers: hs; body: error_status_body(405, envelope.error_body("method_not_allowed", "method not allowed")); body_bytes: Vec[UInt8].new(); };
+    return method_not_allowed_out(&m);
   }
   return handler(req, &m, body);
 }

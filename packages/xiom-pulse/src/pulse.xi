@@ -7,9 +7,9 @@ module xiom.pulse
 /// PULSE_PACKAGE_VERSION is the single source of truth for the package
 /// release version. Keep it in sync with the `version:` field in package.xi;
 /// the conformance suite pins the accessor to it.
-const PULSE_PACKAGE_VERSION: Str = "0.3.0";
+const PULSE_PACKAGE_VERSION: Str = "0.3.1";
 
-/// pulse_version returns the PULSE package version string (0.3.0). The
+/// pulse_version returns the PULSE package version string (0.3.1). The
 /// response Server header is deliberately NOT derived from this value: it
 /// carries the neutral, consumer-configurable token from
 /// `xiom.pulse.http.server_token()` (default "xiom-pulse").

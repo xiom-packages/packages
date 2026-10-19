@@ -1,6 +1,6 @@
 # xiom.pulse -- PULSE Beacon (embeddable core)
 
-> **Status:** `incubating` -- conformance-tested (203/203), recorded x2 green
+> **Status:** `incubating` -- conformance-tested (231/231), recorded x2 green
 > on XIOM v0.64.7. Current version: `0.3.0` (single tag `xiom-pulse/v0.3.0`,
 > sha256 `bae0dd08...`, 2026-10-18 -- stateful HookCtx seam; `0.2.2` in
 > `eco-v0.1.198` -- version-identity fix; `0.2.1` in `eco-v0.1.197` -- body-cap
@@ -40,7 +40,10 @@ see `PROVENANCE.md`):
   token, HTTP/1.0 never reuses, incomplete framing closes), per-connection
   trailing buffer with in-order pipelining, silent idle expiry,
   `PULSE_KEEPALIVE=0` restore, EOF-mid-message close-with-no-answer -- and
-  a 408 slowloris guard.
+  a 408 slowloris guard. `HEAD` is dispatched as `GET`, so the response is
+  built exactly as GET (same `Content-Length`) but only the headers are
+  sent; the reuse latch keys off the request framing, so keep-alive stays
+  correct.
 - **Routing** (`xiom.pulse.router`): `:name` path parameters in
   registration order, 404/405 + Allow, query splitting and percent
   decoding, `/v1` alias mapping.
@@ -160,10 +163,41 @@ API: `hookctx_new`, `hookctx_get(ctx, i)`, `hookctx_set(ctx, i, v)`,
 `handle_connection_with` supply a fresh bag automatically; use the `_ctx`
 variants to own a bucket across keep-alive cycles and reconnects.
 
+### Unmatched-route fallback (site/static tree seam)
+
+`HookSet.fallback` is consulted for route kind 0 (no registered route)
+before the package JSON 404. It receives the parsed request and the decoded
+body and its `HandlerOut` becomes the response, so a site tree can serve
+files and supply a custom 404 body while registered routes keep the normal
+handler. The fallback is not used for kind 2 (method mismatch -> 405), and
+the TE/CL framing policy still runs first. With no fallback installed the
+404 is byte-identical to the hook-free core. `dispatch_with`,
+`dispatch_with_ctx` and the connection loops all consult the same slot;
+`handle_route` (which has no `HookSet`) always emits the package 404.
+
+```xi
+fn site(_req: &PulseRequest, _body: Str) -> HandlerOut {
+  // Serve /site/... from a static tree; otherwise a custom 404 page.
+  return app.out_html(404, "<html><body>not found</body></html>");
+}
+
+pub fn main() -> Int {
+  let _ = app.register("GET", "/health");
+  var hooks = app.hooks_new();
+  let _ = app.hooks_install_fallback(&mut hooks, site);
+  return app.serve_with(health, &hooks);
+}
+```
+
+API: `hooks_install_fallback(hs, h)`, `hooks_clear_fallback(hs)` and
+`hooks_has_fallback(hs)`; a second install returns the typed
+`fallback_already_installed` (`HookError.FallbackAlreadyInstalled`).
+`hooks_clear` removes the fallback with the other hooks.
+
 ### Release identity + `Server` header
 
 `pulse.pulse_version()` reports the package version from the single
-`PULSE_PACKAGE_VERSION` constant in `src/pulse.xi` (`0.2.0`, kept in sync
+`PULSE_PACKAGE_VERSION` constant in `src/pulse.xi` (`0.3.0`, kept in sync
 with `package.xi`). The response `Server` header is deliberately
 version-free and consumer-controlled: both builders emit
 `Server: xiom-pulse` by default. Set your own token once before `serve` /
@@ -198,7 +232,7 @@ covered by exact byte assertions in the suite.
 | `xiom.pulse.envelope` | `error_body`, `ok_bool`, `single_field` |
 | `xiom.pulse.reqctx` | `set_rid`, `get_rid` |
 | `xiom.pulse.config` | `cfg_read_timeout`, `cfg_write_timeout`, `cfg_idle_timeout`, `cfg_keepalive`, `cfg_port`, `cfg_bind` |
-| `xiom.pulse.app` | `HandlerOut`, `ResponseInfo`, `PreOut`, `HookCtx`, `HookSet`, `HookError`; `register`, `routes_list`, `out_json`, `out_text`, `out_html`, `handle_route`, `dispatch_with`, `dispatch_with_ctx`, `handle_connection`, `handle_connection_with`, `handle_connection_with_ctx`, `serve`, `serve_with`, `serve_with_ctx`, `app_set_server_token`, `app_server_token`, `hooks_new`, `pre_continue`, `pre_stop`, `hooks_install_pre`, `hooks_install_after`, `hooks_install_pre_ctx`, `hooks_install_after_ctx`, `hooks_clear_pre`, `hooks_clear_after`, `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code`, `hookctx_new`, `hookctx_get`, `hookctx_set`, `hookctx_len`, `hookctx_push`, `hookctx_clear` |
+| `xiom.pulse.app` | `HandlerOut`, `ResponseInfo`, `PreOut`, `HookCtx`, `HookSet`, `HookError`; `register`, `routes_list`, `out_json`, `out_text`, `out_html`, `handle_route`, `dispatch_with`, `dispatch_with_ctx`, `handle_connection`, `handle_connection_with`, `handle_connection_with_ctx`, `serve`, `serve_with`, `serve_with_ctx`, `app_set_server_token`, `app_server_token`, `hooks_new`, `pre_continue`, `pre_stop`, `hooks_install_pre`, `hooks_install_after`, `hooks_install_pre_ctx`, `hooks_install_after_ctx`, `hooks_install_fallback`, `hooks_clear_pre`, `hooks_clear_after`, `hooks_clear_fallback`, `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hooks_has_fallback`, `hook_error_code`, `hookctx_new`, `hookctx_get`, `hookctx_set`, `hookctx_len`, `hookctx_push`, `hookctx_clear` |
 | `xiom.pulse.minimal` | the runnable example (`main`) |
 
 ## Verify
@@ -211,11 +245,12 @@ covered by exact byte assertions in the suite.
 protocol-hardening fixtures, the keep-alive A/B decisions, the hook-seam
 checks (pre/post ordering, short-circuit, registration/clear, typed misuse,
 stateful `HookCtx` accessors, limiter short-circuit, stateless+stateful
-mixing),
-release-identity/Server-token byte checks, and five loopback end-to-end
-checks (pipelined reuse on one fd, silent idle expiry, `PULSE_KEEPALIVE=0`,
-`Expect: 100-continue`, hooked CORS preflight) over real sockets --
-offline-safe, no threads.
+mixing, unmatched-route fallback install/clear/typed misuse and site-like
+serving, HEAD body trim with GET-equal `Content-Length`), release-identity/
+Server-token byte checks, and loopback end-to-end checks (pipelined reuse on
+one fd, silent idle expiry, `PULSE_KEEPALIVE=0`, `Expect: 100-continue`,
+hooked CORS preflight, fallback serving, HEAD/GET header equality) over real
+sockets -- offline-safe, no threads.
 
 Spec details: `SPEC.md` (surface, caps, A/B semantics, deviations).
 Extraction record: `PROVENANCE.md` (pinned commit + per-file SHA256).

@@ -1,6 +1,6 @@
 # xiom.pulse -- Specification
 
-Version: 0.2.0 (incubating).
+Version: 0.3.0 (incubating).
 Pure XIOM, no FFI, no bridge C. `xiom.pulse` is the **Beacon extraction of
 the frozen PULSE protocol core**: the HTTP/1.1 request parser + response
 builders, the keep-alive A/B connection loop with named deadlines, the route
@@ -20,7 +20,7 @@ metrics / middleware / sqlite) stay **out** of this bundle: consumers
 compose them separately.
 
 Version reporting has one source of truth: `src/pulse.xi` defines
-`PULSE_PACKAGE_VERSION = "0.2.0"` (kept in sync with `package.xi`) and
+`PULSE_PACKAGE_VERSION = "0.3.0"` (kept in sync with `package.xi`) and
 `pulse_version()` returns it. The HTTP `Server` header is deliberately
 **decoupled** from the package version: both response builders emit
 `Server: <server_token>` with the neutral, version-free default
@@ -103,7 +103,7 @@ Key semantics (frozen):
 - Both builders emit exactly one `Server: <server_token>` line. The
   default token is `xiom-pulse` (version-free); `set_server_token` replaces
   it process-wide for subsequent responses and rejects empty/non-printable
-  input. `pulse_version()` reports the package version (`0.2.0`) from the
+  input. `pulse_version()` reports the package version (`0.3.0`) from the
   single `PULSE_PACKAGE_VERSION` constant.
 
 ### 2.2 `xiom.pulse.router`
@@ -182,11 +182,18 @@ value; no closures).
 - `chunked` + `Content-Length` -> **400** (`Transfer-Encoding` and
   `Content-Length` together is the classic CL.TE smuggling shape);
 - any non-chunked `Transfer-Encoding` -> **501**;
-- kind 0 -> the JSON 404 envelope; kind 2 -> **405** with `Allow`;
+- kind 0 -> the JSON 404 envelope (the hook-aware dispatch paths substitute
+  the installed unmatched-route fallback, section 2.6); kind 2 -> **405**
+  with `Allow`;
 - otherwise the registered handler is called (body already decoded).
 
-`HEAD` is dispatched as `GET` and the body is trimmed at the head
-terminator (frozen behavior). `X-Pulse-Quit: 1` stops the accept loop after
+`HEAD` is dispatched as `GET`, so the response is built exactly as the GET
+response (same status, headers and `Content-Length`) and then the body is
+trimmed at the head terminator: only header bytes reach the wire, in every
+send path (`serve` / `serve_with` / `serve_with_ctx` and the
+`handle_connection*` variants). GET and every other method are unchanged;
+the reuse latch still keys off the request framing, so keep-alive never
+desyncs on a HEAD cycle. `X-Pulse-Quit: 1` stops the accept loop after
 the connection closes (kept from the frozen loop as the clean-shutdown
 seam).
 
@@ -218,6 +225,7 @@ pub type HookSet = {
   after: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo)];
   pre_ctx: Vec[fn(&PulseRequest, Str, &mut HookCtx) -> PreOut];
   after_ctx: Vec[fn(&PulseRequest, Str, &HandlerOut, &ResponseInfo, &mut HookCtx)];
+  fallback: Vec[fn(&PulseRequest, Str) -> HandlerOut];
 }
 
 pub enum HookError {
@@ -225,21 +233,32 @@ pub enum HookError {
   AfterAlreadyInstalled,
   PreCtxAlreadyInstalled,
   AfterCtxAlreadyInstalled,
+  FallbackAlreadyInstalled,
 }
 ```
 
+The unmatched-route `fallback` receives the parsed request and the decoded
+body for route kind 0 only. Its `HandlerOut` replaces the package JSON 404
+(a site/static tree plus a custom 404 body); it is not consulted for kind 2
+(405) and the TE/CL framing policy runs first. With no fallback installed the
+404 is byte-identical to the hook-free core. `dispatch_with`,
+`dispatch_with_ctx` and every connection loop consult the same slot; the
+hook-free `handle_route` entry point always emits the package 404.
+
 | Fn | Behavior |
 |---|---|
-| `hooks_new() -> HookSet` | an empty set (all four slots empty) |
+| `hooks_new() -> HookSet` | an empty set (all five slots empty) |
 | `pre_continue() -> PreOut` | "dispatch normally" |
 | `pre_stop(response) -> PreOut` | short-circuit with `response` |
 | `hooks_install_pre(hs, h) -> Result[Bool, HookError]` | installs the single stateless pre hook; a second stateless install is `Err(PreAlreadyInstalled)` |
 | `hooks_install_after(hs, h) -> Result[Bool, HookError]` | installs the single stateless after hook; a second stateless install is `Err(AfterAlreadyInstalled)` |
 | `hooks_install_pre_ctx(hs, h) -> Result[Bool, HookError]` | installs the single stateful pre hook; a second stateful install is `Err(PreCtxAlreadyInstalled)` |
 | `hooks_install_after_ctx(hs, h) -> Result[Bool, HookError]` | installs the single stateful after hook; a second stateful install is `Err(AfterCtxAlreadyInstalled)` |
-| `hooks_clear_pre` / `hooks_clear_after` / `hooks_clear(hs) -> Bool` | removes the stateless and stateful hooks of that kind (both for `hooks_clear`); returns whether anything was installed; idempotent |
-| `hooks_has_pre` / `hooks_has_after(hs) -> Bool` | registration state of either variant |
-| `hook_error_code(e) -> Str` | `"pre_already_installed"` / `"after_already_installed"` / `"pre_ctx_already_installed"` / `"after_ctx_already_installed"` |
+| `hooks_install_fallback(hs, h) -> Result[Bool, HookError]` | installs the single unmatched-route fallback `fn(&PulseRequest, Str) -> HandlerOut`; a second install is `Err(FallbackAlreadyInstalled)` |
+| `hooks_clear_pre` / `hooks_clear_after` / `hooks_clear_fallback(hs) -> Bool` | removes the hooks of that kind; returns whether anything was installed; idempotent |
+| `hooks_clear(hs) -> Bool` | removes every hook (pre, after and fallback); returns whether anything was installed; idempotent |
+| `hooks_has_pre` / `hooks_has_after` / `hooks_has_fallback(hs) -> Bool` | registration state of the corresponding slot (either variant for pre/after) |
+| `hook_error_code(e) -> Str` | `"pre_already_installed"` / `"after_already_installed"` / `"pre_ctx_already_installed"` / `"after_ctx_already_installed"` / `"fallback_already_installed"` |
 | `hookctx_new() -> HookCtx` | an empty handle bag |
 | `hookctx_len(ctx) -> Int` / `hookctx_get(ctx, i) -> Int` | bag size; out-of-range reads return 0 (never traps) |
 | `hookctx_set(ctx, i, v) -> Bool` / `hookctx_push(ctx, v) -> Int` | write a slot (false when out of range) / append a handle, returning its index |
@@ -266,8 +285,8 @@ connection loop):
    with the decoded body (stateless `pre` first, then `pre_ctx` with the
    bag). `pre_continue()` falls through; `pre_stop(resp)` skips route
    matching and the handler and uses `resp` (e.g. an OPTIONS preflight 204).
-2. **dispatch**: routing, the frozen TE/CL policy, 404/405, then the
-   registered handler.
+2. **dispatch**: routing, the frozen TE/CL policy, the unmatched-route
+   fallback (kind 0) or 405 (kind 2), then the registered handler.
 3. **after hook** runs exactly once per dispatch outcome -- including
    pre-hook short-circuits and the policy responses -- and observes the
    final `HandlerOut` plus `ResponseInfo{status, bytes, duration_ms}`
@@ -319,6 +338,11 @@ Keep-alive (Phase B):
   (`request_complete` pre-check).
 - **In-order pipelining:** requests are parsed and answered strictly in the
   order received, one cycle each.
+- **HEAD cycles:** the response is built exactly as GET (same
+  `Content-Length`) and only its head is sent; the reuse decision and the
+  trailing-buffer offset still come from the request framing, so a HEAD
+  cycle consumes its request exactly like a GET cycle and a pipelined
+  follower is not desynced.
 - **Silent idle expiry:** on cycle > 0, an idle deadline before the first
   byte closes silently -- no 408 (fasthttp model).
 - **EOF semantics:** EOF mid-message closes with no answer (h11 rule 6);
@@ -391,21 +415,23 @@ possible. Recorded deltas from the frozen files:
    `app.serve` (the frozen accept loop parametrized by one handler
    instead of the product route table), the hook seam (section 2.6:
    `hooks_new`, `pre_continue`, `pre_stop`, `hooks_install_pre`,
-   `hooks_install_after`, `hooks_clear_pre`, `hooks_clear_after`,
-   `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code`,
-   `dispatch_with`, `handle_connection_with`, `serve_with`), the stateful
-   hook seam (`HookCtx` + `hookctx_new`/`hookctx_get`/`hookctx_set`/
-   `hookctx_len`/`hookctx_push`/`hookctx_clear`, `hooks_install_pre_ctx`,
-   `hooks_install_after_ctx`, `dispatch_with_ctx`,
-   `handle_connection_with_ctx`, `serve_with_ctx`), and the
-   `xiom.pulse.minimal` example.
+    `hooks_install_after`, `hooks_clear_pre`, `hooks_clear_after`,
+    `hooks_clear`, `hooks_has_pre`, `hooks_has_after`, `hook_error_code`,
+    `dispatch_with`, `handle_connection_with`, `serve_with`), the stateful
+    hook seam (`HookCtx` + `hookctx_new`/`hookctx_get`/`hookctx_set`/
+    `hookctx_len`/`hookctx_push`/`hookctx_clear`, `hooks_install_pre_ctx`,
+    `hooks_install_after_ctx`, `dispatch_with_ctx`,
+    `handle_connection_with_ctx`, `serve_with_ctx`), the unmatched-route
+    fallback seam (`HookSet.fallback`, `hooks_install_fallback`,
+    `hooks_clear_fallback`, `hooks_has_fallback`,
+    `FallbackAlreadyInstalled`), and the `xiom.pulse.minimal` example.
 7. **`http.xi` is verbatim except the Server-token seam.** The request
    parser plus `bearer_token` and `idem_key_valid` are unchanged; the two
    response builders now emit `Server: <server_token>` instead of the
    frozen `xiom-pulse/0.2.1` literal, with the neutral default
    `xiom-pulse` and `set_server_token`/`server_token` as the consumer seam.
 8. **`envelope.xi` and `reqctx.xi` are byte-verbatim.** `pulse.xi` now
-   reports the package version from `PULSE_PACKAGE_VERSION` (`0.2.0`)
+   reports the package version from `PULSE_PACKAGE_VERSION` (`0.3.0`)
    instead of the frozen product literal.
 
 ## 6. Conformance suite
@@ -413,8 +439,8 @@ possible. Recorded deltas from the frozen files:
 `tests/test_conformance.xi` (driver with explicit `fn main`) ports the
 hardening fixtures from the source `tests/test_http.xi` plus the keep-alive
 A/B checks mined from `scripts/http_smoke.ps1` sections 13e/13f, adds
-hook-seam checks (section I), and adds five loopback end-to-end checks over
-two real fds (no threads):
+hook-seam checks (sections I/K), the fallback and HEAD seams (sections
+L/M), and loopback end-to-end checks over two real fds (no threads):
 
 - A/B/E/F: parser + framing goldens, caps, chunked (Wikipedia golden,
   state transitions 1/0/-1, extension + trailer, decoded cap), TE/CL
@@ -422,7 +448,7 @@ two real fds (no threads):
   detection, builders incl. keep-flag variants, status text, security
   headers, query/URL decoding, v1 alias, router mechanism (registration
   order, `:param`, 405 + Allow, empty table).
-- D also pins identity: `pulse_version() == "0.2.0"`, the exact neutral
+- D also pins identity: `pulse_version() == "0.3.0"`, the exact neutral
   `Server: xiom-pulse` bytes on FULL and BYTES builders (exactly one
   occurrence, no version suffix), the override path on both builders,
   CR/LF-injection and empty-token rejection, and restore-default.
@@ -450,6 +476,17 @@ two real fds (no threads):
   `pre_ctx_already_installed` / `after_ctx_already_installed` arms,
   stateless/stateful coexistence, clear semantics, and one real-fd
   `handle_connection_with_ctx` round trip.
+- L (unmatched-route fallback): absent fallback keeps the package 404
+  byte-identical to `handle_route`, an installed fallback serves site-like
+  content and a custom 404 body on kind 0 (handler skipped), kind 2 stays
+  405, the ctx dispatch path consults the same slot, duplicate install is
+  the typed `fallback_already_installed`, clear restores the package 404
+  idempotently, `hooks_clear` removes it, and one real-fd round trip serves
+  the fallback.
+- M (HEAD trim): GET baseline unchanged, HEAD headers byte-identical to the
+  GET headers with `Content-Length` equal to the GET body length, zero body
+  bytes on the wire, and the same trim through the hook path, the
+  caller-owned ctx loop and the fallback path.
 
 ## 7. Provenance
 

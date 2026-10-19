@@ -113,6 +113,36 @@ fn hook_handler(_req: &PulseRequest, _m: &PulseRoute, _body: Str) -> HandlerOut 
   return app.out_text(201, "hello");
 }
 
+// Unmatched-route fallback observability (section L): a site tree shape.
+var fallback_calls: Int = 0;
+var fallback_last_body: Str = "";
+
+/// site_fallback serves a site-like file for /site/index.html and a custom
+/// HTML 404 for every other unmatched path.
+fn site_fallback(req: &PulseRequest, body: Str) -> HandlerOut {
+  fallback_calls = fallback_calls + 1;
+  fallback_last_body = body;
+  if req.target == "/site/index.html" {
+    return app.out_html(200, "<html><body>site</body></html>");
+  }
+  return app.out_html(404, "<html><body>custom 404</body></html>");
+}
+
+/// response_body_start is the index just past the response head terminator,
+/// or -1 when the buffer holds no complete head.
+fn response_body_start(resp: Str) -> Int {
+  let r = string.str_index_of(resp, "\r\n\r\n");
+  if r.is_some { return r.value + 4; }
+  return -1;
+}
+
+/// response_body is the bytes after the head terminator ("" when absent).
+fn response_body(resp: Str) -> Str {
+  let i = response_body_start(resp);
+  if i < 0 { return ""; }
+  return string.str_slice(resp, i, resp.len());
+}
+
 // Stateful-hook observability (section K): the ctx bag carries handles and
 // the mix hooks record their relative order in one string.
 var ctx_order: Str = "";
@@ -307,7 +337,7 @@ pub fn main() -> Int {
   var f: Int = 0;
 
   // --- A. module identity + request/response goldens -----------------------
-  f = f + check("pulse_version package 0.3.0", pulse.pulse_version() == "0.3.0");
+  f = f + check("pulse_version package 0.3.1", pulse.pulse_version() == "0.3.1");
 
   let r1 = req_bytes("GET /health HTTP/1.1\r\nHost: example\r\nX-Test: yes\r\n\r\n");
   let he1 = http.find_header_end(&r1);
@@ -901,6 +931,119 @@ pub fn main() -> Int {
   f = f + check("e2e ctx pre hook ran", app.hookctx_get(&bag_e2e, 0) == 1);
   f = f + check("e2e ctx response ok", contains(e2e_ctx_out, "HTTP/1.1 200 OK"));
   f = f + check("e2e ctx after hook observed", limiter_after_status == 200);
+  env.remove_var("PULSE_KEEPALIVE");
+  env.remove_var("PULSE_IDLE_TIMEOUT");
+  env.remove_var("PULSE_READ_TIMEOUT");
+  env.remove_var("PULSE_WRITE_TIMEOUT");
+
+  // --- L. unmatched-route fallback seam -------------------------------------
+  // Absent fallback: dispatch_with with an empty HookSet is byte-identical
+  // to the hook-free package 404.
+  let p_site = http.parse_request(&req_bytes("GET /site/index.html HTTP/1.1\r\nHost: t\r\n\r\n"));
+  let p_missing_fb = http.parse_request(&req_bytes("GET /missing HTTP/1.1\r\nHost: t\r\n\r\n"));
+  let p_post_fb = http.parse_request(&req_bytes("POST /hello HTTP/1.1\r\nHost: t\r\nContent-Length: 0\r\n\r\n"));
+  let hs_nofb = app.hooks_new();
+  f = f + check("fallback absent by default", !app.hooks_has_fallback(&hs_nofb));
+  let m_missing_fb = router.route_match("GET", "/missing", &app.routes_list());
+  let direct_missing_fb = app.handle_route(m_missing_fb, &p_missing_fb, "", hook_handler);
+  let nofb_out = app.dispatch_with(&hs_nofb, "GET", &p_missing_fb, "", hook_handler);
+  let nofb_resp = http.build_response_full(nofb_out.status, nofb_out.content_type, &nofb_out.headers, nofb_out.body, false);
+  let direct_resp = http.build_response_full(direct_missing_fb.status, direct_missing_fb.content_type, &direct_missing_fb.headers, direct_missing_fb.body, false);
+  f = f + check("fallback absent keeps 404 body", nofb_out.status == 404 && nofb_out.body == direct_missing_fb.body);
+  f = f + check("fallback absent 404 byte-identical", http.bytes_to_str(&nofb_resp, 0, nofb_resp.len()) == http.bytes_to_str(&direct_resp, 0, direct_resp.len()));
+
+  // Installed fallback: unmatched paths become the fallback's HandlerOut
+  // (site-like content + custom 404), and the registered handler never runs.
+  var hs_fb = app.hooks_new();
+  let install_fb = app.hooks_install_fallback(&mut hs_fb, site_fallback);
+  f = f + check("install fallback ok", install_fb.is_ok() && app.hooks_has_fallback(&hs_fb));
+  fallback_calls = 0;
+  hook_handler_calls = 0;
+  let site_out = app.dispatch_with(&hs_fb, "GET", &p_site, "", hook_handler);
+  f = f + check("fallback serves site content", site_out.status == 200 && site_out.body == "<html><body>site</body></html>");
+  f = f + check("fallback skips registered handler", hook_handler_calls == 0 && fallback_calls == 1);
+  let custom404_out = app.dispatch_with(&hs_fb, "GET", &p_missing_fb, "", hook_handler);
+  f = f + check("fallback custom 404 body", custom404_out.status == 404 && custom404_out.body == "<html><body>custom 404</body></html>");
+  f = f + check("fallback receives decoded body", fallback_last_body == "");
+
+  // The fallback is kind 0 only: a method mismatch stays 405.
+  let post_fb_calls = fallback_calls;
+  let fb_405 = app.dispatch_with(&hs_fb, "POST", &p_post_fb, "", hook_handler);
+  f = f + check("fallback not used for kind 2", fb_405.status == 405 && fallback_calls == post_fb_calls && fb_405.headers[0].0 == "Allow");
+
+  // The stateful dispatch path consults the same slot.
+  var bag_fb = app.hookctx_new();
+  let ctx_fb_out = app.dispatch_with_ctx(&hs_fb, &mut bag_fb, "GET", &p_missing_fb, "", hook_handler);
+  f = f + check("fallback on ctx dispatch path", ctx_fb_out.status == 404 && ctx_fb_out.body == "<html><body>custom 404</body></html>");
+
+  // Duplicate install is typed misuse.
+  let dup_fb = app.hooks_install_fallback(&mut hs_fb, site_fallback);
+  var dup_fb_code: Str = "";
+  if dup_fb.is_err {
+    let e_fb = dup_fb.unwrap_err();
+    dup_fb_code = app.hook_error_code(&e_fb);
+  }
+  f = f + check("duplicate fallback rejected typed", dup_fb.is_err() && dup_fb_code == "fallback_already_installed");
+
+  // Clearing restores the package 404; clearing is idempotent.
+  f = f + check("clear fallback restores 404", app.hooks_clear_fallback(&mut hs_fb) && !app.hooks_has_fallback(&hs_fb));
+  let cleared_out = app.dispatch_with(&hs_fb, "GET", &p_missing_fb, "", hook_handler);
+  f = f + check("cleared fallback emits package 404", cleared_out.status == 404 && cleared_out.body == direct_missing_fb.body);
+  f = f + check("clear fallback idempotent", !app.hooks_clear_fallback(&mut hs_fb));
+  let _reinstall_fb = app.hooks_install_fallback(&mut hs_fb, site_fallback);
+  f = f + check("hooks_clear removes fallback", app.hooks_clear(&mut hs_fb) && !app.hooks_has_fallback(&hs_fb));
+
+  // Real-fd: the connection loop consults the fallback.
+  env.set_var("PULSE_KEEPALIVE", "1");
+  env.set_var("PULSE_IDLE_TIMEOUT", "300");
+  env.set_var("PULSE_READ_TIMEOUT", "5000");
+  env.set_var("PULSE_WRITE_TIMEOUT", "5000");
+  var hs_fb_e2e = app.hooks_new();
+  let _ifb_e2e = app.hooks_install_fallback(&mut hs_fb_e2e, site_fallback);
+  let fb_e2e_out = e2e_round_trip_with(19000, "GET /site/index.html HTTP/1.1\r\nHost: t\r\nConnection: close\r\n\r\n", &hs_fb_e2e);
+  f = f + check("e2e fallback custom route", contains(fb_e2e_out, "HTTP/1.1 200 OK") && contains(fb_e2e_out, "<html><body>site</body></html>"));
+
+  // --- M. HEAD body trim ----------------------------------------------------
+  // Build the response exactly as GET (same head, same Content-Length) and
+  // send headers only: zero body bytes after the head terminator.
+  let get_out = e2e_round_trip(19040, "GET /hello HTTP/1.1\r\nHost: t\r\nConnection: close\r\n\r\n");
+  let get_body = response_body(get_out);
+  let get_head_len = response_body_start(get_out);
+  f = f + check("GET baseline status 200", contains(get_out, "HTTP/1.1 200 OK"));
+  f = f + check("GET baseline unchanged body", get_body == "{\"echo\":\"/hello\"}");
+  let head_out = e2e_round_trip(19080, "HEAD /hello HTTP/1.1\r\nHost: t\r\nConnection: close\r\n\r\n");
+  let head_body = response_body(head_out);
+  let head_head_len = response_body_start(head_out);
+  f = f + check("HEAD status 200", contains(head_out, "HTTP/1.1 200 OK"));
+  f = f + check("HEAD sends zero body bytes", head_body.len() == 0);
+  let heads_equal = get_head_len > 0 && head_head_len == get_head_len && string.str_slice(head_out, 0, head_head_len) == string.str_slice(get_out, 0, get_head_len);
+  f = f + check("HEAD headers identical to GET", heads_equal);
+  f = f + check("HEAD Content-Length equals GET body", contains(head_out, "Content-Length: " + get_body.len().to_str() + "\r\n"));
+
+  // HEAD through the hook path: hooks run, the handler is dispatched as GET,
+  // and the body is still trimmed.
+  var hs_head = app.hooks_new();
+  let _ha_head = app.hooks_install_after(&mut hs_head, hook_after_observe);
+  hook_seen_status = 0;
+  let head_hook_out = e2e_round_trip_with(19120, "HEAD /hello HTTP/1.1\r\nHost: t\r\nConnection: close\r\n\r\n", &hs_head);
+  f = f + check("HEAD hook path zero body", response_body(head_hook_out).len() == 0);
+  f = f + check("HEAD hook path observes 200", contains(head_hook_out, "HTTP/1.1 200 OK") && hook_seen_status == 200);
+
+  // HEAD through the caller-owned ctx loop (same trim, same Content-Length).
+  var hs_head_ctx = app.hooks_new();
+  var bag_head = app.hookctx_new();
+  let head_ctx_out = e2e_round_trip_ctx(19160, "HEAD /hello HTTP/1.1\r\nHost: t\r\nConnection: close\r\n\r\n", &hs_head_ctx, &mut bag_head);
+  f = f + check("HEAD ctx loop zero body", response_body(head_ctx_out).len() == 0);
+  f = f + check("HEAD ctx loop keeps GET length", contains(head_ctx_out, "Content-Length: " + get_body.len().to_str() + "\r\n"));
+
+  // HEAD + fallback: the fallback response is also built as GET and trimmed.
+  var hs_head_fb = app.hooks_new();
+  let _hfb = app.hooks_install_fallback(&mut hs_head_fb, site_fallback);
+  let head_fb_out = e2e_round_trip_with(19200, "HEAD /site/index.html HTTP/1.1\r\nHost: t\r\nConnection: close\r\n\r\n", &hs_head_fb);
+  let site_body_len = fb_e2e_out.len() - response_body_start(fb_e2e_out);
+  f = f + check("HEAD fallback zero body", contains(head_fb_out, "HTTP/1.1 200 OK") && response_body(head_fb_out).len() == 0);
+  f = f + check("HEAD fallback keeps GET length", contains(head_fb_out, "Content-Length: " + site_body_len.to_str() + "\r\n"));
+
   env.remove_var("PULSE_KEEPALIVE");
   env.remove_var("PULSE_IDLE_TIMEOUT");
   env.remove_var("PULSE_READ_TIMEOUT");
