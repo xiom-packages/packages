@@ -1,0 +1,9 @@
+# Recorded STRING_DATA sysex traces (2 x 7-bit character encoding).
+#   "READY"  -> 52 00 45 00 41 00 44 00 59 00
+#   U+00E9   -> 69 01 (233 = 105 + 1 * 128; UTF-8 C3 A9)
+#   "A\0B"   -> 41 00 00 00 42 00 (NUL terminates: decoded "A")
+#   ""       -> empty payload
+f0 71 52 00 45 00 41 00 44 00 59 00 f7
+f0 71 69 01 f7
+f0 71 41 00 00 00 42 00 f7
+f0 71 f7

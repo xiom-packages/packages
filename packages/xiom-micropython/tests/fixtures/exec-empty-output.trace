@@ -1,0 +1,4 @@
+# xiom.micropython byte-trace fixture -- exec with no stdout and no stderr:
+# "OK" + 0x04 + 0x04 + ">".
+>7061737304
+<4F4B04043E

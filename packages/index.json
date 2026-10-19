@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-19T15:13:45Z",
+    "updated":  "2026-10-19T21:09:00Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -2727,6 +2727,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.firmata",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Firmata 2.x host bindings: version/firmware handshake, pin modes, digital and PWM writes, analog reporting, digital/analog/string decode with typed errors, and a transport-agnostic session loop with an injectable byte transport",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-firmata/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "firmata.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.2",
                          "name":  "xiom.fits",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -5092,6 +5109,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-micro/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "micro.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.micropython",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Host-side MicroPython raw-REPL protocol client: control bytes, exec/eval framing, line pass-through; transport-agnostic",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-micropython/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "micropython.xi",
                                               "package.xi"
                                           ]
                      },
@@ -9648,6 +9682,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-uboot/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "uboot.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.uf2",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "UF2 firmware-image format (512-byte blocks: magics, flags, target address, payload, block numbering, family ID) with validation and build/parse roundtrip, plus BOOTSEL flash-to-mount (binary copy, read-back verification, unmount completion detection, typed errors, SKIP-safe absent volume)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-uf2/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "uf2.xi",
                                               "package.xi"
                                           ]
                      },

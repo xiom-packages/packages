@@ -1,0 +1,8 @@
+# Recorded board -> host handshake trace (Firmata 2.5, StandardFirmata).
+# Frame 1: REPORT_VERSION 0xF9 major=2 minor=5.
+# Frame 2: REPORT_FIRMWARE sysex 0xF0 0x79 major=2 minor=5,
+#          name "StandardFirmata" as 2 x 7-bit characters, 0xF7.
+# Source: byte layouts from firmata/protocol protocol.md and the firmware
+# report decoder in firmata.js (see PROVENANCE.md sec. 2).
+f9 02 05
+f0 79 02 05 53 00 74 00 61 00 6e 00 64 00 61 00 72 00 64 00 46 00 69 00 72 00 6d 00 61 00 74 00 61 00 f7

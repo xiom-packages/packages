@@ -1713,6 +1713,140 @@ pulse 0.3.0 single tag; v0.64.7 repin + re-verify COMPLETE on bindings)**:
   23/25/26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 live;
   workaround retirement unlocked (B-26 wave running).
 
+**UPDATE 2026-10-19 18:15Z (v0.64.8 RELEASED + REPINNED; B-34 VERIFIED
+FIXED -- bindings findings ALL CLOSED)**: doorbell tick.
+- **v0.64.8 LIVE (17:49Z) + repinned** (installed v0.64.8; tag
+  `4d040604b`, run 39296778685; arena/Vec/alias fixes + the engine
+  memory/threads fixes).  The registry publish hit
+  `publisher_not_mapped` (403; tag-ref retry requested by the release
+  lane -- not ours).
+- **B-34 VERIFIED FIXED on v0.64.8**: `vec-alias-generic/probe.xi`
+  compiles + runs (returns length=1; was `T001` on .5/.6/.7).  Findings
+  doc row added + the B-33 row updated to FIXED (m351, .7).  Relay INFO
+  to compiler `REL-20261019-1801-bindings-2`.
+- **Every bindings findings row is now closed/resolved**: B-13/14/15,
+  B-30, B-31 fixed (.7); B-26/B-32 retired (sqlite 0.5.0 live with the
+  restored nested shape); B-27/28 stdlib fixes bundled; B-29 closed as
+  a probe defect; B-33 fixed (m351); B-34 fixed (.8).  **No open
+  compiler findings from this lane.**
+- Eco: `xiom.sqlite 0.5.0` LIVE (morning merge `772e9f34`; B-32
+  retired); MCU Phase-1 publish request filed (firmata/micropython/uf2).
+  Relay tip `bafca5f`; note: repo-wide validate flags other lanes' items
+  (`-2057-engine` missing History; previously a registry non-ASCII) --
+  theirs to fix.
+
+**UPDATE 2026-10-19 15:05Z (doorbell -- `xiom.pulse` 0.3.1 LIVE;
+sqlite 0.5.0 tag already recorded)**: packages confirms the Phase B
+loop-switch publish:
+- **`xiom.pulse 0.3.1`** single tag `xiom-pulse/v0.3.1` (sha256
+  `38465713...`; registry live-verified; sync `2c167472`): **fallback
+  seam** (`HookSet.fallback` on route kind 0 AFTER the TE/CL policy and
+  BEFORE the package 404; `hooks_install_fallback`/`clear`/`has` +
+  `FallbackAlreadyInstalled`; absent/empty = byte-identical 404, kind 2
+  stays 405) + **HEAD body trim** (GET status/headers/Content-Length with
+  zero body bytes across `handle_connection*`/`serve`/`serve_with`/
+  `serve_with_ctx`, incl. hook/ctx/fallback paths); 231/231 x2 @ record
+  `2e3b6f7f`; `-1150-pulse` fixed with API + sha (Station can retire its
+  product loop; test-back requested). PULSE Phase B loop-switch unblocked.
+- **`xiom.sqlite 0.5.0`** already recorded (single tag
+  `xiom-sqlite/v0.5.0`, sha256 `35934316...`, run 39247791918 green;
+  B-32 retired / nested `Result[Option[SqliteRow]]` restored; 21/21 x2
+  on v0.64.7).
+- Lane state: MCU Phase-1 landed (firmata 122/122 + micropython 19/19 +
+  uf2 62/62; 579/0) with the publish request filed; findings ledger
+  reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
+  rows remain).
+
+**UPDATE 2026-10-19 18:10Z (relay check -- v0.64.8 repin MADE REAL; MCU
+publish DEFERRED to next cycle; duplicates swept)**:
+- **v0.64.8 repin completed**: the driver record claimed it, but the tree
+  was still pinned v0.64.7 while the installed slot is v0.64.8 -> bumped
+  `COMPILER_VERSION` + `status.ps1 -Action repin` (**579 records**),
+  validate **579/0**.
+- **MCU**: Phase-1 landed earlier (firmata 122/122, micropython 19/19,
+  uf2 62/62; 579/0) but per owner "not this cycle" the publish request
+  `REL-20261019-1454-bindings` is **CLOSED as deferred to the NEXT
+  cycle** (do not publish now).
+- Duplicates swept: `feat/micropython-2` + `feat/uf2-3` worktrees and
+  branches removed; `feat/uf2` placeholder deleted; live = firmata,
+  micropython, uf2-2.
+- Relay inbox: only to-all compiler/playground info items (v0.64.8 GO +
+  release + absorption claim).  Registry blocker: `-1755-stdlib`
+  (publisher_not_mapped) blocks the stdlib .8 registry publish --
+  packages/ops side.  Agent Manager: no busy sessions.
+
+**UPDATE 2026-10-19 14:05Z (arm64 emulation PROVEN end-to-end; target probe
+-- arm=AArch64-Linux, riscv=triple bug; MCU sessions deduped)**: docker
+back up.
+- **Suite proof**: `xiom.mqtt` conformance suite **PASSES under arm64
+  emulation** (trixie/clang-19 image, `--timeout 0` for the slow emulated
+  compile -- clang-19 accepts the IR; the earlier 300s cut was the xiom
+  default).  Harness: `docker run --platform linux/arm64` + mounted
+  repo/stdlib + official `xiom-0.64.7-linux-arm64` (sha256 verified).
+- **Target probe**: `--target arm` = AArch64 **linux** PIE (not
+  Cortex-M); `--target riscv` emits triple `riscv64gc-unknown-linux-gnu`
+  -> clang rejects it -> riscv target not linkable as shipped (compiler
+  finding relayed).  MCU request stands (thumbv6m/v7em + proper riscv32
+  targets + no_std).
+- MCU wave: duplicate micropython/uf2 sessions stopped; live sessions =
+  firmata (`ses_eabe3783`), micropython (wt-1), uf2 (wt-2).
+- sqlite 0.5.0 PUBLISHED (tag; sha 35934316) per the driver record.
+
+**UPDATE 2026-10-19 13:10Z (MCU Phase-1 wave -- firmata + micropython + uf2;
+compiler owner-request filed; post-restart recovery)**: owner go.
+- **Launched**: `feat/firmata` (session `ses_eabe3783...`, wt-2); the PC
+  restart dropped the other two -> relaunched (`am-1792415294827-v179h9`):
+  `feat/micropython` (raw-REPL client) + `feat/uf2` (format + flashing).
+  All host-side, fixture-testable (no hardware), v0.64.7 pin, x2,
+  origin/bindings base.
+- **Compiler relay filed**: `REL-20261019-1220-bindings` -- owner request
+  for the MCU/bare-metal program (Cortex-M thumbv6m/v7em/v8m + RISC-V
+  riscv32imc/imac, no_std profile, startup/linker contracts, QEMU
+  Cortex-M/riscv32 emulated CI; vendor SDK licenses clean for static use).
+- **QEMU/arm64**: `xiom-arm64-emu:trixie` (clang-19) image built before
+  the restart; Docker engine restarting -> suite proof re-run pending.
+  `xiom-arm64-emu:bookworm` (clang 14) too old for suite IR (hello-world
+  green).
+- Post-restart: stray `a.out.ll` removed; relay item committed
+  (`c9d4f9f`); tree clean.
+
+**UPDATE 2026-10-19 12:20Z (QEMU/arm64 emulation PROVEN; MCU package plan
+backlogged)**: owner go for QEMU.
+- **arm64 emulation via Docker Desktop** (no sudo): official
+  `xiom-0.64.7-linux-arm64.tar.gz` (sha256 `de219935...` verified) runs in
+  an arm64 container; hello-world compiles+runs.  Cached toolchain image
+  `xiom-arm64-emu:bookworm` (clang 14) builds; clang 14 is too old for the
+  suite IR (typed-pointer mismatch vs the lane's Windows **clang 22**) ->
+  trixie/clang-19 image building.
+- Unblocks: **Pi/edge arm64 smoke** (codegen/ABI) without hardware;
+  device-I/O legs stay SKIP.  **NOT for AMD** (no ROCm/AMF GPU emulation)
+  -- AMD stays backlog per owner.
+- **MCU plan (backlog)**: direct XIOM-on-MCU needs bare-metal targets
+  (thumbv6m/v7em/riscv32) + no_std runtime -> compiler program (Phase 2).
+  Phase 1 (now, bindings, host-companion packages): `xiom.firmata`,
+  `xiom.micropython`, `xiom.uf2` (+ picotool orchestration, BSD-3);
+  esptool/OpenOCD/arduino-cli = GPL -> user-tool orchestration only;
+  Arduino AVR core LGPL -> no vendoring.  Vendor SDKs clean for future
+  on-MCU packages: Pico SDK BSD-3, STM32 HAL BSD-3, ESP-IDF / Zephyr /
+  CMSIS Apache-2.0.  QEMU has Cortex-M boards (micro:bit nRF51, STM32,
+  netduino) + riscv32 -> emulated MCU CI possible post-target.
+
+**UPDATE 2026-10-19 11:55Z (findings-ledger reconciliation -- B-13/14/15,
+B-30, B-31 verified FIXED on v0.64.7; B-27/28 stdlib fixes bundled)**:
+morning continuation -- all stale rows re-probed.
+- cb-abi: B-13 probes 2/4/5 = 42 across param/local/cast paths; B-14
+  explicit `-> Unit` `return;` accepted; B-15 multi-arg element-call
+  result usable (probe7 compiles+runs).
+- B-30 owned-slot cast+mutate block compiles+runs; B-31 const-alias
+  `--emit-ir` exit 0 (stack overflow gone).
+- B-27/B-28: stdlib probe 312 green on the installed pin (fixes bundled
+  since v0.64.6) -- retirement of `owned_bytes`/byte-writer workarounds is
+  now possible (optional cleanup wave).
+- Ledger updated (7 rows); verdicts relayed to compiler.  Open rows now:
+  B-21 (acked), B-24 (fix-staged untested).
+- Context: sqlite 0.5.0 publish queued packages-side for the morning;
+  pulse 0.3.0 HookCtx live (PULSE Phase B unblocked).
+
 **UPDATE 2026-10-18 16:40Z (B-26 retirement wave LAUNCHED -- sqlite restore;
 coordinated plan acked by packages)**: continuing on the unlocked workarounds.
 - **`feat/sqlite-restore`** (`am-1792341243306-9qysun`): `xiom.sqlite`
@@ -1863,6 +1997,70 @@ delivered -- remaining-red loop closed)**:
   green.
 - Net red state: **B-34 only** (alias-unification batch, next cut).
   B-32 retired; B-29 closed; B-33 fixed on .7.
+
+**UPDATE 2026-10-19 13:35Z (sqlite 0.5.0 PUBLISHED; MCU Phase-1 wave
+launched; arm64 emulation proven)**:
+- **`xiom.sqlite 0.5.0` PUBLISHED** (single-package tag
+  `xiom-sqlite/v0.5.0`, 2026-10-19T12:04:02Z; sha256
+  `3593431683173a2a6a870c5a214c8178469cd919345fa929916b2b3df33f357c`;
+  run 39247791918 green; registry live-verified; merge `772e9f34`;
+  packages reproduced the nested restore x2 21/21 on v0.64.7 before
+  close-out).  **B-32 fully retired both sides.**
+- **MCU Phase-1 wave launched** (sibling): branches `feat/firmata`
+  (`d3caf980`) + `feat/micropython` (`e18a1ebf`) (+ uf2);
+  post-restart recovery noted; compiler owner-request filed.
+- **arm64 emulation PROVEN** (`fc3d7f1f`): official linux-arm64
+  compiler runs in an arm64 container; MCU host-companion plan
+  backlogged; AMD stays hardware-gated.
+- Findings ledger reconciled (B-13/14/15, B-30, B-31 fixed; B-27/28
+  bundled; only B-21/B-24 rows remain).  B-34 witness item still open
+  at the compiler (fix already upstream for the next cut).
+
+**UPDATE 2026-10-19 15:00Z (MCU PHASE-1 LANDED: firmata + micropython +
+uf2; validate 579/0)**:
+- **`xiom.firmata 0.1.0` LANDED** (land `84165c27`; record `0c0ecfb0`):
+  pure-XIOM Firmata 2.x host bindings (encode/decode/frame_len/session
+  with port shadow + resync; typed errors; fixture-pinned traces);
+  **x2 122/122** on v0.64.7 (transport SKIP seam by design).
+- **`xiom.micropython 0.1.0` LANDED** (land `cd376f1f`; record
+  `fc5bcf33`): host REPL protocol (Ctrl-A/B/C/D, exec/raw/eval framing,
+  enter/exit, traceback passthrough, byte-trace fixtures); **x2 19/19**
+  after the EOL fix below.
+- **`xiom.uf2 0.1.0` LANDED** (land `c927516d`; record `8d59486d`):
+  UF2 codec (block/image build/parse/validate, family catalog,
+  FILECONTAINER) + BOOTSEL mount flashing seam (typed SKIP; copy +
+  read-back verified); **x2 62/62**.
+- **NEW TRAP (recipe addendum)**: line-oriented hex/trace fixtures are
+  CRLF-sensitive on Windows checkouts (autocrlf) -- the micropython
+  fixtures failed 11 loads until `packages/xiom-micropython/
+  .gitattributes` (`tests/fixtures/*.trace text eol=lf`) + re-checkout.
+  Other packages with such fixtures should carry the same guard.
+- validate **579/0**; pushed `8d59486d`; publish request
+  `REL-20261019-1454-bindings` (3 NEW names; combined MCU Phase-1).
+- v0.64.8 cut is GO (owner; stdlib gate in progress; the B-34
+  alias-resolution fix is a candidate) -- watch for the release.
+
+**UPDATE 2026-10-19 18:05Z (v0.64.8 RELEASED + B-34 VERIFIED FIXED --
+B-SERIES ZERO-OPEN)**:
+- **v0.64.8 RELEASED** (17:49Z; annotated tag `4d040604b`; run
+  39296778685 green; stdlib-v0.64.8; highlights: scoped arena for
+  frame-shaped memory, zero-capacity Vec fix, m360 i128 div/rem, m368
+  Vec-drop reclaim, m369 catalog index scan/cache, m370 generic-struct
+  Vec elements, C-ORBIT-12/13, XVC-C-20, **B-34**).  Scratch slot
+  downloaded + SHA256SUMS OK (`%TEMP%\kilo\xiom0648\slot`).
+- **B-34 VERIFIED FIXED on .8**: the vec-alias-generic witness
+  compiles + runs (exit 1 = len; NO T001) -- cross-module
+  `Vec[alias]` unification works.  Filed
+  `REL-20261019-1801-bindings` (verification to compiler).
+- Spot-checks on .8: nested-payload failures=0 (B-26/B-32 stay
+  retired-green); corrected B-29 witness exact.
+- **B-SERIES ZERO-OPEN**: B-29 closed (probe defect); B-32 retired
+  (.7) + published (`xiom-sqlite/v0.5.0`); B-33 fixed (m351); B-34
+  fixed (.8); B-16..B-26 verified fixed; remaining ledger rows
+  B-21/B-24 are other lanes'.
+- Pending: bindings repin to v0.64.8 (owner/sibling wave; pin still
+  v0.64.7); MCU publish still queued at packages; stdlib registry
+  403 publisher_not_mapped blocker is packages-side.
 
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.

@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-19T15:13:45+03:00
-# packages: 581  modules: 1182
+# generated: 2026-10-19T21:09:00+03:00
+# packages: 584  modules: 1185
 
 ## package names
 xiom.aaudio
@@ -159,6 +159,7 @@ xiom.ffmpeg
 xiom.fidelityfx
 xiom.finance
 xiom.firebird
+xiom.firmata
 xiom.fits
 xiom.fix
 xiom.fixed
@@ -291,6 +292,7 @@ xiom.metadata
 xiom.meteorology
 xiom.metrics
 xiom.micro
+xiom.micropython
 xiom.microscopy
 xiom.midi
 xiom.mime
@@ -540,6 +542,7 @@ xiom.typography
 xiom.tzif
 xiom.uart
 xiom.uboot
+xiom.uf2
 xiom.ui
 xiom.ulid
 xiom.upnp
@@ -872,6 +875,7 @@ xiom.fidelityfx.gen_surface
 xiom.fidelityfx.gen_types
 xiom.finance
 xiom.firebird
+xiom.firmata
 xiom.fits
 xiom.fix
 xiom.fixed
@@ -1097,6 +1101,7 @@ xiom.metadata
 xiom.meteorology
 xiom.metrics
 xiom.micro
+xiom.micropython
 xiom.microscopy
 xiom.midi
 xiom.mime
@@ -1602,6 +1607,7 @@ xiom.typography
 xiom.tzif
 xiom.uart
 xiom.uboot
+xiom.uf2
 xiom.ui.application
 xiom.ui.backend
 xiom.ui.demo

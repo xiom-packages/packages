@@ -1,0 +1,4 @@
+# xiom.micropython byte-trace fixture -- the empty-command soft reset:
+# Ctrl-D with no code, acknowledged by "OK\r\n" and a forced exit.
+>04
+<4F4B0D0A

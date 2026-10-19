@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.7` -- generated 2026-10-19T12:16:00Z.
+Toolchain pin: `v0.64.8` -- generated 2026-10-19T18:09:04Z.
 
 ## Summary
 
-- packages tracked: 581
-- incubating: 299
+- packages tracked: 584
+- incubating: 302
 - ported: 1
 - stable: 281
 - publish enabled: 0
@@ -400,6 +400,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.ffmpeg | xiom-ffmpeg | incubating | tests/test_conformance.xi | pass 23/23 | 50b65cee | False | published in eco-v0.1.179 (2026-10-14, 0.4.1 demux generation-skew fix SHIP-only; 0.4.0 never shipped; 0.3.0 in eco-v0.1.176) |
 | xiom.fidelityfx | xiom-fidelityfx | incubating | tests/test_conformance.xi | pass 35/35 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- FidelityFX SDK 2.3.0) |
 | xiom.firebird | xiom-firebird | incubating | tests/test_conformance.xi | pass 22/22 | 11412185 | False | publish pending: owner scope decision (parallel-lane implementation) |
+| xiom.firmata | xiom-firmata | incubating | tests/test_conformance.xi | pass 122/122 | 84165c27 | False | publish pending: new name (xiom.firmata host protocol bindings, MCU Phase-1 wave 2026-10-19); ops scope not yet requested |
 | xiom.flags | xiom-flags | incubating | tests/test_conformance.xi | pass 18/18 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.flash | xiom-flash | incubating | tests/test_conformance.xi | pass 20/20 | ca969acd | False | category harmonization patch bump (registry metadata) |
 | xiom.forkjoin | xiom-forkjoin | incubating | tests/test_conformance.xi | pass 22/22 | 77d7ec35 | False | publish pending: next scope delta |
@@ -474,6 +475,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.messaging | xiom-messaging | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.metadata | xiom-metadata | incubating | tests/test_conformance.xi | pass 28/28 | b7c0bfbf | False | publish pending: next scope delta |
 | xiom.micro | xiom-micro | incubating | tests/test_conformance.xi | pass 10/10 | 57cdac5b | False | publish pending: eco-v0.1.42 |
+| xiom.micropython | xiom-micropython | incubating | tests/test_conformance.xi | pass 19/19 | cd376f1f | False | publish pending: new name (MicroPython raw-REPL host client, MCU Phase-1 wave); registry scope + allowlist entry queued |
 | xiom.microscopy | xiom-microscopy | incubating | tests/test_conformance.xi | pass 24/24 | d475ef4b | False | publish pending: next scope delta |
 | xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | pass 44/44 | ec548542 | False | published 2026-10-17 (single tag xiom-miniaudio/v0.5.0; sha256 7d83c1ed...); 0.4.0 in eco-v0.1.187; 0.3.0 in eco-v0.1.154 |
 | xiom.ml | xiom-ml | incubating | tests/test_conformance.xi | pass 18/18 | 6a19ce99 | False | publish pending: next scope delta |
@@ -585,6 +587,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.training | xiom-training | incubating | tests/test_conformance.xi | pass 26/26 | e4e2b956 | False | publish pending: next scope delta |
 | xiom.translate | xiom-translate | incubating | tests/test_conformance.xi | pass 28/28 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.transport | xiom-transport | incubating | tests/test_conformance.xi | pass 36/36 | 1c8fbf11 | False | published in eco-v0.1.188 (2026-10-16, 0.1.0 -- A08 reliable-datagram base) |
+| xiom.uf2 | xiom-uf2 | incubating | tests/test_conformance.xi | pass 62/62 | c927516d | False | publish pending: new name (xiom.uf2 UF2 format + BOOTSEL flashing, MCU host-companion wave 2026-10-19); ops scope not yet requested |
 | xiom.ui | xiom-ui | incubating | tests/test_conformance.xi | pass 98/98 | ed680f75 | False |  |
 | xiom.usd | xiom-usd | incubating | tests/test_conformance.xi | pass 65/65 | 38c41345 | False | published in eco-v0.1.197 (2026-10-17, 0.1.0; sha256 f38e85aa...) |
 | xiom.v4l | xiom-v4l | incubating | tests/test_conformance.xi | pass 14/14 | 84bdc431 | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 0e3d5390...) |

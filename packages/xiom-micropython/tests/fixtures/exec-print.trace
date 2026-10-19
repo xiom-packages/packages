@@ -1,0 +1,4 @@
+# xiom.micropython byte-trace fixture -- exec print(123).
+# write: b"print(123)\x04"   read: b"OK123\r\n\x04\x04>"
+>7072696E74283132332904
+<4F4B3132330D0A04043E
