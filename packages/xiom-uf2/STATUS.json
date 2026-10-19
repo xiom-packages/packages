@@ -6,11 +6,11 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  58,
+                  "passed":  62,
                   "failed":  0,
                   "run_by":  "am:feat-uf2-2",
-                  "commit":  "2a242527",
-                  "checked":  "2026-10-19T13:32:40Z"
+                  "commit":  "70996c63",
+                  "checked":  "2026-10-19T13:34:02Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: new name (xiom.uf2 UF2 format + BOOTSEL flashing, MCU host-companion wave 2026-10-19); ops scope not yet requested"
