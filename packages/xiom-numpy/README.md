@@ -1,6 +1,6 @@
 # xiom.numpy
 
-> **Status:** `incubating` -- Phase-3 COMPLETE + Phase-3d acceleration dispatch (150/150 x2 on v0.64.6: broadcasting + N-D, reductions, Gauss-Jordan inv, self-contained Jacobi SVD, typed OpenBLAS dispatch); published in `eco-v0.1.196` (sha256 `0eaa9185...`, 2026-10-17).
+> **Status:** `incubating` -- Phase-3 COMPLETE + Phase-3d acceleration dispatch (150/150 x2 on v0.64.8: broadcasting + N-D, reductions, Gauss-Jordan inv, self-contained Jacobi SVD, typed OpenBLAS dispatch); published in `eco-v0.1.196` (sha256 `0eaa9185...`, 2026-10-17); `0.1.1` in `eco-v0.1.200` (sha256 `cae0428c...`, 2026-10-19).
 > **Scope:** NumPy-compatible array computing API.
 > **Deps:** stdlib; `xiom.openblas` (path dep) for real-leg BLAS/LAPACK; may wrap C (FFI).
 

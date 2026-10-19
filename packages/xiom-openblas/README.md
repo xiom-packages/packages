@@ -2,7 +2,8 @@
 
 > **Status:** `incubating` -- conformance-green on compiler v0.64.6 (42/42,
 > two consecutive runs on each leg); published in `eco-v0.1.193`
-> (sha256 `a6740ae1...`, 2026-10-16).
+> (sha256 `a6740ae1...`, 2026-10-16); `0.1.1` in `eco-v0.1.200`
+> (sha256 `43d609d3...`, 2026-10-19 -- Phase-1 real cblas/LAPACK leg).
 > **Scope:** OpenBLAS backend integration and acceleration (BLAS 1-3, LAPACK
 > SVD/eigen/solve, matrix lifecycle).
 > **Deps:** stdlib; wraps C (FFI) through a declared extern "C" surface.

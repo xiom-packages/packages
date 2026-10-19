@@ -1,6 +1,6 @@
 # xiom.arrow
 
-> **Status:** `incubating` -- offline conformance GREEN (32/32 x2, v0.64.6, 2026-10-17) and the REAL Apache Arrow C++ 22.0.0 backend (`bridge/arrow_real.cpp`) built + probe-green locally (10/10); published in `eco-v0.1.193` (sha256 `62a25672...`, 2026-10-16).
+> **Status:** `incubating` -- offline conformance GREEN (32/32 x2, v0.64.8, 2026-10-19) and the REAL Apache Arrow C++ 22.0.0 backend (`bridge/arrow_real.cpp`) built + probe-green locally (10/10); published in `eco-v0.1.193` (sha256 `62a25672...`, 2026-10-16); `0.1.1` in `eco-v0.1.200` (sha256 `dbf4d41b...`, 2026-10-19).
 > **Scope:** Apache Arrow columnar memory format bindings; zero-copy interop via the Arrow C Data Interface.
 > **Deps:** stdlib `extern "C"`; Apache Arrow C++ only for the real (probe) leg -- the suite stays offline and deterministic.
 

@@ -5,7 +5,8 @@
 # xiom.llm
 
 > **Status:** `incubating` -- conformance-tested (384/384, twice);
-> published in `eco-v0.1.196` (sha256 `3c85e858...`, 2026-10-17).
+> published in `eco-v0.1.196` (sha256 `3c85e858...`, 2026-10-17); `0.2.0` in
+> `eco-v0.1.200` (sha256 `31ce7174...`, 2026-10-19).
 > **Milestones 1-2 + M3 first and second halves + tokenizer completion
 > (GPT-2 / SPM / WPM) + real vocabularies + benchmark harness:**
 > llama.cpp-family vocab extraction from a GGUF header + byte-level BPE
