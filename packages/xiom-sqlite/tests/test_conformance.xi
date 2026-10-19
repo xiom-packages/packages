@@ -17,9 +17,10 @@
 //   * schema builder integration: TableDef DDL executes
 //   * migration manager: up/down over a live handle
 //   * file-backed database: create, close, reopen, persisted row count
-//   * driver module (0.4.0, PULSE contract): DSN parsing (scheme/options,
-//     fail-closed errors), open_from_dsn + capability flags, execute /
-//     query / query_one + by-name access, explicit transactions
+//   * driver module (0.4.0+ PULSE contract; 0.5.0 restored the nested
+//     query_one): DSN parsing (scheme/options, fail-closed errors),
+//     open_from_dsn + capability flags, execute / query / query_one
+//     -> Result[Option[SqliteRow]] + by-name access, explicit transactions
 //     (commit/rollback visible state, rollback-on-error, in_transaction),
 //     error mapping via SqlDriver.last_error, file DSN options + reopen
 //
@@ -651,9 +652,10 @@ fn t18_driver_memory_roundtrip() -> TestResult {
   }
   let q1 = driver.SqlDriver.query_one(&drv, "SELECT name FROM t;");
   if !q1.is_ok { ok = false; } else {
-    let out: RowOutcome = q1.value;
-    if !out.has_row { ok = false; } else {
-      let v = SqliteRow.get(&out.row, 0);
+    let out: Option[SqliteRow] = q1.value;
+    if !out.is_some { ok = false; } else {
+      let row: SqliteRow = out.value;
+      let v = SqliteRow.get(&row, 0);
       if !v.is_some { ok = false; } else {
         if !opt_str_eq(SqliteValue.as_text(&v.value), "hello") { ok = false; }
       }
@@ -661,8 +663,15 @@ fn t18_driver_memory_roundtrip() -> TestResult {
   }
   let q0 = driver.SqlDriver.query_one(&drv, "SELECT name FROM t WHERE id = 99;");
   if !q0.is_ok { ok = false; } else {
-    let out0: RowOutcome = q0.value;
-    if out0.has_row { ok = false; }
+    let out0: Option[SqliteRow] = q0.value;
+    if out0.is_some { ok = false; }
+  }
+  let qr = rows.query_one(driver.SqlDriver.db(&drv), "SELECT name FROM t;");
+  if !qr.is_ok { ok = false; } else {
+    let outr: Option[SqliteRow] = qr.value;
+    if !outr.is_some { ok = false; } else {
+      if SqliteRow.column_count(&outr.value) != 1 { ok = false; }
+    }
   }
   let cl = driver.SqlDriver.close(&drv);
   if !cl.is_ok { ok = false; }

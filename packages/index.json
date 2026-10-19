@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-18T19:28:28Z",
+    "updated":  "2026-10-19T14:50:24Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -8655,7 +8655,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.4.1",
+                         "version":  "0.5.0",
                          "name":  "xiom.sqlite",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SQLite bindings for XIOM (vendored amalgamation 3.53.4) + SQL driver facade",
@@ -8665,7 +8665,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sqlite/v0.4.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sqlite/v0.5.0/package.tar.gz",
                          "source_files":  [
                                               "driver.xi",
                                               "ffi.xi",

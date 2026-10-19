@@ -3,11 +3,12 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: `eco-v0.1.197`
-(scene + NVIDIA wave: usd 0.1.0 / cudnn 0.1.0 / nvenc 0.1.0 / pulse 0.2.1)
--- through `eco-v0.1.197` (112 eco releases); NVIDIA wave COMPLETE
-(part 2 cublas/cufft/cusparse/tensorrt/nvml/nvapi/optix landed, 576/0,
-publish requested; onnx 0.2.0 DirectML landed 60/60 live);
+**STATUS: EVERYTHING THIS LANE SHIPPED IS LIVE -- last: `eco-v0.1.199`
+(NVIDIA wave COMPLETE: cublas/cufft/cusparse/tensorrt/nvml/nvapi/optix;
+`eco-v0.1.198` = vectors 0.2.0 + pulse 0.2.2 + onnx 0.2.0 DML) -- through
+`eco-v0.1.199` (114 eco releases); **pin = v0.64.7** (repin delta pushed;
+slot verified; .7 re-verify: B-16/17/18/19/22/23/25/26 FIXED; glfw 37/37 +
+sdl3 72/72 x2; retirement unlocked; B-26 sqlite restore wave launched);
 recent cycle highlights: E-family COMPLETE (jolt 0.5.0/0.6.0/0.7.0,
 E1-E7), LIFTS live (`eco-v0.1.185`: glfw 0.6.0 + sdl3 0.20.0 -- B-22/B-15
 retired), PULSE top-tier live (`eco-v0.1.189`: brotli + ssl,
@@ -1687,6 +1688,62 @@ nvenc; 569/0)**:
   Remaining lane watch: v0.64.7 (m351/B-33 + m358/B-32 in the cut);
   AMD side is hardware-gated.
 
+**UPDATE 2026-10-18 18:05Z (doorbell -- `.198` + `.199` full records;
+pulse 0.3.0 single tag; v0.64.7 repin + re-verify COMPLETE on bindings)**:
+- **`eco-v0.1.198`** (run 39142312352 green; all live-verified):
+  **vectors 0.2.0** (`130427a5...`; MOTE carve -- 45-module library
+  type-check green, 177/177 x2 @ record `3de13359`; `-1520` fixed),
+  **pulse 0.2.2** (`89ba66ec...`; version-identity fix; `-2102` fixed),
+  **onnx 0.2.0** (`4c230691...`; DirectML EP; `-1947` fixed). Bindings
+  `.7` repin delta merged into packages (`f9c08e2c`).
+- **`eco-v0.1.199`** (run 39143579565 green; allowlist 567 -> 574; guard
+  574/565/9/0; validate 581/0): **cublas** `930f602b`, **cufft**
+  `3163d647`, **cusparse** `c1dc295f`, **tensorrt** `17d40789`, **nvml**
+  `0aa65326`, **nvapi** `80873598`, **optix** `012dd8b6` (all 0.1.0;
+  verify-on-landing x2 LIVE matched 62/45/56/55/40/25/37;
+  `-1819-bindings` fixed). **NVIDIA WAVE COMPLETE** (part 1 in `.197`,
+  onnx 0.2.0 in `.198`, part 2 in `.199`).
+- **`xiom.pulse 0.3.0`** single tag `xiom-pulse/v0.3.0` (sha256
+  `bae0dd08...`; stateful `HookCtx{state: Vec[Int]}` seam + ctx hook
+  variants; 203/203 x2 @ record `2ab242f8`; `-1615-pulse` fixed;
+  registry live; **PULSE Phase B unblocked**).
+- **v0.64.7 repin on bindings DONE**: `04a06c9d` -- COMPILER_VERSION +
+  **576 records** (validate 576/0; slot verified: sqlite 21/21 + nvenc
+  67/67 live). **Re-verify COMPLETE** (`76674292`): **B-16/17/18/19/22/
+  23/25/26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 live;
+  workaround retirement unlocked (B-26 wave running).
+
+**UPDATE 2026-10-18 16:40Z (B-26 retirement wave LAUNCHED -- sqlite restore;
+coordinated plan acked by packages)**: continuing on the unlocked workarounds.
+- **`feat/sqlite-restore`** (`am-1792341243306-9qysun`): `xiom.sqlite`
+  0.4.1 -> 0.5.0 -- restore `query_one -> Result[Option[SqliteRow]]`
+  (B-26 verified fixed on v0.64.7), remove the flat `RowOutcome`, suite
+  updated, x2 on the pin.
+- Coordination: **`-1254` ACKED by packages**: llm real vocabs DONE
+  (302/302 x2) + bench harness dispatched; pandas 2-4 queued behind our
+  arrow backend (now landed -- unblocked); **jev S6 formulas + S8 v0.2.0
+  schemas + pandas section-6 ABI need the OWNER pin** (flagged, not
+  guessed); accelerator extras on demand confirmed.
+- B-27/B-28 (stdlib): filed + fixed (stale v0.64.4 bundled snapshot; fix
+  on stdlib main, probe 312). v0.64.6/7 pins bundle the fixed stdlib ->
+  the retirement gate is OPEN (candidates: fidelityfx `owned_bytes` /
+  local byte-store writers; optional cleanup wave, not forced).
+- Remaining reds at .7: B-29/B-34/W1.4/W2.3 (v0.64.8); B-32 in-situ
+  parked.  Relay open to bindings: compiler info items only.
+
+**UPDATE 2026-10-18 16:20Z (NVIDIA WAVE FULLY PUBLISHED -- .198 + .199;
+all 7 part-2 names live)**: relay confirms the completion.
+- `eco-v0.1.198`: `xiom.onnx 0.2.0` (DirectML EP; existing name).
+- `eco-v0.1.199`: cublas 0.1.0, cufft 0.1.0, cusparse 0.1.0, tensorrt
+  0.1.0, nvml 0.1.0, nvapi 0.1.0, optix 0.1.0 -- all registry
+  live-verified (shas in `-1819-bindings` history); scopes LIVE
+  eco-release 573; allowlist 567 -> 574; packages verified on-landing x2
+  LIVE on v0.64.7 (62/45/56/55/40/25/37).
+- `-1819` FIXED.  The whole NVIDIA program is out (build wave -> publish ->
+  verify).  Open relay to bindings: only the two to-all compiler info items
+  (no action).  Remaining: v0.64.8 reds (B-29/B-34/W1.4/W2.3), B-32
+  in-situ parked, Pi smoke, AMD backlog, packages-half items.
+
 **UPDATE 2026-10-18 16:15Z (retargeted v0.64.7 re-verify COMPLETE -- 8 staged
 fixes verified FIXED; batteries green; workaround retirement unlocked)**:
 - **B-16 / B-17 / B-18 / B-19 / B-22 / B-23 / B-25 / B-26 all verified fixed
@@ -1750,6 +1807,62 @@ B-32 still red but TYPED)**:
 - Part 2 publish still queued at packages; the .7 re-verify item
   (`-2350`) open at compiler; **B-32 (m358)** remains the only
   prepared re-verify (re-ran on .7: still red but TYPED).
+
+**UPDATE 2026-10-18 16:25Z (NVIDIA WAVE FULLY LIVE: eco .198 + .199;
+pin/slot v0.64.7 consistent)**:
+- **`eco-v0.1.198`**: **`xiom.onnx 0.2.0`** LIVE (sha `4c230691...`;
+  15:53:57Z; packages verify-on-landing **x2 60/60 LIVE DirectML**).
+- **`eco-v0.1.199`** (run 39143579568 green; scope LIVE eco-release
+  573; allowlist 567 -> 574; all verify-on-landing **x2 LIVE on
+  v0.64.7**): `xiom.cublas 0.1.0` (`930f602b...`), `xiom.cufft 0.1.0`
+  (`3163d647...`), `xiom.cusparse 0.1.0` (`c1dc295f...`),
+  `xiom.tensorrt 0.1.0` (`17d40789...`), `xiom.nvml 0.1.0`
+  (`0aa65326...`), `xiom.nvapi 0.1.0` (`80873598...`),
+  `xiom.optix 0.1.0` (`012dd8b6...`).  **THE WHOLE NVIDIA WAVE IS
+  OUT** (part 1 in .197, onnx in .198, part 2 in .199).
+- **Pin/slot CONSISTENT at v0.64.7** (branch `COMPILER_VERSION` +
+  machine slot + 576 records).
+- Sibling's .7 re-verify (`76674292`): **B-16/B-17/B-18/B-19/B-22/
+  B-23/B-25/B-26 verified FIXED**; glfw 37/37 + sdl3 72/72 x2 LIVE;
+  retirement unlocked (B-33 fixed per the ros2-abi ladder; B-32/B-34/
+  B-29 remain red; B-29 boundary workaround stays).
+
+**UPDATE 2026-10-18 18:05Z (B-32 RETIRED -- xiom.sqlite 0.5.0 LANDED)**:
+- **`xiom.sqlite 0.5.0` LANDED** (sibling-launched retirement wave;
+  branch `feat/sqlite-restore`; land `b3cbe464` + record `287675fd`):
+  `query_one -> Result[Option[SqliteRow]]` restored, flat `RowOutcome`
+  RETIRED; **x2 21/21 on v0.64.7** including `driver mem: caps,
+  execute/query/query_one, by-name access` -- the exact nested path that
+  failed under the workaround; validate **576/0**.
+- **CORRECTION filed to the compiler** (`REL-20261018-1803-bindings`):
+  B-32 is RETIRED -- my earlier "still red on .7" verdict used the
+  STALE `restore-0.5.0-attempt.patch` bundle (predates the current
+  package, old DBG instrumentation), NOT a compiler regression; **m358
+  can close**.  b32 README updated to RETIRED (`9caa6caa`).
+- Publish request `REL-20261018-1803-bindings-2` (xiom.sqlite 0.5.0;
+  existing name; API change documented; in-tree consumers updated in
+  the same land).
+- Remaining reds: **B-34** (alias-unification batch pending cut),
+  **B-29** (boundary-arithmetic workaround stays shipped).
+
+**UPDATE 2026-10-18 19:20Z (B-29 CLOSED as PROBE DEFECT; B-34 witness
+delivered -- remaining-red loop closed)**:
+- **B-29 CLOSED -- NOT a compiler defect** (compiler triage m335 was
+  right): the old probe compared ops on `3132620800` (0xBAB80000)
+  against expectations derived from `0xBAD00000` (3134193664).
+  Corrected witness on v0.64.7: `0xBAD00000` EXACT
+  (2989/3134193664/2989) + control EXACT (2987/3132096512/2987) +
+  decimal/hex literal parity exact (`parity=exact`, exit 0).  Probe
+  rewritten in-repo (`cf6b4fa3`); the ngx boundary-arithmetic
+  workaround is now a **retirement candidate** (next dlss/nis touch).
+- **B-34 witness + exact command delivered** to the compiler
+  (`REL-20261018-1915-bindings`; -1802 acked): cross-module
+  `Vec[alias]` generics still RED on .5 + .7 (T001); files at
+  `docs/repro/bindings-pilot/vec-alias-generic/`; matrix includes
+  literal/typed/as-cast/fn-returned variants; local-alias control
+  green.
+- Net red state: **B-34 only** (alias-unification batch, next cut).
+  B-32 retired; B-29 closed; B-33 fixed on .7.
 
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.

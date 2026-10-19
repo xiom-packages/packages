@@ -5,10 +5,10 @@ into `vendor/` (public domain) and compiled into the test binary with
 `--c-source` -- no system library, no runtime DLL.
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
-> v0.64.4, **21/21 x2 on 2026-10-13** for 0.4.0; 16/16 across the 0.3.0
-> enum-model restore build cycles on v0.64.2; published since `eco-v0.1.89`;
-> 0.3.0 live in `eco-v0.1.122`; 0.4.0 in `eco-v0.1.174` (sha256
-> `1e142acc...`); **0.4.1 in `eco-v0.1.175` (sha256 `21c1f673...`, modules list)**).
+> v0.64.7, **21/21 x2 on 2026-10-18** for 0.5.0 -- `query_one` restored to
+> `Result[Option[SqliteRow]]`; 16/16 across the 0.3.0 enum-model restore
+> build cycles on v0.64.2; published since `eco-v0.1.89`; 0.3.0 live in
+> `eco-v0.1.122`; 0.4.1 live; 0.5.0 restore requested).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -41,7 +41,7 @@ Always qualify API calls with the module prefix (`sqlite.open`, not `open`):
 unqualified `open`/`close` collide with `xiom.io` names in a consumer catalog
 (stdlib collision).
 
-## Driver (0.4.0 -- PULSE SQL driver)
+## Driver (0.4.0+ -- PULSE SQL driver)
 
 `xiom.sqlite.driver` is the consumer-facing facade (contract:
 `docs/requirements/pulse-sql-driver.md` in the packages repo): open from a
@@ -86,17 +86,14 @@ defaults: `busy_timeout=5000`, journal mode = engine default (the effective
 mode is read back into `SqlDriver.journal_mode` / `caps()`).  Unknown
 options and malformed values fail closed with `SQLITE_ERROR`.
 
-`query_one` returns a flat `RowOutcome { has_row: Bool; row: SqliteRow; }`
-by design -- the nested `Result[Option[SqliteRow]]` shape corrupts the row
-on the current pin (finding B-26; repro
-`docs/repro/bindings-pilot/nested-payload/`).
-
-`execute`'s `rows_affected` follows `sqlite3_changes` -- the LAST statement
-only; multi-statement scripts do not sum (PULSE co-verify note, 2026-10-13).
-
-`execute`'s `rows_affected` follows `sqlite3_changes` -- the **LAST
-statement only**; multi-statement scripts do not sum changes (PULSE
-co-verify note, 2026-10-13).
+`query_one` returns the natural `Result[Option[SqliteRow], SqliteError]`
+(`Ok(None)` when the result set is empty). RESTORED at 0.5.0: the nested
+payload corruption (finding B-26; repro
+`docs/repro/bindings-pilot/nested-payload/`) is fixed on the v0.64.7
+toolchain -- the repro reports `failures=0` with every shape at len=2
+(2026-10-18) -- and the flat `RowOutcome` workaround is retired. Read the
+result with `is_some` / `value` (the package's Option accessor style; the
+suite pins that path).
 
 ## Registry use (consumer, verified 2026-10-09)
 
