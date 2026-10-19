@@ -1757,6 +1757,58 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-19 20:10Z (MCU agents stopped+worktrees removed; Agent
+Manager offline; arm64 sweep hardened+restarted)**:
+- **MCU Phase-1 agents**: confirmed finished (worktrees clean at delivered
+  commits).  Sessions stopped (stop timeouts were IPC lag; the registry now
+  shows none) and the three worktrees removed (`feat/firmata`,
+  `feat/micropython`, `feat/uf2-2` branches kept).  Deliveries landed;
+  publish deferred to the next cycle.
+- **Agent Manager is currently OFFLINE for all sessions** (driver
+  included) -- that is why the cards looked stalled; tree/relay work
+  continues independently.
+- **arm64 fleet sweep**: serial's emulated compile ran 35+ min at 109% CPU
+  (slow, not hung).  Harness now wraps each run in a hard per-suite
+  `timeout` (default 1200s); the stuck sweep was killed and restarted.
+- Ghost cards (`micropython-2`/`uf2-3`) are stale registry entries with no
+  worktrees; they reconcile on extension reload.
+
+**UPDATE 2026-10-19 19:30Z (arm64 gpio PASSES; fleet sweep fixed+restarted)**:
+- **arm64 gpio suite: all 21 tests passed** (emulated, official
+  linux-arm64 compiler) -- first fleet package green under arm64.
+- Fleet sweep script had a PS 5.1 parse bug (`"$p:"` -> drive-variable
+  reference); fixed to `${p}` and restarted in the background (13 suites,
+  summary -> `%TEMP%\kilo\arm64-fleet\summary.txt`).
+
+**UPDATE 2026-10-19 19:00Z (registry thread fixed; compiler scoped MCU +
+fixed riscv; pandas P3 live; arm64 fleet sweep started)**:
+- Relay: `-1755` registry blocker **RESOLVED** -- xiom-std 0.64.8 LIVE
+  (independent verification, sha256 + OIDC provenance, tag refs retried).
+  Compiler: **MCU request SCOPED** + **riscv link triple FIXED**
+  (`383fe9dc6` -- our `-1419` finding) -> re-probe when the next tag
+  ships.  Pulse 0.2.2 published (ops dogfood retest queued).
+- Packages: **eco-v0.1.200 LIVE** (llm 0.2.0 / numpy 0.1.1 / openblas
+  0.1.1 / arrow 0.1.1) + **pandas 0.2.0 single tag (Phase-3)**;
+  validate 584/0; MCU acknowledged parked.
+- arm64: gpio suite still compiling (emulated); **fleet sweep started in
+  the background** (`scripts/emulate-arm64-fleet.ps1` ->
+  `%TEMP%\kilo\arm64-fleet\{pkg}.log` + summary): serial/mqtt/i2c/spi/
+  adc/pwm/sensor/can/ble/zigbee/hid/usb/modbus.
+
+**UPDATE 2026-10-19 18:45Z (v0.64.8 re-verify COMPLETE -- B-21/B-24 fixed;
+batteries green; arm64 harness added)**: continuation.
+- **Last two findings verified FIXED on v0.64.8**: B-21 (`&mut` of a
+  struct-return temp: probe compiles+runs, a=7 b=9 -- no codegen crash);
+  B-24 (out-slot reads after C writes: ffi_bad=0 byte_bad=0 of 400).
+  **All B-series rows now FIXED/verified -- the ledger is fully closed.**
+- Batteries on .8: glfw **37/37 x2 LIVE** + sdl3 **72/72 x2** (STATUS
+  run_by `reverify-v0.64.8`).
+- **`scripts/emulate-arm64.ps1` added** -- one-command arm64 emulation
+  harness (Docker Desktop linux/arm64 + clang-19 image + the official
+  linux-arm64 compiler; `--timeout 0` for qemu).  mqtt suite proven green
+  under arm64; emulated compiles are slow -> run fleet sweeps in the
+  background (gpio smoke started).
+
 **UPDATE 2026-10-19 18:10Z (relay check -- v0.64.8 repin MADE REAL; MCU
 publish DEFERRED to next cycle; duplicates swept)**:
 - **v0.64.8 repin completed**: the driver record claimed it, but the tree
@@ -2061,6 +2113,27 @@ B-SERIES ZERO-OPEN)**:
 - Pending: bindings repin to v0.64.8 (owner/sibling wave; pin still
   v0.64.7); MCU publish still queued at packages; stdlib registry
   403 publisher_not_mapped blocker is packages-side.
+
+**UPDATE 2026-10-19 19:25Z (repin v0.64.8 DONE; B-LEDGER FULLY CLOSED;
+pandas 2-4 launched; MCU publish deferred)**:
+- **v0.64.8 repin COMPLETE** (`COMPILER_VERSION` = v0.64.8 + records
+  aligned via the sibling's re-verify `fa12730a`): **B-21/B-24 verified
+  FIXED -> the findings ledger is FULLY CLOSED**; glfw 37/37 + sdl3
+  72/72 x2 batteries; `scripts/emulate-arm64.ps1` harness added.
+- **MCU publish DEFERRED by owner decision**: firmata/micropython/uf2
+  stay LANDED but unpublished; a fresh request goes in next cycle
+  (`REL-20261019-1454-bindings` closed with that note).
+- **Pandas bridge section-6 decisions RESOLVED (owner GO)** --
+  `REL-20261019-1917-packages`, section 8 (commit `108fdeae`):
+  Acero-free fallbacks (build on Arrow 22 without Acero), TableGroupBy
+  fallback, `series_apply` f64 (Float64-only; NA out of scope),
+  ADDITIVE ownership frees (`pandas_c_dataframe_free` /
+  `pandas_c_series_free` / `pandas_c_free` + pandas.xi + the
+  "12 declared" marker), additive `dataframe_filter_f64`, Arrow-22
+  parquet component (no separate stack).  **Pandas phases 2-4 agent
+  LAUNCHED** (`am-1792437729398-crb6ad`; branch `feat/pandas-2-4`);
+  existing 12 wrappers stay byte-identical.
+- epos scope ask filed (ships next batch when ops stages it).
 
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
