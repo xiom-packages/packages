@@ -9,7 +9,9 @@ stdlib `E:\xiom-lang\stdlib` at the pin). Suite entry:
 
 ## 1. Suite evidence (x2, committed tree)
 
-Run on commit `<pending>` (branch `feat/micropython`), both runs identical:
+Run on commit `3d61af5d` (branch `feat/micropython`), both runs identical
+(`port.ps1 -Package xiom.micropython -TimeoutSec 300` executed twice on the
+committed tree; the 19 PASS lines and the summary below are from each run):
 
 ```
 port: xiom.micropython
