@@ -1919,6 +1919,24 @@ delivered -- remaining-red loop closed)**:
 - Net red state: **B-34 only** (alias-unification batch, next cut).
   B-32 retired; B-29 closed; B-33 fixed on .7.
 
+**UPDATE 2026-10-19 13:35Z (sqlite 0.5.0 PUBLISHED; MCU Phase-1 wave
+launched; arm64 emulation proven)**:
+- **`xiom.sqlite 0.5.0` PUBLISHED** (single-package tag
+  `xiom-sqlite/v0.5.0`, 2026-10-19T12:04:02Z; sha256
+  `3593431683173a2a6a870c5a214c8178469cd919345fa929916b2b3df33f357c`;
+  run 39247791918 green; registry live-verified; merge `772e9f34`;
+  packages reproduced the nested restore x2 21/21 on v0.64.7 before
+  close-out).  **B-32 fully retired both sides.**
+- **MCU Phase-1 wave launched** (sibling): branches `feat/firmata`
+  (`d3caf980`) + `feat/micropython` (`e18a1ebf`) (+ uf2);
+  post-restart recovery noted; compiler owner-request filed.
+- **arm64 emulation PROVEN** (`fc3d7f1f`): official linux-arm64
+  compiler runs in an arm64 container; MCU host-companion plan
+  backlogged; AMD stays hardware-gated.
+- Findings ledger reconciled (B-13/14/15, B-30, B-31 fixed; B-27/28
+  bundled; only B-21/B-24 rows remain).  B-34 witness item still open
+  at the compiler (fix already upstream for the next cut).
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
