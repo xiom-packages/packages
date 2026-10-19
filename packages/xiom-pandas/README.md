@@ -1,8 +1,9 @@
 # xiom.pandas
 
-> **Status:** `incubating` -- offline conformance GREEN (109/109 x2, compiler
-> v0.64.6, 2026-10-17) with the Phase-2 pinned subset implemented in pure
-> XIOM; the REAL Arrow-backed bridge source is built and probe-green locally.
+> **Status:** `incubating` -- offline conformance GREEN (132/132 x2, compiler
+> v0.64.8, 2026-10-19) with the Phase-2 and Phase-3 pinned subsets implemented
+> in pure XIOM; the REAL Arrow-backed bridge source is built and probe-green
+> locally.
 > Published baseline: 0.1.0 in `eco-v0.1.193` (sha256 `aad9a74e...`, 2026-10-16).
 > **Scope:** Pandas-like tabular data structures over Apache Arrow.
 > **Deps:** stdlib; C FFI bridge (Phase-1 seam only -- the Phase-2 ops use no FFI).
@@ -11,7 +12,7 @@
 
 | Leg | Artifact | Status |
 |-----|----------|--------|
-| Offline suite | pure-XIOM Phase-2 registry + `bridge/pandas_bridge.c` stub (no external libs) + `port.args.json` | GREEN: `scripts/port.ps1 -Package xiom-pandas -TimeoutSec 240` -> **109/109 x2** |
+| Offline suite | pure-XIOM Phase-2/3 registry + `bridge/pandas_bridge.c` stub (no external libs) + `port.args.json` | GREEN: `scripts/port.ps1 -Package xiom-pandas -TimeoutSec 240` -> **132/132 x2** |
 | Real backend | `bridge/xiom_pandas_arrow.cpp` (Arrow C++, C++17, exception-free C ABI) | SOURCE BUILT + PROBE GREEN on Apache Arrow C++ 22.0.0 (pyarrow 22.0.0 wheel; MSVC 19.44 ABI); `tests/probe_real_arrow.xi` (not part of port.ps1) covers null contract + CSV round trip; a deleted local C-ABI probe covered all 12 symbols |
 
 The stub validates arguments and reports the Arrow backend unavailable on
@@ -42,6 +43,25 @@ Phase-2 path; the Phase-1 C-bridge seam is untouched. Storage follows SPEC's
 Skipped as unpinned: rename/reorder, concat, merge/joins (key/suffix semantics
 not pinned), mixed-dtype storage, negative-index and non-clamping slice
 behavior. See `SPEC.md` -> "Phase 2 (partial, pure-XIOM)".
+
+## Phase 3 (pinned subset, pure XIOM)
+
+Same append-only registry, no FFI. Aggregation output is `[grouping column,
+aggregated column]`, one row per distinct Float64 key, in ascending key order.
+
+| API | Behavior |
+|---|---|
+| `group_by(df, by)` | `GroupBy` handle; `0` for an invalid frame or missing column |
+| `groupby_sum(gb, col)` | per-group sum (e.g. keys `[1,2]` -> `[9,30]`) |
+| `groupby_mean(gb, col)` | per-group arithmetic mean (`[3,15]`) |
+| `groupby_count(gb, col)` | per-group row count as Float64 (`[3,2]`) |
+| `dataframe_sort` / `sort` | new frame ordered by `by`, ascending/descending |
+| `dataframe_drop_columns` / `drop_columns` | new frame without the named columns; missing name or dropping all -> `Err` |
+
+Skipped as unpinned: `dataframe_fillna` (no NA/NaN representation or fill
+strategy is pinned), sort stability among equal keys (implementation-defined,
+not asserted), and NA grouping/drop policies. Aggregating the grouping column
+and dropping all columns fail closed with `Err`. See `SPEC.md` -> "Phase 3".
 
 | Lib | Description |
 |-----|-------------|

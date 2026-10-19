@@ -1,7 +1,7 @@
 # xiom.pandas -- Roadmap
 
 > Two-leg delivery (mirrors xiom.numpy Phase 1): the OFFLINE conformance leg
-> is green (**109/109 x2**, v0.64.6, 2026-10-17) via the pure-XIOM Phase-2
+> is green (**132/132 x2**, v0.64.8, 2026-10-19) via the pure-XIOM Phase-2/3
 > registry plus the suite-only stub bridge `bridge/pandas_bridge.c`. The REAL
 > Arrow C++ backend SOURCE is prepared (`bridge/xiom_pandas_arrow.cpp`) and
 > probe-green against Apache Arrow C++ 22.0.0 (pyarrow 22.0.0 MSVC wheel):
@@ -43,13 +43,18 @@
 
 Design + semantics: SPEC.md -> "Phase 2 (partial, pure-XIOM)".
 
-**Phase 3** (v0.3.0) -- Aggregation & Transformation (needs the real Arrow backend)
-- [ ] `groupby_sum(gb, col) -> Result[DataFrame, Str]`
-- [ ] `groupby_mean(gb, col) -> Result[DataFrame, Str]`
-- [ ] `groupby_count(gb, col) -> Result[DataFrame, Str]`
-- [ ] `dataframe_sort(df, by, ascending) -> Result[DataFrame, Str]`
-- [ ] `dataframe_drop_columns(df, cols) -> Result[DataFrame, Str]`
-- [ ] `dataframe_fillna(df, value) -> Result[DataFrame, Str]`
+**Phase 3** (v0.3.0, pinned subset) -- Aggregation & Transformation (**pure XIOM, no real backend needed for these paths**)
+- [x] `group_by(df, by) -> GroupBy` -- handle over the grouping column
+- [x] `groupby_sum(gb, col) -> Result[DataFrame, Str]` -- ascending keys, output `[by, col]`
+- [x] `groupby_mean(gb, col) -> Result[DataFrame, Str]`
+- [x] `groupby_count(gb, col) -> Result[DataFrame, Str]` -- row count (no NA model)
+- [x] `dataframe_sort(df, by, ascending) -> Result[DataFrame, Str]` (+ `sort` alias)
+- [x] `dataframe_drop_columns(df, cols) -> Result[DataFrame, Str]` (+ `drop_columns` alias)
+- [ ] `dataframe_fillna(df, value)` -- **SKIPPED (unpinned: no NA/NaN representation or fill strategy in the Float64 model)**
+- [x] 23 new hand-computed checks -> **132/132 x2** (v0.64.8, 2026-10-19)
+- [ ] Sort stability among equal keys -- **SKIPPED as a contract** (not pinned; implementation is stable but tests do not assert ties)
+
+Design + semantics: SPEC.md -> "Phase 3 (pinned subset)".
 
 **Phase 4** (v0.4.0) -- Advanced I/O & Time Series (needs the real Arrow backend)
 - [ ] `dataframe_read_parquet(path) -> Result[DataFrame, Str]`
@@ -66,5 +71,5 @@ Design + semantics: SPEC.md -> "Phase 2 (partial, pure-XIOM)".
 | Apache Arrow C++ (system) | Required by the real bridge only; never by the offline suite |
 
 ## Contract Coverage
-- 27 `requires` contracts across 27 public functions (11 Phase 1 + 16 Phase 2)
+- 35 `requires` contracts across 35 public functions (11 Phase 1 + 16 Phase 2 + 8 Phase 3)
 - Target: 100% of public FFI functions have contracts

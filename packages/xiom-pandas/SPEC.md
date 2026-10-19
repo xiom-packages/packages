@@ -1,9 +1,12 @@
 # xiom.pandas -- SPEC
 
-**Phase**: 1 (Core Foundation) + Phase 2 partial (pure-XIOM DataFrame ops) | **Priority**: HIGH
+**Phase**: 1 (Core Foundation) + Phase 2 partial + Phase 3 pinned subset
+(pure-XIOM DataFrame ops) | **Priority**: HIGH
 **Status**: Phase 1 implemented -- `pandas.xi` + tests + ROADMAP; Phase 2
 pinned subset implemented in pure XIOM (109/109 x2, v0.64.6, 2026-10-17);
-REAL Arrow-backed bridge source prepared and probe-green (Arrow C++ 22.0.0,
+Phase 3 pinned subset -- sort, drop_columns, group_by sum/mean/count --
+implemented in pure XIOM (132/132 x2, v0.64.8, 2026-10-19); REAL
+Arrow-backed bridge source prepared and probe-green (Arrow C++ 22.0.0,
 v0.64.6, 2026-10-17)
 **Depends on**: xiom.ffi (stdlib), xiom.arrow (Apache Arrow -- Pandas 2.0+ backend)
 
@@ -123,6 +126,52 @@ fixed `a = [10,20,30]`, `b = [1.5,2.5,3.5]` fixture (shape/order, dtype
 tags, column view, iloc, inclusive `loc_range`, head/tail clamps and zeros,
 constructor error arms, empty frame). Suite: **109/109 PASS x2** on compiler
 v0.64.6 (2026-10-17).
+
+## Phase 3 (pinned subset, pure-XIOM, 2026-10-19)
+
+Phase 3 is implemented on the same append-only pure-XIOM registry as Phase 2
+(no FFI, no real Arrow backend required for these paths). Only the items the
+documents pin are implemented; every semantic choice below is written down so
+it is a contract rather than an accident.
+
+### Implemented surface (pinned)
+
+| Function | Semantics |
+|---|---|
+| `group_by(df, by) -> GroupBy` | live `GroupBy` handle over `df` and the global column slot of `by`; invalid/dead frame or missing column -> `0`. Requires `df != 0` |
+| `groupby_sum(gb, col)` | one row per distinct Float64 key of `by`, ascending; columns `[by, col]`; values are sums of `col` |
+| `groupby_mean(gb, col)` | same layout; arithmetic mean `sum / count` in Float64 |
+| `groupby_count(gb, col)` | same layout; group row count as Float64 (the Float64 model has no NA, so every value counts) |
+| `dataframe_sort(df, by, ascending)` / `sort(...)` | new frame; rows ordered by `by`, ascending or descending; original columns preserved |
+| `dataframe_drop_columns(df, cols)` / `drop_columns(...)` | new frame without the named columns; remaining storage order preserved |
+
+All new functions carry `requires: handle != 0`. Tie order for `sort`,
+group-key equality (exact `Float64 ==`), and the absence of NaN keys are
+explicitly documented as unpinned; tests avoid asserting them.
+
+### Deliberately skipped (unpinned -- no guessed semantics)
+
+- `dataframe_fillna`: SPEC/ROADMAP pin no NA/NaN representation and no fill
+  strategy in the Float64 model. **Not implemented.**
+- Sort stability among equal keys: not pinned. The implementation happens to
+  be a stable insertion sort, but stability is not part of the contract and is
+  not tested.
+- NA grouping/drop/fill policies: there is no NA representation to group,
+  drop, or fill; NaN is not treated as a supported key.
+- Aggregating the grouping column itself returns `Err` (it would duplicate the
+  output column name); dropping every column returns `Err` (the constructor
+  requires at least one column); a missing name in `drop_columns` returns
+  `Err`. These are fail-closed choices consistent with the Phase-2 registry.
+
+### Test evidence
+
+`tests/test_conformance.xi` section 17 adds 23 hand-computed checks:
+`sort` ascending/descending/alias/empty/missing-column; `drop_columns`
+normal/alias/missing/all/none; `group_by` handle and missing-key handle;
+`groupby_sum` `[9, 30]`, `groupby_mean` `[3, 15]`, `groupby_count` `[3, 2]`;
+missing/dead-handle/grouping-column error paths; empty-frame aggregation; and
+the new contract markers. Suite: **132/132 PASS x2** on compiler v0.64.8
+(2026-10-19).
 
 ## Real bridge (prepared, 2026-10-17) -- pin, ABI gate, ownership
 
@@ -275,6 +324,24 @@ pub fn series_dtype(s: &Series) -> Dtype
 pub fn series_values(s: &Series) -> Result[Vec[Float64], Str]
 ```
 
+### Implemented Phase-3 surface (pure-XIOM, no FFI)
+
+```xiom
+pub type GroupBy = Int   // handle 0 is invalid
+
+// Aggregation (ascending keys; output columns [by, col])
+pub fn group_by(df: &DataFrame, by: Str) -> GroupBy
+pub fn groupby_sum(gb: GroupBy, col: Str) -> Result[DataFrame, Str]
+pub fn groupby_mean(gb: GroupBy, col: Str) -> Result[DataFrame, Str]
+pub fn groupby_count(gb: GroupBy, col: Str) -> Result[DataFrame, Str]
+
+// Transformation
+pub fn dataframe_sort(df: &DataFrame, by: Str, ascending: Bool) -> Result[DataFrame, Str]
+pub fn sort(df: &DataFrame, by: Str, ascending: Bool) -> Result[DataFrame, Str]
+pub fn dataframe_drop_columns(df: &DataFrame, cols: &Vec[Str]) -> Result[DataFrame, Str]
+pub fn drop_columns(df: &DataFrame, cols: &Vec[Str]) -> Result[DataFrame, Str]
+```
+
 ## Contract coverage target
 - Column existence: `requires: col_name in columns(df)`
 - Shape compatibility: `requires: left.len() > 0 && right.len() > 0`
@@ -285,33 +352,36 @@ pub fn series_values(s: &Series) -> Result[Vec[Float64], Str]
 
 | Phase | What | Effort |
 |-------|------|--------|
-| 1 | DataFrame create, column access, basic ops | Weekend |
-| 2 | Filter, group_by, aggregation | Weekend |
-| 3 | Joins, I/O (CSV, Parquet), sorting | Weekend |
-| 4 | Time series, rolling windows, multi-index | Week |
+| 1 | Core foundation: types, FFI seam, safe wrappers | Done |
+| 2 | DataFrame ops: shape/columns/dtypes/selection/slicing | Done (pinned subset) |
+| 3 | Aggregation & transformation: sort, drop, groupby sum/mean/count | Done (pinned subset); `fillna` skipped as unpinned |
+| 4 | Advanced I/O & time series | Week |
+
+The phase-by-phase task list is authoritative in `ROADMAP.md`; this table
+summarizes it.
 
 ## Phase 1 Implementation Summary
 
 | Artifact | Path | Lines |
 |---|---|---|
-| Module | `pandas.xi` | 781 |
-| Tests | `tests/test_conformance.xi` | 1042 |
+| Module | `pandas.xi` | 1097 |
+| Tests | `tests/test_conformance.xi` | 1405 |
 | Stub bridge | `bridge/pandas_bridge.c` | 174 |
 | REAL Arrow bridge | `bridge/xiom_pandas_arrow.cpp` | 821 |
 | Real-backend requirements | `bridge/REAL-BACKEND-REQUIREMENTS.md` | 152 |
 | Real-runtime probe | `tests/probe_real_arrow.xi` | 133 |
-| Roadmap | `ROADMAP.md` | 46 |
-| SPEC | `SPEC.md` (this file) | 142 |
+| Roadmap | `ROADMAP.md` | 75 |
+| SPEC | `SPEC.md` (this file) | 384 |
 
 ### What Phase 1 delivers
-- **3 opaque types**: `DataFrame = Int`, `Series = Int`, `Dtype = Int`
+- **4 opaque handle types**: `DataFrame = Int`, `Series = Int`, `Dtype = Int`, `GroupBy = Int` (Phase 3)
 - **6 dtype constants**: `DTYPE_INT32`(0) through `DTYPE_BOOL`(5)
 - **6 compare op constants**: `CMP_EQ`(0) through `CMP_GE`(5)
 - **4 join type constants**: `JOIN_INNER`(0) through `JOIN_OUTER`(3)
 - **12 extern "C" functions** (C symbols, `pandas_c_` prefix): pandas_c_dataframe_new, pandas_c_dataframe_from_csv, pandas_c_dataframe_to_csv, pandas_c_dataframe_get_column, pandas_c_dataframe_set_column, pandas_c_dataframe_filter, pandas_c_dataframe_groupby, pandas_c_dataframe_join, pandas_c_series_new, pandas_c_series_from_vec, pandas_c_series_to_vec, pandas_c_series_apply
 - **12 safe wrappers**: all extern functions wrapped with `requires` contracts and null checks
 - **2 utilities**: `dtype_name(dtype)`, `version()`
-- **109 conformance tests** on the current `xiom.test` API: 16 sections covering constants, FFI stub behavior, API presence, contracts, types, dtype_name, safe wrapper error paths, and the Phase-2 pure-XIOM surface (29 checks)
-- **27 contracts**: the 11 Phase-1 contracts plus 16 Phase-2 contracts (`dataframe_shape`, `shape`, `dataframe_columns`, `columns`, `dataframe_dtypes`, `dtypes`, `column`, `dataframe_iloc`, `iloc`, `dataframe_loc_range`, `loc_range`, `dataframe_head`, `dataframe_tail`, `series_len`, `series_dtype`, `series_values`), all `requires: handle != 0`
+- **132 conformance tests** on the current `xiom.test` API: 17 sections covering constants, FFI stub behavior, API presence, contracts, types, dtype_name, safe wrapper error paths, the Phase-2 pure-XIOM surface (29 checks), and the Phase-3 pinned subset (23 checks)
+- **35 contracts**: the 11 Phase-1 contracts, 16 Phase-2 contracts (`dataframe_shape`, `shape`, `dataframe_columns`, `columns`, `dataframe_dtypes`, `dtypes`, `column`, `dataframe_iloc`, `iloc`, `dataframe_loc_range`, `loc_range`, `dataframe_head`, `dataframe_tail`, `series_len`, `series_dtype`, `series_values`), and 8 Phase-3 contracts (`group_by`, `groupby_sum`, `groupby_mean`, `groupby_count`, `dataframe_sort`, `sort`, `dataframe_drop_columns`, `drop_columns`), all `requires: handle != 0`
 - **Offline stub bridge**: `bridge/pandas_bridge.c` + `port.args.json`
 - **Real-backend requirements**: `bridge/REAL-BACKEND-REQUIREMENTS.md` (for the bindings/xiom.arrow lanes)

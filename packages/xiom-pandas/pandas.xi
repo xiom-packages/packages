@@ -18,6 +18,7 @@ module xiom.pandas
 pub type DataFrame = Int;
 pub type Series    = Int;
 pub type Dtype     = Int;
+pub type GroupBy   = Int;
 
 // =========================================================================
 // Dtype constants -- columnar type encoding
@@ -756,6 +757,321 @@ pub fn series_values(s: &Series) -> Result[Vec[Float64], Str]
     j = j + 1;
   };
   return Ok(out);
+}
+
+// =========================================================================
+// Phase 3 -- pinned aggregation / transformation (pure XIOM, no FFI)
+//
+// Implemented from the SPEC API sketch (group_by/groupby_sum/groupby_mean,
+// sort, drop_columns) and the ROADMAP Phase-3 list (groupby_count). Only the
+// parts whose semantics the docs pin are implemented:
+//
+// - group_by stores the source frame handle and the grouping column slot.
+// - groupby_sum/mean/count return a fresh frame with exactly two columns:
+//   [grouping column, aggregated column], one row per distinct Float64 key,
+//   ordered by ascending key (pandas' default groupby sort=True).
+//   Equality on group keys is exact Float64 equality; NA/NaN is not part of
+//   the pinned Float64 model (SPEC), so no NA drop/fill policy is invented.
+// - Aggregating the grouping column itself returns Err (the result would
+//   otherwise carry two identically named columns).
+// - sort returns a new frame whose rows are ordered by `by`; ties keep their
+//   source order in this implementation, but tie/stability behavior is NOT
+//   part of the pinned contract (documented in SPEC).
+// - drop_columns removes the requested names, preserves the remaining
+//   column order, and returns Err for a missing name or when every column
+//   would be dropped (the constructor requires >= 1 column).
+// - dataframe_fillna is deliberately NOT implemented: SPEC/ROADMAP pin no
+//   NA/NaN representation or fill strategy in the Float64 model.
+// =========================================================================
+
+// --- GroupBy registry ----------------------------------------------------
+
+var _p3_gb_df:   Vec[Int]  = Vec[Int].new();
+var _p3_gb_key:  Vec[Int]  = Vec[Int].new();
+var _p3_gb_live: Vec[Bool] = Vec[Bool].new();
+
+fn _p3_gb_valid(h: Int) -> Bool {
+  if h <= 0 { return false; }
+  let i = h - 1;
+  if i >= _p3_gb_live.len() { return false; }
+  return _p3_gb_live[i];
+}
+
+fn _p3_gb_alloc(dfh: Int, keyslot: Int) -> GroupBy {
+  _p3_gb_df.push(dfh);
+  _p3_gb_key.push(keyslot);
+  _p3_gb_live.push(true);
+  return _p3_gb_live.len();
+}
+
+// --- transformation helpers ---------------------------------------------
+
+fn _p3_name_in(cols: &Vec[Str], name: Str) -> Bool {
+  var i = 0;
+  while i < cols.len() {
+    if cols[i] == name { return true; }
+    i = i + 1;
+  };
+  return false;
+}
+
+// Append a column holding rows from `srcbase` in `order`.
+fn _p2_col_alloc_order(name: Str, dtype: Dtype, srcbase: Int, order: &Vec[Int]) -> Int {
+  let base = _p2_col_data.len();
+  var j = 0;
+  while j < order.len() {
+    _p2_col_data.push(_p2_col_data[srcbase + order[j]]);
+    j = j + 1;
+  };
+  _p2_col_name.push(name);
+  _p2_col_dtype.push(dtype);
+  _p2_col_base.push(base);
+  _p2_col_len.push(order.len());
+  _p2_col_live.push(true);
+  return _p2_col_live.len() - 1;
+}
+
+// New frame with every column permuted by `order` (a stable copy).
+fn _p3_materialize(h: Int, order: &Vec[Int]) -> DataFrame {
+  var slots = Vec[Int].new();
+  var ci = 0;
+  while ci < _p2_df_ncols(h) {
+    let c = _p2_df_col(h, ci);
+    let ns = _p2_col_alloc_order(_p2_col_name[c], _p2_col_dtype[c], _p2_col_base[c], order);
+    slots.push(ns);
+    ci = ci + 1;
+  };
+  return _p2_frame_alloc(&slots, order.len());
+}
+
+// Stable insertion sort of row indices by column slot `c`.
+fn _p3_sort_order(h: Int, c: Int, ascending: Bool) -> Vec[Int] {
+  var order = Vec[Int].new();
+  let base = _p2_col_base[c];
+  let rows = _p2_df_row_count(h);
+  var i = 0;
+  while i < rows {
+    order.push(i);
+    i = i + 1;
+  };
+  var k = 1;
+  while k < order.len() {
+    let cur = order[k];
+    let cv = _p2_col_data[base + cur];
+    var j = k - 1;
+    while j >= 0 {
+      let jv = _p2_col_data[base + order[j]];
+      var move = false;
+      if ascending {
+        if jv > cv { move = true; }
+      } else {
+        if jv < cv { move = true; }
+      };
+      if !move { break; }
+      order[j + 1] = order[j];
+      j = j - 1;
+    };
+    order[j + 1] = cur;
+    k = k + 1;
+  };
+  return order;
+}
+
+// Stable ascending permutation of group indices by key.
+fn _p3_group_order(keys: &Vec[Float64]) -> Vec[Int] {
+  var order = Vec[Int].new();
+  var i = 0;
+  while i < keys.len() {
+    order.push(i);
+    i = i + 1;
+  };
+  var k = 1;
+  while k < order.len() {
+    let cur = order[k];
+    let cv = keys[cur];
+    var j = k - 1;
+    while j >= 0 {
+      if keys[order[j]] <= cv { break; }
+      order[j + 1] = order[j];
+      j = j - 1;
+    };
+    order[j + 1] = cur;
+    k = k + 1;
+  };
+  return order;
+}
+
+// --- group_by / aggregation ---------------------------------------------
+
+// Group handle over `by`; 0 when the frame or column is invalid.
+pub fn group_by(df: &DataFrame, by: Str) -> GroupBy
+  requires: df != 0
+{
+  let h: Int = *df;
+  if !_p2_df_valid(h) { return 0; }
+  let c = _p2_df_find_col(h, by);
+  if c < 0 { return 0; }
+  return _p3_gb_alloc(h, c);
+}
+
+// mode: 0 = sum, 1 = mean, 2 = count.
+fn _p3_groupby_agg(gb: GroupBy, col: Str, mode: Int) -> Result[DataFrame, Str] {
+  let g: Int = gb;
+  if !_p3_gb_valid(g) {
+    return Err("pandas: groupby invalid GroupBy handle");
+  }
+  let h = _p3_gb_df[g - 1];
+  if !_p2_df_valid(h) {
+    return Err("pandas: groupby invalid DataFrame handle");
+  }
+  let kc = _p3_gb_key[g - 1];
+  let vc = _p2_df_find_col(h, col);
+  if vc < 0 {
+    return Err("pandas: groupby aggregated column not found");
+  }
+  if vc == kc {
+    return Err("pandas: groupby cannot aggregate the grouping column");
+  }
+  var keys = Vec[Float64].new();
+  var acc = Vec[Float64].new();
+  var cnt = Vec[Int].new();
+  let kbase = _p2_col_base[kc];
+  let vbase = _p2_col_base[vc];
+  let rows = _p2_df_row_count(h);
+  var r = 0;
+  while r < rows {
+    let kv = _p2_col_data[kbase + r];
+    let vv = _p2_col_data[vbase + r];
+    var gi = -1;
+    var j = 0;
+    while j < keys.len() {
+      if keys[j] == kv {
+        gi = j;
+        break;
+      }
+      j = j + 1;
+    };
+    if gi < 0 {
+      keys.push(kv);
+      if mode == 2 { acc.push(1.0); } else { acc.push(vv); }
+      cnt.push(1);
+    } else {
+      if mode == 2 { acc[gi] = acc[gi] + 1.0; } else { acc[gi] = acc[gi] + vv; }
+      cnt[gi] = cnt[gi] + 1;
+    }
+    r = r + 1;
+  };
+  let gorder = _p3_group_order(&keys);
+  var names = Vec[Str].new();
+  names.push(_p2_col_name[kc]);
+  names.push(col);
+  var key_vals = Vec[Float64].new();
+  var agg_vals = Vec[Float64].new();
+  var q = 0;
+  while q < gorder.len() {
+    let g = gorder[q];
+    key_vals.push(keys[g]);
+    if mode == 1 {
+      agg_vals.push(acc[g] / (cnt[g] as Float64));
+    } else {
+      agg_vals.push(acc[g]);
+    }
+    q = q + 1;
+  };
+  var outcols = Vec[Vec[Float64]].new();
+  outcols.push(key_vals);
+  outcols.push(agg_vals);
+  return dataframe_from_columns(&names, &outcols);
+}
+
+// Per-group sum of `col`, keyed by group_by's column (ascending keys).
+pub fn groupby_sum(gb: GroupBy, col: Str) -> Result[DataFrame, Str]
+  requires: gb != 0
+{
+  return _p3_groupby_agg(gb, col, 0);
+}
+
+// Per-group arithmetic mean of `col` (ascending keys).
+pub fn groupby_mean(gb: GroupBy, col: Str) -> Result[DataFrame, Str]
+  requires: gb != 0
+{
+  return _p3_groupby_agg(gb, col, 1);
+}
+
+// Per-group row count for `col` (no NA model: every value counts).
+pub fn groupby_count(gb: GroupBy, col: Str) -> Result[DataFrame, Str]
+  requires: gb != 0
+{
+  return _p3_groupby_agg(gb, col, 2);
+}
+
+// --- sort ----------------------------------------------------------------
+
+// New frame with rows ordered by column `by`.
+// Tie order is implementation-defined (documented, not pinned).
+pub fn dataframe_sort(df: &DataFrame, by: Str, ascending: Bool) -> Result[DataFrame, Str]
+  requires: df != 0
+{
+  let h: Int = *df;
+  if !_p2_df_valid(h) {
+    return Err("pandas: dataframe_sort invalid DataFrame handle");
+  }
+  let c = _p2_df_find_col(h, by);
+  if c < 0 {
+    return Err("pandas: dataframe_sort column not found");
+  }
+  let order = _p3_sort_order(h, c, ascending);
+  return Ok(_p3_materialize(h, &order));
+}
+
+// SPEC API name for dataframe_sort.
+pub fn sort(df: &DataFrame, by: Str, ascending: Bool) -> Result[DataFrame, Str]
+  requires: df != 0
+{
+  return dataframe_sort(df, by, ascending);
+}
+
+// --- drop_columns --------------------------------------------------------
+
+// New frame without the named columns, preserving the remaining order.
+// Every requested name must exist; dropping all columns is Err.
+pub fn dataframe_drop_columns(df: &DataFrame, cols: &Vec[Str]) -> Result[DataFrame, Str]
+  requires: df != 0
+{
+  let h: Int = *df;
+  if !_p2_df_valid(h) {
+    return Err("pandas: dataframe_drop_columns invalid DataFrame handle");
+  }
+  var i = 0;
+  while i < cols.len() {
+    if _p2_df_find_col(h, cols[i]) < 0 {
+      return Err("pandas: dataframe_drop_columns column not found");
+    }
+    i = i + 1;
+  };
+  var slots = Vec[Int].new();
+  var ci = 0;
+  var keep = 0;
+  while ci < _p2_df_ncols(h) {
+    let c = _p2_df_col(h, ci);
+    if !_p3_name_in(cols, _p2_col_name[c]) {
+      let ns = _p2_col_alloc_slice(_p2_col_name[c], _p2_col_dtype[c], _p2_col_base[c], 0, _p2_col_len[c]);
+      slots.push(ns);
+      keep = keep + 1;
+    }
+    ci = ci + 1;
+  };
+  if keep == 0 {
+    return Err("pandas: dataframe_drop_columns cannot drop all columns");
+  }
+  return Ok(_p2_frame_alloc(&slots, _p2_df_row_count(h)));
+}
+
+// SPEC API name for dataframe_drop_columns.
+pub fn drop_columns(df: &DataFrame, cols: &Vec[Str]) -> Result[DataFrame, Str]
+  requires: df != 0
+{
+  return dataframe_drop_columns(df, cols);
 }
 
 // =========================================================================

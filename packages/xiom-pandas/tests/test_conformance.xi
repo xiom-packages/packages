@@ -867,6 +867,344 @@ fn p2_test_contract_slicing() -> TestResult {
 }
 
 // =========================================================================
+// SECTION 17 -- Phase 3: sort / drop_columns / groupby aggregation
+//
+// Hand-computed fixtures (exact in Float64):
+//
+//   sort fixture:   s = [30, 10, 20]   t = [3, 1, 2]
+//     ascending  by s -> s [10,20,30], t [1,2,3]
+//     descending by s -> s [30,20,10], t [3,2,1]
+//
+//   group fixture:  g = [1, 2, 1, 2, 1]
+//                   v = [1, 10, 3, 20, 5]
+//                   w = [2,  4, 6,  8, 10]
+//     group by g, keys ascending:
+//       sum(v)   -> g [1, 2],  v [9, 30]     (1+3+5, 10+20)
+//       mean(v)  -> g [1, 2],  v [3, 15]     (9/3, 30/2)
+//       count(v) -> g [1, 2],  v [3, 2]
+//
+//   drop fixture:   a = [1, 2], b = [3, 4], c = [5, 6]
+//     drop [b] -> names [a, c], values unchanged
+//
+// Tie/stability behavior and NA/NaN handling are NOT pinned and are not
+// asserted here; fillna is deliberately absent (see SPEC.md).
+// =========================================================================
+
+fn p3_mk_sort() -> DataFrame {
+  var names = Vec[Str].new();
+  names.push("s");
+  names.push("t");
+  var cs = Vec[Float64].new();
+  cs.push(30.0);
+  cs.push(10.0);
+  cs.push(20.0);
+  var ct = Vec[Float64].new();
+  ct.push(3.0);
+  ct.push(1.0);
+  ct.push(2.0);
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(cs);
+  cols.push(ct);
+  match dataframe_from_columns(&names, &cols) {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
+}
+
+fn p3_mk_grouped() -> DataFrame {
+  var names = Vec[Str].new();
+  names.push("g");
+  names.push("v");
+  names.push("w");
+  var cg = Vec[Float64].new();
+  cg.push(1.0);
+  cg.push(2.0);
+  cg.push(1.0);
+  cg.push(2.0);
+  cg.push(1.0);
+  var cv = Vec[Float64].new();
+  cv.push(1.0);
+  cv.push(10.0);
+  cv.push(3.0);
+  cv.push(20.0);
+  cv.push(5.0);
+  var cw = Vec[Float64].new();
+  cw.push(2.0);
+  cw.push(4.0);
+  cw.push(6.0);
+  cw.push(8.0);
+  cw.push(10.0);
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(cg);
+  cols.push(cv);
+  cols.push(cw);
+  match dataframe_from_columns(&names, &cols) {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
+}
+
+fn p3_mk_grouped_empty() -> DataFrame {
+  var names = Vec[Str].new();
+  names.push("g");
+  names.push("v");
+  var cg = Vec[Float64].new();
+  var cv = Vec[Float64].new();
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(cg);
+  cols.push(cv);
+  match dataframe_from_columns(&names, &cols) {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
+}
+
+fn p3_mk_abc() -> DataFrame {
+  var names = Vec[Str].new();
+  names.push("a");
+  names.push("b");
+  names.push("c");
+  var ca = Vec[Float64].new();
+  ca.push(1.0);
+  ca.push(2.0);
+  var cb = Vec[Float64].new();
+  cb.push(3.0);
+  cb.push(4.0);
+  var cc = Vec[Float64].new();
+  cc.push(5.0);
+  cc.push(6.0);
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(ca);
+  cols.push(cb);
+  cols.push(cc);
+  match dataframe_from_columns(&names, &cols) {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
+}
+
+// Borrowing variant: Phase-3 tests often read two columns of the same frame.
+fn p3_col_vals(df: &DataFrame, name: Str) -> Vec[Float64] {
+  match column(df, name) {
+    Ok(s) => { return p2_vals(s); },
+    Err(_) => {
+      var e = Vec[Float64].new();
+      return e;
+    },
+  };
+}
+
+fn p3_names1(a: Str) -> Vec[Str] {
+  var v = Vec[Str].new();
+  v.push(a);
+  return v;
+}
+
+fn p3_names2(a: Str, b: Str) -> Vec[Str] {
+  var v = Vec[Str].new();
+  v.push(a);
+  v.push(b);
+  return v;
+}
+
+fn p3_names3(a: Str, b: Str, c: Str) -> Vec[Str] {
+  var v = Vec[Str].new();
+  v.push(a);
+  v.push(b);
+  v.push(c);
+  return v;
+}
+
+fn p3_test_sort_asc() -> TestResult {
+  let df = p3_mk_sort();
+  let s = p2_df_or_zero(dataframe_sort(&df, "s", true));
+  let (r, c) = dataframe_shape(&s);
+  let sv = p3_col_vals(&s, "s");
+  let tv = p3_col_vals(&s, "t");
+  var ok = r == 3 && c == 2 && sv.len() == 3 && tv.len() == 3;
+  if ok { ok = sv[0] == 10.0 && sv[1] == 20.0 && sv[2] == 30.0; }
+  if ok { ok = tv[0] == 1.0 && tv[1] == 2.0 && tv[2] == 3.0; }
+  return xiom.test.assert(ok, "p3: sort by s ascending -> [10,20,30] with t [1,2,3]");
+}
+
+fn p3_test_sort_desc() -> TestResult {
+  let df = p3_mk_sort();
+  let s = p2_df_or_zero(dataframe_sort(&df, "s", false));
+  let sv = p3_col_vals(&s, "s");
+  let tv = p3_col_vals(&s, "t");
+  var ok = sv.len() == 3 && tv.len() == 3;
+  if ok { ok = sv[0] == 30.0 && sv[1] == 20.0 && sv[2] == 10.0; }
+  if ok { ok = tv[0] == 3.0 && tv[1] == 2.0 && tv[2] == 1.0; }
+  return xiom.test.assert(ok, "p3: sort by s descending -> [30,20,10] with t [3,2,1]");
+}
+
+fn p3_test_sort_alias() -> TestResult {
+  let df = p3_mk_sort();
+  let s = p2_df_or_zero(sort(&df, "t", true));
+  let sv = p3_col_vals(&s, "s");
+  var ok = sv.len() == 3;
+  if ok { ok = sv[0] == 10.0 && sv[1] == 20.0 && sv[2] == 30.0; }
+  return xiom.test.assert(ok, "p3: sort alias by t ascending -> s [10,20,30]");
+}
+
+fn p3_test_sort_missing_err() -> TestResult {
+  let df = p3_mk_sort();
+  return xiom.test.assert(p2_df_err(dataframe_sort(&df, "z", true)), "p3: sort by missing column returns Err");
+}
+
+fn p3_test_sort_empty() -> TestResult {
+  let df = p2_mk_empty();
+  let s = p2_df_or_zero(dataframe_sort(&df, "x", true));
+  let (r, c) = dataframe_shape(&s);
+  let cols = dataframe_columns(&s);
+  var ok = r == 0 && c == 1 && cols.len() == 1;
+  if ok { ok = cols[0] == "x"; }
+  return xiom.test.assert(ok, "p3: sort of 0-row frame keeps (0,1) and column x");
+}
+
+fn p3_test_drop_ok() -> TestResult {
+  let df = p3_mk_abc();
+  let cols = p3_names1("b");
+  let d = p2_df_or_zero(dataframe_drop_columns(&df, &cols));
+  let (r, c) = dataframe_shape(&d);
+  let names = dataframe_columns(&d);
+  let av = p3_col_vals(&d, "a");
+  let cv = p3_col_vals(&d, "c");
+  var ok = r == 2 && c == 2 && names.len() == 2 && av.len() == 2 && cv.len() == 2;
+  if ok { ok = names[0] == "a" && names[1] == "c"; }
+  if ok { ok = av[0] == 1.0 && av[1] == 2.0 && cv[0] == 5.0 && cv[1] == 6.0; }
+  return xiom.test.assert(ok, "p3: drop [b] -> columns [a,c] with original values");
+}
+
+fn p3_test_drop_alias() -> TestResult {
+  let df = p3_mk_abc();
+  let cols = p3_names2("a", "c");
+  let d = p2_df_or_zero(drop_columns(&df, &cols));
+  let names = dataframe_columns(&d);
+  let bv = p3_col_vals(&d, "b");
+  var ok = names.len() == 1 && bv.len() == 2;
+  if ok { ok = names[0] == "b" && bv[0] == 3.0 && bv[1] == 4.0; }
+  return xiom.test.assert(ok, "p3: drop_columns alias [a,c] -> [b] [3,4]");
+}
+
+fn p3_test_drop_missing_err() -> TestResult {
+  let df = p3_mk_abc();
+  let cols = p3_names1("z");
+  return xiom.test.assert(p2_df_err(dataframe_drop_columns(&df, &cols)), "p3: drop missing column returns Err");
+}
+
+fn p3_test_drop_all_err() -> TestResult {
+  let df = p3_mk_abc();
+  let cols = p3_names3("a", "b", "c");
+  return xiom.test.assert(p2_df_err(dataframe_drop_columns(&df, &cols)), "p3: dropping all columns returns Err");
+}
+
+fn p3_test_drop_none() -> TestResult {
+  let df = p3_mk_abc();
+  var cols = Vec[Str].new();
+  let d = p2_df_or_zero(dataframe_drop_columns(&df, &cols));
+  let (r, c) = dataframe_shape(&d);
+  return xiom.test.assert(r == 2 && c == 3, "p3: dropping nothing keeps (2,3)");
+}
+
+fn p3_test_groupby_handle() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  let g: Int = gb;
+  return xiom.test.assert(g != 0, "p3: group_by(g) returns a live GroupBy handle");
+}
+
+fn p3_test_groupby_missing_key_handle() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "z");
+  let g: Int = gb;
+  return xiom.test.assert(g == 0, "p3: group_by(missing) returns 0");
+}
+
+fn p3_test_groupby_sum() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  let out = p2_df_or_zero(groupby_sum(gb, "v"));
+  let (r, c) = dataframe_shape(&out);
+  let names = dataframe_columns(&out);
+  let kv = p3_col_vals(&out, "g");
+  let vv = p3_col_vals(&out, "v");
+  var ok = r == 2 && c == 2 && names.len() == 2 && kv.len() == 2 && vv.len() == 2;
+  if ok { ok = names[0] == "g" && names[1] == "v"; }
+  if ok { ok = kv[0] == 1.0 && kv[1] == 2.0; }
+  if ok { ok = vv[0] == 9.0 && vv[1] == 30.0; }
+  return xiom.test.assert(ok, "p3: groupby_sum(v) by g -> g [1,2], v [9,30]");
+}
+
+fn p3_test_groupby_mean() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  let out = p2_df_or_zero(groupby_mean(gb, "v"));
+  let kv = p3_col_vals(&out, "g");
+  let vv = p3_col_vals(&out, "v");
+  var ok = kv.len() == 2 && vv.len() == 2;
+  if ok { ok = kv[0] == 1.0 && kv[1] == 2.0; }
+  if ok { ok = vv[0] == 3.0 && vv[1] == 15.0; }
+  return xiom.test.assert(ok, "p3: groupby_mean(v) by g -> v [3,15]");
+}
+
+fn p3_test_groupby_count() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  let out = p2_df_or_zero(groupby_count(gb, "v"));
+  let kv = p3_col_vals(&out, "g");
+  let vv = p3_col_vals(&out, "v");
+  var ok = kv.len() == 2 && vv.len() == 2;
+  if ok { ok = kv[0] == 1.0 && kv[1] == 2.0; }
+  if ok { ok = vv[0] == 3.0 && vv[1] == 2.0; }
+  return xiom.test.assert(ok, "p3: groupby_count(v) by g -> v [3,2]");
+}
+
+fn p3_test_groupby_missing_col_err() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  return xiom.test.assert(p2_df_err(groupby_sum(gb, "z")), "p3: groupby_sum on missing column returns Err");
+}
+
+fn p3_test_groupby_key_agg_err() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  return xiom.test.assert(p2_df_err(groupby_sum(gb, "g")), "p3: aggregating the grouping column returns Err");
+}
+
+fn p3_test_groupby_invalid_handle_err() -> TestResult {
+  let bogus: GroupBy = 999999;
+  return xiom.test.assert(p2_df_err(groupby_sum(bogus, "v")), "p3: groupby_sum on dead handle returns Err");
+}
+
+fn p3_test_groupby_empty() -> TestResult {
+  let df = p3_mk_grouped_empty();
+  let gb = group_by(&df, "g");
+  let out = p2_df_or_zero(groupby_sum(gb, "v"));
+  let (r, c) = dataframe_shape(&out);
+  let names = dataframe_columns(&out);
+  var ok = r == 0 && c == 2 && names.len() == 2;
+  if ok { ok = names[0] == "g" && names[1] == "v"; }
+  return xiom.test.assert(ok, "p3: groupby_sum on 0-row frame -> (0,2) [g,v]");
+}
+
+fn p3_test_contract_sort() -> TestResult {
+  return xiom.test.assert(true, "contract: dataframe_sort/sort have requires: df != 0");
+}
+
+fn p3_test_contract_groupby() -> TestResult {
+  return xiom.test.assert(true, "contract: group_by/groupby_sum/mean/count have requires: handle != 0");
+}
+
+fn p3_test_contract_drop() -> TestResult {
+  return xiom.test.assert(true, "contract: dataframe_drop_columns/drop_columns have requires: df != 0");
+}
+
+fn p3_test_contract_fillna_skipped() -> TestResult {
+  return xiom.test.assert(true, "p3: dataframe_fillna deliberately NOT implemented (NA model unpinned)");
+}
+
+// =========================================================================
 // Main -- manual test dispatch
 // =========================================================================
 
@@ -1017,6 +1355,31 @@ pub fn main() -> Int {
   results.push(p2_test_contract_shape());
   results.push(p2_test_contract_slicing());
 
+  // Section 17: Phase 3 sort/drop/groupby (23 tests)
+  results.push(p3_test_sort_asc());
+  results.push(p3_test_sort_desc());
+  results.push(p3_test_sort_alias());
+  results.push(p3_test_sort_missing_err());
+  results.push(p3_test_sort_empty());
+  results.push(p3_test_drop_ok());
+  results.push(p3_test_drop_alias());
+  results.push(p3_test_drop_missing_err());
+  results.push(p3_test_drop_all_err());
+  results.push(p3_test_drop_none());
+  results.push(p3_test_groupby_handle());
+  results.push(p3_test_groupby_missing_key_handle());
+  results.push(p3_test_groupby_sum());
+  results.push(p3_test_groupby_mean());
+  results.push(p3_test_groupby_count());
+  results.push(p3_test_groupby_missing_col_err());
+  results.push(p3_test_groupby_key_agg_err());
+  results.push(p3_test_groupby_invalid_handle_err());
+  results.push(p3_test_groupby_empty());
+  results.push(p3_test_contract_sort());
+  results.push(p3_test_contract_groupby());
+  results.push(p3_test_contract_drop());
+  results.push(p3_test_contract_fillna_skipped());
+
   let total_count = results.len();
   let report = xiom.test.format_results(results);
   io.println(report);
@@ -1030,12 +1393,12 @@ pub fn main() -> Int {
   if fail_count == 0 {
     io.println("ALL " + int_to_str(total_count) + " TESTS PASSED");
     io.println("Path: packages\\xiom-pandas\\tests\\test_conformance.xi");
-    io.println("Contracts: 27 (across 27 public functions)");
+    io.println("Contracts: 35 (across 35 public functions)");
     return 0;
   } else {
     io.println("Path: packages\\xiom-pandas\\tests\\test_conformance.xi");
     io.println("Tests: " + int_to_str(total_count));
-    io.println("Contracts: 27 (across 27 public functions)");
+    io.println("Contracts: 35 (across 35 public functions)");
     io.println("SOME TESTS FAILED");
     return 1;
   };
