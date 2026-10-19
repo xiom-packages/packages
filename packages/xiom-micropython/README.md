@@ -70,13 +70,21 @@ if fr.is_ok {
 let tr = mp_parse_exec(&trace);
 if tr.is_ok {
   let r: MpExec = tr.value;
-  let lines = mp_output_lines(r);     // stdout lines
-  if !mp_exec_ok(r) {
-    let errs = mp_error_lines(r);     // traceback untouched
+  let failed = r.error.len() > 0;
+  if failed {
+    let errs = mp_error_lines(r);     // traceback lines, untouched
     let _ = errs;
+  } else {
+    let lines = mp_output_lines(r);   // stdout lines
+    let _ = lines;
   }
 }
 ```
+
+`MpExec` is consumed by `mp_exec_ok`, `mp_eval_value`, `mp_output_lines`
+and `mp_error_lines` (the by-value shape keeps struct field reads reliable on
+the pinned compiler); parse twice or inspect `r.output`/`r.error` directly
+when both views are needed.
 
 Because the package never owns a file descriptor, a transport adapter is just
 a loop: write `request`, append received bytes, call the matching parser, keep

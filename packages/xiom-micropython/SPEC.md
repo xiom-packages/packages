@@ -155,6 +155,11 @@ bytes are not consumed, so a transport can retain them for the next frame.
 | `mp_error_lines(r)` | `Vec[Str]` | `mp_lines(r.error)`; traceback frames unchanged. |
 | `mp_lines(text)` | `Vec[Str]` | Line framing rule in 2.6. |
 
+`mp_exec_ok`, `mp_eval_value`, `mp_output_lines` and `mp_error_lines` take
+`MpExec` **by value** (this keeps struct field reads reliable on the pinned
+compiler). Parse the same trace twice, or read `output`/`error` directly,
+when both views are needed.
+
 ## 6. Declared divergences and limitations
 
 1. **Transport-agnostic by design.** There is no serial/socket client in
