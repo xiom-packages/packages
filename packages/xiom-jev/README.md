@@ -4,7 +4,7 @@
 
 TypeSafe Jev client tier: **System One** structured decisions for XIOM.
 
-> **Status:** `incubating` -- 0.1.0. Offline conformance suite **293/293 x2** on
+> **Status:** `incubating` -- 0.1.0. Offline conformance suite **324/324 x2** on
 > compiler `v0.64.8` (native-session, 2026-10-19). Live probe is SKIP-safe and
 > link-gated (see "Live probe"). Published in `eco-v0.1.193` (sha256
 > `ed212ee6...`, 2026-10-16).
@@ -30,6 +30,7 @@ coverage program; it pairs with the `xiom.llm` runner tier (System Two text).
 | `xiom.jev.beam` | `BeamLevel`/`BeamPath`/`BeamResult`, `beam_level_new`, `beam_add_option`, `beam_level_from_answer`, `beam_search` (deterministic width-K hierarchy search), guarded result accessors |
 | `xiom.jev.compression` | 32 MiB `body_size_check`, encoding tags (`identity`/`gzip`/`zstd`), `encoding_check`, `wire_uses_bytes`, `prepare_body`/`EncodedBody`, `compress_bytes`/`compress_body` (gzip; zstd typed unavailable) |
 | `xiom.jev.confidence` | `confidence_choice_micro`, `confidence_score_micro` (S6 formulas), `composite_score_micro`, `composite_weights_valid` -- pure micro-unit statistics |
+| `xiom.jev.batch` | `BatchOutcome`/`BatchSuccess`/`BatchFailure`, `batch_collect` -- pure caller-side aggregation (stable order, per-item typed errors); no I/O, no runtime |
 | `xiom.jev.errors` | `JevError` (BadRequest / Transport / HttpStatus / Parse) + `jev_error_text` |
 | `xiom.jev.client` | `system_one` (identity), `system_one_with_encoding`, `system_one_with_assets`, `system_one_with_assets_and_encoding` -- transport over xiom.http 0.1.9 (`http_request` Str / `http_request_bytes` binary) |
 
@@ -155,10 +156,10 @@ Option-shaped none, -1 micro). Every malformed member has a typed Parse
 reason (see `SPEC.md` section 19.7). Suite t50..t52 cover the exact bytes,
 the header predicate and all parse errors offline.
 
-The remaining M3 item (batch/streaming ergonomics) is **pinned by the owner
-on 2026-10-19** (`SPEC.md` section 19.5) but not yet implemented: v0.2.0 has
-no batch or streaming endpoint, so only a pure caller-side `batch_collect`
-aggregation helper is planned; streaming is out of scope.
+Batch/streaming ergonomics is **pinned by the owner on 2026-10-19**
+(`SPEC.md` section 19.5): v0.2.0 has no batch or streaming endpoint, so the
+package exposes only the pure caller-side `batch_collect` aggregation helper
+(now implemented; see below) and streaming remains out of scope.
 
 ## Confidence and composite scoring (M3, 2026-10-19)
 
@@ -189,6 +190,53 @@ Exact goldens live in suite t48..t49. `SPEC.md` section 19.7 records the two
 pin-text details worth knowing: `(0,0.57,0.43)` displays as `0.35` but its
 exact half-up micro value is `355000`, and the score formula gives
 `(0.1,0.1,0.8) -> 0.55` (the pin's `0.7` is the Choice formula's value).
+
+## Batch aggregation (M3, 2026-10-19)
+
+`xiom.jev.batch.batch_collect` is the only batch surface: v0.2.0 has no batch
+endpoint, so scheduling stays with the caller (sequential or host-provided
+concurrency) and this helper performs no I/O and owns no runtime.
+
+```xiom
+pub type BatchSuccess = { index: Int; value: Str }
+pub type BatchFailure = { index: Int; error: JevError }
+pub type BatchOutcome = {
+  successes: Vec[BatchSuccess];
+  failures: Vec<BatchFailure>;
+  ok: Bool;
+}
+
+pub fn batch_collect(results: &Vec[Result[Str, JevError]]) -> BatchOutcome
+```
+
+`successes` and `failures` each preserve ascending input-index order; every
+`JevError` payload is copied unchanged; `ok` is true exactly when `failures`
+is empty (so empty input is ok with both vectors empty). This is the
+struct-per-row form of the SPEC's `Vec[(Int, Str)]` / `Vec[(Int, JevError)]`
+pairs (tuples inside `Vec` have a known element-read defect).
+
+Example:
+
+```xiom
+use xiom.jev.batch;
+
+var results: Vec[Result[Str, JevError]] = ...;  // caller-scheduled calls
+let outcome: BatchOutcome = batch.batch_collect(&results);
+if outcome.ok {
+  // every item succeeded, in input order
+} else {
+  let first_bad: Int = outcome.failures[0].index;
+  let why: JevError = outcome.failures[0].error;
+}
+```
+
+Suite t53 (30 checks) pins empty, all-success, all-failure, mixed, order
+stability and size-1 inputs with exact indices and error identity.
+
+Compiler note (v0.64.8): `Vec.push` loses the `Err` `Str` payload (and can
+perturb order) when a directly-constructed `Err` is passed straight to it.
+Bind each `Result` returned by a call to a local before pushing; the probe
+`docs/repro/batch_result_vec_push.xi` reduces the defect.
 
 ## Transport (xiom.http 0.1.9 headers + binary-body surface)
 

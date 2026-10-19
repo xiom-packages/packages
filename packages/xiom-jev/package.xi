@@ -30,6 +30,6 @@ package xiom_jev {
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];
-  modules: ["xiom.jev", "xiom.jev.beam", "xiom.jev.client", "xiom.jev.compression", "xiom.jev.confidence", "xiom.jev.errors", "xiom.jev.request", "xiom.jev.response", "xiom.jev.retry", "xiom.jev.selection", "xiom.jev.types"];
+  modules: ["xiom.jev", "xiom.jev.batch", "xiom.jev.beam", "xiom.jev.client", "xiom.jev.compression", "xiom.jev.confidence", "xiom.jev.errors", "xiom.jev.request", "xiom.jev.response", "xiom.jev.retry", "xiom.jev.selection", "xiom.jev.types"];
   deps: { "xiom.std": ">=0.60.0 <1.0.0", "xiom.http": "0.1.9" };
 }

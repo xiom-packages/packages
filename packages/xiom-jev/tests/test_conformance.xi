@@ -33,6 +33,7 @@ use xiom.encoding;
 use xiom.compress.gzip;
 use xiom.serialize.json;
 use xiom.jev;
+use xiom.jev.batch;
 use xiom.jev.beam;
 use xiom.jev.compression;
 use xiom.jev.confidence;
@@ -1787,6 +1788,146 @@ fn t52() -> Int {
 }
 
 // --------------------------------------------------
+//  Batch aggregation (SPEC.md section 19.5)
+// --------------------------------------------------
+
+fn batch_err(e: JevError) -> Result[Str, JevError] {
+  return Err(e);
+}
+
+// Compiler v0.64.8 loses the Err Str payload (and can perturb order) when a
+// directly-constructed Err is passed straight to Vec.push
+// (docs/repro/batch_result_vec_push.xi). Binding each Result to a local
+// before pushing preserves both order and payload, so the mixed fixtures
+// build their elements as locals here; all-Ok/all-Err/size-1 cases use the
+// same helper-returned Result pattern.
+fn batch_outcome_mixed() -> BatchOutcome {
+  var v: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
+  let r0: Result[Str, JevError] = Ok("s0");
+  let r1: Result[Str, JevError] = batch_err(JevError.BadRequest("e1"));
+  let r2: Result[Str, JevError] = Ok("s2");
+  let r3: Result[Str, JevError] = batch_err(JevError.HttpStatus(503, "e3"));
+  let r4: Result[Str, JevError] = batch_err(JevError.Parse("e4"));
+  v.push(r0);
+  v.push(r1);
+  v.push(r2);
+  v.push(r3);
+  v.push(r4);
+  return batch.batch_collect(&v);
+}
+
+fn batch_outcome_alternating() -> BatchOutcome {
+  var v: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
+  let r0: Result[Str, JevError] = Ok("a0");
+  let r1: Result[Str, JevError] = batch_err(JevError.Parse("b1"));
+  let r2: Result[Str, JevError] = Ok("a2");
+  let r3: Result[Str, JevError] = batch_err(JevError.Parse("b3"));
+  let r4: Result[Str, JevError] = Ok("a4");
+  let r5: Result[Str, JevError] = batch_err(JevError.Parse("b5"));
+  v.push(r0);
+  v.push(r1);
+  v.push(r2);
+  v.push(r3);
+  v.push(r4);
+  v.push(r5);
+  return batch.batch_collect(&v);
+}
+
+fn t53() -> Int {
+  var failed: Int = 0;
+
+  // Empty input: an ok outcome with both vectors empty.
+  let empty: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
+  let eo: BatchOutcome = batch.batch_collect(&empty);
+  failed = failed + report(eo.ok, "batch: empty input is ok");
+  failed = failed + report(eo.successes.len() == 0, "batch: empty input has no successes");
+  failed = failed + report(eo.failures.len() == 0, "batch: empty input has no failures");
+
+  // All success: inputs stay in order, ok is true.
+  var all_ok: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
+  all_ok.push(Ok("alpha"));
+  all_ok.push(Ok("beta"));
+  all_ok.push(Ok("gamma"));
+  let ao: BatchOutcome = batch.batch_collect(&all_ok);
+  failed = failed + report(ao.ok, "batch: all success is ok");
+  failed = failed + report(ao.failures.len() == 0, "batch: all success has no failures");
+  failed = failed + report(ao.successes.len() == 3, "batch: all success keeps all items");
+  failed = failed + report(ao.successes[0].index == 0 && str_eq(ao.successes[0].value, "alpha"), "batch: all success item 0 pinned");
+  failed = failed + report(ao.successes[1].index == 1 && str_eq(ao.successes[1].value, "beta"), "batch: all success item 1 pinned");
+  failed = failed + report(ao.successes[2].index == 2 && str_eq(ao.successes[2].value, "gamma"), "batch: all success item 2 pinned");
+
+  // All failure: every typed error payload is preserved, ok is false.
+  var all_err: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
+  let ae0: Result[Str, JevError] = batch_err(JevError.BadRequest("bad-a"));
+  let ae1: Result[Str, JevError] = batch_err(JevError.Transport("down-b"));
+  let ae2: Result[Str, JevError] = batch_err(JevError.HttpStatus(503, "busy-c"));
+  all_err.push(ae0);
+  all_err.push(ae1);
+  all_err.push(ae2);
+  let ae: BatchOutcome = batch.batch_collect(&all_err);
+  failed = failed + report(!ae.ok, "batch: all failure is not ok");
+  failed = failed + report(ae.successes.len() == 0, "batch: all failure has no successes");
+  failed = failed + report(ae.failures.len() == 3, "batch: all failure keeps all items");
+  let af0: BatchFailure = ae.failures[0];
+  let af0k: JevError = af0.error;
+  let af0t: JevError = af0.error;
+  failed = failed + report(af0.index == 0 && errors.jev_error_kind(af0k) == 0 && str_eq(errors.jev_error_text(af0t), "jev: bad request: bad-a"), "batch: failure 0 identity pinned");
+  let af1: BatchFailure = ae.failures[1];
+  let af1k: JevError = af1.error;
+  let af1t: JevError = af1.error;
+  failed = failed + report(af1.index == 1 && errors.jev_error_kind(af1k) == 1 && str_eq(errors.jev_error_text(af1t), "jev: transport: down-b"), "batch: failure 1 identity pinned");
+  let af2: BatchFailure = ae.failures[2];
+  let af2k: JevError = af2.error;
+  let af2t: JevError = af2.error;
+  failed = failed + report(af2.index == 2 && errors.jev_error_kind(af2k) == 2 && str_eq(errors.jev_error_text(af2t), "jev: http 503: busy-c"), "batch: failure 2 identity pinned");
+
+  // Mixed: successes and failures each keep ascending input indices.
+  let mo: BatchOutcome = batch_outcome_mixed();
+  failed = failed + report(!mo.ok, "batch: mixed is not ok");
+  failed = failed + report(mo.successes.len() == 2, "batch: mixed success count");
+  failed = failed + report(mo.failures.len() == 3, "batch: mixed failure count");
+  failed = failed + report(mo.successes[0].index == 0 && str_eq(mo.successes[0].value, "s0"), "batch: mixed success index 0 payload");
+  failed = failed + report(mo.successes[1].index == 2 && str_eq(mo.successes[1].value, "s2"), "batch: mixed success index 2 payload");
+  let mf0: BatchFailure = mo.failures[0];
+  let mf0k: JevError = mf0.error;
+  let mf0t: JevError = mf0.error;
+  failed = failed + report(mf0.index == 1 && errors.jev_error_kind(mf0k) == 0 && str_eq(errors.jev_error_text(mf0t), "jev: bad request: e1"), "batch: mixed failure index 1 identity");
+  let mf1: BatchFailure = mo.failures[1];
+  let mf1k: JevError = mf1.error;
+  let mf1t: JevError = mf1.error;
+  failed = failed + report(mf1.index == 3 && errors.jev_error_kind(mf1k) == 2 && str_eq(errors.jev_error_text(mf1t), "jev: http 503: e3"), "batch: mixed failure index 3 identity");
+  let mf2: BatchFailure = mo.failures[2];
+  let mf2k: JevError = mf2.error;
+  let mf2t: JevError = mf2.error;
+  failed = failed + report(mf2.index == 4 && errors.jev_error_kind(mf2k) == 3 && str_eq(errors.jev_error_text(mf2t), "jev: parse: e4"), "batch: mixed failure index 4 identity");
+
+  // Order stability over a longer alternating input.
+  let so: BatchOutcome = batch_outcome_alternating();
+  failed = failed + report(so.successes.len() == 3 && so.failures.len() == 3, "batch: alternating split counts");
+  failed = failed + report(so.successes[0].index == 0 && so.successes[1].index == 2 && so.successes[2].index == 4, "batch: successes keep ascending input order");
+  failed = failed + report(so.failures[0].index == 1 && so.failures[1].index == 3 && so.failures[2].index == 5, "batch: failures keep ascending input order");
+
+  // Size 1 each.
+  var one_ok: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
+  one_ok.push(Ok("only"));
+  let oo: BatchOutcome = batch.batch_collect(&one_ok);
+  failed = failed + report(oo.ok && oo.successes.len() == 1 && oo.failures.len() == 0, "batch: size-1 success shape");
+  failed = failed + report(oo.successes[0].index == 0 && str_eq(oo.successes[0].value, "only"), "batch: size-1 success pinned");
+
+  var one_err: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
+  let oe0: Result[Str, JevError] = batch_err(JevError.Transport("solo"));
+  one_err.push(oe0);
+  let oe: BatchOutcome = batch.batch_collect(&one_err);
+  failed = failed + report(!oe.ok && oe.successes.len() == 0 && oe.failures.len() == 1, "batch: size-1 failure shape");
+  let of0: BatchFailure = oe.failures[0];
+  let of0k: JevError = of0.error;
+  let of0t: JevError = of0.error;
+  failed = failed + report(of0.index == 0 && errors.jev_error_kind(of0k) == 1 && str_eq(errors.jev_error_text(of0t), "jev: transport: solo"), "batch: size-1 failure identity pinned");
+
+  return report(failed == 0, "batch aggregation: empty, all-success, all-failure, mixed, order, size-1");
+}
+
+// --------------------------------------------------
 //  Entry point
 // --------------------------------------------------
 
@@ -1845,6 +1986,7 @@ fn main() -> Int {
   failed = failed + t50();
   failed = failed + t51();
   failed = failed + t52();
+  failed = failed + t53();
   if failed == 0 {
     io.println("xiom.jev: all tests passed");
   } else {

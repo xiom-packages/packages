@@ -775,11 +775,14 @@ The v0.2.0 API has **no batch or streaming endpoint** (only
 `POST /v1/systemone`). Pins:
 - **Batch is caller-side scheduling ONLY** (matches the ROADMAP): the package
   exposes a pure aggregation helper, no I/O and no async runtime:
-  `batch_collect(results: Vec[Result[Str, JevError]]) -> BatchOutcome` where
+  `batch_collect(results: &Vec[Result[Str, JevError]]) -> BatchOutcome` where
   `BatchOutcome { successes: Vec[(index, Str)]; failures: Vec[(index, JevError)];
-  ok: Bool }` — stable input order, per-item typed errors, `ok` = no failures.
+  ok: Bool }` â€” stable input order, per-item typed errors, `ok` = no failures.
   This gives consumers deterministic partial-failure handling without owning
-  a runtime.
+  a runtime. Implementation shape note: tuples inside `Vec` have a known
+  element-read defect, so the package exposes the equivalent struct-per-row
+  form `BatchSuccess { index: Int; value: Str }` /
+  `BatchFailure { index: Int; error: JevError }` (see 19.7).
 - **Streaming is NOT implemented** (no SSE/NDJSON/chunked contract exists in
   v0.2.0); the SPEC records it as out of scope until the reference defines a
   framing. No API is invented.
@@ -794,8 +797,8 @@ SKIP-safe. No guesswork remains in this SPEC.
 
 ### 19.7 Implementation status (2026-10-19)
 
-Items 1 and 2 of section 19.6 are DONE; item 3 (`batch_collect`) remains
-queued.
+Items 1, 2 and 3 of section 19.6 are DONE. Streaming remains out of scope by
+the 19.5 pin (v0.2.0 defines no framing).
 
 `xiom.jev.confidence` (registered in `package.xi`) is pure and transport-free.
 Exact API shape:
@@ -874,6 +877,30 @@ including part-ignores-data; t52 (28 checks) parses normal and null-
 confidence Box answers and pins every member/geometry/confidence Parse error.
 Box non-finite edges are additionally guarded in code (`is not finite`); a
 non-finite number cannot reach it through `json_parse`, which already rejects
-non-finite JSON numbers. Package total: **293/293 x2** on compiler `v0.64.8`
-(2026-10-19).
+non-finite JSON numbers.
+
+Item 3 (batch helper) is DONE. Exact API shape:
+
+- `xiom.jev.batch.BatchSuccess { index: Int; value: Str }`
+- `xiom.jev.batch.BatchFailure { index: Int; error: JevError }`
+- `xiom.jev.batch.BatchOutcome { successes: Vec[BatchSuccess];
+  failures: Vec[BatchFailure]; ok: Bool }`
+- `batch_collect(results: &Vec[Result[Str, JevError]]) -> BatchOutcome`
+
+One linear pass in input order; `successes` and `failures` each carry
+ascending input indices; every `JevError` payload is preserved unchanged;
+`ok = failures.len() == 0` (empty input is ok with both vectors empty). No
+I/O, no async runtime, no scheduling. The struct-per-row shape replaces the
+SPEC's tuple pairs because tuples inside `Vec` have a known element-read
+defect; it carries the same `(Int, Str)` / `(Int, JevError)` data.
+
+Evidence: suite t53 (30 checks) pins empty, all-success, all-failure, mixed
+(indices and payload/error identity), order stability and size-1 inputs.
+Package total: **324/324 x2** on compiler `v0.64.8` (2026-10-19).
+
+Compiler note: v0.64.8 loses the `Err` `Str` payload (and can perturb order)
+when a directly-constructed `Err` is passed straight to `Vec.push`; binding
+the `Result` to a local before pushing preserves both. The reduced probe is
+`docs/repro/batch_result_vec_push.xi`. `batch_collect` itself takes `&Vec`
+and is not the source of the loss.
 

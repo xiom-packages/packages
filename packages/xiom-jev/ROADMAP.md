@@ -84,11 +84,15 @@
       `danger_zone_images_required` in the client, and first-class box answer
       parsing (micro-unit edges, Option-shaped null confidence, typed
       member/geometry errors); suite t50..t52, 49 checks.
-- [ ] batch/streaming ergonomics: multiple requests in flight with the same
+- [x] batch/streaming ergonomics: multiple requests in flight with the same
       question set; caller-side scheduling only (no async runtime here) --
-      PINNED (SPEC.md section 19.5): v0.2.0 has no batch/streaming endpoint;
-      package exposes only the pure `batch_collect` aggregation helper
-      (stable order, per-item typed errors); streaming out of scope.
+      DONE 2026-10-19 for the batch pin: `xiom.jev.batch.batch_collect`
+      aggregates caller-collected results into `BatchOutcome`
+      (`successes`/`failures` in ascending input order, per-item typed
+      errors, `ok = failures empty`); pure, no I/O, no runtime. Streaming
+      remains OUT OF SCOPE by pin (SPEC.md section 19.5: v0.2.0 defines no
+      SSE/NDJSON/chunked contract). Offline-golden-tested (suite t53,
+      30 checks).
 
 ## Tracking notes
 
