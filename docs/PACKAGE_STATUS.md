@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.8` -- generated 2026-10-19T18:50:26Z.
+Toolchain pin: `v0.64.8` -- generated 2026-10-19T18:54:58Z.
 
 ## Summary
 
@@ -514,7 +514,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.orbitdb | xiom-orbitdb | incubating | tests/test_conformance.xi | pass 160/160 | ee0a74e5 | False | published in eco-v0.1.196 (2026-10-17, 0.2.1; sha256 c8fc6548...) |
 | xiom.otel | xiom-otel | incubating | tests/test_conformance.xi | pass 30/30 | 4d4fe157 | False | published in eco-v0.1.188 (2026-10-16, 0.1.0 -- OTLP trace-export core) |
 | xiom.ozz | xiom-ozz | incubating | tests/test_conformance.xi | pass 9/9 | 50b65cee | False | published in eco-v0.1.179 (2026-10-14, 0.4.0 caller surface; 0.3.0 in eco-v0.1.156; 0.2.0 in eco-v0.1.109) |
-| xiom.pandas | xiom-pandas | incubating | tests/test_conformance.xi | pass 132/132 | c6204f5c | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 aad9a74e...) |
+| xiom.pandas | xiom-pandas | incubating | tests/test_conformance.xi | pass 132/132 | 8832fe61 | False | published 2026-10-19 (single tag xiom-pandas/v0.2.0; sha256 1cd063c3...); 0.1.0 in eco-v0.1.193 |
 | xiom.parquet | xiom-parquet | incubating | tests/test_conformance.xi | pass 20/20 | 4ff075bf | False | publish pending: next scope delta |
 | xiom.parser-fw | xiom-parser-fw | incubating | tests/test_conformance.xi | pass 27/27 | 1f0dff6d | False | category harmonization patch bump (registry metadata) |
 | xiom.parsing | xiom-parsing | incubating | tests/test_conformance.xi | pass 28/28 | 5f469ee5 | False | publish pending: next scope delta |

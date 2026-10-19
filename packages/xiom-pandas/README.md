@@ -3,7 +3,8 @@
 > **Status:** `incubating` -- offline conformance GREEN (132/132 x2, compiler
 > v0.64.8, 2026-10-19) with the Phase-2 and Phase-3 pinned subsets implemented
 > in pure XIOM; the REAL Arrow-backed bridge source is built and probe-green
-> locally.
+> locally. Published as single tag `xiom-pandas/v0.2.0` (sha256 `1cd063c3...`,
+> 2026-10-19).
 > Published baseline: 0.1.0 in `eco-v0.1.193` (sha256 `aad9a74e...`, 2026-10-16).
 > **Scope:** Pandas-like tabular data structures over Apache Arrow.
 > **Deps:** stdlib; C FFI bridge (Phase-1 seam only -- the Phase-2 ops use no FFI).
