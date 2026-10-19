@@ -1757,6 +1757,20 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-19 18:45Z (v0.64.8 re-verify COMPLETE -- B-21/B-24 fixed;
+batteries green; arm64 harness added)**: continuation.
+- **Last two findings verified FIXED on v0.64.8**: B-21 (`&mut` of a
+  struct-return temp: probe compiles+runs, a=7 b=9 -- no codegen crash);
+  B-24 (out-slot reads after C writes: ffi_bad=0 byte_bad=0 of 400).
+  **All B-series rows now FIXED/verified -- the ledger is fully closed.**
+- Batteries on .8: glfw **37/37 x2 LIVE** + sdl3 **72/72 x2** (STATUS
+  run_by `reverify-v0.64.8`).
+- **`scripts/emulate-arm64.ps1` added** -- one-command arm64 emulation
+  harness (Docker Desktop linux/arm64 + clang-19 image + the official
+  linux-arm64 compiler; `--timeout 0` for qemu).  mqtt suite proven green
+  under arm64; emulated compiles are slow -> run fleet sweeps in the
+  background (gpio smoke started).
+
 **UPDATE 2026-10-19 18:10Z (relay check -- v0.64.8 repin MADE REAL; MCU
 publish DEFERRED to next cycle; duplicates swept)**:
 - **v0.64.8 repin completed**: the driver record claimed it, but the tree
