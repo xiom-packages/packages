@@ -2112,6 +2112,31 @@ pandas 2-4 launched; MCU publish deferred)**:
   existing 12 wrappers stay byte-identical.
 - epos scope ask filed (ships next batch when ops stages it).
 
+**UPDATE 2026-10-19 22:50Z (pandas 2-4 IMPLEMENTED -- section-8 bridge landed
+on `feat/pandas-2-4`)**:
+- `xiom.pandas` **0.2.0** implements section 8 (`108fdeae`): the real bridge
+  is **Acero-free** (no `arrow/acero` headers/symbols; `arrow::compute::Grouper`
+  group-by + `Grouper`/`Take` join fallback), `series_apply` is Float64-only
+  `double (*)(double)`, the ownership frees are declared
+  (`pandas_c_dataframe_free` / `pandas_c_series_free` / `pandas_c_free` +
+  `dataframe_free` / `series_free` / `series_buffer_free`), the additive
+  `pandas_dataframe_filter_f64` entry compares binary64 bits, and Parquet uses
+  the Arrow 22.0.0 `parquet::arrow::OpenFile` / `ReadTable` / `WriteTable`
+  component. The 12 original wrappers stay byte-identical; the extern marker
+  is now 18.
+- Evidence: the bridge compiles against an Arrow 22.0.0 include tree with
+  `arrow/acero` deleted (no Acero undefined symbols) and links
+  `arrow + arrow_compute + parquet` with **no** `arrow_acero`; the real probe
+  is green (null contract, CSV, group-by, INNER/LEFT/RIGHT/OUTER joins,
+  Float64 apply, f64 filter, ownership frees, Parquet round trip). Offline
+  suite **110/110 x2** on v0.64.8 (live leg; a pristine stdlib snapshot was
+  used because the shared `E:\xiom-lang\stdlib` `runtime/` currently carries a
+  tracked `test_udivti3.c` that defines `main`). Commits `39f45885`
+  (bridge/probe/PROVENANCE) + `23b6cce1` (ABI/docs/0.2.0); STATUS recorded at
+  `23b6cce1`.
+- Known limitation: group-by handles remain process-lifetime (the section-8
+  ownership set has no groupby-free).
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
