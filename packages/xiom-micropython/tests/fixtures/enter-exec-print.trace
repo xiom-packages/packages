@@ -1,0 +1,9 @@
+# enter-exec-print.trace -- canonical standard raw-REPL exchange.
+# W = host -> device write, R = device -> host read.
+# Enter raw (Ctrl-A), run print(123), leave to friendly REPL (Ctrl-B).
+W 01
+R 0D 0A "raw REPL; CTRL-B to exit" 0D 0A 3E
+W "print(123)" 04
+R 4F 4B "123" 0D 0A 04 04 3E
+W 02
+R 0D 0A "MicroPython v1.26.0 on 2026-10-16; Generic board" 0D 0A 3E 3E 3E 20

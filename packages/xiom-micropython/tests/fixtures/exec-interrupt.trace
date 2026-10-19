@@ -1,0 +1,6 @@
+# exec-interrupt.trace -- Ctrl-C interrupts a running loop.
+# The exec was acknowledged with OK; the interrupt surfaces as a
+# KeyboardInterrupt traceback in the stderr frame.
+W "while True:" 0D 0A "    pass" 04
+W 03
+R 4F 4B 04 "Traceback (most recent call last):" 0D 0A "  File \"<stdin>\", line 2, in <module>" 0D 0A "KeyboardInterrupt: " 0D 0A 04 3E

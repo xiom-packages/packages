@@ -1,0 +1,4 @@
+# exec-traceback.trace -- uncaught ValueError.
+# Framing: OK, empty stdout frame, traceback on stderr, EOF, raw prompt.
+W "raise ValueError('bad')" 04
+R 4F 4B 04 "Traceback (most recent call last):" 0D 0A "  File \"<stdin>\", line 1, in <module>" 0D 0A "ValueError: bad" 0D 0A 04 3E

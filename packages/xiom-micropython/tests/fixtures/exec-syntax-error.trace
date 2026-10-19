@@ -1,0 +1,4 @@
+# exec-syntax-error.trace -- compile failure after the OK acknowledgement.
+# A compile error also uses the stdout-EOF + traceback + stderr-EOF framing.
+W "print(" 04
+R 4F 4B 04 "Traceback (most recent call last):" 0D 0A "  File \"<stdin>\", line 1" 0D 0A "SyntaxError: '(' was never closed" 0D 0A 04 3E

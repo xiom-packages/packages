@@ -1,0 +1,3 @@
+# eval-repr.trace -- print(repr('xy')) on a device.
+W "print(repr('xy'))" 0A 04
+R 4F 4B "'xy'" 0D 0A 04 04 3E

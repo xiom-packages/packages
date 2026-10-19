@@ -1,0 +1,3 @@
+# exec-utf8.trace -- UTF-8 output survives the byte framing.
+W "print('héllo')" 04
+R 4F 4B "héllo" 0D 0A 04 04 3E
