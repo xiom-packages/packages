@@ -5,7 +5,7 @@
 TypeSafe Jev client tier: **System One** structured decisions for XIOM.
 
 > **Status:** `incubating` -- 0.1.0. Offline conformance suite **210/210 x2** on
-> compiler `v0.64.6` (native-session, 2026-10-17). Live probe is SKIP-safe and
+> compiler `v0.64.8` (native-session, 2026-10-19). Live probe is SKIP-safe and
 > link-gated (see "Live probe"). Published in `eco-v0.1.193` (sha256
 > `ed212ee6...`, 2026-10-16).
 
@@ -112,6 +112,12 @@ positive`, `beam: missing levels`, `beam: empty children at level <n>`,
 empty/duplicate labels, out-of-range micro, and the answer-bridge arms.
 The score rule, tie order, full error table and golden values are pinned in
 `SPEC.md` section 17; suite t45..t47 cover them offline.
+
+The other M3 items (danger-zone `box` question/answer + media assets, and
+batch/streaming ergonomics) are **not implemented**: their wire/API shapes are
+not pinned. `SPEC.md` section 18 and `ROADMAP.md` list the exact owner pins
+required before implementation; `box` responses still fail closed as an
+unknown answer type.
 
 ## Transport (xiom.http 0.1.9 headers + binary-body surface)
 

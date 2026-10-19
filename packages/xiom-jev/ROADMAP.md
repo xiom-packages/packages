@@ -70,10 +70,18 @@
       41 checks: hand-computed products, determinism, tie pin, all errors).
 - [ ] composite scoring helper: weighted combine of normalized scores
       (S4 pattern) with integer weights.
-- [ ] danger-zone `box` question/answer + media assets (needs the image
-      headers and a vision model; S8).
+- [ ] danger-zone `box` question/answer + media assets -- BLOCKED on owner
+      pins (SPEC.md section 18): no `box` request/answer schema, no
+      `TypeSafe-Danger-Zone-Images` serialization, no media representation or
+      vision-model requirements, and no box fixtures are pinned; section 6
+      still rejects `box` as an unknown answer type.
 - [ ] batch/streaming ergonomics: multiple requests in flight with the same
-      question set; caller-side scheduling only (no async runtime here).
+      question set; caller-side scheduling only (no async runtime here) --
+      BLOCKED on owner pins (SPEC.md section 18): no API shape (module,
+      function/type signatures), question-set reuse semantics,
+      result-ordering/partial-failure rules, streaming framing, cancellation
+      or backpressure are pinned, and it is unspecified whether a
+      package-level API is in scope at all.
 
 ## Tracking notes
 

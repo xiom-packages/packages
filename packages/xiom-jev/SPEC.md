@@ -270,9 +270,9 @@ as `curl.lib` + `libcurl.dll` on PATH -> compiled, ran, printed
 ## 10. Test strategy and evidence
 
 - Suite: `tests/test_conformance.xi` -- 47 test functions, **210/210 checks
-  passed, x2** (two consecutive runs at the end of the M3-beam lane) via
+  passed, x2** (two consecutive runs at the end of the M3-pin-gate lane) via
   `& .\scripts\port.ps1 -Package xiom.jev -TimeoutSec 240` on compiler
-  `v0.64.6` (native-session, 2026-10-17); `program_exit=0` both runs. History:
+  `v0.64.8` (native-session, 2026-10-19); `program_exit=0` both runs. History:
   26 functions/82 checks at M1; +4 functions (retry) -> 86; +5 functions
   (structured instructions/criteria) -> 91; +4 functions (legend exposure x2,
   api-key hygiene, base_url validation) -> 110; +3 functions (32 MiB boundary,
@@ -578,3 +578,38 @@ zero-probability ordering. t46 covers every typed error arm. t47 bridges two
 parsed Choice answers (department 0.04/0.35/0.61 and resolution
 0.34/0.40/0.02/0.24) into a search and pins 244000 / 207400 / 146400 micro.
 No network, no randomness, no Float64.
+
+## 18. M3 progress (increment 2: owner-pin gate)
+
+The second M3 lane targeted the two remaining ROADMAP M3 bullets, the
+danger-zone `box` question/answer plus media assets and batch/streaming
+ergonomics. Both are **not implemented**: this SPEC pins neither the wire
+shape nor the API, so under the no-guessing rule the lane adds no source and
+no tests. The M1 fail-closed behavior for `box` (unknown answer type,
+section 6) and the existing caller-side transport API stand unchanged.
+
+Pins required before either item can be implemented:
+
+- **`box` request** -- the exact question object: whether `type` is `box`,
+  the required/optional members (instructions, media reference), and how
+  media assets are represented on the wire (inline base64, URL, or
+  multipart), including MIME types and size limits.
+- **Media headers** -- the exact `TypeSafe-Danger-Zone-Images` header
+  serialization and limits, plus the endpoint/model (vision) requirements
+  from S8.
+- **`box` answer** -- required keys, box geometry (coordinate system/units,
+  tuple order versus x/y/w/h), single versus multiple boxes, and the
+  probability/confidence semantics.
+- **`box` errors and fixtures** -- the per-field Parse reason strings and at
+  least one S8 response golden; section 6 currently rejects `box` as an
+  unknown answer type.
+- **Batch/streaming** -- the API surface (module, function/type names and
+  signatures), what "the same question set" means for reuse/ownership,
+  concurrency and result-ordering rules, partial-failure/typed-error
+  aggregation, streaming framing (NDJSON/SSE/chunked), cancellation and
+  backpressure, and the deterministic offline test shape. ROADMAP says
+  "caller-side scheduling only (no async runtime here)", so the SPEC must
+  also state whether a package-level API is in scope at all.
+
+Suite evidence for this lane: 47 functions, **210/210 checks x2** on compiler
+`v0.64.8`, unchanged because no surface was added.
