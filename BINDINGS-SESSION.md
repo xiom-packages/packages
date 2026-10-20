@@ -2221,6 +2221,17 @@ validate 579/0)**:
 - The double-implementation lesson above stands; the 0.2.1 merge
   branch `feat/pandas-0-2-1` is the canonical merge history.
 
+**UPDATE 2026-10-20 19:20Z (PANDAS 0.2.1 PUBLISHED in eco-v0.1.201)**:
+- **`xiom.pandas 0.2.1` LIVE** in **`eco-v0.1.201`** (sha256
+  `4c0818716b72627824a1d1f84a0fab81c1b990edcaa179157c4e111ada3e6062`;
+  18:18:17Z): merge `d81a7f39` resolved the pandas files to the
+  BINDINGS superset; validate **584/0**; native x2 **164/164** @
+  `7e92c250`; record `1d6d5678`; run 39473068474 green
+  (published=1 failed=0); README/STATUS synced (`5ae9d6ae`).
+  Supersedes the immutable 0.2.0 as agreed.
+- The pandas request (`-1756`) AND the reconciliation item (`-1635`)
+  are closed.  No new branches; pin v0.64.8.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
