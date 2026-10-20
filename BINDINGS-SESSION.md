@@ -2205,6 +2205,22 @@ re-synced; 0.2.1 merge wave launched)**:
   bump the version).  A parallel implementation that passes its own
   suite can silently diverge from the shipped registry content.
 
+**UPDATE 2026-10-20 17:58Z (PANDAS 0.2.1 LANDED -- superset merge;
+validate 579/0)**:
+- **`xiom.pandas 0.2.1` LANDED** (land `c23c8616`; record `7a8a0d06`):
+  the section-8 surface merged onto the LIVE 0.2.0 base -- **ALL 132
+  live frame-op tests kept** + 32 section-8 checks (ownership frees,
+  `filter_f64`, Parquet wrappers, f64 `series_apply` parity, Acero-free
+  Arrow 22 real bridge incl. Parquet); 18 C symbols; 40 contracts;
+  **x2 164/164 on v0.64.8** (agent record 164/164 x2 with the real
+  probe green + the landed-tree gate 164/164 x2); validate **579/0**;
+  pushed `7a8a0d06`.
+- Publish request `REL-20261020-1756-bindings` (0.2.1; existing name;
+  supersedes the immutable 0.2.0 -- per packages' bump-and-re-file
+  instruction).
+- The double-implementation lesson above stands; the 0.2.1 merge
+  branch `feat/pandas-0-2-1` is the canonical merge history.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
