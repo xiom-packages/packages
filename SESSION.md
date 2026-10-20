@@ -164,6 +164,7 @@ context-window handoff -- the block below is complete for a cold start). Check
   sync `1df85b28`; item `-1510-bindings` fixed (sha256 ref corrected `414b514`). 565 packages in-tree.
 
 
+- **WATCH 2026-10-20 18:25Z**: **BATCH 202** -- `xiom.pandas 0.2.1` LIVE in **`eco-v0.1.201`** (sha `4c081871...`; run 39473068474 green, published=1); merge `d81a7f39` (pandas files resolved to bindings superset), validate 584/0, regen `7e92c250`, x2 164/164 @ `7e92c250`, record `1d6d5678`, wrap `3add2e8a`, sync `5ae9d6ae`; bus `-1756` + `-1635` closed (relays `beff99b`). Supersedes immutable 0.2.0 as agreed with bindings. Inbox: info-only afterward.
 - **WATCH 2026-10-20 16:20Z**: lane idle; **closed the long-open pandas request as ALREADY LIVE** (`-2049-bindings` fixed: 0.2.0 shipped as single tag `xiom-pandas/v0.2.0` on 2026-10-19 18:53Z, sha `1cd063c3`; 0.2.1 if phase-4 differs -- 0.2.0 immutable). Fixed the shared relays clone hang (stale `next-index-*` lock from an orphaned git process; removed after PID check; tooling healthy). Inbox now info-only (xvector x2, compiler release, pulse verify x2). Compiler lane active: m2343/m1626/m2100-W1 fixed; v0.64.8 tuple-returning fn-value ABI bug filed. No packages publishes pending.
 **STATE AT 2026-10-14 14:25Z (history -- wave-3 published; superseded by the 2026-10-16 11:30Z block above):**
 - **Wave-3 CLOSED end-to-end**: `REL-20261014-1331-bindings` fixed. Merge `945b795f` (tip `dd160416`;
