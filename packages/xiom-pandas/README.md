@@ -6,7 +6,7 @@
 > additive ownership frees, `dataframe_filter_f64` and Arrow Parquet entry
 > points; the REAL Acero-free Arrow-backed bridge is built and probe-green
 > locally.
-> Published: 0.2.0 as single tag `xiom-pandas/v0.2.0` (sha256 `1cd063c3...`,
+> Published: `0.2.1` in `eco-v0.1.201` (sha256 `4c081871...`, 2026-10-20); `0.2.0` as single tag `xiom-pandas/v0.2.0` (sha256 `1cd063c3...`,
 > 2026-10-19); baseline 0.1.0 in `eco-v0.1.193` (sha256 `aad9a74e...`, 2026-10-16).
 > **Scope:** Pandas-like tabular data structures over Apache Arrow.
 > **Deps:** stdlib; C++17 bridge; system Apache Arrow C++ 22.0.0 (real leg only).
