@@ -1,13 +1,15 @@
 # xiom.pandas -- SPEC
 
 **Phase**: 1 (Core Foundation) + Phase 2 partial + Phase 3 pinned subset
-(pure-XIOM DataFrame ops) | **Priority**: HIGH
+(pure-XIOM DataFrame ops) + section-8 additive ABI (0.2.1) | **Priority**: HIGH
 **Status**: Phase 1 implemented -- `pandas.xi` + tests + ROADMAP; Phase 2
 pinned subset implemented in pure XIOM (109/109 x2, v0.64.6, 2026-10-17);
 Phase 3 pinned subset -- sort, drop_columns, group_by sum/mean/count --
-implemented in pure XIOM (132/132 x2, v0.64.8, 2026-10-19); REAL
-Arrow-backed bridge source prepared and probe-green (Arrow C++ 22.0.0,
-v0.64.6, 2026-10-17)
+implemented in pure XIOM (132/132 x2, v0.64.8, 2026-10-19); section-8
+additive surface -- ownership frees, `dataframe_filter_f64`, f64 apply,
+Parquet -- merged onto the live 0.2.0 artifact (**164/164 x2**, v0.64.8,
+2026-10-20); REAL Arrow-backed bridge implements the 18-symbol ABI on
+Apache Arrow C++ 22.0.0 with no Acero headers or symbols
 **Depends on**: xiom.ffi (stdlib), xiom.arrow (Apache Arrow -- Pandas 2.0+ backend)
 
 ## What it wraps
@@ -25,33 +27,33 @@ with zero Python overhead. This is the approach Polars and DuckDB use internally
 ## Bundling strategy
 **System-installed only.** Depends on Arrow which is system-installed.
 
-## Surface status (2026-10-16) -- stub vs real legs
+## Surface status (2026-10-20) -- stub vs real legs
 
 Two-leg delivery (mirrors xiom.numpy Phase 1 and xiom.http's offline suite +
 real probe):
 
 - **Leg 1 (offline, GREEN)**: `bridge/pandas_bridge.c` is a deterministic
   suite-only stub (no external libs, no Arrow) linked through `port.args.json`
-  (`--c-source`). The conformance suite is **80/80 PASS x2** on compiler
-  v0.64.5 (`scripts/port.ps1 -Package xiom-pandas -TimeoutSec 180`), covering
-  22 FFI stub checks, 30 constant checks, 12 API markers, 11 contract
-  markers, 3 type checks, 4 dtype_name checks and 8 safe-wrapper error-path
-  checks. The stub validates arguments (0-in -> 0-out plus a nonzero
-  `dataframe_to_csv` error rc) and reports "backend unavailable" on success
-  paths -- it never fabricates data.
-- **Leg 2 (real, SOURCE BUILT + PROBE GREEN, 2026-10-17)**:
+  (`--c-source`). The conformance suite is **164/164 PASS x2** on compiler
+  v0.64.8 (`scripts/port.ps1 -Package xiom-pandas -TimeoutSec 300`): 17
+  sections of Phase-1/2/3 checks plus sections 18-24 for the additive
+  section-8 surface (filter_f64, frees, Parquet, apply parity, API/contract/
+  safe-wrapper markers). The stub validates arguments (0-in -> 0-out plus a
+  nonzero `dataframe_to_csv` error rc) and reports "backend unavailable" on
+  success paths -- it never fabricates data.
+- **Leg 2 (real, BUILT + PROBE GREEN, 2026-10-20)**:
   `bridge/xiom_pandas_arrow.cpp` (Arrow C++, C++17, exception-free C ABI)
-  now implements all 12 declared `pandas_c_*` symbols. Pinned against Apache
-  Arrow C++ **22.0.0** (tag `apache-arrow-22.0.0`, commit `5aeb5f2`; pyarrow
-  22.0.0 win_amd64 wheel, sha256 `44729980...`, MSVC 19.44 ABI). The ABI gate
-  passed locally: the source builds with clang 22.1.8 (`-std=c++17`,
-  `x86_64-pc-windows-msvc`) against the wheel's headers + import libraries,
-  and `tests/probe_real_arrow.xi` returns live handles for the CSV round trip.
-  A separate local C-ABI exercise covered all 12 symbols (table new/set/get/
-  filter/groupby/join, series new/from_vec/apply/to_vec, CSV both ways) and
-  was deleted after the run; evidence is recorded in `PROVENANCE.md`/SPEC.
-  The shipped probe remains evidence-only (NOT part of port.ps1) and fails
-  closed without the real bridge.
+  implements all 18 declared symbols (12 original + 6 additive). Pinned
+  against Apache Arrow C++ **22.0.0** (tag `apache-arrow-22.0.0`, commit
+  `5aeb5f2`; pyarrow 22.0.0 win_amd64 wheel, sha256 `44729980...`, MSVC
+  19.44 ABI) **without Acero headers or symbols**: group-by uses
+  `arrow::compute::Grouper`, join uses Grouper ids + `arrow::compute::Take`,
+  `series_apply` is `double (*)(double)` Float64-only, and Parquet uses
+  `parquet::arrow::OpenFile`/`ReadTable`/`WriteTable`. The evidence probe
+  covers the null contract, CSV, group-by, all 4 join types, apply,
+  `filter_f64`, ownership frees and Parquet (SKIP-safe). It remains
+  evidence-only (NOT part of port.ps1) and fails closed without the real
+  bridge. Build evidence and the Acero-free proof are in `PROVENANCE.md`.
 - **T001 reconciliation (2026-10-16)**: the suite's duplicated extern block
   is gone. Compiler v0.64.5 resolves the canonical declarations through
   `use xiom.pandas;` (verified with --emit-ir probes: raw extern calls lower
@@ -173,12 +175,12 @@ missing/dead-handle/grouping-column error paths; empty-frame aggregation; and
 the new contract markers. Suite: **132/132 PASS x2** on compiler v0.64.8
 (2026-10-19).
 
-## Real bridge (prepared, 2026-10-17) -- pin, ABI gate, ownership
+## Real bridge (implemented, 2026-10-20) -- pin, ABI gate, ownership
 
-`bridge/xiom_pandas_arrow.cpp` is the production C++17 realization of the 12
-declared symbols. It is **not** in `port.args.json` (the offline suite keeps
-`bridge/pandas_bridge.c`); it is linked only by the evidence probe or a
-consumer build.
+`bridge/xiom_pandas_arrow.cpp` is the production C++17 realization of the 18
+declared symbols (12 original + 6 additive). It is **not** in
+`port.args.json` (the offline suite keeps `bridge/pandas_bridge.c`); it is
+linked only by the evidence probe or a consumer build.
 
 ### Pinned release / ABI
 
@@ -188,14 +190,15 @@ consumer build.
 | Runtime/header set | pyarrow 22.0.0 win_amd64 wheel, sha256 `44729980B6C50A5F2BFCC2668D36C569CE17F8B17BCCAF470C4313DCBBF13C9D`; extracted to `E:\repos\arrow-bin\pyarrow-22.0.0` |
 | Arrow build | MSVC 19.44.35217.0, `ARROW_PACKAGE_KIND "python-wheel-windows"`; C++17-compatible public headers |
 | Bridge toolchain | clang 22.1.8 (XIOM v0.64.6), `x86_64-pc-windows-msvc`, `-std=c++17`, lld-link |
-| ACERO pin | Node names verified in Arrow 22: `"table_source"`, `"aggregate"`, `"hashjoin"` (NOT the docs' `hash_group_aggregate`/`hash_join`); `arrow::compute::Initialize()` is called once because compute kernels live in `arrow_compute.dll` |
+| Acero | **Not used.** No `arrow/acero` include or symbol; `arrow::compute::Initialize()` is still called once because compute kernels live in `arrow_compute.dll` |
+| Link shape | `arrow`, `arrow_compute`, `parquet` only (no `arrow_acero`) |
 
-**ABI gate: PASSED locally.** Both bridges built against the wheel's headers
-and import libraries; the probe linked and ran (CSV round trip + null
-contract). An additional local C-ABI probe exercised every one of the 12
-symbols (new/set/get/filter/groupby/join, series new/from_vec/apply/to_vec,
-CSV both ways, additive free functions) -- all green; the probe was deleted
-after the run. No MSVC/MinGW mix and no fabricated build.
+**ABI gate: PASSED locally.** The bridge builds against the wheel's headers
+and import libraries; the probe linked and ran (null contract, CSV, group-by,
+all 4 joins, Float64 apply, `filter_f64`, frees, Parquet round trip). An
+additional compile gate removed `arrow/acero` from the include tree and
+confirmed the build and undefined-symbol scan have no Acero reference. No
+MSVC/MinGW mix and no fabricated build. See `PROVENANCE.md`.
 
 ### Implementation map
 
@@ -206,30 +209,38 @@ after the run. No MSVC/MinGW mix and no fabricated build.
 | `pandas_c_dataframe_to_csv` | `csv::WriteCSV(*table, WriteOptions::Defaults(), io::FileOutputStream)` |
 | `pandas_c_dataframe_get_column` | `Table::GetColumnByName` -> `shared_ptr<ChunkedArray>` handle (zero-copy view of chunks) |
 | `pandas_c_dataframe_set_column` | Float64 builder from `double[len]`; replace or append field; new `Table` via `Table::Make`; input handle unchanged |
-| `pandas_c_dataframe_filter` | `compute::CallFunction(equal/not_equal/less/less_equal/greater/greater_equal)` + per-column `compute::Filter`; `value` is i64 (float columns widen; bool uses `!= 0`); string columns unsupported pending 6.5 |
-| `pandas_c_dataframe_groupby` | Acero `Declaration("aggregate", AggregateNodeOptions({hash_count_all}, {key}))` over a `table_source`; handle owns input + grouped `Table` + key |
-| `pandas_c_dataframe_join` | Acero `Declaration("hashjoin", HashJoinNodeOptions(...))` with two `table_source` inputs; JOIN_* 0..3 -> INNER/LEFT/RIGHT/FULL; suffix `_left`/`_right` avoids collisions |
+| `pandas_c_dataframe_filter` | `compute::CallFunction(equal/not_equal/less/less_equal/greater/greater_equal)` + per-column `compute::Filter`; `value` is i64 (float columns widen; bool uses `!= 0`); the existing Int entry is unchanged |
+| `pandas_dataframe_filter_f64` | Additive section-8 entry: `bits` is the binary64 bit pattern in an Int64, decoded with `memcpy` and compared without a pointer cast |
+| `pandas_c_dataframe_groupby` | Acero-free: `arrow::compute::Grouper` over the key column; the bridge aggregates counts into a key + Int64 `count` table; handle owns the input Table and the grouped Table |
+| `pandas_c_dataframe_join` | Acero-free fallback: Grouper key ids on both sides + `arrow::compute::Take` gather for JOIN_* 0..3 -> INNER/LEFT/RIGHT/FULL; suffix `_left`/`_right` avoids collisions |
+| `pandas_c_dataframe_from_parquet` | `parquet::arrow::OpenFile` + `FileReader::ReadTable` (Arrow 22.0.0 Parquet component; SKIP-safe stub when the headers are absent) |
+| `pandas_c_dataframe_to_parquet` | `parquet::arrow::WriteTable` (same component; SKIP-safe stub when the headers are absent) |
 | `pandas_c_series_new` | typed builders per DTYPE: int32/int64/float32/float64 (native arrays), utf8 (`char*[n]`, NULL -> null), bool (`uint8_t[n]`) |
 | `pandas_c_series_from_vec` | declared Float64 source; cast per dtype; int32/int64/float32/float64/bool; string returns 0 |
 | `pandas_c_series_to_vec` | bridge-owned `malloc` buffer (int32/int64/float32/float64/bool); element count through `i64*`; string/binary return 0 pending 6.4/6.5 |
-| `pandas_c_series_apply` | the recommended `double (*)(double)` callback, applied per element to a Float64 result; nulls preserved; unsupported types return 0 pending 6.3 |
+| `pandas_c_series_apply` | `double (*)(double)`, applied per element to a Float64 result; Float64 only; non-Float64 series and null elements return 0; NaN passes through |
+| `pandas_c_dataframe_free` / `pandas_c_series_free` / `pandas_c_free` | Additive ownership: release a bridge-owned handle (or a `series_to_vec` buffer) and report 1 on success, 0 for null/dead input |
 
-### Ownership + additive ABI decisions (owner-pending)
+### Ownership + additive ABI decisions (owner GO, landed in 0.2.1)
 
 - Handles are bridge-owned C++ objects (Table/ChunkedArray/group-by); `df`/`series`
   handles stay valid until freed. `dataframe_set_column`, `filter`, `groupby`,
   and `join` return NEW handles; inputs are unchanged.
-- The real source exports `pandas_c_dataframe_free`, `pandas_c_series_free`,
-  and `pandas_c_free` (for `series_to_vec` buffers) per section 6.4, but they
-  are **not declared in `pandas.xi`** and the suite's "12 declared" marker is
-  untouched: that is an additive ABI decision for the owner.
-- `series_apply`'s concrete signature (`double (*)(double)`) and the
-  element-coercion policy are owner-pending (6.3); the implementation follows
-  the recommendation, nothing is declared.
-- `dataframe_filter`'s Float64 value ABI (bit-pattern/second entry point) is
-  owner-pending (6.5); only the declared i64 value is used.
-- Parquet (6.6) is NOT implemented; no parquet symbol/entry point was added.
-- The declared 12-symbol ABI and `pandas.xi` are unchanged.
+- The 12 original wrappers are byte-identical and their symbols are unchanged.
+  The real source now also exports `pandas_c_dataframe_free`,
+  `pandas_c_series_free`, `pandas_c_free` (for `series_to_vec` buffers),
+  `pandas_dataframe_filter_f64`, `pandas_c_dataframe_from_parquet` and
+  `pandas_c_dataframe_to_parquet`; all six are declared in `pandas.xi` and
+  pinned by the suite (18-symbol marker).
+- `series_apply` uses the owner-pinned `double (*)(double)` ABI, Float64 only
+  (section-8 decision 3); no element coercion and no NA channel.
+- `dataframe_filter_f64` carries the comparison value as IEEE-754 f64 bits in
+  an Int64 (section-8 decision 5); the Int entry is unchanged.
+- Parquet uses the Arrow 22.0.0 Parquet component (section-8 decision 6). When
+  the headers are absent (`XIOM_PANDAS_HAVE_PARQUET == 0`), the two entry
+  points compile as backend-unavailable stubs and the probe reports `[SKIP]`.
+- GroupBy handles remain opaque; the section-8 ownership set is exactly the
+  three frees above (no group-by consumer/free yet).
 
 ### Build / probe recipe (verified)
 
@@ -240,11 +251,14 @@ $env:PATH = "$arrow\pyarrow;$arrow\pyarrow.libs;$env:PATH"
 xiom --run packages\xiom-pandas\tests\probe_real_arrow.xi `
     --cxx-standard 17 `
     --c-source <repo>\packages\xiom-pandas\bridge\xiom_pandas_arrow.cpp `
-    --link arrow --link arrow_compute --link arrow_acero `
+    --c-source <repo>\packages\xiom-pandas\tests\probe_real_arrow_callback.c `
+    --link arrow --link arrow_compute --link parquet `
     --link-path "$arrow\pyarrow"
 ```
 
-Add `--link parquet` only when the owner-pending parquet leg is implemented.
+No `--link arrow_acero`. The Parquet leg prints `[SKIP]` (not `[FAIL]`) when
+the bridge was built without the Parquet component; missing Arrow/Parquet
+entirely keeps the offline suite green because it links only the stub.
 
 ## API surface
 
@@ -342,6 +356,27 @@ pub fn dataframe_drop_columns(df: &DataFrame, cols: &Vec[Str]) -> Result[DataFra
 pub fn drop_columns(df: &DataFrame, cols: &Vec[Str]) -> Result[DataFrame, Str]
 ```
 
+### Implemented section-8 additive surface (0.2.1)
+
+```xiom
+// Ownership (additive; section-8 decision 4)
+pub fn dataframe_free(df: DataFrame) -> Result[Int, Str]
+pub fn series_free(series: Series) -> Result[Int, Str]
+pub fn series_buffer_free(ptr: Int) -> Result[Int, Str]
+
+// Float64 comparison value as IEEE-754 bits (section-8 decision 5)
+pub fn dataframe_filter_f64(df: DataFrame, col_name: Int, op: Int, bits: Int) -> Result[DataFrame, Str]
+
+// I/O through the Arrow Parquet component (section-8 decision 6)
+pub fn dataframe_from_parquet(path: Int) -> Result[DataFrame, Str]
+pub fn dataframe_to_parquet(df: DataFrame, path: Int) -> Result[Int, Str]
+```
+
+`tests/test_conformance.xi` sections 18-24 add 32 checks for this surface
+(filter_f64, the three frees, both Parquet entry points, f64 apply parity,
+API/contract markers, and safe-wrapper error paths). Suite: **164/164 PASS
+x2** on compiler v0.64.8 (2026-10-20).
+
 ## Contract coverage target
 - Column existence: `requires: col_name in columns(df)`
 - Shape compatibility: `requires: left.len() > 0 && right.len() > 0`
@@ -364,24 +399,26 @@ summarizes it.
 
 | Artifact | Path | Lines |
 |---|---|---|
-| Module | `pandas.xi` | 1097 |
-| Tests | `tests/test_conformance.xi` | 1405 |
-| Stub bridge | `bridge/pandas_bridge.c` | 174 |
-| REAL Arrow bridge | `bridge/xiom_pandas_arrow.cpp` | 821 |
-| Real-backend requirements | `bridge/REAL-BACKEND-REQUIREMENTS.md` | 152 |
-| Real-runtime probe | `tests/probe_real_arrow.xi` | 133 |
-| Roadmap | `ROADMAP.md` | 75 |
-| SPEC | `SPEC.md` (this file) | 384 |
+| Module | `pandas.xi` | 1235 |
+| Tests | `tests/test_conformance.xi` | 1705 |
+| Stub bridge | `bridge/pandas_bridge.c` | 232 |
+| REAL Arrow bridge | `bridge/xiom_pandas_arrow.cpp` | 1149 |
+| Real-backend requirements | `bridge/REAL-BACKEND-REQUIREMENTS.md` | 214 |
+| Real-runtime probe | `tests/probe_real_arrow.xi` | 531 |
+| Probe callback | `tests/probe_real_arrow_callback.c` | 17 |
+| Provenance | `PROVENANCE.md` | 126 |
+| Roadmap | `ROADMAP.md` | 89 |
+| SPEC | `SPEC.md` (this file) | 424 |
 
 ### What Phase 1 delivers
 - **4 opaque handle types**: `DataFrame = Int`, `Series = Int`, `Dtype = Int`, `GroupBy = Int` (Phase 3)
 - **6 dtype constants**: `DTYPE_INT32`(0) through `DTYPE_BOOL`(5)
 - **6 compare op constants**: `CMP_EQ`(0) through `CMP_GE`(5)
 - **4 join type constants**: `JOIN_INNER`(0) through `JOIN_OUTER`(3)
-- **12 extern "C" functions** (C symbols, `pandas_c_` prefix): pandas_c_dataframe_new, pandas_c_dataframe_from_csv, pandas_c_dataframe_to_csv, pandas_c_dataframe_get_column, pandas_c_dataframe_set_column, pandas_c_dataframe_filter, pandas_c_dataframe_groupby, pandas_c_dataframe_join, pandas_c_series_new, pandas_c_series_from_vec, pandas_c_series_to_vec, pandas_c_series_apply
-- **12 safe wrappers**: all extern functions wrapped with `requires` contracts and null checks
-- **2 utilities**: `dtype_name(dtype)`, `version()`
-- **132 conformance tests** on the current `xiom.test` API: 17 sections covering constants, FFI stub behavior, API presence, contracts, types, dtype_name, safe wrapper error paths, the Phase-2 pure-XIOM surface (29 checks), and the Phase-3 pinned subset (23 checks)
-- **35 contracts**: the 11 Phase-1 contracts, 16 Phase-2 contracts (`dataframe_shape`, `shape`, `dataframe_columns`, `columns`, `dataframe_dtypes`, `dtypes`, `column`, `dataframe_iloc`, `iloc`, `dataframe_loc_range`, `loc_range`, `dataframe_head`, `dataframe_tail`, `series_len`, `series_dtype`, `series_values`), and 8 Phase-3 contracts (`group_by`, `groupby_sum`, `groupby_mean`, `groupby_count`, `dataframe_sort`, `sort`, `dataframe_drop_columns`, `drop_columns`), all `requires: handle != 0`
+- **18 extern "C" functions** (C symbols, `pandas_c_` prefix except the owner-pinned `pandas_dataframe_filter_f64`): the 12 original dataframe/series/CSV entries plus `pandas_c_dataframe_free`, `pandas_c_series_free`, `pandas_c_free`, `pandas_dataframe_filter_f64`, `pandas_c_dataframe_from_parquet`, `pandas_c_dataframe_to_parquet`
+- **18 safe wrappers**: all extern functions wrapped with `requires` contracts and null checks; the 12 original wrappers are byte-identical
+- **2 utilities**: `dtype_name(dtype)`, `version()` (returns `0.2.1`)
+- **164 conformance tests** on the current `xiom.test` API: 24 sections covering constants, FFI stub behavior, API presence, contracts, types, dtype_name, safe wrapper error paths, the Phase-2 pure-XIOM surface (29 checks), the Phase-3 pinned subset (23 checks), and the section-8 additive surface (32 checks)
+- **40 contracts**: the 11 Phase-1 contracts, 16 Phase-2 contracts, 8 Phase-3 contracts and 5 section-8 contracts (`dataframe_free`, `series_free`, `series_buffer_free`, `dataframe_filter_f64`, `dataframe_to_parquet`), all `requires: handle != 0`
 - **Offline stub bridge**: `bridge/pandas_bridge.c` + `port.args.json`
 - **Real-backend requirements**: `bridge/REAL-BACKEND-REQUIREMENTS.md` (for the bindings/xiom.arrow lanes)
