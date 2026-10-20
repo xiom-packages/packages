@@ -1,23 +1,44 @@
-// xiom_pandas_arrow.cpp -- REAL Arrow-backed bridge for xiom.pandas (Phase 2).
+// xiom_pandas_arrow.cpp -- REAL Arrow-backed bridge for xiom.pandas (phases 2-4).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// C++17, exception-free at the C ABI. Implements the 12 pandas_c_* symbols
-// declared in pandas.xi (bridge/REAL-BACKEND-REQUIREMENTS.md sections 1-3)
-// on top of Apache Arrow C++. NOT linked by the offline conformance suite:
-// port.args.json keeps bridge/pandas_bridge.c as the deterministic stub leg.
-// The suite owns only the offline stub; this file is for the evidence-only
+// C++17, exception-free at the C ABI. Implements the declared pandas_c_* symbols
+// (bridge/REAL-BACKEND-REQUIREMENTS.md sections 1-3 + the owner decisions in
+// section 8) on top of Apache Arrow C++. NOT linked by the offline conformance
+// suite: port.args.json keeps bridge/pandas_bridge.c as the deterministic stub
+// leg. The suite owns only the offline stub; this file is for the evidence-only
 // probe tests/probe_real_arrow.xi and for consumer builds.
 //
 // PIN: Apache Arrow C++ 22.0.0 (tag apache-arrow-22.0.0, commit
 // 5aeb5f217f1ba39c428c9b481f393bd37097f69e). The verified local runtime is
 // the pyarrow 22.0.0 win_amd64 wheel (MSVC-built; headers + import libraries
 // + DLLs in the wheel). Arrow >= 24 requires C++20 headers (std::span), so
-// 22.0.0 is the newest C++17-compatible release. ACERO NODE NAMES ARE PINNED
-// TO THIS RELEASE: "table_source", "aggregate", "hashjoin" (Arrow 22 spelling;
-// the requirements doc's "hash_join"/"hash_group_aggregate" names are the
-// newer/older spellings and do not exist here). See SPEC.md for the re-pin
-// procedure.
+// 22.0.0 is the newest C++17-compatible release.
+//
+// SECTION-8 DECISIONS IMPLEMENTED HERE (owner GO 2026-10-19):
+//   1. ACERO IS NOT A BUILD REQUIREMENT. This file includes NO arrow/acero
+//      headers and references NO Acero symbol. Group-by uses the release-
+//      available compute/exec API (arrow::compute::Grouper from
+//      arrow/compute/row/grouper.h); the join is the Acero-free bridge-side
+//      fallback (Grouper key ids + arrow::compute::Take gather).
+//   2. TableGroupBy: arrow/compute/exec/group_by.h is absent in 22.0.0, so the
+//      Grouper-based aggregate-in-the-bridge fallback is used (count per group,
+//      key column preserved, output "count" column is Int64).
+//   3. series_apply: double (*)(double), Float64-only. Every stored value must
+//      be f64; no element coercion is performed; a non-Float64 series or a
+//      null element returns 0 (fail closed). NA/NaN policies are explicitly
+//      OUT OF SCOPE (NaN values are passed through to the callback unchanged).
+//   4. Ownership: pandas_c_dataframe_free / pandas_c_series_free /
+//      pandas_c_free(series_to_vec buffer) -- additive, declared in pandas.xi.
+//   5. dataframe_filter_f64 (owner-pinned symbol name, no pandas_c_ prefix)
+//      compares an IEEE-754 f64 bit pattern carried as an Int64; the existing
+//      Int entry point is unchanged.
+//   6. Parquet: parquet::arrow::OpenFile + FileReader::ReadTable and
+//      parquet::arrow::WriteTable from the pinned Arrow 22.0.0 Parquet
+//      component (Thrift/zstd/snappy are transitive deps of that component).
+//      No separate parquet stack. When the Parquet headers are absent the
+//      entry points are compiled as backend-unavailable stubs (see
+//      XIOM_PANDAS_HAVE_PARQUET below) so the bridge still builds.
 //
 // ABI (matches pandas.xi IR): every parameter and return value is i64
 // (`long long`). 0 = null/failure, > 0 = live handle. A live handle is the
@@ -31,36 +52,41 @@
 //   Series    -> PdSeries    { shared_ptr<arrow::ChunkedArray> }
 //   GroupBy   -> PdGroupBy   { input Table + grouped Table + key name }
 //   series_to_vec -> malloc'd bridge-owned buffer (numeric/bool); free it with
-//                    pandas_c_free. String/binary extraction is OWNER-PENDING
-//                    (returns 0; see section 6.4/6.5 notes in SPEC.md).
-//   set_column/filter/groupby/join return NEW handles; the input handles stay
-//   valid and unchanged. Free DataFrame/Series handles with the additive
-//   pandas_c_dataframe_free/pandas_c_series_free; pandas_c_free releases
-//   series_to_vec buffers. Those three symbols are implemented here but NOT
-//   declared in pandas.xi pending the owner's additive-ABI decision (the
-//   declared 12-symbol ABI is unchanged).
-//
-// OWNER-PENDING ITEMS (section 6, explicitly not ABI-decided here)
-//   6.3 series_apply: implemented against the recommended `double(*)(double)`
-//       callback; element coercion to double is the documented policy until
-//       the owner pins the signature in pandas.xi.
-//   6.5 dataframe_filter: `value` remains the declared i64. Numeric columns
-//       widen it (int -> float for float32/float64); bool compares != 0.
-//       A Float64-bit-pattern entry point is NOT added (additive ABI decision
-//       belongs to the owner).
-//   6.6 parquet: not implemented; no parquet symbol is added.
-//   6.4 free functions: implemented (above) but not declared/wrapped.
+//                    pandas_c_free. String/binary extraction returns 0.
+//   set_column/filter/filter_f64/groupby/join/parquet-read return NEW handles;
+//   the input handles stay valid and unchanged. Free DataFrame/Series handles
+//   with pandas_c_dataframe_free/pandas_c_series_free.
 
-#include <arrow/acero/exec_plan.h>
-#include <arrow/acero/options.h>
 #include <arrow/api.h>
+#include <arrow/array/concatenate.h>
 #include <arrow/compute/api.h>
+#include <arrow/compute/exec.h>
 #include <arrow/compute/initialize.h>
+#include <arrow/compute/row/grouper.h>
 #include <arrow/csv/api.h>
 #include <arrow/csv/options.h>
 #include <arrow/csv/writer.h>
 #include <arrow/io/api.h>
 #include <arrow/io/file.h>
+
+// Parquet is an optional Arrow component. __has_include keeps the bridge
+// buildable on an Arrow install without the Parquet headers; the entry points
+// then report "backend unavailable" (0 / 1) instead of failing to compile.
+#if !defined(XIOM_PANDAS_NO_PARQUET) && defined(__has_include)
+#  if __has_include(<parquet/arrow/reader.h>) && \
+      __has_include(<parquet/arrow/writer.h>)
+#    define XIOM_PANDAS_HAVE_PARQUET 1
+#  endif
+#endif
+#ifndef XIOM_PANDAS_HAVE_PARQUET
+#  define XIOM_PANDAS_HAVE_PARQUET 0
+#endif
+
+#if XIOM_PANDAS_HAVE_PARQUET
+#  include <parquet/arrow/reader.h>
+#  include <parquet/arrow/writer.h>
+#  include <parquet/properties.h>
+#endif
 
 #include <cstdint>
 #include <cstdlib>
@@ -69,6 +95,7 @@
 #include <mutex>
 #include <new>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -200,14 +227,47 @@ std::shared_ptr<arrow::Scalar> scalar_for_column(
   }
 }
 
+// f64 value entry: the scalar is built from an IEEE-754 double. Float64 is the
+// intended column type; Float32 narrows and integer/bool columns follow the
+// same promotion rules as the Int entry point (documented in SPEC.md).
+std::shared_ptr<arrow::Scalar> scalar_for_column_f64(
+    const std::shared_ptr<arrow::DataType>& type, double value) {
+  switch (type->id()) {
+    case arrow::Type::INT8:
+      return make_scalar(type, static_cast<int8_t>(value));
+    case arrow::Type::INT16:
+      return make_scalar(type, static_cast<int16_t>(value));
+    case arrow::Type::INT32:
+      return make_scalar(type, static_cast<int32_t>(value));
+    case arrow::Type::INT64:
+      return make_scalar(type, static_cast<int64_t>(value));
+    case arrow::Type::UINT8:
+      return make_scalar(type, static_cast<uint8_t>(value));
+    case arrow::Type::UINT16:
+      return make_scalar(type, static_cast<uint16_t>(value));
+    case arrow::Type::UINT32:
+      return make_scalar(type, static_cast<uint32_t>(value));
+    case arrow::Type::UINT64:
+      return make_scalar(type, static_cast<uint64_t>(value));
+    case arrow::Type::FLOAT:
+      return make_scalar(type, static_cast<float>(value));
+    case arrow::Type::DOUBLE:
+      return make_scalar(type, value);
+    case arrow::Type::BOOL:
+      return make_scalar(type, value != 0.0);
+    default:
+      return nullptr;
+  }
+}
+
 const char* const kCompareFunctions[6] = {"equal",      "not_equal",
                                           "less",       "less_equal",
                                           "greater",    "greater_equal"};
 
 // Arrow 22 splits the compute kernels into arrow_compute.dll; linking alone
 // does not load it. arrow::compute::Initialize() forces the DLL in and
-// registers the scalar/vector functions ("equal", "greater", "hash_count_all",
-// ...). Called once per process, before any compute/Acero plan is built.
+// registers the scalar/vector functions ("equal", "greater", ...). Called once
+// per process, before any compute call.
 void ensure_compute_initialized() {
   static std::once_flag once;
   std::call_once(once, [] {
@@ -223,6 +283,40 @@ std::shared_ptr<arrow::ChunkedArray> datum_as_chunked(
     return std::make_shared<arrow::ChunkedArray>(datum.make_array());
   }
   return nullptr;
+}
+
+// Flatten a chunked column to one Array. A single chunk is returned zero-copy;
+// multiple chunks are concatenated (COPY); zero chunks become a typed empty
+// array. This is the only copy in the group-by/join key path.
+std::shared_ptr<arrow::Array> flatten_column(
+    const std::shared_ptr<arrow::ChunkedArray>& column) {
+  if (column == nullptr) return nullptr;
+  if (column->num_chunks() == 0) {
+    auto empty = arrow::MakeArrayOfNull(column->type(), 0);
+    return empty.ok() ? *empty : nullptr;
+  }
+  if (column->num_chunks() == 1) return column->chunk(0);
+  auto concatenated =
+      arrow::Concatenate(column->chunks(), arrow::default_memory_pool());
+  return concatenated.ok() ? *concatenated : nullptr;
+}
+
+bool make_span(const std::shared_ptr<arrow::Array>& array,
+               arrow::compute::ExecSpan* out) {
+  if (array == nullptr || out == nullptr) return false;
+  arrow::compute::ExecValue value;
+  value.SetArray(*array->data());
+  *out = arrow::compute::ExecSpan({value}, array->length());
+  return true;
+}
+
+std::shared_ptr<arrow::UInt32Array> ids_from_datum(
+    const arrow::Datum& datum) {
+  auto array = flatten_column(datum_as_chunked(datum));
+  if (array == nullptr || array->type_id() != arrow::Type::UINT32) {
+    return nullptr;
+  }
+  return std::static_pointer_cast<arrow::UInt32Array>(array);
 }
 
 long long make_series_from_array(std::shared_ptr<arrow::Array> array) {
@@ -299,7 +393,60 @@ extern "C" long long pandas_c_dataframe_to_csv(long long df, long long path) {
     if (!output.ok()) return 1;
     auto options = arrow::csv::WriteOptions::Defaults();
     auto status = arrow::csv::WriteCSV(*frame->table, options, output->get());
-    return status.ok() ? 0 : 1;
+    if (!status.ok()) return 1;
+    auto close_status = (*output)->Close();
+    return close_status.ok() ? 0 : 1;
+  } catch (...) {
+    return 1;
+  }
+}
+
+// ===========================================================================
+// Parquet I/O (section-8 decision 6) -- Arrow Parquet component only
+// ===========================================================================
+
+extern "C" long long pandas_c_dataframe_from_parquet(long long path) {
+  try {
+    if (path == 0) return 0;
+#if XIOM_PANDAS_HAVE_PARQUET
+    const auto* c_path = reinterpret_cast<const char*>(
+        static_cast<std::intptr_t>(path));
+    auto input = arrow::io::ReadableFile::Open(std::string(c_path));
+    if (!input.ok()) return 0;
+    auto reader =
+        parquet::arrow::OpenFile(*input, arrow::default_memory_pool());
+    if (!reader.ok()) return 0;
+    std::shared_ptr<arrow::Table> table;
+    auto status = (*reader)->ReadTable(&table);
+    if (!status.ok() || table == nullptr) return 0;
+    return append_frame(std::move(table));
+#else
+    (void)path;
+    return 0;  // Parquet component absent: backend unavailable
+#endif
+  } catch (...) {
+    return 0;
+  }
+}
+
+extern "C" long long pandas_c_dataframe_to_parquet(long long df, long long path) {
+  try {
+    PdDataFrame* frame = as_frame(df);
+    if (frame == nullptr || path == 0) return 1;
+#if XIOM_PANDAS_HAVE_PARQUET
+    const auto* c_path = reinterpret_cast<const char*>(
+        static_cast<std::intptr_t>(path));
+    auto output = arrow::io::FileOutputStream::Open(std::string(c_path));
+    if (!output.ok()) return 1;
+    auto status = parquet::arrow::WriteTable(
+        *frame->table, arrow::default_memory_pool(), *output);
+    if (!status.ok()) return 1;
+    auto close_status = (*output)->Close();
+    return close_status.ok() ? 0 : 1;
+#else
+    (void)path;
+    return 1;  // Parquet component absent: backend unavailable
+#endif
   } catch (...) {
     return 1;
   }
@@ -399,6 +546,47 @@ extern "C" long long pandas_c_dataframe_filter(long long df, long long col_name,
   }
 }
 
+// Additive Float64-bit-pattern filter entry (section-8 decision 5). The bits
+// parameter is the IEEE-754 binary64 representation of the comparison value,
+// carried as an Int64; memcpy avoids type punning and pointer casts.
+extern "C" long long pandas_dataframe_filter_f64(long long df, long long col_name,
+                                                 long long op, long long bits) {
+  try {
+    PdDataFrame* frame = as_frame(df);
+    if (frame == nullptr || col_name == 0 || op < 0 || op > 5) return 0;
+    double value = 0.0;
+    std::memcpy(&value, &bits, sizeof(value));
+    ensure_compute_initialized();
+    const auto* name = reinterpret_cast<const char*>(
+        static_cast<std::intptr_t>(col_name));
+    auto column = frame->table->GetColumnByName(std::string(name));
+    if (column == nullptr) return 0;
+    auto scalar = scalar_for_column_f64(column->type(), value);
+    if (scalar == nullptr) return 0;
+    auto mask = arrow::compute::CallFunction(
+        kCompareFunctions[op], {arrow::Datum(column), arrow::Datum(scalar)});
+    if (!mask.ok() || !mask->is_arraylike()) return 0;
+    std::vector<std::shared_ptr<arrow::ChunkedArray>> columns;
+    columns.reserve(static_cast<std::size_t>(frame->table->num_columns()));
+    for (int i = 0; i < frame->table->num_columns(); ++i) {
+      auto filtered = arrow::compute::Filter(
+          arrow::Datum(frame->table->column(i)), *mask);
+      if (!filtered.ok()) return 0;
+      auto chunked = datum_as_chunked(*filtered);
+      if (chunked == nullptr) return 0;
+      columns.push_back(std::move(chunked));
+    }
+    return append_frame(
+        arrow::Table::Make(frame->table->schema(), std::move(columns)));
+  } catch (...) {
+    return 0;
+  }
+}
+
+// Acero-free group-by (section-8 decisions 1-2): arrow::compute::Grouper
+// produces group ids and the unique keys; the bridge counts ids per group.
+// Output: the key column under its original name plus "count" (Int64), in
+// grouper (hash) order. No Acero headers or symbols are used.
 extern "C" long long pandas_c_dataframe_groupby(long long df,
                                                 long long col_name) {
   try {
@@ -407,20 +595,68 @@ extern "C" long long pandas_c_dataframe_groupby(long long df,
     const auto* name = reinterpret_cast<const char*>(
         static_cast<std::intptr_t>(col_name));
     const std::string key(name);
-    if (frame->table->GetColumnByName(key) == nullptr) return 0;
+    auto column = frame->table->GetColumnByName(key);
+    if (column == nullptr) return 0;
     ensure_compute_initialized();
-    namespace acero = arrow::acero;
-    acero::AggregateNodeOptions options(
-        {arrow::compute::Aggregate("hash_count_all", "count")},
-        {arrow::FieldRef(key)});
-    acero::Declaration plan = acero::Declaration::Sequence(
-        {{"table_source", acero::TableSourceNodeOptions(frame->table)},
-         {"aggregate", options}});
-    auto grouped = acero::DeclarationToTable(plan, /*use_threads=*/false);
-    if (!grouped.ok()) return 0;
+
+    std::shared_ptr<arrow::ChunkedArray> unique_keys;
+    std::shared_ptr<arrow::Array> counts;
+    if (frame->table->num_rows() == 0) {
+      auto empty_keys = arrow::MakeArrayOfNull(column->type(), 0);
+      if (!empty_keys.ok()) return 0;
+      unique_keys = wrap_array(*empty_keys);
+      arrow::Int64Builder count_builder;
+      auto count_array = count_builder.Finish();
+      if (!count_array.ok()) return 0;
+      counts = *count_array;
+    } else {
+      auto key_array = flatten_column(column);
+      if (key_array == nullptr) return 0;
+      auto grouper_result =
+          arrow::compute::Grouper::Make({arrow::TypeHolder(column->type())});
+      if (!grouper_result.ok()) return 0;
+      auto grouper = std::move(*grouper_result);
+      arrow::compute::ExecSpan span;
+      if (!make_span(key_array, &span)) return 0;
+      auto ids_result = grouper->Consume(span);
+      if (!ids_result.ok()) return 0;
+      auto ids = ids_from_datum(*ids_result);
+      if (ids == nullptr) return 0;
+      const std::uint32_t num_groups = grouper->num_groups();
+      std::vector<int64_t> group_counts(num_groups, 0);
+      for (int64_t i = 0; i < ids->length(); ++i) {
+        if (ids->IsNull(i)) return 0;
+        const std::uint32_t id = ids->Value(i);
+        if (id >= num_groups) return 0;
+        ++group_counts[id];
+      }
+      auto uniques_result = grouper->GetUniques();
+      if (!uniques_result.ok()) return 0;
+      const arrow::compute::ExecBatch& uniques = *uniques_result;
+      if (uniques.num_values() != 1) return 0;
+      unique_keys = datum_as_chunked(uniques[0]);
+      if (unique_keys == nullptr || unique_keys->length() !=
+                                        static_cast<int64_t>(num_groups)) {
+        return 0;
+      }
+      arrow::Int64Builder count_builder;
+      auto status = count_builder.AppendValues(group_counts);
+      if (!status.ok()) return 0;
+      auto count_array = count_builder.Finish();
+      if (!count_array.ok()) return 0;
+      counts = *count_array;
+    }
+
+    std::vector<std::shared_ptr<arrow::Field>> fields = {
+        arrow::field(key, column->type(), /*nullable=*/true),
+        arrow::field("count", arrow::int64(), /*nullable=*/false)};
+    std::vector<std::shared_ptr<arrow::ChunkedArray>> columns = {
+        unique_keys, wrap_array(counts)};
+    auto grouped = arrow::Table::Make(arrow::schema(std::move(fields)),
+                                      std::move(columns));
     auto* group = new PdGroupBy();
     group->input = frame->table;
-    group->grouped = *grouped;
+    group->grouped = std::move(grouped);
     group->key = key;
     return group_to_handle(group);
   } catch (...) {
@@ -428,6 +664,11 @@ extern "C" long long pandas_c_dataframe_groupby(long long df,
   }
 }
 
+// Acero-free hash join (section-8 decision 1). Keys are grouped with
+// arrow::compute::Grouper (same key types required); rows are gathered with
+// arrow::compute::Take. Duplicate column names get the Acero-style _left /
+// _right suffixes. Null keys follow Grouper semantics (nulls group together;
+// NA policy is out of scope for this package model).
 extern "C" long long pandas_c_dataframe_join(long long left, long long right,
                                              long long on_col,
                                              long long how) {
@@ -441,41 +682,157 @@ extern "C" long long pandas_c_dataframe_join(long long left, long long right,
     const auto* name = reinterpret_cast<const char*>(
         static_cast<std::intptr_t>(on_col));
     const std::string key(name);
-    if (left_frame->table->GetColumnByName(key) == nullptr ||
-        right_frame->table->GetColumnByName(key) == nullptr) {
-      return 0;
-    }
+    auto left_key = left_frame->table->GetColumnByName(key);
+    auto right_key = right_frame->table->GetColumnByName(key);
+    if (left_key == nullptr || right_key == nullptr) return 0;
+    if (!left_key->type()->Equals(right_key->type())) return 0;
     ensure_compute_initialized();
-    arrow::acero::JoinType join_type = arrow::acero::JoinType::INNER;
-    switch (how) {
-      case 0:
-        join_type = arrow::acero::JoinType::INNER;
-        break;
-      case 1:
-        join_type = arrow::acero::JoinType::LEFT_OUTER;
-        break;
-      case 2:
-        join_type = arrow::acero::JoinType::RIGHT_OUTER;
-        break;
-      case 3:
-        join_type = arrow::acero::JoinType::FULL_OUTER;
-        break;
-      default:
-        return 0;
+
+    const int64_t left_row_count = left_frame->table->num_rows();
+    const int64_t right_row_count = right_frame->table->num_rows();
+    const bool keep_left = (how == 1 || how == 3);
+    const bool keep_right = (how == 2 || how == 3);
+
+    std::vector<int64_t> left_idx;
+    std::vector<int64_t> right_idx;
+    std::vector<bool> left_is_null;
+    std::vector<bool> right_is_null;
+
+    if (left_row_count > 0) {
+      auto left_array = flatten_column(left_key);
+      if (left_array == nullptr) return 0;
+      auto grouper_result =
+          arrow::compute::Grouper::Make({arrow::TypeHolder(left_key->type())});
+      if (!grouper_result.ok()) return 0;
+      auto grouper = std::move(*grouper_result);
+
+      arrow::compute::ExecSpan left_span;
+      if (!make_span(left_array, &left_span)) return 0;
+      auto left_ids_result = grouper->Consume(left_span);
+      if (!left_ids_result.ok()) return 0;
+      auto left_ids = ids_from_datum(*left_ids_result);
+      if (left_ids == nullptr) return 0;
+
+      const std::uint32_t num_groups = grouper->num_groups();
+      std::vector<std::vector<int64_t>> matches_by_group(num_groups);
+
+      std::shared_ptr<arrow::UInt32Array> right_ids;
+      if (right_row_count > 0) {
+        auto right_array = flatten_column(right_key);
+        if (right_array == nullptr) return 0;
+        arrow::compute::ExecSpan right_span;
+        if (!make_span(right_array, &right_span)) return 0;
+        auto right_ids_result = grouper->Lookup(right_span);
+        if (!right_ids_result.ok()) return 0;
+        right_ids = ids_from_datum(*right_ids_result);
+        if (right_ids == nullptr) return 0;
+        for (int64_t i = 0; i < right_ids->length(); ++i) {
+          if (right_ids->IsNull(i)) continue;
+          const std::uint32_t id = right_ids->Value(i);
+          if (id >= num_groups) return 0;
+          matches_by_group[id].push_back(i);
+        }
+      }
+
+      left_idx.reserve(static_cast<std::size_t>(left_row_count));
+      for (int64_t i = 0; i < left_ids->length(); ++i) {
+        const std::uint32_t id = left_ids->Value(i);
+        if (id >= num_groups) return 0;
+        const auto& matches = matches_by_group[id];
+        if (!matches.empty()) {
+          for (int64_t j : matches) {
+            left_idx.push_back(i);
+            right_idx.push_back(j);
+            left_is_null.push_back(false);
+            right_is_null.push_back(false);
+          }
+        } else if (keep_left) {
+          left_idx.push_back(i);
+          right_idx.push_back(0);
+          left_is_null.push_back(false);
+          right_is_null.push_back(true);
+        }
+      }
+      if (keep_right && right_ids != nullptr) {
+        for (int64_t i = 0; i < right_ids->length(); ++i) {
+          if (right_ids->IsNull(i)) {
+            left_idx.push_back(0);
+            right_idx.push_back(i);
+            left_is_null.push_back(true);
+            right_is_null.push_back(false);
+          }
+        }
+      }
+    } else if (keep_right) {
+      left_idx.reserve(static_cast<std::size_t>(right_row_count));
+      for (int64_t i = 0; i < right_row_count; ++i) {
+        left_idx.push_back(0);
+        right_idx.push_back(i);
+        left_is_null.push_back(true);
+        right_is_null.push_back(false);
+      }
     }
-    arrow::acero::HashJoinNodeOptions options(
-        join_type, {arrow::FieldRef(key)}, {arrow::FieldRef(key)},
-        arrow::compute::literal(true), "_left", "_right");
-    arrow::acero::Declaration left_source{
-        "table_source", arrow::acero::TableSourceNodeOptions(left_frame->table)};
-    arrow::acero::Declaration right_source{
-        "table_source", arrow::acero::TableSourceNodeOptions(right_frame->table)};
-    arrow::acero::Declaration join_declaration{
-        "hashjoin", {left_source, right_source}, options};
-    auto joined =
-        arrow::acero::DeclarationToTable(join_declaration, /*use_threads=*/false);
-    if (!joined.ok()) return 0;
-    return append_frame(*joined);
+
+    arrow::Int64Builder left_index_builder;
+    arrow::Int64Builder right_index_builder;
+    for (std::size_t i = 0; i < left_idx.size(); ++i) {
+      auto status = left_is_null[i] ? left_index_builder.AppendNull()
+                                    : left_index_builder.Append(left_idx[i]);
+      if (!status.ok()) return 0;
+    }
+    for (std::size_t i = 0; i < right_idx.size(); ++i) {
+      auto status = right_is_null[i] ? right_index_builder.AppendNull()
+                                     : right_index_builder.Append(right_idx[i]);
+      if (!status.ok()) return 0;
+    }
+
+    auto left_indices_result = left_index_builder.Finish();
+    auto right_indices_result = right_index_builder.Finish();
+    if (!left_indices_result.ok() || !right_indices_result.ok()) return 0;
+    auto left_indices = *left_indices_result;
+    auto right_indices = *right_indices_result;
+
+    std::unordered_set<std::string> left_names;
+    std::unordered_set<std::string> right_names;
+    for (const auto& field : left_frame->table->schema()->fields()) {
+      left_names.insert(field->name());
+    }
+    for (const auto& field : right_frame->table->schema()->fields()) {
+      right_names.insert(field->name());
+    }
+
+    std::vector<std::shared_ptr<arrow::Field>> fields;
+    std::vector<std::shared_ptr<arrow::ChunkedArray>> columns;
+    for (int i = 0; i < left_frame->table->num_columns(); ++i) {
+      auto field = left_frame->table->schema()->field(i);
+      const bool collides = right_names.count(field->name()) != 0;
+      const std::string out_name =
+          collides ? field->name() + "_left" : field->name();
+      auto taken = arrow::compute::Take(
+          arrow::Datum(left_frame->table->column(i)),
+          arrow::Datum(left_indices));
+      if (!taken.ok()) return 0;
+      auto chunked = datum_as_chunked(*taken);
+      if (chunked == nullptr) return 0;
+      fields.push_back(arrow::field(out_name, field->type(), field->nullable()));
+      columns.push_back(std::move(chunked));
+    }
+    for (int i = 0; i < right_frame->table->num_columns(); ++i) {
+      auto field = right_frame->table->schema()->field(i);
+      const bool collides = left_names.count(field->name()) != 0;
+      const std::string out_name =
+          collides ? field->name() + "_right" : field->name();
+      auto taken = arrow::compute::Take(
+          arrow::Datum(right_frame->table->column(i)),
+          arrow::Datum(right_indices));
+      if (!taken.ok()) return 0;
+      auto chunked = datum_as_chunked(*taken);
+      if (chunked == nullptr) return 0;
+      fields.push_back(arrow::field(out_name, field->type(), field->nullable()));
+      columns.push_back(std::move(chunked));
+    }
+    return append_frame(
+        arrow::Table::Make(arrow::schema(std::move(fields)), std::move(columns)));
   } catch (...) {
     return 0;
   }
@@ -724,68 +1081,39 @@ extern "C" long long pandas_c_series_to_vec(long long series,
   }
 }
 
+// Section-8 decision 3: double (*)(double), per element, Float64-only. No
+// element coercion; null elements and non-Float64 series fail closed (0).
+// NA/NaN policies are out of scope: NaN values are passed through unchanged.
 extern "C" long long pandas_c_series_apply(long long series,
                                            long long func_ptr) {
   using UnaryDouble = double (*)(double);
   try {
     PdSeries* handle = as_series(series);
     if (handle == nullptr || func_ptr == 0) return 0;
+    if (handle->column->type()->id() != arrow::Type::DOUBLE) return 0;
     auto fn = reinterpret_cast<UnaryDouble>(static_cast<std::intptr_t>(func_ptr));
-    const auto& type = *handle->column->type();
+    auto array = flatten_column(handle->column);
+    if (array == nullptr) return 0;
+    const auto& doubles =
+        arrow::internal::checked_cast<const arrow::DoubleArray&>(*array);
     arrow::DoubleBuilder builder;
-    for (const auto& chunk : handle->column->chunks()) {
-      for (int64_t i = 0; i < chunk->length(); ++i) {
-        if (chunk->IsNull(i)) {
-          auto status = builder.AppendNull();
-          if (!status.ok()) return 0;
-          continue;
-        }
-        double value = 0.0;
-        switch (type.id()) {
-          case arrow::Type::INT32:
-            value = static_cast<double>(
-                arrow::internal::checked_cast<const arrow::Int32Array&>(*chunk)
-                    .Value(i));
-            break;
-          case arrow::Type::INT64:
-            value = static_cast<double>(
-                arrow::internal::checked_cast<const arrow::Int64Array&>(*chunk)
-                    .Value(i));
-            break;
-          case arrow::Type::FLOAT:
-            value = static_cast<double>(
-                arrow::internal::checked_cast<const arrow::FloatArray&>(*chunk)
-                    .Value(i));
-            break;
-          case arrow::Type::DOUBLE:
-            value =
-                arrow::internal::checked_cast<const arrow::DoubleArray&>(*chunk)
-                    .Value(i);
-            break;
-          case arrow::Type::BOOL:
-            value = arrow::internal::checked_cast<const arrow::BooleanArray&>(
-                        *chunk)
-                        .Value(i)
-                        ? 1.0
-                        : 0.0;
-            break;
-          default:
-            return 0; /* coercion policy for other types is owner-pending */
-        }
-        auto status = builder.Append(fn(value));
-        if (!status.ok()) return 0;
-      }
+    auto status = builder.Reserve(doubles.length());
+    if (!status.ok()) return 0;
+    for (int64_t i = 0; i < doubles.length(); ++i) {
+      if (doubles.IsNull(i)) return 0;  /* NA policy out of scope */
+      status = builder.Append(fn(doubles.Value(i)));
+      if (!status.ok()) return 0;
     }
-    auto array = builder.Finish();
-    if (!array.ok()) return 0;
-    return make_series_from_array(*array);
+    auto result = builder.Finish();
+    if (!result.ok()) return 0;
+    return make_series_from_array(*result);
   } catch (...) {
     return 0;
   }
 }
 
 // ===========================================================================
-// Additive ownership free functions (section 6.4; NOT declared in pandas.xi)
+// Additive ownership free functions (section-8 decision 4)
 // ===========================================================================
 
 extern "C" long long pandas_c_dataframe_free(long long df) {
