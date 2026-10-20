@@ -1757,6 +1757,27 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-20 12:35Z (morning -- pandas 2-4 merged; Docker engine
+stuck; fleet sweep armed to auto-run)**:
+- Overnight: **`xiom.pandas 0.2.0` LANDED** (section-8 real Arrow bridge:
+  Acero-free groupby/join, f64 apply/filter, Parquet component, additive
+  ownership frees; 110/110 x2; publish request `-2049-bindings` open) and
+  **bindings merged to main** (`e95c6072`; validate 584/0; ops allowlist
+  instruction sent -- epos now, MCU deferred).  `xiom.jev 0.2.0` live
+  (M2+M3 complete); PULSE Phase B unblocked (m371).
+- **Docker engine stuck**: Desktop app running since 21:12 but the
+  docker-desktop distro is Stopped, `_ping` returns 500, and the CLI
+  control channel hangs (stop/start/restart all hang) -> **manual Docker
+  Desktop restart needed**.  The overnight fleet sweep failed on this
+  (rc=125, 500 on _ping; no suite results).
+- Watcher armed (`scripts/wait-docker-then-fleet.ps1`, background, 90 min
+  of bounded probing): runs the arm64 fleet sweep as soon as the engine
+  answers.
+- Remaining: pandas 0.2.0 publish (packages), epos publish
+  (packages/ops), MCU next cycle, compiler fixer wave (new findings:
+  Map/Set AV + Vec4f, orbitdb soak, Err-push), AMD backlog, fleet sweep
+  (after Docker).
+
 **UPDATE 2026-10-19 20:10Z (MCU agents stopped+worktrees removed; Agent
 Manager offline; arm64 sweep hardened+restarted)**:
 - **MCU Phase-1 agents**: confirmed finished (worktrees clean at delivered
