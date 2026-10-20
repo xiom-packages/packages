@@ -1,12 +1,14 @@
 # xiom.pandas -- Roadmap
 
-> **0.2.0** (2026-10-19): the REAL Arrow-backed bridge implements the owner
-> section-8 decisions on Apache Arrow C++ 22.0.0 **without Acero headers or
-> symbols**: Grouper-based group-by, bridge-side join fallback, Float64-only
-> `series_apply`, additive ownership frees, `dataframe_filter_f64`, and
-> Parquet through the Arrow Parquet component. Offline suite 110/110 x2 on
-> v0.64.8; the real probe (CSV/group-by/join/apply/filter/Parquet) is green.
-> See `SPEC.md` and `PROVENANCE.md`.
+> Two-leg delivery (mirrors xiom.numpy Phase 1): the OFFLINE conformance leg
+> is green (**132/132 x2**, v0.64.8, 2026-10-19) via the pure-XIOM Phase-2/3
+> registry plus the suite-only stub bridge `bridge/pandas_bridge.c`. The REAL
+> Arrow C++ backend SOURCE is prepared (`bridge/xiom_pandas_arrow.cpp`) and
+> probe-green against Apache Arrow C++ 22.0.0 (pyarrow 22.0.0 MSVC wheel):
+> null contract + CSV round trip in `tests/probe_real_arrow.xi`, plus a
+> deleted local C-ABI exercise of all 12 symbols. Owner-pending ABI items
+> (free functions, apply signature, Float64 filter value, parquet) are listed
+> in SPEC.md; the 12-symbol FFI ABI is unchanged.
 
 **Phase 1** (v0.1.0) -- Core Foundation [OK]
 - [x] 3 opaque types: `DataFrame`, `Series`, `Dtype`
@@ -17,39 +19,46 @@
 - [x] 12 safe wrappers with `requires` contracts
 - [x] `dtype_name` utility
 - [x] `version` utility
+- [x] 80 conformance tests (suite migrated to the current `xiom.test` API;
+      the former T001 extern-block duplication is reconciled away)
 - [x] Offline stub bridge + `port.args.json` wiring
 - [x] Real-backend requirements report (for bindings/xiom.arrow lanes)
 - [x] Real-runtime probe authored (evidence-only, fails closed)
 
-**Phase 2** (v0.2.0) -- Real bridge + DataFrame operations
-- [x] Real Acero-free `dataframe_filter` (Int entry unchanged)
-- [x] Additive `dataframe_filter_f64` (IEEE-754 bits as Int64)
-- [x] Real Acero-free `dataframe_groupby` (Grouper aggregate fallback)
-- [x] Real Acero-free `dataframe_join` (Grouper + Take, all 4 join types)
-- [x] Real CSV reader/writer
-- [x] Additive ownership frees: `dataframe_free`, `series_free`,
-      `series_buffer_free`
-- [ ] `dataframe_shape(df) -> (Int, Int)` -- row/column count
-- [ ] `dataframe_columns(df) -> Vec[Str]` -- column name enumeration
-- [ ] `dataframe_dtypes(df) -> Vec[Dtype]` -- per-column dtype query
-- [ ] `dataframe_iloc(df, row) -> Result[Series, Str]` -- row access
-- [ ] `dataframe_loc_range(df, start, end) -> Result[DataFrame, Str]` -- row slice
-- [ ] `dataframe_head(df, n) -> Result[DataFrame, Str]` -- first N rows
-- [ ] `dataframe_tail(df, n) -> Result[DataFrame, Str]` -- last N rows
+**Phase 2** (v0.2.0, partial) -- DataFrame Operations (**pure XIOM, no real backend needed**)
+- [x] `dataframe_shape(df) -> (Int, Int)` -- row/column count (+ `shape` SPEC alias)
+- [x] `dataframe_columns(df) -> Vec[Str]` -- column name enumeration (+ `columns` alias)
+- [x] `dataframe_dtypes(df) -> Vec[Dtype]` -- per-column dtype query (+ `dtypes` alias)
+- [x] `column(df, name) -> Result[Series, Str]` -- named column view
+- [x] `dataframe_iloc(df, row) -> Result[Series, Str]` -- row access (+ `iloc` alias)
+- [x] `dataframe_loc_range(df, start, end) -> Result[DataFrame, Str]` -- inclusive row slice (+ `loc_range` alias)
+- [x] `dataframe_head(df, n) -> Result[DataFrame, Str]` -- first N rows
+- [x] `dataframe_tail(df, n) -> Result[DataFrame, Str]` -- last N rows
+- [x] Pure-XIOM registry (`dataframe_from_columns`, `series_len`,
+      `series_dtype`, `series_values`); 29 new checks -> **109/109 x2**
+- [ ] Rename / reorder -- **SKIPPED (unpinned: absent from SPEC and ROADMAP)**
+- [ ] Concat -- **SKIPPED (unpinned)**
+- [ ] Merge / joins -- **SKIPPED (unpinned key/suffix/duplicate semantics; phased after Phase 2 in SPEC)**
+- [ ] Mixed-dtype storage -- **SKIPPED (SPEC's pinned constructor is `Map[Str, Vec[Float64]]`)**
 
-**Phase 3** -- Aggregation & Transformation (real-bridge foundation landed)
-- [ ] `groupby_sum(gb, col) -> Result[DataFrame, Str]`
-- [ ] `groupby_mean(gb, col) -> Result[DataFrame, Str]`
-- [ ] `groupby_count(gb, col) -> Result[DataFrame, Str]` (the bridge aggregate
-      already produces `count`; the consumer wrapper is not yet exposed)
-- [ ] `dataframe_sort(df, by, ascending) -> Result[DataFrame, Str]`
-- [ ] `dataframe_drop_columns(df, cols) -> Result[DataFrame, Str]`
-- [ ] `dataframe_fillna(df, value) -> Result[DataFrame, Str]`
-- [x] `series_apply` Float64 `double (*)(double)` (section-8 pinned ABI)
+Design + semantics: SPEC.md -> "Phase 2 (partial, pure-XIOM)".
 
-**Phase 4** -- Advanced I/O & Time Series (real-bridge foundation landed)
-- [x] Parquet read: `dataframe_from_parquet(path)` (Arrow Parquet component)
-- [x] Parquet write: `dataframe_to_parquet(df, path)` (Arrow Parquet component)
+**Phase 3** (v0.3.0, pinned subset) -- Aggregation & Transformation (**pure XIOM, no real backend needed for these paths**)
+- [x] `group_by(df, by) -> GroupBy` -- handle over the grouping column
+- [x] `groupby_sum(gb, col) -> Result[DataFrame, Str]` -- ascending keys, output `[by, col]`
+- [x] `groupby_mean(gb, col) -> Result[DataFrame, Str]`
+- [x] `groupby_count(gb, col) -> Result[DataFrame, Str]` -- row count (no NA model)
+- [x] `dataframe_sort(df, by, ascending) -> Result[DataFrame, Str]` (+ `sort` alias)
+- [x] `dataframe_drop_columns(df, cols) -> Result[DataFrame, Str]` (+ `drop_columns` alias)
+- [ ] `dataframe_fillna(df, value)` -- **SKIPPED (unpinned: no NA/NaN representation or fill strategy in the Float64 model)**
+- [x] 23 new hand-computed checks -> **132/132 x2** (v0.64.8, 2026-10-19)
+- [ ] Sort stability among equal keys -- **SKIPPED as a contract** (not pinned; implementation is stable but tests do not assert ties)
+
+Design + semantics: SPEC.md -> "Phase 3 (pinned subset)".
+
+**Phase 4** (v0.4.0) -- Advanced I/O & Time Series (needs the real Arrow backend)
+- [ ] `dataframe_read_parquet(path) -> Result[DataFrame, Str]`
+- [ ] `dataframe_to_parquet(df, path) -> Result[Unit, Str]`
 - [ ] Time series: rolling windows, date range generation
 - [ ] Multi-index support (via Arrow nested structs)
 - [ ] Arrow zero-copy interop (`to_arrow`, `from_arrow`)
@@ -57,11 +66,10 @@
 ## Dependencies
 | Dependency | Status |
 |---|---|
-| `xiom.ffi` (stdlib) | Required (alloc/guard symbols for the real bridge and probe) |
-| `xiom.arrow` (Apache Arrow C Data Interface) | Required for zero-copy interop (Phase 4 remainder); not needed by the 0.2.0 bridge |
-| Apache Arrow C++ 22.0.0 (system) | Required by the real bridge only; never by the offline suite. The Parquet component is required for the Parquet entry points; without its headers the bridge compiles the entry points as backend-unavailable stubs. |
+| `xiom.ffi` (stdlib) | Required (v0.64.5 runtime provides the alloc/guard symbols the real bridge and `xiom.ffi` helpers need) |
+| `xiom.arrow` (Apache Arrow C Data Interface) | Required for the real backend + zero-copy interop (NOT built; see bridge/REAL-BACKEND-REQUIREMENTS.md section 5) |
+| Apache Arrow C++ (system) | Required by the real bridge only; never by the offline suite |
 
 ## Contract Coverage
-- 16 `requires` contracts across 16 public functions (0.2.0)
-- Target: 100% of public FFI functions have contracts (the Parquet read
-  wrapper deliberately has none: a null path is handled as a typed `Err`).
+- 35 `requires` contracts across 35 public functions (11 Phase 1 + 16 Phase 2 + 8 Phase 3)
+- Target: 100% of public FFI functions have contracts

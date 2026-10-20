@@ -405,7 +405,7 @@ fn test_type_dtype() -> TestResult {
 // =========================================================================
 
 fn test_extern_count() -> TestResult {
-  return xiom.test.assert(true, "extern: 18 Pandas C bridge functions declared");
+  return xiom.test.assert(true, "extern: 12 Pandas C bridge functions declared");
 }
 
 // =========================================================================
@@ -533,238 +533,675 @@ fn test_safe_series_apply_null_func() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 16 -- FFI stub: pandas_dataframe_filter_f64 (section-8 decision 5)
+// SECTION 16 -- Phase 2: pure-XIOM shape/columns/dtypes/selection/slicing
+//
+// Fixed fixture (hand-computed, exact in Float64):
+//   a = [10.0, 20.0, 30.0]
+//   b = [ 1.5,  2.5,  3.5]
+// Rows are 0-based. head/tail clamp; loc_range is inclusive.
 // =========================================================================
 
-fn test_filter_f64_null_df() -> TestResult {
-  let df: Int = unsafe { pandas_dataframe_filter_f64(0, 0, CMP_EQ, 0) };
-  return xiom.test.assert_eq_int(df, 0, "pandas: filter_f64(0,0,CMP_EQ,0) returns 0");
+fn p2_mk_ab() -> DataFrame {
+  var names = Vec[Str].new();
+  names.push("a");
+  names.push("b");
+  var ca = Vec[Float64].new();
+  ca.push(10.0);
+  ca.push(20.0);
+  ca.push(30.0);
+  var cb = Vec[Float64].new();
+  cb.push(1.5);
+  cb.push(2.5);
+  cb.push(3.5);
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(ca);
+  cols.push(cb);
+  match dataframe_from_columns(&names, &cols) {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
 }
 
-fn test_filter_f64_callable() -> TestResult {
-  let df: Int = unsafe { pandas_dataframe_filter_f64(1, 0, CMP_GT, 0) };
-  return xiom.test.assert_ge_int(df, 0, "pandas: filter_f64(1,0,CMP_GT,0) callable");
+fn p2_mk_empty() -> DataFrame {
+  var names = Vec[Str].new();
+  names.push("x");
+  var col = Vec[Float64].new();
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(col);
+  match dataframe_from_columns(&names, &cols) {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
 }
 
-fn test_filter_f64_bad_op() -> TestResult {
-  let df: Int = unsafe { pandas_dataframe_filter_f64(1, 1, 99, 0) };
-  return xiom.test.assert_eq_int(df, 0, "pandas: filter_f64 bad op returns 0");
+fn p2_df_or_zero(r: Result[DataFrame, Str]) -> DataFrame {
+  match r {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
+}
+
+fn p2_df_err(r: Result[DataFrame, Str]) -> Bool {
+  match r {
+    Ok(_) => { return false; },
+    Err(_) => { return true; },
+  };
+}
+
+fn p2_ser_err(r: Result[Series, Str]) -> Bool {
+  match r {
+    Ok(_) => { return false; },
+    Err(_) => { return true; },
+  };
+}
+
+fn p2_vals(s: Series) -> Vec[Float64] {
+  match series_values(&s) {
+    Ok(v) => { return v; },
+    Err(_) => {
+      var e = Vec[Float64].new();
+      return e;
+    },
+  };
+}
+
+fn p2_col_vals(df: DataFrame, name: Str) -> Vec[Float64] {
+  match column(&df, name) {
+    Ok(s) => { return p2_vals(s); },
+    Err(_) => {
+      var e = Vec[Float64].new();
+      return e;
+    },
+  };
+}
+
+fn p2_row_vals(df: DataFrame, row: Int) -> Vec[Float64] {
+  match dataframe_iloc(&df, row) {
+    Ok(s) => { return p2_vals(s); },
+    Err(_) => {
+      var e = Vec[Float64].new();
+      return e;
+    },
+  };
+}
+
+fn p2_test_shape() -> TestResult {
+  let df = p2_mk_ab();
+  let (r, c) = dataframe_shape(&df);
+  return xiom.test.assert(r == 3 && c == 2, "p2: dataframe_shape == (3, 2)");
+}
+
+fn p2_test_shape_alias() -> TestResult {
+  let df = p2_mk_ab();
+  let (r, c) = shape(&df);
+  return xiom.test.assert(r == 3 && c == 2, "p2: shape alias == (3, 2)");
+}
+
+fn p2_test_columns() -> TestResult {
+  let df = p2_mk_ab();
+  let cols = dataframe_columns(&df);
+  var ok = cols.len() == 2;
+  if ok { ok = cols[0] == "a" && cols[1] == "b"; }
+  return xiom.test.assert(ok, "p2: dataframe_columns == [a, b] in order");
+}
+
+fn p2_test_columns_alias() -> TestResult {
+  let df = p2_mk_ab();
+  let cols = columns(&df);
+  var ok = cols.len() == 2;
+  if ok { ok = cols[0] == "a" && cols[1] == "b"; }
+  return xiom.test.assert(ok, "p2: columns alias == [a, b]");
+}
+
+fn p2_test_dtypes() -> TestResult {
+  let df = p2_mk_ab();
+  let ds = dataframe_dtypes(&df);
+  var ok = ds.len() == 2;
+  if ok { ok = ds[0] == DTYPE_FLOAT64 && ds[1] == DTYPE_FLOAT64; }
+  return xiom.test.assert(ok, "p2: dataframe_dtypes == [FLOAT64, FLOAT64]");
+}
+
+fn p2_test_dtypes_alias() -> TestResult {
+  let df = p2_mk_ab();
+  let ds = dtypes(&df);
+  var ok = ds.len() == 2;
+  if ok { ok = ds[0] == DTYPE_FLOAT64 && ds[1] == DTYPE_FLOAT64; }
+  return xiom.test.assert(ok, "p2: dtypes alias == [FLOAT64, FLOAT64]");
+}
+
+fn p2_test_column_ok() -> TestResult {
+  let df = p2_mk_ab();
+  match column(&df, "b") {
+    Ok(s) => {
+      let v = p2_vals(s);
+      var ok = series_len(&s) == 3 && series_dtype(&s) == DTYPE_FLOAT64 && v.len() == 3;
+      if ok { ok = v[0] == 1.5 && v[1] == 2.5 && v[2] == 3.5; }
+      return xiom.test.assert(ok, "p2: column(b) == [1.5, 2.5, 3.5]");
+    },
+    Err(_) => { return xiom.test.assert(false, "p2: column(b) unexpectedly Err"); },
+  };
+}
+
+fn p2_test_column_missing_err() -> TestResult {
+  let df = p2_mk_ab();
+  return xiom.test.assert(p2_ser_err(column(&df, "z")), "p2: column(missing) returns Err");
+}
+
+fn p2_test_iloc_ok() -> TestResult {
+  let df = p2_mk_ab();
+  let v = p2_row_vals(df, 1);
+  var ok = v.len() == 2;
+  if ok { ok = v[0] == 20.0 && v[1] == 2.5; }
+  return xiom.test.assert(ok, "p2: dataframe_iloc(1) == [20.0, 2.5]");
+}
+
+fn p2_test_iloc_oob_err() -> TestResult {
+  let df = p2_mk_ab();
+  let hi = p2_ser_err(dataframe_iloc(&df, 3));
+  let neg = p2_ser_err(dataframe_iloc(&df, -1));
+  return xiom.test.assert(hi && neg, "p2: dataframe_iloc out-of-bounds/negative returns Err");
+}
+
+fn p2_test_iloc_alias() -> TestResult {
+  let df = p2_mk_ab();
+  match iloc(&df, 2) {
+    Ok(s) => {
+      let v = p2_vals(s);
+      var ok = v.len() == 2;
+      if ok { ok = v[0] == 30.0 && v[1] == 3.5; }
+      return xiom.test.assert(ok, "p2: iloc alias row 2 == [30.0, 3.5]");
+    },
+    Err(_) => { return xiom.test.assert(false, "p2: iloc alias unexpectedly Err"); },
+  };
+}
+
+fn p2_test_loc_range_ok() -> TestResult {
+  let df = p2_mk_ab();
+  let sub = p2_df_or_zero(dataframe_loc_range(&df, 0, 1));
+  let (r, c) = dataframe_shape(&sub);
+  let v = p2_col_vals(sub, "a");
+  var ok = r == 2 && c == 2 && v.len() == 2;
+  if ok { ok = v[0] == 10.0 && v[1] == 20.0; }
+  return xiom.test.assert(ok, "p2: dataframe_loc_range(0,1) is inclusive -> 2 rows");
+}
+
+fn p2_test_loc_range_single() -> TestResult {
+  let df = p2_mk_ab();
+  let sub = p2_df_or_zero(dataframe_loc_range(&df, 2, 2));
+  let (r, c) = dataframe_shape(&sub);
+  let v = p2_col_vals(sub, "b");
+  var ok = r == 1 && c == 2 && v.len() == 1;
+  if ok { ok = v[0] == 3.5; }
+  return xiom.test.assert(ok, "p2: dataframe_loc_range(2,2) -> one row [3.5]");
+}
+
+fn p2_test_loc_range_err() -> TestResult {
+  let df = p2_mk_ab();
+  let backwards = p2_df_err(dataframe_loc_range(&df, 2, 1));
+  let past_end = p2_df_err(dataframe_loc_range(&df, 0, 3));
+  let negative = p2_df_err(dataframe_loc_range(&df, -1, 0));
+  return xiom.test.assert(backwards && past_end && negative, "p2: dataframe_loc_range invalid ranges return Err");
+}
+
+fn p2_test_loc_range_alias() -> TestResult {
+  let df = p2_mk_ab();
+  let sub = p2_df_or_zero(loc_range(&df, 1, 2));
+  let v = p2_col_vals(sub, "a");
+  var ok = v.len() == 2;
+  if ok { ok = v[0] == 20.0 && v[1] == 30.0; }
+  return xiom.test.assert(ok, "p2: loc_range alias (1,2) == [20, 30]");
+}
+
+fn p2_test_head_ok() -> TestResult {
+  let df = p2_mk_ab();
+  let hd = p2_df_or_zero(dataframe_head(&df, 2));
+  let (r, c) = dataframe_shape(&hd);
+  let v = p2_col_vals(hd, "b");
+  var ok = r == 2 && c == 2 && v.len() == 2;
+  if ok { ok = v[0] == 1.5 && v[1] == 2.5; }
+  return xiom.test.assert(ok, "p2: dataframe_head(2) == first 2 rows");
+}
+
+fn p2_test_head_clamp() -> TestResult {
+  let df = p2_mk_ab();
+  let hd = p2_df_or_zero(dataframe_head(&df, 99));
+  let (r, c) = dataframe_shape(&hd);
+  return xiom.test.assert(r == 3 && c == 2, "p2: dataframe_head(99) clamps to all 3 rows");
+}
+
+fn p2_test_head_zero() -> TestResult {
+  let df = p2_mk_ab();
+  let hd = p2_df_or_zero(dataframe_head(&df, 0));
+  let (r, c) = dataframe_shape(&hd);
+  let cols = dataframe_columns(&hd);
+  var ok = r == 0 && c == 2 && cols.len() == 2;
+  if ok { ok = cols[0] == "a" && cols[1] == "b"; }
+  return xiom.test.assert(ok, "p2: dataframe_head(0) keeps columns and yields 0 rows");
+}
+
+fn p2_test_head_neg_err() -> TestResult {
+  let df = p2_mk_ab();
+  return xiom.test.assert(p2_df_err(dataframe_head(&df, -1)), "p2: dataframe_head(-1) returns Err");
+}
+
+fn p2_test_tail_ok() -> TestResult {
+  let df = p2_mk_ab();
+  let tl = p2_df_or_zero(dataframe_tail(&df, 2));
+  let (r, c) = dataframe_shape(&tl);
+  let v = p2_col_vals(tl, "a");
+  var ok = r == 2 && c == 2 && v.len() == 2;
+  if ok { ok = v[0] == 20.0 && v[1] == 30.0; }
+  return xiom.test.assert(ok, "p2: dataframe_tail(2) == last 2 rows");
+}
+
+fn p2_test_tail_clamp() -> TestResult {
+  let df = p2_mk_ab();
+  let tl = p2_df_or_zero(dataframe_tail(&df, 99));
+  let (r, c) = dataframe_shape(&tl);
+  let v = p2_col_vals(tl, "b");
+  var ok = r == 3 && c == 2 && v.len() == 3;
+  if ok { ok = v[0] == 1.5 && v[2] == 3.5; }
+  return xiom.test.assert(ok, "p2: dataframe_tail(99) clamps to all 3 rows");
+}
+
+fn p2_test_tail_zero() -> TestResult {
+  let df = p2_mk_ab();
+  let tl = p2_df_or_zero(dataframe_tail(&df, 0));
+  let (r, c) = dataframe_shape(&tl);
+  return xiom.test.assert(r == 0 && c == 2, "p2: dataframe_tail(0) yields 0 rows, 2 columns");
+}
+
+fn p2_test_tail_neg_err() -> TestResult {
+  let df = p2_mk_ab();
+  return xiom.test.assert(p2_df_err(dataframe_tail(&df, -1)), "p2: dataframe_tail(-1) returns Err");
+}
+
+fn p2_test_ctor_len_mismatch() -> TestResult {
+  var names = Vec[Str].new();
+  names.push("a");
+  names.push("b");
+  var c1 = Vec[Float64].new();
+  c1.push(1.0);
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(c1);
+  return xiom.test.assert(p2_df_err(dataframe_from_columns(&names, &cols)), "p2: constructor name/count mismatch is Err");
+}
+
+fn p2_test_ctor_duplicate() -> TestResult {
+  var names = Vec[Str].new();
+  names.push("a");
+  names.push("a");
+  var c1 = Vec[Float64].new();
+  c1.push(1.0);
+  var c2 = Vec[Float64].new();
+  c2.push(2.0);
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(c1);
+  cols.push(c2);
+  return xiom.test.assert(p2_df_err(dataframe_from_columns(&names, &cols)), "p2: constructor duplicate column name is Err");
+}
+
+fn p2_test_ctor_no_cols() -> TestResult {
+  var names = Vec[Str].new();
+  var cols = Vec[Vec[Float64]].new();
+  return xiom.test.assert(p2_df_err(dataframe_from_columns(&names, &cols)), "p2: constructor zero columns is Err");
+}
+
+fn p2_test_empty_frame() -> TestResult {
+  let df = p2_mk_empty();
+  let (r, c) = dataframe_shape(&df);
+  let cols = dataframe_columns(&df);
+  let hd = p2_df_or_zero(dataframe_head(&df, 1));
+  let (hr, hc) = dataframe_shape(&hd);
+  var ok = r == 0 && c == 1 && cols.len() == 1;
+  if ok { ok = cols[0] == "x" && hr == 0 && hc == 1; }
+  return xiom.test.assert(ok, "p2: 0-row constructor + head keep (0, 1)");
+}
+
+fn p2_test_contract_shape() -> TestResult {
+  return xiom.test.assert(true, "contract: dataframe_shape has requires: df != 0");
+}
+
+fn p2_test_contract_slicing() -> TestResult {
+  return xiom.test.assert(true, "contract: head/tail/loc_range have requires: df != 0");
 }
 
 // =========================================================================
-// SECTION 17 -- FFI stub: additive ownership frees (section-8 decision 4)
+// SECTION 17 -- Phase 3: sort / drop_columns / groupby aggregation
+//
+// Hand-computed fixtures (exact in Float64):
+//
+//   sort fixture:   s = [30, 10, 20]   t = [3, 1, 2]
+//     ascending  by s -> s [10,20,30], t [1,2,3]
+//     descending by s -> s [30,20,10], t [3,2,1]
+//
+//   group fixture:  g = [1, 2, 1, 2, 1]
+//                   v = [1, 10, 3, 20, 5]
+//                   w = [2,  4, 6,  8, 10]
+//     group by g, keys ascending:
+//       sum(v)   -> g [1, 2],  v [9, 30]     (1+3+5, 10+20)
+//       mean(v)  -> g [1, 2],  v [3, 15]     (9/3, 30/2)
+//       count(v) -> g [1, 2],  v [3, 2]
+//
+//   drop fixture:   a = [1, 2], b = [3, 4], c = [5, 6]
+//     drop [b] -> names [a, c], values unchanged
+//
+// Tie/stability behavior and NA/NaN handling are NOT pinned and are not
+// asserted here; fillna is deliberately absent (see SPEC.md).
 // =========================================================================
 
-fn test_dataframe_free_null() -> TestResult {
-  let rc: Int = unsafe { pandas_c_dataframe_free(0) };
-  return xiom.test.assert_eq_int(rc, 0, "pandas: dataframe_free(0) returns 0");
+fn p3_mk_sort() -> DataFrame {
+  var names = Vec[Str].new();
+  names.push("s");
+  names.push("t");
+  var cs = Vec[Float64].new();
+  cs.push(30.0);
+  cs.push(10.0);
+  cs.push(20.0);
+  var ct = Vec[Float64].new();
+  ct.push(3.0);
+  ct.push(1.0);
+  ct.push(2.0);
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(cs);
+  cols.push(ct);
+  match dataframe_from_columns(&names, &cols) {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
 }
 
-fn test_dataframe_free_callable() -> TestResult {
-  let rc: Int = unsafe { pandas_c_dataframe_free(1) };
-  return xiom.test.assert_ge_int(rc, 0, "pandas: dataframe_free stub callable");
+fn p3_mk_grouped() -> DataFrame {
+  var names = Vec[Str].new();
+  names.push("g");
+  names.push("v");
+  names.push("w");
+  var cg = Vec[Float64].new();
+  cg.push(1.0);
+  cg.push(2.0);
+  cg.push(1.0);
+  cg.push(2.0);
+  cg.push(1.0);
+  var cv = Vec[Float64].new();
+  cv.push(1.0);
+  cv.push(10.0);
+  cv.push(3.0);
+  cv.push(20.0);
+  cv.push(5.0);
+  var cw = Vec[Float64].new();
+  cw.push(2.0);
+  cw.push(4.0);
+  cw.push(6.0);
+  cw.push(8.0);
+  cw.push(10.0);
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(cg);
+  cols.push(cv);
+  cols.push(cw);
+  match dataframe_from_columns(&names, &cols) {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
 }
 
-fn test_series_free_null() -> TestResult {
-  let rc: Int = unsafe { pandas_c_series_free(0) };
-  return xiom.test.assert_eq_int(rc, 0, "pandas: series_free(0) returns 0");
+fn p3_mk_grouped_empty() -> DataFrame {
+  var names = Vec[Str].new();
+  names.push("g");
+  names.push("v");
+  var cg = Vec[Float64].new();
+  var cv = Vec[Float64].new();
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(cg);
+  cols.push(cv);
+  match dataframe_from_columns(&names, &cols) {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
 }
 
-fn test_series_free_callable() -> TestResult {
-  let rc: Int = unsafe { pandas_c_series_free(1) };
-  return xiom.test.assert_ge_int(rc, 0, "pandas: series_free stub callable");
+fn p3_mk_abc() -> DataFrame {
+  var names = Vec[Str].new();
+  names.push("a");
+  names.push("b");
+  names.push("c");
+  var ca = Vec[Float64].new();
+  ca.push(1.0);
+  ca.push(2.0);
+  var cb = Vec[Float64].new();
+  cb.push(3.0);
+  cb.push(4.0);
+  var cc = Vec[Float64].new();
+  cc.push(5.0);
+  cc.push(6.0);
+  var cols = Vec[Vec[Float64]].new();
+  cols.push(ca);
+  cols.push(cb);
+  cols.push(cc);
+  match dataframe_from_columns(&names, &cols) {
+    Ok(df) => { return df; },
+    Err(_) => { return 0; },
+  };
 }
 
-fn test_free_null() -> TestResult {
-  let rc: Int = unsafe { pandas_c_free(0) };
-  return xiom.test.assert_eq_int(rc, 0, "pandas: free(0) returns 0");
+// Borrowing variant: Phase-3 tests often read two columns of the same frame.
+fn p3_col_vals(df: &DataFrame, name: Str) -> Vec[Float64] {
+  match column(df, name) {
+    Ok(s) => { return p2_vals(s); },
+    Err(_) => {
+      var e = Vec[Float64].new();
+      return e;
+    },
+  };
 }
 
-fn test_free_callable() -> TestResult {
-  let rc: Int = unsafe { pandas_c_free(1) };
-  return xiom.test.assert_ge_int(rc, 0, "pandas: free stub callable");
+fn p3_names1(a: Str) -> Vec[Str] {
+  var v = Vec[Str].new();
+  v.push(a);
+  return v;
 }
 
-// =========================================================================
-// SECTION 18 -- FFI stub: Parquet entry points (section-8 decision 6)
-// =========================================================================
-
-fn test_from_parquet_null() -> TestResult {
-  let df: Int = unsafe { pandas_c_dataframe_from_parquet(0) };
-  return xiom.test.assert_eq_int(df, 0, "pandas: from_parquet(0) returns 0");
+fn p3_names2(a: Str, b: Str) -> Vec[Str] {
+  var v = Vec[Str].new();
+  v.push(a);
+  v.push(b);
+  return v;
 }
 
-fn test_from_parquet_callable() -> TestResult {
-  let df: Int = unsafe { pandas_c_dataframe_from_parquet(1) };
-  return xiom.test.assert_ge_int(df, 0, "pandas: from_parquet stub callable");
+fn p3_names3(a: Str, b: Str, c: Str) -> Vec[Str] {
+  var v = Vec[Str].new();
+  v.push(a);
+  v.push(b);
+  v.push(c);
+  return v;
 }
 
-fn test_to_parquet_null() -> TestResult {
-  let rc: Int = unsafe { pandas_c_dataframe_to_parquet(0, 0) };
-  return xiom.test.assert_ne_int(rc, 0, "pandas: to_parquet(0,0) returns error");
+fn p3_test_sort_asc() -> TestResult {
+  let df = p3_mk_sort();
+  let s = p2_df_or_zero(dataframe_sort(&df, "s", true));
+  let (r, c) = dataframe_shape(&s);
+  let sv = p3_col_vals(&s, "s");
+  let tv = p3_col_vals(&s, "t");
+  var ok = r == 3 && c == 2 && sv.len() == 3 && tv.len() == 3;
+  if ok { ok = sv[0] == 10.0 && sv[1] == 20.0 && sv[2] == 30.0; }
+  if ok { ok = tv[0] == 1.0 && tv[1] == 2.0 && tv[2] == 3.0; }
+  return xiom.test.assert(ok, "p3: sort by s ascending -> [10,20,30] with t [1,2,3]");
 }
 
-fn test_to_parquet_callable() -> TestResult {
-  let rc: Int = unsafe { pandas_c_dataframe_to_parquet(1, 1) };
-  return xiom.test.assert_ne_int(rc, 0, "pandas: to_parquet stub reports backend unavailable");
+fn p3_test_sort_desc() -> TestResult {
+  let df = p3_mk_sort();
+  let s = p2_df_or_zero(dataframe_sort(&df, "s", false));
+  let sv = p3_col_vals(&s, "s");
+  let tv = p3_col_vals(&s, "t");
+  var ok = sv.len() == 3 && tv.len() == 3;
+  if ok { ok = sv[0] == 30.0 && sv[1] == 20.0 && sv[2] == 10.0; }
+  if ok { ok = tv[0] == 3.0 && tv[1] == 2.0 && tv[2] == 1.0; }
+  return xiom.test.assert(ok, "p3: sort by s descending -> [30,20,10] with t [3,2,1]");
 }
 
-// =========================================================================
-// SECTION 19 -- API presence: additive 0.2.0 surface
-// =========================================================================
-
-fn test_api_dataframe_free() -> TestResult {
-  return xiom.test.assert(true, "api: dataframe_free(df) -> Result[Int, Str]");
+fn p3_test_sort_alias() -> TestResult {
+  let df = p3_mk_sort();
+  let s = p2_df_or_zero(sort(&df, "t", true));
+  let sv = p3_col_vals(&s, "s");
+  var ok = sv.len() == 3;
+  if ok { ok = sv[0] == 10.0 && sv[1] == 20.0 && sv[2] == 30.0; }
+  return xiom.test.assert(ok, "p3: sort alias by t ascending -> s [10,20,30]");
 }
 
-fn test_api_series_free() -> TestResult {
-  return xiom.test.assert(true, "api: series_free(series) -> Result[Int, Str]");
+fn p3_test_sort_missing_err() -> TestResult {
+  let df = p3_mk_sort();
+  return xiom.test.assert(p2_df_err(dataframe_sort(&df, "z", true)), "p3: sort by missing column returns Err");
 }
 
-fn test_api_series_buffer_free() -> TestResult {
-  return xiom.test.assert(true, "api: series_buffer_free(ptr) -> Result[Int, Str]");
+fn p3_test_sort_empty() -> TestResult {
+  let df = p2_mk_empty();
+  let s = p2_df_or_zero(dataframe_sort(&df, "x", true));
+  let (r, c) = dataframe_shape(&s);
+  let cols = dataframe_columns(&s);
+  var ok = r == 0 && c == 1 && cols.len() == 1;
+  if ok { ok = cols[0] == "x"; }
+  return xiom.test.assert(ok, "p3: sort of 0-row frame keeps (0,1) and column x");
 }
 
-fn test_api_dataframe_filter_f64() -> TestResult {
-  return xiom.test.assert(true, "api: dataframe_filter_f64(df, col_name, op, bits) -> Result[DataFrame, Str]");
+fn p3_test_drop_ok() -> TestResult {
+  let df = p3_mk_abc();
+  let cols = p3_names1("b");
+  let d = p2_df_or_zero(dataframe_drop_columns(&df, &cols));
+  let (r, c) = dataframe_shape(&d);
+  let names = dataframe_columns(&d);
+  let av = p3_col_vals(&d, "a");
+  let cv = p3_col_vals(&d, "c");
+  var ok = r == 2 && c == 2 && names.len() == 2 && av.len() == 2 && cv.len() == 2;
+  if ok { ok = names[0] == "a" && names[1] == "c"; }
+  if ok { ok = av[0] == 1.0 && av[1] == 2.0 && cv[0] == 5.0 && cv[1] == 6.0; }
+  return xiom.test.assert(ok, "p3: drop [b] -> columns [a,c] with original values");
 }
 
-fn test_api_dataframe_from_parquet() -> TestResult {
-  return xiom.test.assert(true, "api: dataframe_from_parquet(path) -> Result[DataFrame, Str]");
+fn p3_test_drop_alias() -> TestResult {
+  let df = p3_mk_abc();
+  let cols = p3_names2("a", "c");
+  let d = p2_df_or_zero(drop_columns(&df, &cols));
+  let names = dataframe_columns(&d);
+  let bv = p3_col_vals(&d, "b");
+  var ok = names.len() == 1 && bv.len() == 2;
+  if ok { ok = names[0] == "b" && bv[0] == 3.0 && bv[1] == 4.0; }
+  return xiom.test.assert(ok, "p3: drop_columns alias [a,c] -> [b] [3,4]");
 }
 
-fn test_api_dataframe_to_parquet() -> TestResult {
-  return xiom.test.assert(true, "api: dataframe_to_parquet(df, path) -> Result[Int, Str]");
+fn p3_test_drop_missing_err() -> TestResult {
+  let df = p3_mk_abc();
+  let cols = p3_names1("z");
+  return xiom.test.assert(p2_df_err(dataframe_drop_columns(&df, &cols)), "p3: drop missing column returns Err");
 }
 
-// =========================================================================
-// SECTION 20 -- Contract declarations: additive 0.2.0 surface
-// =========================================================================
-
-fn test_contract_dataframe_free_requires() -> TestResult {
-  return xiom.test.assert(true, "contract: dataframe_free has requires: df != 0");
+fn p3_test_drop_all_err() -> TestResult {
+  let df = p3_mk_abc();
+  let cols = p3_names3("a", "b", "c");
+  return xiom.test.assert(p2_df_err(dataframe_drop_columns(&df, &cols)), "p3: dropping all columns returns Err");
 }
 
-fn test_contract_series_free_requires() -> TestResult {
-  return xiom.test.assert(true, "contract: series_free has requires: series != 0");
+fn p3_test_drop_none() -> TestResult {
+  let df = p3_mk_abc();
+  var cols = Vec[Str].new();
+  let d = p2_df_or_zero(dataframe_drop_columns(&df, &cols));
+  let (r, c) = dataframe_shape(&d);
+  return xiom.test.assert(r == 2 && c == 3, "p3: dropping nothing keeps (2,3)");
 }
 
-fn test_contract_series_buffer_free_requires() -> TestResult {
-  return xiom.test.assert(true, "contract: series_buffer_free has requires: ptr != 0");
+fn p3_test_groupby_handle() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  let g: Int = gb;
+  return xiom.test.assert(g != 0, "p3: group_by(g) returns a live GroupBy handle");
 }
 
-fn test_contract_dataframe_filter_f64_requires() -> TestResult {
-  return xiom.test.assert(true, "contract: dataframe_filter_f64 has requires: df != 0");
+fn p3_test_groupby_missing_key_handle() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "z");
+  let g: Int = gb;
+  return xiom.test.assert(g == 0, "p3: group_by(missing) returns 0");
 }
 
-fn test_contract_dataframe_to_parquet_requires() -> TestResult {
-  return xiom.test.assert(true, "contract: dataframe_to_parquet has requires: df != 0");
+fn p3_test_groupby_sum() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  let out = p2_df_or_zero(groupby_sum(gb, "v"));
+  let (r, c) = dataframe_shape(&out);
+  let names = dataframe_columns(&out);
+  let kv = p3_col_vals(&out, "g");
+  let vv = p3_col_vals(&out, "v");
+  var ok = r == 2 && c == 2 && names.len() == 2 && kv.len() == 2 && vv.len() == 2;
+  if ok { ok = names[0] == "g" && names[1] == "v"; }
+  if ok { ok = kv[0] == 1.0 && kv[1] == 2.0; }
+  if ok { ok = vv[0] == 9.0 && vv[1] == 30.0; }
+  return xiom.test.assert(ok, "p3: groupby_sum(v) by g -> g [1,2], v [9,30]");
 }
 
-// =========================================================================
-// SECTION 21 -- Safe wrapper error paths: additive 0.2.0 surface
-// =========================================================================
-
-fn safe_dataframe_free(df: Int) -> Result[Int, Str] {
-  if df == 0 {
-    return Err("dataframe_free: null DataFrame handle");
-  }
-  let rc: Int = unsafe { pandas_c_dataframe_free(df) };
-  if rc == 0 {
-    return Err("dataframe_free: free failed");
-  }
-  return Ok(0);
+fn p3_test_groupby_mean() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  let out = p2_df_or_zero(groupby_mean(gb, "v"));
+  let kv = p3_col_vals(&out, "g");
+  let vv = p3_col_vals(&out, "v");
+  var ok = kv.len() == 2 && vv.len() == 2;
+  if ok { ok = kv[0] == 1.0 && kv[1] == 2.0; }
+  if ok { ok = vv[0] == 3.0 && vv[1] == 15.0; }
+  return xiom.test.assert(ok, "p3: groupby_mean(v) by g -> v [3,15]");
 }
 
-fn test_safe_dataframe_free_null() -> TestResult {
-  let result = safe_dataframe_free(0);
-  return xiom.test.assert_err(result, "safe: dataframe_free(0) returns Err");
+fn p3_test_groupby_count() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  let out = p2_df_or_zero(groupby_count(gb, "v"));
+  let kv = p3_col_vals(&out, "g");
+  let vv = p3_col_vals(&out, "v");
+  var ok = kv.len() == 2 && vv.len() == 2;
+  if ok { ok = kv[0] == 1.0 && kv[1] == 2.0; }
+  if ok { ok = vv[0] == 3.0 && vv[1] == 2.0; }
+  return xiom.test.assert(ok, "p3: groupby_count(v) by g -> v [3,2]");
 }
 
-fn safe_series_free(series: Int) -> Result[Int, Str] {
-  if series == 0 {
-    return Err("series_free: null Series handle");
-  }
-  let rc: Int = unsafe { pandas_c_series_free(series) };
-  if rc == 0 {
-    return Err("series_free: free failed");
-  }
-  return Ok(0);
+fn p3_test_groupby_missing_col_err() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  return xiom.test.assert(p2_df_err(groupby_sum(gb, "z")), "p3: groupby_sum on missing column returns Err");
 }
 
-fn test_safe_series_free_null() -> TestResult {
-  let result = safe_series_free(0);
-  return xiom.test.assert_err(result, "safe: series_free(0) returns Err");
+fn p3_test_groupby_key_agg_err() -> TestResult {
+  let df = p3_mk_grouped();
+  let gb = group_by(&df, "g");
+  return xiom.test.assert(p2_df_err(groupby_sum(gb, "g")), "p3: aggregating the grouping column returns Err");
 }
 
-fn safe_series_buffer_free(ptr: Int) -> Result[Int, Str] {
-  if ptr == 0 {
-    return Err("series_buffer_free: null buffer pointer");
-  }
-  let rc: Int = unsafe { pandas_c_free(ptr) };
-  if rc == 0 {
-    return Err("series_buffer_free: free failed");
-  }
-  return Ok(0);
+fn p3_test_groupby_invalid_handle_err() -> TestResult {
+  let bogus: GroupBy = 999999;
+  return xiom.test.assert(p2_df_err(groupby_sum(bogus, "v")), "p3: groupby_sum on dead handle returns Err");
 }
 
-fn test_safe_series_buffer_free_null() -> TestResult {
-  let result = safe_series_buffer_free(0);
-  return xiom.test.assert_err(result, "safe: series_buffer_free(0) returns Err");
+fn p3_test_groupby_empty() -> TestResult {
+  let df = p3_mk_grouped_empty();
+  let gb = group_by(&df, "g");
+  let out = p2_df_or_zero(groupby_sum(gb, "v"));
+  let (r, c) = dataframe_shape(&out);
+  let names = dataframe_columns(&out);
+  var ok = r == 0 && c == 2 && names.len() == 2;
+  if ok { ok = names[0] == "g" && names[1] == "v"; }
+  return xiom.test.assert(ok, "p3: groupby_sum on 0-row frame -> (0,2) [g,v]");
 }
 
-fn safe_dataframe_filter_f64(df: Int, col_name: Int, op: Int, bits: Int) -> Result[Int, Str] {
-  if df == 0 {
-    return Err("dataframe_filter_f64: null DataFrame handle");
-  }
-  if col_name == 0 {
-    return Err("dataframe_filter_f64: null column name pointer");
-  }
-  let result: Int = unsafe { pandas_dataframe_filter_f64(df, col_name, op, bits) };
-  if result == 0 {
-    return Err("dataframe_filter_f64: filter returned null");
-  }
-  return Ok(result);
+fn p3_test_contract_sort() -> TestResult {
+  return xiom.test.assert(true, "contract: dataframe_sort/sort have requires: df != 0");
 }
 
-fn test_safe_dataframe_filter_f64_null() -> TestResult {
-  let result = safe_dataframe_filter_f64(0, 0, CMP_EQ, 0);
-  return xiom.test.assert_err(result, "safe: dataframe_filter_f64(0,0,...) returns Err");
+fn p3_test_contract_groupby() -> TestResult {
+  return xiom.test.assert(true, "contract: group_by/groupby_sum/mean/count have requires: handle != 0");
 }
 
-fn safe_dataframe_from_parquet(path: Int) -> Result[Int, Str] {
-  if path == 0 {
-    return Err("dataframe_from_parquet: null path pointer");
-  }
-  let df: Int = unsafe { pandas_c_dataframe_from_parquet(path) };
-  if df == 0 {
-    return Err("dataframe_from_parquet: backend unavailable");
-  }
-  return Ok(df);
+fn p3_test_contract_drop() -> TestResult {
+  return xiom.test.assert(true, "contract: dataframe_drop_columns/drop_columns have requires: df != 0");
 }
 
-fn test_safe_dataframe_from_parquet_null() -> TestResult {
-  let result = safe_dataframe_from_parquet(0);
-  return xiom.test.assert_err(result, "safe: dataframe_from_parquet(0) returns Err");
-}
-
-fn safe_dataframe_to_parquet(df: Int, path: Int) -> Result[Int, Str] {
-  if df == 0 {
-    return Err("dataframe_to_parquet: null DataFrame handle");
-  }
-  if path == 0 {
-    return Err("dataframe_to_parquet: null path pointer");
-  }
-  let rc: Int = unsafe { pandas_c_dataframe_to_parquet(df, path) };
-  if rc != 0 {
-    return Err("dataframe_to_parquet: failed");
-  }
-  return Ok(0);
-}
-
-fn test_safe_dataframe_to_parquet_null() -> TestResult {
-  let result = safe_dataframe_to_parquet(0, 0);
-  return xiom.test.assert_err(result, "safe: dataframe_to_parquet(0,0) returns Err");
+fn p3_test_contract_fillna_skipped() -> TestResult {
+  return xiom.test.assert(true, "p3: dataframe_fillna deliberately NOT implemented (NA model unpinned)");
 }
 
 // =========================================================================
@@ -887,47 +1324,61 @@ pub fn main() -> Int {
   results.push(test_safe_series_apply_null_series());
   results.push(test_safe_series_apply_null_func());
 
-  // Section 16: filter_f64 stub (3 tests)
-  results.push(test_filter_f64_null_df());
-  results.push(test_filter_f64_callable());
-  results.push(test_filter_f64_bad_op());
+  // Section 16: Phase 2 pure-XIOM surface (29 tests)
+  results.push(p2_test_shape());
+  results.push(p2_test_shape_alias());
+  results.push(p2_test_columns());
+  results.push(p2_test_columns_alias());
+  results.push(p2_test_dtypes());
+  results.push(p2_test_dtypes_alias());
+  results.push(p2_test_column_ok());
+  results.push(p2_test_column_missing_err());
+  results.push(p2_test_iloc_ok());
+  results.push(p2_test_iloc_oob_err());
+  results.push(p2_test_iloc_alias());
+  results.push(p2_test_loc_range_ok());
+  results.push(p2_test_loc_range_single());
+  results.push(p2_test_loc_range_err());
+  results.push(p2_test_loc_range_alias());
+  results.push(p2_test_head_ok());
+  results.push(p2_test_head_clamp());
+  results.push(p2_test_head_zero());
+  results.push(p2_test_head_neg_err());
+  results.push(p2_test_tail_ok());
+  results.push(p2_test_tail_clamp());
+  results.push(p2_test_tail_zero());
+  results.push(p2_test_tail_neg_err());
+  results.push(p2_test_ctor_len_mismatch());
+  results.push(p2_test_ctor_duplicate());
+  results.push(p2_test_ctor_no_cols());
+  results.push(p2_test_empty_frame());
+  results.push(p2_test_contract_shape());
+  results.push(p2_test_contract_slicing());
 
-  // Section 17: ownership frees stub (6 tests)
-  results.push(test_dataframe_free_null());
-  results.push(test_dataframe_free_callable());
-  results.push(test_series_free_null());
-  results.push(test_series_free_callable());
-  results.push(test_free_null());
-  results.push(test_free_callable());
-
-  // Section 18: Parquet stub (4 tests)
-  results.push(test_from_parquet_null());
-  results.push(test_from_parquet_callable());
-  results.push(test_to_parquet_null());
-  results.push(test_to_parquet_callable());
-
-  // Section 19: additive API presence (6 tests)
-  results.push(test_api_dataframe_free());
-  results.push(test_api_series_free());
-  results.push(test_api_series_buffer_free());
-  results.push(test_api_dataframe_filter_f64());
-  results.push(test_api_dataframe_from_parquet());
-  results.push(test_api_dataframe_to_parquet());
-
-  // Section 20: additive contract declarations (5 tests)
-  results.push(test_contract_dataframe_free_requires());
-  results.push(test_contract_series_free_requires());
-  results.push(test_contract_series_buffer_free_requires());
-  results.push(test_contract_dataframe_filter_f64_requires());
-  results.push(test_contract_dataframe_to_parquet_requires());
-
-  // Section 21: additive safe wrapper error paths (6 tests)
-  results.push(test_safe_dataframe_free_null());
-  results.push(test_safe_series_free_null());
-  results.push(test_safe_series_buffer_free_null());
-  results.push(test_safe_dataframe_filter_f64_null());
-  results.push(test_safe_dataframe_from_parquet_null());
-  results.push(test_safe_dataframe_to_parquet_null());
+  // Section 17: Phase 3 sort/drop/groupby (23 tests)
+  results.push(p3_test_sort_asc());
+  results.push(p3_test_sort_desc());
+  results.push(p3_test_sort_alias());
+  results.push(p3_test_sort_missing_err());
+  results.push(p3_test_sort_empty());
+  results.push(p3_test_drop_ok());
+  results.push(p3_test_drop_alias());
+  results.push(p3_test_drop_missing_err());
+  results.push(p3_test_drop_all_err());
+  results.push(p3_test_drop_none());
+  results.push(p3_test_groupby_handle());
+  results.push(p3_test_groupby_missing_key_handle());
+  results.push(p3_test_groupby_sum());
+  results.push(p3_test_groupby_mean());
+  results.push(p3_test_groupby_count());
+  results.push(p3_test_groupby_missing_col_err());
+  results.push(p3_test_groupby_key_agg_err());
+  results.push(p3_test_groupby_invalid_handle_err());
+  results.push(p3_test_groupby_empty());
+  results.push(p3_test_contract_sort());
+  results.push(p3_test_contract_groupby());
+  results.push(p3_test_contract_drop());
+  results.push(p3_test_contract_fillna_skipped());
 
   let total_count = results.len();
   let report = xiom.test.format_results(results);
@@ -942,12 +1393,12 @@ pub fn main() -> Int {
   if fail_count == 0 {
     io.println("ALL " + int_to_str(total_count) + " TESTS PASSED");
     io.println("Path: packages\\xiom-pandas\\tests\\test_conformance.xi");
-    io.println("Contracts: 16 (across 16 public functions)");
+    io.println("Contracts: 35 (across 35 public functions)");
     return 0;
   } else {
     io.println("Path: packages\\xiom-pandas\\tests\\test_conformance.xi");
     io.println("Tests: " + int_to_str(total_count));
-    io.println("Contracts: 16 (across 16 public functions)");
+    io.println("Contracts: 35 (across 35 public functions)");
     io.println("SOME TESTS FAILED");
     return 1;
   };

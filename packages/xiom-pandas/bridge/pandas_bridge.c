@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  *
  * This file is SUITE-ONLY (wired by port.args.json as `--c-source`). It defines
- * the 18 pandas_c_* / pandas_dataframe_* symbols declared in pandas.xi so the
- * suite links and runs offline, with deterministic behavior and no external
- * libraries:
+ * the 12 pandas_c_* symbols declared in pandas.xi so the suite links and runs
+ * offline, with deterministic behavior and no external libraries:
  *   - no Apache Arrow, no xiom.arrow, no allocator, no libc calls, no state;
  *   - no xiom_* runtime helpers (none are referenced by this bridge or by the
  *     package module);
@@ -42,13 +41,6 @@
  *   pandas_c_series_to_vec(1,0)            -> 0    (null out_len)
  *   pandas_c_series_apply(0,0)             -> 0    (null series)
  *   pandas_c_series_apply(1,0)             -> 0    (null func ptr)
- *   pandas_c_dataframe_free(0)             -> 0    (null handle)
- *   pandas_c_series_free(0)                -> 0    (null handle)
- *   pandas_c_free(0)                       -> 0    (null pointer)
- *   pandas_dataframe_filter_f64(0,0,0,0)   -> 0    (null df)
- *   pandas_dataframe_filter_f64(1,0,4,0)   -> 0    (null column name)
- *   pandas_c_dataframe_from_parquet(0)     -> 0    (null path)
- *   pandas_c_dataframe_to_parquet(0,0)     -> 1    (error rc)
  * Every "callable" suite check accepts 0 (assert_ge 0), so reporting the
  * backend unavailable is honest: the stub proves linkage + argument
  * validation, never fabricates data. Positive-handle paths are exercised by
@@ -179,54 +171,4 @@ long long pandas_c_series_apply(long long series, long long func_ptr) {
     return 0; /* null handle / null func pointer */
   }
   return 0; /* no apply engine in the offline stub */
-}
-
-/* --- Additive f64 filter entry (section-8 decision 5) ------------------- */
-
-long long pandas_dataframe_filter_f64(long long df, long long col_name,
-                                      long long op, long long bits) {
-  (void)bits;
-  if (!handle_ok(df) || !col_ok(col_name) || !cmp_ok(op)) {
-    return 0; /* null handle / null column name / bad compare op */
-  }
-  return 0; /* no compute engine in the offline stub */
-}
-
-/* --- Additive ownership frees (section-8 decision 4) -------------------- */
-
-long long pandas_c_dataframe_free(long long df) {
-  if (!handle_ok(df)) {
-    return 0; /* null handle */
-  }
-  return 0; /* no live handle storage in the offline stub */
-}
-
-long long pandas_c_series_free(long long series) {
-  if (!handle_ok(series)) {
-    return 0; /* null handle */
-  }
-  return 0; /* no live handle storage in the offline stub */
-}
-
-long long pandas_c_free(long long ptr) {
-  if (ptr == 0) {
-    return 0; /* null pointer */
-  }
-  return 0; /* no bridge-owned buffers in the offline stub */
-}
-
-/* --- Parquet I/O (section-8 decision 6) --------------------------------- */
-
-long long pandas_c_dataframe_from_parquet(long long path) {
-  if (path == 0) {
-    return 0; /* null path pointer */
-  }
-  return 0; /* Arrow Parquet component unavailable in the offline stub */
-}
-
-long long pandas_c_dataframe_to_parquet(long long df, long long path) {
-  if (!handle_ok(df) || path == 0) {
-    return 1; /* error rc: null handle or null path */
-  }
-  return 1; /* Arrow Parquet component unavailable in the offline stub */
 }
