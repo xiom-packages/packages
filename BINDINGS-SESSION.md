@@ -2178,6 +2178,33 @@ validate 579/0)**:
   payload lost on direct Err to Vec.push (v0.64.8; jev probe); not
   this lane's, watch the compiler ack.
 
+**UPDATE 2026-10-20 16:40Z (pandas 0.2.0 was ALREADY LIVE; tree
+re-synced; 0.2.1 merge wave launched)**:
+- `REL-20261019-2049-bindings` closed by packages: **xiom.pandas 0.2.0
+  was already LIVE** (single tag `xiom-pandas/v0.2.0`, 2026-10-19T18:53Z;
+  registry sha256 `1cd063c3...`) from the in-tree main build (record
+  **132/132 @ 8832fe61**; the batch also carried llm/numpy/openblas/
+  arrow in `eco-v0.1.200`).
+- **PARALLEL-BUILD DIVERGENCE found**: the live 0.2.0 = frame ops
+  (p2 shape/columns/iloc/head/tail + p3 sort/drop/groupby; 132 tests;
+  12 externs), while our landed feat/pandas-2-4 had the section-8
+  surface (frees/filter_f64/parquet/Arrow bridge; 110 tests).
+  Complementary, not identical.
+- **Re-synced the bindings tree to the LIVE artifact** (`a701955b` +
+  record `42b3afa9`; 132/132 x2; validate 579/0; pushed).  The
+  parallel landing is retained on its branch for the merge.
+- **0.2.1 MERGE WAVE LAUNCHED** (`am-1792514107159-cgxznv`; branch
+  `feat/pandas-0-2-1`): port the section-8 additions onto the live
+  132-test base -- all 132 must stay green, expect >132 total; bump
+  `xiom.pandas` 0.2.1; suite x2; push.  Publish request follows
+  (0.2.0 is immutable).
+- Reconciliation note filed `REL-20261020-1635-bindings`.
+- **LESSON (recipe addendum)**: double-implementation risk -- when a
+  package request is accepted with "we implement / you implement"
+  ambiguity, reconcile against the LIVE artifact BEFORE landing (or
+  bump the version).  A parallel implementation that passes its own
+  suite can silently diverge from the shipped registry content.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
