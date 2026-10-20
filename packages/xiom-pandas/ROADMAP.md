@@ -1,14 +1,16 @@
 # xiom.pandas -- Roadmap
 
-> Two-leg delivery (mirrors xiom.numpy Phase 1): the OFFLINE conformance leg
-> is green (**132/132 x2**, v0.64.8, 2026-10-19) via the pure-XIOM Phase-2/3
-> registry plus the suite-only stub bridge `bridge/pandas_bridge.c`. The REAL
-> Arrow C++ backend SOURCE is prepared (`bridge/xiom_pandas_arrow.cpp`) and
-> probe-green against Apache Arrow C++ 22.0.0 (pyarrow 22.0.0 MSVC wheel):
-> null contract + CSV round trip in `tests/probe_real_arrow.xi`, plus a
-> deleted local C-ABI exercise of all 12 symbols. Owner-pending ABI items
-> (free functions, apply signature, Float64 filter value, parquet) are listed
-> in SPEC.md; the 12-symbol FFI ABI is unchanged.
+> **0.2.1** (2026-10-20): the section-8 surface is merged onto the live 0.2.0
+> artifact -- additive ownership frees (`dataframe_free`/`series_free`/
+> `series_buffer_free`), `dataframe_filter_f64` (IEEE-754 bits as Int64), the
+> f64 `series_apply` parity and Arrow Parquet wrappers
+> (`dataframe_from_parquet`/`dataframe_to_parquet`) -- while keeping every
+> 0.2.0 entry point byte-identical. The REAL Arrow C++ backend implements the
+> 18-symbol ABI on Apache Arrow C++ 22.0.0 **without Acero headers or
+> symbols**; offline suite **164/164 x2** on v0.64.8 and the real probe is
+> green (CSV, group-by, joins, apply, filter_f64, frees, Parquet SKIP-safe).
+> See `SPEC.md`, `PROVENANCE.md` and section 9 of
+> `bridge/REAL-BACKEND-REQUIREMENTS.md`.
 
 **Phase 1** (v0.1.0) -- Core Foundation [OK]
 - [x] 3 opaque types: `DataFrame`, `Series`, `Dtype`
@@ -56,9 +58,21 @@ Design + semantics: SPEC.md -> "Phase 2 (partial, pure-XIOM)".
 
 Design + semantics: SPEC.md -> "Phase 3 (pinned subset)".
 
+**Phase 3.1** (v0.2.1, section-8 additive surface) -- merged onto live 0.2.0
+- [x] `dataframe_free(df) -> Result[Int, Str]` -- additive ownership
+- [x] `series_free(series) -> Result[Int, Str]` -- additive ownership
+- [x] `series_buffer_free(ptr) -> Result[Int, Str]` -- releases `series_to_vec` buffers
+- [x] `dataframe_filter_f64(df, col, op, bits) -> Result[DataFrame, Str]` -- IEEE-754 bits as Int64; Int entry unchanged
+- [x] `dataframe_from_parquet(path) -> Result[DataFrame, Str]` -- Arrow 22 Parquet component
+- [x] `dataframe_to_parquet(df, path) -> Result[Int, Str]` -- Arrow 22 Parquet component
+- [x] f64 `series_apply` parity (`double (*)(double)`, Float64 only) in the real bridge
+- [x] Acero-free real bridge (`Grouper` group-by, Grouper+`Take` join) + PROVENANCE
+- [x] 32 new checks -> **164/164 x2** (v0.64.8, 2026-10-20)
+- [x] Real probe legs: null contract, CSV, group-by, 4 join types, apply, filter_f64, frees, Parquet (SKIP-safe)
+
 **Phase 4** (v0.4.0) -- Advanced I/O & Time Series (needs the real Arrow backend)
-- [ ] `dataframe_read_parquet(path) -> Result[DataFrame, Str]`
-- [ ] `dataframe_to_parquet(df, path) -> Result[Unit, Str]`
+- [x] `dataframe_from_parquet(path) -> Result[DataFrame, Str]` -- landed in 0.2.1 (section-8 decision 6)
+- [x] `dataframe_to_parquet(df, path) -> Result[Int, Str]` -- landed in 0.2.1 (section-8 decision 6)
 - [ ] Time series: rolling windows, date range generation
 - [ ] Multi-index support (via Arrow nested structs)
 - [ ] Arrow zero-copy interop (`to_arrow`, `from_arrow`)
@@ -71,5 +85,5 @@ Design + semantics: SPEC.md -> "Phase 3 (pinned subset)".
 | Apache Arrow C++ (system) | Required by the real bridge only; never by the offline suite |
 
 ## Contract Coverage
-- 35 `requires` contracts across 35 public functions (11 Phase 1 + 16 Phase 2 + 8 Phase 3)
+- 40 `requires` contracts across 40 public functions (11 Phase 1 + 16 Phase 2 + 8 Phase 3 + 5 section-8)
 - Target: 100% of public FFI functions have contracts

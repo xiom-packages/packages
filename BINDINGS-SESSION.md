@@ -1757,6 +1757,27 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-20 12:35Z (morning -- pandas 2-4 merged; Docker engine
+stuck; fleet sweep armed to auto-run)**:
+- Overnight: **`xiom.pandas 0.2.0` LANDED** (section-8 real Arrow bridge:
+  Acero-free groupby/join, f64 apply/filter, Parquet component, additive
+  ownership frees; 110/110 x2; publish request `-2049-bindings` open) and
+  **bindings merged to main** (`e95c6072`; validate 584/0; ops allowlist
+  instruction sent -- epos now, MCU deferred).  `xiom.jev 0.2.0` live
+  (M2+M3 complete); PULSE Phase B unblocked (m371).
+- **Docker engine stuck**: Desktop app running since 21:12 but the
+  docker-desktop distro is Stopped, `_ping` returns 500, and the CLI
+  control channel hangs (stop/start/restart all hang) -> **manual Docker
+  Desktop restart needed**.  The overnight fleet sweep failed on this
+  (rc=125, 500 on _ping; no suite results).
+- Watcher armed (`scripts/wait-docker-then-fleet.ps1`, background, 90 min
+  of bounded probing): runs the arm64 fleet sweep as soon as the engine
+  answers.
+- Remaining: pandas 0.2.0 publish (packages), epos publish
+  (packages/ops), MCU next cycle, compiler fixer wave (new findings:
+  Map/Set AV + Vec4f, orbitdb soak, Err-push), AMD backlog, fleet sweep
+  (after Docker).
+
 **UPDATE 2026-10-19 20:10Z (MCU agents stopped+worktrees removed; Agent
 Manager offline; arm64 sweep hardened+restarted)**:
 - **MCU Phase-1 agents**: confirmed finished (worktrees clean at delivered
@@ -2134,6 +2155,71 @@ pandas 2-4 launched; MCU publish deferred)**:
   LAUNCHED** (`am-1792437729398-crb6ad`; branch `feat/pandas-2-4`);
   existing 12 wrappers stay byte-identical.
 - epos scope ask filed (ships next batch when ops stages it).
+
+**UPDATE 2026-10-19 21:00Z (PANDAS 2-4 LANDED: xiom.pandas 0.2.0;
+validate 579/0)**:
+- **`xiom.pandas 0.2.0` LANDED** (land `ca612b98`; record `24191eb5`):
+  phases 2-4 real Arrow bridge per the owner-approved section-8 pins --
+  Acero-free groupby/join fallbacks (builds on Arrow 22.0.0 WITHOUT
+  Acero headers), TableGroupBy fallback, `series_apply` f64
+  (Float64-only; NA/NaN out of scope), ADDITIVE ownership frees
+  (`pandas_c_dataframe_free` / `pandas_c_series_free` / `pandas_c_free`
+  + pandas.xi + the declared-marker), additive
+  `dataframe_filter_f64(bits: Int64)`, Arrow-22 parquet component
+  (OpenFile/ReadTable/WriteTable; no separate stack).  18 C symbols;
+  **existing 12 wrappers byte-identical**.
+- Gates: agent record **110/110 x2 on v0.64.8 (Acero-free REAL
+  bridge)**; the landed-tree gate re-ran 110/110 x2 (stub/absent-
+  backend legs; live evidence in the record + PROVENANCE);
+  validate **579/0**; pushed `24191eb5`.
+- Publish request `REL-20261019-2049-bindings` (existing name;
+  additive-only).
+- Compiler watch: a NEW defect was filed packages-side -- Err(Str)
+  payload lost on direct Err to Vec.push (v0.64.8; jev probe); not
+  this lane's, watch the compiler ack.
+
+**UPDATE 2026-10-20 16:40Z (pandas 0.2.0 was ALREADY LIVE; tree
+re-synced; 0.2.1 merge wave launched)**:
+- `REL-20261019-2049-bindings` closed by packages: **xiom.pandas 0.2.0
+  was already LIVE** (single tag `xiom-pandas/v0.2.0`, 2026-10-19T18:53Z;
+  registry sha256 `1cd063c3...`) from the in-tree main build (record
+  **132/132 @ 8832fe61**; the batch also carried llm/numpy/openblas/
+  arrow in `eco-v0.1.200`).
+- **PARALLEL-BUILD DIVERGENCE found**: the live 0.2.0 = frame ops
+  (p2 shape/columns/iloc/head/tail + p3 sort/drop/groupby; 132 tests;
+  12 externs), while our landed feat/pandas-2-4 had the section-8
+  surface (frees/filter_f64/parquet/Arrow bridge; 110 tests).
+  Complementary, not identical.
+- **Re-synced the bindings tree to the LIVE artifact** (`a701955b` +
+  record `42b3afa9`; 132/132 x2; validate 579/0; pushed).  The
+  parallel landing is retained on its branch for the merge.
+- **0.2.1 MERGE WAVE LAUNCHED** (`am-1792514107159-cgxznv`; branch
+  `feat/pandas-0-2-1`): port the section-8 additions onto the live
+  132-test base -- all 132 must stay green, expect >132 total; bump
+  `xiom.pandas` 0.2.1; suite x2; push.  Publish request follows
+  (0.2.0 is immutable).
+- Reconciliation note filed `REL-20261020-1635-bindings`.
+- **LESSON (recipe addendum)**: double-implementation risk -- when a
+  package request is accepted with "we implement / you implement"
+  ambiguity, reconcile against the LIVE artifact BEFORE landing (or
+  bump the version).  A parallel implementation that passes its own
+  suite can silently diverge from the shipped registry content.
+
+**UPDATE 2026-10-20 17:58Z (PANDAS 0.2.1 LANDED -- superset merge;
+validate 579/0)**:
+- **`xiom.pandas 0.2.1` LANDED** (land `c23c8616`; record `7a8a0d06`):
+  the section-8 surface merged onto the LIVE 0.2.0 base -- **ALL 132
+  live frame-op tests kept** + 32 section-8 checks (ownership frees,
+  `filter_f64`, Parquet wrappers, f64 `series_apply` parity, Acero-free
+  Arrow 22 real bridge incl. Parquet); 18 C symbols; 40 contracts;
+  **x2 164/164 on v0.64.8** (agent record 164/164 x2 with the real
+  probe green + the landed-tree gate 164/164 x2); validate **579/0**;
+  pushed `7a8a0d06`.
+- Publish request `REL-20261020-1756-bindings` (0.2.1; existing name;
+  supersedes the immutable 0.2.0 -- per packages' bump-and-re-file
+  instruction).
+- The double-implementation lesson above stands; the 0.2.1 merge
+  branch `feat/pandas-0-2-1` is the canonical merge history.
 
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
