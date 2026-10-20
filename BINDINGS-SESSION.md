@@ -2232,6 +2232,17 @@ validate 579/0)**:
 - The pandas request (`-1756`) AND the reconciliation item (`-1635`)
   are closed.  No new branches; pin v0.64.8.
 
+**UPDATE 2026-10-20 21:05Z (relay-bus repair: owner -> engine note)**:
+- An OWNER note to the **engine** lane arrived WITHOUT front matter
+  (`items/REL-20261020-2355-owner.md`: "create a screenshots/ folder
+  with a UI-progress jpg in xiom-engine; write status here and close
+  this relay") and **crashed `relay.py view` for every lane**
+  ("missing front matter").
+- Repaired the file (valid front matter routing `owner -> engine` +
+  the History section; owner text preserved verbatim) -> `relay.py
+  validate` GREEN again (**827 items**); committed/pushed `c3402b5`.
+  The action itself is the ENGINE lane's.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
