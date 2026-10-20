@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-19T21:09:00Z",
+    "updated":  "2026-10-20T21:14:33Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -310,7 +310,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.arrow",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Apache Arrow in-memory columnar format with Pandas backend and zero-copy data sharing",
@@ -320,7 +320,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-arrow/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-arrow/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "arrow.xi",
                                               "package.xi"
@@ -3964,10 +3964,10 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.jev",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "TypeSafe Jev client tier (System One structured decisions): typed questions (choice/score/noul) -\u003e typed answers with probabilities and confidence, plus deterministic selection (argmax, threshold, sample-by-probability from caller-supplied entropy); float-free micro-unit core",
+                         "description":  "TypeSafe Jev client tier (System One structured decisions): typed questions (choice/score/noul/box) with optional danger-zone image assets -\u003e typed answers with probabilities and confidence, plus deterministic selection (argmax, threshold, sample-by-probability from caller-supplied entropy); float-free micro-unit core",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
@@ -3978,11 +3978,13 @@
                                                   "name":  "xiom.http"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jev/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jev/v0.2.0/package.tar.gz",
                          "source_files":  [
+                                              "batch.xi",
                                               "beam.xi",
                                               "client.xi",
                                               "compression.xi",
+                                              "confidence.xi",
                                               "errors.xi",
                                               "jev.xi",
                                               "request.xi",
@@ -4613,7 +4615,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.llm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "llama.cpp-family runner tier: GGUF payload/vocab loading, byte-level BPE tokenizer and deterministic float-free dequant, matmul, forward pass and generation loop",
@@ -4623,7 +4625,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-llm/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-llm/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "llm.xi",
                                               "package.xi"
@@ -5708,7 +5710,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.numpy",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "NumPy C API -- the fundamental array computing library for scientific Python.",
@@ -5718,7 +5720,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-numpy/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-numpy/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "numpy.xi",
                                               "package.xi"
@@ -5905,7 +5907,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.openblas",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "OpenBLAS -- optimized Basic Linear Algebra Subprograms (BLAS) and LAPACK.",
@@ -5915,7 +5917,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-openblas/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-openblas/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "openblas.xi",
                                               "package.xi"
@@ -6320,7 +6322,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.1",
                          "name":  "xiom.pandas",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pandas Arrow-backed DataFrame and Series operations with zero Python overhead",
@@ -6330,7 +6332,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pandas/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pandas/v0.2.1/package.tar.gz",
                          "source_files":  [
                                               "package.xi",
                                               "pandas.xi"

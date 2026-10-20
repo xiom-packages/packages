@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-19T21:09:00+03:00
-# packages: 584  modules: 1185
+# generated: 2026-10-20T21:14:31+03:00
+# packages: 584  modules: 1187
 
 ## package names
 xiom.aaudio
@@ -1022,9 +1022,11 @@ xiom.irc
 xiom.iso8583
 xiom.itest
 xiom.jev
+xiom.jev.batch
 xiom.jev.beam
 xiom.jev.client
 xiom.jev.compression
+xiom.jev.confidence
 xiom.jev.errors
 xiom.jev.request
 xiom.jev.response
