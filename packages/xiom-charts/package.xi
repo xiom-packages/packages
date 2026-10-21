@@ -10,10 +10,10 @@
 
 package xiom_charts {
   name: "xiom.charts";
-  version: "0.1.0";
-  description: "Deterministic integer line and bar charts emitted as SVG";
+  version: "0.2.0";
+  description: "Deterministic Float64 2D charts with byte-stable SVG output";
   categories: ["graphics", "text-nlp"];
-  keywords: ["charts", "svg", "plot", "bar-chart", "line-chart", "visualization"];
+  keywords: ["charts", "svg", "plot", "scatter", "histogram", "pie", "colormap", "visualization"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];
