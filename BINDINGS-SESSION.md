@@ -1757,6 +1757,28 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-21 13:30Z (charts 0.2.0 + kafka 0.2.0 LANDED; arm64 fleet
+sweep 12/13 green; charts publish requested)**:
+- **`xiom.charts 0.2.0` LANDED** (`fa9f5605`; x2 **71/71**): float geometry,
+  linear/log scales, nice ticks, axes/grid/legends/annotations/markers,
+  viridis/magma colormaps; line/scatter/bar(grouped/stacked)/area/step/
+  pie/doughnut/histogram; byte-stable SVG; pure XIOM.  Publish request
+  `REL-20261021-1233-bindings` filed (**new name -> ops scope**).
+  Next: P2 = 2D advanced + 3D static projection/emitters (charts 0.3).
+- **`xiom.kafka 0.2.0` LANDED** (`a43a2eda`; x2 **50/50 LIVE**): real
+  librdkafka bindings -- producer/delivery callbacks, consumer
+  (subscribe/assign/commit), metadata, transactions, config/error surface;
+  mock-cluster live batteries (no broker); admin create/delete typed
+  unsupported (-165) as expected.  Publish already queued with packages
+  (+ ORBITWIRE co-run).
+- **arm64 emulated fleet sweep COMPLETE**: **12/13 green** (serial, mqtt,
+  i2c, spi, adc, pwm, sensor, can, ble, zigbee, hid, modbus all rc=0);
+  **usb = rc=124** (hit the 20-min hard cap; suite too slow under qemu --
+  retry with a higher per-suite cap if needed).  Note xvector's to-all
+  warning: host WSL VM restarts kill long batteries -> keep emulated runs
+  short + logged.
+- validate **579/0**; tree clean, 3 commits pushed.
+
 **UPDATE 2026-10-21 11:50Z (charts/plots program -- 2D + 3D COMPLETE coverage,
 axes/grids everything; charts P1 launched; split approved)**: owner
 clarification + design decision.
