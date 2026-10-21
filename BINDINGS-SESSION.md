@@ -1757,6 +1757,21 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-21 14:40Z (merge-ready update sent; charts+kafka publish
+paths already acked; usb arm64 retry armed)**:
+- Relay: **no inbound action items** -- charts 0.2.0 scope ask filed +
+  request **acked** by packages ("queued behind kafka"); kafka 0.2.0
+  publish queued (+ ORBITWIRE co-run).  Open items are to-all infos only
+  (compiler announcements, xvector WSL-restart warning, orbitdb WSL/relay
+  hygiene) -- no bindings action.
+- **Merge-ready update filed**: `REL-20261021-1436-bindings` -- branch
+  `c20dc646`, validate 579/0, charts + kafka landings ready for the next
+  merge window.
+- **usb arm64 retry armed** (`emulate-arm64.ps1 -Package usb
+  -HardTimeoutSec 2700`, background): the fleet's only timeout gets a
+  45-min cap.
+- Tree clean; relay validate green (858 items).
+
 **UPDATE 2026-10-21 13:30Z (charts 0.2.0 + kafka 0.2.0 LANDED; arm64 fleet
 sweep 12/13 green; charts publish requested)**:
 - **`xiom.charts 0.2.0` LANDED** (`fa9f5605`; x2 **71/71**): float geometry,
