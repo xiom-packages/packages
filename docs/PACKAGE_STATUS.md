@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.8` -- generated 2026-10-21T14:40:51Z.
+Toolchain pin: `v0.64.8` -- generated 2026-10-21T14:48:42Z.
 
 ## Summary
 
@@ -500,7 +500,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.oidn | xiom-oidn | incubating | tests/test_conformance.xi | pass 4/4 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- OIDN loader tier) |
 | xiom.onnx | xiom-onnx | incubating | tests/test_conformance.xi | pass 60/60 | ceccf069 | False | published in eco-v0.1.198 (2026-10-18, 0.2.0; sha256 4c230691...) |
 | xiom.openal | xiom-openal | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
-| xiom.openblas | xiom-openblas | incubating | tests/test_conformance.xi | pass 42/42 | 50deed24 | False | published in eco-v0.1.200 (2026-10-19, 0.1.1; sha256 43d609d3...) |
+| xiom.openblas | xiom-openblas | incubating | tests/test_conformance.xi | pass 52/52 | 8d68e993 | False | published 2026-10-21 (single tag xiom-openblas/v0.2.0; sha256 71b2a098...; Float32 surface); 0.1.1 in eco-v0.1.200 |
 | xiom.opencv | xiom-opencv | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.opengl | xiom-opengl | incubating | tests/test_conformance.xi | pass 28/28 | 779ac140 | False | published in eco-v0.1.170 (2026-10-13, 0.5.0 WGL wave; 0.4.0 in eco-v0.1.164; 0.3.0 earlier) |
 | xiom.openpgl | xiom-openpgl | incubating | tests/test_conformance.xi | pass 14/14 | 50b65cee | False | published in eco-v0.1.179 (2026-10-14, 0.1.0 Open PGL v0.7.1) |
