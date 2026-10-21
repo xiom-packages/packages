@@ -2520,4 +2520,3 @@ pub fn chart_svg(f: &ChartFigure) -> Str {
   }
   return chart_line_svg(f);
 }
-
