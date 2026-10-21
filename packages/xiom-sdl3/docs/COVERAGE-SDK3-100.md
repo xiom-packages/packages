@@ -88,3 +88,47 @@ The suite header documents the same oracle/bound/resolved definitions inline
 - **Live confirmation of B-12** during probe development: `SDL_randf()`
   through the loader returned garbage (580218) on v0.64.3 while the C-side
   value is in [0,1) -- consistent with the recorded finding.
+
+## 6. 0.21.0 A14 UI platform additions (2026-10-21)
+
+Engine ask `REL-20261021-1652-engine-5`; additive on 0.20.0; SDL 3.4.8
+symbols only.  The hand-written `sdl3.xi` facade is authoritative; the
+generated full-surface modules already bind the same symbols under
+`xiom.sdl3.full.*`.
+
+| Ask bullet | Public surface (typed) | SDL symbols |
+|------------|------------------------|-------------|
+| 1. Window identity + geometry | `sdl3_window_id`, `sdl3_window_from_id`, `sdl3_window_position` (`Sdl3WindowPosition`), `sdl3_set_window_position`, `sdl3_window_size_pixels` (`Sdl3PixelSize`), `sdl3_window_display_scale`, `sdl3_window_display`, `sdl3_display_index`, `sdl3_display_content_scale` | 7 resource + 1 core (+ `sdl3_display_index` pure composition) |
+| 2. Focus + DPI routing | `sdl3_event_window_focus` (`Sdl3WindowFocus`), `sdl3_event_is_focus_change`, `sdl3_event_dpi_change` (`Sdl3DpiChange`), `sdl3_event_is_dpi_change`; works in filter/watch callbacks via `sdl3_event_copy` | 0 (pure decode) |
+| 3. Text input + IME | `sdl3_start_text_input`, `sdl3_stop_text_input`, `sdl3_text_input_active`, `sdl3_set_text_input_area`, `sdl3_get_text_input_area` (`Sdl3TextInputArea` incl. cursor), `sdl3_clear_composition`; `sdl3_event_text_editing` (`Sdl3TextEditing`), `sdl3_event_text_input`, `sdl3_event_text_kind` (`SDL3_TEXT_EVENT_EDITING/COMMIT/CANCELLED`) | 6 resource + pure decode |
+| 4. Clipboard | `sdl3_set/get/has_clipboard_text`, `sdl3_set/get/has_primary_selection_text` | 6 core |
+| **Total** | 6 public types + 11 constants | **20 symbols** |
+
+Pinned x64 layouts used by the decoders (verified against
+`release-3.4.8/include/SDL3/SDL_events.h`):
+
+- `SDL_TextEditingEvent` (40 bytes): type @0, reserved @4, timestamp @8,
+  windowID @16, `text` ptr @24, `start` i32 @32, `length` i32 @36.
+- `SDL_TextInputEvent` (32 bytes): type @0, reserved @4, timestamp @8,
+  windowID @16, `text` ptr @24.
+- Window/focus/DPI members reuse the existing `SDL_WindowEvent` header:
+  windowID @16, data1 i32 @20, data2 i32 @24.
+
+Ownership / failure semantics:
+
+- `SDL_GetClipboardText` and `SDL_GetPrimarySelectionText` return
+  caller-owned strings: copied with `Str::from_c_str` then `SDL_free`d
+  immediately.
+- Primary selection on a platform without it: the SDL setter returns
+  false and sets `SDL_GetError`; the suite prints an explicit SKIP marker
+  (typed-unsupported path).  On the Windows dev host the round trip is
+  live, so both branches are exercised over the lane's history.
+- SDL 3.4.8 has no dedicated `TEXT_EDITING_CANCELLED` event; an
+  empty/NULL-preedit `TEXT_EDITING` is classified as cancellation by
+  `sdl3_event_text_kind`.
+- Float returns (`SDL_GetWindowDisplayScale`,
+  `SDL_GetDisplayContentScale`) were re-verified on v0.64.8 (1.0); the
+  earlier B-12 finding no longer reproduces for this shape.
+
+Suite evidence (v0.64.8, SDL 3.4.8 DLL): **81/81 x2 live**; absent shape
+**9/9 x2** (UI decode, focus/DPI/IME decoding still run without the DLL).

@@ -1,6 +1,6 @@
 # xiom.sdl3 -- Roadmap
 
-**Version**: v0.19.0 | **Compiler**: xiom v0.64.4 | **Last updated**: 2026-10-14
+**Version**: v0.21.0 | **Compiler**: xiom v0.64.8 | **Last updated**: 2026-10-21
 
 ## Current state
 
@@ -9,7 +9,7 @@
 | Dynamic loader (no link dependency) | Done -- `sdl3_load`/`sdl3_close` over `xiom.ffi.dl` |
 | SKIP-when-absent / ABI-mismatch detection | Done -- `SDL3_LOAD_ABSENT` / `SDL3_LOAD_ABI` |
 | Smoke suite (init/version/quit, timer/event) | Done |
-| Resource loader (separate stage) | Done -- `sdl3_load_resources` (22 symbols) |
+| Resource loader (separate stage) | Done -- `sdl3_load_resources` (37 symbols) |
 | Window (hidden, size/title/show/hide) | Done -- 0.3.0 |
 | Renderer (draw color, clear, present) | Done -- 0.3.0 |
 | Texture (RGBA8888 create/destroy) | Done -- 0.3.0 |
@@ -32,6 +32,7 @@
 | Joystick caps (rumble/LED flags + counts/type) as typed queries | Done -- 0.19.0 (property-flag path incl. positive round trip witness) |
 | Haptic wave forms (periodic encode/create/run/stop, typed errors) | Done -- 0.19.0 (device path SKIP-safe; not-haptic typed-error witness live) |
 | Pen/tablet decode (motion/touch/button/proximity + tool type) | Done -- 0.19.0 (DLL-free decode + queue readback witness) |
+| A14 UI platform (window identity/geometry, focus + DPI routing, IME, clipboard) | Done -- 0.21.0 (engine ask `REL-20261021-1652-engine-5`; hidden-window live legs + typed watch routing) |
 | POSIX soname fallback | Phase 2 |
 
 ## Phase 2 (remaining)
@@ -59,5 +60,6 @@
    capture streams + query in 0.13.0, pointer/relative mouse in 0.14.0,
    live joystick reads in 0.15.0, drag-drop payload decode in 0.16.0,
    foreign-written event readback in 0.18.0, joystick caps + haptic wave
-   forms + pen/tablet decode in 0.19.0; the
+   forms + pen/tablet decode in 0.19.0, A14 window/focus/DPI/IME/clipboard
+   surface in 0.21.0; the
    full-coverage drive continues).
