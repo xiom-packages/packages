@@ -441,6 +441,13 @@ pub type Sdl3Library = {
   p_play_haptic_rumble: Int;
   p_stop_haptic_rumble: Int;
   p_get_pen_device_type: Int;
+  p_get_display_content_scale: Int;
+  p_set_clipboard_text: Int;
+  p_get_clipboard_text: Int;
+  p_has_clipboard_text: Int;
+  p_set_primary_selection_text: Int;
+  p_get_primary_selection_text: Int;
+  p_has_primary_selection_text: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -648,6 +655,20 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a96.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_StopHapticRumble: " + a96.error }); }
   let a97 = dl.dl_sym(handle, "SDL_GetPenDeviceType");
   if !a97.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetPenDeviceType: " + a97.error }); }
+  let a98 = dl.dl_sym(handle, "SDL_GetDisplayContentScale");
+  if !a98.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetDisplayContentScale: " + a98.error }); }
+  let a99 = dl.dl_sym(handle, "SDL_SetClipboardText");
+  if !a99.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetClipboardText: " + a99.error }); }
+  let a100 = dl.dl_sym(handle, "SDL_GetClipboardText");
+  if !a100.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetClipboardText: " + a100.error }); }
+  let a101 = dl.dl_sym(handle, "SDL_HasClipboardText");
+  if !a101.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_HasClipboardText: " + a101.error }); }
+  let a102 = dl.dl_sym(handle, "SDL_SetPrimarySelectionText");
+  if !a102.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetPrimarySelectionText: " + a102.error }); }
+  let a103 = dl.dl_sym(handle, "SDL_GetPrimarySelectionText");
+  if !a103.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetPrimarySelectionText: " + a103.error }); }
+  let a104 = dl.dl_sym(handle, "SDL_HasPrimarySelectionText");
+  if !a104.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_HasPrimarySelectionText: " + a104.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -748,6 +769,13 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_play_haptic_rumble: a95.value,
     p_stop_haptic_rumble: a96.value,
     p_get_pen_device_type: a97.value,
+    p_get_display_content_scale: a98.value,
+    p_set_clipboard_text: a99.value,
+    p_get_clipboard_text: a100.value,
+    p_has_clipboard_text: a101.value,
+    p_set_primary_selection_text: a102.value,
+    p_get_primary_selection_text: a103.value,
+    p_has_primary_selection_text: a104.value,
   });
 }
 
@@ -962,6 +990,19 @@ pub type Sdl3Resources = {
   p_set_render_vsync: Int;
   p_set_window_size: Int;
   p_set_window_resizable: Int;
+  p_get_window_id: Int;
+  p_get_window_from_id: Int;
+  p_get_window_position: Int;
+  p_set_window_position: Int;
+  p_get_window_size_pixels: Int;
+  p_get_window_display_scale: Int;
+  p_get_display_for_window: Int;
+  p_start_text_input: Int;
+  p_stop_text_input: Int;
+  p_text_input_active: Int;
+  p_set_text_input_area: Int;
+  p_get_text_input_area: Int;
+  p_clear_composition: Int;
 }
 
 fn sdl3_res_error(r: &Sdl3Resources) -> Str
@@ -1032,6 +1073,32 @@ pub fn sdl3_load_resources() -> Result[Sdl3Resources, Sdl3LoadError] {
   if !a23.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetWindowSize: " + a23.error }); }
   let a24 = dl.dl_sym(handle, "SDL_SetWindowResizable");
   if !a24.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetWindowResizable: " + a24.error }); }
+  let a25 = dl.dl_sym(handle, "SDL_GetWindowID");
+  if !a25.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetWindowID: " + a25.error }); }
+  let a26 = dl.dl_sym(handle, "SDL_GetWindowFromID");
+  if !a26.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetWindowFromID: " + a26.error }); }
+  let a27 = dl.dl_sym(handle, "SDL_GetWindowPosition");
+  if !a27.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetWindowPosition: " + a27.error }); }
+  let a28 = dl.dl_sym(handle, "SDL_SetWindowPosition");
+  if !a28.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetWindowPosition: " + a28.error }); }
+  let a29 = dl.dl_sym(handle, "SDL_GetWindowSizeInPixels");
+  if !a29.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetWindowSizeInPixels: " + a29.error }); }
+  let a30 = dl.dl_sym(handle, "SDL_GetWindowDisplayScale");
+  if !a30.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetWindowDisplayScale: " + a30.error }); }
+  let a31 = dl.dl_sym(handle, "SDL_GetDisplayForWindow");
+  if !a31.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetDisplayForWindow: " + a31.error }); }
+  let a32 = dl.dl_sym(handle, "SDL_StartTextInput");
+  if !a32.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_StartTextInput: " + a32.error }); }
+  let a33 = dl.dl_sym(handle, "SDL_StopTextInput");
+  if !a33.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_StopTextInput: " + a33.error }); }
+  let a34 = dl.dl_sym(handle, "SDL_TextInputActive");
+  if !a34.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_TextInputActive: " + a34.error }); }
+  let a35 = dl.dl_sym(handle, "SDL_SetTextInputArea");
+  if !a35.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetTextInputArea: " + a35.error }); }
+  let a36 = dl.dl_sym(handle, "SDL_GetTextInputArea");
+  if !a36.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetTextInputArea: " + a36.error }); }
+  let a37 = dl.dl_sym(handle, "SDL_ClearComposition");
+  if !a37.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_ClearComposition: " + a37.error }); }
 
   return Ok(Sdl3Resources{
     handle: handle,
@@ -1059,6 +1126,19 @@ pub fn sdl3_load_resources() -> Result[Sdl3Resources, Sdl3LoadError] {
     p_set_render_vsync: a22.value,
     p_set_window_size: a23.value,
     p_set_window_resizable: a24.value,
+    p_get_window_id: a25.value,
+    p_get_window_from_id: a26.value,
+    p_get_window_position: a27.value,
+    p_set_window_position: a28.value,
+    p_get_window_size_pixels: a29.value,
+    p_get_window_display_scale: a30.value,
+    p_get_display_for_window: a31.value,
+    p_start_text_input: a32.value,
+    p_stop_text_input: a33.value,
+    p_text_input_active: a34.value,
+    p_set_text_input_area: a35.value,
+    p_get_text_input_area: a36.value,
+    p_clear_composition: a37.value,
   });
 }
 
@@ -3900,4 +3980,543 @@ pub fn sdl3_event_pen_button_down(ev: &Vec[UInt8]) -> Bool
   requires: ev.len() >= 38
 {
   return ev_read_u8(ev, 37) != 0;
+}
+
+// =========================================================================
+// 0.21.0: UI platform surface (engine ask REL-20261021-1652-engine-5, A14)
+//
+// Window identity/geometry, per-window focus + DPI-change routing, text
+// input/IME and clipboard, all by function over the pinned 3.4.8 ABI.
+// Window-scoped calls live on the resource loader (they take SDL_Window*);
+// global clipboard and display enumeration live on the core loader.  Every
+// out-param gets its own owned slot (B-17): no pointer arithmetic reaches a
+// foreign call.  Float returns were re-verified on v0.64.8 (B-12 fixed for
+// this shape: SDL_GetWindowDisplayScale/GetDisplayContentScale read 1.0 on
+// the box); event payload floats still decode through sdl3_f32_from_bits.
+// =========================================================================
+
+pub const SDL3_WINDOW_FOCUS_NONE: Int = 0;
+pub const SDL3_WINDOW_FOCUS_GAINED: Int = 1;
+pub const SDL3_WINDOW_FOCUS_LOST: Int = 2;
+
+pub const SDL3_DPI_CHANGE_NONE: Int = 0;
+pub const SDL3_DPI_CHANGE_PIXEL_SIZE: Int = 1;
+pub const SDL3_DPI_CHANGE_DISPLAY: Int = 2;
+pub const SDL3_DPI_CHANGE_DISPLAY_SCALE: Int = 3;
+
+/// Package-level text event kinds.  SDL3 has no dedicated
+/// `SDL_EVENT_TEXT_EDITING_CANCELLED`: cancellation is delivered as a
+/// normal `SDL_EVENT_TEXT_EDITING` whose preedit text is empty (or NULL);
+/// `sdl3_event_text_kind` classifies that case as CANCELLED so consumers
+/// get a typed cancellation signal without inventing an SDL event type.
+pub const SDL3_TEXT_EVENT_NONE: Int = 0;
+pub const SDL3_TEXT_EVENT_EDITING: Int = 1;
+pub const SDL3_TEXT_EVENT_COMMIT: Int = 2;
+pub const SDL3_TEXT_EVENT_CANCELLED: Int = 3;
+
+pub type Sdl3WindowPosition = {
+  ok: Bool;
+  x: Int;
+  y: Int;
+}
+
+pub type Sdl3PixelSize = {
+  ok: Bool;
+  width: Int;
+  height: Int;
+}
+
+pub type Sdl3TextInputArea = {
+  ok: Bool;
+  x: Int;
+  y: Int;
+  w: Int;
+  h: Int;
+  cursor: Int;
+}
+
+/// Typed focus routing: `state` is SDL3_WINDOW_FOCUS_* and `window_id` is
+/// the SDL window id carried at event offset 16 (0 for non-focus events).
+pub type Sdl3WindowFocus = {
+  state: Int;
+  window_id: Int;
+}
+
+/// Typed DPI-change routing.  `reason` is SDL3_DPI_CHANGE_*:
+/// PIXEL_SIZE -> pixel_width/pixel_height; DISPLAY -> display_id;
+/// DISPLAY_SCALE -> the window's display scale changed (query it with
+/// sdl3_window_display_scale).
+pub type Sdl3DpiChange = {
+  reason: Int;
+  window_id: Int;
+  display_id: Int;
+  pixel_width: Int;
+  pixel_height: Int;
+}
+
+/// SDL_TextEditingEvent decode (Win64 layout: text ptr @24, start i32 @32,
+/// length i32 @36; windowID u32 @16).  `text` is the preedit/composition
+/// string; `start`/`length` are UTF-8 character offsets into it (-1 when
+/// unset).  The pointer is SDL-owned and only valid for the event delivery.
+pub type Sdl3TextEditing = {
+  window_id: Int;
+  text: Str;
+  start: Int;
+  length: Int;
+}
+
+/// SDL_GetWindowID -> SDL_WindowID (0 for an invalid window).
+/// Complexity: O(1).
+pub fn sdl3_window_id(r: &Sdl3Resources, win: Int) -> Int
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_get_window_id as fn(Int) -> Int32;
+    return f(win) as Int;
+  }
+}
+
+/// SDL_GetWindowFromID -> SDL_Window* handle (0 when the id is stale).
+/// Complexity: O(1).
+pub fn sdl3_window_from_id(r: &Sdl3Resources, id: Int) -> Int
+  requires: r.handle != 0
+  requires: id > 0
+{
+  unsafe {
+    let f = r.p_get_window_from_id as fn(Int) -> Int;
+    return f(id);
+  }
+}
+
+/// SDL_GetWindowPosition -> Sdl3WindowPosition (ok=false + 0,0 on failure).
+/// Coordinates are in the virtual desktop space.
+/// Complexity: O(1).
+pub fn sdl3_window_position(r: &Sdl3Resources, win: Int) -> Sdl3WindowPosition
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    var sx = sdl3_slot4();
+    var sy = sdl3_slot4();
+    let f = r.p_get_window_position as fn(Int, *UInt8, *UInt8) -> UInt8;
+    let ok = (f(win, sx.as_mut_ptr(), sy.as_mut_ptr()) as Int) != 0;
+    if !ok {
+      return Sdl3WindowPosition{ ok: false; x: 0; y: 0 };
+    }
+    return Sdl3WindowPosition{
+      ok: true;
+      x: sdl3_read_i32_at(&sx, 0);
+      y: sdl3_read_i32_at(&sy, 0);
+    };
+  }
+}
+
+/// SDL_SetWindowPosition (virtual desktop coordinates) -> bool.  A
+/// WINDOW_MOVED (+ DISPLAY_CHANGED on a monitor change) event is queued.
+/// Complexity: O(1).
+pub fn sdl3_set_window_position(r: &Sdl3Resources, win: Int, x: Int, y: Int) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_set_window_position as fn(Int, Int, Int) -> UInt8;
+    return (f(win, x, y) as Int) != 0;
+  }
+}
+
+/// SDL_GetWindowSizeInPixels -> Sdl3PixelSize (ok=false + 0x0 on failure).
+/// This is the physical framebuffer size; divide by the logical
+/// sdl3_window_size to recover the DPI scale when needed.
+/// Complexity: O(1).
+pub fn sdl3_window_size_pixels(r: &Sdl3Resources, win: Int) -> Sdl3PixelSize
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    var sw = sdl3_slot4();
+    var sh = sdl3_slot4();
+    let f = r.p_get_window_size_pixels as fn(Int, *UInt8, *UInt8) -> UInt8;
+    let ok = (f(win, sw.as_mut_ptr(), sh.as_mut_ptr()) as Int) != 0;
+    if !ok {
+      return Sdl3PixelSize{ ok: false; width: 0; height: 0 };
+    }
+    return Sdl3PixelSize{
+      ok: true;
+      width: sdl3_read_i32_at(&sw, 0);
+      height: sdl3_read_i32_at(&sh, 0);
+    };
+  }
+}
+
+/// SDL_GetWindowDisplayScale -> window DPI scale (1.0 = 96 DPI logical;
+/// 0.0 when the window is invalid).  This is the S5 cross-monitor signal;
+/// pair it with SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED.
+/// Complexity: O(1).
+pub fn sdl3_window_display_scale(r: &Sdl3Resources, win: Int) -> Float64
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_get_window_display_scale as fn(Int) -> Float32;
+    return f(win) as Float64;
+  }
+}
+
+/// SDL_GetDisplayForWindow -> display id the window is on (0 on failure).
+/// Use sdl3_display_index + sdl3_display_bounds for the index/bounds pair.
+/// Complexity: O(1).
+pub fn sdl3_window_display(r: &Sdl3Resources, win: Int) -> Int
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_get_display_for_window as fn(Int) -> Int32;
+    return f(win) as Int;
+  }
+}
+
+/// Index of a display id in the SDL_GetDisplays enumeration (-1 when the id
+/// is not in the list).  SDL3 identifies monitors by id; this recovers the
+/// index a UI/toolkit may need.
+/// Complexity: O(displays^2) (the display list is fetched per probe).
+pub fn sdl3_display_index(lib: &Sdl3Library, id: Int) -> Int
+  requires: lib.handle != 0
+  requires: id >= 0
+{
+  let n = sdl3_display_count(lib);
+  var i = 0;
+  while i < n {
+    if sdl3_display_at(lib, i) == id { return i; }
+    i = i + 1;
+  }
+  return -1;
+}
+
+/// SDL_GetDisplayContentScale -> display content scale (0.0 for an unknown
+/// display).  Float return re-verified on v0.64.8.
+/// Complexity: O(1).
+pub fn sdl3_display_content_scale(lib: &Sdl3Library, id: Int) -> Float64
+  requires: lib.handle != 0
+  requires: id >= 0
+{
+  unsafe {
+    let f = lib.p_get_display_content_scale as fn(Int) -> Float32;
+    return f(id) as Float64;
+  }
+}
+
+/// SDL_StartTextInput(window) -> bool: enables UTF-8 text input events and
+/// the platform IME for that window.
+/// Complexity: O(1).
+pub fn sdl3_start_text_input(r: &Sdl3Resources, win: Int) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_start_text_input as fn(Int) -> UInt8;
+    return (f(win) as Int) != 0;
+  }
+}
+
+/// SDL_StopTextInput(window) -> bool: disables text input/IME for the
+/// window (SDL also hides an on-screen keyboard it showed).
+/// Complexity: O(1).
+pub fn sdl3_stop_text_input(r: &Sdl3Resources, win: Int) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_stop_text_input as fn(Int) -> UInt8;
+    return (f(win) as Int) != 0;
+  }
+}
+
+/// SDL_TextInputActive(window) -> whether text input events are enabled.
+/// Complexity: O(1).
+pub fn sdl3_text_input_active(r: &Sdl3Resources, win: Int) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_text_input_active as fn(Int) -> UInt8;
+    return (f(win) as Int) != 0;
+  }
+}
+
+/// SDL_SetTextInputArea(window, rect, cursor) -> bool.  `rect` is the IME
+/// candidate anchor in window coordinates; `cursor` is the caret offset
+/// relative to rect.x (UTF-8 character units, platform dependent).  The
+/// 16-byte rect slot is built with byte-indexed writes (B-16).
+/// Complexity: O(1).
+pub fn sdl3_set_text_input_area(r: &Sdl3Resources, win: Int, area: Sdl3Rect, cursor: Int) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+  requires: area.w >= 0
+  requires: area.h >= 0
+  requires: cursor >= 0
+{
+  unsafe {
+    var slot = sdl3_slot(16);
+    sdl3_write_u32_le(&mut slot, 0, area.x);
+    sdl3_write_u32_le(&mut slot, 4, area.y);
+    sdl3_write_u32_le(&mut slot, 8, area.w);
+    sdl3_write_u32_le(&mut slot, 12, area.h);
+    let f = r.p_set_text_input_area as fn(Int, *UInt8, Int) -> UInt8;
+    return (f(win, slot.as_mut_ptr(), cursor) as Int) != 0;
+  }
+}
+
+/// SDL_GetTextInputArea(window, &rect, &cursor) -> Sdl3TextInputArea
+/// (ok=false + zeroed fields on failure).  `cursor` is the IME caret
+/// offset relative to rect.x.
+/// Complexity: O(1).
+pub fn sdl3_get_text_input_area(r: &Sdl3Resources, win: Int) -> Sdl3TextInputArea
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    var rect = sdl3_slot(16);
+    var cursor = sdl3_slot4();
+    let f = r.p_get_text_input_area as fn(Int, *UInt8, *UInt8) -> UInt8;
+    let ok = (f(win, rect.as_mut_ptr(), cursor.as_mut_ptr()) as Int) != 0;
+    if !ok {
+      return Sdl3TextInputArea{ ok: false; x: 0; y: 0; w: 0; h: 0; cursor: 0 };
+    }
+    return Sdl3TextInputArea{
+      ok: true;
+      x: sdl3_read_i32_at(&rect, 0);
+      y: sdl3_read_i32_at(&rect, 4);
+      w: sdl3_read_i32_at(&rect, 8);
+      h: sdl3_read_i32_at(&rect, 12);
+      cursor: sdl3_read_i32_at(&cursor, 0);
+    };
+  }
+}
+
+/// SDL_ClearComposition(window) -> bool: dismisses the IME composition
+/// window without disabling text input.
+/// Complexity: O(1).
+pub fn sdl3_clear_composition(r: &Sdl3Resources, win: Int) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_clear_composition as fn(Int) -> UInt8;
+    return (f(win) as Int) != 0;
+  }
+}
+
+/// SDL_SetClipboardText -> bool.  `text` is UTF-8; an empty string clears
+/// the textual clipboard.  Clipboard functions take no window.
+/// Complexity: O(len).
+pub fn sdl3_set_clipboard_text(lib: &Sdl3Library, text: Str) -> Bool
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_set_clipboard_text as fn(*UInt8) -> UInt8;
+    return (f(text.c_str()) as Int) != 0;
+  }
+}
+
+/// SDL_GetClipboardText -> UTF-8 text ("" when empty/unavailable).  The
+/// SDL-owned return is copied then freed with SDL_free.
+/// Complexity: O(len).
+pub fn sdl3_get_clipboard_text(lib: &Sdl3Library) -> Str
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_clipboard_text as fn() -> Int;
+    let p = f();
+    if p == 0 { return ""; }
+    let s = Str::from_c_str(p as *UInt8);
+    let fr = lib.p_free as fn(Int);
+    fr(p);
+    return s;
+  }
+}
+
+/// SDL_HasClipboardText -> whether the clipboard holds a non-empty text.
+/// Complexity: O(1).
+pub fn sdl3_has_clipboard_text(lib: &Sdl3Library) -> Bool
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_has_clipboard_text as fn() -> UInt8;
+    return (f() as Int) != 0;
+  }
+}
+
+/// SDL_SetPrimarySelectionText -> bool.  Where the platform has no primary
+/// selection (e.g. Windows), SDL returns false and sets an error string:
+/// that is the typed-unsupported path consumers fall back from.
+/// Complexity: O(len).
+pub fn sdl3_set_primary_selection_text(lib: &Sdl3Library, text: Str) -> Bool
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_set_primary_selection_text as fn(*UInt8) -> UInt8;
+    return (f(text.c_str()) as Int) != 0;
+  }
+}
+
+/// SDL_GetPrimarySelectionText -> UTF-8 text ("" when empty/unsupported).
+/// The SDL-owned return is copied then freed with SDL_free.
+/// Complexity: O(len).
+pub fn sdl3_get_primary_selection_text(lib: &Sdl3Library) -> Str
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_primary_selection_text as fn() -> Int;
+    let p = f();
+    if p == 0 { return ""; }
+    let s = Str::from_c_str(p as *UInt8);
+    let fr = lib.p_free as fn(Int);
+    fr(p);
+    return s;
+  }
+}
+
+/// SDL_HasPrimarySelectionText -> whether the primary selection holds a
+/// non-empty text (false where the platform has no primary selection).
+/// Complexity: O(1).
+pub fn sdl3_has_primary_selection_text(lib: &Sdl3Library) -> Bool
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_has_primary_selection_text as fn() -> UInt8;
+    return (f() as Int) != 0;
+  }
+}
+
+/// Focus routing for WINDOW_FOCUS_GAINED/LOST: window id + gained/lost.
+/// Non-focus events classify as SDL3_WINDOW_FOCUS_NONE (window id still
+/// decoded from offset 16).
+/// Complexity: O(1).
+pub fn sdl3_event_window_focus(ev: &Vec[UInt8]) -> Sdl3WindowFocus
+  requires: ev.len() >= 20
+{
+  let t = sdl3_event_type(ev);
+  let wid = sdl3_event_window_id(ev);
+  if t == SDL_EVENT_WINDOW_FOCUS_GAINED {
+    return Sdl3WindowFocus{ state: SDL3_WINDOW_FOCUS_GAINED; window_id: wid };
+  }
+  if t == SDL_EVENT_WINDOW_FOCUS_LOST {
+    return Sdl3WindowFocus{ state: SDL3_WINDOW_FOCUS_LOST; window_id: wid };
+  }
+  return Sdl3WindowFocus{ state: SDL3_WINDOW_FOCUS_NONE; window_id: wid };
+}
+
+/// True for WINDOW_FOCUS_GAINED/LOST (the per-window focus signal).
+/// Complexity: O(1).
+pub fn sdl3_event_is_focus_change(ev: &Vec[UInt8]) -> Bool
+  requires: ev.len() >= 20
+{
+  return sdl3_event_window_focus(ev).state != SDL3_WINDOW_FOCUS_NONE;
+}
+
+/// DPI-change routing: PIXEL_SIZE_CHANGED (data1xdata2),
+/// DISPLAY_CHANGED (data1 = new display id) and
+/// DISPLAY_SCALE_CHANGED all classify to a typed Sdl3DpiChange.
+/// Complexity: O(1).
+pub fn sdl3_event_dpi_change(ev: &Vec[UInt8]) -> Sdl3DpiChange
+  requires: ev.len() >= 28
+{
+  let t = sdl3_event_type(ev);
+  let wid = sdl3_event_window_id(ev);
+  if t == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED {
+    return Sdl3DpiChange{
+      reason: SDL3_DPI_CHANGE_PIXEL_SIZE;
+      window_id: wid;
+      display_id: 0;
+      pixel_width: sdl3_event_window_data1(ev);
+      pixel_height: sdl3_event_window_data2(ev);
+    };
+  }
+  if t == SDL_EVENT_WINDOW_DISPLAY_CHANGED {
+    return Sdl3DpiChange{
+      reason: SDL3_DPI_CHANGE_DISPLAY;
+      window_id: wid;
+      display_id: sdl3_event_window_data1(ev);
+      pixel_width: 0;
+      pixel_height: 0;
+    };
+  }
+  if t == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED {
+    return Sdl3DpiChange{
+      reason: SDL3_DPI_CHANGE_DISPLAY_SCALE;
+      window_id: wid;
+      display_id: 0;
+      pixel_width: 0;
+      pixel_height: 0;
+    };
+  }
+  return Sdl3DpiChange{
+    reason: SDL3_DPI_CHANGE_NONE;
+    window_id: wid;
+    display_id: 0;
+    pixel_width: 0;
+    pixel_height: 0;
+  };
+}
+
+/// True for the three DPI-change signals above.
+/// Complexity: O(1).
+pub fn sdl3_event_is_dpi_change(ev: &Vec[UInt8]) -> Bool
+  requires: ev.len() >= 28
+{
+  return sdl3_event_dpi_change(ev).reason != SDL3_DPI_CHANGE_NONE;
+}
+
+/// SDL_TextEditingEvent decode (composition/preedit).  `text` is copied
+/// from the event-owned C string ("" when NULL); start/length are i32.
+/// Complexity: O(len).
+pub fn sdl3_event_text_editing(ev: &Vec[UInt8]) -> Sdl3TextEditing
+  requires: ev.len() >= 40
+{
+  unsafe {
+    let p = sdl3_read_u64_at(ev, 24);
+    let text = if p == 0 { "" } else { Str::from_c_str(p as *UInt8) };
+    return Sdl3TextEditing{
+      window_id: sdl3_read_u32_at(ev, 16);
+      text: text;
+      start: sdl3_read_i32_at(ev, 32);
+      length: sdl3_read_i32_at(ev, 36);
+    };
+  }
+}
+
+/// SDL_TextInputEvent decode (the committed UTF-8 text).  The pointer is
+/// SDL-owned and only valid for the event delivery; copied here ("" when
+/// NULL).
+/// Complexity: O(len).
+pub fn sdl3_event_text_input(ev: &Vec<UInt8>) -> Str
+  requires: ev.len() >= 32
+{
+  unsafe {
+    let p = sdl3_read_u64_at(ev, 24);
+    if p == 0 { return ""; }
+    return Str::from_c_str(p as *UInt8);
+  }
+}
+
+/// Classify a text event into SDL3_TEXT_EVENT_*: EDITING for a non-empty
+/// preedit, CANCELLED for an empty/NULL preedit (SDL3's cancellation
+/// signal), COMMIT for TEXT_INPUT, NONE for every other event type.
+/// Complexity: O(len).
+pub fn sdl3_event_text_kind(ev: &Vec<UInt8>) -> Int
+  requires: ev.len() >= 40
+{
+  let t = sdl3_event_type(ev);
+  if t == SDL_EVENT_TEXT_INPUT {
+    return SDL3_TEXT_EVENT_COMMIT;
+  }
+  if t == SDL_EVENT_TEXT_EDITING {
+    let te = sdl3_event_text_editing(ev);
+    if te.text.len() == 0 {
+      return SDL3_TEXT_EVENT_CANCELLED;
+    }
+    return SDL3_TEXT_EVENT_EDITING;
+  }
+  return SDL3_TEXT_EVENT_NONE;
 }
