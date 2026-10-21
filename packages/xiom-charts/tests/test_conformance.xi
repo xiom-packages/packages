@@ -656,6 +656,12 @@ fn t50() -> TestResult {
   f.bar_width = 0.5;
   let half = chart_bar_svg(&f);
   if !string.str_contains(half, "<rect x=\"35\" y=\"50\" width=\"30\" height=\"15\" fill=\"#4c78a8\"/>") { ok = false; }
+  var ns = Vec[ChartSeries].new();
+  ns.push(series_new("s", Vec[Float64].new(), fv1(1.0)));
+  var nf = figure_new(ns, chart_layout(100.0, 100.0, 20.0, 20.0, 20.0, 20.0));
+  figure_set_legend(&mut nf, false);
+  figure_set_kind(&mut nf, CHART_BAR);
+  if !string.str_contains(chart_bar_svg(&nf), "text-anchor=\"middle\">1</text>") { ok = false; }
   return assert(ok, "grouped bars grow from zero for negatives and honor bar_width");
 }
 
@@ -804,6 +810,10 @@ fn t61() -> TestResult {
   let doc = chart_pie_svg(&f);
   var ok = string.str_contains(doc, "A36 36 0 1 1");
   if !string.str_contains(doc, "M50 50 L50 14") { ok = false; }
+  var df = f;
+  figure_set_kind(&mut df, CHART_DOUGHNUT);
+  df.doughnut_hole = 0.5;
+  if !string.str_contains(chart_doughnut_svg(&df), "A18 18 0 1 0") { ok = false; }
   var neg = Vec[ChartSeries].new();
   neg.push(series_cat("s", lv1("x"), fv1(0.0 - 3.0)));
   var f2 = figure_new(neg, chart_layout(100.0, 100.0, 10.0, 10.0, 10.0, 10.0));

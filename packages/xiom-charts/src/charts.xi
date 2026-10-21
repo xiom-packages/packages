@@ -1782,6 +1782,8 @@ fn _render_x_axis_text(f: &ChartFigure, b: &_Bounds) -> Str {
         if idx < labels.len() {
           let lab: Str = labels[idx];
           label = lab;
+        } else {
+          label = convert.int_to_string(idx + 1);
         }
       }
     }
