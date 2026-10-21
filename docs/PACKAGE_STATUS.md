@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.8` -- generated 2026-10-21T14:48:42Z.
+Toolchain pin: `v0.64.8` -- generated 2026-10-21T16:34:11Z.
 
 ## Summary
 
-- packages tracked: 584
-- incubating: 303
+- packages tracked: 585
+- incubating: 304
 - stable: 281
 - publish enabled: 0
 
@@ -401,6 +401,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.firmata | xiom-firmata | incubating | tests/test_conformance.xi | pass 122/122 | 925f1557 | False | publish pending: new name (xiom.firmata host protocol bindings, MCU Phase-1 wave 2026-10-19); ops scope not yet requested |
 | xiom.flags | xiom-flags | incubating | tests/test_conformance.xi | pass 18/18 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.flash | xiom-flash | incubating | tests/test_conformance.xi | pass 20/20 | ca969acd | False | category harmonization patch bump (registry metadata) |
+| xiom.fontraster | xiom-fontraster | incubating | tests/test_conformance.xi | pass 11/11 | HEAD | False | publish pending: new name (ops scope) |
 | xiom.forkjoin | xiom-forkjoin | incubating | tests/test_conformance.xi | pass 22/22 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.formatter-fw | xiom-formatter-fw | incubating | tests/test_conformance.xi | pass 23/23 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.gazebo | xiom-gazebo | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -435,7 +436,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.jni | xiom-jni | incubating | tests/test_conformance.xi | pass 90/90 | ea8dcc0e | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 A11 jni-seam head) |
 | xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 159/159 | 6a01201d | False | published in eco-v0.1.182 (2026-10-15, 0.7.0 E4/E5 -- E-family complete; 0.6.0 in eco-v0.1.181; 0.5.0 in eco-v0.1.180; 0.4.0 in eco-v0.1.179; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161) |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
-| xiom.kafka | xiom-kafka | incubating | tests/test_conformance.xi | pass 50/50 | 07a32e35 | False |  |
+| xiom.kafka | xiom-kafka | incubating | tests/test_conformance.xi | pass 50/50 | 07a32e35 | False | published 2026-10-21 (single tag xiom-kafka/v0.2.0; sha256 ba3bf0b3...) |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.ktx2 | xiom-ktx2 | incubating | tests/test_conformance.xi | pass 41/41 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- KTX-Software 4.4.2) |
 | xiom.kv | xiom-kv | incubating | tests/test_conformance.xi | pass 30/30 | 603f87ef | False | tests-only touch 2026-10-09 (rides the next source version bump) |

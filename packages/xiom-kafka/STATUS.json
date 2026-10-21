@@ -13,7 +13,7 @@
                   "checked":  "2026-10-21T14:38:47Z"
               },
     "publish":  false,
-    "excluded_reason":  null,
+    "excluded_reason":  "published 2026-10-21 (single tag xiom-kafka/v0.2.0; sha256 ba3bf0b3...)",
     "platforms":  [
                       "windows-x64"
                   ],
