@@ -1757,6 +1757,25 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-21 11:35Z (Kafka completion launched; matplotlib assessment)**:
+- **`xiom.kafka` already exists** (0.1.0 "ported only": librdkafka FFI
+  stubs -- handle -1 / poll None / admin Err(-999); not publishable).
+  Owner asked for full coverage -> **`feat/kafka-real` launched**
+  (`am-1792582075496-y6qhj1`): librdkafka (BSD-2) light clone at pin,
+  real producer/consumer/admin/config/error surface, **mock-cluster live
+  batteries** (no broker needed), 100% coverage table, x2, publish after
+  landing.  No conflicts: stdlib owns protocol parsers only; the kafka
+  client driver is a package (STDLIB_EXTENSION.md §3121 cites
+  xiom-kafka), and no other lane has it.
+- **matplotlib: not a viable native binding** -- pure Python, no stable C
+  API (the C++ Agg internals are private).  Options: extend
+  **`xiom.charts`** (existing: deterministic integer line/bar -> SVG;
+  0.1.0 incubating, 28 tests), a CPython-embedding package as a Python
+  gateway (program-scale), or a native C-ABI plot backend (plplot/Cairo
+  loader, Skia, ImPlot).  No stdlib/package name conflict for it.
+- Fleet sweep: serial/mqtt/i2c/spi/adc/pwm/sensor/can green; ble..modbus
+  in flight.
+
 **UPDATE 2026-10-21 10:20Z (morning -- pandas 0.2.1 live .201; Docker back;
 fleet sweep restarted)**:
 - **pandas resolved**: 0.2.0 was already live (parallel build found; lane
