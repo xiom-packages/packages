@@ -1757,6 +1757,25 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-21 10:20Z (morning -- pandas 0.2.1 live .201; Docker back;
+fleet sweep restarted)**:
+- **pandas resolved**: 0.2.0 was already live (parallel build found; lane
+  re-synced to the live artifact 132/132), then **`xiom.pandas 0.2.1`
+  (section-8 superset) LANDED + PUBLISHED in `eco-v0.1.201`** (164/164 x2;
+  165-test superset live).  Requests `-2049` + `-1756` FIXED; merge-ready
+  `-2021` fixed.  Lesson recorded: double-implementation on parallel
+  pandas builds -- re-sync to the live artifact before re-landing.
+- Relay: bus validate green (827) after the bindings repair of the
+  owner->engine note (front matter + history) and the BOM/orbitdb item
+  repair.  New arm64 finding filed: module-scope Vec init emits invalid IR
+  on LLVM 14 (evidence recorded) -- surfaced by the emulation work.
+- **Docker back (28.3.0)**; the previous watcher died with its session, so
+  the sweep did not auto-run -> **arm64 fleet sweep restarted**
+  (background, timeout-capped 20 min/suite).
+- Remaining: MCU publish (next cycle), epos publish (packages/ops),
+  compiler fixer wave (Map/Set AV + Vec4f, orbitdb soak, Err-push, arm64
+  IR) -> next tag, AMD backlog, fleet sweep results.
+
 **UPDATE 2026-10-20 12:35Z (morning -- pandas 2-4 merged; Docker engine
 stuck; fleet sweep armed to auto-run)**:
 - Overnight: **`xiom.pandas 0.2.0` LANDED** (section-8 real Arrow bridge:
@@ -2220,6 +2239,28 @@ validate 579/0)**:
   instruction).
 - The double-implementation lesson above stands; the 0.2.1 merge
   branch `feat/pandas-0-2-1` is the canonical merge history.
+
+**UPDATE 2026-10-20 19:20Z (PANDAS 0.2.1 PUBLISHED in eco-v0.1.201)**:
+- **`xiom.pandas 0.2.1` LIVE** in **`eco-v0.1.201`** (sha256
+  `4c0818716b72627824a1d1f84a0fab81c1b990edcaa179157c4e111ada3e6062`;
+  18:18:17Z): merge `d81a7f39` resolved the pandas files to the
+  BINDINGS superset; validate **584/0**; native x2 **164/164** @
+  `7e92c250`; record `1d6d5678`; run 39473068474 green
+  (published=1 failed=0); README/STATUS synced (`5ae9d6ae`).
+  Supersedes the immutable 0.2.0 as agreed.
+- The pandas request (`-1756`) AND the reconciliation item (`-1635`)
+  are closed.  No new branches; pin v0.64.8.
+
+**UPDATE 2026-10-20 21:05Z (relay-bus repair: owner -> engine note)**:
+- An OWNER note to the **engine** lane arrived WITHOUT front matter
+  (`items/REL-20261020-2355-owner.md`: "create a screenshots/ folder
+  with a UI-progress jpg in xiom-engine; write status here and close
+  this relay") and **crashed `relay.py view` for every lane**
+  ("missing front matter").
+- Repaired the file (valid front matter routing `owner -> engine` +
+  the History section; owner text preserved verbatim) -> `relay.py
+  validate` GREEN again (**827 items**); committed/pushed `c3402b5`.
+  The action itself is the ENGINE lane's.
 
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
