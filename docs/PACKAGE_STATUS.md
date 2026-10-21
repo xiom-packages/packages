@@ -4,13 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.8` -- generated 2026-10-21T10:17:11Z.
+Toolchain pin: `v0.64.8` -- generated 2026-10-21T14:40:51Z.
 
 ## Summary
 
 - packages tracked: 584
-- incubating: 302
-- ported: 1
+- incubating: 303
 - stable: 281
 - publish enabled: 0
 
@@ -310,7 +309,6 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.xpm | xiom-xpm | stable | tests/test_conformance.xi | pass 19/19 | a8682d9b | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.yaml | xiom-yaml | stable | tests/test_conformance.xi | pass 25/25 | 1e9fe6be | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.zonefile | xiom-zonefile | stable | tests/test_conformance.xi | pass 20/20 | e46d4899 | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.kafka | xiom-kafka | ported | tests/test_conformance.xi | pass 22/22 | ed680f75 | False | ported only: librdkafka FFI stubs remain (handle -1, poll None, admin Err(-999)); not publishable |
 | xiom.aaudio | xiom-aaudio | incubating | tests/test_conformance.xi | pass 13/13 | 366d80ab | False | new package (Android SDK100 A6 AAudio head); publish gate after the G1 android emission target + first on-device suite run |
 | xiom.activation | xiom-activation | incubating | tests/test_conformance.xi | pass 24/24 | 8601a49b | False | publish pending: next scope delta |
 | xiom.actor | xiom-actor | incubating | tests/test_conformance.xi | pass 28/28 | 761842c9 | False | publish pending: next scope delta |
@@ -349,7 +347,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.cfn | xiom-cfn | incubating | tests/test_conformance.xi | pass 26/26 | 70f9ce09 | False | publish pending: next scope delta |
 | xiom.chaincore | xiom-chaincore | incubating | tests/test_conformance.xi | pass 24/24 | 2d19c071 | False | publish pending: next scope delta |
 | xiom.chaincrypto | xiom-chaincrypto | incubating | tests/test_conformance.xi | pass 19/19 | 565e9f98 | False | publish pending: next scope delta |
-| xiom.charts | xiom-charts | incubating | tests/test_conformance.xi | pass 28/28 | 5f469ee5 | False | publish pending: next scope delta |
+| xiom.charts | xiom-charts | incubating | tests/test_conformance.xi | pass 71/71 | 07a32e35 | False | published 2026-10-21 (single tag xiom-charts/v0.2.0; sha256 7dddb907...); 0.1.0 earlier |
 | xiom.chef | xiom-chef | incubating | tests/test_conformance.xi | pass 26/26 | a24861c5 | False | publish pending: next scope delta |
 | xiom.chromatography | xiom-chromatography | incubating | tests/test_conformance.xi | pass 24/24 | d93fafaf | False | publish pending: next scope delta |
 | xiom.climate | xiom-climate | incubating | tests/test_conformance.xi | pass 24/24 | c6e68dae | False | publish pending: next scope delta |
@@ -437,6 +435,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.jni | xiom-jni | incubating | tests/test_conformance.xi | pass 90/90 | ea8dcc0e | False | published in eco-v0.1.192 (2026-10-16, 0.1.0 A11 jni-seam head) |
 | xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | pass 159/159 | 6a01201d | False | published in eco-v0.1.182 (2026-10-15, 0.7.0 E4/E5 -- E-family complete; 0.6.0 in eco-v0.1.181; 0.5.0 in eco-v0.1.180; 0.4.0 in eco-v0.1.179; 0.3.0 in eco-v0.1.176; 0.2.0 in eco-v0.1.161) |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
+| xiom.kafka | xiom-kafka | incubating | tests/test_conformance.xi | pass 50/50 | 07a32e35 | False |  |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.ktx2 | xiom-ktx2 | incubating | tests/test_conformance.xi | pass 41/41 | 3a22a083 | False | published in eco-v0.1.178 (2026-10-14, 0.1.0 -- KTX-Software 4.4.2) |
 | xiom.kv | xiom-kv | incubating | tests/test_conformance.xi | pass 30/30 | 603f87ef | False | tests-only touch 2026-10-09 (rides the next source version bump) |
