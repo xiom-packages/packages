@@ -109,3 +109,5 @@ pass `-TimeoutSec 300`.
   clone `iwata-lab/maxon_epos_ros`; the official public documentation URL is
   recorded.  Pins, hashes and the lane's present-path evidence live in
   PROVENANCE.md.
+
+**Published:** `0.1.0` in `eco-v0.1.201`-era single tag `xiom-epos/v0.1.0` (sha256 `b5a565de...`, 2026-10-21; registry live-verified; ops scope eco-release 574).

@@ -13,5 +13,5 @@
                   "checked":  "2026-10-16T23:22:08Z"
               },
     "publish":  false,
-    "excluded_reason":  "new package (R2 wave closed-SDK loader slice); publish gate after the Linux libEposCmd.so lane + a hardware bring-up run"
+    "excluded_reason":  "published 2026-10-21 (single tag xiom-epos/v0.1.0; sha256 b5a565de...)"
 }

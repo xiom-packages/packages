@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.8` -- generated 2026-10-21T10:15:13Z.
+Toolchain pin: `v0.64.8` -- generated 2026-10-21T10:17:11Z.
 
 ## Summary
 
@@ -389,7 +389,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.elastic | xiom-elastic | incubating | tests/test_conformance.xi | pass 28/28 | a1a1acc5 | False | publish pending: next scope delta |
 | xiom.ensemble | xiom-ensemble | incubating | tests/test_conformance.xi | pass 24/24 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.environment | xiom-environment | incubating | tests/test_conformance.xi | pass 23/23 | 65b513cc | False | publish pending: next scope delta |
-| xiom.epos | xiom-epos | incubating | tests/test_conformance.xi | pass 29/29 | 3c472618 | False | new package (R2 wave closed-SDK loader slice); publish gate after the Linux libEposCmd.so lane + a hardware bring-up run |
+| xiom.epos | xiom-epos | incubating | tests/test_conformance.xi | pass 29/29 | 3c472618 | False | published 2026-10-21 (single tag xiom-epos/v0.1.0; sha256 b5a565de...) |
 | xiom.etcd | xiom-etcd | incubating | tests/test_conformance.xi | pass 26/26 | 4f36c8f1 | False | category harmonization patch bump (registry metadata) |
 | xiom.ethereum | xiom-ethereum | incubating | tests/test_conformance.xi | pass 23/23 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.exchanger | xiom-exchanger | incubating | tests/test_conformance.xi | pass 24/24 | 1c5f0a30 | False | category harmonization patch bump (registry metadata) |
