@@ -6,11 +6,11 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  72,
+                  "passed":  81,
                   "failed":  0,
-                  "run_by":  "reverify-v0.64.8",
-                  "commit":  "813768e5",
-                  "checked":  "2026-10-19T18:29:55Z"
+                  "run_by":  "am-1792605630402-w0kzfl",
+                  "commit":  "278415b3",
+                  "checked":  "2026-10-21T18:16:22Z"
               },
     "publish":  false,
     "excluded_reason":  "published in eco-v0.1.173 (2026-10-13, 0.18.0 readback wave; 0.17.0 in eco-v0.1.162; 0.16.1 in eco-v0.1.160; 0.16.0 in eco-v0.1.152; 0.15.0 in eco-v0.1.151)"
