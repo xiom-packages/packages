@@ -1,7 +1,8 @@
 # xiom.charts
 
-> **Status:** `incubating` -- 71/71 conformance checks on the v0.64.8 pin; 0.2.0
-> is staged, publish pending the P1 scope delta.
+> **Status:** `incubating` -- 71/71 conformance checks on the v0.64.8 pin;
+> `0.2.0` published as single tag `xiom-charts/v0.2.0` (sha256 `7dddb907...`,
+> 2026-10-21; existing name, no scope delta needed).
 > **Scope:** a pure-XIOM static-2D chart model plus a deterministic SVG 1.1
 > emitter: Float64 scales, linear/log axes, tick locators, gridlines, legends,
 > markers, annotations, a colormap-ready color model, and nine chart types.
@@ -182,8 +183,8 @@ xiom pkg install xiom.charts@0.2.0      # after the lane lands the publish reque
 xiom pkg publish                        # maintainer (needs XIOM_REGISTRY_TOKEN)
 ```
 
-Publish is intentionally `false` in `STATUS.json` until the P1 scope delta is
-accepted; the lane files the request after landing.
+`0.2.0` was published on 2026-10-21 as single tag `xiom-charts/v0.2.0`
+(sha256 `7dddb907...`); later versions re-run the normal allowlist/publish flow.
 
 ## License
 
