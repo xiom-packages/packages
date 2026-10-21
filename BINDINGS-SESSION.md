@@ -1757,6 +1757,74 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-21 13:30Z (charts 0.2.0 + kafka 0.2.0 LANDED; arm64 fleet
+sweep 12/13 green; charts publish requested)**:
+- **`xiom.charts 0.2.0` LANDED** (`fa9f5605`; x2 **71/71**): float geometry,
+  linear/log scales, nice ticks, axes/grid/legends/annotations/markers,
+  viridis/magma colormaps; line/scatter/bar(grouped/stacked)/area/step/
+  pie/doughnut/histogram; byte-stable SVG; pure XIOM.  Publish request
+  `REL-20261021-1233-bindings` filed (**new name -> ops scope**).
+  Next: P2 = 2D advanced + 3D static projection/emitters (charts 0.3).
+- **`xiom.kafka 0.2.0` LANDED** (`a43a2eda`; x2 **50/50 LIVE**): real
+  librdkafka bindings -- producer/delivery callbacks, consumer
+  (subscribe/assign/commit), metadata, transactions, config/error surface;
+  mock-cluster live batteries (no broker); admin create/delete typed
+  unsupported (-165) as expected.  Publish already queued with packages
+  (+ ORBITWIRE co-run).
+- **arm64 emulated fleet sweep COMPLETE**: **12/13 green** (serial, mqtt,
+  i2c, spi, adc, pwm, sensor, can, ble, zigbee, hid, modbus all rc=0);
+  **usb = rc=124** (hit the 20-min hard cap; suite too slow under qemu --
+  retry with a higher per-suite cap if needed).  Note xvector's to-all
+  warning: host WSL VM restarts kill long batteries -> keep emulated runs
+  short + logged.
+- validate **579/0**; tree clean, 3 commits pushed.
+
+**UPDATE 2026-10-21 11:50Z (charts/plots program -- 2D + 3D COMPLETE coverage,
+axes/grids everything; charts P1 launched; split approved)**: owner
+clarification + design decision.
+- **Program scope**: `xiom.charts` + `xiom.plots` cover **2D AND 3D**
+  charts/plots on full axis/grid systems -- feature parity with
+  matplotlib-class tooling, phased.
+- **2D set** (charts): line/multi-line, scatter, bar (grouped/stacked/
+  horizontal), histogram, area, step, pie/doughnut, stem, box/violin,
+  heatmap/imshow, contour/contourf, candlestick/OHLC, error bars,
+  fill-between, quiver/streamline, polar/radar, subplot tiles.
+- **3D set** (static projection in charts, camera in plots): 3D axes +
+  grid (orthographic + perspective; pan/rotate/zoom), surface, wireframe,
+  scatter3D, line3D, bar3D, quiver3D, contour3D, voxels, trisurf;
+  colorbars; depth sorting.
+- **Axis/grid system**: linear/log/symlog scales, tick locators +
+  formatters + minor ticks, dual/twin axes, colorbars, legends,
+  annotations, spines, themes.
+- **Split approved**: `xiom.charts` = static deterministic model + SVG
+  emitters (pure XIOM); `xiom.plots` = figure/gridspec/camera API +
+  interactive backends (SVG export via charts; OpenGL via xiom.opengl
+  0.5.0 + glfw 0.6.0/sdl3 + typography 0.1.2; Vulkan later).  Name
+  `xiom-plots` is free; ownership = bindings; packages merges/publishes.
+- **Phasing**: P1 = 2D static core (**running**: `feat/charts-p1`,
+  `am-1792582299742-2v93ak`); P2 = 2D advanced + **3D static
+  projection/emitters** (charts 0.3); P3 = `xiom.plots` interactive 2D+3D
+  on OpenGL; P4 = polish (animations, decimation, styles).
+
+**UPDATE 2026-10-21 11:35Z (Kafka completion launched; matplotlib assessment)**:
+- **`xiom.kafka` already exists** (0.1.0 "ported only": librdkafka FFI
+  stubs -- handle -1 / poll None / admin Err(-999); not publishable).
+  Owner asked for full coverage -> **`feat/kafka-real` launched**
+  (`am-1792582075496-y6qhj1`): librdkafka (BSD-2) light clone at pin,
+  real producer/consumer/admin/config/error surface, **mock-cluster live
+  batteries** (no broker needed), 100% coverage table, x2, publish after
+  landing.  No conflicts: stdlib owns protocol parsers only; the kafka
+  client driver is a package (STDLIB_EXTENSION.md §3121 cites
+  xiom-kafka), and no other lane has it.
+- **matplotlib: not a viable native binding** -- pure Python, no stable C
+  API (the C++ Agg internals are private).  Options: extend
+  **`xiom.charts`** (existing: deterministic integer line/bar -> SVG;
+  0.1.0 incubating, 28 tests), a CPython-embedding package as a Python
+  gateway (program-scale), or a native C-ABI plot backend (plplot/Cairo
+  loader, Skia, ImPlot).  No stdlib/package name conflict for it.
+- Fleet sweep: serial/mqtt/i2c/spi/adc/pwm/sensor/can green; ble..modbus
+  in flight.
+
 **UPDATE 2026-10-21 10:20Z (morning -- pandas 0.2.1 live .201; Docker back;
 fleet sweep restarted)**:
 - **pandas resolved**: 0.2.0 was already live (parallel build found; lane

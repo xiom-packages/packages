@@ -1,41 +1,40 @@
 # xiom.kafka ROADMAP
 
-## v0.1.0 (Current)
-- [x] Type system (KafkaConfig, KafkaMessage, KafkaProducer, KafkaConsumer, KafkaError)
-- [x] Producer API (new, produce, flush, close) with input validation
-- [x] Consumer API (new, subscribe, poll, commit, close) with recursive topic copy
-- [x] Admin API stubs (create_topic, delete_topic, list_topics)
-- [x] Result-based error handling with retryable flag
-- [x] requires contracts on all public functions (10 contracts)
-- [x] Conformance test suite (22 tests)
+## v0.1.0 -- ported stubs (not published)
+- [x] Type system, producer/consumer/admin API shapes, 22-test conformance
+- [x] Typed error paths and contracts
+- [ ] Real librdkafka FFI (superseded by 0.2.0)
 
-## v0.2.0 -- librdkafka FFI Bridge
-- [ ] extern "C" FFI bindings to librdkafka (rd_kafka_new, rd_kafka_produce, rd_kafka_consumer_poll)
-- [ ] Real producer handle allocation via rd_kafka_conf_t / rd_kafka_t
-- [ ] Real consumer group coordination with rd_kafka_subscribe / rd_kafka_assign
-- [ ] Admin API real implementation (CreateTopics, DeleteTopics, ListTopics via AdminOptions)
-- [ ] Link-time dependency on librdkafka (-l rdkafka)
-- [ ] Build system integration for native library discovery
-- [ ] CI pipeline with librdkafka installed for integration tests
+## v0.2.0 -- real librdkafka bindings (current)
+- [x] Runtime loader (multi-soname, LoadLibraryA/dlopen, no link dependency)
+- [x] ABI export verification; ABSENT -> SKIP, broken install -> FAIL
+- [x] Client config set/get against a real `rd_kafka_conf_t`
+- [x] Producer: real handles, auto + explicit partition produce, delivery
+      callbacks/reports, flush, poll, outq, close
+- [x] Transactions: init/begin/commit/abort with typed `rd_kafka_error_t`
+- [x] Consumer: subscribe, assign (explicit partitions), poll + full field
+      decode, commit, unsubscribe, close
+- [x] Metadata: brokers/topics/partitions + cluster id
+- [x] Admin: real CreateTopics/DeleteTopics + result parsing, topic list
+- [x] In-process mock-cluster live suite (producer/consumer/metadata/admin/
+      transactions) with zero external infrastructure
+- [x] Optional real-broker sample (Kafka 3.9.1) for admin success
+- [x] PROVENANCE / AUDIT / SPEC / README coverage records
+- [ ] Publish request (lane -> native/release)
 
-## v0.3.0 -- Advanced Features
-- [ ] Async producer with delivery report callbacks (rd_kafka_producev)
-- [ ] Consumer rebalance callbacks (rd_kafka_assign / rd_kafka_revoke)
-- [ ] Offset management (manual commit, seek, position)
-- [ ] Partition-aware produce with key-based routing
-- [ ] Message headers support
-- [ ] Compression codecs (snappy, gzip, lz4, zstd)
-- [ ] SSL/SASL authentication (SCRAM, Kerberos, OAuth)
-- [ ] Batch produce with transactions
+## v0.3.0 -- advanced client surface
+- [ ] Message headers (produce/consume + header iteration)
+- [ ] Consumer-group admin (describe/list groups)
+- [ ] Offsets for times / watermarks / per-partition commit structures
+- [ ] Header/record timestamps on produce
+- [ ] Rebalance callback hooks
+- [ ] Typed config setters for the most-used security/compression keys
+- [ ] Windows CI image with the redist DLL set for the live leg
 
-## v1.0.0 -- Production Readiness
-- [ ] Idempotent producer (enable.idempotence)
-- [ ] Exactly-once semantics via transactions
-- [ ] Schema Registry client integration
-- [ ] Avro/Protobuf serde with xiom.protobuf
-- [ ] Dead letter queue support
-- [ ] Consumer health metrics (lag, throughput)
-- [ ] Admin describe/list consumer groups
+## v1.0.0 -- production readiness
+- [ ] Idempotent producer defaults and documented exactly-once recipe
+- [ ] Consumer lag/throughput metrics
+- [ ] Schema Registry / serde integration (xiom.protobuf, xiom.avro)
+- [ ] Dead-letter queue helpers
+- [ ] Multi-broker mock fault injection (disconnects, leader moves)
 - [ ] Performance benchmarks (throughput, latency percentiles)
-- [ ] Chaos testing (broker failure, network partition)
-- [ ] Full librdkafka config surface exposed via KafkaConfig
