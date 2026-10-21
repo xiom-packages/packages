@@ -641,3 +641,5 @@ xiom.tensorrt
 xiom.nvml
 xiom.nvapi
 xiom.optix
+# epos -- last R2 name; ops scope LIVE 2026-10-19T20:41Z (eco-release 574; owner instruction)
+xiom.epos
