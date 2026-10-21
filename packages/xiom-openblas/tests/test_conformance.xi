@@ -2,9 +2,10 @@
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// 42 checks covering: matrix lifecycle, get/set roundtrip, BLAS 1-3
-// (including transposed gemv/gemm), LAPACK SVD/eigen/solve accuracy,
-// error handling, and boundary conditions.
+// 52 checks covering: matrix lifecycle, get/set roundtrip, BLAS 1-3
+// (including transposed gemv/gemm and the additive Float32 dot/norm/axpy
+// surface), LAPACK SVD/eigen/solve accuracy, error handling, and boundary
+// conditions.
 //
 // Two legs, one suite (see SPEC.md / README.md):
 //   * Offline/SKIP leg: linked with bridge/openblas_bridge.c via
@@ -40,6 +41,25 @@ fn vec3(a: Float64, b: Float64, c: Float64) -> Vec[Float64] {
   return v;
 }
 
+fn vec3_f32(a: Float32, b: Float32, c: Float32) -> Vec[Float32] {
+  var v = Vec[Float32].new();
+  v.push(a);
+  v.push(b);
+  v.push(c);
+  return v;
+}
+
+fn vec2_f32(a: Float32, b: Float32) -> Vec[Float32] {
+  var v = Vec[Float32].new();
+  v.push(a);
+  v.push(b);
+  return v;
+}
+
+fn f32(x: Float64) -> Float32 {
+  return x as Float32;
+}
+
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
   var num = n;
@@ -66,6 +86,12 @@ fn approx_eq(a: Float64, b: Float64, tol: Float64) -> Bool {
   var d = a - b;
   if d < 0.0 { d = -d; }
   return d <= tol;
+}
+
+// Float32 comparison in Float64 so the tolerance literal is exact.
+// Documented f32 tolerance: 1e-6 (about 8x FLOAT32_EPSILON).
+fn approx_eq_f32(a: Float32, b: Float32, tol: Float64) -> Bool {
+  return approx_eq(a as Float64, b as Float64, tol);
 }
 
 // Reconstruct A from svd(A) and compare with the flat row-major input.
@@ -298,6 +324,110 @@ fn test_axpy_negative_alpha() -> TestResult {
   var y = vec3(10.0, 10.0, 10.0);
   axpy(-1.0, &x, &mut y, 3);
   return xiom.test.assert(y[0] == 9.0 && y[1] == 9.0 && y[2] == 9.0, "axpy(-1.0, ones, tens) == nines");
+}
+
+// ============================================================
+// Section 2b -- BLAS Level 1 Float32 (additive surface)
+// ============================================================
+// These checks are leg-aware: on the real leg they exercise cblas_sdot /
+// cblas_snrm2 / cblas_saxpy; on the offline/stub leg they exercise the
+// self-contained Float32 reference loops (the stub cblas_s* symbols are
+// never called). The documented f32 tolerance is 1e-6.
+
+fn test_dot_f32_basic() -> TestResult {
+  var x = vec3_f32(f32(1.0), f32(2.0), f32(3.0));
+  var y = vec3_f32(f32(4.0), f32(5.0), f32(6.0));
+  match dot_f32(&x, &y) {
+    Ok(v) => { return xiom.test.assert(v == f32(32.0), "dot_f32([1,2,3],[4,5,6]) == 32"); }
+    Err(_) => { return xiom.test.assert(false, "dot_f32 basic: expected Ok"); }
+  }
+}
+
+fn test_dot_f32_negative() -> TestResult {
+  var x = vec3_f32(f32(-1.0), f32(2.0), f32(-3.0));
+  var y = vec3_f32(f32(4.0), f32(-5.0), f32(6.0));
+  match dot_f32(&x, &y) {
+    Ok(v) => { return xiom.test.assert(v == f32(-32.0), "dot_f32([-1,2,-3],[4,-5,6]) == -32"); }
+    Err(_) => { return xiom.test.assert(false, "dot_f32 negative: expected Ok"); }
+  }
+}
+
+fn test_dot_f32_length_mismatch() -> TestResult {
+  var x = vec3_f32(f32(1.0), f32(2.0), f32(3.0));
+  var y = vec2_f32(f32(4.0), f32(5.0));
+  match dot_f32(&x, &y) {
+    Ok(_) => { return xiom.test.assert(false, "dot_f32 length mismatch: expected Err"); }
+    Err(_) => { return xiom.test.assert(true, "dot_f32 length mismatch: returns Err"); }
+  }
+}
+
+fn test_dot_f32_empty() -> TestResult {
+  var x: Vec[Float32] = Vec[Float32].new();
+  var y: Vec[Float32] = Vec[Float32].new();
+  match dot_f32(&x, &y) {
+    Ok(_) => { return xiom.test.assert(false, "dot_f32 empty: expected Err"); }
+    Err(_) => { return xiom.test.assert(true, "dot_f32 empty: returns Err"); }
+  }
+}
+
+fn test_norm_f32_basic() -> TestResult {
+  var x = vec3_f32(f32(1.0), f32(2.0), f32(3.0));
+  match norm_f32(&x) {
+    Ok(v) => { return xiom.test.assert(approx_eq_f32(v, f32(3.7416573867739413), 0.000001), "norm_f32([1,2,3]) == sqrt(14) (tol 1e-6)"); }
+    Err(_) => { return xiom.test.assert(false, "norm_f32 basic: expected Ok"); }
+  }
+}
+
+fn test_norm_f32_zero_vector() -> TestResult {
+  var x = vec3_f32(f32(0.0), f32(0.0), f32(0.0));
+  match norm_f32(&x) {
+    Ok(v) => { return xiom.test.assert(v == f32(0.0), "norm_f32([0,0,0]) == 0"); }
+    Err(_) => { return xiom.test.assert(false, "norm_f32 zero: expected Ok"); }
+  }
+}
+
+fn test_norm_f32_empty() -> TestResult {
+  var x: Vec[Float32] = Vec[Float32].new();
+  match norm_f32(&x) {
+    Ok(_) => { return xiom.test.assert(false, "norm_f32 empty: expected Err"); }
+    Err(_) => { return xiom.test.assert(true, "norm_f32 empty: returns Err"); }
+  }
+}
+
+fn test_axpy_f32_basic() -> TestResult {
+  var x = vec3_f32(f32(1.0), f32(2.0), f32(3.0));
+  var y = vec3_f32(f32(4.0), f32(5.0), f32(6.0));
+  match axpy_f32(f32(2.0), &x, &mut y) {
+    Ok(_) => {
+      return xiom.test.assert(y[0] == f32(6.0) && y[1] == f32(9.0) && y[2] == f32(12.0), "axpy_f32(2.0, [1,2,3], [4,5,6]) == [6,9,12]");
+    }
+    Err(_) => { return xiom.test.assert(false, "axpy_f32 basic: expected Ok"); }
+  }
+}
+
+fn test_axpy_f32_length_mismatch() -> TestResult {
+  var x = vec3_f32(f32(1.0), f32(2.0), f32(3.0));
+  var y = vec2_f32(f32(4.0), f32(5.0));
+  match axpy_f32(f32(1.0), &x, &mut y) {
+    Ok(_) => { return xiom.test.assert(false, "axpy_f32 length mismatch: expected Err"); }
+    Err(_) => { return xiom.test.assert(y[0] == f32(4.0) && y[1] == f32(5.0), "axpy_f32 length mismatch: returns Err and leaves y unchanged"); }
+  }
+}
+
+fn test_f32_leg_marker() -> TestResult {
+  // Self-contained check: the Float32 surface is usable on whichever leg this
+  // artifact was linked with, and the marker still selects the expected path.
+  var x = vec3_f32(f32(1.0), f32(2.0), f32(3.0));
+  var y = vec3_f32(f32(4.0), f32(5.0), f32(6.0));
+  match dot_f32(&x, &y) {
+    Ok(v) => {
+      if backend_is_real() {
+        return xiom.test.assert(v == f32(32.0), "f32 leg marker: real cblas_sdot leg computes 32");
+      }
+      return xiom.test.assert(v == f32(32.0), "f32 leg marker: offline reference loop computes 32");
+    }
+    Err(_) => { return xiom.test.assert(false, "f32 leg marker: expected Ok"); }
+  }
 }
 
 // ============================================================
@@ -891,6 +1021,17 @@ pub fn main() -> Int {
   results.push(test_axpy_basic());
   results.push(test_axpy_zero_alpha());
   results.push(test_axpy_negative_alpha());
+
+  results.push(test_dot_f32_basic());
+  results.push(test_dot_f32_negative());
+  results.push(test_dot_f32_length_mismatch());
+  results.push(test_dot_f32_empty());
+  results.push(test_norm_f32_basic());
+  results.push(test_norm_f32_zero_vector());
+  results.push(test_norm_f32_empty());
+  results.push(test_axpy_f32_basic());
+  results.push(test_axpy_f32_length_mismatch());
+  results.push(test_f32_leg_marker());
 
   results.push(test_gemv_no_transpose());
   results.push(test_gemv_with_beta());

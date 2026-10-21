@@ -36,6 +36,7 @@
 module xiom.openblas
 
 use xiom.convert;
+use xiom.math;
 
 // ============================================================
 // Module-level matrix pool
@@ -134,9 +135,14 @@ extern "C" {
   // ---- leg marker (defined by the selected C bridge, never by OpenBLAS) ----
   fn xiom_openblas_backend() -> Int32;
 
-  // ---- BLAS Level 1 ----
+  // ---- BLAS Level 1 (Float64) ----
   fn cblas_ddot(n: Int32, x: *Float64, incx: Int32, y: *Float64, incy: Int32) -> Float64;
   fn cblas_daxpy(n: Int32, alpha: Float64, x: *Float64, incx: Int32, y: *Float64, incy: Int32);
+
+  // ---- BLAS Level 1 (Float32) ----
+  fn cblas_sdot(n: Int32, x: *Float32, incx: Int32, y: *Float32, incy: Int32) -> Float32;
+  fn cblas_snrm2(n: Int32, x: *Float32, incx: Int32) -> Float32;
+  fn cblas_saxpy(n: Int32, alpha: Float32, x: *Float32, incx: Int32, y: *Float32, incy: Int32);
 
   // ---- BLAS Level 2 ----
   fn cblas_dgemv(order: Int32, trans: Int32, m: Int32, n: Int32, alpha: Float64, a: *Float64, lda: Int32, x: *Float64, incx: Int32, beta: Float64, y: *Float64, incy: Int32);
@@ -261,6 +267,87 @@ pub fn axpy(alpha: Float64, x: &Vec[Float64], y: &mut Vec[Float64], n: Int)
     y[i] = alpha * x[i] + y[i];
     i = i + 1;
   }
+}
+
+// ============================================================
+// BLAS Level 1 -- Float32 vector-vector operations
+// ============================================================
+// Additive Float32 surface for hot-path consumers (xvector P3): the data is
+// never widened to Float64. On the real leg these marshal straight into
+// cblas_sdot/cblas_snrm2/cblas_saxpy; on the offline leg the same semantics
+// run through self-contained Float32 reference loops. The stub cblas_s*
+// symbols are never called (backend_is_real() == 0), so an artifact without
+// real OpenBLAS cannot silently return the stub's zero.
+//
+// Validation is fail-closed: empty inputs and length mismatches return Err
+// before any pointer is taken. Errors are typed as Result[_, Str].
+
+pub fn dot_f32(a: &Vec[Float32], b: &Vec[Float32]) -> Result[Float32, Str] {
+  let n = a.len();
+  if n <= 0 {
+    return Err("dot_f32: vectors must be non-empty");
+  }
+  if n != b.len() {
+    return Err("dot_f32: vector length mismatch");
+  }
+  if backend_is_real() {
+    // n == a.len() == b.len() > 0; both Vec pointers are contiguous Float32
+    // spans and inc = 1 stays in range.
+    // SAFETY: the validated equal lengths and n bound every cblas_sdot access.
+    return Ok(unsafe { cblas_sdot(n as Int32, &a[0], 1, &b[0], 1) });
+  }
+  var result: Float32 = 0.0 as Float32;
+  var i = 0;
+  while i < n {
+    result = result + a[i] * b[i];
+    i = i + 1;
+  }
+  return Ok(result);
+}
+
+pub fn norm_f32(a: &Vec[Float32]) -> Result[Float32, Str] {
+  let n = a.len();
+  if n <= 0 {
+    return Err("norm_f32: vector must be non-empty");
+  }
+  if backend_is_real() {
+    // n == a.len() > 0; the Vec pointer is a contiguous Float32 span and
+    // inc = 1 stays in range.
+    // SAFETY: the validated length and n bound every cblas_snrm2 access.
+    return Ok(unsafe { cblas_snrm2(n as Int32, &a[0], 1) });
+  }
+  var sum: Float32 = 0.0 as Float32;
+  var i = 0;
+  while i < n {
+    sum = sum + a[i] * a[i];
+    i = i + 1;
+  }
+  // Only the scalar square root is computed in Float64; no vector element is
+  // widened. sqrt is not part of the Float32 numeric tower.
+  return Ok(sqrt(sum as Float64) as Float32);
+}
+
+pub fn axpy_f32(alpha: Float32, x: &Vec[Float32], y: &mut Vec[Float32]) -> Result[Unit, Str] {
+  let n = x.len();
+  if n <= 0 {
+    return Err("axpy_f32: vectors must be non-empty");
+  }
+  if n != y.len() {
+    return Err("axpy_f32: vector length mismatch");
+  }
+  if backend_is_real() {
+    // n == x.len() == y.len() > 0; x is read-only, y is uniquely borrowed,
+    // inc = 1 stays in range.
+    // SAFETY: the validated equal lengths and n bound every cblas_saxpy access.
+    unsafe { cblas_saxpy(n as Int32, alpha, &x[0], 1, &mut y[0], 1); }
+    return Ok(());
+  }
+  var i = 0;
+  while i < n {
+    y[i] = alpha * x[i] + y[i];
+    i = i + 1;
+  }
+  return Ok(());
 }
 
 // ============================================================

@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  *
  * STUB BUILD -- this file is NOT OpenBLAS. It provides the extern "C" surface
- * declared in openblas.xi (cblas_* and dgesvd_/dsyev_/dgesv_) so the package
- * links and its conformance suite runs on machines with no system OpenBLAS
- * installed. The module's Phase-1 computations run through the pure-XIOM
+ * declared in openblas.xi (the double and float cblas_* entry points plus
+ * dgesvd_/dsyev_/dgesv_) so the
+ * package links and its conformance suite runs on machines with no system
+ * OpenBLAS installed. The module's Phase-1 computations run through the pure-XIOM
  * reference loops in openblas.xi and never call these symbols; this bridge is
  * the offline leg of the two-leg split (see SPEC.md / README.md).
  *
@@ -54,6 +55,33 @@ double cblas_ddot(int32_t n, const double* x, int32_t incx, const double* y, int
 }
 
 void cblas_daxpy(int32_t n, double alpha, const double* x, int32_t incx, double* y, int32_t incy) {
+  (void)n;
+  (void)alpha;
+  (void)incx;
+  (void)incy;
+  if (x == 0 || y == 0) return;
+  /* stub: computes nothing */
+}
+
+/* ---- BLAS Level 1 (Float32) -------------------------------------------- */
+/* Resolved only so the Float32 extern surface links on the offline leg. The
+ * module gates every call on xiom_openblas_backend() == 1, so these stubs are
+ * never invoked; they return a deterministic zero/no-op like the doubles. */
+
+float cblas_sdot(int32_t n, const float* x, int32_t incx, const float* y, int32_t incy) {
+  (void)incx;
+  (void)incy;
+  if (n <= 0 || x == 0 || y == 0) return 0.0f;
+  return 0.0f; /* stub: computes nothing */
+}
+
+float cblas_snrm2(int32_t n, const float* x, int32_t incx) {
+  (void)incx;
+  if (n <= 0 || x == 0) return 0.0f;
+  return 0.0f; /* stub: computes nothing */
+}
+
+void cblas_saxpy(int32_t n, float alpha, const float* x, int32_t incx, float* y, int32_t incy) {
   (void)n;
   (void)alpha;
   (void)incx;

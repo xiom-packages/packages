@@ -1,9 +1,11 @@
 # xiom.openblas -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
-**Status**: Phase 1 COMPLETE and conformance-green (42/42 x2 on compiler v0.64.6)
+**Status**: Phase 1 COMPLETE and conformance-green (52/52 x2 on compiler v0.64.8)
 on both legs: an offline stub/SKIP artifact (no OpenBLAS required) and a real
-linked OpenBLAS artifact (BLAS 1-3 + LAPACK SVD/eigen/solve).
+linked OpenBLAS artifact (BLAS 1-3 + LAPACK SVD/eigen/solve). The 52 checks are
+the original 42 Float64 checks plus 10 additive Float32 checks (`dot_f32`,
+`norm_f32`, `axpy_f32`) added for the xvector P3 hot path.
 **Depends on**: xiom.convert (stdlib), xiom.ffi (stdlib), xiom.alloc (stdlib)
 
 ## What it wraps
@@ -34,9 +36,14 @@ pub fn matrix_free(m: Matrix)
 pub fn matrix_get(m: &Matrix, row: Int, col: Int) -> Float64
 pub fn matrix_set(m: &mut Matrix, row: Int, col: Int, val: Float64)
 
-// BLAS Level 1 (vector-vector)
+// BLAS Level 1 (vector-vector, Float64)
 pub fn dot(x: &Vec[Float64], y: &Vec[Float64], n: Int) -> Float64
 pub fn axpy(alpha: Float64, x: &Vec[Float64], y: &mut Vec[Float64], n: Int)
+
+// BLAS Level 1 (vector-vector, Float32 -- additive hot-path surface)
+pub fn dot_f32(a: &Vec[Float32], b: &Vec[Float32]) -> Result[Float32, Str]
+pub fn norm_f32(a: &Vec[Float32]) -> Result[Float32, Str]
+pub fn axpy_f32(alpha: Float32, x: &Vec[Float32], y: &mut Vec[Float32]) -> Result[Unit, Str]
 
 // BLAS Level 2 (matrix-vector)
 pub fn gemv(trans: Bool, m: Int, n: Int, alpha: Float64, A: &Matrix, x: &Vec[Float64], beta: Float64, y: &mut Vec[Float64])
@@ -74,6 +81,12 @@ reconstruction for 4x3 and 2x3 inputs, `diag(3,2,1)` singular values,
 `A*v = lambda*v` eigenpair residuals, `solve([[3,1],[1,2]],[9,8]) = [2,3]`,
 and singular-matrix `dgesv_` returning `Err` (`info > 0`).
 
+Re-verified on 2026-10-21 with the additive Float32 surface: `52/52` checks
+x2 on the offline leg (compiler v0.64.8) and `52/52` on the linked real leg
+against the same v0.3.34 build, exercising `cblas_sdot`, `cblas_snrm2`, and
+`cblas_saxpy` with `[1,2,3] . [4,5,6] = 32`, `norm([1,2,3]) = sqrt(14)`
+(tolerance `1e-6`), and fail-closed length/empty `Err` paths.
+
 ## Phased roadmap
 
 | Phase | What | Effort |
@@ -88,11 +101,11 @@ and singular-matrix `dgesv_` returning `Err` (`info > 0`).
 ### Files
 | File | Lines | Purpose |
 |------|-------|---------|
-| `openblas.xi` | 719 | Module `xiom.openblas` -- extern C surface (int32 blasint ABI + gfortran hidden lengths), pool, leg marker, real cblas/LAPACK marshalling, pure-XIOM fallback |
-| `bridge/openblas_bridge.c` | 156 | Offline stub link-seam (backend marker 0; validates pointers; computes nothing; LAPACK writes info=-999) |
+| `openblas.xi` | 806 | Module `xiom.openblas` -- extern C surface (int32 blasint ABI + gfortran hidden lengths), pool, leg marker, real cblas/LAPACK marshalling (Float64 + Float32), pure-XIOM fallback |
+| `bridge/openblas_bridge.c` | 183 | Offline stub link-seam (backend marker 0; validates pointers; computes nothing; LAPACK writes info=-999) |
 | `bridge/openblas_real_marker.c` | 18 | Real-leg marker only (backend 1); deliberately defines no cblas/LAPACK symbol |
 | `port.args.json` | 4 | Wires `--c-source ${PACKAGE_DIR}/bridge/openblas_bridge.c` into the port.ps1 suite invocation |
-| `tests/test_conformance.xi` | 941 | 42 conformance checks on the current xiom.test API; leg-aware LAPACK accuracy assertions |
+| `tests/test_conformance.xi` | 1082 | 52 conformance checks on the current xiom.test API; leg-aware LAPACK accuracy and Float32 checks |
 | `tests/run_real_leg.ps1` | 171 | Real linked leg: OpenBLAS discovery, ILP64 refusal, PATH, link args, 2x PASS/FAIL gate |
 | `tests/probe_real_openblas.xi` | 159 | Legacy SKIP-safe runtime probe; exercises real cblas_ddot/cblas_dgemm |
 | `tests/probe_openblas_shim.c` | 191 | Probe-local C shim: runtime OpenBLAS detection/loading + real cblas calls (int32 ABI) |
@@ -115,6 +128,10 @@ pub fn matrix_cols(m: &Matrix) -> Int
 
 pub fn dot(x: &Vec[Float64], y: &Vec[Float64], n: Int) -> Float64
 pub fn axpy(alpha: Float64, x: &Vec[Float64], y: &mut Vec[Float64], n: Int)
+
+pub fn dot_f32(a: &Vec[Float32], b: &Vec[Float32]) -> Result[Float32, Str]
+pub fn norm_f32(a: &Vec[Float32]) -> Result[Float32, Str]
+pub fn axpy_f32(alpha: Float32, x: &Vec[Float32], y: &mut Vec[Float32]) -> Result[Unit, Str]
 
 pub fn gemv(trans: Bool, m: Int, n: Int, alpha: Float64, A: &Matrix, x: &Vec[Float64], beta: Float64, y: &mut Vec[Float64])
 pub fn gemm(transA: Bool, transB: Bool, m: Int, n: Int, k: Int, alpha: Float64, A: &Matrix, B: &Matrix, beta: Float64, C: &mut Matrix)
@@ -157,12 +174,25 @@ pub fn solve(A: &Matrix, b: &Vec[Float64]) -> Result[Matrix, Str]
 | Accuracy | New leg-aware suite checks (reconstruction, singular values, eigenpair residual, solve, singular Err) | Numerical evidence, not just shape checks |
 | Platform | Real leg verified against OpenBLAS v0.3.34 x64 LP64/Int32; ILP64 refused | Matches the int32 `blasint` declarations |
 
+### Float32 delta (2026-10-21, REL-20261021-1121-xvector)
+| Item | Change | Reason |
+|------|--------|--------|
+| `dot_f32` | `cblas_sdot` on the real leg; self-contained Float32 loop offline | xvector P3 kernel seam must not widen f32 data to f64 |
+| `norm_f32` | `cblas_snrm2` on the real leg; Float32 sum-of-squares offline (only the scalar sqrt is evaluated in Float64) | f32 norm without converting the vector |
+| `axpy_f32` | `cblas_saxpy` on the real leg; Float32 loop offline | Optional trivial Level-1 companion for the same seam |
+| Validation | `Result[_, Str]`: empty input and length mismatch return `Err` before any pointer is taken | Fail-closed edge handling; no silent stub result |
+| Stub seam | `bridge/openblas_bridge.c` also defines `cblas_sdot`/`cblas_snrm2`/`cblas_saxpy` (never called: marker 0 selects the reference loops) | Offline artifact links without real OpenBLAS |
+| Tolerance | Documented f32 tolerance `1e-6` (~8x `FLOAT32_EPSILON`), used by the norm test | Explicit f32 accuracy contract |
+| API stability | Float64 surface unchanged | Additive release |
+
 ### Internal architecture
 - **Pool**: 5 parallel `Vec` arrays (`__pool_data`, `__pool_rows`, `__pool_cols`, `__pool_start`, `__pool_used`)
 - **Handle**: 1-based index into pool; 0 = invalid
 - **Leg marker**: `xiom_openblas_backend()` (0 = stub bridge, 1 = real marker)
 - **BLAS 1-3 (real leg)**: `cblas_ddot`/`daxpy`/`dgemv`/`dgemm` over raw pointers to the pool span / Vec data; `CblasRowMajor` (101), NoTrans/Trans (111/112), `lda` = the pool matrix column count
 - **BLAS 1-3 (offline leg)**: the pure-XIOM reference loops (same public semantics, including the transposed paths)
+- **BLAS Level 1 Float32 (real leg)**: `cblas_sdot`/`cblas_snrm2`/`cblas_saxpy` over raw `Vec[Float32]` pointers, inc = 1; gated on `backend_is_real()`
+- **BLAS Level 1 Float32 (offline leg)**: Float32 accumulation loops; `norm_f32` takes the scalar square root through `xiom.math.sqrt` (Float64) and narrows the result back to Float32
 - **LAPACK (real leg)**: row-major pool -> column-major scratch, `lwork = -1` workspace query, then an XIOM `Vec[Float64]` of exactly `lwork` slots; `dgesvd_` economy U/VT, `dsyev_` (`jobz='V'`, `uplo='U'`), `dgesv_` with an int32 `ipiv` view over Vec storage; results converted back to row-major
 - **LAPACK (offline leg)**: documented identity/zero placeholders with correct shapes
 - **Link seams**: exactly one of `bridge/openblas_bridge.c` (offline) or `bridge/openblas_real_marker.c` + OpenBLAS import library (real); never both
