@@ -2345,6 +2345,25 @@ validate 579/0)**:
   validate` GREEN again (**827 items**); committed/pushed `c3402b5`.
   The action itself is the ENGINE lane's.
 
+**UPDATE 2026-10-21 18:05Z (A14 UI platform ask ACCEPTED; sdl3 0.21.0
+wave launched)**:
+- Engine wishlist `REL-20261021-1652-engine-5` (**A14: UI platform
+  surface for S5/S6**) ACCEPTED by function: window identity + position
+  get/set + size-in-pixels + display scale + monitor for a window;
+  per-window focus + DPI-change routing (display-changed /
+  pixel-size-changed in the existing filter/watch model); text-input
+  start/stop + typed IME composition/commit/cancel events; clipboard
+  UTF-8 get/set/has + primary selection where the platform has it.
+- **sdl3 A14 wave LAUNCHED** (`am-1792605630402-w0kzfl`; branch
+  `feat/sdl3-a14-ui-platform`): additive-only on `xiom.sdl3 0.20.0` ->
+  **0.21.0**; SDL3-backed (the ask's no-backend-mandate honored);
+  suite x2 on v0.64.8; publish request follows on green.  Until then
+  the engine keeps in-canvas floats/internal clipboard with the OS
+  items SKIP-gated as stated.
+- Context: the sibling landed `xiom.kafka 0.2.0` (real librdkafka,
+  x2 50/50 live via mock cluster) + `xiom.charts 0.2.0` (x2 71/71;
+  publish requested) the same day.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
