@@ -1757,6 +1757,33 @@ loop-switch publish:
   reconciled (B-13/14/15, B-30, B-31 fixed on v0.64.7; only B-21/B-24
   rows remain).
 
+**UPDATE 2026-10-21 11:50Z (charts/plots program -- 2D + 3D COMPLETE coverage,
+axes/grids everything; charts P1 launched; split approved)**: owner
+clarification + design decision.
+- **Program scope**: `xiom.charts` + `xiom.plots` cover **2D AND 3D**
+  charts/plots on full axis/grid systems -- feature parity with
+  matplotlib-class tooling, phased.
+- **2D set** (charts): line/multi-line, scatter, bar (grouped/stacked/
+  horizontal), histogram, area, step, pie/doughnut, stem, box/violin,
+  heatmap/imshow, contour/contourf, candlestick/OHLC, error bars,
+  fill-between, quiver/streamline, polar/radar, subplot tiles.
+- **3D set** (static projection in charts, camera in plots): 3D axes +
+  grid (orthographic + perspective; pan/rotate/zoom), surface, wireframe,
+  scatter3D, line3D, bar3D, quiver3D, contour3D, voxels, trisurf;
+  colorbars; depth sorting.
+- **Axis/grid system**: linear/log/symlog scales, tick locators +
+  formatters + minor ticks, dual/twin axes, colorbars, legends,
+  annotations, spines, themes.
+- **Split approved**: `xiom.charts` = static deterministic model + SVG
+  emitters (pure XIOM); `xiom.plots` = figure/gridspec/camera API +
+  interactive backends (SVG export via charts; OpenGL via xiom.opengl
+  0.5.0 + glfw 0.6.0/sdl3 + typography 0.1.2; Vulkan later).  Name
+  `xiom-plots` is free; ownership = bindings; packages merges/publishes.
+- **Phasing**: P1 = 2D static core (**running**: `feat/charts-p1`,
+  `am-1792582299742-2v93ak`); P2 = 2D advanced + **3D static
+  projection/emitters** (charts 0.3); P3 = `xiom.plots` interactive 2D+3D
+  on OpenGL; P4 = polish (animations, decimation, styles).
+
 **UPDATE 2026-10-21 11:35Z (Kafka completion launched; matplotlib assessment)**:
 - **`xiom.kafka` already exists** (0.1.0 "ported only": librdkafka FFI
   stubs -- handle -1 / poll None / admin Err(-999); not publishable).
