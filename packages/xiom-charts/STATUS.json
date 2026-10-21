@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  71,
                   "failed":  0,
-                  "run_by":  "bindings-landing",
-                  "commit":  "fa9f5605",
-                  "checked":  "2026-10-21T12:32:25Z"
+                  "run_by":  "native-session",
+                  "commit":  "07a32e35",
+                  "checked":  "2026-10-21T14:38:47Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: P1 static-2D scope delta (0.2.0); lane files the publish request after landing"

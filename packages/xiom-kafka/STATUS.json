@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  50,
                   "failed":  0,
-                  "run_by":  "bindings-kafka",
-                  "commit":  "027a8029",
-                  "checked":  "2026-10-21T12:06:34Z"
+                  "run_by":  "native-session",
+                  "commit":  "07a32e35",
+                  "checked":  "2026-10-21T14:38:47Z"
               },
     "publish":  false,
     "excluded_reason":  null,
@@ -21,4 +21,3 @@
                          "librdkafka v2.16.0 runtime (librdkafka.dll / librdkafka.so.1 / librdkafka.1.dylib; multi-soname runtime loader; SKIP when absent)"
                      ]
 }
-
