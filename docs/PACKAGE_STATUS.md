@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.8` -- generated 2026-10-22T18:22:59Z.
+Toolchain pin: `v0.64.8` -- generated 2026-10-22T18:26:50Z.
 
 ## Summary
 
@@ -116,7 +116,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.hl7 | xiom-hl7 | stable | tests/test_conformance.xi | pass 23/23 | a583a8c5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.hostfile | xiom-hostfile | stable | tests/test_conformance.xi | pass 24/24 | cdfcf160 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.html | xiom-html | stable | tests/test_conformance.xi | pass 22/22 | c1278f47 | False | legacy bracket repair patch bump |
-| xiom.http | xiom-http | stable | tests/test_conformance.xi | pass 55/55 | cf220258 | False | published in eco-v0.1.195 (2026-10-17, 0.1.9; sha256 f7b0c30f...) |
+| xiom.http | xiom-http | stable | tests/test_conformance.xi | pass 60/60 | 1365a8d4 | False | published 2026-10-22 (single tag xiom-http/v0.1.10; sha256 b08943d7...; client sessions + timeouts); 0.1.9 in eco-v0.1.195 |
 | xiom.humanize | xiom-humanize | stable | tests/test_conformance.xi | pass 24/24 | fbbb78d2 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.iban | xiom-iban | stable | tests/test_conformance.xi | pass 21/21 | fd6b4c1a | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ical | xiom-ical | stable | tests/test_conformance.xi | pass 22/22 | eefc7015 | False | legacy bracket repair patch bump |
