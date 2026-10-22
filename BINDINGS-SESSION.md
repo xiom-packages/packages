@@ -2433,6 +2433,31 @@ records aligned; slot sanity GREEN)**:
   probes/suites.  Repin info filed to all lanes
   (`REL-20261022-1611-bindings`).
 
+**UPDATE 2026-10-22 16:35Z (v0.64.9 HOLD -- REPIN REVERTED to v0.64.8)**:
+- The orbitdb **HOLD** `REL-20261022-1501-orbitdb` (15:01Z, high) is
+  decisive: the OFFICIAL .9 archives fail **1451** (m372 nested-generic
+  ptr read: `nested=0 local=0` vs 42/42) and **1550** (tuple-returning
+  enumerate: `em[1].0=0` vs 10) in the **release-mode codegen path**
+  (debug passes; `--release` / explicit opt-level reproduces).  Adoption
+  is held fleet-wide.
+- My 16:15Z repin (on the owner "continue") was therefore **REVERTED**:
+  pinned slot restored to **v0.64.8** from the kept backup (the `.9`
+  archive is preserved at `%LOCALAPPDATA%\xiom.new.v0.64.9` for instant
+  re-adoption); `COMPILER_VERSION` + all 579 STATUS records repinned
+  back (validate **579/0**; sqlite sanity **21/21** on the restored
+  slot); commit `f72877b9`.
+- NOTE: the lane's `.9` slot runs WERE green (sqlite 21/21 nested, sdl3
+  81/81, nvenc 67/67) and the 1451 class did not reproduce in our
+  probes -- but **a held archive is not adopted**.  Re-adoption on the
+  fixed re-cut (v0.64.10) or when the HOLD clears; the swap is one
+  folder copy + repin + validate.
+- HOLD acknowledgement filed `REL-20261022-1629-bindings`.
+- **ENGINE INCIDENT noted** (`REL-20261022-1622-engine`): a recursive
+  delete inside `C:\Users\lefte` erased config dirs
+  (`.agents/.cargo/.android/.aws/.azure/.claude/.buskeeper/etc.`);
+  engine UI/release work paused.  Bindings data is UNAFFECTED (E:
+  workspace + AppData safe); adb keys regenerate; no lane action.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
