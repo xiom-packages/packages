@@ -992,6 +992,655 @@ fn test_solve_singular() -> TestResult {
 }
 
 // ============================================================
+// Section 8 -- LAPACK: LU (dgetrf/dgetrs)
+// ============================================================
+
+fn matrix_from_flat(data: &Vec[Float64], rows: Int, cols: Int) -> Result[Matrix, Str] {
+  match matrix_create(rows, cols) {
+    Ok(m) => {
+      var h = m;
+      var k = 0;
+      while k < rows * cols {
+        matrix_set(&mut h, k / cols, k % cols, data[k]);
+        k = k + 1;
+      }
+      return Ok(m);
+    }
+    Err(e) => { return Err(e); }
+  }
+}
+
+fn qr_is_correct(a: &Matrix, m: Int, n: Int, tol: Float64) -> Bool {
+  match qr(a) {
+    Ok((q, r)) => {
+      var k = m;
+      if n < k { k = n; }
+      var ok = true;
+      if matrix_rows(&q) != m || matrix_cols(&q) != k { ok = false; }
+      if matrix_rows(&r) != k || matrix_cols(&r) != n { ok = false; }
+      // A == Q * R
+      var i = 0;
+      while i < m {
+        var j = 0;
+        while j < n {
+          var sum = 0.0;
+          var p = 0;
+          while p < k {
+            sum = sum + matrix_get(&q, i, p) * matrix_get(&r, p, j);
+            p = p + 1;
+          }
+          if !approx_eq(sum, matrix_get(a, i, j), tol) { ok = false; }
+          j = j + 1;
+        }
+        i = i + 1;
+      }
+      // Q^T * Q == I (k x k)
+      var p1 = 0;
+      while p1 < k {
+        var p2 = 0;
+        while p2 < k {
+          var sum = 0.0;
+          var i2 = 0;
+          while i2 < m {
+            sum = sum + matrix_get(&q, i2, p1) * matrix_get(&q, i2, p2);
+            i2 = i2 + 1;
+          }
+          var target = 0.0;
+          if p1 == p2 { target = 1.0; }
+          if !approx_eq(sum, target, tol) { ok = false; }
+          p2 = p2 + 1;
+        }
+        p1 = p1 + 1;
+      }
+      matrix_free(q);
+      matrix_free(r);
+      return ok;
+    }
+    Err(_) => { return false; }
+  }
+}
+
+fn test_lu_factor_2x2() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(4.0);
+  data.push(3.0);
+  data.push(6.0);
+  data.push(3.0);
+  match matrix_from_flat(&data, 2, 2) {
+    Ok(a) => {
+      match lu_factor(&a) {
+        Ok((lu, piv)) => {
+          var ok = matrix_rows(&piv) == 2 && matrix_cols(&piv) == 1
+            && (matrix_get(&piv, 0, 0) as Int) == 2 && (matrix_get(&piv, 1, 0) as Int) == 2
+            && approx_eq(matrix_get(&lu, 0, 0), 6.0, 0.000000001)
+            && approx_eq(matrix_get(&lu, 0, 1), 3.0, 0.000000001)
+            && approx_eq(matrix_get(&lu, 1, 0), 0.6666666666666666, 0.000000001)
+            && approx_eq(matrix_get(&lu, 1, 1), 1.0, 0.000000001);
+          matrix_free(a);
+          matrix_free(lu);
+          matrix_free(piv);
+          return xiom.test.assert(ok, "lu_factor 2x2: P*A = L*U, piv [2,2]");
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "lu_factor 2x2: expected Ok");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "lu_factor 2x2: matrix setup failed"); }
+  }
+}
+
+fn test_lu_solve_2x2() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(4.0);
+  data.push(3.0);
+  data.push(6.0);
+  data.push(3.0);
+  var b = vec2(10.0, 12.0);
+  match matrix_from_flat(&data, 2, 2) {
+    Ok(a) => {
+      match lu_factor(&a) {
+        Ok((lu, piv)) => {
+          match lu_solve(&lu, &piv, &b) {
+            Ok(x) => {
+              var ok = approx_eq(matrix_get(&x, 0, 0), 1.0, 0.000000001)
+                && approx_eq(matrix_get(&x, 1, 0), 2.0, 0.000000001);
+              matrix_free(x);
+              matrix_free(lu);
+              matrix_free(piv);
+              matrix_free(a);
+              return xiom.test.assert(ok, "lu_solve 2x2: [[4,3],[6,3]]x=[10,12] -> [1,2]");
+            }
+            Err(_) => {
+              matrix_free(lu);
+              matrix_free(piv);
+              matrix_free(a);
+              return xiom.test.assert(false, "lu_solve 2x2: expected Ok");
+            }
+          }
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "lu_solve 2x2: lu_factor failed");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "lu_solve 2x2: matrix setup failed"); }
+  }
+}
+
+fn test_lu_factor_3x3() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(2.0);
+  data.push(1.0);
+  data.push(1.0);
+  data.push(4.0);
+  data.push(3.0);
+  data.push(3.0);
+  data.push(8.0);
+  data.push(7.0);
+  data.push(9.0);
+  match matrix_from_flat(&data, 3, 3) {
+    Ok(a) => {
+      match lu_factor(&a) {
+        Ok((lu, piv)) => {
+          var ok = matrix_rows(&piv) == 3 && matrix_cols(&piv) == 1
+            && (matrix_get(&piv, 0, 0) as Int) == 3
+            && (matrix_get(&piv, 1, 0) as Int) == 3
+            && (matrix_get(&piv, 2, 0) as Int) == 3
+            && approx_eq(matrix_get(&lu, 0, 0), 8.0, 0.000000001)
+            && approx_eq(matrix_get(&lu, 0, 1), 7.0, 0.000000001)
+            && approx_eq(matrix_get(&lu, 0, 2), 9.0, 0.000000001)
+            && approx_eq(matrix_get(&lu, 1, 0), 0.25, 0.000000001)
+            && approx_eq(matrix_get(&lu, 1, 1), -0.75, 0.000000001)
+            && approx_eq(matrix_get(&lu, 1, 2), -1.25, 0.000000001)
+            && approx_eq(matrix_get(&lu, 2, 0), 0.5, 0.000000001)
+            && approx_eq(matrix_get(&lu, 2, 1), 0.6666666666666666, 0.000000001)
+            && approx_eq(matrix_get(&lu, 2, 2), -0.6666666666666666, 0.000000001);
+          matrix_free(a);
+          matrix_free(lu);
+          matrix_free(piv);
+          return xiom.test.assert(ok, "lu_factor 3x3: P*A = L*U, piv [3,3,3]");
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "lu_factor 3x3: expected Ok");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "lu_factor 3x3: matrix setup failed"); }
+  }
+}
+
+fn test_lu_solve_3x3() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(2.0);
+  data.push(1.0);
+  data.push(1.0);
+  data.push(4.0);
+  data.push(3.0);
+  data.push(3.0);
+  data.push(8.0);
+  data.push(7.0);
+  data.push(9.0);
+  var b = vec3(7.0, 19.0, 49.0);
+  match matrix_from_flat(&data, 3, 3) {
+    Ok(a) => {
+      match lu_factor(&a) {
+        Ok((lu, piv)) => {
+          match lu_solve(&lu, &piv, &b) {
+            Ok(x) => {
+              var ok = approx_eq(matrix_get(&x, 0, 0), 1.0, 0.000000001)
+                && approx_eq(matrix_get(&x, 1, 0), 2.0, 0.000000001)
+                && approx_eq(matrix_get(&x, 2, 0), 3.0, 0.000000001);
+              matrix_free(x);
+              matrix_free(lu);
+              matrix_free(piv);
+              matrix_free(a);
+              return xiom.test.assert(ok, "lu_solve 3x3: A[1,2,3]^T = [7,19,49] -> [1,2,3]");
+            }
+            Err(_) => {
+              matrix_free(lu);
+              matrix_free(piv);
+              matrix_free(a);
+              return xiom.test.assert(false, "lu_solve 3x3: expected Ok");
+            }
+          }
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "lu_solve 3x3: lu_factor failed");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "lu_solve 3x3: matrix setup failed"); }
+  }
+}
+
+fn test_lu_factor_singular() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(1.0);
+  data.push(2.0);
+  data.push(2.0);
+  data.push(4.0);
+  match matrix_from_flat(&data, 2, 2) {
+    Ok(a) => {
+      match lu_factor(&a) {
+        Ok((lu, _piv)) => {
+          matrix_free(lu);
+          matrix_free(a);
+          return xiom.test.assert(false, "lu_factor singular 2x2: expected Err");
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(true, "lu_factor singular 2x2: returns Err (zero pivot)");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "lu_factor singular: matrix setup failed"); }
+  }
+}
+
+fn test_lu_factor_nonsquare() -> TestResult {
+  match matrix_create(2, 3) {
+    Ok(a) => {
+      match lu_factor(&a) {
+        Ok((lu, _piv)) => {
+          matrix_free(lu);
+          matrix_free(a);
+          return xiom.test.assert(false, "lu_factor 2x3: expected Err");
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(true, "lu_factor 2x3: returns Err (non-square)");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "lu_factor nonsquare: matrix setup failed"); }
+  }
+}
+
+fn test_lu_solve_pivot_length() -> TestResult {
+  match matrix_create(2, 2) {
+    Ok(a) => {
+      match matrix_create(1, 1) {
+        Ok(pm) => {
+          var piv = pm;
+          matrix_set(&mut piv, 0, 0, 1.0);
+          var b = vec2(1.0, 2.0);
+          match lu_solve(&a, &piv, &b) {
+            Ok(x) => {
+              matrix_free(x);
+              matrix_free(piv);
+              matrix_free(a);
+              return xiom.test.assert(false, "lu_solve pivot shape != n x 1: expected Err");
+            }
+            Err(_) => {
+              matrix_free(piv);
+              matrix_free(a);
+              return xiom.test.assert(true, "lu_solve pivot shape != n x 1: returns Err");
+            }
+          }
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "lu_solve pivot shape: matrix setup failed");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "lu_solve pivot length: matrix setup failed"); }
+  }
+}
+
+fn test_lu_solve_pivot_range() -> TestResult {
+  match matrix_create(2, 2) {
+    Ok(a) => {
+      match matrix_create(2, 1) {
+        Ok(pm) => {
+          var piv = pm;
+          matrix_set(&mut piv, 0, 0, 1.0);
+          matrix_set(&mut piv, 1, 0, 3.0);
+          var b = vec2(1.0, 2.0);
+          match lu_solve(&a, &piv, &b) {
+            Ok(x) => {
+              matrix_free(x);
+              matrix_free(piv);
+              matrix_free(a);
+              return xiom.test.assert(false, "lu_solve pivot out of range: expected Err");
+            }
+            Err(_) => {
+              matrix_free(piv);
+              matrix_free(a);
+              return xiom.test.assert(true, "lu_solve pivot out of range: returns Err");
+            }
+          }
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "lu_solve pivot range: matrix setup failed");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "lu_solve pivot range: matrix setup failed"); }
+  }
+}
+
+// ============================================================
+// Section 9 -- LAPACK: QR (dgeqrf/dorgqr)
+// ============================================================
+
+fn test_qr_3x2_orthogonal() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(1.0);
+  data.push(1.0);
+  data.push(1.0);
+  data.push(0.0);
+  data.push(0.0);
+  data.push(1.0);
+  match matrix_from_flat(&data, 3, 2) {
+    Ok(a) => {
+      var ok = qr_is_correct(&a, 3, 2, 0.000000001);
+      matrix_free(a);
+      return xiom.test.assert(ok, "qr 3x2: A == Q*R and Q^T*Q == I (tol 1e-9)");
+    }
+    Err(_) => { return xiom.test.assert(false, "qr 3x2: matrix setup failed"); }
+  }
+}
+
+fn test_qr_2x2_orthogonal() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(3.0);
+  data.push(4.0);
+  data.push(0.0);
+  data.push(5.0);
+  match matrix_from_flat(&data, 2, 2) {
+    Ok(a) => {
+      var ok = qr_is_correct(&a, 2, 2, 0.000000001);
+      matrix_free(a);
+      return xiom.test.assert(ok, "qr 2x2: A == Q*R and Q^T*Q == I (tol 1e-9)");
+    }
+    Err(_) => { return xiom.test.assert(false, "qr 2x2: matrix setup failed"); }
+  }
+}
+
+// ============================================================
+// Section 10 -- LAPACK: Cholesky (dpotrf/dpotrs)
+// ============================================================
+
+fn test_cholesky_2x2() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(4.0);
+  data.push(2.0);
+  data.push(2.0);
+  data.push(3.0);
+  match matrix_from_flat(&data, 2, 2) {
+    Ok(a) => {
+      match cholesky(&a) {
+        Ok(l) => {
+          var ok = approx_eq(matrix_get(&l, 0, 0), 2.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 0, 1), 0.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 1, 0), 1.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 1, 1), 1.4142135623730951, 0.000000001);
+          matrix_free(l);
+          matrix_free(a);
+          return xiom.test.assert(ok, "cholesky 2x2: [[4,2],[2,3]] -> L=[[2,0],[1,sqrt(2)]]");
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "cholesky 2x2: expected Ok");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "cholesky 2x2: matrix setup failed"); }
+  }
+}
+
+fn test_cholesky_solve_2x2() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(4.0);
+  data.push(2.0);
+  data.push(2.0);
+  data.push(3.0);
+  var b = vec2(8.0, 8.0);
+  match matrix_from_flat(&data, 2, 2) {
+    Ok(a) => {
+      match cholesky(&a) {
+        Ok(l) => {
+          match cholesky_solve(&l, &b) {
+            Ok(x) => {
+              var ok = approx_eq(matrix_get(&x, 0, 0), 1.0, 0.000000001)
+                && approx_eq(matrix_get(&x, 1, 0), 2.0, 0.000000001);
+              matrix_free(x);
+              matrix_free(l);
+              matrix_free(a);
+              return xiom.test.assert(ok, "cholesky_solve 2x2: [[4,2],[2,3]]x=[8,8] -> [1,2]");
+            }
+            Err(_) => {
+              matrix_free(l);
+              matrix_free(a);
+              return xiom.test.assert(false, "cholesky_solve 2x2: expected Ok");
+            }
+          }
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "cholesky_solve 2x2: cholesky failed");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "cholesky_solve 2x2: matrix setup failed"); }
+  }
+}
+
+fn test_cholesky_3x3() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(4.0);
+  data.push(12.0);
+  data.push(-16.0);
+  data.push(12.0);
+  data.push(37.0);
+  data.push(-43.0);
+  data.push(-16.0);
+  data.push(-43.0);
+  data.push(98.0);
+  match matrix_from_flat(&data, 3, 3) {
+    Ok(a) => {
+      match cholesky(&a) {
+        Ok(l) => {
+          var ok = approx_eq(matrix_get(&l, 0, 0), 2.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 0, 1), 0.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 0, 2), 0.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 1, 0), 6.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 1, 1), 1.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 1, 2), 0.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 2, 0), -8.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 2, 1), 5.0, 0.000000001)
+            && approx_eq(matrix_get(&l, 2, 2), 3.0, 0.000000001);
+          matrix_free(l);
+          matrix_free(a);
+          return xiom.test.assert(ok, "cholesky 3x3: A = L*L^T, L=[[2,0,0],[6,1,0],[-8,5,3]]");
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "cholesky 3x3: expected Ok");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "cholesky 3x3: matrix setup failed"); }
+  }
+}
+
+fn test_cholesky_solve_3x3() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(4.0);
+  data.push(12.0);
+  data.push(-16.0);
+  data.push(12.0);
+  data.push(37.0);
+  data.push(-43.0);
+  data.push(-16.0);
+  data.push(-43.0);
+  data.push(98.0);
+  var b = vec3(-20.0, -43.0, 192.0);
+  match matrix_from_flat(&data, 3, 3) {
+    Ok(a) => {
+      match cholesky(&a) {
+        Ok(l) => {
+          match cholesky_solve(&l, &b) {
+            Ok(x) => {
+              var ok = approx_eq(matrix_get(&x, 0, 0), 1.0, 0.000000001)
+                && approx_eq(matrix_get(&x, 1, 0), 2.0, 0.000000001)
+                && approx_eq(matrix_get(&x, 2, 0), 3.0, 0.000000001);
+              matrix_free(x);
+              matrix_free(l);
+              matrix_free(a);
+              return xiom.test.assert(ok, "cholesky_solve 3x3: A[1,2,3]^T = [-20,-43,192] -> [1,2,3]");
+            }
+            Err(_) => {
+              matrix_free(l);
+              matrix_free(a);
+              return xiom.test.assert(false, "cholesky_solve 3x3: expected Ok");
+            }
+          }
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "cholesky_solve 3x3: cholesky failed");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "cholesky_solve 3x3: matrix setup failed"); }
+  }
+}
+
+fn test_cholesky_not_spd() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(1.0);
+  data.push(2.0);
+  data.push(2.0);
+  data.push(1.0);
+  match matrix_from_flat(&data, 2, 2) {
+    Ok(a) => {
+      match cholesky(&a) {
+        Ok(l) => {
+          matrix_free(l);
+          matrix_free(a);
+          return xiom.test.assert(false, "cholesky [[1,2],[2,1]]: expected Err");
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(true, "cholesky [[1,2],[2,1]]: returns Err (not positive definite)");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "cholesky not SPD: matrix setup failed"); }
+  }
+}
+
+fn test_cholesky_nonsquare() -> TestResult {
+  match matrix_create(3, 2) {
+    Ok(a) => {
+      match cholesky(&a) {
+        Ok(l) => {
+          matrix_free(l);
+          matrix_free(a);
+          return xiom.test.assert(false, "cholesky 3x2: expected Err");
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(true, "cholesky 3x2: returns Err (non-square)");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "cholesky nonsquare: matrix setup failed"); }
+  }
+}
+
+fn test_cholesky_solve_dim_mismatch() -> TestResult {
+  var data = Vec[Float64].new();
+  data.push(4.0);
+  data.push(2.0);
+  data.push(2.0);
+  data.push(3.0);
+  var b = vec3(1.0, 2.0, 3.0);
+  match matrix_from_flat(&data, 2, 2) {
+    Ok(a) => {
+      match cholesky(&a) {
+        Ok(l) => {
+          match cholesky_solve(&l, &b) {
+            Ok(x) => {
+              matrix_free(x);
+              matrix_free(l);
+              matrix_free(a);
+              return xiom.test.assert(false, "cholesky_solve |b| != n: expected Err");
+            }
+            Err(_) => {
+              matrix_free(l);
+              matrix_free(a);
+              return xiom.test.assert(true, "cholesky_solve |b| != n: returns Err");
+            }
+          }
+        }
+        Err(_) => {
+          matrix_free(a);
+          return xiom.test.assert(false, "cholesky_solve dim mismatch: cholesky failed");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "cholesky_solve dim mismatch: matrix setup failed"); }
+  }
+}
+
+fn test_cholesky_solve_nonsquare_factor() -> TestResult {
+  match matrix_create(2, 3) {
+    Ok(l) => {
+      var b = vec2(1.0, 2.0);
+      match cholesky_solve(&l, &b) {
+        Ok(x) => {
+          matrix_free(x);
+          matrix_free(l);
+          return xiom.test.assert(false, "cholesky_solve 2x3 factor: expected Err");
+        }
+        Err(_) => {
+          matrix_free(l);
+          return xiom.test.assert(true, "cholesky_solve 2x3 factor: returns Err (non-square)");
+        }
+      }
+    }
+    Err(_) => { return xiom.test.assert(false, "cholesky_solve nonsquare factor: matrix setup failed"); }
+  }
+}
+
+fn test_lapack_invalid_handle() -> TestResult {
+  match matrix_create(2, 2) {
+    Ok(m) => {
+      var b = vec2(1.0, 2.0);
+      matrix_free(m);
+      var ok = true;
+      match lu_factor(&m) {
+        Ok((lu, _piv)) => { matrix_free(lu); ok = false; }
+        Err(_) => { }
+      };
+      match qr(&m) {
+        Ok((q, r)) => { matrix_free(q); matrix_free(r); ok = false; }
+        Err(_) => { }
+      };
+      match cholesky(&m) {
+        Ok(l) => { matrix_free(l); ok = false; }
+        Err(_) => { }
+      };
+      match cholesky_solve(&m, &b) {
+        Ok(x) => { matrix_free(x); ok = false; }
+        Err(_) => { }
+      };
+      return xiom.test.assert(ok, "invalid (freed) handle: lu_factor/qr/cholesky/cholesky_solve return Err");
+    }
+    Err(_) => { return xiom.test.assert(false, "invalid handle: matrix setup failed"); }
+  }
+}
+
+// ============================================================
 // Test runner
 // ============================================================
 
@@ -1060,6 +1709,29 @@ pub fn main() -> Int {
   results.push(test_solve_dimension_mismatch());
   results.push(test_solve_values());
   results.push(test_solve_singular());
+
+  results.push(test_lu_factor_2x2());
+  results.push(test_lu_solve_2x2());
+  results.push(test_lu_factor_3x3());
+  results.push(test_lu_solve_3x3());
+  results.push(test_lu_factor_singular());
+  results.push(test_lu_factor_nonsquare());
+  results.push(test_lu_solve_pivot_length());
+  results.push(test_lu_solve_pivot_range());
+
+  results.push(test_qr_3x2_orthogonal());
+  results.push(test_qr_2x2_orthogonal());
+
+  results.push(test_cholesky_2x2());
+  results.push(test_cholesky_solve_2x2());
+  results.push(test_cholesky_3x3());
+  results.push(test_cholesky_solve_3x3());
+  results.push(test_cholesky_not_spd());
+  results.push(test_cholesky_nonsquare());
+  results.push(test_cholesky_solve_dim_mismatch());
+  results.push(test_cholesky_solve_nonsquare_factor());
+
+  results.push(test_lapack_invalid_handle());
 
   let total_count = results.len();
   let report = xiom.test.format_results(results);

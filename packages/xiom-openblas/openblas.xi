@@ -154,6 +154,18 @@ extern "C" {
   fn dgesvd_(jobu: *UInt8, jobvt: *UInt8, m: *Int32, n: *Int32, a: *Float64, lda: *Int32, s: *Float64, u: *Float64, ldu: *Int32, vt: *Float64, ldvt: *Int32, work: *Float64, lwork: *Int32, info: *Int32, jobu_len: UInt, jobvt_len: UInt);
   fn dsyev_(jobz: *UInt8, uplo: *UInt8, n: *Int32, a: *Float64, lda: *Int32, w: *Float64, work: *Float64, lwork: *Int32, info: *Int32, jobz_len: UInt, uplo_len: UInt);
   fn dgesv_(n: *Int32, nrhs: *Int32, a: *Float64, lda: *Int32, ipiv: *Int32, b: *Float64, ldb: *Int32, info: *Int32);
+
+  // ---- LAPACK LU (dgetrf/dgetrs) ----
+  fn dgetrf_(m: *Int32, n: *Int32, a: *Float64, lda: *Int32, ipiv: *Int32, info: *Int32);
+  fn dgetrs_(trans: *UInt8, n: *Int32, nrhs: *Int32, a: *Float64, lda: *Int32, ipiv: *Int32, b: *Float64, ldb: *Int32, info: *Int32, trans_len: UInt);
+
+  // ---- LAPACK QR (dgeqrf/dorgqr) ----
+  fn dgeqrf_(m: *Int32, n: *Int32, a: *Float64, lda: *Int32, tau: *Float64, work: *Float64, lwork: *Int32, info: *Int32);
+  fn dorgqr_(m: *Int32, n: *Int32, k: *Int32, a: *Float64, lda: *Int32, tau: *Float64, work: *Float64, lwork: *Int32, info: *Int32);
+
+  // ---- LAPACK Cholesky (dpotrf/dpotrs) ----
+  fn dpotrf_(uplo: *UInt8, n: *Int32, a: *Float64, lda: *Int32, info: *Int32, uplo_len: UInt);
+  fn dpotrs_(uplo: *UInt8, n: *Int32, nrhs: *Int32, a: *Float64, lda: *Int32, b: *Float64, ldb: *Int32, info: *Int32, uplo_len: UInt);
 }
 
 // ============================================================
@@ -803,4 +815,604 @@ pub fn solve(A: &Matrix, b: &Vec[Float64]) -> Result[Matrix, Str] {
 
   var x = matrix_create(rows, 1)?;
   return Ok(x);
+}
+
+// ============================================================
+// LAPACK -- LU factorization + solve (dgetrf/dgetrs)
+// ============================================================
+// Return contract:
+//   lu_factor(A) -> (LU, piv)
+//     * A must be square n x n (n > 0).
+//     * LU is n x n row-major: unit-lower L below the diagonal, U on/above
+//       the diagonal (the packed dgetrf layout).
+//     * piv is n x 1 row-major: piv(k, 0) is the 1-based row index swapped
+//       with row k; pivoting satisfies P*A = L*U. Pivot indices are exact
+//       integers stored in the Float64 matrix surface (the package has no
+//       integer matrix type).
+//     * Err when A is non-square, the handle is invalid, or a pivot is
+//       exactly zero (singular matrix; LAPACK info > 0).
+//   lu_solve(LU, piv, b) -> Matrix n x 1
+//     * Validates: LU is n x n, piv is n x 1 with entries in 1..n, |b| == n.
+//     * Err on singular factors (zero U diagonal) or invalid arguments.
+//
+// Real leg: dgetrf_ / dgetrs_ (trans = 'N'). Offline leg: the same partial
+// pivoting + forward/back substitution in pure XIOM, so both legs produce the
+// same factor for the same input (tolerance 1e-9 in the suite).
+
+fn __matrix_from_row_major(rows: Int, cols: Int, data: &Vec[Float64]) -> Result[Matrix, Str] {
+  var m = matrix_create(rows, cols)?;
+  var h: Int = m;
+  __fill_row_major(h, data);
+  return Ok(m);
+}
+
+pub fn lu_factor(A: &Matrix) -> Result[(Matrix, Matrix), Str] {
+  var handle: Int = A;
+  if !__pool_is_valid(handle) {
+    return Err("lu_factor: invalid matrix handle");
+  }
+  let rows = __pool_rows_of(handle);
+  let cols = __pool_cols_of(handle);
+  if rows <= 0 || rows != cols {
+    return Err("lu_factor: A must be square (rows == cols)");
+  }
+  let n = rows;
+
+  if backend_is_real() {
+    var a_c = __to_col_major(handle);
+    var ipiv_storage = Vec[Float64].with_len((n + 1) / 2);
+    var n32: Int32 = n as Int32;
+    var m32: Int32 = n as Int32;
+    var lda32: Int32 = n as Int32;
+    var info32: Int32 = 0;
+    // a_c has n*n doubles (lda = n); ipiv_storage has ceil(n/2) eight-byte
+    // slots = at least n*4 bytes for the required int32 pivot array.
+    // SAFETY: those sized spans bound every dgetrf_ read/write.
+    unsafe {
+      dgetrf_(&mut m32, &mut n32, &mut a_c[0], &mut lda32,
+              ipiv_storage.as_mut_ptr() as *Int32, &mut info32);
+    }
+    if info32 < 0 {
+      return Err("lu_factor: dgetrf_ rejected an argument (info=" + convert.int_to_string(info32 as Int) + ")");
+    }
+    if info32 > 0 {
+      return Err("lu_factor: matrix is singular (zero pivot at column " + convert.int_to_string(info32 as Int) + ")");
+    }
+
+    var lu_rm = Vec[Float64].with_len(n * n);
+    var i = 0;
+    while i < n {
+      var j = 0;
+      while j < n {
+        lu_rm[i * n + j] = a_c[i + j * n];
+        j = j + 1;
+      }
+      i = i + 1;
+    }
+    var piv = matrix_create(n, 1)?;
+    var hpiv: Int = piv;
+    let ip: *Int32 = ipiv_storage.as_mut_ptr() as *Int32;
+    i = 0;
+    // SAFETY: dgetrf_ wrote n int32 pivots into the first n*4 bytes of the
+    // ipiv_storage span; reading n int32 values stays inside that span and
+    // the n x 1 piv pool span covers every write.
+    unsafe {
+      while i < n {
+        __pool_data_write(hpiv, i, (ip[i] as Int) as Float64);
+        i = i + 1;
+      }
+    }
+    var lu = __matrix_from_row_major(n, n, &lu_rm)?;
+    return Ok((lu, piv));
+  }
+
+  var lu = Vec[Float64].with_len(n * n);
+  var i = 0;
+  while i < n * n {
+    lu[i] = __pool_data_read(handle, i);
+    i = i + 1;
+  }
+  var piv = matrix_create(n, 1)?;
+  var hpiv: Int = piv;
+  var k = 0;
+  while k < n {
+    var p = k;
+    var best = lu[k * n + k];
+    if best < 0.0 { best = -best; }
+    var r = k + 1;
+    while r < n {
+      var av = lu[r * n + k];
+      if av < 0.0 { av = -av; }
+      if av > best {
+        best = av;
+        p = r;
+      }
+      r = r + 1;
+    }
+    if best == 0.0 {
+      return Err("lu_factor: matrix is singular (zero pivot at column " + convert.int_to_string(k + 1) + ")");
+    }
+    if p != k {
+      var j = 0;
+      while j < n {
+        let tmp = lu[k * n + j];
+        lu[k * n + j] = lu[p * n + j];
+        lu[p * n + j] = tmp;
+        j = j + 1;
+      }
+    }
+    __pool_data_write(hpiv, k, (p + 1) as Float64);
+    var akk = lu[k * n + k];
+    var ii = k + 1;
+    while ii < n {
+      let factor = lu[ii * n + k] / akk;
+      lu[ii * n + k] = factor;
+      var jj = k + 1;
+      while jj < n {
+        lu[ii * n + jj] = lu[ii * n + jj] - factor * lu[k * n + jj];
+        jj = jj + 1;
+      }
+      ii = ii + 1;
+    }
+    k = k + 1;
+  }
+  var out = __matrix_from_row_major(n, n, &lu)?;
+  return Ok((out, piv));
+}
+
+pub fn lu_solve(LU: &Matrix, piv: &Matrix, b: &Vec[Float64]) -> Result[Matrix, Str] {
+  var handle: Int = LU;
+  if !__pool_is_valid(handle) {
+    return Err("lu_solve: invalid factor handle");
+  }
+  var phandle: Int = piv;
+  if !__pool_is_valid(phandle) {
+    return Err("lu_solve: invalid pivot handle");
+  }
+  let rows = __pool_rows_of(handle);
+  let cols = __pool_cols_of(handle);
+  if rows <= 0 || rows != cols {
+    return Err("lu_solve: LU factor must be square (rows == cols)");
+  }
+  let n = rows;
+  if __pool_rows_of(phandle) != n || __pool_cols_of(phandle) != 1 {
+    return Err("lu_solve: pivot matrix must be n x 1");
+  }
+  if b.len() != n {
+    return Err("lu_solve: b length must equal the factor dimension");
+  }
+  var k = 0;
+  while k < n {
+    let p = __pool_data_read(phandle, k) as Int;
+    if p < 1 || p > n {
+      return Err("lu_solve: pivot index out of range");
+    }
+    k = k + 1;
+  }
+
+  if backend_is_real() {
+    var a_c = __to_col_major(handle);
+    var b_c = Vec[Float64].with_len(n);
+    var i = 0;
+    while i < n {
+      b_c[i] = b[i];
+      i = i + 1;
+    }
+    var ipiv_storage = Vec[Float64].with_len((n + 1) / 2);
+    let ip: *Int32 = ipiv_storage.as_mut_ptr() as *Int32;
+    // SAFETY: storing n int32 pivots needs n*4 bytes; the ceil(n/2) Float64
+    // slots provide at least that many bytes.
+    unsafe {
+      i = 0;
+      while i < n {
+        ip[i] = __pool_data_read(phandle, i) as Int32;
+        i = i + 1;
+      }
+    }
+    var trans: UInt8 = 78;  // 'N'
+    var n32: Int32 = n as Int32;
+    var nrhs32: Int32 = 1;
+    var lda32: Int32 = n as Int32;
+    var ldb32: Int32 = n as Int32;
+    var info32: Int32 = 0;
+    // a_c has n*n doubles (lda = n), b_c has n doubles (ldb = n), and the
+    // ipiv storage holds n int32 pivots.
+    // SAFETY: those sized spans bound every dgetrs_ read/write.
+    unsafe {
+      dgetrs_(&mut trans, &mut n32, &mut nrhs32, &mut a_c[0], &mut lda32,
+              ip, &mut b_c[0], &mut ldb32, &mut info32, 1 as UInt);
+    }
+    if info32 < 0 {
+      return Err("lu_solve: dgetrs_ rejected an argument (info=" + convert.int_to_string(info32 as Int) + ")");
+    }
+    var x_rm = Vec[Float64].with_len(n);
+    i = 0;
+    while i < n {
+      x_rm[i] = b_c[i];
+      i = i + 1;
+    }
+    return __matrix_from_row_major(n, 1, &x_rm);
+  }
+
+  var x = Vec[Float64].with_len(n);
+  var i = 0;
+  while i < n {
+    x[i] = b[i];
+    i = i + 1;
+  }
+  // Apply the row interchanges in the order dgetrf recorded them.
+  k = 0;
+  while k < n {
+    let p = (__pool_data_read(phandle, k) as Int) - 1;
+    if p != k {
+      let tmp = x[k];
+      x[k] = x[p];
+      x[p] = tmp;
+    }
+    k = k + 1;
+  }
+  // Forward solve L*y = P*b (unit diagonal).
+  i = 0;
+  while i < n {
+    var sum = x[i];
+    var j = 0;
+    while j < i {
+      sum = sum - __pool_data_read(handle, i * n + j) * x[j];
+      j = j + 1;
+    }
+    x[i] = sum;
+    i = i + 1;
+  }
+  // Back solve U*x = y.
+  var ii = n - 1;
+  while ii >= 0 {
+    var sum = x[ii];
+    var j = ii + 1;
+    while j < n {
+      sum = sum - __pool_data_read(handle, ii * n + j) * x[j];
+      j = j + 1;
+    }
+    let d = __pool_data_read(handle, ii * n + ii);
+    if d == 0.0 {
+      return Err("lu_solve: singular factor (zero diagonal)");
+    }
+    x[ii] = sum / d;
+    ii = ii - 1;
+  }
+  return __matrix_from_row_major(n, 1, &x);
+}
+
+// ============================================================
+// LAPACK -- QR factorization (dgeqrf/dorgqr)
+// ============================================================
+// qr(A) -> (Q, R)
+//   * A is m x n with m > 0 and n > 0; k = min(m, n).
+//   * Q is m x k with orthonormal columns; R is k x n upper triangular.
+//   * A = Q * R (economy/reduced factorization).
+//   * Err on an invalid handle, non-positive dimensions, or (offline leg)
+//     a rank-deficient input (zero column norm). LAPACK dgeqrf_ itself does
+//     not fail on rank deficiency, so the real leg still returns Ok.
+//
+// Real leg: dgeqrf_ then dorgqr_ (workspace queried with lwork = -1).
+// Offline leg: modified Gram-Schmidt producing the same reduced shapes; R
+// carries positive diagonal entries, so the QR tests assert reconstruction
+// and orthonormality rather than the reflector sign convention.
+
+pub fn qr(A: &Matrix) -> Result[(Matrix, Matrix), Str] {
+  var handle: Int = A;
+  if !__pool_is_valid(handle) {
+    return Err("qr: invalid matrix handle");
+  }
+  let m = __pool_rows_of(handle);
+  let n = __pool_cols_of(handle);
+  if m <= 0 || n <= 0 {
+    return Err("qr: matrix must have positive dimensions");
+  }
+  var k = m;
+  if n < k { k = n; }
+
+  if backend_is_real() {
+    var a_c = __to_col_major(handle);
+    var tau = Vec[Float64].with_len(k);
+    var work_query = Vec[Float64].with_len(1);
+    var m32: Int32 = m as Int32;
+    var n32: Int32 = n as Int32;
+    var k32: Int32 = k as Int32;
+    var lda32: Int32 = m as Int32;
+    var lwork32: Int32 = -1;
+    var info32: Int32 = 0;
+
+    // Workspace query: lwork = -1 with a one-element work buffer.
+    // SAFETY: a_c has m*n slots (lda = m), tau has k slots, and work_query
+    // is the documented query buffer.
+    unsafe {
+      dgeqrf_(&mut m32, &mut n32, &mut a_c[0], &mut lda32, &mut tau[0],
+              &mut work_query[0], &mut lwork32, &mut info32);
+    }
+    if info32 != 0 {
+      return Err("qr: dgeqrf_ workspace query failed (info=" + convert.int_to_string(info32 as Int) + ")");
+    }
+    let lwork = work_query[0] as Int;
+    if lwork < 1 {
+      return Err("qr: dgeqrf_ returned an invalid workspace size");
+    }
+    var work = Vec[Float64].with_len(lwork);
+    lwork32 = lwork as Int32;
+    info32 = 0;
+    // SAFETY: work has exactly lwork slots; the other spans are unchanged.
+    unsafe {
+      dgeqrf_(&mut m32, &mut n32, &mut a_c[0], &mut lda32, &mut tau[0],
+              &mut work[0], &mut lwork32, &mut info32);
+    }
+    if info32 != 0 {
+      return Err("qr: dgeqrf_ failed (info=" + convert.int_to_string(info32 as Int) + ")");
+    }
+
+    // Extract R (k x n upper triangle) before dorgqr overwrites the
+    // reflectors in a_c.
+    var r_rm = Vec[Float64].with_len(k * n);
+    var i = 0;
+    while i < k {
+      var j = 0;
+      while j < n {
+        if i <= j {
+          r_rm[i * n + j] = a_c[i + j * m];
+        }
+        j = j + 1;
+      }
+      i = i + 1;
+    }
+
+    // Generate the first k columns of Q (m x k).
+    info32 = 0;
+    // SAFETY: a_c has m*n >= m*k slots (lda = m), tau has k slots, work has
+    // the lwork slots from the dgeqrf_ query.
+    unsafe {
+      dorgqr_(&mut m32, &mut k32, &mut k32, &mut a_c[0], &mut lda32, &mut tau[0],
+              &mut work[0], &mut lwork32, &mut info32);
+    }
+    if info32 != 0 {
+      return Err("qr: dorgqr_ failed (info=" + convert.int_to_string(info32 as Int) + ")");
+    }
+
+    var q_rm = Vec[Float64].with_len(m * k);
+    i = 0;
+    while i < m {
+      var j = 0;
+      while j < k {
+        q_rm[i * k + j] = a_c[i + j * m];
+        j = j + 1;
+      }
+      i = i + 1;
+    }
+    var q = __matrix_from_row_major(m, k, &q_rm)?;
+    var r = __matrix_from_row_major(k, n, &r_rm)?;
+    return Ok((q, r));
+  }
+
+  var q_rm = Vec[Float64].with_len(m * k);
+  var r_rm = Vec[Float64].with_len(k * n);
+  var j = 0;
+  while j < n {
+    var v = Vec[Float64].with_len(m);
+    var i = 0;
+    while i < m {
+      v[i] = __pool_data_read(handle, i * n + j);
+      i = i + 1;
+    }
+    var lim = j;
+    if lim > k { lim = k; }
+    i = 0;
+    while i < lim {
+      var dotv = 0.0;
+      var t = 0;
+      while t < m {
+        dotv = dotv + q_rm[t * k + i] * v[t];
+        t = t + 1;
+      }
+      r_rm[i * n + j] = dotv;
+      t = 0;
+      while t < m {
+        v[t] = v[t] - dotv * q_rm[t * k + i];
+        t = t + 1;
+      }
+      i = i + 1;
+    }
+    if j < k {
+      var nrm = 0.0;
+      var t = 0;
+      while t < m {
+        nrm = nrm + v[t] * v[t];
+        t = t + 1;
+      }
+      nrm = sqrt(nrm);
+      if nrm == 0.0 {
+        return Err("qr: matrix is rank deficient (zero column norm at column " + convert.int_to_string(j + 1) + ")");
+      }
+      r_rm[j * n + j] = nrm;
+      t = 0;
+      while t < m {
+        q_rm[t * k + j] = v[t] / nrm;
+        t = t + 1;
+      }
+    }
+    j = j + 1;
+  }
+  var q = __matrix_from_row_major(m, k, &q_rm)?;
+  var r = __matrix_from_row_major(k, n, &r_rm)?;
+  return Ok((q, r));
+}
+
+// ============================================================
+// LAPACK -- Cholesky factorization + solve (dpotrf/dpotrs)
+// ============================================================
+// cholesky(A) -> L
+//   * A must be square n x n (n > 0) and symmetric positive definite.
+//   * L is n x n lower triangular, A = L * L^T; the strict upper triangle
+//     is zero.
+//   * Err on a non-square input, invalid handle, or a non-positive pivot
+//     (LAPACK info > 0, not positive definite).
+// cholesky_solve(L, b) -> Matrix n x 1
+//   * L must be the n x n factor returned by cholesky (lower triangle read).
+//   * |b| must equal n; Err otherwise or on a zero diagonal.
+//
+// Real leg: dpotrf_/dpotrs_ with uplo = 'L'. Offline leg: Cholesky-Crout and
+// forward/back substitution in pure XIOM (same tolerance policy, 1e-9).
+
+pub fn cholesky(A: &Matrix) -> Result[Matrix, Str] {
+  var handle: Int = A;
+  if !__pool_is_valid(handle) {
+    return Err("cholesky: invalid matrix handle");
+  }
+  let rows = __pool_rows_of(handle);
+  let cols = __pool_cols_of(handle);
+  if rows <= 0 || rows != cols {
+    return Err("cholesky: A must be square (rows == cols)");
+  }
+  let n = rows;
+
+  if backend_is_real() {
+    var a_c = __to_col_major(handle);
+    var uplo: UInt8 = 76;  // 'L'
+    var n32: Int32 = n as Int32;
+    var lda32: Int32 = n as Int32;
+    var info32: Int32 = 0;
+    // a_c has n*n doubles (lda = n).
+    // SAFETY: the sized span bounds every dpotrf_ read/write.
+    unsafe {
+      dpotrf_(&mut uplo, &mut n32, &mut a_c[0], &mut lda32, &mut info32, 1 as UInt);
+    }
+    if info32 < 0 {
+      return Err("cholesky: dpotrf_ rejected an argument (info=" + convert.int_to_string(info32 as Int) + ")");
+    }
+    if info32 > 0 {
+      return Err("cholesky: matrix is not positive definite (info=" + convert.int_to_string(info32 as Int) + ")");
+    }
+    var l_rm = Vec[Float64].with_len(n * n);
+    var i = 0;
+    while i < n {
+      var j = 0;
+      while j < n {
+        if i >= j {
+          l_rm[i * n + j] = a_c[i + j * n];
+        }
+        j = j + 1;
+      }
+      i = i + 1;
+    }
+    return __matrix_from_row_major(n, n, &l_rm);
+  }
+
+  var l_rm = Vec[Float64].with_len(n * n);
+  var i = 0;
+  while i < n {
+    var j = 0;
+    while j <= i {
+      var sum = __pool_data_read(handle, i * n + j);
+      var t = 0;
+      while t < j {
+        sum = sum - l_rm[i * n + t] * l_rm[j * n + t];
+        t = t + 1;
+      }
+      if i == j {
+        if sum <= 0.0 {
+          return Err("cholesky: matrix is not positive definite (non-positive pivot at " + convert.int_to_string(i + 1) + ")");
+        }
+        l_rm[i * n + j] = sqrt(sum);
+      } else {
+        let d = l_rm[j * n + j];
+        if d == 0.0 {
+          return Err("cholesky: matrix is not positive definite (zero diagonal)");
+        }
+        l_rm[i * n + j] = sum / d;
+      }
+      j = j + 1;
+    }
+    i = i + 1;
+  }
+  return __matrix_from_row_major(n, n, &l_rm);
+}
+
+pub fn cholesky_solve(L: &Matrix, b: &Vec[Float64]) -> Result[Matrix, Str] {
+  var handle: Int = L;
+  if !__pool_is_valid(handle) {
+    return Err("cholesky_solve: invalid factor handle");
+  }
+  let rows = __pool_rows_of(handle);
+  let cols = __pool_cols_of(handle);
+  if rows <= 0 || rows != cols {
+    return Err("cholesky_solve: L must be square (rows == cols)");
+  }
+  let n = rows;
+  if b.len() != n {
+    return Err("cholesky_solve: b length must equal the factor dimension");
+  }
+
+  if backend_is_real() {
+    var a_c = __to_col_major(handle);
+    var b_c = Vec[Float64].with_len(n);
+    var i = 0;
+    while i < n {
+      b_c[i] = b[i];
+      i = i + 1;
+    }
+    var uplo: UInt8 = 76;  // 'L'
+    var n32: Int32 = n as Int32;
+    var nrhs32: Int32 = 1;
+    var lda32: Int32 = n as Int32;
+    var ldb32: Int32 = n as Int32;
+    var info32: Int32 = 0;
+    // a_c has n*n doubles (lda = n); b_c has n doubles (ldb = n).
+    // SAFETY: those sized spans bound every dpotrs_ read/write.
+    unsafe {
+      dpotrs_(&mut uplo, &mut n32, &mut nrhs32, &mut a_c[0], &mut lda32,
+              &mut b_c[0], &mut ldb32, &mut info32, 1 as UInt);
+    }
+    if info32 < 0 {
+      return Err("cholesky_solve: dpotrs_ rejected an argument (info=" + convert.int_to_string(info32 as Int) + ")");
+    }
+    var x_rm = Vec[Float64].with_len(n);
+    i = 0;
+    while i < n {
+      x_rm[i] = b_c[i];
+      i = i + 1;
+    }
+    return __matrix_from_row_major(n, 1, &x_rm);
+  }
+
+  // Forward solve L*y = b.
+  var y = Vec[Float64].with_len(n);
+  var i = 0;
+  while i < n {
+    var sum = b[i];
+    var j = 0;
+    while j < i {
+      sum = sum - __pool_data_read(handle, i * n + j) * y[j];
+      j = j + 1;
+    }
+    let d = __pool_data_read(handle, i * n + i);
+    if d == 0.0 {
+      return Err("cholesky_solve: singular factor (zero diagonal)");
+    }
+    y[i] = sum / d;
+    i = i + 1;
+  }
+  // Back solve L^T*x = y.
+  var x = Vec[Float64].with_len(n);
+  var ii = n - 1;
+  while ii >= 0 {
+    var sum = y[ii];
+    var j = ii + 1;
+    while j < n {
+      sum = sum - __pool_data_read(handle, j * n + ii) * x[j];
+      j = j + 1;
+    }
+    let d = __pool_data_read(handle, ii * n + ii);
+    if d == 0.0 {
+      return Err("cholesky_solve: singular factor (zero diagonal)");
+    }
+    x[ii] = sum / d;
+    ii = ii - 1;
+  }
+  return __matrix_from_row_major(n, 1, &x);
 }

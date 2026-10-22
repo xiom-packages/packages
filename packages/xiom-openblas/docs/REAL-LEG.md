@@ -16,8 +16,8 @@ BSD-3-Clause -- see `PROVENANCE.md`), extracted at
 .\scripts\port.ps1 -Package xiom.openblas -TimeoutSec 300
 ```
 
-- run 1: `42/42` checks, `program_exit=0`, `port: PASS`
-- run 2: `42/42` checks, `program_exit=0`, `port: PASS`
+- run 1: `71/71` checks, `program_exit=0`, `port: PASS`
+- run 2: `71/71` checks, `program_exit=0`, `port: PASS`
 
 This artifact links `bridge/openblas_bridge.c`; `backend_is_real()` is false.
 BLAS checks run the pure-XIOM reference paths and the LAPACK checks assert the
@@ -29,8 +29,8 @@ documented identity/zero placeholders.
 .\packages\xiom.openblas\tests\run_real_leg.ps1 -Require
 ```
 
-- run 1: `42/42` checks, `program_exit=0`
-- run 2: `42/42` checks, `program_exit=0`
+- run 1: `71/71` checks, `program_exit=0`
+- run 2: `71/71` checks, `program_exit=0`
 - runner verdict: `real leg: PASS (2/2 runs green)`
 
 Link line used by the runner (no stub seam):
@@ -44,7 +44,7 @@ xiom --run tests\test_conformance.xi ^
 
 `backend_is_real()` is true in this artifact; the suite calls real
 `cblas_ddot`/`cblas_daxpy`/`cblas_dgemv`/`cblas_dgemm` and real
-`dgesvd_`/`dsyev_`/`dgesv_`.
+`dgesvd_`/`dsyev_`/`dgesv_`, plus `dgetrf_`/`dgetrs_`, `dgeqrf_`/`dorgqr_`, and `dpotrf_`/`dpotrs_` (Phase 2, 2026-10-22).
 
 ### Legacy runtime probe (kept SKIP-safe)
 

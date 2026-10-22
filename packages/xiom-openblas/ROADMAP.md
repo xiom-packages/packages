@@ -2,7 +2,7 @@
 
 ## Phase 1 -- Core Foundation (CURRENT)
 
-**Status:** COMPLETE -- conformance-green (42/42 x2 on compiler v0.64.6) on both
+**Status:** COMPLETE -- conformance-green (71/71 x2 on compiler v0.64.9) on both
 legs: the offline stub/SKIP artifact and the real linked OpenBLAS artifact
 (OpenBLAS v0.3.34 Windows x64 LP64/Int32, BSD-3-Clause; see PROVENANCE.md).
 
@@ -44,15 +44,19 @@ legs: the offline stub/SKIP artifact and the real linked OpenBLAS artifact
 
 ## Phase 2 -- LAPACK Full Coverage
 
-- [ ] `dgetrf` / `dgetrs` (LU decomposition + solve)
-- [ ] `dgeqrf` / `dorgqr` (QR decomposition)
-- [ ] `dpotrf` / `dpotrs` (Cholesky)
-- [ ] `dgeev` (non-symmetric eigenvalues)
+- [x] `dgetrf` / `dgetrs` (LU decomposition + solve) -- `lu_factor`/`lu_solve`, real leg + self-contained offline leg
+- [x] `dgeqrf` / `dorgqr` (QR decomposition) -- `qr` (reduced Q/R, workspace-queried)
+- [x] `dpotrf` / `dpotrs` (Cholesky) -- `cholesky`/`cholesky_solve`, SPD `Err` on `info > 0`
+- [ ] `dgeev` (non-symmetric eigenvalues) -- SKIPPED: complex-output shape unpinned
 - [ ] `dgesdd` (divide-and-conquer SVD, faster)
 - [ ] `dgelss` / `dgelsd` (least-squares)
 - [ ] Workspace auto-sizing helpers for LAPACK `lwork` queries
 
-**Effort:** ~3 days
+**Status:** LU/QR/Cholesky landed 2026-10-22 (71/71 x2 on both legs,
+compiler v0.64.9). `dgeev`, `dgesdd`, `dgelss`/`dgelsd`, and the workspace
+helper remain open.
+
+**Effort:** ~3 days (partially complete)
 
 ## Phase 3 -- Sparse Matrix Support
 

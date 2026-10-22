@@ -182,3 +182,89 @@ void dgesv_(int32_t* n, int32_t* nrhs, double* a, int32_t* lda,
   if (info == 0) return;
   *info = OBLAS_STUB_INFO;
 }
+
+/* ---- LAPACK LU (Phase 2 stub seam) ------------------------------------- */
+
+void dgetrf_(int32_t* m, int32_t* n, double* a, int32_t* lda,
+             int32_t* ipiv, int32_t* info) {
+  (void)m;
+  (void)n;
+  (void)a;
+  (void)lda;
+  (void)ipiv;
+  if (info == 0) return;
+  *info = OBLAS_STUB_INFO;
+}
+
+void dgetrs_(unsigned char* trans, int32_t* n, int32_t* nrhs,
+             double* a, int32_t* lda, int32_t* ipiv, double* b,
+             int32_t* ldb, int32_t* info, size_t trans_len) {
+  (void)trans;
+  (void)n;
+  (void)nrhs;
+  (void)a;
+  (void)lda;
+  (void)ipiv;
+  (void)b;
+  (void)ldb;
+  (void)trans_len;
+  if (info == 0) return;
+  *info = OBLAS_STUB_INFO;
+}
+
+/* ---- LAPACK QR (Phase 2 stub seam) ------------------------------------- */
+
+void dgeqrf_(int32_t* m, int32_t* n, double* a, int32_t* lda,
+             double* tau, double* work, int32_t* lwork, int32_t* info) {
+  (void)m;
+  (void)n;
+  (void)a;
+  (void)lda;
+  (void)tau;
+  (void)work;
+  (void)lwork;
+  if (info == 0) return;
+  *info = OBLAS_STUB_INFO;
+}
+
+void dorgqr_(int32_t* m, int32_t* n, int32_t* k, double* a, int32_t* lda,
+             double* tau, double* work, int32_t* lwork, int32_t* info) {
+  (void)m;
+  (void)n;
+  (void)k;
+  (void)a;
+  (void)lda;
+  (void)tau;
+  (void)work;
+  (void)lwork;
+  if (info == 0) return;
+  *info = OBLAS_STUB_INFO;
+}
+
+/* ---- LAPACK Cholesky (Phase 2 stub seam) ------------------------------- */
+
+void dpotrf_(unsigned char* uplo, int32_t* n, double* a, int32_t* lda,
+             int32_t* info, size_t uplo_len) {
+  (void)uplo;
+  (void)n;
+  (void)a;
+  (void)lda;
+  (void)uplo_len;
+  if (info == 0) return;
+  *info = OBLAS_STUB_INFO;
+}
+
+void dpotrs_(unsigned char* uplo, int32_t* n, int32_t* nrhs, double* a,
+             int32_t* lda, double* b, int32_t* ldb, int32_t* info,
+             size_t uplo_len) {
+  (void)uplo;
+  (void)n;
+  (void)nrhs;
+  (void)a;
+  (void)lda;
+  (void)b;
+  (void)ldb;
+  (void)uplo_len;
+  if (info == 0) return;
+  *info = OBLAS_STUB_INFO;
+}
