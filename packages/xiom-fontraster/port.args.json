@@ -1,10 +1,4 @@
 [
   "--c-source",
-  "${PACKAGE_DIR}/src/fontraster.c",
-  "--c-source",
-  "${PACKAGE_DIR}/../xiom-harfbuzz/vendor/harfbuzz/src/harfbuzz-subset.cc",
-  "--cxx-standard",
-  "17",
-  "--timeout",
-  "300"
+  "${PACKAGE_DIR}/src/fontraster.c"
 ]
