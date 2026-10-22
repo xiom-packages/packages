@@ -2395,6 +2395,24 @@ A14 CLOSED end-to-end)**:
   DPI, OS tear-off/dock-back, clipboard/IME, accessibility host,
   Project Manager window) can consume on LIVE.
 
+**UPDATE 2026-10-22 15:05Z (v0.64.9 released; bindings scratch
+pre-verify GREEN)**:
+- **v0.64.9 RELEASED** (owner GO 13:01Z; tag `2bcf58db5`; run
+  39791522014 SUCCESS; 11 assets; stdlib-v0.64.9 stable; contents incl.
+  m1157 BOM catalog, 2045 part 2 Str payloads, XVC-C-22 Vec inference,
+  m1731 borrowed enum, m1703 stored fn values, m1326 enum equality,
+  m1520 adapter substitution, m365 shared deps, 1511 port args, 1531
+  dead-builder lock, m375 opt-in XIOM_FAST_EXIT).
+- **Bindings scratch pre-verify on v0.64.9**: SHA256SUMS OK; nested-
+  payload probe + matrix **failures=0**; vec-alias (B-34) witness
+  compiles+runs (success shape); corrected B-29 witness **exact** --
+  the lane is ready for a .9 repin.
+- CAVEAT: other lanes are isolating **v0.64.9 archive blockers**
+  (1451/1550 fails per relay 1410/1414; m372 release binary / tuple-
+   returning 1550 gap).  **Repin stays with the owner/sibling wave**
+  (bindings pin v0.64.8 until then); no unilateral bump, especially
+  while the archive blockers are open.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
