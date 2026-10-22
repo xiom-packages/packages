@@ -28,6 +28,7 @@ is not installed.
 > **Lane:** bindings (`keywords: ["binding"]`).
 > **Published**: `0.19.0` in `eco-v0.1.179` (sha256 `d0be440a...`).
 > **Published**: `0.20.0` in `eco-v0.1.185` (sha256 `b04a0ae4...`).
+> **Published**: `0.21.0` in `eco-v0.1.202` (sha256 `8bb7e9ee...`).
 
 ## Quick start
 
