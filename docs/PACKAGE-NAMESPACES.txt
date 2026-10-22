@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-21T13:15:10+03:00
-# packages: 584  modules: 1187
+# generated: 2026-10-22T12:01:41+03:00
+# packages: 585  modules: 1191
 
 ## package names
 xiom.aaudio
@@ -168,6 +168,7 @@ xiom.flags
 xiom.flash
 xiom.fletcher
 xiom.fnv
+xiom.fontraster
 xiom.forkjoin
 xiom.formatter-fw
 xiom.fstab
@@ -884,6 +885,7 @@ xiom.flags
 xiom.flash
 xiom.fletcher
 xiom.fnv
+xiom.fontraster
 xiom.forkjoin
 xiom.formatter_fw
 xiom.fstab
@@ -1043,8 +1045,11 @@ xiom.jwt
 xiom.k8s
 xiom.k8s.rolling
 xiom.k8s.selector
+xiom.kafka
 xiom.kafka.admin
 xiom.kafka.consumer
+xiom.kafka.metadata
+xiom.kafka.mock
 xiom.kafka.producer
 xiom.kafka.types
 xiom.keymgmt

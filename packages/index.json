@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-21T13:15:10Z",
+    "updated":  "2026-10-22T12:01:42Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -1173,17 +1173,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.charts",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Deterministic integer line and bar charts emitted as SVG",
+                         "description":  "Deterministic Float64 2D charts with byte-stable SVG output",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-charts/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-charts/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "charts.xi",
                                               "package.xi"
@@ -2880,6 +2880,27 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.fontraster",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Runtime antialiased glyph rasterizer for XIOM UI (HarfBuzz outlines, TTF/OTF, DPI-sized coverage bitmaps, face metrics)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.1.0 \u003c1.0.0",
+                                                  "name":  "xiom.harfbuzz"
+                                              },
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fontraster/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "fontraster.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.forkjoin",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -4134,22 +4155,25 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.kafka",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Apache Kafka client for XIOM -- librdkafka bindings",
+                         "description":  "Apache Kafka client (librdkafka v2.16.0) -- runtime-loaded producer, consumer, transactions, metadata and admin bindings with an in-process mock-cluster live suite",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-kafka/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-kafka/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "admin.xi",
                                               "consumer.xi",
+                                              "metadata.xi",
+                                              "mock.xi",
                                               "producer.xi",
                                               "types.xi",
+                                              "kafka.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5907,7 +5931,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.2.0",
                          "name":  "xiom.openblas",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "OpenBLAS -- optimized Basic Linear Algebra Subprograms (BLAS) and LAPACK.",
@@ -5917,7 +5941,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-openblas/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-openblas/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "openblas.xi",
                                               "package.xi"
@@ -7987,17 +8011,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.20.0",
+                         "version":  "0.21.0",
                          "name":  "xiom.sdl3",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors incl. mouse wheel + drag-drop + pen/tablet motion/touch/button/proximity payloads) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit + mouse state + window contract + audio/joystick enumeration + push audio streaming + capture streams + pointer capture/relative mouse + joystick open/axis/button reads (virtual-joystick instrumented) + joystick caps queries (rumble/LED flags + counts/type) + haptic wave-form effects (periodic encode/create/run/stop, typed errors) + full source-generated constant tables",
+                         "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader + window/renderer/texture/gamepad resources + SDL_Event decoding (128-byte owned buffer, typed accessors incl. mouse wheel + drag-drop + pen/tablet motion/touch/button/proximity payloads) + event filter/watch callbacks + displays/video modes + keyboard state + filesystem basics + display blit + mouse state + window contract + audio/joystick enumeration + push audio streaming + capture streams + pointer capture/relative mouse + joystick open/axis/button reads (virtual-joystick instrumented) + joystick caps queries (rumble/LED flags + counts/type) + haptic wave-form effects (periodic encode/create/run/stop, typed errors) + A14 UI platform surface (window identity/position/size-in-pixels/display scale/display index, typed focus/DPI-change routing, IME text input start/stop/area/cursor + composition/commit/cancel decode, clipboard + primary selection UTF-8) + full source-generated constant tables",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.20.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.21.0/package.tar.gz",
                          "source_files":  [
                                               "sdl3_full_assert.xi",
                                               "sdl3_full_asyncio.xi",
