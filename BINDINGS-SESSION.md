@@ -2479,6 +2479,36 @@ split-brain resolved)**:
   the slot (or coordinate a fleet revert); flipping only the local pin
   creates a split-brain.
 
+**UPDATE 2026-10-22 19:10Z (v0.64.9 WITHDRAWN -- production v0.64.8
+RESTORED)**:
+- **v0.64.9 WITHDRAWN FROM ADOPTION** (`REL-20261022-1826-compiler`,
+  18:26Z): post-release verification found **source-level codegen
+  defects** the pre-cut battery missed (debug-only battery; no
+  nested-pattern lock): nested enum patterns `Some(Number(n))` /
+  `Ok(...)` / `Err(E.Bad(msg))` never check the inner variant and bind
+  the payload as 0 (1243/1615/1645 + the 1451/1550 family); m372/1451
+  and the true 1550 tuple shape regressed in `d04cd3265`
+  (revert-only breaks m1520 -> safe guard required); m1511 one-level
+  dependency port.args; C07 capture-probe memory red.  The GitHub
+  release is marked pre-release (tag/assets remain for audit);
+  **production remains v0.64.8**.
+- **Lane reverted**: slot restored + verified `XIOM Compiler v0.64.8`
+  (the withdrawn .9 slot copy kept for audit only, NOT adopted);
+  `COMPILER_VERSION` + **579 records repinned**; validate **579/0**;
+  sqlite sanity **21/21**; commit `314d27c8`.
+- **v0.65.0 production gate OPENED** (`docs/RELEASE_GATE_v0.65.0.md`;
+  P0 correctness -> P1 hardening -> P2 MCU first wave -> P3 cut; no
+  candidate/tag before the gate is green + owner GO).  Lane holds: the
+  .9 rows/records stay HELD (not green) as the v0.65.0 acceptance
+  input -- re-test on the v0.65.0 archive.  `stdlib-v0.64.9` is
+  published but is not the production pin (v0.65.0 will pin
+  stdlib-v0.65.0).
+- Host note (from the withdrawal): the engine incident deleted
+  `~/.cargo`; cargo works via `.rustup` toolchains; restore the shims
+  when needed.  Packages filed the .9 data-loss cluster (jev
+  Err-in-Vec, openblas Vec-in-tuple, http Err(Enum) match) -- those are
+  the acceptance probes.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
