@@ -13,5 +13,5 @@
                   "checked":  "2026-10-22T18:20:48Z"
               },
     "publish":  false,
-    "excluded_reason":  "published 2026-10-21 (single tag xiom-openblas/v0.2.0; sha256 71b2a098...; Float32 surface); 0.1.1 in eco-v0.1.200"
+    "excluded_reason":  "published 2026-10-22 (single tag xiom-openblas/v0.3.0; sha256 493fec09...; Phase-2 LAPACK); 0.2.0 in xiom-openblas/v0.2.0"
 }
