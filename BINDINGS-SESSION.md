@@ -2413,6 +2413,26 @@ pre-verify GREEN)**:
   (bindings pin v0.64.8 until then); no unilateral bump, especially
   while the archive blockers are open.
 
+**UPDATE 2026-10-22 16:15Z (REPIN v0.64.9 DONE -- owner go; slot +
+records aligned; slot sanity GREEN)**:
+- **Owner go received** ("new release out, continue"): the pinned slot
+  `%LOCALAPPDATA%\xiom.new` was updated to **`XIOM Compiler v0.64.9`**
+  from the release archive (SHA256SUMS verified); the previous .8 slot
+  is kept as `%LOCALAPPDATA%\xiom.new.v0.64.8`.
+- **Repin delta pushed** (`d75e8f2d`): `COMPILER_VERSION` v0.64.8 ->
+  **v0.64.9** + **579 STATUS records aligned** (`status.ps1 -Action
+  repin`); validate **579/0**.
+- **SLOT SANITY MATRIX on .9** (via `XIOM_COMPILER` = the slot):
+  **xiom.sqlite 21/21** (nested `Result[Option]` shape -- B-32 stays
+  retired on the new pin), **xiom.sdl3 81/81 LIVE** (all A14 paths),
+  **xiom.nvenc 67/67 LIVE** (driver 13.1 H.264/HEVC encode+decode) --
+  **no .9 regressions** on the lane.
+- Scratch pre-verify was already green (nested/matrix failures=0; B-34
+  success shape; corrected B-29 exact).  The 1451/1550 archive issues
+  other lanes are isolating do NOT reproduce in this lane's
+  probes/suites.  Repin info filed to all lanes
+  (`REL-20261022-1611-bindings`).
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
