@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.8` -- generated 2026-10-21T16:34:11Z.
+Toolchain pin: `v0.64.8` -- generated 2026-10-22T08:56:50Z.
 
 ## Summary
 
@@ -549,7 +549,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.saml | xiom-saml | incubating | tests/test_conformance.xi | pass 28/28 | fcadeee8 | False | publish pending: next scope delta |
 | xiom.scipy | xiom-scipy | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.sdl2 | xiom-sdl2 | incubating | tests/test_conformance.xi | pass 16/16 | 674dea9d | False | published in eco-v0.1.162 (2026-10-12) |
-| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 72/72 | 813768e5 | False | published in eco-v0.1.173 (2026-10-13, 0.18.0 readback wave; 0.17.0 in eco-v0.1.162; 0.16.1 in eco-v0.1.160; 0.16.0 in eco-v0.1.152; 0.15.0 in eco-v0.1.151) |
+| xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | pass 81/81 | 17927884 | False | published in eco-v0.1.173 (2026-10-13, 0.18.0 readback wave; 0.17.0 in eco-v0.1.162; 0.16.1 in eco-v0.1.160; 0.16.0 in eco-v0.1.152; 0.15.0 in eco-v0.1.151) |
 | xiom.sectest | xiom-sectest | incubating | tests/test_conformance.xi | pass 22/22 | fc1702a9 | False | publish pending: next scope delta |
 | xiom.semaphore | xiom-semaphore | incubating | tests/test_conformance.xi | pass 23/23 | df934ed2 | False | publish pending: next scope delta |
 | xiom.serial | xiom-serial | incubating | tests/test_conformance.xi | pass 52/52 | 84bdc431 | False | published in eco-v0.1.193 (2026-10-16, 0.1.0; sha256 fdd4dde3...) |

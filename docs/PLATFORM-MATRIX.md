@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.8` -- generated 2026-10-20T18:13:45Z.
+Toolchain pin: `v0.64.8` -- generated 2026-10-22T08:58:34Z.
 
 ## How to read this table
 
@@ -42,17 +42,17 @@ preserved by `-Action repin`/`-Action update`:
 
 ## Summary
 
-- packages: 584
-- declared rows: 34
-- compile: 35
+- packages: 585
+- declared rows: 35
+- compile: 37
 - compile+runtime-load: 28
-- pure: 497
+- pure: 496
 - runtime-load: 24
-- native packages pending declaration: 55
+- native packages pending declaration: 56
 
 ## Declaration backlog (native)
 
-xiom.aaudio, xiom.arrow, xiom.assimp, xiom.blas, xiom.box2d, xiom.camera2ndk, xiom.cublas, xiom.cuda, xiom.cudnn, xiom.cufft, xiom.cusparse, xiom.directx11, xiom.directx12, xiom.dxc, xiom.epos, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.jni, xiom.libpq, xiom.libtorch, xiom.lzfse, xiom.mediandk, xiom.miniaudio, xiom.numpy, xiom.nvapi, xiom.nvenc, xiom.nvml, xiom.odbc, xiom.onnx, xiom.openblas, xiom.opensl, xiom.openssl, xiom.optix, xiom.pandas, xiom.portaudio, xiom.raylib, xiom.ros2, xiom.sdl2, xiom.sdl3, xiom.serial, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.sqlite, xiom.tensorflow, xiom.tensorrt, xiom.torch, xiom.usd, xiom.v4l, xiom.vma, xiom.vulkan
+xiom.aaudio, xiom.arrow, xiom.assimp, xiom.blas, xiom.box2d, xiom.camera2ndk, xiom.cublas, xiom.cuda, xiom.cudnn, xiom.cufft, xiom.cusparse, xiom.directx11, xiom.directx12, xiom.dxc, xiom.epos, xiom.fontraster, xiom.glfw, xiom.glslang, xiom.http, xiom.imgui, xiom.jni, xiom.libpq, xiom.libtorch, xiom.lzfse, xiom.mediandk, xiom.miniaudio, xiom.numpy, xiom.nvapi, xiom.nvenc, xiom.nvml, xiom.odbc, xiom.onnx, xiom.openblas, xiom.opensl, xiom.openssl, xiom.optix, xiom.pandas, xiom.portaudio, xiom.raylib, xiom.ros2, xiom.sdl2, xiom.sdl3, xiom.serial, xiom.shaderc, xiom.slang, xiom.spirv-cross, xiom.spirv-reflect, xiom.spirv-tools, xiom.sqlite, xiom.tensorflow, xiom.tensorrt, xiom.torch, xiom.usd, xiom.v4l, xiom.vma, xiom.vulkan
 
 ## Matrix
 
@@ -71,6 +71,7 @@ xiom.aaudio, xiom.arrow, xiom.assimp, xiom.blas, xiom.box2d, xiom.camera2ndk, xi
 | xiom.exr | 0.1.0 | incubating | compile | windows-x64 | - | pass 12/12 @ 50b65cee |
 | xiom.harfbuzz | 0.1.0 | incubating | compile | windows-x64 | - | pass 27/27 @ ccb62224 |
 | xiom.jolt | 0.7.0 | incubating | compile | windows-x64 | - | pass 159/159 @ 6a01201d |
+| xiom.kafka | 0.2.0 | incubating | compile | windows-x64 | librdkafka v2.16.0 runtime (librdkafka.dll / librdkafka.so.1 / librdkafka.1.dylib; multi-soname runtime loader; SKIP when absent) | pass 50/50 @ 07a32e35 |
 | xiom.ktx2 | 0.1.0 | incubating | compile | windows-x64 | - | pass 41/41 @ 3a22a083 |
 | xiom.lz4 | 0.1.0 | incubating | compile | windows-x64 | - | pass 81/81 @ 3a22a083 |
 | xiom.meshopt | 0.5.0 | incubating | compile | windows-x64 | - | pass 43/43 @ 11a58915 |
@@ -115,14 +116,15 @@ xiom.aaudio, xiom.arrow, xiom.assimp, xiom.blas, xiom.box2d, xiom.camera2ndk, xi
 | xiom.arrow | 0.1.1 | incubating | compile | undeclared | - | pass 32/32 @ 50deed24 |
 | xiom.assimp | 0.8.0 | incubating | compile | undeclared | - | pass 16/16 @ a76bdef4 |
 | xiom.box2d | 0.4.0 | incubating | compile | undeclared | - | pass 26/26 @ 43173d68 |
+| xiom.fontraster | 0.1.0 | incubating | compile | undeclared | - | pass 11/11 @ HEAD |
 | xiom.http | 0.1.9 | stable | compile | undeclared | - | pass 55/55 @ cf220258 |
 | xiom.imgui | 0.3.0 | incubating | compile | undeclared | - | pass 7/7 @ 05c30982 |
 | xiom.lzfse | 0.2.0 | incubating | compile | undeclared | - | pass 7/7 @ 07f5bd2f |
 | xiom.miniaudio | 0.5.0 | incubating | compile | undeclared | - | pass 44/44 @ ec548542 |
 | xiom.numpy | 0.1.1 | incubating | compile | undeclared | - | pass 150/150 @ 50deed24 |
-| xiom.openblas | 0.1.1 | incubating | compile | undeclared | - | pass 42/42 @ 50deed24 |
+| xiom.openblas | 0.2.0 | incubating | compile | undeclared | - | pass 52/52 @ 8d68e993 |
 | xiom.optix | 0.1.0 | incubating | compile | undeclared | - | pass 37/37 @ ceccf069 |
-| xiom.pandas | 0.2.1 | incubating | compile | undeclared | - | pass 164/164 @ c23c8616 |
+| xiom.pandas | 0.2.1 | incubating | compile | undeclared | - | pass 164/164 @ 7e92c250 |
 | xiom.spirv-reflect | 0.1.0 | incubating | compile | undeclared | - | pass 40/40 @ 674dea9d |
 | xiom.sqlite | 0.5.0 | incubating | compile | undeclared | - | pass 21/21 @ 772e9f34 |
 | xiom.tensorrt | 0.1.0 | incubating | compile | undeclared | - | pass 55/55 @ ceccf069 |
@@ -140,7 +142,7 @@ xiom.aaudio, xiom.arrow, xiom.assimp, xiom.blas, xiom.box2d, xiom.camera2ndk, xi
 | xiom.raylib | 0.2.0 | incubating | runtime-load | undeclared | raylib.dll (runtime, derived) | pass 12/12 @ 843586a3 |
 | xiom.ros2 | 0.2.0 | incubating | runtime-load | undeclared | libc.so, libc.so.6, librcl.dylib, librcl.so, librcl.so, rcl.dll, librcl.dylib, libstd_msgs__rosidl_typesupport_c.dylib (+5 more; see SPEC) (runtime, derived) | pass 82/82 @ 84bdc431 |
 | xiom.sdl2 | 0.1.0 | incubating | runtime-load | undeclared | SDL2.dll (runtime, derived) | pass 16/16 @ 674dea9d |
-| xiom.sdl3 | 0.20.0 | incubating | runtime-load | undeclared | SDL3.dll (runtime, derived) | pass 72/72 @ 813768e5 |
+| xiom.sdl3 | 0.21.0 | incubating | runtime-load | undeclared | SDL3.dll (runtime, derived) | pass 81/81 @ 17927884 |
 | xiom.serial | 0.1.0 | incubating | runtime-load | undeclared | advapi32.dll, kernel32.dll (runtime, derived) | pass 52/52 @ 84bdc431 |
 | xiom.shaderc | 0.1.0 | incubating | runtime-load | undeclared | shaderc_shared.dll (runtime, derived) | pass 17/17 @ 674dea9d |
 | xiom.slang | 0.1.0 | incubating | runtime-load | undeclared | slang.dll, slang-compiler.dll (runtime, derived) | pass 20/20 @ 674dea9d |
@@ -204,7 +206,7 @@ xiom.aaudio, xiom.arrow, xiom.assimp, xiom.blas, xiom.box2d, xiom.camera2ndk, xi
 | xiom.cfn | 0.1.0 | incubating | pure | any (derived) | - | pass 26/26 @ 70f9ce09 |
 | xiom.chaincore | 0.1.0 | incubating | pure | any (derived) | - | pass 24/24 @ 2d19c071 |
 | xiom.chaincrypto | 0.1.0 | incubating | pure | any (derived) | - | pass 19/19 @ 565e9f98 |
-| xiom.charts | 0.1.0 | incubating | pure | any (derived) | - | pass 28/28 @ 5f469ee5 |
+| xiom.charts | 0.2.0 | incubating | pure | any (derived) | - | pass 71/71 @ 07a32e35 |
 | xiom.chef | 0.1.0 | incubating | pure | any (derived) | - | pass 26/26 @ a24861c5 |
 | xiom.chemistry | 0.1.2 | stable | pure | any (derived) | - | pass 25/25 @ 7136420d |
 | xiom.chromatography | 0.1.0 | incubating | pure | any (derived) | - | pass 24/24 @ d93fafaf |
@@ -344,7 +346,6 @@ xiom.aaudio, xiom.arrow, xiom.assimp, xiom.blas, xiom.box2d, xiom.camera2ndk, xi
 | xiom.junit | 0.1.2 | stable | pure | any (derived) | - | pass 22/22 @ 7cc2f458 |
 | xiom.jwt | 0.2.1 | stable | pure | any (derived) | - | pass 30/30 @ 97ccf549 |
 | xiom.k8s | 0.1.0 | incubating | pure | any (derived) | - | pass 23/23 @ 6e9fa56f |
-| xiom.kafka | 0.1.0 | ported | pure | any (derived) | - | pass 22/22 @ ed680f75 |
 | xiom.keymgmt | 0.1.2 | incubating | pure | any (derived) | - | pass 20/20 @ 5f469ee5 |
 | xiom.ktx | 0.1.2 | stable | pure | any (derived) | - | pass 19/19 @ c1ad32be |
 | xiom.kv | 0.1.0 | incubating | pure | any (derived) | - | pass 30/30 @ 603f87ef |
