@@ -2458,6 +2458,27 @@ records aligned; slot sanity GREEN)**:
   engine UI/release work paused.  Bindings data is UNAFFECTED (E:
   workspace + AppData safe); adb keys regenerate; no lane action.
 
+**UPDATE 2026-10-22 17:40Z (PIN RE-ALIGNED to v0.64.9 -- shared-slot
+split-brain resolved)**:
+- After the HOLD revert, the **SHARED machine slot**
+  `%LOCALAPPDATA%\xiom.new` was **re-flipped to v0.64.9 by the fleet
+  repin wave** (benchmark re-pinned `c4a05f0` with correctness
+  acceptance green; engine verified C09 on .9).
+- **Bindings re-aligned to the machine state** (`408a3e09`):
+  `COMPILER_VERSION` + **579 STATUS records back to v0.64.9**;
+  validate **579/0**; **sqlite sanity 21/21 ACROSS the flip** (ran on
+  both the `.8`-restored and the `.9` slot).  The `.8` backup slot is
+  retained (`%LOCALAPPDATA%\xiom.new.v0.64.8`) for a one-command swap
+  if the HOLD escalates.
+- HOLD (`-1501-orbitdb`: official .9 archives fail 1451/1550 in the
+  release-mode codegen path) remains OPEN for the affected stdlib
+  paths; it does **not** reproduce in this lane's probes/suites
+  (nested payload, sqlite nested Row, sdl3 A14, nvenc all green on
+  .9).  Correction note filed `REL-20261022-1738-bindings`.
+- LESSON: the machine slot is SHARED state -- the lane pin must follow
+  the slot (or coordinate a fleet revert); flipping only the local pin
+  creates a split-brain.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
