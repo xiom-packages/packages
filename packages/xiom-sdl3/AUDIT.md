@@ -12,12 +12,12 @@ return over this loader.
 
 | Item | State |
 |------|-------|
-| Compiler | v0.64.4 |
+| Compiler | v0.64.8 |
 | Upstream pin | SDL 3.4.8 (tag `release-3.4.8`), soname `SDL3.dll` |
 | Link model | none at build time; runtime `LoadLibraryA`/`GetProcAddress` via `xiom.ffi.dl` |
 | FFI confinement | all `unsafe` + fn-pointer casts in the root module `xiom.sdl3` only |
-| Suite | `tests/test_conformance.xi`, 72 checks (8 run without the DLL) |
-| Runs | absent (PATH-filtered): PASS 8/8 x2; present (SDL 3.4.8): PASS 72/72 x2; full-surface suite 1269/1269 bound + 1270/1270 resolved; generator device-surface audit 32/32 symbols, 45/45 constants, 14/14 Win64 layouts -- all via `scripts/port.ps1` (v0.64.4, 2026-10-14; refreshed each version) |
+| Suite | `tests/test_conformance.xi`, 81 checks (9 run without the DLL) |
+| Runs | absent (PATH-filtered): PASS 9/9 x2; present (SDL 3.4.8): PASS 81/81 x2; full-surface suite 1269/1269 bound + 1270/1270 resolved; generator device-surface audit 32/32 symbols, 45/45 constants, 14/14 Win64 layouts -- all via `scripts/port.ps1` (v0.64.8, 2026-10-21; refreshed each version) |
 | Resources (0.3.0) | window (hidden 320x200, size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration + SKIP when none attached |
 | Event decode (0.4.0) | `SDL_Event` over an owned 128-byte buffer: shared header + key/mouse-motion/mouse-button/window accessors + f32 bit decode; offsets pinned to the 3.4.8 headers (== the 3.2.10 clone) |
 | Event filter/watch (0.5.0) | fixed dispatchers + 1-arg handler registries; keep/drop proven (reject makes SDL refuse the push); watch non-consuming + removable; B-14/B-15 workarounds documented (`docs/repro/bindings-pilot/cb-abi/probe7_element_units.xi`) |
@@ -38,6 +38,7 @@ return over this loader.
 | Pen/tablet decode (0.19.0) | 1 symbol + 11 pure-buffer accessors; pen/touch/button/proximity member layouts pinned and generator-gated (sizes 24/40/40/40; windowID @16, which @20, pen_state @24, x/y @28/32, eraser/button @36, down @37); tool type via `SDL_GetPenDeviceType` (INVALID for unknown ids); suite decodes self-built buffers + a pushed PEN_MOTION readback from the queue + the tool-type probe |
 | Poll semantics correction (0.19.0) | `SDL_PollEvent(NULL)` on the pinned 3.4.8 runtime is a PEEK: it reports a pending real event without removing it (only SDL's internal poll sentinel is cleared), and a poll meeting that sentinel returns false with events queued behind it.  Caught by the new pen-live marker; the suite's `drain_events` now consumes into an owned scratch buffer and `poll_for` matches pushed events by type for a bounded number of polls |
 | Device-surface generator audit (0.19.0) | `tools/gen_sdl3_full.py` recomputes the Win64 layouts from the pinned header member lists (MSVC x64 natural alignment; union size 72 for `SDL_HapticEffect`) and gates generation on 32/32 declared+exported+wrapped symbols, 45/45 constant values, 14/14 layouts; the audit is recorded in `docs/gen_manifest.json` under `device_surface`; declared/exported/target stay 1271/1270/1269 (100% kept) |
+| A14 UI platform (0.21.0) | 20 symbols: 7 resource window/display + 1 core display content scale (+ pure `sdl3_display_index`), 6 resource IME controls, 6 core clipboard/primary. Typed `Sdl3WindowPosition`/`Sdl3PixelSize`/`Sdl3TextInputArea`/`Sdl3WindowFocus`/`Sdl3DpiChange`/`Sdl3TextEditing`; focus/DPI decoders work in the existing watch/filter model; IME cancellation = empty-preedit `TEXT_EDITING` classifier (SDL 3.4.8 has no native cancelled event); clipboard getters freed after copy; primary setter false = typed-unsupported. Live: window id/pos/pixels/scale/display, IME start/area/cursor/stop, clipboard + primary round trip, 8-event watch routing. Float returns re-verified on v0.64.8 (B-12 shape) |
 
 ## G2 pin
 

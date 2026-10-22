@@ -132,6 +132,17 @@ fn t_constants() -> Bool {
   if SDL_KMOD_NUM != 0x1000 || SDL_KMOD_SCROLL != 0x8000 { ok = false; }
   if SDL_PIXELFORMAT_RGB565 != 0x15151002 || SDL_PIXELFORMAT_XRGB8888 != 0x16161804 { ok = false; }
   if SDL_PIXELFORMAT_NV12 != 0x3231564E { ok = false; }
+  // 0.21.0: A14 UI platform (focus/DPI/text + window/display constants).
+  if SDL_EVENT_TEXT_INPUT != 0x303 || SDL_EVENT_TEXT_EDITING_CANDIDATES != 0x307 { ok = false; }
+  if SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED != 0x207 { ok = false; }
+  if SDL_EVENT_WINDOW_FOCUS_GAINED != 0x20E || SDL_EVENT_WINDOW_FOCUS_LOST != 0x20F { ok = false; }
+  if SDL_EVENT_WINDOW_DISPLAY_CHANGED != 531 || SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED != 532 { ok = false; }
+  if SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED != 343 { ok = false; }
+  if SDL3_WINDOW_FOCUS_NONE != 0 || SDL3_WINDOW_FOCUS_GAINED != 1 || SDL3_WINDOW_FOCUS_LOST != 2 { ok = false; }
+  if SDL3_DPI_CHANGE_NONE != 0 || SDL3_DPI_CHANGE_PIXEL_SIZE != 1 || SDL3_DPI_CHANGE_DISPLAY != 2 { ok = false; }
+  if SDL3_DPI_CHANGE_DISPLAY_SCALE != 3 { ok = false; }
+  if SDL3_TEXT_EVENT_NONE != 0 || SDL3_TEXT_EVENT_EDITING != 1 || SDL3_TEXT_EVENT_COMMIT != 2 { ok = false; }
+  if SDL3_TEXT_EVENT_CANCELLED != 3 { ok = false; }
   return ok;
 }
 
@@ -517,6 +528,105 @@ fn t_pen_decode() -> Bool {
   return ok;
 }
 
+// ---- 0.21.0: A14 UI decode (focus/DPI/IME) -- DLL-independent ------------
+
+fn t_ui_event_decode() -> Bool {
+  var ok = true;
+
+  // Per-window focus: gained/lost carry the window id at offset 16.
+  var fg = slot_new(128);
+  wr_u32(&mut fg, 0, SDL_EVENT_WINDOW_FOCUS_GAINED);
+  wr_u32(&mut fg, 16, 5);
+  let f1 = sdl3_event_window_focus(&fg);
+  if f1.state != SDL3_WINDOW_FOCUS_GAINED || f1.window_id != 5 { ok = false; }
+  if !sdl3_event_is_focus_change(&fg) { ok = false; }
+
+  var fl = slot_new(128);
+  wr_u32(&mut fl, 0, SDL_EVENT_WINDOW_FOCUS_LOST);
+  wr_u32(&mut fl, 16, 6);
+  let f2 = sdl3_event_window_focus(&fl);
+  if f2.state != SDL3_WINDOW_FOCUS_LOST || f2.window_id != 6 { ok = false; }
+  if !sdl3_event_is_focus_change(&fl) { ok = false; }
+
+  var nf = slot_new(128);
+  wr_u32(&mut nf, 0, SDL_EVENT_KEY_DOWN);
+  wr_u32(&mut nf, 16, 7);
+  let f3 = sdl3_event_window_focus(&nf);
+  if f3.state != SDL3_WINDOW_FOCUS_NONE { ok = false; }
+  if sdl3_event_is_focus_change(&nf) { ok = false; }
+
+  // DPI-change signals: pixel size (data1xdata2), display change (data1 id),
+  // display scale change.
+  var ps = slot_new(128);
+  wr_u32(&mut ps, 0, SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED);
+  wr_u32(&mut ps, 16, 7);
+  wr_u32(&mut ps, 20, 640);
+  wr_u32(&mut ps, 24, 480);
+  let d1 = sdl3_event_dpi_change(&ps);
+  if d1.reason != SDL3_DPI_CHANGE_PIXEL_SIZE || d1.window_id != 7 { ok = false; }
+  if d1.pixel_width != 640 || d1.pixel_height != 480 { ok = false; }
+  if !sdl3_event_is_dpi_change(&ps) { ok = false; }
+
+  var dc = slot_new(128);
+  wr_u32(&mut dc, 0, SDL_EVENT_WINDOW_DISPLAY_CHANGED);
+  wr_u32(&mut dc, 16, 8);
+  wr_u32(&mut dc, 20, 2);
+  let d2 = sdl3_event_dpi_change(&dc);
+  if d2.reason != SDL3_DPI_CHANGE_DISPLAY || d2.display_id != 2 || d2.window_id != 8 { ok = false; }
+
+  var ds = slot_new(128);
+  wr_u32(&mut ds, 0, SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED);
+  wr_u32(&mut ds, 16, 9);
+  let d3 = sdl3_event_dpi_change(&ds);
+  if d3.reason != SDL3_DPI_CHANGE_DISPLAY_SCALE || d3.window_id != 9 { ok = false; }
+
+  let d4 = sdl3_event_dpi_change(&nf);
+  if d4.reason != SDL3_DPI_CHANGE_NONE { ok = false; }
+  if sdl3_event_is_dpi_change(&nf) { ok = false; }
+
+  // IME composition: preedit text + start/length + window id.
+  var ed = slot_new(128);
+  wr_u32(&mut ed, 0, SDL_EVENT_TEXT_EDITING);
+  wr_u32(&mut ed, 16, 10);
+  wr_u64(&mut ed, 24, sdl3_str_c_ptr("日本語"));
+  wr_u32(&mut ed, 32, 1);
+  wr_u32(&mut ed, 36, 2);
+  let te = sdl3_event_text_editing(&ed);
+  if te.window_id != 10 || te.start != 1 || te.length != 2 { ok = false; }
+  if !sc_eq(te.text, "日本語") { ok = false; }
+  if sdl3_event_text_kind(&ed) != SDL3_TEXT_EVENT_EDITING { ok = false; }
+
+  // IME commit: the committed UTF-8 string.
+  var ti = slot_new(128);
+  wr_u32(&mut ti, 0, SDL_EVENT_TEXT_INPUT);
+  wr_u32(&mut ti, 16, 11);
+  wr_u64(&mut ti, 24, sdl3_str_c_ptr("café"));
+  if !sc_eq(sdl3_event_text_input(&ti), "café") { ok = false; }
+  if sdl3_event_text_kind(&ti) != SDL3_TEXT_EVENT_COMMIT { ok = false; }
+
+  // Cancellation: SDL3 has no dedicated type; an empty/NULL preedit in a
+  // TEXT_EDITING event is the typed cancellation signal.
+  var ce = slot_new(128);
+  wr_u32(&mut ce, 0, SDL_EVENT_TEXT_EDITING);
+  wr_u32(&mut ce, 16, 12);
+  wr_u64(&mut ce, 24, 0);
+  wr_u32(&mut ce, 32, 0xFFFFFFFF);
+  wr_u32(&mut ce, 36, 0xFFFFFFFF);
+  let tce = sdl3_event_text_editing(&ce);
+  if tce.window_id != 12 || tce.text.len() != 0 { ok = false; }
+  if tce.start != -1 || tce.length != -1 { ok = false; }
+  if sdl3_event_text_kind(&ce) != SDL3_TEXT_EVENT_CANCELLED { ok = false; }
+  if sdl3_event_text_kind(&nf) != SDL3_TEXT_EVENT_NONE { ok = false; }
+
+  // NULL commit text is empty, no crash.
+  var tn = slot_new(128);
+  wr_u32(&mut tn, 0, SDL_EVENT_TEXT_INPUT);
+  wr_u64(&mut tn, 24, 0);
+  if sdl3_event_text_input(&tn).len() != 0 { ok = false; }
+
+  return ok;
+}
+
 // ---- 0.5.0/0.20.0: event filter + watch capture state --------------------
 // Direct handoff (B-22/m277): handlers take the NATURAL C shape
 // (userdata, event) and read the event bytes via sdl3_event_copy.
@@ -560,6 +670,45 @@ fn on_watch(userdata: Int, event: Int) -> Unit {
   }
 }
 
+// ---- 0.21.0: A14 UI routing capture state (focus/DPI/IME) ----------------
+
+var ui_watch_calls: Int = 0;
+var ui_focus_gained_id: Int = 0;
+var ui_focus_lost_id: Int = 0;
+var ui_dpi_pixel_w: Int = 0;
+var ui_dpi_pixel_h: Int = 0;
+var ui_dpi_display_id: Int = 0;
+var ui_dpi_scale_seen: Bool = false;
+var ui_text_edit: Str = "";
+var ui_text_start: Int = -99;
+var ui_text_length: Int = -99;
+var ui_text_commit: Str = "";
+var ui_text_cancelled: Bool = false;
+
+fn on_ui_watch(userdata: Int, event: Int) -> Unit {
+  ui_watch_calls = ui_watch_calls + 1;
+  let ev = sdl3_event_copy(event);
+  let focus = sdl3_event_window_focus(&ev);
+  if focus.state == SDL3_WINDOW_FOCUS_GAINED { ui_focus_gained_id = focus.window_id; }
+  if focus.state == SDL3_WINDOW_FOCUS_LOST { ui_focus_lost_id = focus.window_id; }
+  let dpi = sdl3_event_dpi_change(&ev);
+  if dpi.reason == SDL3_DPI_CHANGE_PIXEL_SIZE {
+    ui_dpi_pixel_w = dpi.pixel_width;
+    ui_dpi_pixel_h = dpi.pixel_height;
+  }
+  if dpi.reason == SDL3_DPI_CHANGE_DISPLAY { ui_dpi_display_id = dpi.display_id; }
+  if dpi.reason == SDL3_DPI_CHANGE_DISPLAY_SCALE { ui_dpi_scale_seen = true; }
+  let kind = sdl3_event_text_kind(&ev);
+  if kind == SDL3_TEXT_EVENT_EDITING {
+    let te = sdl3_event_text_editing(&ev);
+    ui_text_edit = te.text;
+    ui_text_start = te.start;
+    ui_text_length = te.length;
+  }
+  if kind == SDL3_TEXT_EVENT_COMMIT { ui_text_commit = sdl3_event_text_input(&ev); }
+  if kind == SDL3_TEXT_EVENT_CANCELLED { ui_text_cancelled = true; }
+}
+
 fn main() -> Int {
   io.println("=== xiom.sdl3 conformance tests (dynamic loader) ===");
   io.flush_stdout();
@@ -571,6 +720,7 @@ fn main() -> Int {
   failed = failed + report(t_device_constants(), "constants: 0.19.0 device tables (haptic waves/dirs, pen types+flags+events, joystick caps props)");
   failed = failed + report(t_haptic_encode(), "haptic: SDL_HapticPeriodic slot encode (sine/square fields, two's-complement, typed PARAM error)");
   failed = failed + report(t_pen_decode(), "pen: motion/touch/button/proximity decode on owned buffers (Win64 layout pin)");
+  failed = failed + report(t_ui_event_decode(), "ui-decode: focus (gained/lost) + DPI (pixel/display/scale) + IME preedit/commit/cancel on owned buffers");
 
   let l = sdl3_load();
   if !l.is_ok {
@@ -836,6 +986,18 @@ fn main() -> Int {
       failed = failed + report(sz.width > 0, "window: size = " + to_string(sz.width) + "x" + to_string(sz.height));
       failed = failed + report(sdl3_set_window_title(&r, win, "xiom-sdl3-phase2-renamed"), "window: title update");
 
+      // 0.21.0: window identity + geometry (A14/S5-S6).
+      let wid = sdl3_window_id(&r, win);
+      let win_back = sdl3_window_from_id(&r, wid);
+      failed = failed + report(wid != 0 && win_back == win,
+        "window: identity id=" + to_string(wid) + " round-trip=" + b2s(win_back == win));
+
+      let pos_set = sdl3_set_window_position(&r, win, 120, 90);
+      let pos = sdl3_window_position(&r, win);
+      failed = failed + report(pos_set && pos.ok && pos.x == 120 && pos.y == 90,
+        "window: position set/get 120,90 (set=" + b2s(pos_set) + " read="
+          + to_string(pos.x) + "," + to_string(pos.y) + " ok=" + b2s(pos.ok) + ")");
+
       // 0.9.0: window contract -- resizable toggle + a typed resize event
       // through the event watch (the engine's typed input route).
       let rsz_off = sdl3_set_window_resizable(&r, win, false);
@@ -852,9 +1014,127 @@ fn main() -> Int {
         "window: resizable false/true + resize to 300x180 (readback="
           + to_string(sz2.width) + "x" + to_string(sz2.height) + ") -> typed WINDOW_RESIZED seen="
           + b2s(wtc_saw_resized) + " pixel-size-changed=" + b2s(wtc_saw_pixel));
+
+      // 0.21.0: size-in-pixels + display scale (S5 cross-monitor DPI).
+      let pix = sdl3_window_size_pixels(&r, win);
+      let scale = sdl3_window_display_scale(&r, win);
+      let logical = sdl3_window_size(&r, win);
+      var dw = (logical.width as Float64) * scale - (pix.width as Float64);
+      if dw < 0.0 { dw = -dw; }
+      var dh = (logical.height as Float64) * scale - (pix.height as Float64);
+      if dh < 0.0 { dh = -dh; }
+      failed = failed + report(pix.ok && pix.width > 0 && pix.height > 0
+          && scale > 0.0 && scale <= 8.0 && dw <= 1.0 && dh <= 1.0,
+        "window: size-in-pixels " + to_string(pix.width) + "x" + to_string(pix.height)
+          + " scale=" + to_string(scale as Int) + " (logical=" + to_string(logical.width)
+          + "x" + to_string(logical.height) + " ok=" + b2s(pix.ok) + ")");
+
+      // 0.21.0: display id/index/bounds/content scale for the window.
+      let wdisp = sdl3_window_display(&r, win);
+      let wdi = sdl3_display_index(&lib, wdisp);
+      let wb = sdl3_display_bounds(&lib, wdisp);
+      let cscale = sdl3_display_content_scale(&lib, wdisp);
+      failed = failed + report(wdisp != 0 && wdi >= 0 && wb.w > 0 && wb.h > 0 && cscale > 0.0,
+        "window: display id=" + to_string(wdisp) + " index=" + to_string(wdi)
+          + " bounds=" + to_string(wb.w) + "x" + to_string(wb.h)
+          + " content-scale=" + to_string(cscale as Int));
+
       let shown = sdl3_show_window(&r, win);
       let hidden = sdl3_hide_window(&r, win);
       failed = failed + report(true, "window: show/hide callable (show=" + b2s(shown) + " hide=" + b2s(hidden) + ")");
+
+      // 0.21.0: IME start/stop + text-input area/cursor (live, hidden window).
+      let ime_on = sdl3_start_text_input(&r, win);
+      let ime_active1 = sdl3_text_input_active(&r, win);
+      let area_set = sdl3_set_text_input_area(&r, win, Sdl3Rect{ x: 10; y: 20; w: 200; h: 30 }, 7);
+      let area = sdl3_get_text_input_area(&r, win);
+      let ime_clear = sdl3_clear_composition(&r, win);
+      let ime_off = sdl3_stop_text_input(&r, win);
+      let ime_active2 = sdl3_text_input_active(&r, win);
+      failed = failed + report(ime_on && ime_active1 && area_set && area.ok
+          && area.x == 10 && area.y == 20 && area.w == 200 && area.h == 30
+          && area.cursor == 7 && ime_clear && ime_off && !ime_active2,
+        "ime: start/active -> area 10,20 200x30 cursor=7 -> clear -> stop (on="
+          + b2s(ime_on) + " active=" + b2s(ime_active1) + " area=" + b2s(area.ok)
+          + " clear=" + b2s(ime_clear) + " off=" + b2s(ime_off)
+          + " inactive=" + b2s(!ime_active2) + ")");
+
+      // 0.21.0: focus + DPI + text events routed through the existing watch
+      // (synthetic queue push; the handler sees the copied 128-byte event).
+      let _uid = drain_events(&lib, 50);
+      ui_watch_calls = 0;
+      ui_focus_gained_id = 0;
+      ui_focus_lost_id = 0;
+      ui_dpi_pixel_w = 0;
+      ui_dpi_pixel_h = 0;
+      ui_dpi_display_id = 0;
+      ui_dpi_scale_seen = false;
+      ui_text_edit = "";
+      ui_text_start = -99;
+      ui_text_length = -99;
+      ui_text_commit = "";
+      ui_text_cancelled = false;
+      let uwset = sdl3_add_event_watch(&lib, on_ui_watch, 0xA14);
+
+      var fge = slot_new(128);
+      wr_u32(&mut fge, 0, SDL_EVENT_WINDOW_FOCUS_GAINED);
+      wr_u32(&mut fge, 16, wid);
+      var fle = slot_new(128);
+      wr_u32(&mut fle, 0, SDL_EVENT_WINDOW_FOCUS_LOST);
+      wr_u32(&mut fle, 16, wid);
+      var pse = slot_new(128);
+      wr_u32(&mut pse, 0, SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED);
+      wr_u32(&mut pse, 16, wid);
+      wr_u32(&mut pse, 20, 640);
+      wr_u32(&mut pse, 24, 480);
+      var dce = slot_new(128);
+      wr_u32(&mut dce, 0, SDL_EVENT_WINDOW_DISPLAY_CHANGED);
+      wr_u32(&mut dce, 16, wid);
+      wr_u32(&mut dce, 20, wdisp);
+      var dse = slot_new(128);
+      wr_u32(&mut dse, 0, SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED);
+      wr_u32(&mut dse, 16, wid);
+      var ede = slot_new(128);
+      wr_u32(&mut ede, 0, SDL_EVENT_TEXT_EDITING);
+      wr_u32(&mut ede, 16, wid);
+      wr_u64(&mut ede, 24, sdl3_str_c_ptr("日本語"));
+      wr_u32(&mut ede, 32, 1);
+      wr_u32(&mut ede, 36, 2);
+      var tie = slot_new(128);
+      wr_u32(&mut tie, 0, SDL_EVENT_TEXT_INPUT);
+      wr_u32(&mut tie, 16, wid);
+      wr_u64(&mut tie, 24, sdl3_str_c_ptr("café"));
+      var cee = slot_new(128);
+      wr_u32(&mut cee, 0, SDL_EVENT_TEXT_EDITING);
+      wr_u32(&mut cee, 16, wid);
+      wr_u64(&mut cee, 24, 0);
+
+      let pu1 = sdl3_push_event(&lib, fge.as_mut_ptr() as Int);
+      let pu2 = sdl3_push_event(&lib, fle.as_mut_ptr() as Int);
+      let pu3 = sdl3_push_event(&lib, pse.as_mut_ptr() as Int);
+      let pu4 = sdl3_push_event(&lib, dce.as_mut_ptr() as Int);
+      let pu5 = sdl3_push_event(&lib, dse.as_mut_ptr() as Int);
+      let pu6 = sdl3_push_event(&lib, ede.as_mut_ptr() as Int);
+      let pu7 = sdl3_push_event(&lib, tie.as_mut_ptr() as Int);
+      let pu8 = sdl3_push_event(&lib, cee.as_mut_ptr() as Int);
+      sdl3_pump_events(&lib);
+      let uwrm = sdl3_remove_event_watch(&lib, on_ui_watch, 0xA14);
+      let _uir = drain_events(&lib, 50);
+      failed = failed + report(uwset && pu1 && pu2 && pu3 && pu4 && pu5 && pu6 && pu7 && pu8
+          && uwrm && ui_watch_calls >= 8
+          && ui_focus_gained_id == wid && ui_focus_lost_id == wid
+          && ui_dpi_pixel_w == 640 && ui_dpi_pixel_h == 480
+          && ui_dpi_display_id == wdisp && ui_dpi_scale_seen
+          && sc_eq(ui_text_edit, "日本語") && ui_text_start == 1 && ui_text_length == 2
+          && sc_eq(ui_text_commit, "café") && ui_text_cancelled,
+        "events: watch routed focus gained/lost, DPI pixel/display/scale, IME preedit/commit/cancel (calls="
+          + to_string(ui_watch_calls) + " gained=" + to_string(ui_focus_gained_id)
+          + " lost=" + to_string(ui_focus_lost_id) + " pix=" + to_string(ui_dpi_pixel_w)
+          + "x" + to_string(ui_dpi_pixel_h) + " disp=" + to_string(ui_dpi_display_id)
+          + " scale=" + b2s(ui_dpi_scale_seen) + " preedit-len="
+          + to_string(ui_text_edit.len()) + " commit-len=" + to_string(ui_text_commit.len())
+          + " cancel=" + b2s(ui_text_cancelled) + ")");
+
 
       // 0.14.0: pointer + relative mouse (per-window relative mode; engine
       // pointer-look).  Out-params use separate owned slots (B-17).
@@ -1036,6 +1316,40 @@ fn main() -> Int {
         && mst.y > -100000.0 && mst.y < 100000.0,
       "mouse: state idle (buttons=" + to_string(mst.buttons) + " at "
         + to_string(mst.x as Int) + "," + to_string(mst.y as Int) + ")");
+
+    // 0.21.0: clipboard UTF-8 round trip + primary selection.  The previous
+    // text is restored; a platform without a primary selection (Windows)
+    // reports the typed-unsupported SKIP instead of failing.
+    let prev_clip = sdl3_get_clipboard_text(&lib);
+    let clip_marker = "xiom-sdl3-a14-clipboard-7319";
+    let clip_set = sdl3_set_clipboard_text(&lib, clip_marker);
+    let clip_has = sdl3_has_clipboard_text(&lib);
+    let clip_got = sdl3_get_clipboard_text(&lib);
+    let clip_restore = sdl3_set_clipboard_text(&lib, prev_clip);
+    failed = failed + report(clip_set && clip_has && sc_eq(clip_got, clip_marker),
+      "clipboard: UTF-8 set/has/get round trip (set=" + b2s(clip_set) + " has="
+        + b2s(clip_has) + " got=\"" + clip_got + "\" restored=" + b2s(clip_restore)
+        + " previous-len=" + to_string(prev_clip.len()) + ")");
+
+    let prev_primary = sdl3_get_primary_selection_text(&lib);
+    let primary_set = sdl3_set_primary_selection_text(&lib, clip_marker);
+    if primary_set {
+      let primary_has = sdl3_has_primary_selection_text(&lib);
+      let primary_got = sdl3_get_primary_selection_text(&lib);
+      let primary_restore = sdl3_set_primary_selection_text(&lib, prev_primary);
+      failed = failed + report(primary_has && sc_eq(primary_got, clip_marker),
+        "clipboard: primary selection set/has/get round trip (has="
+          + b2s(primary_has) + " restored=" + b2s(primary_restore) + ")");
+    } else {
+      let perr = sdl3_get_error(&lib);
+      let primary_has = sdl3_has_primary_selection_text(&lib);
+      let primary_got = sdl3_get_primary_selection_text(&lib);
+      failed = failed + report(true,
+        "clipboard: SKIP -- primary selection unsupported on this platform ("
+          + perr + "; has=" + b2s(primary_has) + " text-len="
+          + to_string(primary_got.len()) + ")");
+    }
+
 
     // 0.19.0: pen/tablet tool type via a typed query -- an unknown pen id
     // must report INVALID (no stale handle wall).

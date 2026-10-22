@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.20.0 |
+| Version | 0.21.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
 | Upstream license | zlib (bindings only; no code vendored) |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (loader path is OS-agnostic in design; soname here is `SDL3.dll`) |
-| Compiler pin | v0.64.4 |
+| Compiler pin | v0.64.8 |
 
 ## 2. G2 pin: soname + dev header hash set
 
@@ -367,12 +367,87 @@ see below).
   `device_surface`; declared/exported/target stay 1271/1270/1269 and the
   full-surface suite stays 1269/1269 bound, 1270/1270 resolved.
 
-## 4. Test matrix (recorded 2026-10-14, compiler v0.64.4)
+**0.21.0 addition (A14 UI platform surface, 2026-10-21; engine ask
+`REL-20261021-1652-engine-5`):** 20 symbols joined the two loaders, all
+declared and exported by the pinned SDL 3.4.8 ABI.  Window-scoped calls
+stay on the resource loader (they take `SDL_Window*`); global clipboard and
+the extra display query stay on the core loader.
+
+- **Window identity + geometry (7 resource + 1 core symbol; plus the pure
+  `sdl3_display_index` composition).**
+  `SDL_GetWindowID` -> `sdl3_window_id` (u32 id as Int) and
+  `SDL_GetWindowFromID` -> `sdl3_window_from_id` (0 when stale) give the
+  identity round trip; `SDL_GetWindowPosition`/`SDL_SetWindowPosition` ->
+  `sdl3_window_position` (`Sdl3WindowPosition{ok,x,y}`; two owned i32
+  slots) / `sdl3_set_window_position`; `SDL_GetWindowSizeInPixels` ->
+  `sdl3_window_size_pixels` (`Sdl3PixelSize{ok,width,height}`);
+  `SDL_GetWindowDisplayScale` -> `sdl3_window_display_scale` (Float64);
+  `SDL_GetDisplayForWindow` -> `sdl3_window_display` (display id).
+  `SDL_GetDisplayContentScale` -> `sdl3_display_content_scale` and
+  `sdl3_display_index` (position of a display id in the existing
+  `SDL_GetDisplays` enumeration, -1 when absent) complete the
+  monitor/display pair for a window.  The two float returns were
+  re-verified on v0.64.8 (B-12 fix: both read 1.0 on this box); event
+  payload floats still decode through `sdl3_f32_from_bits`.
+- **Per-window focus + DPI-change routing (pure decode, no symbols).**
+  `sdl3_event_window_focus` returns `Sdl3WindowFocus{state, window_id}`
+  where state is `SDL3_WINDOW_FOCUS_GAINED/LOST/NONE` for
+  `SDL_EVENT_WINDOW_FOCUS_GAINED/LOST` (windowID u32 @16);
+  `sdl3_event_is_focus_change` is the filter predicate.
+  `sdl3_event_dpi_change` returns `Sdl3DpiChange{reason, window_id,
+  display_id, pixel_width, pixel_height}` for
+  `SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED` (data1/data2 = new pixel size),
+  `SDL_EVENT_WINDOW_DISPLAY_CHANGED` (data1 = new display id) and
+  `SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED`; `sdl3_event_is_dpi_change` is
+  the predicate.  Both work inside the existing filter/watch callbacks
+  (copy the raw address with `sdl3_event_copy`).  A watch test pushes all
+  five event kinds plus three text kinds through the real queue and
+  verifies the typed values.
+- **Text input + IME (6 resource symbols + pure decode).**
+  `SDL_StartTextInput`/`SDL_StopTextInput`/`SDL_TextInputActive` ->
+  `sdl3_start_text_input`/`sdl3_stop_text_input`/`sdl3_text_input_active`;
+  `SDL_SetTextInputArea`/`SDL_GetTextInputArea` ->
+  `sdl3_set_text_input_area` (16-byte rect slot built byte-indexed,
+  B-16) and `sdl3_get_text_input_area` (`Sdl3TextInputArea{ok,x,y,w,h,
+  cursor}` with separate rect/cursor slots); `SDL_ClearComposition` ->
+  `sdl3_clear_composition`.  The cursor is the IME caret offset relative
+  to rect.x -- the accessor the IME path needs.  Decode:
+  `SDL_TextEditingEvent` (pinned x64: text ptr @24, start i32 @32,
+  length i32 @36, windowID @16) -> `sdl3_event_text_editing`
+  (`Sdl3TextEditing{window_id, text, start, length}`);
+  `SDL_TextInputEvent` (text ptr @24) -> `sdl3_event_text_input` (the
+  committed UTF-8, copied).  **Cancellation:** SDL 3.4.8 has no
+  `SDL_EVENT_TEXT_EDITING_CANCELLED`; SDL signals cancellation by sending
+  a `TEXT_EDITING` event with an empty/NULL preedit.  `sdl3_event_text_kind`
+  classifies those as `SDL3_TEXT_EVENT_CANCELLED` (non-empty preedit =
+  EDITING, TEXT_INPUT = COMMIT, other = NONE), giving consumers a typed
+  cancellation signal without inventing an SDL event type.  The suite
+  exercises start/active/area/cursor/clear/stop live on a hidden window
+  and decodes preedit/commit/cancel from owned buffers.
+- **Clipboard + primary selection (6 core symbols).**
+  `SDL_SetClipboardText`/`SDL_GetClipboardText`/`SDL_HasClipboardText` ->
+  `sdl3_set_clipboard_text`/`sdl3_get_clipboard_text`/
+  `sdl3_has_clipboard_text`; the same trio for
+  `SDL_SetPrimarySelectionText`/`Get`/`Has` ->
+  `sdl3_set_primary_selection_text`/`sdl3_get_primary_selection_text`/
+  `sdl3_has_primary_selection_text`.  Getters return caller-owned
+  `char *` per the pin: copied with `Str::from_c_str` then `SDL_free`d.
+  The primary-selection setter returns false + `SDL_GetError` where the
+  platform has no primary selection (the typed-unsupported path; the
+  suite reports SKIP there and falls back).  On this Windows host the
+  primary selection round trip is live (set/has/get true), so the suite
+  covers both branches (live here, SKIP elsewhere).
+- **B-series discipline:** all handles stay `Int`; every out-param gets
+  its own owned byte slot; the 16-byte `SDL_Rect` in-param is written
+  byte-indexed; no pointer arithmetic crosses a foreign call.  The new
+  code adds no `unsafe` outside the existing confined call wrappers.
+
+## 4. Test matrix (recorded 2026-10-21, compiler v0.64.8)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 8/8 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode layers + drag-drop + haptic encode + device constant tables still run -- all pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 72/72 x2** (v0.64.4) -- previous 61 checks + pen/tablet decode (4 members) + haptic encode + device constants + pen-live queue readback + 2 joystick-caps checks + 3 haptic checks + pen tool-type query |
+| SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 9/9 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode + UI-decode + haptic encode + device constants still run -- all pure XIOM) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 81/81 x2** -- previous 72 checks + UI decode (focus/DPI/IME) + window identity/position/pixels/scale/display + IME control + watch routing + clipboard + primary selection |
 | Full surface (generated modules) | `xiom --run tests/test_full_surface.xi` with SDL3 on PATH | PASS: bound 1269/1269, resolved 1270/1270 exports (2026-10-14, unchanged by 0.19.0) |
 | Device ABIs | generator audit + clang `x86_64-pc-windows-msvc` offsetof/sizeof probe against the pinned headers | 32/32 symbols, 45/45 constants, 14/14 layouts (2026-10-14) |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |
