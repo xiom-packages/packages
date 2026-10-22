@@ -9,6 +9,7 @@ use xiom.string;
 use xiom.encoding;
 use xiom.convert.tostring;
 use xiom.http.body;
+use xiom.http.options;
 
 // --- XIOM FFI Bridge --------------------------------------------------------
 
@@ -61,8 +62,27 @@ pub type HttpClientResponse = {
 pub enum HttpBytesRequestError {
   BodyLengthMismatch(declared: Int, actual: Int),
   BodyLengthNegative(declared: Int),
+  InvalidConnectTimeout(value: Int),
+  InvalidTotalTimeout(value: Int),
   UnsupportedMethod(method: Str),
   Transport(message: Str),
+}
+
+// Typed outcome of the per-call-options entries (0.1.10). Invalid timeout
+// values are rejected before any FFI call, so a caller can tell a bad option
+// from a transport failure without parsing text.
+pub enum HttpOptionsRequestError {
+  ConnectTimeoutNegative(value: Int),
+  TotalTimeoutNegative(value: Int),
+  UnsupportedMethod(method: Str),
+  Transport(message: Str),
+}
+
+// A client session owns one libcurl easy handle across sequential requests.
+// libcurl keeps its connection cache on the handle, so two requests to the
+// same origin through one session reuse the established connection.
+pub type HttpClientSession = {
+  handle: *UInt8;
 }
 
 // --- CURL Option Constants --------------------------------------------------
@@ -77,15 +97,15 @@ fn CURLOPT_FOLLOWLOCATION() -> Int
 {
   return 52;
 }
-fn CURLOPT_TIMEOUT() -> Int
-  ensures: result == 13;
+fn CURLOPT_TIMEOUT_MS() -> Int
+  ensures: result == 155;
 {
-  return 13;
+  return 155;
 }
-fn CURLOPT_CONNECTTIMEOUT() -> Int
-  ensures: result == 78;
+fn CURLOPT_CONNECTTIMEOUT_MS() -> Int
+  ensures: result == 156;
 {
-  return 78;
+  return 156;
 }
 fn CURLOPT_POST() -> Int
   ensures: result == 47;
@@ -424,7 +444,7 @@ fn get_response_code(handle: *UInt8) -> Int
 
 // --- cURL Setup Helpers -----------------------------------------------------
 
-fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
+fn setup_common_options(handle: *UInt8, url_cstr: *UInt8, opts: HttpRequestOptions) -> Result[Unit, Str] {
   var rc: Int;
 
   unsafe { rc = curl_easy_setopt(handle, CURLOPT_URL(), url_cstr); }
@@ -433,11 +453,11 @@ fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
   unsafe { rc = curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION(), make_long_value(1)); }
   if rc != 0 { return Err(string.str_concat("CURLOPT_FOLLOWLOCATION failed: ", curl_error_string(rc))); };
 
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_TIMEOUT(), make_long_value(30)); }
-  if rc != 0 { return Err(string.str_concat("CURLOPT_TIMEOUT failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_TIMEOUT_MS(), make_long_value(options.effective_total_ms(&opts))); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_TIMEOUT_MS failed: ", curl_error_string(rc))); };
 
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT(), make_long_value(10)); }
-  if rc != 0 { return Err(string.str_concat("CURLOPT_CONNECTTIMEOUT failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT_MS(), make_long_value(options.effective_connect_ms(&opts))); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_CONNECTTIMEOUT_MS failed: ", curl_error_string(rc))); };
 
   unsafe { rc = curl_easy_setopt(handle, CURLOPT_NOSIGNAL(), make_long_value(1)); }
   if rc != 0 { return Err(string.str_concat("CURLOPT_NOSIGNAL failed: ", curl_error_string(rc))); };
@@ -459,6 +479,12 @@ fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
   if rc != 0 { return Err(string.str_concat("CURLOPT_BUFFERSIZE failed: ", curl_error_string(rc))); };
 
   return Ok(());
+}
+
+// setup_common_options_default applies the library defaults used by every
+// pre-0.1.10 one-shot entry (30 s total / 10 s connect).
+fn setup_common_options_default(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
+  return setup_common_options(handle, url_cstr, options.http_request_options_default());
 }
 
 fn perform_and_collect(handle: *UInt8, body_f: *UInt8, headers_f: *UInt8) -> Result[Unit, Str] {
@@ -549,13 +575,14 @@ fn setup_request_headers(handle: *UInt8, headers: Str) -> Result[*UInt8, Str] {
   return Ok(header_list);
 }
 
-// perform_request_common executes the transfer and captures status/body/
-// headers, then releases every request resource exactly once. Shared by the
-// Str-body http_request and the raw-bytes http_request_bytes entries.
-fn perform_request_common(handle: *UInt8, header_list: *UInt8, url_cstr: *UInt8, body_cstr: *UInt8) -> Result[HttpClientResponse, Str] {
+// perform_and_capture executes one transfer and captures status/body/headers
+// without releasing the handle. The caller owns handle lifetime, which lets a
+// session reuse the same easy handle (and therefore libcurl's connection
+// cache) across sequential requests.
+fn perform_and_capture(handle: *UInt8) -> Result[HttpClientResponse, Str] {
   var files = open_temp_files();
   match files {
-    Err(e) => { cleanup_http_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
+    Err(e) => { return Err(e); },
     Ok(fds) => {
       var perf = perform_and_collect(handle, fds.body, fds.headers);
       var status: Int = get_response_code(handle);
@@ -563,12 +590,53 @@ fn perform_request_common(handle: *UInt8, header_list: *UInt8, url_cstr: *UInt8,
       var resp_headers: Str = read_file_to_str(fds.headers);
       close_temp_files(fds.body, fds.headers);
       cleanup_temp_files();
-      cleanup_http_request(handle, header_list, url_cstr, body_cstr);
       match perf { Err(e) => { return Err(e); }, Ok(_) => {}, };
       return Ok(HttpClientResponse{ status: status, body: resp_body, headers: resp_headers });
     },
   };
   return Err("unreachable");
+}
+
+// perform_request_common executes the transfer and captures status/body/
+// headers, then releases every request resource exactly once. Shared by the
+// Str-body http_request and the raw-bytes http_request_bytes entries.
+fn perform_request_common(handle: *UInt8, header_list: *UInt8, url_cstr: *UInt8, body_cstr: *UInt8) -> Result[HttpClientResponse, Str] {
+  var result = perform_and_capture(handle);
+  cleanup_http_request(handle, header_list, url_cstr, body_cstr);
+  return result;
+}
+
+// cleanup_session_request releases only the per-request resources of a
+// session-owned handle. The handle itself stays open for connection reuse.
+// CURLOPT_HTTPHEADER is cleared before the list is freed so libcurl never
+// holds a dangling pointer between requests.
+fn cleanup_session_request(handle: *UInt8, header_list: *UInt8, url_cstr: *UInt8, body_cstr: *UInt8) {
+  if !ptr.is_null[UInt8](header_list) {
+    unsafe { let _ = curl_easy_setopt(handle, CURLOPT_HTTPHEADER(), ptr_null()); }
+    unsafe { xiom_http_headers_free(header_list); }
+  };
+  if !ptr.is_null[UInt8](url_cstr) {
+    unsafe { xiom_free_cstr(url_cstr); }
+  };
+  if !ptr.is_null[UInt8](body_cstr) {
+    unsafe { xiom_free_cstr(body_cstr); }
+  };
+}
+
+// reset_request_state clears request-specific options that otherwise persist
+// on a reused easy handle (a prior POST would leak into a later GET). The
+// common options, URL, and connection cache are re-established per call.
+fn reset_request_state(handle: *UInt8) -> Result[Unit, Str] {
+  var rc: Int;
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POST(), make_long_value(0)); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_POST reset failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), ptr_null()); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_CUSTOMREQUEST reset failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), ptr_null()); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_POSTFIELDS reset failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), make_long_value(0)); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_POSTFIELDSIZE reset failed: ", curl_error_string(rc))); };
+  return Ok(());
 }
 
 fn bytes_request_body_error(e: HttpBodyError) -> HttpBytesRequestError {
@@ -605,7 +673,7 @@ pub fn http_get(url: Str) -> Result[HttpClientResponse, Str]
     return Err("curl_easy_init returned null handle");
   };
 
-  var setup = setup_common_options(handle, url_cstr);
+  var setup = setup_common_options_default(handle, url_cstr);
   match setup {
     Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); },
     Ok(_) => {},
@@ -639,7 +707,7 @@ pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpClientRes
   unsafe { handle = curl_easy_init(); }
   if ptr.is_null[UInt8](handle) { unsafe { xiom_free_cstr(url_cstr); }; return Err("curl_easy_init returned null handle"); };
 
-  var setup = setup_common_options(handle, url_cstr);
+  var setup = setup_common_options_default(handle, url_cstr);
   match setup { Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); }, Ok(_) => {}, };
 
   var rc: Int;
@@ -686,7 +754,7 @@ pub fn http_put(url: Str, body: Str) -> Result[HttpClientResponse, Str]
   unsafe { handle = curl_easy_init(); }
   if ptr.is_null[UInt8](handle) { unsafe { xiom_free_cstr(url_cstr); }; return Err("curl_easy_init returned null handle"); };
 
-  var setup = setup_common_options(handle, url_cstr);
+  var setup = setup_common_options_default(handle, url_cstr);
   match setup { Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); }, Ok(_) => {}, };
 
   var rc: Int;
@@ -735,7 +803,7 @@ pub fn http_delete(url: Str) -> Result[HttpClientResponse, Str]
   unsafe { handle = curl_easy_init(); }
   if ptr.is_null[UInt8](handle) { unsafe { xiom_free_cstr(url_cstr); }; return Err("curl_easy_init returned null handle"); };
 
-  var setup = setup_common_options(handle, url_cstr);
+  var setup = setup_common_options_default(handle, url_cstr);
   match setup { Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); }, Ok(_) => {}, };
 
   var rc: Int;
@@ -774,7 +842,7 @@ pub fn http_download(url: Str, path: Str) -> Result[Unit, Str]
   unsafe { handle = curl_easy_init(); }
   if ptr.is_null[UInt8](handle) { unsafe { xiom_free_cstr(url_cstr); }; return Err("curl_easy_init returned null handle"); };
 
-  var setup = setup_common_options(handle, url_cstr);
+  var setup = setup_common_options_default(handle, url_cstr);
   match setup { Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); }, Ok(_) => {}, };
 
   var path_cstr: *UInt8 = str_to_cstr(path);
@@ -855,6 +923,13 @@ pub fn http_request(url: Str, method: Str, body: Str, headers: Str) -> Result[Ht
   requires: string.str_len(url) > 0
   requires: string.str_len(method) > 0
 {
+  return http_request_core(url, method, body, headers, options.http_request_options_default());
+}
+
+fn http_request_core(url: Str, method: Str, body: Str, headers: Str, opts: HttpRequestOptions) -> Result[HttpClientResponse, Str]
+  requires: string.str_len(url) > 0
+  requires: string.str_len(method) > 0
+{
   if !is_supported_method(method) {
     return Err(string.str_concat("http_request: unsupported method ", method));
   };
@@ -875,7 +950,7 @@ pub fn http_request(url: Str, method: Str, body: Str, headers: Str) -> Result[Ht
   var header_list: *UInt8 = ptr_null();
   var body_cstr: *UInt8 = ptr_null();
 
-  var setup = setup_common_options(handle, url_cstr);
+  var setup = setup_common_options(handle, url_cstr, opts);
   match setup {
     Err(e) => { cleanup_http_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
     Ok(_) => {},
@@ -917,6 +992,181 @@ pub fn http_request(url: Str, method: Str, body: Str, headers: Str) -> Result[Ht
   return perform_request_common(handle, header_list, url_cstr, body_cstr);
 }
 
+// --- Per-Call Options Entry (0.1.10) ----------------------------------------
+//
+// http_request_with_options is the additive form of http_request: identical
+// wire behavior, but connect_ms / total_ms come from HttpRequestOptions
+// (0 means the library default, 10000 / 30000 ms). Negative values are
+// rejected as typed errors before any FFI call.
+pub fn http_request_with_options(url: Str, method: Str, body: Str, headers: Str, opts: HttpRequestOptions) -> Result[HttpClientResponse, HttpOptionsRequestError]
+  requires: string.str_len(url) > 0
+  requires: string.str_len(method) > 0
+{
+  if !is_supported_method(method) {
+    return Err(HttpOptionsRequestError.UnsupportedMethod(method));
+  };
+  var connect_ms: Int = opts.connect_ms;
+  var total_ms: Int = opts.total_ms;
+  var checked = options.validate_request_options(&opts);
+  match checked {
+    Err(e) => {
+      match e {
+        HttpRequestOptionError.ConnectTimeoutNegative(_) => {
+          return Err(HttpOptionsRequestError.ConnectTimeoutNegative(connect_ms));
+        },
+        HttpRequestOptionError.TotalTimeoutNegative(_) => {
+          return Err(HttpOptionsRequestError.TotalTimeoutNegative(total_ms));
+        },
+      };
+    },
+    Ok(_) => {
+      match http_request_core(url, method, body, headers, opts) {
+        Ok(resp) => { return Ok(resp); },
+        Err(e) => { return Err(HttpOptionsRequestError.Transport(e)); },
+      };
+    },
+  };
+  return Err(HttpOptionsRequestError.Transport("unreachable"));
+}
+
+// --- Client Sessions (0.1.10) -----------------------------------------------
+//
+// A session is an explicit handle-lifetime object for keep-alive / connection
+// reuse. The one-shot entries above keep their exact per-call
+// init/cleanup behavior; only session_request* reuse the handle.
+//
+// Lifecycle (frozen):
+//   - session_new()  -> allocates one easy handle (Err on failure).
+//   - session_request(&session, ...) -> one transfer on that handle. The
+//       handle is NOT cleaned up on success or failure; per-request resources
+//       (header slist, C-string copies) are released after every call, and
+//       request-specific options are reset so a POST cannot leak into a later
+//       GET.
+//   - session_close(session) -> curl_easy_cleanup exactly once. After that
+//       the handle (and the borrower) must not be used.
+// Connections to the same origin are reused automatically by libcurl within
+// one handle; no separate pool is maintained by this library.
+pub fn session_new() -> Result[HttpClientSession, Str] {
+  var handle: *UInt8 = ptr_null();
+  unsafe { handle = curl_easy_init(); }
+  if ptr.is_null[UInt8](handle) {
+    return Err("curl_easy_init returned null handle");
+  };
+  return Ok(HttpClientSession{ handle: handle });
+}
+
+pub fn session_close(session: HttpClientSession) {
+  if !ptr.is_null[UInt8](session.handle) {
+    unsafe { curl_easy_cleanup(session.handle); }
+  };
+}
+
+fn session_request_core(session: &HttpClientSession, url: Str, method: Str, body: Str, headers: Str, opts: HttpRequestOptions) -> Result[HttpClientResponse, Str]
+  requires: string.str_len(url) > 0
+  requires: string.str_len(method) > 0
+{
+  if !is_supported_method(method) {
+    return Err(string.str_concat("session_request: unsupported method ", method));
+  };
+  var has_body: Bool = method_has_body(method);
+  var handle: *UInt8 = session.handle;
+  if ptr.is_null[UInt8](handle) {
+    return Err("session handle is closed");
+  };
+
+  var url_cstr: *UInt8 = str_to_cstr(url);
+  if ptr.is_null[UInt8](url_cstr) {
+    return Err("xiom_str_to_cstr failed for URL");
+  };
+  var header_list: *UInt8 = ptr_null();
+  var body_cstr: *UInt8 = ptr_null();
+
+  var reset = reset_request_state(handle);
+  match reset {
+    Err(e) => { cleanup_session_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
+    Ok(_) => {},
+  };
+
+  var setup = setup_common_options(handle, url_cstr, opts);
+  match setup {
+    Err(e) => { cleanup_session_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
+    Ok(_) => {},
+  };
+
+  var header_res = setup_request_headers(handle, headers);
+  match header_res {
+    Err(e) => { cleanup_session_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
+    Ok(list) => { header_list = list; },
+  };
+
+  var method_res = set_request_method(handle, method);
+  match method_res {
+    Err(e) => { cleanup_session_request(handle, header_list, url_cstr, body_cstr); return Err(e); },
+    Ok(_) => {},
+  };
+
+  if has_body {
+    body_cstr = str_to_cstr(body);
+    if ptr.is_null[UInt8](body_cstr) {
+      cleanup_session_request(handle, header_list, url_cstr, body_cstr);
+      return Err("xiom_str_to_cstr failed for body");
+    };
+    var rc_b: Int = unsafe { curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_cstr) };
+    if rc_b != 0 {
+      cleanup_session_request(handle, header_list, url_cstr, body_cstr);
+      return Err(string.str_concat("CURLOPT_POSTFIELDS failed: ", curl_error_string(rc_b)));
+    };
+    var body_bytes: Vec[UInt8] = encoding.utf8_encode(body);
+    var rc_s: Int = unsafe { curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), make_long_value(body_bytes.len())) };
+    if rc_s != 0 {
+      cleanup_session_request(handle, header_list, url_cstr, body_cstr);
+      return Err(string.str_concat("CURLOPT_POSTFIELDSIZE failed: ", curl_error_string(rc_s)));
+    };
+  };
+
+  var result = perform_and_capture(handle);
+  cleanup_session_request(handle, header_list, url_cstr, body_cstr);
+  return result;
+}
+
+pub fn session_request(session: &HttpClientSession, url: Str, method: Str, body: Str, headers: Str) -> Result[HttpClientResponse, Str]
+  requires: string.str_len(url) > 0
+  requires: string.str_len(method) > 0
+{
+  return session_request_core(session, url, method, body, headers, options.http_request_options_default());
+}
+
+pub fn session_request_with_options(session: &HttpClientSession, url: Str, method: Str, body: Str, headers: Str, opts: HttpRequestOptions) -> Result[HttpClientResponse, HttpOptionsRequestError]
+  requires: string.str_len(url) > 0
+  requires: string.str_len(method) > 0
+{
+  if !is_supported_method(method) {
+    return Err(HttpOptionsRequestError.UnsupportedMethod(method));
+  };
+  var connect_ms: Int = opts.connect_ms;
+  var total_ms: Int = opts.total_ms;
+  var checked = options.validate_request_options(&opts);
+  match checked {
+    Err(e) => {
+      match e {
+        HttpRequestOptionError.ConnectTimeoutNegative(_) => {
+          return Err(HttpOptionsRequestError.ConnectTimeoutNegative(connect_ms));
+        },
+        HttpRequestOptionError.TotalTimeoutNegative(_) => {
+          return Err(HttpOptionsRequestError.TotalTimeoutNegative(total_ms));
+        },
+      };
+    },
+    Ok(_) => {
+      match session_request_core(session, url, method, body, headers, opts) {
+        Ok(resp) => { return Ok(resp); },
+        Err(e) => { return Err(HttpOptionsRequestError.Transport(e)); },
+      };
+    },
+  };
+  return Err(HttpOptionsRequestError.Transport("unreachable"));
+}
+
 // --- Raw-Bytes Request Entry (0.1.9) ----------------------------------------
 //
 // http_request_bytes is the binary-safe companion of http_request. It takes
@@ -937,7 +1187,7 @@ pub fn http_request(url: Str, method: Str, body: Str, headers: Str) -> Result[Ht
 //
 // The body is sent for POST/PUT/PATCH and ignored (but still length-checked)
 // for the bodyless methods, matching http_request.
-fn http_request_bytes_raw(url: Str, method: Str, body: Vec[UInt8], content_length: Int, headers: Str) -> Result[HttpClientResponse, Str]
+fn http_request_bytes_raw(url: Str, method: Str, body: Vec[UInt8], content_length: Int, headers: Str, opts: HttpRequestOptions) -> Result[HttpClientResponse, Str]
   requires: string.str_len(url) > 0
 {
   var has_body: Bool = method_has_body(method);
@@ -957,7 +1207,7 @@ fn http_request_bytes_raw(url: Str, method: Str, body: Vec[UInt8], content_lengt
   var header_list: *UInt8 = ptr_null();
   var no_body_cstr: *UInt8 = ptr_null();
 
-  var setup = setup_common_options(handle, url_cstr);
+  var setup = setup_common_options(handle, url_cstr, opts);
   match setup {
     Err(e) => { cleanup_http_request(handle, header_list, url_cstr, no_body_cstr); return Err(e); },
     Ok(_) => {},
@@ -1004,9 +1254,48 @@ pub fn http_request_bytes(url: Str, method: Str, body: Vec[UInt8], content_lengt
   var checked = http_bytes_body(body, content_length);
   match checked {
     Ok(request_body) => {
-      match http_request_bytes_raw(url, method, request_body.bytes, request_body.content_length, headers) {
+      match http_request_bytes_raw(url, method, request_body.bytes, request_body.content_length, headers, options.http_request_options_default()) {
         Ok(resp) => { return Ok(resp); },
         Err(e) => { return Err(HttpBytesRequestError.Transport(e)); },
+      };
+    },
+    Err(e) => { return Err(bytes_request_body_error(e)); },
+  };
+  return Err(HttpBytesRequestError.Transport("unreachable"));
+}
+
+// http_request_bytes_with_options is the additive per-call-timeout form of
+// http_request_bytes. Body/length validation happens first, then options
+// validation; an invalid timeout is reported as
+// HttpBytesRequestError.InvalidOptions (mapped from the typed option error).
+pub fn http_request_bytes_with_options(url: Str, method: Str, body: Vec[UInt8], content_length: Int, headers: Str, opts: HttpRequestOptions) -> Result[HttpClientResponse, HttpBytesRequestError]
+  requires: string.str_len(url) > 0
+  requires: string.str_len(method) > 0
+{
+  if !is_supported_method(method) {
+    return Err(HttpBytesRequestError.UnsupportedMethod(method));
+  };
+  var checked = http_bytes_body(body, content_length);
+  match checked {
+    Ok(request_body) => {
+      var valid = options.validate_request_options(&opts);
+      match valid {
+        Err(e) => {
+          match e {
+            HttpRequestOptionError.ConnectTimeoutNegative(_) => {
+              return Err(HttpBytesRequestError.InvalidConnectTimeout(opts.connect_ms));
+            },
+            HttpRequestOptionError.TotalTimeoutNegative(_) => {
+              return Err(HttpBytesRequestError.InvalidTotalTimeout(opts.total_ms));
+            },
+          };
+        },
+        Ok(_) => {
+          match http_request_bytes_raw(url, method, request_body.bytes, request_body.content_length, headers, opts) {
+            Ok(resp) => { return Ok(resp); },
+            Err(e) => { return Err(HttpBytesRequestError.Transport(e)); },
+          };
+        },
       };
     },
     Err(e) => { return Err(bytes_request_body_error(e)); },

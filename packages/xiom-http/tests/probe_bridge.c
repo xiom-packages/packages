@@ -130,22 +130,39 @@ long long xiom_probe_last_body_byte(long long off) {
   return (long long)stub_body_snapshot[off];
 }
 
-/* Expected values pinned by http.xi (SPEC documents 30s/10s/64 KiB timeouts
- * and buffer). A heap pointer fed in as the "long" cannot match these. */
+/* Expected values pinned by http.xi (SPEC documents 30000 ms / 10000 ms
+ * timeouts and a 64 KiB buffer). A heap pointer fed in as the "long" cannot
+ * match these. */
 static int stub_long_option_ok(long long option, long long value) {
   switch (option) {
     case 52: return value == 1;      /* CURLOPT_FOLLOWLOCATION */
-    case 13: return value == 30;     /* CURLOPT_TIMEOUT */
-    case 78: return value == 10;     /* CURLOPT_CONNECTTIMEOUT */
+    case 155: return value >= 0;     /* CURLOPT_TIMEOUT_MS */
+    case 156: return value >= 0;     /* CURLOPT_CONNECTTIMEOUT_MS */
     case 99: return value == 1;      /* CURLOPT_NOSIGNAL */
     case 98: return value == 65536;  /* CURLOPT_BUFFERSIZE */
-    case 47: return value == 1;      /* CURLOPT_POST */
+    case 47: return value == 1;      /* CURLOPT_POST (set) */
     case 60: return value >= 0;      /* CURLOPT_POSTFIELDSIZE (any non-negative length) */
     default: return 1;               /* not one of the stubbed LONG options */
   }
 }
 
-void* curl_easy_init(void) { return malloc(16); }
+/* Session / timeout evidence (0.1.10). The probe asserts that one session
+ * performs two requests through the SAME easy handle (init count unchanged)
+ * and that the millisecond timeout options carry the caller's values. */
+static long long stub_easy_init_count = 0;
+static long long stub_easy_cleanup_count = 0;
+static long long stub_last_total_ms = -1;
+static long long stub_last_connect_ms = -1;
+
+long long xiom_probe_easy_init_count(void) { return stub_easy_init_count; }
+long long xiom_probe_easy_cleanup_count(void) { return stub_easy_cleanup_count; }
+long long xiom_probe_last_total_ms(void) { return stub_last_total_ms; }
+long long xiom_probe_last_connect_ms(void) { return stub_last_connect_ms; }
+
+void* curl_easy_init(void) {
+  stub_easy_init_count = stub_easy_init_count + 1;
+  return malloc(16);
+}
 
 int curl_easy_setopt(void* h, long long option, const void* value) {
   (void)h;
@@ -166,6 +183,8 @@ int curl_easy_setopt(void* h, long long option, const void* value) {
       stub_body_len = -2; /* capture impossible: fail the probe assertion */
     }
   }
+  if (option == 155) { stub_last_total_ms = (long long)v; }
+  if (option == 156) { stub_last_connect_ms = (long long)v; }
   if (!stub_long_option_ok(option, (long long)v)) {
     return 43; /* CURLE_BAD_FUNCTION_ARGUMENT */
   }
@@ -183,7 +202,10 @@ int curl_easy_getinfo(void* h, long long info, void* arg) {
   return 0;
 }
 
-void curl_easy_cleanup(void* h) { free(h); }
+void curl_easy_cleanup(void* h) {
+  stub_easy_cleanup_count = stub_easy_cleanup_count + 1;
+  free(h);
+}
 
 const char* curl_easy_strerror(long long code) {
   (void)code;

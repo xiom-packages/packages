@@ -69,7 +69,9 @@ method-routing `http_send`; **custom request headers since 0.1.8** (incl.
 `HttpRequest.headers` entry (pre-0.1.8 it consulted Content-Type only and then
 dropped it); **binary request bodies since 0.1.9** via
 `xiom.http.http_request_bytes(url, method, Vec[UInt8], content_length, blob)`
-with typed `HttpBytesRequestError`; typed `Err(Str)` failure taxonomy for the
+with typed `HttpBytesRequestError`; **per-call timeouts and reusable client
+sessions since 0.1.10** (`HttpRequestOptions` + `session_new` /
+`session_request` / `session_close`); typed `Err(Str)` failure taxonomy for the
 Str-body wrappers; response `status` / `body` / `headers` capture; TLS through
 the libcurl CA bundle (set `CURL_CA_BUNDLE`, recipe above).
 
@@ -86,7 +88,34 @@ match http_headers_blob(pairs) {
 };
 ```
 
-Binary bodies (0.1.9) use `Vec[UInt8]` plus an explicit Content-Length:
+Per-call timeouts (0.1.10) are additive: `xiom.http.options.HttpRequestOptions`
+carries `connect_ms` / `total_ms` (0 = library default 10000 / 30000 ms) and
+`http_request_with_options(url, method, body, headers, opts)` /
+`http_request_bytes_with_options(...)` accept it. Negative values are rejected
+as typed errors before any FFI call.
+
+Keep-alive / connection reuse (0.1.10) is explicit via a session:
+`session_new()` returns `HttpClientSession`; `session_request(&session, url,
+method, body, headers)` performs each transfer on the same libcurl easy handle,
+so connections to the same origin are reused; `session_close(session)` releases
+the handle exactly once. The one-shot entries still create and clean up a
+handle per call, so their behavior is unchanged.
+
+```xiom
+use xiom.http;
+use xiom.http.options;
+var session = session_new();                 // Result[HttpClientSession, Str]
+match session {
+  Ok(s) => {
+    let _ = session_request(&s, "https://example.com/a", "GET", "", "");
+    let _ = session_request(&s, "https://example.com/b", "GET", "", "");
+    session_close(s);                        // exactly one curl_easy_cleanup
+  },
+  Err(e) => { /* handle allocation failed */ },
+};
+var opts: HttpRequestOptions = HttpRequestOptions{ connect_ms: 2000, total_ms: 5000 };
+let r = http_request_with_options("https://example.com/", "GET", "", "", opts);
+```
 
 ```xiom
 use xiom.http;                 // http_request_bytes, HttpBytesRequestError
@@ -103,19 +132,20 @@ The bytes go to libcurl through `CURLOPT_POSTFIELDS`/`CURLOPT_POSTFIELDSIZE`
 without a cstr conversion, so `0x00` and `0x80..0xFF` survive. Headers are the
 same CRLF blob; set `Content-Encoding` / `Content-Type` there yourself.
 
-Not yet in the surface (tracked in `ROADMAP.md`): keep-alive control,
-per-call timeouts, streaming request/response bodies, and a pluggable TLS
-hook (arrives with `xiom.ssl`). The libcurl bridge is the transport until
-then. `http_post`'s `content_type` parameter remains a compatibility no-op
-and `client.http_put` takes no content type -- put an explicit `Content-Type`
-into the header blob when the server needs one.
+Still not in the surface (tracked in `ROADMAP.md`): streaming request/response
+bodies and a pluggable TLS hook (arrives with `xiom.ssl`). The libcurl bridge
+is the transport until then. `http_post`'s `content_type` parameter remains a
+  compatibility no-op and `client.http_put` takes no content type -- put an
+  explicit `Content-Type` into the header blob when the server needs one.
 
 Evidence: `tests/probe_client.xi` -- refused-taxonomy + malformed-url are
 offline-deterministic; the live GET and loopback POST legs print `[SKIP]`
 (rc 0) when the network/endpoint is absent. `tests/probe_real_libcurl.xi`
 adds the 0.1.8 live header roundtrip leg against the loopback echo endpoint
 `tests/echo_headers_server.ps1` (SKIP-safe); `tests/probe_root_module.xi`
-drives the header path offline through the deterministic probe bridge.
+drives the header path and the 0.1.10 timeout/session paths offline through the
+deterministic probe bridge (12 `[PASS]` checks, including one-easy-handle reuse
+and timeout-value snapshots).
 
 ## Modules
 
@@ -129,6 +159,7 @@ drives the header path offline through the deterministic probe bridge.
 | `xiom.http.cookie` | cookie helpers (see also the `xiom.cookie` package) |
 | `xiom.http.body` | raw-bytes body validation + exact wire copy (`http_bytes_body`) |
 | `xiom.http.headers` | header-list builder for custom request headers (`http_headers_blob`) |
+| `xiom.http.options` | per-call transport options (`HttpRequestOptions`, `validate_request_options`, effective-timeout helpers) |
 | `xiom.http.client` | client-side helpers |
 | `xiom.http.server` | **stub** (see below) |
 | `xiom.http.demo` | demo helpers |
@@ -217,12 +248,45 @@ entries are unchanged.
   POSTFIELDS/POSTFIELDSIZE and verifies a `0x00 + 0x80..0xFF` frame byte-for-
   byte through `http_request_bytes` (7 `[PASS]` checks x2).
 
+## 0.1.10 changes
+
+Per-call timeouts and reusable client sessions. The one-shot entries keep
+their exact per-call handle lifecycle.
+
+- New pure module `xiom.http.options`: `HttpRequestOptions { connect_ms;
+  total_ms; }`, `HttpRequestOptions` default 10000 / 30000 ms, `0` means
+  "library default", and `validate_request_options` returns typed
+  `HttpRequestOptionError.ConnectTimeoutNegative` /
+  `TotalTimeoutNegative` for negative values.
+- `setup_common_options` now sets `CURLOPT_CONNECTTIMEOUT_MS` (156) and
+  `CURLOPT_TIMEOUT_MS` (155) instead of the second-granularity options, so
+  every existing entry keeps 10 s / 30 s exactly.
+- New root entries: `http_request_with_options(url, method, body, headers,
+  opts)` and `http_request_bytes_with_options(url, method, body,
+  content_length, headers, opts)`, both returning typed
+  `HttpOptionsRequestError` / `HttpBytesRequestError` values. Invalid
+  timeouts are rejected before any FFI call.
+- New session surface: `HttpClientSession`, `session_new`,
+  `session_request(&session, ...)`, `session_request_with_options(...)`, and
+  `session_close(session)`. Sequential requests share one libcurl easy handle
+  (and its connection cache) to the same origin; per-request header lists and
+  C-string copies are released after each transfer, and request-specific
+  options are reset so a POST cannot leak into a later GET.
+- Suite grows 55 -> 60 checks (options defaults / zero sentinel / custom
+  effective values / both negative variants). The offline
+  `probe_root_module` bridge exposes handle-init, cleanup, and timeout-option
+  snapshots; it proves two session requests create one handle, cleanup happens
+  only at `session_close`, and custom/default milliseconds reach the bridge.
+- Compiler note: v0.64.9 miscompiles direct `Err(Enum.Variant(..))` patterns.
+  The new code uses two-level matching; see `docs/COMPILER-DEFECTS.md` and
+  `docs/probe_match_result_enum_defect.xi`.
+
 ## Contracts and tests
 
 - `http_parse_request` / `http_parse_response`: `requires: input.len() > 0` (do not call
   with an empty string; an empty input traps as a contract violation).
 - Parser KATs (request line, POST body, response line, header parsing, malformed header)
-  live in `tests/test_conformance.xi` (55 checks) -- added in 0.1.1 after a consumer-only
+  live in `tests/test_conformance.xi` (60 checks) -- added in 0.1.1 after a consumer-only
   defect (missing import + bare `&mut Int` cursor) shipped green on 0.1.0; the 0.1.4
   checks pin printable-ASCII rendering in `src/url.xi` and `src/types.xi`; the 0.1.8
   checks pin the header-list builder in `src/headers.xi` (goldens, reject rules,

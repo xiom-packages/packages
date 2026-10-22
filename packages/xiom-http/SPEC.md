@@ -150,7 +150,7 @@ and `0x80..0xFF`.
 
 ---
 
-### `xiom.http.headers` (`src/headers.xi`)
+### `xiom.http.headers` (`src/headers.xi`) -- 0.1.8
 
 Deterministic header-list builder for the client's custom-header path (0.1.8).
 Pure: no FFI, no I/O, nothing logged; a client entry that consumes the blob
@@ -178,11 +178,37 @@ the header name at most:
 
 ---
 
+### `xiom.http.options` (`src/options.xi`) -- 0.1.10
+
+Pure, FFI-free per-call transport options. The root client translates the
+values into libcurl millisecond options; nothing in this module performs I/O.
+
+**Types:** `HttpRequestOptions { connect_ms: Int; total_ms: Int; }`
+(derives `Clone`).
+
+**Errors:** `HttpRequestOptionError.ConnectTimeoutNegative(value)` and
+`TotalTimeoutNegative(value)`.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `http_request_options_default` | `() -> HttpRequestOptions` | `10000` / `30000` ms defaults |
+| `validate_request_options` | `(&HttpRequestOptions) -> Result[Unit, HttpRequestOptionError]` | Reject negative timeouts |
+| `effective_connect_ms` | `(&HttpRequestOptions) -> Int` | Resolve `0` to `10000` |
+| `effective_total_ms` | `(&HttpRequestOptions) -> Int` | Resolve `0` to `30000` |
+| `http_request_option_error_message` | `(&HttpRequestOptionError) -> Str` | Deterministic text |
+
+`0` means "library default" for both fields; positive values are used
+verbatim in milliseconds. Validation borrows the options, so callers can keep
+using the value after validating it. There is no upper bound beyond `Int`.
+
+---
+
 ### `xiom.http` (`http.xi`)
 
 Production HTTP client backed by libcurl. This is the primary entry point for HTTP operations. Defines its own simplified `HttpClientResponse` type with `Str` body.
 
-**Types:** `HttpClientResponse { status: Int; body: Str; headers: Str; }`
+**Types:** `HttpClientResponse { status: Int; body: Str; headers: Str; }`,
+`HttpClientSession { handle: *UInt8; }` (0.1.10).
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -192,11 +218,17 @@ Production HTTP client backed by libcurl. This is the primary entry point for HT
 | `http_delete` | `(url: Str) -> Result[HttpClientResponse, Str]` | HTTP DELETE request |
 | `http_download` | `(url: Str, path: Str) -> Result[Unit, Str]` | Download to a file on disk |
 | `http_request` | `(url: Str, method: Str, body: Str, headers: Str) -> Result[HttpClientResponse, Str]` | Headers-capable request (0.1.8; see below) |
+| `http_request_with_options` | `(url: Str, method: Str, body: Str, headers: Str, opts: HttpRequestOptions) -> Result[HttpClientResponse, HttpOptionsRequestError]` | Per-call timeouts (0.1.10) |
 | `http_request_bytes` | `(url: Str, method: Str, body: Vec[UInt8], content_length: Int, headers: Str) -> Result[HttpClientResponse, HttpBytesRequestError]` | Binary-safe request body (0.1.9; see below) |
+| `http_request_bytes_with_options` | `(url: Str, method: Str, body: Vec[UInt8], content_length: Int, headers: Str, opts: HttpRequestOptions) -> Result[HttpClientResponse, HttpBytesRequestError]` | Binary body + per-call timeouts (0.1.10) |
+| `session_new` | `() -> Result[HttpClientSession, Str]` | Allocate one reusable easy handle |
+| `session_close` | `(session: HttpClientSession)` | `curl_easy_cleanup` exactly once |
+| `session_request` | `(&HttpClientSession, url, method, body, headers) -> Result[HttpClientResponse, Str]` | One transfer on the session handle |
+| `session_request_with_options` | `(&HttpClientSession, url, method, body, headers, opts) -> Result[HttpClientResponse, HttpOptionsRequestError]` | Session transfer + per-call timeouts |
 
-All functions:
+All one-shot functions:
 1. Initialize a libcurl easy handle via `curl_easy_init()`
-2. Configure common options: URL, follow redirects, timeouts (30s/10s), user agent (`xiom.http/0.1.0` -- a stable compatibility pin, see the 0.1.4 fix pass), accept-encoding (gzip/deflate), no signals, buffer size 64 KiB
+2. Configure common options: URL, follow redirects, timeouts (30000 ms total / 10000 ms connect via `CURLOPT_TIMEOUT_MS` / `CURLOPT_CONNECTTIMEOUT_MS`; the options entries override these), user agent (`xiom.http/0.1.0` -- a stable compatibility pin, see the 0.1.4 fix pass), accept-encoding (gzip/deflate), no signals, buffer size 64 KiB
 3. Set method-specific options (POST fields, custom request verb, etc.)
 4. Capture response body and headers into temporary files via `CURLOPT_WRITEDATA` / `CURLOPT_HEADERDATA`
 5. Execute via `curl_easy_perform()`
@@ -216,9 +248,28 @@ exact wrapper behavior. The method must be GET/POST/PUT/PATCH/DELETE/HEAD/OPTION
 POST/PUT/PATCH and is ignored for GET/DELETE/HEAD/OPTIONS. Header values are
 never logged or echoed in error messages.
 
-### `xiom.http.client` (`src/client.xi`)
+Per-call timeouts (0.1.10): `http_request_with_options` and
+`http_request_bytes_with_options` validate `HttpRequestOptions` before any FFI
+call. Negative timeouts return `HttpOptionsRequestError.ConnectTimeoutNegative`
+/ `TotalTimeoutNegative` (the bytes entry uses the matching
+`HttpBytesRequestError` variants); transport failures wrap the existing libcurl
+text in `Transport`. Existing entries keep the 10000 / 30000 ms defaults.
 
-High-level HTTP client that delegates to `xiom.http` functions with `Vec[Int]` body types (using `xiom.http.types.HttpResponse`).
+Sessions (0.1.10): `session_new()` allocates one easy handle; each
+`session_request` / `session_request_with_options` call configures the URL,
+method, headers, body, and timeouts on that same handle, performs one
+transfer, and releases per-request resources (header slist via
+`CURLOPT_HTTPHEADER = NULL` then `xiom_http_headers_free`, plus C-string
+copies). Request-specific options are reset (`CURLOPT_POST = 0`,
+`CURLOPT_CUSTOMREQUEST = NULL`, `CURLOPT_POSTFIELDS = NULL`,
+`CURLOPT_POSTFIELDSIZE = 0`) before each call so a previous POST cannot leak
+into a later GET. libcurl's connection cache lives on the handle, so
+sequential requests to the same origin reuse the connection. The handle is
+never cleaned up on transfer success or failure; `session_close` performs
+exactly one `curl_easy_cleanup`, after which the session must not be used.
+One-shot entries are unchanged (init/cleanup per call).
+
+### `xiom.http.client` (`src/client.xi`)High-level HTTP client that delegates to `xiom.http` functions with `Vec[Int]` body types (using `xiom.http.types.HttpResponse`).
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -238,7 +289,7 @@ High-level HTTP client that delegates to `xiom.http` functions with `Vec[Int]` b
    declared method is the wire verb (before 0.1.8 PATCH was sent as POST and
    HEAD/OPTIONS as GET, and only Content-Type was consulted, then dropped)
 
-**Surface status (2026-10-16; updated 0.1.8).** Stable for consumers: the five wrappers above, the typed `Err(Str)` taxonomy, response `status` / `body` / `headers` capture, TLS via the libcurl CA bundle, and -- since 0.1.8 -- custom request headers (incl. `Authorization`) via `xiom.http.http_request` (root module) fed by the `xiom.http.headers` builder; `http_send` routes every declared `HttpRequest.headers` entry through that path. NOT yet in the surface (ROADMAP): keep-alive control, per-call timeouts, streaming bodies, pluggable TLS hook (`xiom.ssl`). `http_post`'s `content_type` argument remains a compatibility no-op; put an explicit `Content-Type` into the header blob instead. Own probes: `tests/probe_client.xi` (refused/malformed deterministic; live + loopback legs SKIP-safe) and `tests/probe_real_libcurl.xi` (0.1.8 live header roundtrip leg, SKIP-safe).
+**Surface status (2026-10-16; updated 0.1.10).** Stable for consumers: the five wrappers above, the typed `Err(Str)` taxonomy, response `status` / `body` / `headers` capture, TLS via the libcurl CA bundle, and -- since 0.1.8 -- custom request headers (incl. `Authorization`) via `xiom.http.http_request` (root module) fed by the `xiom.http.headers` builder; `http_send` routes every declared `HttpRequest.headers` entry through that path. Since 0.1.10 the root module also exposes per-call timeouts (`HttpRequestOptions`, `http_request_with_options`, `http_request_bytes_with_options`) and reusable client sessions (`session_new` / `session_request` / `session_request_with_options` / `session_close`). NOT yet in the surface (ROADMAP): streaming bodies, pluggable TLS hook (`xiom.ssl`). `http_post`'s `content_type` argument remains a compatibility no-op; put an explicit `Content-Type` into the header blob instead. Own probes: `tests/probe_client.xi` (refused/malformed deterministic; live + loopback legs SKIP-safe) and `tests/probe_real_libcurl.xi` (0.1.8 live header roundtrip leg, SKIP-safe); `tests/probe_root_module.xi` (0.1.10 timeout/session evidence offline).
 
 ### `xiom.http.demo` (`src/demo.xi`)
 
@@ -369,8 +420,8 @@ The libcurl FFI layer requires the following runtime features from XIOM's C inte
 |----------|-------|---------|
 | `CURLOPT_URL` | 10002 | Request URL |
 | `CURLOPT_FOLLOWLOCATION` | 52 | Follow HTTP redirects |
-| `CURLOPT_TIMEOUT` | 13 | Total request timeout (30s) |
-| `CURLOPT_CONNECTTIMEOUT` | 78 | Connection timeout (10s) |
+| `CURLOPT_TIMEOUT_MS` | 155 | Total request timeout in ms (default 30000) |
+| `CURLOPT_CONNECTTIMEOUT_MS` | 156 | Connection timeout in ms (default 10000) |
 | `CURLOPT_POST` | 47 | Enable POST method |
 | `CURLOPT_POSTFIELDS` | 10015 | POST/PUT body data |
 | `CURLOPT_POSTFIELDSIZE` | 60 | POST/PUT body size in bytes |
@@ -730,3 +781,70 @@ renders deterministic text where a string is needed.
   supplies a raw `*UInt8` that stays alive through `curl_easy_perform`, so the
   cstr/FFI seam does not obstruct exact binary transmission.
 
+
+---
+
+## 0.1.10 -- client transport: per-call timeouts + sessions (2026-10-22)
+
+### Per-call timeouts
+
+`xiom.http.options` is the pure half. `HttpRequestOptions` has `connect_ms`
+and `total_ms`; `0` resolves to the library defaults (10000 / 30000 ms).
+`validate_request_options(&opts)` returns
+`HttpRequestOptionError.ConnectTimeoutNegative` /
+`TotalTimeoutNegative` for negative values and borrows the options.
+
+`http_request_with_options` and `http_request_bytes_with_options` validate
+before any FFI call, then pass the effective values through
+`setup_common_options` to `CURLOPT_CONNECTTIMEOUT_MS` (156) and
+`CURLOPT_TIMEOUT_MS` (155). Every pre-0.1.10 entry uses
+`http_request_options_default()` and therefore keeps the exact 10 s / 30 s
+behavior (now expressed in milliseconds).
+
+Typed outcomes:
+
+- `HttpOptionsRequestError = { ConnectTimeoutNegative(value);
+  TotalTimeoutNegative(value); UnsupportedMethod(method); Transport(message); }`
+- `HttpBytesRequestError` keeps its 0.1.9 variants and adds
+  `InvalidConnectTimeout(value)` / `InvalidTotalTimeout(value)` for the
+  bytes-with-options entry.
+
+### Sessions and connection reuse
+
+`HttpClientSession` wraps one `curl_easy_init` handle.
+`session_new()` allocates it, `session_request(&session, ...)` (and the
+with-options form) performs one transfer on it, and `session_close(session)`
+cleans it up exactly once. Per call the session:
+
+1. resets `CURLOPT_POST`, `CURLOPT_CUSTOMREQUEST`, `CURLOPT_POSTFIELDS`, and
+   `CURLOPT_POSTFIELDSIZE` so request state does not leak between calls;
+2. re-applies URL, redirects, timeouts, encoding, user agent, and buffer size;
+3. installs the header slist and body, performs, captures status/body/headers;
+4. clears `CURLOPT_HTTPHEADER` and frees the slist plus C-string copies.
+
+libcurl retains its connection cache on the easy handle, so sequential
+requests to the same origin reuse the established connection. The handle is
+kept open on both success and transport failure; only `session_close` releases
+it. The one-shot API remains one-handle-per-call.
+
+### Evidence (compiler v0.64.9)
+
+- `tests/test_conformance.xi`: **60/60 x2** via
+  `port.ps1 -Package xiom.http -TimeoutSec 300`; five new pure checks cover
+  defaults, the zero sentinel, custom effective values, and both negative
+  variants with golden messages.
+- `tests/probe_root_module.xi` + `tests/probe_bridge.c`: 12 `[PASS]` checks.
+  The bridge counts `curl_easy_init` / `curl_easy_cleanup` and snapshots the
+  `CURLOPT_TIMEOUT_MS` / `CURLOPT_CONNECTTIMEOUT_MS` values. The probe proves
+  two session requests create no second handle and clean up only at
+  `session_close`, custom timeouts 1234 / 5678 reach the bridge, defaults are
+  10000 / 30000, and invalid timeouts are rejected before any handle exists.
+- Compiler defect v0.64.9: direct `Err(Enum.Variant(..))` patterns are
+  miscompiled (the first `Err` arm always wins). `docs/COMPILER-DEFECTS.md`
+  documents the two-level workaround;
+  `docs/probe_match_result_enum_defect.xi` is the minimized reproducer.
+
+### Deliberately not in 0.1.10
+
+Streaming request/response bodies and a pluggable TLS hook remain unpinned on
+the ROADMAP; no partial API was added.

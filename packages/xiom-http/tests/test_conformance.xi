@@ -9,6 +9,7 @@ use xiom.http.parser;
 use xiom.http.cookie;
 use xiom.http.server;
 use xiom.http.headers;
+use xiom.http.options;
 use xiom.io;
 use xiom.string;
 use xiom.convert;
@@ -98,6 +99,11 @@ pub fn run_all_tests() -> Result[Unit, Str] {
   results.push(test_body_bytes_exact_preservation());
   results.push(test_body_length_mismatch());
   results.push(test_body_length_negative());
+  results.push(test_options_default());
+  results.push(test_options_zero_means_default());
+  results.push(test_options_custom_effective());
+  results.push(test_options_negative_connect());
+  results.push(test_options_negative_total());
 
   var i: Int = 0;
   while i < results.len() {
@@ -784,6 +790,71 @@ fn test_body_length_negative() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
+fn test_options_default() -> Result[Unit, Str] {
+  var opts: HttpRequestOptions = http_request_options_default();
+  try(assert_int_eq(opts.connect_ms, 10000, "options default: connect_ms"));
+  try(assert_int_eq(opts.total_ms, 30000, "options default: total_ms"));
+  try(assert_int_eq(effective_connect_ms(&opts), 10000, "options default: effective connect"));
+  try(assert_int_eq(effective_total_ms(&opts), 30000, "options default: effective total"));
+  match validate_request_options(opts) {
+    Ok(_) => {},
+    Err(_) => { return Err("FAIL: options default: defaults rejected by validation"); },
+  };
+  return Ok(Unit);
+}
+
+fn test_options_zero_means_default() -> Result[Unit, Str] {
+  var opts: HttpRequestOptions = HttpRequestOptions{ connect_ms: 0, total_ms: 0 };
+  try(assert_int_eq(effective_connect_ms(&opts), 10000, "options zero: connect resolves to default"));
+  try(assert_int_eq(effective_total_ms(&opts), 30000, "options zero: total resolves to default"));
+  match validate_request_options(opts) {
+    Ok(_) => {},
+    Err(_) => { return Err("FAIL: options zero: zero sentinel rejected by validation"); },
+  };
+  return Ok(Unit);
+}
+
+fn test_options_custom_effective() -> Result[Unit, Str] {
+  var opts: HttpRequestOptions = HttpRequestOptions{ connect_ms: 1234, total_ms: 5678 };
+  try(assert_int_eq(effective_connect_ms(&opts), 1234, "options custom: connect effective"));
+  try(assert_int_eq(effective_total_ms(&opts), 5678, "options custom: total effective"));
+  return Ok(Unit);
+}
+
+fn test_options_negative_connect() -> Result[Unit, Str] {
+  var opts: HttpRequestOptions = HttpRequestOptions{ connect_ms: -1, total_ms: 0 };
+  match validate_request_options(opts) {
+    Ok(_) => { return Err("FAIL: options negative connect: expected Err, got Ok"); },
+    Err(e) => {
+      match e {
+        HttpRequestOptionError.ConnectTimeoutNegative(value) => {
+          try(assert_int_eq(value, -1, "options negative connect: value field"));
+          try(assert_str_eq(http_request_option_error_message(&e), "http options: negative connect timeout -1", "options negative connect: message"));
+        },
+        HttpRequestOptionError.TotalTimeoutNegative(_) => { return Err("FAIL: options negative connect: got TotalTimeoutNegative"); },
+      };
+    },
+  };
+  return Ok(Unit);
+}
+
+fn test_options_negative_total() -> Result[Unit, Str] {
+  var opts: HttpRequestOptions = HttpRequestOptions{ connect_ms: 0, total_ms: -5 };
+  match validate_request_options(opts) {
+    Ok(_) => { return Err("FAIL: options negative total: expected Err, got Ok"); },
+    Err(e) => {
+      match e {
+        HttpRequestOptionError.TotalTimeoutNegative(value) => {
+          try(assert_int_eq(value, -5, "options negative total: value field"));
+          try(assert_str_eq(http_request_option_error_message(&e), "http options: negative total timeout -5", "options negative total: message"));
+        },
+        HttpRequestOptionError.ConnectTimeoutNegative(_) => { return Err("FAIL: options negative total: got ConnectTimeoutNegative"); },
+      };
+    },
+  };
+  return Ok(Unit);
+}
+
 fn try(res: Result[Unit, Str]) {
   match res {
     Ok(_) => {},
@@ -867,6 +938,11 @@ fn main() -> Int {
   failures = failures + run_case("body bytes exact preservation", test_body_bytes_exact_preservation());
   failures = failures + run_case("body length mismatch", test_body_length_mismatch());
   failures = failures + run_case("body negative length", test_body_length_negative());
-  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(55 - failures) + "/55 passed");
+  failures = failures + run_case("options default", test_options_default());
+  failures = failures + run_case("options zero means default", test_options_zero_means_default());
+  failures = failures + run_case("options custom effective", test_options_custom_effective());
+  failures = failures + run_case("options negative connect", test_options_negative_connect());
+  failures = failures + run_case("options negative total", test_options_negative_total());
+  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(60 - failures) + "/60 passed");
   return failures;
 }

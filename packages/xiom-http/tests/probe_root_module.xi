@@ -20,6 +20,12 @@
 // fails the probe instead of slipping through. The unsupported-method check
 // is pure (Err before any FFI call).
 //
+// 0.1.10 additions (client transport): the probe bridge counts easy-handle
+// init/cleanup and snapshots the millisecond timeout options. The probe proves
+// one session handle serves two sequential requests (cleanup only at
+// session_close), custom/default timeouts reach the bridge, and invalid
+// options are rejected before any handle is created.
+//
 // Harness: the v0.64.5 toolchain ships only xiom_alloc in its runtime (no
 // xiom_str_to_cstr / xiom_free_cstr / xiom_write_byte / xiom_read_byte /
 // xiom_free_ptr symbols), so the probe links tests/probe_bridge.c. The bridge
@@ -45,10 +51,15 @@ module http_root_probe
 extern "C" {
   fn xiom_probe_last_body_len() -> Int;
   fn xiom_probe_last_body_byte(offset: Int) -> Int;
+  fn xiom_probe_easy_init_count() -> Int;
+  fn xiom_probe_easy_cleanup_count() -> Int;
+  fn xiom_probe_last_total_ms() -> Int;
+  fn xiom_probe_last_connect_ms() -> Int;
 }
 
 use xiom.http;
 use xiom.http.headers;
+use xiom.http.options;
 use xiom.http.types;
 use xiom.string;
 use xiom.io;
@@ -62,6 +73,10 @@ pub fn main() -> Int {
   failed = failed + check_empty_headers_closed_port();
   failed = failed + check_binary_body_exact();
   failed = failed + check_binary_body_mismatch();
+  failed = failed + check_timeout_defaults();
+  failed = failed + check_timeout_custom();
+  failed = failed + check_timeout_invalid();
+  failed = failed + check_session_reuse();
   if failed == 0 {
     io.println("[PASS] probe_root_module: all checks passed");
   } else {
@@ -238,4 +253,151 @@ fn check_empty_headers_closed_port() -> Int {
       return 1;
     },
   };
+}
+
+// --- 0.1.10 transport options + session reuse ------------------------------
+
+fn check_timeout_defaults() -> Int {
+  var res: Result[HttpClientResponse, Str] = http_request("http://127.0.0.1:1/", "GET", "", "");
+  match res {
+    Ok(_) => {
+      io.println("[FAIL] timeout defaults: closed-port request returned Ok");
+      return 1;
+    },
+    Err(_) => {},
+  };
+  var total: Int = unsafe { xiom_probe_last_total_ms() };
+  var connect: Int = unsafe { xiom_probe_last_connect_ms() };
+  if total != 30000 || connect != 10000 {
+    io.println("[FAIL] timeout defaults: got total=" + convert.to_string(total) + " connect=" + convert.to_string(connect) + ", expected 30000/10000");
+    return 1;
+  };
+  io.println("[PASS] timeout defaults: CURLOPT_TIMEOUT_MS=30000, CURLOPT_CONNECTTIMEOUT_MS=10000");
+  return 0;
+}
+
+fn check_timeout_custom() -> Int {
+  var opts: HttpRequestOptions = HttpRequestOptions{ connect_ms: 1234, total_ms: 5678 };
+  var res: Result[HttpClientResponse, HttpOptionsRequestError] = http_request_with_options("http://127.0.0.1:1/", "GET", "", "", opts);
+  match res {
+    Ok(_) => {
+      io.println("[FAIL] custom timeout: closed-port request returned Ok");
+      return 1;
+    },
+    Err(e) => {
+      match e {
+        HttpOptionsRequestError.Transport(_) => {},
+        _ => {
+          io.println("[FAIL] custom timeout: expected Transport after the transfer attempt");
+          return 1;
+        },
+      };
+    },
+  };
+  var total: Int = unsafe { xiom_probe_last_total_ms() };
+  var connect: Int = unsafe { xiom_probe_last_connect_ms() };
+  if total != 5678 || connect != 1234 {
+    io.println("[FAIL] custom timeout: got total=" + convert.to_string(total) + " connect=" + convert.to_string(connect) + ", expected 5678/1234");
+    return 1;
+  };
+  io.println("[PASS] custom timeout: values reach CURLOPT_TIMEOUT_MS / CURLOPT_CONNECTTIMEOUT_MS");
+  return 0;
+}
+
+fn check_timeout_invalid() -> Int {
+  var before: Int = unsafe { xiom_probe_easy_init_count() };
+  var bad_connect: HttpRequestOptions = HttpRequestOptions{ connect_ms: -1, total_ms: 0 };
+  match http_request_with_options("http://127.0.0.1:1/", "GET", "", "", bad_connect) {
+    Ok(_) => {
+      io.println("[FAIL] invalid connect timeout: expected typed Err, got Ok");
+      return 1;
+    },
+    Err(e) => {
+      match e {
+        HttpOptionsRequestError.ConnectTimeoutNegative(value) => {
+          if value != -1 {
+            io.println("[FAIL] invalid connect timeout: value=" + convert.to_string(value));
+            return 1;
+          };
+        },
+        _ => {
+          io.println("[FAIL] invalid connect timeout: wrong error variant");
+          return 1;
+        },
+      };
+    },
+  };
+  var bad_total: HttpRequestOptions = HttpRequestOptions{ connect_ms: 0, total_ms: -5 };
+  match http_request_with_options("http://127.0.0.1:1/", "GET", "", "", bad_total) {
+    Ok(_) => {
+      io.println("[FAIL] invalid total timeout: expected typed Err, got Ok");
+      return 1;
+    },
+    Err(e) => {
+      match e {
+        HttpOptionsRequestError.TotalTimeoutNegative(value) => {
+          if value != -5 {
+            io.println("[FAIL] invalid total timeout: value=" + convert.to_string(value));
+            return 1;
+          };
+        },
+        _ => {
+          io.println("[FAIL] invalid total timeout: wrong error variant");
+          return 1;
+        },
+      };
+    },
+  };
+  var after: Int = unsafe { xiom_probe_easy_init_count() };
+  if after != before {
+    io.println("[FAIL] invalid timeout: FFI handle created before options were rejected");
+    return 1;
+  };
+  io.println("[PASS] invalid timeouts: typed errors before any FFI call");
+  return 0;
+}
+
+fn check_session_reuse() -> Int {
+  var session: HttpClientSession;
+  match session_new() {
+    Ok(s) => { session = s; },
+    Err(e) => {
+      io.println("[FAIL] session: session_new failed: " + e);
+      return 1;
+    },
+  };
+  var inits_before: Int = unsafe { xiom_probe_easy_init_count() };
+  var cleanups_before: Int = unsafe { xiom_probe_easy_cleanup_count() };
+
+  match session_request(&session, "http://127.0.0.1:1/", "POST", "session-body", "") {
+    Ok(_) => {
+      io.println("[FAIL] session: first request returned Ok");
+      return 1;
+    },
+    Err(_) => {},
+  };
+  match session_request(&session, "http://127.0.0.1:1/", "GET", "", "") {
+    Ok(_) => {
+      io.println("[FAIL] session: second request returned Ok");
+      return 1;
+    },
+    Err(_) => {},
+  };
+
+  if unsafe { xiom_probe_easy_init_count() } != inits_before {
+    io.println("[FAIL] session: a second easy handle was created (no reuse)");
+    return 1;
+  };
+  if unsafe { xiom_probe_easy_cleanup_count() } != cleanups_before {
+    io.println("[FAIL] session: handle was cleaned up mid-session");
+    return 1;
+  };
+
+  session_close(session);
+  if unsafe { xiom_probe_easy_cleanup_count() } != cleanups_before + 1 {
+    io.println("[FAIL] session: session_close did not clean up exactly once");
+    return 1;
+  };
+  io.println("[PASS] session: two requests on one easy handle, cleanup only at session_close");
+  return 0;
 }
