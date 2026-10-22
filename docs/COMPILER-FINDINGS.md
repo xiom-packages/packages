@@ -702,3 +702,26 @@ STILL OPEN on v0.64.1 (evidence re-run):
   rewrite. Evidence: bindings batch 15 (`packages/xiom-odbc`, 5/5 x2 after the rename),
   full row in `docs/BINDINGS-COMPILER-FINDINGS.md`; workaround `f_` prefix on fn-pointer
   locals applies to every loader-style binding.
+
+## v0.64.7 / v0.64.8 / v0.64.9 re-verify matrix (2026-10-19..22, packages + bindings lanes)
+
+Consolidated from the archive repins and the per-wave re-verify runs (probes under the owning packages' docs/repro).
+
+| Row | v0.64.6 | v0.64.7 | v0.64.8 | v0.64.9 |
+|---|---|---|---|---|
+| m334 tuple-namer (-1941) | FIXED (verified x2) | green | green | not re-run (archive held) |
+| fn-value 3/3 (-1227: module-global fn var, adjacent fn struct fields, fn-alias callable) | RED | **FIXED** (all probes pass; -1227 closed) | green | - |
+| B-34 cross-module Vec[alias] generics | RED | RED | **FIXED** (witness compiles+runs, exit 1=len; bindings -1801) | - |
+| B-29 bigint bitops | RED | RED | closed as PROBE DEFECT (bindings corrected witness) | - |
+| B-32 nested payload | RED | isolated green | isolated green; in-situ sqlite typed-red -> RETIRED by sqlite 0.5.0 | - |
+| Editor W1.1 / W2.1 (json secondary, pub-use reexport) | green | green | green | - |
+| Editor W1.3 (var fn) | silent T001 | hard P001 as designed | - | - |
+| Editor W1.4 (inline call-result Vec-field index) | RED | RED | RED | - |
+| Editor W2.3 (struct .clone MaybeUninit) | RED | RED | RED (clang) | - |
+| Err(Str)-in-Vec direct push (2045) | RED | - | RED | **STILL RED** (probe direct= empty; via/returned controls green -- .9 2045 part 2 did not cover this shape) |
+
+Notes:
+- v0.64.9 is RELEASED BUT HELD for adoption: official archives fail 1451/1550 in release mode (stdlib repro); pin remains v0.64.8 (orbitdb + bindings + packages agree).
+- m1511 dependency port args: FIXED at level 1 (fix e45059b76 parses the deps: alias; harfbuzz port.args reach fontraster's link). TWO-LEVEL transitive application still fails (installed consumer -> fontraster -> harfbuzz: undefined hb_*); follow-up REL-20261022-1615-packages.
+- C09 (engine, HarfBuzz/fontraster + Vulkan): packages co-run 3/3 deterministic 0xC0000005, ntdll 10.0.26100.9711 +0x39531, stage start->pre-vk glyphs=18->sdl->vk (crash, never scene), peak private 542-548 MB; evidence REL-20261022-1639-packages refs engine-3.
+- The shared-JIT-cache race (duplicate symbol: main under concurrent lanes) is environmental: clear C:\Users\lefte\.xiom\jit\rtobj and retry.
