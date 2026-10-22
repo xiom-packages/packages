@@ -1,6 +1,6 @@
 package xiom_openblas {
   name: "xiom.openblas";
-  version: "0.2.0";
+  version: "0.3.0";
   description: "OpenBLAS -- optimized Basic Linear Algebra Subprograms (BLAS) and LAPACK.";
   categories: ["science"];
   keywords: ["openblas", "blas", "lapack", "linear-algebra"];
