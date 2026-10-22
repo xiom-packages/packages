@@ -2382,6 +2382,19 @@ wave launched)**:
   ask `-1652-engine-5` is acked and this closes it on green publish).
   Engine UI2 S5/S6 consumes on LIVE.
 
+**UPDATE 2026-10-22 10:35Z (sdl3 0.21.0 PUBLISHED in eco-v0.1.202 --
+A14 CLOSED end-to-end)**:
+- **`xiom.sdl3 0.21.0` LIVE** in **`eco-v0.1.202`** (sha256
+  `8bb7e9eef607475c3485d1ffa8dba17e1e57ed7b096788af8cb7d230579ae6d2`;
+  09:05:55Z): merge `261feec5` (sdl3-only wave; 10 files auto-merged);
+  validate **585/0**; regen `5d2a0e9d`; native x2 **81/81** @
+  `5d2a0e9d` (SDL3.dll present path); record `3322ac44`; wrap
+  `0a20f96d`; run 39752275202 green.
+- **A14 is CLOSED end-to-end**: engine wishlist `-1652-engine-5` ->
+  accepted -> landed -> published; engine UI2 S5/S6 (cross-monitor
+  DPI, OS tear-off/dock-back, clipboard/IME, accessibility host,
+  Project Manager window) can consume on LIVE.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
