@@ -2508,6 +2508,17 @@ RESTORED)**:
   when needed.  Packages filed the .9 data-loss cluster (jev
   Err-in-Vec, openblas Vec-in-tuple, http Err(Enum) match) -- those are
   the acceptance probes.
+- 2026-10-23T06:00Z: the compiler's **MCU/freestanding contract** item
+  (`REL-20261023-0423-compiler`) was ACKED/coordinated: the
+  host-companion trio is already landed with its publish DEFERRED (so
+  "no publish before a target passes the QEMU job" holds by
+  construction); the HAL family is not started and will honor
+  `docs/MCU_FREESTANDING.md` (per-board `--linker-script` with
+  `_estack`/`__heap_start`/`__heap_end` + Cortex-M .data/.bss, strong
+  `xiom_panic`, replaceable bump allocator via bare_runtime.c, no
+  exceptions/unwinding, no vendor peripheral emulation); packages
+  re-test on the v0.65.0 archive as acceptance input.  Production pin
+  remains v0.64.8 (pin+slot verified).
 
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
