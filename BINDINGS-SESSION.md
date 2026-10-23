@@ -2382,6 +2382,145 @@ wave launched)**:
   ask `-1652-engine-5` is acked and this closes it on green publish).
   Engine UI2 S5/S6 consumes on LIVE.
 
+**UPDATE 2026-10-22 10:35Z (sdl3 0.21.0 PUBLISHED in eco-v0.1.202 --
+A14 CLOSED end-to-end)**:
+- **`xiom.sdl3 0.21.0` LIVE** in **`eco-v0.1.202`** (sha256
+  `8bb7e9eef607475c3485d1ffa8dba17e1e57ed7b096788af8cb7d230579ae6d2`;
+  09:05:55Z): merge `261feec5` (sdl3-only wave; 10 files auto-merged);
+  validate **585/0**; regen `5d2a0e9d`; native x2 **81/81** @
+  `5d2a0e9d` (SDL3.dll present path); record `3322ac44`; wrap
+  `0a20f96d`; run 39752275202 green.
+- **A14 is CLOSED end-to-end**: engine wishlist `-1652-engine-5` ->
+  accepted -> landed -> published; engine UI2 S5/S6 (cross-monitor
+  DPI, OS tear-off/dock-back, clipboard/IME, accessibility host,
+  Project Manager window) can consume on LIVE.
+
+**UPDATE 2026-10-22 15:05Z (v0.64.9 released; bindings scratch
+pre-verify GREEN)**:
+- **v0.64.9 RELEASED** (owner GO 13:01Z; tag `2bcf58db5`; run
+  39791522014 SUCCESS; 11 assets; stdlib-v0.64.9 stable; contents incl.
+  m1157 BOM catalog, 2045 part 2 Str payloads, XVC-C-22 Vec inference,
+  m1731 borrowed enum, m1703 stored fn values, m1326 enum equality,
+  m1520 adapter substitution, m365 shared deps, 1511 port args, 1531
+  dead-builder lock, m375 opt-in XIOM_FAST_EXIT).
+- **Bindings scratch pre-verify on v0.64.9**: SHA256SUMS OK; nested-
+  payload probe + matrix **failures=0**; vec-alias (B-34) witness
+  compiles+runs (success shape); corrected B-29 witness **exact** --
+  the lane is ready for a .9 repin.
+- CAVEAT: other lanes are isolating **v0.64.9 archive blockers**
+  (1451/1550 fails per relay 1410/1414; m372 release binary / tuple-
+   returning 1550 gap).  **Repin stays with the owner/sibling wave**
+  (bindings pin v0.64.8 until then); no unilateral bump, especially
+  while the archive blockers are open.
+
+**UPDATE 2026-10-22 16:15Z (REPIN v0.64.9 DONE -- owner go; slot +
+records aligned; slot sanity GREEN)**:
+- **Owner go received** ("new release out, continue"): the pinned slot
+  `%LOCALAPPDATA%\xiom.new` was updated to **`XIOM Compiler v0.64.9`**
+  from the release archive (SHA256SUMS verified); the previous .8 slot
+  is kept as `%LOCALAPPDATA%\xiom.new.v0.64.8`.
+- **Repin delta pushed** (`d75e8f2d`): `COMPILER_VERSION` v0.64.8 ->
+  **v0.64.9** + **579 STATUS records aligned** (`status.ps1 -Action
+  repin`); validate **579/0**.
+- **SLOT SANITY MATRIX on .9** (via `XIOM_COMPILER` = the slot):
+  **xiom.sqlite 21/21** (nested `Result[Option]` shape -- B-32 stays
+  retired on the new pin), **xiom.sdl3 81/81 LIVE** (all A14 paths),
+  **xiom.nvenc 67/67 LIVE** (driver 13.1 H.264/HEVC encode+decode) --
+  **no .9 regressions** on the lane.
+- Scratch pre-verify was already green (nested/matrix failures=0; B-34
+  success shape; corrected B-29 exact).  The 1451/1550 archive issues
+  other lanes are isolating do NOT reproduce in this lane's
+  probes/suites.  Repin info filed to all lanes
+  (`REL-20261022-1611-bindings`).
+
+**UPDATE 2026-10-22 16:35Z (v0.64.9 HOLD -- REPIN REVERTED to v0.64.8)**:
+- The orbitdb **HOLD** `REL-20261022-1501-orbitdb` (15:01Z, high) is
+  decisive: the OFFICIAL .9 archives fail **1451** (m372 nested-generic
+  ptr read: `nested=0 local=0` vs 42/42) and **1550** (tuple-returning
+  enumerate: `em[1].0=0` vs 10) in the **release-mode codegen path**
+  (debug passes; `--release` / explicit opt-level reproduces).  Adoption
+  is held fleet-wide.
+- My 16:15Z repin (on the owner "continue") was therefore **REVERTED**:
+  pinned slot restored to **v0.64.8** from the kept backup (the `.9`
+  archive is preserved at `%LOCALAPPDATA%\xiom.new.v0.64.9` for instant
+  re-adoption); `COMPILER_VERSION` + all 579 STATUS records repinned
+  back (validate **579/0**; sqlite sanity **21/21** on the restored
+  slot); commit `f72877b9`.
+- NOTE: the lane's `.9` slot runs WERE green (sqlite 21/21 nested, sdl3
+  81/81, nvenc 67/67) and the 1451 class did not reproduce in our
+  probes -- but **a held archive is not adopted**.  Re-adoption on the
+  fixed re-cut (v0.64.10) or when the HOLD clears; the swap is one
+  folder copy + repin + validate.
+- HOLD acknowledgement filed `REL-20261022-1629-bindings`.
+- **ENGINE INCIDENT noted** (`REL-20261022-1622-engine`): a recursive
+  delete inside `C:\Users\lefte` erased config dirs
+  (`.agents/.cargo/.android/.aws/.azure/.claude/.buskeeper/etc.`);
+  engine UI/release work paused.  Bindings data is UNAFFECTED (E:
+  workspace + AppData safe); adb keys regenerate; no lane action.
+
+**UPDATE 2026-10-22 17:40Z (PIN RE-ALIGNED to v0.64.9 -- shared-slot
+split-brain resolved)**:
+- After the HOLD revert, the **SHARED machine slot**
+  `%LOCALAPPDATA%\xiom.new` was **re-flipped to v0.64.9 by the fleet
+  repin wave** (benchmark re-pinned `c4a05f0` with correctness
+  acceptance green; engine verified C09 on .9).
+- **Bindings re-aligned to the machine state** (`408a3e09`):
+  `COMPILER_VERSION` + **579 STATUS records back to v0.64.9**;
+  validate **579/0**; **sqlite sanity 21/21 ACROSS the flip** (ran on
+  both the `.8`-restored and the `.9` slot).  The `.8` backup slot is
+  retained (`%LOCALAPPDATA%\xiom.new.v0.64.8`) for a one-command swap
+  if the HOLD escalates.
+- HOLD (`-1501-orbitdb`: official .9 archives fail 1451/1550 in the
+  release-mode codegen path) remains OPEN for the affected stdlib
+  paths; it does **not** reproduce in this lane's probes/suites
+  (nested payload, sqlite nested Row, sdl3 A14, nvenc all green on
+  .9).  Correction note filed `REL-20261022-1738-bindings`.
+- LESSON: the machine slot is SHARED state -- the lane pin must follow
+  the slot (or coordinate a fleet revert); flipping only the local pin
+  creates a split-brain.
+
+**UPDATE 2026-10-22 19:10Z (v0.64.9 WITHDRAWN -- production v0.64.8
+RESTORED)**:
+- **v0.64.9 WITHDRAWN FROM ADOPTION** (`REL-20261022-1826-compiler`,
+  18:26Z): post-release verification found **source-level codegen
+  defects** the pre-cut battery missed (debug-only battery; no
+  nested-pattern lock): nested enum patterns `Some(Number(n))` /
+  `Ok(...)` / `Err(E.Bad(msg))` never check the inner variant and bind
+  the payload as 0 (1243/1615/1645 + the 1451/1550 family); m372/1451
+  and the true 1550 tuple shape regressed in `d04cd3265`
+  (revert-only breaks m1520 -> safe guard required); m1511 one-level
+  dependency port.args; C07 capture-probe memory red.  The GitHub
+  release is marked pre-release (tag/assets remain for audit);
+  **production remains v0.64.8**.
+- **Lane reverted**: slot restored + verified `XIOM Compiler v0.64.8`
+  (the withdrawn .9 slot copy kept for audit only, NOT adopted);
+  `COMPILER_VERSION` + **579 records repinned**; validate **579/0**;
+  sqlite sanity **21/21**; commit `314d27c8`.
+- **v0.65.0 production gate OPENED** (`docs/RELEASE_GATE_v0.65.0.md`;
+  P0 correctness -> P1 hardening -> P2 MCU first wave -> P3 cut; no
+  candidate/tag before the gate is green + owner GO).  Lane holds: the
+  .9 rows/records stay HELD (not green) as the v0.65.0 acceptance
+  input -- re-test on the v0.65.0 archive.  `stdlib-v0.64.9` is
+  published but is not the production pin (v0.65.0 will pin
+  stdlib-v0.65.0).
+- Host note (from the withdrawal): the engine incident deleted
+  `~/.cargo`; cargo works via `.rustup` toolchains; restore the shims
+  when needed.  Packages filed the .9 data-loss cluster (jev
+  Err-in-Vec, openblas Vec-in-tuple, http Err(Enum) match) -- those are
+  the acceptance probes.
+- 2026-10-23T18:55Z (late-delivered doorbell; host slept since ~01:30Z): the
+  compiler's **MCU/freestanding contract** item
+  (`REL-20261023-0423-compiler`) was ACKED/coordinated: the
+  host-companion trio is already landed with its publish DEFERRED (so
+  "no publish before a target passes the QEMU job" holds by
+  construction); the HAL family is not started and will honor
+  `docs/MCU_FREESTANDING.md` (per-board `--linker-script` with
+  `_estack`/`__heap_start`/`__heap_end` + Cortex-M .data/.bss, strong
+  `xiom_panic`, replaceable bump allocator via bare_runtime.c, no
+  exceptions/unwinding, no vendor peripheral emulation); packages
+  re-test on the v0.65.0 archive as acceptance input.  Production pin
+  remains v0.64.8 (pin+slot verified).
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
