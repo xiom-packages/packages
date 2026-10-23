@@ -13,5 +13,5 @@
                   "checked":  "2026-10-21T12:32:25Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: P1 static-2D scope delta (0.2.0); lane files the publish request after landing"
+    "excluded_reason":  "published 2026-10-21 as single tag xiom-charts/v0.2.0 (sha256 7dddb907...; registry verified; verify-on-landing x2 71/71)"
 }

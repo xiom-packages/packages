@@ -2521,6 +2521,45 @@ RESTORED)**:
   re-test on the v0.65.0 archive as acceptance input.  Production pin
   remains v0.64.8 (pin+slot verified).
 
+**UPDATE 2026-10-23 23:50Z (doorbell cycle -- v0.65.0 gate GREEN through
+MCU QEMU; MCU publish request FILED; pause for the double-charge
+window)**:
+- **Doorbell re-armed then paused**: the `0 */3 * * *` cron was armed
+  for this session and is now DISARMED per the owner (API doubles
+  between 04:00 and 13:00 Greek time); a single wakeup is set for
+  10:05Z (13:05 Greek) to resume + re-arm. Relay repo synced
+  (`fetch --prune` + `merge --ff-only`), `relay.py validate` green
+  (**927 items**); no open asks to bindings (the only new items are
+  `REL-20261023-1815-ops` -> buskeeper and `REL-20261023-1854-pulse`
+  -> compiler).
+- **v0.65.0 gate: P0/P1/P2 GREEN; P3 cut in progress.** Owner GO was
+  granted 2026-10-23T18:31Z (six minutes after the handoff). CI run
+  **40003313859** is SUCCESS on head `a840e6d3e`, including the
+  **`mcu-qemu`** job (thumbv6m microbit + riscv32imac virt), build/test,
+  release-parity x2 and arm64 floor. `stdlib-v0.65.0` is tagged
+  `3eb9c05` and pinned by the compiler (`a0dc452dc` drops the C07
+  shim). Remaining before adoption: the all-platform dry-run + the
+  `v0.65.0` tag + registry `xiom-std 0.65.0`. **No adoption yet** --
+  production stays v0.64.8 (pin + slot verified via
+  `%LOCALAPPDATA%\xiom.new\bin\xiom.exe` = `XIOM Compiler v0.64.8`).
+- **MCU publish unblocked and FILED**: the QEMU precondition is met, so
+  the combined request went out as **`REL-20261023-2344-bindings`**
+  (bindings -> packages, high): firmata 0.1.0 + micropython 0.1.0 +
+  uf2 0.1.0, 3 NEW names -> ops scopes; PROD-only; allowlist +
+  verify-on-landing x2 + next eco batch. Relay commit `2d4bf80`.
+  Fresh suites on the v0.64.8 slot, each **x2**: firmata **122/122**,
+  micropython **19/19**, uf2 **62/62** (tree `daa47e56`); records
+  updated with the run evidence.
+- **epos**: refreshed **x2 29/29** on v0.64.8 (tree `daa47e56`);
+  scope is LIVE @574, so it rides the same next packages batch;
+  record updated. **charts 0.2.0**: already PUBLISHED 2026-10-21 as
+  `xiom-charts/v0.2.0` (sha256 `7dddb907...`; registry verified;
+  verify-on-landing x2 71/71) -- stale "publish pending" record text
+  corrected.
+- Lane validate after the record touches: **579/0**; no in-flight
+  branch. Pause state: cron disarmed, wakeup `10:05Z`; on resume,
+  re-arm the `0 */3 * * *` doorbell and re-check the v0.65.0 cut.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
