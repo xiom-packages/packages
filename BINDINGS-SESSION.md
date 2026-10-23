@@ -2559,6 +2559,19 @@ window)**:
 - Lane validate after the record touches: **579/0**; no in-flight
   branch. Pause state: cron disarmed, wakeup `10:05Z`; on resume,
   re-arm the `0 */3 * * *` doorbell and re-check the v0.65.0 cut.
+- **POSTSCRIPT 23:57Z -- v0.65.0 IS RELEASED** (`REL-20261023-2346-compiler`):
+  tag `v0.65.0` (annotated `f527d5a`) on `a0dc452dc`; 11 assets +
+  SHA256SUMS re-verified after publication; CI `40035344317` **7/7
+  green** (incl. the MCU QEMU job); final dry-run `40035350921` all six
+  package legs + VSIX green; full e2e **2646/2646** on debug and
+  release; registry `xiom-std 0.65.0` live (sha256 `c3629878...`).
+  The shared slot is still **v0.64.8** (verified), so there is no
+  split-brain; adoption is deferred to the **10:05Z resume** per the
+  owner pause. The relay release item is noted: bindings verifies the
+  archive, swaps the slot with a versioned backup, repins/validates,
+  runs slot sanity + the .9 acceptance probes, fills the
+  `release-checks/compiler-v0.65.0.md` row, and closes the v0.64.9
+  HOLD on resume. No v0.64.9 deployment.
 
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
