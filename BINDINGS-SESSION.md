@@ -2508,7 +2508,8 @@ RESTORED)**:
   when needed.  Packages filed the .9 data-loss cluster (jev
   Err-in-Vec, openblas Vec-in-tuple, http Err(Enum) match) -- those are
   the acceptance probes.
-- 2026-10-23T06:00Z: the compiler's **MCU/freestanding contract** item
+- 2026-10-23T18:55Z (late-delivered doorbell; host slept since ~01:30Z): the
+  compiler's **MCU/freestanding contract** item
   (`REL-20261023-0423-compiler`) was ACKED/coordinated: the
   host-companion trio is already landed with its publish DEFERRED (so
   "no publish before a target passes the QEMU job" holds by
