@@ -6027,3 +6027,120 @@ handoff). Kept only as history.
   plain); batch-22 docs follow-up adds the sqlite README consumer section.
   Revalidated on the published artifacts: sqlite 0.3.0 PASS, ffmpeg 0.2.0
   SKIP, libpq 0.2.0 SKIP (scratch `XIOM_HOME`, checksums matched).
+
+## CONTEXT-LIMIT HANDOFF -- 2026-10-23 18:25Z (bindings lane)
+
+Everything below is the authoritative pickup state.  The UPDATE stack
+above (2026-10-16 .. 2026-10-22 blocks) holds the evidence trail; this
+section is the summary + the next-session paste prompt.
+
+### STATE
+- **Toolchain: production pin `v0.64.8`** -- slot
+  `%LOCALAPPDATA%\xiom.new` verified `XIOM Compiler v0.64.8`;
+  backups kept: `%LOCALAPPDATA%\xiom.new.v0.64.8` and
+  `%LOCALAPPDATA%\xiom.new.v0.64.9` (withdrawn archive, audit only).
+  **v0.64.9 WITHDRAWN** (nested enum-pattern codegen defects
+  1243/1615/1645 + 1451/1550 family, release-mode only; GitHub release
+  marked pre-release).  **v0.65.0 production gate OPENED**
+  (`docs/RELEASE_GATE_v0.65.0.md`; P0 correctness -> P1 hardening ->
+  P2 MCU -> P3 cut; no candidate/tag before gate green + owner GO).
+  Lane `COMPILER_VERSION` + all **579 records** = v0.64.8; validate
+  **579/0**.
+- **Lane shipments (ALL LIVE):** android SDK100 family (android 0.4.0 +
+  aaudio/mediandk/camera2ndk/android-sys/opensl/jni; family 8/8 in
+  `eco-v0.1.192`, gles 0.2.0 `.190`, sdl3 0.21.0 A14 `.202`); PULSE
+  top-tier (brotli 0.1.0 + ssl 0.1.0 `.189`; TLS gap closed); R2/M2
+  (serial/ros2/v4l/onnx/gps/torch/libtorch/tensorflow/blas `.193/.194`,
+  onnx 0.2.0 DML `.198`); NVIDIA wave (cudnn/nvenc `.197`;
+  cublas/cufft/cusparse/tensorrt/nvml/nvapi/optix `.199`); USD 0.1.0
+  `.197`; kafka 0.2.0 + charts 0.2.0 (sibling landings); pandas 0.2.1
+  `.201`; miniaudio 0.5.0 (handle surface); sqlite 0.5.0
+  (`xiom-sqlite/v0.5.0`; B-32 retired).
+- **Pending publishes:** MCU host-companion trio
+  (firmata/micropython/uf2) -- landed + owner-DEFERRED; **do not file
+  the publish request before the `mcu-qemu` gate is green in CI** (MCU
+  freestanding contract `REL-20261023-0423-compiler` acked).  `epos`
+  -- scope LIVE @574, rides the next batch.  `charts 0.2.0` -- sibling
+  requested; check its item status.  The `.9` rows/records stay HELD
+  (never green) as v0.65.0 acceptance input.
+- **B-series: ZERO-OPEN.** B-29 closed (probe defect), B-32 retired
+  (sqlite 0.5.0), B-33 fixed (m351, verified), B-34 fixed (.8,
+  verified), B-16..B-26 verified fixed; findings ledger fully closed.
+- **Open asks to bindings: NONE** (A14 closed end-to-end; miniaudio
+  handle delivered; pandas closed; MCU contract coordinated).
+- **Environment facts:** repo worktree `E:\xiom-packages\bindings`
+  (shared repo: `main` = packages lane, `bindings` = our lane); relay
+  bus clone `E:\xiom-lang\xiom-relays` (SHARED -- other actors may
+  commit; always fetch + ff-merge, never `git pull`; `relay.py view`
+  crashes on a malformed item -- repair pattern = valid front matter +
+  `## History`, as done for `REL-20261022-2355-owner`).  Emulator:
+  `C:\Android\sdk\emulator\emulator.exe -avd Medium_Phone_API_36.0
+  -no-window -no-audio -no-boot-anim -no-snapshot -gpu
+  swiftshader_indirect`.  Suites: `.\scripts\port.ps1 -Package <pkg>
+  -TimeoutSec 300`; validate `.\scripts\status.ps1 -Action validate`;
+  repin `-Action repin`.  Host note: the engine incident deleted
+  `~/.cargo` and other home config dirs (workspace + AppData safe);
+  cargo works via `.rustup` toolchains; the Windows package store was
+  emptied that day.
+
+### STANDING RULES (carry forward)
+- XIOM_COMPILER = the pinned slot; **the lane pin follows the SHARED
+  slot** (no split-brain); adopt a new release only on gate-green +
+  owner GO; withdraw immediately on a fleet HOLD/WITHDRAWAL.
+- Land path-scoped: `git fetch origin`; for restructured dirs
+  `git rm -rf`/`Remove-Item` the package dir BEFORE `git checkout
+  <branch> -- packages/<dir>` (checkout does not apply deletions);
+  never wholesale-merge; re-run the suite x2 on the current pin;
+  record with `status.ps1 -Action update` using the real (post-rebase)
+  sha; validate; push with fetch-before-commit + rebase-retry.
+- Line-oriented hex/trace fixtures need `.gitattributes` `eol=lf`
+  guards on Windows (CRLF breaks parsers).
+- Provenance per touch; no silent failures; B-series discipline (Int
+  handles, owned byte slots, no pointer casts); atomic commits.
+- Check `python tools/relay.py validate` after touching the relay.
+
+### NEXT-SESSION PASTE PROMPT
+Bindings lane continuation -- seamless pickup (2026-10-23 18:25Z;
+CONTEXT-LIMIT HANDOFF).  Read `BINDINGS-SESSION.md` end-of-file
+"CONTEXT-LIMIT HANDOFF" + the UPDATE stack; trust them over this
+summary.
+
+FIRST ACTIONS:
+1. Re-arm the doorbell `0 */3 * * *` for THIS session:
+   (a) `git -C E:\xiom-lang\xiom-relays fetch origin --prune` then
+       `git -C E:\xiom-lang\xiom-relays merge --ff-only origin/main`
+       (never `git pull` there);
+   (b) `python tools/relay.py view --lane bindings` (workdir =
+       E:\xiom-lang\xiom-relays); process only items whose `to` is
+       bindings; record eco/relay results in the UPDATE stack; land any
+       in-flight branch per the opening recipe; commit + push
+       (fetch-first, rebase-retry).
+2. Relay sweep: read all open items to bindings + replies; run
+   `python tools/relay.py validate` (expect green, ~830+ items).
+3. WATCH v0.65.0: no adoption until the gate is green AND the owner
+   says GO.  On release adopter: swap the slot
+   (`%LOCALAPPDATA%\xiom.new` <- the new archive; keep the old slot as
+   a versioned backup), set `COMPILER_VERSION`, run
+   `status.ps1 -Action repin`, validate, then the slot sanity matrix
+   (xiom.sqlite 21/21 nested, xiom.sdl3 81/81, xiom.nvenc 67/67 live)
+   AND the .9 acceptance probes: nested enum patterns
+   `Some(Number(n))`/`Ok(Number(n))`/`Err(E.Bad(msg))`, the 1451
+   nested-generic-ptr fixture, the true 1550 tuple-returning
+   enumerate, and the .9 data-loss cluster (jev Err-in-Vec, openblas
+   Vec-in-tuple, http Err(Enum) match) -- all in-repo under
+   `docs/repro/bindings-pilot/` where applicable.
+4. MCU publish ONLY after the `mcu-qemu` CI gate is green: file one
+   combined request for `xiom.firmata 0.1.0` (x2 122/122),
+   `xiom.micropython 0.1.0` (x2 19/19), `xiom.uf2 0.1.0` (x2 62/62)
+   -- 3 NEW names -> ops scopes; the HAL family is not started; any
+   board package must honor `docs/MCU_FREESTANDING.md` (per-board
+   `--linker-script` with `_estack`/`__heap_start`/`__heap_end` +
+   Cortex-M .data/.bss, strong `xiom_panic`, replaceable bump
+   allocator, no unwinding/peripheral emulation).
+5. `epos`: publish rides the next packages batch (scope LIVE @574);
+   `charts 0.2.0`: check the sibling's request status.
+6. Standing rules: production pin v0.64.8 (slot verified); suites on
+   the pinned slot; provenance per touch; no silent failures; atomic
+   commits + fetch-first push; the relay bus and the repo are SHARED
+   with other lanes/sessions (expect concurrent commits; repair, don't
+   rewrite).
