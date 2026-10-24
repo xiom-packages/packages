@@ -2609,6 +2609,16 @@ and .9 data-loss cluster GREEN; .9 HOLD closed)**:
 - No other open asks to bindings (new relay traffic is packages/ops/
   compiler release bookkeeping). Next doorbell 12:00Z.
 
+**UPDATE 2026-10-24 18:05Z (doorbell -- relay hygiene; lane quiet)**:
+- Relay sync: the new items are other-lane bookkeeping, but
+  `relay.py validate` went **RED** on `REL-20261024-1501-orbitdb`
+  (a stray U+FEFF BOM at the body start). Repaired by stripping the
+  BOM (content unchanged); validate **934 items green**; relay commit
+  `a5f61f0`.
+- Slot + pin still **v0.65.0**; lane clean, validate unchanged. MCU
+  scope `REL-20261024-0020-packages` still **OPEN** with ops; epos
+  unchanged; no new asks to bindings.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
