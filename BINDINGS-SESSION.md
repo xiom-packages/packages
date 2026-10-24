@@ -2595,6 +2595,20 @@ and .9 data-loss cluster GREEN; .9 HOLD closed)**:
   concurrent slot operation); recovered from the pre-swap backup +
   the verified archive. Slot is now v0.65.0; no split-brain.
 
+**UPDATE 2026-10-24 10:10Z (doorbell -- MCU ack; scope re-filed; lane quiet)**:
+- Doorbell re-armed (`0 */3 * * *`, next 12:00Z). Relay synced
+  (fetch + ff, **930 items**, validate green). Slot + pin still
+  **v0.65.0** (no split-brain); lane validate **579/0**.
+- **MCU publish**: packages ACKED `REL-20261023-2344-bindings` and
+  re-filed the PROD-only scope ask as **`REL-20261024-0020-packages`**
+  (ops OPEN). Packages re-verified the trio x2 on the v0.65.0 archive
+  (firmata 122/122, micropython 19/19, uf2 62/62). Publish executes on
+  ops LIVE: allowlist + 3 single tags + sha verification + sync.
+  No bindings action until the LIVE relay-back.
+- **epos**: still scope LIVE @574, rides the same batch; no reply yet.
+- No other open asks to bindings (new relay traffic is packages/ops/
+  compiler release bookkeeping). Next doorbell 12:00Z.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
