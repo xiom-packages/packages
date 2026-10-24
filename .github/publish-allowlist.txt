@@ -643,3 +643,5 @@ xiom.nvapi
 xiom.optix
 # epos -- last R2 name; ops scope LIVE 2026-10-19T20:41Z (eco-release 574; owner instruction)
 xiom.epos
+# fontraster -- engine A13 promotion; ops scope LIVE eco-release 575; v0.65.0 acceptance (11/11 x2 + installed 2-level consumer, no undefined hb_*)
+xiom.fontraster

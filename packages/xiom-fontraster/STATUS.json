@@ -9,9 +9,9 @@
                   "passed":  11,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "HEAD",
-                  "checked":  "2026-10-21T15:10:59Z"
+                  "commit":  "218c5219",
+                  "checked":  "2026-10-24T00:10:16Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: new name (ops scope)"
+    "excluded_reason":  "publish pending: wrap/tag (scope LIVE eco-release 575; v0.65.0 11/11 x2 + installed 2-level consumer green)"
 }
