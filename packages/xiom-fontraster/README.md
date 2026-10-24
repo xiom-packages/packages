@@ -2,8 +2,8 @@
 
 ## Status
 
-- Stage: **incubating**; registry publish **pending** (new package name, ops scope).
-- Conformance: `tests/test_conformance.xi` -- **11/11 PASS x2** (compiler v0.64.8).
+- Stage: **incubating**; registry **LIVE** -- `xiom.fontraster` 0.1.0, single tag `xiom-fontraster/v0.1.0` (2026-10-24; sha256 `b945aff7...`).
+- Conformance: `tests/test_conformance.xi` -- **11/11 PASS x2** (compiler v0.65.0); installed 2-level consumer (consumer -> fontraster -> harfbuzz) **PASS x2** with no undefined `hb_*`, from both the tree install and the registry artifact.
 - Source: engine package `packages/xiom-fontraster` at `E:\xiom-projects\xiom-engine`
   (carved verbatim; same module and native ABI).
 
@@ -33,16 +33,18 @@ single-threaded (`engine/ui2/text.xi`).
 
 This tree entry is `packages/xiom-fontraster` in the registry repository. The
 native shim is `src/fontraster.c`; it declares only the small HarfBuzz ABI it
-needs, so no HarfBuzz headers or source are vendored into this package. For
-the offline `scripts/port.ps1` leg, `port.args.json` compiles `fontraster.c`
-plus the sibling `xiom.harfbuzz 0.1.0` amalgamation
-(`../xiom-harfbuzz/vendor/harfbuzz/src/harfbuzz-subset.cc`, C++17), matching
-the symbols supplied by the installed `xiom.harfbuzz` package. The port leg
-spells the amalgamation out because v0.64.8 does not apply a dependency's
-shipped `port.args.json` to a `--run` invocation (REL-20261010-1549-packages-5;
-same workaround as the sibling `xiom.blas` entry).
-The installed engine-local path is `xiom.fontraster-0.1.0` (dot form, not the
-registry dash form).
+needs, so no HarfBuzz headers or source are vendored into this package.
+`port.args.json` compiles only `${PACKAGE_DIR}/src/fontraster.c`; on compiler
+v0.65.0 the dependency walk applies `xiom.harfbuzz`'s shipped
+`port.args.json` (its vendored amalgamation, C++17) transitively, so the link
+resolves `hb_*` for both the in-tree suite and an installed consumer (m1511
+closure; `-1511` / `-1615` verified on the v0.65.0 archive). Compiler v0.64.8
+and earlier do not apply a dependency's `port.args.json`, so this package
+cannot build on those pins.
+Registry install: `xiom pkg install xiom.fontraster@0.1.0` -- lands as
+`XIOM_HOME/packages/xiom-fontraster-0.1.0` (registry dash form) and pulls
+`xiom.harfbuzz` as the one transitive dependency. Engine A13 should use the
+registry install, not `xiom-pkg install --root`.
 
 ## Test fixture / licensing
 
