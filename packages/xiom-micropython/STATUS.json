@@ -9,9 +9,9 @@
                   "passed":  19,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "daa47e56",
-                  "checked":  "2026-10-23T23:45:29Z"
+                  "commit":  "2ba10003",
+                  "checked":  "2026-10-24T00:13:35Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish request filed 2026-10-23 (REL-20261023-2344-bindings) after the mcu-qemu CI gate went green (run 40003313859, head a840e6d3e); 3 NEW names -> ops scopes; awaiting packages scope/allowlist + eco batch"
+    "excluded_reason":  "publish request filed 2026-10-23 (REL-20261023-2344-bindings) after the mcu-qemu CI gate went green (run 40003313859); re-verified x2 on the v0.65.0 archive (tree 2ba10003); 3 NEW names -> ops scopes; awaiting packages scope/allowlist + eco batch"
 }

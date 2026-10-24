@@ -2573,6 +2573,28 @@ window)**:
   `release-checks/compiler-v0.65.0.md` row, and closes the v0.64.9
   HOLD on resume. No v0.64.9 deployment.
 
+**UPDATE 2026-10-24 00:52Z (v0.65.0 ADOPTED -- archive verified; P0 family
+and .9 data-loss cluster GREEN; .9 HOLD closed)**:
+- Official windows archive `ff4abb4a...` (SHA256SUMS match); slot swapped,
+  the v0.64.8 slot kept as `xiom.new-v0.64.8-20261024`;
+  `XIOM Compiler v0.65.0`; the 5 installed packages were preserved.
+- `COMPILER_VERSION` + **579 records** = v0.65.0; validate **579/0**;
+  commit `2ba10003`.
+- Slot sanity: sqlite **21/21** nested, sdl3 **81/81**, nvenc **67/67**
+  live.
+- P0/.9 acceptance: m1615 nested enum payloads ok; m372/1451
+  `nested=42 local=42`; true 1550 ok; m1827 Err(Str) `direct=direct
+  via=via returned=returned`; Err(Enum) match ok; cross-module
+  Vec-in-tuple ok; nested-payload `failures=0`; the B-34 witness runs
+  (exit 1 = the documented fixed shape).
+- MCU trio on the archive x2: firmata 122/122, micropython 19/19, uf2
+  62/62; epos 29/29 x2; records updated.
+- Release-check bindings verdicts filed; `REL-20261022-1945-bindings`
+  closed (.9 HOLD CLOSED); release item noted. No v0.64.9 deployment.
+- Caveat: `%LOCALAPPDATA%\xiom.new` disappeared during the swap (a
+  concurrent slot operation); recovered from the pre-swap backup +
+  the verified archive. Slot is now v0.65.0; no split-brain.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
