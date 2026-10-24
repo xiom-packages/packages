@@ -9,8 +9,8 @@
                   "passed":  19,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "925f1557",
-                  "checked":  "2026-10-19T18:10:30Z"
+                  "commit":  "bbcba85f",
+                  "checked":  "2026-10-24T00:20:44Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: new name (MicroPython raw-REPL host client, MCU Phase-1 wave); registry scope + allowlist entry queued"
