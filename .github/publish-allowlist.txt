@@ -645,3 +645,7 @@ xiom.optix
 xiom.epos
 # fontraster -- engine A13 promotion; ops scope LIVE eco-release 575; v0.65.0 acceptance (11/11 x2 + installed 2-level consumer, no undefined hb_*)
 xiom.fontraster
+# MCU Phase-1 host-companion trio -- ops scope LIVE 2026-10-25T13:27Z (eco-release 578); v0.65.0 re-verify 122/19/62 x2
+xiom.firmata
+xiom.micropython
+xiom.uf2
