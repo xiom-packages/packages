@@ -2619,6 +2619,22 @@ and .9 data-loss cluster GREEN; .9 HOLD closed)**:
   scope `REL-20261024-0020-packages` still **OPEN** with ops; epos
   unchanged; no new asks to bindings.
 
+**UPDATE 2026-10-25 14:55Z (MCU Phase-1 PUBLISHED; epos request filed)**:
+- **MCU trio LIVE**: `xiom.firmata 0.1.0` sha256 `15223e05...`,
+  `xiom.micropython 0.1.0` sha256 `c25c2014...`,
+  `xiom.uf2 0.1.0` sha256 `065b895c...`; allowlist **576 -> 579**;
+  registry live-verified; runs 40200865535 / 40200865254 / 40200865200;
+  docs sync `ca5168ba`; scope LIVE 13:27Z (eco-release 575 -> 578).
+  The three STATUS records now carry the live shas; the request item
+  `REL-20261023-2344-bindings` is closed as delivered.
+- **epos 0.1.0** publish request filed as
+  **`REL-20261025-1453-bindings`** (bindings -> packages, high); the
+  scope has been LIVE @574 since 2026-10-19 and the suite is 29/29 x2
+  on v0.65.0; the MCU batch shipped without it. This is now the only
+  bindings package awaiting publish.
+- Relay validate green (935 items); pin + slot **v0.65.0**; lane
+  validate **579/0**.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
