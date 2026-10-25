@@ -1,8 +1,9 @@
 # xiom.firmata
 
 > **Status:** `incubating` -- conformance-tested (**122/122 x2** on the
-> compiler pin v0.64.7; fixture-driven, no hardware or transport required);
-> not yet published.
+> compiler pin v0.65.0; fixture-driven, no hardware or transport required);
+> **published 2026-10-25** as single tag `xiom-firmata/v0.1.0`
+> (sha256 `15223e05...`).
 > **Scope (0.1.0):** pure-XIOM host-side Firmata 2.x bindings -- version and
 > firmware handshake; pin modes; digital and PWM writes; analog and digital
 > report enable; digital/analog/string decode; typed errors; a

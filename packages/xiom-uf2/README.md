@@ -1,8 +1,9 @@
 # xiom.uf2
 
 > **Status:** `incubating` -- conformance-tested (**62/62 x2** on compiler pin
-> v0.64.7; host-side format + flash legs; absent volume = SKIP); not yet
-> published.
+> v0.65.0; host-side format + flash legs; absent volume = SKIP);
+> **published 2026-10-25** as single tag `xiom-uf2/v0.1.0`
+> (sha256 `065b895c...`).
 > **Scope (0.1.0):** UF2 512-byte block/image build, parse and validation
 > (magics, flags, target address, payload, block numbering, family IDs);
 > byte-exact built/source roundtrip; flash-to-mounted-BOOTSEL-volume with

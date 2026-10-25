@@ -1,8 +1,9 @@
 # xiom.micropython
 
 > **Status:** `incubating` -- conformance-tested on the compiler pin
-> **v0.64.7**; the live-device leg is a typed **SKIP** on hosts without
-> `XIOM_MICROPYTHON_PORT`. Not yet published.
+> **v0.65.0** (19/19 x2); the live-device leg is a typed **SKIP** on hosts
+> without `XIOM_MICROPYTHON_PORT`. **Published 2026-10-25** as single tag
+> `xiom-micropython/v0.1.0` (sha256 `c25c2014...`).
 > **Scope (phase 1):** the documented MicroPython **raw REPL** host side:
 > Ctrl-A enter, Ctrl-B friendly exit, Ctrl-C interrupt, Ctrl-D exec/soft
 > reset, `OK` + stdout + `0x04` + stderr + `0x04` + `>` framing, traceback

@@ -13,5 +13,5 @@
                   "checked":  "2026-10-24T00:20:45Z"
               },
     "publish":  false,
-    "excluded_reason":  "wrap/tag pending: ops scope LIVE 2026-10-25T13:27Z (eco-release 578); v0.65.0 x2 62/62"
+    "excluded_reason":  "published 2026-10-25 (single tag xiom-uf2/v0.1.0; sha256 065b895c...)"
 }
