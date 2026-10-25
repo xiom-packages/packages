@@ -2521,6 +2521,104 @@ RESTORED)**:
   re-test on the v0.65.0 archive as acceptance input.  Production pin
   remains v0.64.8 (pin+slot verified).
 
+**UPDATE 2026-10-23 23:50Z (doorbell cycle -- v0.65.0 gate GREEN through
+MCU QEMU; MCU publish request FILED; pause for the double-charge
+window)**:
+- **Doorbell re-armed then paused**: the `0 */3 * * *` cron was armed
+  for this session and is now DISARMED per the owner (API doubles
+  between 04:00 and 13:00 Greek time); a single wakeup is set for
+  10:05Z (13:05 Greek) to resume + re-arm. Relay repo synced
+  (`fetch --prune` + `merge --ff-only`), `relay.py validate` green
+  (**927 items**); no open asks to bindings (the only new items are
+  `REL-20261023-1815-ops` -> buskeeper and `REL-20261023-1854-pulse`
+  -> compiler).
+- **v0.65.0 gate: P0/P1/P2 GREEN; P3 cut in progress.** Owner GO was
+  granted 2026-10-23T18:31Z (six minutes after the handoff). CI run
+  **40003313859** is SUCCESS on head `a840e6d3e`, including the
+  **`mcu-qemu`** job (thumbv6m microbit + riscv32imac virt), build/test,
+  release-parity x2 and arm64 floor. `stdlib-v0.65.0` is tagged
+  `3eb9c05` and pinned by the compiler (`a0dc452dc` drops the C07
+  shim). Remaining before adoption: the all-platform dry-run + the
+  `v0.65.0` tag + registry `xiom-std 0.65.0`. **No adoption yet** --
+  production stays v0.64.8 (pin + slot verified via
+  `%LOCALAPPDATA%\xiom.new\bin\xiom.exe` = `XIOM Compiler v0.64.8`).
+- **MCU publish unblocked and FILED**: the QEMU precondition is met, so
+  the combined request went out as **`REL-20261023-2344-bindings`**
+  (bindings -> packages, high): firmata 0.1.0 + micropython 0.1.0 +
+  uf2 0.1.0, 3 NEW names -> ops scopes; PROD-only; allowlist +
+  verify-on-landing x2 + next eco batch. Relay commit `2d4bf80`.
+  Fresh suites on the v0.64.8 slot, each **x2**: firmata **122/122**,
+  micropython **19/19**, uf2 **62/62** (tree `daa47e56`); records
+  updated with the run evidence.
+- **epos**: refreshed **x2 29/29** on v0.64.8 (tree `daa47e56`);
+  scope is LIVE @574, so it rides the same next packages batch;
+  record updated. **charts 0.2.0**: already PUBLISHED 2026-10-21 as
+  `xiom-charts/v0.2.0` (sha256 `7dddb907...`; registry verified;
+  verify-on-landing x2 71/71) -- stale "publish pending" record text
+  corrected.
+- Lane validate after the record touches: **579/0**; no in-flight
+  branch. Pause state: cron disarmed, wakeup `10:05Z`; on resume,
+  re-arm the `0 */3 * * *` doorbell and re-check the v0.65.0 cut.
+- **POSTSCRIPT 23:57Z -- v0.65.0 IS RELEASED** (`REL-20261023-2346-compiler`):
+  tag `v0.65.0` (annotated `f527d5a`) on `a0dc452dc`; 11 assets +
+  SHA256SUMS re-verified after publication; CI `40035344317` **7/7
+  green** (incl. the MCU QEMU job); final dry-run `40035350921` all six
+  package legs + VSIX green; full e2e **2646/2646** on debug and
+  release; registry `xiom-std 0.65.0` live (sha256 `c3629878...`).
+  The shared slot is still **v0.64.8** (verified), so there is no
+  split-brain; adoption is deferred to the **10:05Z resume** per the
+  owner pause. The relay release item is noted: bindings verifies the
+  archive, swaps the slot with a versioned backup, repins/validates,
+  runs slot sanity + the .9 acceptance probes, fills the
+  `release-checks/compiler-v0.65.0.md` row, and closes the v0.64.9
+  HOLD on resume. No v0.64.9 deployment.
+
+**UPDATE 2026-10-24 00:52Z (v0.65.0 ADOPTED -- archive verified; P0 family
+and .9 data-loss cluster GREEN; .9 HOLD closed)**:
+- Official windows archive `ff4abb4a...` (SHA256SUMS match); slot swapped,
+  the v0.64.8 slot kept as `xiom.new-v0.64.8-20261024`;
+  `XIOM Compiler v0.65.0`; the 5 installed packages were preserved.
+- `COMPILER_VERSION` + **579 records** = v0.65.0; validate **579/0**;
+  commit `2ba10003`.
+- Slot sanity: sqlite **21/21** nested, sdl3 **81/81**, nvenc **67/67**
+  live.
+- P0/.9 acceptance: m1615 nested enum payloads ok; m372/1451
+  `nested=42 local=42`; true 1550 ok; m1827 Err(Str) `direct=direct
+  via=via returned=returned`; Err(Enum) match ok; cross-module
+  Vec-in-tuple ok; nested-payload `failures=0`; the B-34 witness runs
+  (exit 1 = the documented fixed shape).
+- MCU trio on the archive x2: firmata 122/122, micropython 19/19, uf2
+  62/62; epos 29/29 x2; records updated.
+- Release-check bindings verdicts filed; `REL-20261022-1945-bindings`
+  closed (.9 HOLD CLOSED); release item noted. No v0.64.9 deployment.
+- Caveat: `%LOCALAPPDATA%\xiom.new` disappeared during the swap (a
+  concurrent slot operation); recovered from the pre-swap backup +
+  the verified archive. Slot is now v0.65.0; no split-brain.
+
+**UPDATE 2026-10-24 10:10Z (doorbell -- MCU ack; scope re-filed; lane quiet)**:
+- Doorbell re-armed (`0 */3 * * *`, next 12:00Z). Relay synced
+  (fetch + ff, **930 items**, validate green). Slot + pin still
+  **v0.65.0** (no split-brain); lane validate **579/0**.
+- **MCU publish**: packages ACKED `REL-20261023-2344-bindings` and
+  re-filed the PROD-only scope ask as **`REL-20261024-0020-packages`**
+  (ops OPEN). Packages re-verified the trio x2 on the v0.65.0 archive
+  (firmata 122/122, micropython 19/19, uf2 62/62). Publish executes on
+  ops LIVE: allowlist + 3 single tags + sha verification + sync.
+  No bindings action until the LIVE relay-back.
+- **epos**: still scope LIVE @574, rides the same batch; no reply yet.
+- No other open asks to bindings (new relay traffic is packages/ops/
+  compiler release bookkeeping). Next doorbell 12:00Z.
+
+**UPDATE 2026-10-24 18:05Z (doorbell -- relay hygiene; lane quiet)**:
+- Relay sync: the new items are other-lane bookkeeping, but
+  `relay.py validate` went **RED** on `REL-20261024-1501-orbitdb`
+  (a stray U+FEFF BOM at the body start). Repaired by stripping the
+  BOM (content unchanged); validate **934 items green**; relay commit
+  `a5f61f0`.
+- Slot + pin still **v0.65.0**; lane clean, validate unchanged. MCU
+  scope `REL-20261024-0020-packages` still **OPEN** with ops; epos
+  unchanged; no new asks to bindings.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
@@ -6027,3 +6125,120 @@ handoff). Kept only as history.
   plain); batch-22 docs follow-up adds the sqlite README consumer section.
   Revalidated on the published artifacts: sqlite 0.3.0 PASS, ffmpeg 0.2.0
   SKIP, libpq 0.2.0 SKIP (scratch `XIOM_HOME`, checksums matched).
+
+## CONTEXT-LIMIT HANDOFF -- 2026-10-23 18:25Z (bindings lane)
+
+Everything below is the authoritative pickup state.  The UPDATE stack
+above (2026-10-16 .. 2026-10-22 blocks) holds the evidence trail; this
+section is the summary + the next-session paste prompt.
+
+### STATE
+- **Toolchain: production pin `v0.64.8`** -- slot
+  `%LOCALAPPDATA%\xiom.new` verified `XIOM Compiler v0.64.8`;
+  backups kept: `%LOCALAPPDATA%\xiom.new.v0.64.8` and
+  `%LOCALAPPDATA%\xiom.new.v0.64.9` (withdrawn archive, audit only).
+  **v0.64.9 WITHDRAWN** (nested enum-pattern codegen defects
+  1243/1615/1645 + 1451/1550 family, release-mode only; GitHub release
+  marked pre-release).  **v0.65.0 production gate OPENED**
+  (`docs/RELEASE_GATE_v0.65.0.md`; P0 correctness -> P1 hardening ->
+  P2 MCU -> P3 cut; no candidate/tag before gate green + owner GO).
+  Lane `COMPILER_VERSION` + all **579 records** = v0.64.8; validate
+  **579/0**.
+- **Lane shipments (ALL LIVE):** android SDK100 family (android 0.4.0 +
+  aaudio/mediandk/camera2ndk/android-sys/opensl/jni; family 8/8 in
+  `eco-v0.1.192`, gles 0.2.0 `.190`, sdl3 0.21.0 A14 `.202`); PULSE
+  top-tier (brotli 0.1.0 + ssl 0.1.0 `.189`; TLS gap closed); R2/M2
+  (serial/ros2/v4l/onnx/gps/torch/libtorch/tensorflow/blas `.193/.194`,
+  onnx 0.2.0 DML `.198`); NVIDIA wave (cudnn/nvenc `.197`;
+  cublas/cufft/cusparse/tensorrt/nvml/nvapi/optix `.199`); USD 0.1.0
+  `.197`; kafka 0.2.0 + charts 0.2.0 (sibling landings); pandas 0.2.1
+  `.201`; miniaudio 0.5.0 (handle surface); sqlite 0.5.0
+  (`xiom-sqlite/v0.5.0`; B-32 retired).
+- **Pending publishes:** MCU host-companion trio
+  (firmata/micropython/uf2) -- landed + owner-DEFERRED; **do not file
+  the publish request before the `mcu-qemu` gate is green in CI** (MCU
+  freestanding contract `REL-20261023-0423-compiler` acked).  `epos`
+  -- scope LIVE @574, rides the next batch.  `charts 0.2.0` -- sibling
+  requested; check its item status.  The `.9` rows/records stay HELD
+  (never green) as v0.65.0 acceptance input.
+- **B-series: ZERO-OPEN.** B-29 closed (probe defect), B-32 retired
+  (sqlite 0.5.0), B-33 fixed (m351, verified), B-34 fixed (.8,
+  verified), B-16..B-26 verified fixed; findings ledger fully closed.
+- **Open asks to bindings: NONE** (A14 closed end-to-end; miniaudio
+  handle delivered; pandas closed; MCU contract coordinated).
+- **Environment facts:** repo worktree `E:\xiom-packages\bindings`
+  (shared repo: `main` = packages lane, `bindings` = our lane); relay
+  bus clone `E:\xiom-lang\xiom-relays` (SHARED -- other actors may
+  commit; always fetch + ff-merge, never `git pull`; `relay.py view`
+  crashes on a malformed item -- repair pattern = valid front matter +
+  `## History`, as done for `REL-20261022-2355-owner`).  Emulator:
+  `C:\Android\sdk\emulator\emulator.exe -avd Medium_Phone_API_36.0
+  -no-window -no-audio -no-boot-anim -no-snapshot -gpu
+  swiftshader_indirect`.  Suites: `.\scripts\port.ps1 -Package <pkg>
+  -TimeoutSec 300`; validate `.\scripts\status.ps1 -Action validate`;
+  repin `-Action repin`.  Host note: the engine incident deleted
+  `~/.cargo` and other home config dirs (workspace + AppData safe);
+  cargo works via `.rustup` toolchains; the Windows package store was
+  emptied that day.
+
+### STANDING RULES (carry forward)
+- XIOM_COMPILER = the pinned slot; **the lane pin follows the SHARED
+  slot** (no split-brain); adopt a new release only on gate-green +
+  owner GO; withdraw immediately on a fleet HOLD/WITHDRAWAL.
+- Land path-scoped: `git fetch origin`; for restructured dirs
+  `git rm -rf`/`Remove-Item` the package dir BEFORE `git checkout
+  <branch> -- packages/<dir>` (checkout does not apply deletions);
+  never wholesale-merge; re-run the suite x2 on the current pin;
+  record with `status.ps1 -Action update` using the real (post-rebase)
+  sha; validate; push with fetch-before-commit + rebase-retry.
+- Line-oriented hex/trace fixtures need `.gitattributes` `eol=lf`
+  guards on Windows (CRLF breaks parsers).
+- Provenance per touch; no silent failures; B-series discipline (Int
+  handles, owned byte slots, no pointer casts); atomic commits.
+- Check `python tools/relay.py validate` after touching the relay.
+
+### NEXT-SESSION PASTE PROMPT
+Bindings lane continuation -- seamless pickup (2026-10-23 18:25Z;
+CONTEXT-LIMIT HANDOFF).  Read `BINDINGS-SESSION.md` end-of-file
+"CONTEXT-LIMIT HANDOFF" + the UPDATE stack; trust them over this
+summary.
+
+FIRST ACTIONS:
+1. Re-arm the doorbell `0 */3 * * *` for THIS session:
+   (a) `git -C E:\xiom-lang\xiom-relays fetch origin --prune` then
+       `git -C E:\xiom-lang\xiom-relays merge --ff-only origin/main`
+       (never `git pull` there);
+   (b) `python tools/relay.py view --lane bindings` (workdir =
+       E:\xiom-lang\xiom-relays); process only items whose `to` is
+       bindings; record eco/relay results in the UPDATE stack; land any
+       in-flight branch per the opening recipe; commit + push
+       (fetch-first, rebase-retry).
+2. Relay sweep: read all open items to bindings + replies; run
+   `python tools/relay.py validate` (expect green, ~830+ items).
+3. WATCH v0.65.0: no adoption until the gate is green AND the owner
+   says GO.  On release adopter: swap the slot
+   (`%LOCALAPPDATA%\xiom.new` <- the new archive; keep the old slot as
+   a versioned backup), set `COMPILER_VERSION`, run
+   `status.ps1 -Action repin`, validate, then the slot sanity matrix
+   (xiom.sqlite 21/21 nested, xiom.sdl3 81/81, xiom.nvenc 67/67 live)
+   AND the .9 acceptance probes: nested enum patterns
+   `Some(Number(n))`/`Ok(Number(n))`/`Err(E.Bad(msg))`, the 1451
+   nested-generic-ptr fixture, the true 1550 tuple-returning
+   enumerate, and the .9 data-loss cluster (jev Err-in-Vec, openblas
+   Vec-in-tuple, http Err(Enum) match) -- all in-repo under
+   `docs/repro/bindings-pilot/` where applicable.
+4. MCU publish ONLY after the `mcu-qemu` CI gate is green: file one
+   combined request for `xiom.firmata 0.1.0` (x2 122/122),
+   `xiom.micropython 0.1.0` (x2 19/19), `xiom.uf2 0.1.0` (x2 62/62)
+   -- 3 NEW names -> ops scopes; the HAL family is not started; any
+   board package must honor `docs/MCU_FREESTANDING.md` (per-board
+   `--linker-script` with `_estack`/`__heap_start`/`__heap_end` +
+   Cortex-M .data/.bss, strong `xiom_panic`, replaceable bump
+   allocator, no unwinding/peripheral emulation).
+5. `epos`: publish rides the next packages batch (scope LIVE @574);
+   `charts 0.2.0`: check the sibling's request status.
+6. Standing rules: production pin v0.64.8 (slot verified); suites on
+   the pinned slot; provenance per touch; no silent failures; atomic
+   commits + fetch-first push; the relay bus and the repo are SHARED
+   with other lanes/sessions (expect concurrent commits; repair, don't
+   rewrite).
