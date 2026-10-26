@@ -2651,6 +2651,32 @@ pending)**:
   `v0.64.8` field) -- it does not change the compiler pin; v0.65.0
   stays production until a compiler release passes its gate + owner GO.
 
+**UPDATE 2026-10-26 20:10Z (v0.65.1 ADOPTED -- slot moved to
+`%LOCALAPPDATA%\xiom`; owns_return leak gate green)**:
+- v0.65.1 is PRODUCTION (owner GO; `docs/RELEASE_GATE_v0.65.1.md`).
+  Tag `v0.65.1` (annotated `c4329915`) on `f2c01cf9c`; release run
+  40388025015 with 11 assets + SHA256SUMS (windows zip `69de1e27...`);
+  CI 40385480182; dry-run 40387243828; e2e 2647/2647; registry
+  `xiom-std 0.65.1` signed.
+- **Slot convention changed by the fleet**: PATH + the installer now use
+  `%LOCALAPPDATA%\xiom` (proper bin/lib v0.65.1). The old
+  `%LOCALAPPDATA%\xiom.new` was left as a flat, lib-less v0.65.1
+  leftover by that fleet swap, and the old versioned slot backups were
+  removed. The lane resolver uses `xiom` (verified
+  `XIOM Compiler v0.65.1`); `COMPILER_VERSION` + **579 records** =
+  v0.65.1; validate **579/0**.
+- Archive verified independently: windows zip checksum match; lib
+  `package.xi` 0.65.1; C07 helper + freestanding present.
+- Slot sanity: sqlite **21/21** nested, sdl3 **81/81**, nvenc **67/67**
+  live.
+- Acceptance: m1615 ok; m372/1451 `nested=42 local=42`; true 1550 ok;
+  m1520 ok; m1827 Err(Str) ok, Err(Enum) ok, Vec-in-tuple ok;
+  nested-payload `failures=0`; B-34 witness exit 1 (fixed shape);
+  enum-payload `bad=0`; **new `ffi_owns_return_leak` gate exit 0**.
+- Published packages re-verified x2 on v0.65.1: firmata 122/122,
+  micropython 19/19, uf2 62/62, epos 29/29; records updated.
+- Bindings verdicts filed in `compiler-compiler-v0.65.1.md`.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
