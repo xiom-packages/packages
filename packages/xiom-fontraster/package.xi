@@ -11,7 +11,7 @@
 
 package xiom_fontraster {
   name: "xiom.fontraster";
-  version: "0.1.0";
+  version: "0.1.1";
   stage: "incubating";
   description: "Runtime antialiased glyph rasterizer for XIOM UI (HarfBuzz outlines, TTF/OTF, DPI-sized coverage bitmaps, face metrics)";
   categories: ["text", "media"];

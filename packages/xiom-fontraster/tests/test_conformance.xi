@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// Proves the carved xiom.fontraster 0.1.0 surface against the installed
+// Proves the carved xiom.fontraster 0.1.1 surface against the installed
 // xiom.harfbuzz 0.1.0 symbols with the bundled Inter Regular fixture:
 //   - face open, UPEM and vertical metrics
 //   - cmap lookup (mapped and unmapped codepoints)
@@ -174,7 +174,7 @@ fn test_close_idempotent(data: &mut Vec[UInt8]) -> TestResult
 fn main() -> Int
   requires: true
 {
-  io.println("XIOM fontraster Conformance Suite (0.1.0)");
+  io.println("XIOM fontraster Conformance Suite (0.1.1)");
   io.println("========================================");
   var failed: Int = 0;
 

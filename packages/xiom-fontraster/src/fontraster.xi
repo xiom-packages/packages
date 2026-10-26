@@ -83,6 +83,9 @@ pub fn font_face_close(face: &mut FontFace) {
 }
 
 /// Vertical metrics at an integer pixel em size.
+/// `#[owns_return]`: the transient `slots` buffer is main-heap and dropped by
+/// this function; the returned struct has no Vec fields.
+#[owns_return]
 pub fn font_face_metrics(face: &FontFace, px: Int) -> FontMetrics {
   if !face.ok || face.handle <= 0 || px <= 0 {
     return FontMetrics{ ok: false; ascender_q6: 0; descender_q6: 0;
@@ -128,6 +131,10 @@ pub type TextRun = {
 
 /// Shape UTF-8 text with the face's OpenType layout (ligatures, kerning,
 /// marks, bidi runs resolved by HarfBuzz).
+/// `#[owns_return]`: `glyphs` is freshly allocated on the main heap and its
+/// ownership transfers to the caller; the transient `buf`/`slots` buffers do
+/// not escape the FFI call and are dropped here.
+#[owns_return]
 pub fn font_shape(face: &FontFace, text: Str, px: Int) -> TextRun {
   let n = str_len(text);
   if !face.ok || face.handle <= 0 || n <= 0 || px <= 0 {
@@ -187,6 +194,10 @@ pub fn font_glyph_index(face: &FontFace, codepoint: Int) -> Int {
 }
 
 /// Rasterize one glyph at an integer pixel em size.
+/// `#[owns_return]`: `pixels` is freshly allocated on the main heap and its
+/// ownership transfers to the caller; the transient `slots` buffer is dropped
+/// here. The `pix` retry rebind keeps the final buffer owned by the caller.
+#[owns_return]
 pub fn font_glyph_raster(face: &FontFace, glyph: Int, px: Int) -> GlyphRaster {
   if !face.ok || face.handle <= 0 || glyph < 0 || px <= 0 {
     return GlyphRaster{ ok: false; rc: -1; width: 0; height: 0;
