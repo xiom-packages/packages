@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  11,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "218c5219",
-                  "checked":  "2026-10-24T00:10:16Z"
+                  "run_by":  "compiler-lane",
+                  "commit":  "b196c10d",
+                  "checked":  "2026-10-26T16:51:39Z"
               },
     "publish":  false,
     "excluded_reason":  "published 2026-10-24 (single tag xiom-fontraster/v0.1.0; sha256 b945aff7...)"
