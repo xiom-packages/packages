@@ -2635,6 +2635,22 @@ and .9 data-loss cluster GREEN; .9 HOLD closed)**:
 - Relay validate green (935 items); pin + slot **v0.65.0**; lane
   validate **579/0**.
 
+**UPDATE 2026-10-26 19:05Z (epos confirmed LIVE -- no bindings publishes
+pending)**:
+- `xiom.epos 0.1.0` is LIVE on the registry since 2026-10-21 (single
+  tag `xiom-epos/v0.1.0`, sha256 `b5a565de...`; registry latest 0.1.0;
+  allowlist entry present). The 2026-10-25 publish request
+  (`REL-20261025-1453-bindings`) was closed as a **duplicate** by
+  packages -- its premise (no registry entry) was stale. The epos
+  STATUS record is corrected to published; suite re-verified 29/29 x2
+  on v0.65.0.
+- **No bindings publishes remain pending**: the MCU trio went live
+  2026-10-25 and epos was already live.
+- Relay validate green (**961 items**); pin + slot **v0.65.0**; lane
+  validate **579/0**. Watch item: stdlib 0.65.1 is live (compiler
+  `v0.64.8` field) -- it does not change the compiler pin; v0.65.0
+  stays production until a compiler release passes its gate + owner GO.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
