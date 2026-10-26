@@ -2659,12 +2659,13 @@ pending)**:
   CI 40385480182; dry-run 40387243828; e2e 2647/2647; registry
   `xiom-std 0.65.1` signed.
 - **Slot convention changed by the fleet**: PATH + the installer now use
-  `%LOCALAPPDATA%\xiom` (proper bin/lib v0.65.1). The old
-  `%LOCALAPPDATA%\xiom.new` was left as a flat, lib-less v0.65.1
-  leftover by that fleet swap, and the old versioned slot backups were
-  removed. The lane resolver uses `xiom` (verified
-  `XIOM Compiler v0.65.1`); `COMPILER_VERSION` + **579 records** =
-  v0.65.1; validate **579/0**.
+  `%LOCALAPPDATA%\xiom` (proper bin/lib v0.65.1). The fleet swap briefly
+  flattened `%LOCALAPPDATA%\xiom.new` and wiped the shared package store;
+  both were repaired -- both roots now report v0.65.1 and the store is
+  restored to 11 packages (incl. sdl3 0.21.0, stb, vulkan, harfbuzz,
+  fontraster 0.1.1). The old versioned slot backups were removed by that
+  swap. The lane resolver uses `xiom` (verified `XIOM Compiler v0.65.1`);
+  `COMPILER_VERSION` + **579 records** = v0.65.1; validate **579/0**.
 - Archive verified independently: windows zip checksum match; lib
   `package.xi` 0.65.1; C07 helper + freestanding present.
 - Slot sanity: sqlite **21/21** nested, sdl3 **81/81**, nvenc **67/67**
