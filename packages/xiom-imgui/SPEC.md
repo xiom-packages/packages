@@ -34,6 +34,13 @@ the SDK trees they need, all under `vendor/`:
 - `vendor/SDL3/` -- SDL3 3.4.8 headers from Vulkan SDK 1.4.350.0.
 - `vendor/vulkan/` -- Vulkan-Headers 1.4.350 (with `vk_video/`).
 - `vendor/lib/SDL3.lib`, `vendor/lib/vulkan-1.lib` -- import libs.
+  Integrity pins: `SDL3.lib` sha256
+  `280d34f2beb9fa1252eb9f03a0cc1a93f44f365fdf0bc8801aed575f60c19b0e`
+  (283,572 B); `vulkan-1.lib` sha256
+  `dd768491a91c365e3c487427915413e6c40b394f06357008d9d250556cf8c813`
+  (66,154 B). Both are tracked with `git add -f` because the repository
+  `.gitignore` excludes `*.lib` globally; this package is intentionally
+  self-contained (no system SDK at build time).
 - `vendor/licenses/` -- SDL3 (zlib), Vulkan-Headers (Apache-2.0), Vulkan SDK.
 
 The only mechanical edit to vendored files is include normalization
