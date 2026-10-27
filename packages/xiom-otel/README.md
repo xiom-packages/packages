@@ -1,10 +1,10 @@
 # xiom.otel
 
-> **Status:** `incubating` -- conformance-tested (37/37), recorded x2 green
-> on XIOM v0.64.5. Version `0.2.0` adds a deterministic OTLP/JSON
-> gauge-metrics surface; the traces surface is unchanged (30/30 trace checks
-> still green). `0.1.0` was published in `eco-v0.1.188` (sha256 `830f9eab...`);
-> `0.2.0` is not published yet.
+> **Status:** `incubating` -- conformance-tested (**37/37 x2**) on XIOM
+> **v0.65.2**. Version `0.2.0` adds a deterministic OTLP/JSON gauge-metrics
+> surface; the traces surface is unchanged (30/30 trace checks still green).
+> `0.1.0` was published in `eco-v0.1.188` (sha256 `830f9eab...`); `0.2.0` is
+> live as the single tag `xiom-otel/v0.2.0` (sha256 `e9cf5d02...`).
 > **Scope:** OpenTelemetry trace model + deterministic OTLP/JSON encoder +
 > sink seam, plus minimal gauge metrics (one numeric gauge point per metric
 > entry), pure XIOM: typed spans/attributes/resource/scope, exact-byte
