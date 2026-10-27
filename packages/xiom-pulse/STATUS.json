@@ -9,9 +9,9 @@
                   "passed":  231,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "44bbb34b",
-                  "checked":  "2026-10-19T12:13:40Z"
+                  "commit":  "b20f14cf",
+                  "checked":  "2026-10-27T23:13:53Z"
               },
     "publish":  false,
-    "excluded_reason":  "published 2026-10-19 (single tag xiom-pulse/v0.3.1; sha256 38465713...); 0.3.0 in xiom-pulse/v0.3.0; 0.2.2 in eco-v0.1.198; 0.2.1 in eco-v0.1.197"
+    "excluded_reason":  "publish pending: 0.3.2 Beacon alloc patch (REL-20261027-1955-pulse)"
 }
