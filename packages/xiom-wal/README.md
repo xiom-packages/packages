@@ -17,7 +17,7 @@ only (`xiom.std`).
 ```xiom
 var w = wal_open("app.wal");                          // resumes LSNs, heals a torn tail
 let lsn = wal_append(&mut w, WalOpKind.Insert, 42, 7); // -1 on write failure
-let _ = wal_flush(&mut w);                             // no-op until fsync lands
+let _ = wal_flush(&mut w);                             // real fsync barrier (wave 115)
 ```
 
 ## API
@@ -27,7 +27,7 @@ let _ = wal_flush(&mut w);                             // no-op until fsync land
 | `wal_open(path)` | `WalFile`; resumes `next_lsn` from the log, heals a torn tail once |
 | `wal_append(&mut, op, key, value)` | `Int` LSN, -1 on write failure |
 | `wal_append_tagged(&mut, op, key, value, payload, timestamp)` | `Int` LSN (`payload[0]` = subtype tag) |
-| `wal_flush(&mut)` | `Bool` -- documented no-op success until the fsync row lands |
+| `wal_flush(&mut)` | `Bool` -- real fsync of the segment file (false on open/sync failure) |
 | `wal_replay(path)` | `Vec[WalRecord]`; torn/malformed lines are skipped |
 | `wal_last_lsn(path)` / `wal_len(path)` | `Int` (0 / empty when missing) |
 | `wal_truncate(path, from_lsn)` | `Bool`; keeps records with `lsn >= from_lsn` via temp + rename |
@@ -41,14 +41,16 @@ In-memory vocabulary kept from `xiom.durable` (types + fns unchanged):
 `wal_record_new`. Wiring the in-memory writer to disk is Phase 2
 (`ROADMAP.md`).
 
-## Durability caveat
+## Durability
 
-**Crash-consistent, not durable.** The toolchain has no fsync yet, so
-`wal_flush` is an honest no-op: an acknowledged append can be lost on power
-failure, but a torn tail is healed before the next append and partial lines
-are never replayed. The crash contract (write N -> hard kill -> torn tail ->
-replay exactly N -> heal-append -> N+1) is exercised by
-`tests/crash_test.ps1` (including the 200-record soak).
+**Durable after `wal_flush`.** Appends are written and closed (OS write-back)
+but not fsynced per record; `wal_flush` opens the segment and performs a real
+fsync (stdlib wave 115: fflush + fsync on POSIX, `_commit` on Windows). Once
+it returns true the acknowledged appends are on stable storage. Torn-tail
+healing keeps the log crash-consistent even without an explicit flush. The
+crash contract (write N -> hard kill -> torn tail -> replay exactly N ->
+heal-append -> N+1) is exercised by `tests/crash_test.ps1` (including the
+200-record soak).
 
 ## Single-writer rule
 

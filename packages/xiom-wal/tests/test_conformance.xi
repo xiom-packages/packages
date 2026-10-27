@@ -509,7 +509,7 @@ fn t20_close_noop(dir: Str) -> TestResult {
 }
 
 fn t21_flush_true(dir: Str) -> TestResult {
-  let name = "wal_flush reports success (documented no-op until fsync lands)";
+  let name = "wal_flush performs a real fsync and reports success";
   let path = wal_tmp(dir, "t21");
   cleanup(path);
   var w = wal_open(path);

@@ -9,7 +9,7 @@
 
 package xiom_wal {
   name: "xiom.wal";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Standalone write-ahead log: durable record shape + crash-proven disk segment (lsn|op|key|value|timestamp[|payload]) with torn-tail healing, replay, temp+rename truncate and in-memory LSN/checkpoint/recovery vocabulary";
   categories: ["database", "systems"];
   keywords: ["wal", "durability", "storage", "crash-recovery"];

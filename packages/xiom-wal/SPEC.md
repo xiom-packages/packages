@@ -18,7 +18,7 @@ in-memory codec, PULSE's append-only store.
 | `wal_open(path)` | `WalFile` (resumes `next_lsn` from the last valid record; heals a torn tail once) |
 | `wal_append(&mut, op, key, value)` | `Int` LSN, -1 on write failure |
 | `wal_append_tagged(&mut, op, key, value, payload, timestamp)` | `Int` LSN |
-| `wal_flush(&mut)` | `Bool` (documented no-op success; see 2.5) |
+| `wal_flush(&mut)` | `Bool` (real fsync; see 2.5) |
 | `wal_replay(path)` | `Vec[WalRecord]` (torn/malformed lines skipped) |
 | `wal_last_lsn(path)` | `Int` (0 when empty/missing) |
 | `wal_len(path)` | `Int` (replayed record count) |
@@ -125,13 +125,13 @@ Recorded evidence (v0.64.1, 2026-10-09):
 | crash x2 | `powershell -NoProfile -File packages\xiom-wal\tests\crash_test.ps1 -Events 20` | GREEN 6/6 each: observed=20, segment=258 B, replay 20 -> append lsn 21 -> replay 21 -> truncate `>=15` kept 7 |
 | soak | same, `-Events 200 -TimeoutSec 120` | GREEN 6/6: observed=200, segment=3,081 B, replay 200 -> append lsn 201 -> replay 201 -> truncate `>=195` kept 7 |
 
-### 2.5 Durability honesty
+### 2.5 Durability
 
-`wal_flush` is a no-op success: the toolchain has no fsync/
-`FlushFileBuffers` wrapper yet (stdlib durable-write/fsync row). "Durable"
-today means OS write-back + torn-tail healing, not power-loss durability.
-The call site is kept so the swap is one line when the row lands.
-`wal_close` is likewise a no-op seam until a persistent-handle IO API exists.
+`wal_flush` performs a real fsync of the segment file (stdlib wave 115:
+fflush + fsync on POSIX, `_commit` on Windows, through the runtime shim).
+Appends are not individually fsynced: call `wal_flush` after the batch that
+must survive power loss. `wal_close` remains a no-op close seam for the
+path-handle model.
 
 ### 2.6 Payload convention
 

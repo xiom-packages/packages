@@ -21,9 +21,11 @@
 // must not merge with the next record); malformed / torn tail lines are
 // skipped on replay; open resumes next_lsn from the last valid record.
 //
-// Durability honesty: wal_flush is a documented no-op success until the
-// stdlib fsync row lands (STDLIB-WISHLIST); "durable" today means OS
-// write-back + torn-tail healing, not power-loss durability.
+// Durability: wal_flush performs a real fsync of the segment file (stdlib
+// wave 115: fflush + fsync / _commit through the runtime shim). Appends stay
+// path-based and are not fsynced individually; call wal_flush after the batch
+// you need on stable storage. Crash-consistency (torn-tail healing) applies
+// independently of the flush.
 //
 // Payload convention: payload[0] = subtype tag (xvector / xiom.db), the rest
 // per-subtype; wal_append_tagged carries payload + timestamp.
@@ -164,10 +166,10 @@ pub fn checkpoint_can_truncate(cp: &Checkpoint, record_lsn: Int) -> Bool {
   return record_lsn < cp.lsn;
 }
 
-// The single most important durability component: every acknowledged write
-// must be appended here first (WAL-before-ack). This phase buffers records in
-// memory and assigns LSNs; `synced_lsn` records how far durability has been
-// confirmed. `flush` becomes a real fsync in Phase 2.
+// In-memory vocabulary (extracted from xiom.durable.wal): buffers records and
+// assigns LSNs; `synced_lsn` records how far this in-process buffer has been
+// acknowledged. Disk durability is the file layer's job: `wal_flush` fsyncs a
+// segment path.
 pub type WalWriter = {
   records: Vec[WalRecord];
   next_lsn: Int;
@@ -351,11 +353,18 @@ pub fn wal_append_tagged(w: &mut WalFile, op: WalOpKind, key: Int, value: Int,
   return wal_append_line(w, op, key, value, &payload, timestamp);
 }
 
-// Durability seam. No-op success until the runtime exposes fsync (stdlib
-// durable-write row); keep the call site so the swap is one line when it
-// lands.
+// Durability seam: open the segment in append mode, fsync that handle, close.
+// Returns false on any open/fsync failure. Appends are not individually
+// fsynced; this is the explicit stable-storage barrier.
 pub fn wal_flush(w: &mut WalFile) -> Bool {
-  return true;
+  match io.open(w.path, "ab") {
+    Ok(handle) => {
+      let synced = io.fsync(handle);
+      let _ = io.close(handle);
+      return synced.is_ok;
+    },
+    Err(_) => { return false; }
+  }
 }
 
 fn wal_parse_payload(s: Str) -> Vec[Int] {
