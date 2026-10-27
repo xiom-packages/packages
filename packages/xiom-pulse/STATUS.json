@@ -13,5 +13,5 @@
                   "checked":  "2026-10-27T23:13:53Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: 0.3.2 Beacon alloc patch (REL-20261027-1955-pulse)"
+    "excluded_reason":  "published 2026-10-27 (single tag xiom-pulse/v0.3.2; sha256 6f2b6ff8...)"
 }
