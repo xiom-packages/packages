@@ -9,9 +9,9 @@
                   "passed":  152,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "22df7bdd",
-                  "checked":  "2026-10-15T19:06:37Z"
+                  "commit":  "03445457",
+                  "checked":  "2026-10-27T21:11:10Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.183 (2026-10-15, 0.1.0 -- durable-systems core; first publish)"
+    "excluded_reason":  "publish pending: 0.1.1 pins xiom.wal 0.1.1 real fsync (wishlist -1128-orbitdb-2)"
 }
