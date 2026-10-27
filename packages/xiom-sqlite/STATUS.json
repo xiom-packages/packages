@@ -1,17 +1,17 @@
 {
     "package":  "xiom.sqlite",
     "stage":  "incubating",
-    "compiler":  "v0.65.1",
+    "compiler":  "v0.65.2",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  21,
                   "failed":  0,
-                  "run_by":  "am:feat-sqlite-restore",
-                  "commit":  "b3cbe464",
-                  "checked":  "2026-10-18T18:02:27Z"
+                  "run_by":  "bindings-session",
+                  "commit":  "71a5975f",
+                  "checked":  "2026-10-27T19:41:28Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.122 (2026-10-09, 0.3.0); 0.4.0 in eco-v0.1.174; 0.4.1 live; 0.5.0 nested query_one restore requested (2026-10-18)"
+    "excluded_reason":  "sanity on v0.65.2 (tree 71a5975f): nested query_one 21/21"
 }

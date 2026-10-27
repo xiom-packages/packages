@@ -1,17 +1,17 @@
 {
     "package":  "xiom.sdl3",
     "stage":  "incubating",
-    "compiler":  "v0.65.1",
+    "compiler":  "v0.65.2",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  81,
                   "failed":  0,
-                  "run_by":  "am:feat-sdl3-a14-ui-platform",
-                  "commit":  "17927884",
-                  "checked":  "2026-10-21T19:22:56Z"
+                  "run_by":  "bindings-session",
+                  "commit":  "71a5975f",
+                  "checked":  "2026-10-27T19:41:28Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.173 (2026-10-13, 0.18.0 readback wave; 0.17.0 in eco-v0.1.162; 0.16.1 in eco-v0.1.160; 0.16.0 in eco-v0.1.152; 0.15.0 in eco-v0.1.151)"
+    "excluded_reason":  "sanity on v0.65.2 (tree 71a5975f): A14 + full SDL3 surface 81/81"
 }

@@ -2696,6 +2696,32 @@ partial; resolver fell through to unreleased 0.65.2; repaired)**:
 - Relay green (981 before this note); pin + 579 records = v0.65.1;
   lane validate 579/0.
 
+**UPDATE 2026-10-27 20:05Z (v0.65.2 ADOPTED -- slot repaired again;
+packed Vec slots + borrow/aggregate reclaim)**:
+- v0.65.2 is PRODUCTION (`REL-20261027-1919-compiler`). Annotated tag
+  `v0.65.2` (`fe1994b1`) on `8ec0904a5`; release 40566604850 with 11
+  assets + SHA256SUMS (windows-x64 `0a328560...`); CI 40559690805;
+  dry-run 40559700656; e2e 2649/2649; `stdlib-v0.65.2`; registry
+  `xiom-std 0.65.2` (`9638b576...`).
+- The v0.65.2 cut left `%LOCALAPPDATA%\xiom` **partial again** (bin
+  only, no lib), so the resolver fell through to the repo-release
+  WIP build. Installed v0.65.2 from the checksum-verified archive into
+  the canonical slot (bin/lib; store preserved), then the packages lane
+  rebuilt both roots and restored the store to 17 dirs. Resolver now:
+  **0.65.2 (installed)**.
+- `COMPILER_VERSION` + **579 records** = v0.65.2; validate **579/0**.
+- Slot sanity: sqlite **21/21** nested, sdl3 **81/81**, nvenc **67/67**.
+- Acceptance: m1615 ok; m372/1451 `nested=42 local=42`; true 1550 ok;
+  m1520 ok; m1827 Err(Str)/Err(Enum)/Vec-in-tuple ok; nested-payload
+  `failures=0`; B-34 witness exit 1 (fixed); enum-payload `bad=0`;
+  `ffi_owns_return_leak` exit 0; **m1731 borrowed-enum
+  `s=borrowed-world` ok** (new reclaim path).
+- Published packages re-verified x2 on v0.65.2: firmata 122/122,
+  micropython 19/19, uf2 62/62, epos 29/29; records updated.
+- Bindings verdicts filed in `compiler-compiler-v0.65.2.md`; the
+  orbitdb partial-slot item is fixed; the engine non-ASCII relay item
+  was repaired (validate green).
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
