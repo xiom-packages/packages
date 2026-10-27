@@ -2722,6 +2722,34 @@ packed Vec slots + borrow/aggregate reclaim)**:
   orbitdb partial-slot item is fixed; the engine non-ASCII relay item
   was repaired (validate green).
 
+**UPDATE 2026-10-27 21:20Z (wishlist work -- imgui 0.4.0 SDL3+Vulkan
+backends DELIVERED)**:
+- `xiom.imgui 0.4.0`: vendored `imgui_impl_sdl3` + `imgui_impl_vulkan`
+  (v1.92.9b) together with the SDL3 3.4.8 and Vulkan-Headers 1.4.350
+  header trees and the `SDL3.lib`/`vulkan-1.lib` import libs from Vulkan
+  SDK 1.4.350.0 (licenses vendored). Engine-owned backend registry: SDL3
+  platform attach (engine `SDL_Window` + event forwarding), Vulkan
+  renderer attach (engine instance/device/queue/descriptor pool/render
+  pass), frame/draw-data/render/shutdown. Missing handles reject typed;
+  dynamic rendering is the follow-up.
+- Conformance **11/11 x2** on v0.65.2 (`8bf3e185`), including the real
+  SDL3 hidden-window selftest (202 vertices / 327 indices / 1 cmd list)
+  and the Vulkan missing-handle guard. Build is self-contained
+  (`--cxx-standard 17 --link-path vendor/lib --link SDL3 --link
+  vulkan-1`); the only mechanical vendored edit is include normalization
+  (the link line has no `-I` passthrough). Docs updated: `package.xi`
+  0.4.0, SPEC provenance/interop, README, AUDIT, ROADMAP.
+- Publish request **`REL-20261027-2116-bindings`** (existing name; 0.4.0,
+  single tag `xiom-imgui/v0.4.0`, next eco batch). Wishlist
+  `REL-20261012-2012-engine-4` is **fixed**; engine can verify.
+- Remaining wishlist `REL-20261012-2012-engine-2` (mini-RHI compute/
+  indirect/timestamps/labels wrapper): the raw surface is 100% at
+  `xiom.vulkan 0.6.0` and the engine-facing wrapper was routed to the
+  OWNER mini-RHI extended wave (`REL-20261016-1341-engine-3` /
+  `-1347-bindings`), so no bindings work is outstanding; the item stays
+  acked with that routing on record.
+- Relay validate green (999); lane validate 579/0.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
