@@ -40,12 +40,12 @@ extern "C" {
 
 extern "C" {
   fn fopen(path: *UInt8, mode: *UInt8) -> *UInt8;
-  fn fclose(file: *UInt8) -> Int;
-  fn fread(buf: *UInt8, size: Int, count: Int, file: *UInt8) -> Int;
-  fn fwrite(buf: *UInt8, size: Int, count: Int, file: *UInt8) -> Int;
-  fn fseek(file: *UInt8, offset: Int, whence: Int) -> Int;
-  fn ftell(file: *UInt8) -> Int;
-  fn remove(path: *UInt8) -> Int;
+  fn fclose(file: *UInt8) -> Int32;
+  fn fread(buf: *UInt8, size: UInt64, count: UInt64, file: *UInt8) -> UInt64;
+  fn fwrite(buf: *UInt8, size: UInt64, count: UInt64, file: *UInt8) -> UInt64;
+  fn fseek(file: *UInt8, offset: Int64, whence: Int32) -> Int32;
+  fn ftell(file: *UInt8) -> Int64;
+  fn remove(path: *UInt8) -> Int32;
 }
 
 // --- Types ------------------------------------------------------------------
@@ -390,9 +390,9 @@ fn read_file_to_str(file: *UInt8) -> Str
   ensures: result.len() <= 196608;
 {
   var file_size: Int;
-  unsafe { let _ = fseek(file, 0, SEEK_END()); }
-  unsafe { file_size = ftell(file); }
-  unsafe { let _ = fseek(file, 0, SEEK_SET()); }
+  unsafe { let _ = fseek(file, 0 as Int64, SEEK_END() as Int32); }
+  unsafe { file_size = ftell(file) as Int; }
+  unsafe { let _ = fseek(file, 0 as Int64, SEEK_SET() as Int32); }
 
   if file_size <= 0 {
     return "";
@@ -404,7 +404,7 @@ fn read_file_to_str(file: *UInt8) -> Str
     return "";
   };
 
-  var read_count: Int = unsafe { fread(buf, 1, file_size, file) };
+  var read_count: Int = unsafe { fread(buf, 1 as UInt64, file_size as UInt64, file) as Int };
   var term: Int = read_count;
   if term < 0 { term = 0; };
   if term > file_size { term = file_size; };
