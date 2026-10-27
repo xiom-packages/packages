@@ -1,17 +1,17 @@
 {
     "package":  "xiom.imgui",
     "stage":  "incubating",
-    "compiler":  "v0.65.1",
+    "compiler":  "v0.65.2",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  7,
+                  "passed":  11,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "05c30982",
-                  "checked":  "2026-10-11T17:51:52Z"
+                  "run_by":  "bindings-session",
+                  "commit":  "8bf3e185",
+                  "checked":  "2026-10-27T21:16:06Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.156 (2026-10-11; 0.2.0 in eco-v0.1.123)"
+    "excluded_reason":  "0.4.0 (SDL3 platform + Vulkan renderer backends) publish requested; 11/11 x2 on v0.65.2; previous 0.3.0 published in eco-v0.1.123 (sha256 4d016de5...)"
 }

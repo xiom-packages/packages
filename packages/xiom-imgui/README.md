@@ -1,14 +1,15 @@
 # xiom.imgui
 
-Dear ImGui v1.92.9b bindings for XIOM. The upstream core and its headless
-null backends are vendored into `vendor/` (MIT) and compiled into the test
-binary with `--c-source` -- no precompiled objects, no SDK, no graphics
-backend needed.
+Dear ImGui v1.92.9b bindings for XIOM. The upstream core, its headless
+null backends, and the SDL3 platform + Vulkan renderer backends are
+vendored into `vendor/` (MIT) and compiled into the test binary with
+`--c-source` -- no precompiled objects. The SDL3 and Vulkan-Headers trees
+plus the import libs come from Vulkan SDK 1.4.350.0 (SDL 3.4.8); the
+runtime needs `SDL3.dll` and `vulkan-1.dll`, no SDK at run time.
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
-> v0.64.3; native 7/7 x2; 0.3.0 adds long-lived context handles +
-> side-effect-free runs). 0.2.0 shipped in `eco-v0.1.123` (sha256
-> `4d016de5...`); 0.3.0 published in `eco-v0.1.156` (sha256 `1a7feb3d...`).
+> v0.65.2; 11/11). 0.3.0 is published in `eco-v0.1.123` (sha256
+> `4d016de5...`); 0.4.0 (backends) is publish-requested.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -34,9 +35,31 @@ fn main() {
 | Version | `imgui_version` (packed, 19291), `imgui_version_str` ("1.92.9b") |
 | Frames | `imgui_frame` -> `ImguiFrameStats` (vertices/indices/cmd_lists), `imgui_empty_frame` -> cmd_lists |
 | Contexts | `imgui_context_create(width, height)` -> handle (<=4 live), `imgui_context_frame(handle)` -> stats, `imgui_context_destroy(handle)`, `imgui_context_count`, `imgui_context_frames` |
+| Backends (0.4.0) | `imgui_backend_create` -> handle (<=2 live), `imgui_backend_sdl3_init(handle, window, for_vulkan)`, `imgui_backend_sdl3_process_event(handle, event_ptr)`, `imgui_backend_vulkan_init(handle, instance, phys, device, queue, family, pool, render_pass, api_version, min_images, images, msaa, subpass)`, `imgui_backend_frame(handle)` -> stats, `imgui_backend_draw_data`, `imgui_backend_vulkan_render(handle, draw_data, cmd)`, `imgui_backend_shutdown`, `imgui_backend_sdl3_selftest`, `imgui_backend_last_error` |
 
 Full details: `SPEC.md`; vendored provenance + per-file pin: `SPEC.md` §2.
-Widgets/windows/tables wrappers and GLFW/Vulkan backends are Phase 3
+
+### Backend interop (engine-owned)
+
+The engine keeps ownership of every object; the bridge only consumes
+handles:
+
+- **Platform**: `imgui_backend_sdl3_init(handle, sdl_window, true)` for the
+  Vulkan renderer, or `false` for `InitForOther`. Feed events with
+  `imgui_backend_sdl3_process_event` (pointer to the `SDL_Event` you got
+  from `SDL_PollEvent`).
+- **Renderer**: `imgui_backend_vulkan_init` needs the engine's
+  `VkInstance`, physical device, `VkDevice`, `VkQueue`, queue family,
+  `VkDescriptorPool` and `VkRenderPass` (a real render pass; dynamic
+  rendering is a follow-up), plus the image counts, MSAA sample count and
+  subpass. The pool must meet imgui's minimum sampled-image + sampler
+  descriptors.
+- Record the frame into your command buffer with
+  `imgui_backend_vulkan_render(handle, imgui_backend_draw_data(handle), cmd)`.
+- A renderer backend is required for drawing; the platform-only selftest
+  pairs SDL3 with the vendored null renderer.
+
+Widgets/windows/tables wrappers and the GLFW backend remain Phase 3
 (`ROADMAP.md`).
 
 ## Tests
@@ -45,6 +68,8 @@ Widgets/windows/tables wrappers and GLFW/Vulkan backends are Phase 3
 scripts/port.ps1 -Package xiom.imgui
 ```
 
-Expected: 7 `[PASS]`, exit 0. The suite drives real headless frames and
-checks the tessellation output plus the long-lived context-handle lifecycle,
-not only symbol resolution.
+Expected: 11 `[PASS]`, exit 0. The suite drives real headless frames,
+checks the long-lived context-handle lifecycle, runs the real SDL3 platform
+backend against a hidden window (SKIP when the host has no video driver),
+and verifies the Vulkan backend rejects missing engine handles without
+crashing -- not only symbol resolution.
