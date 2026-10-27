@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  19,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "d6a67a4f",
-                  "checked":  "2026-10-26T19:57:43Z"
+                  "run_by":  "native-session",
+                  "commit":  "1a31863c",
+                  "checked":  "2026-10-27T19:40:38Z"
               },
     "publish":  false,
     "excluded_reason":  "PUBLISHED 2026-10-25 as single tag xiom-micropython/v0.1.0; sha256 c25c20140ca2200369b321be3e4dfde83a7e3881791f7f047f5ca4c73c4f5a46; allowlist 576 -> 579; registry live-verified; re-verified x2 19/19 on v0.65.1 (tree d6a67a4f)"

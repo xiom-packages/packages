@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  122,
                   "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "d6a67a4f",
-                  "checked":  "2026-10-26T19:57:43Z"
+                  "run_by":  "native-session",
+                  "commit":  "1a31863c",
+                  "checked":  "2026-10-27T19:40:36Z"
               },
     "publish":  false,
     "excluded_reason":  "PUBLISHED 2026-10-25 as single tag xiom-firmata/v0.1.0; sha256 15223e055d64a7cd12fbf6508eeac3a49db0be7f78235bb5b785e9390e08c246; allowlist 576 -> 579; registry live-verified; re-verified x2 122/122 on v0.65.1 (tree d6a67a4f)"
