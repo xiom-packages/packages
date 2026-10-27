@@ -2678,6 +2678,24 @@ pending)**:
   micropython 19/19, uf2 62/62, epos 29/29; records updated.
 - Bindings verdicts filed in `compiler-compiler-v0.65.1.md`.
 
+**UPDATE 2026-10-27 19:15Z (doorbell -- `%LOCALAPPDATA%\xiom` left
+partial; resolver fell through to unreleased 0.65.2; repaired)**:
+- A concurrent install/swap left `%LOCALAPPDATA%\xiom` with only
+  `bin\{vcruntime140.dll,xiom-lsp.exe}` and no `lib`. With no valid
+  installed candidate, `scripts\xiom.ps1 -Info` fell through to
+  `E:\xiom-lang\xiom\target\release\xiom.exe` = **0.65.2
+  (repo-release)** while the pin was v0.65.1 -- an unreleased local
+  build. No suites were run in that state.
+- Repaired in place from `%LOCALAPPDATA%\xiom.new` (v0.65.1;
+  `lib/package.xi` 0.65.1), package store preserved (11); the running
+  `xiom-lsp.exe` + its `vcruntime140.dll` were left alone. Resolver now
+  reports **0.65.1 (installed)**.
+- Full verified copy kept at
+  `%LOCALAPPDATA%\xiom-v0.65.1-verified-20261027`; fleet info item
+  filed for the fallback hazard (`REL-20261027-1901-bindings`).
+- Relay green (981 before this note); pin + 579 records = v0.65.1;
+  lane validate 579/0.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
