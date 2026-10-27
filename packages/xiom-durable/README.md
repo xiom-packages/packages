@@ -3,7 +3,7 @@
 > **Status:** `incubating` -- conformance **152/152 x2** on v0.65.2
 > (2026-10-27; the `xiom.wal` 0.1.1 dep root resolves from the installed
 > store). 0.1.0 was published in `eco-v0.1.183` (`9a5c9b4d...`); 0.1.1 is
-> being published as the single tag `xiom-durable/v0.1.1`.
+> live as the single tag `xiom-durable/v0.1.1` (sha256 `e157f4c9...`).
 > **Deps:** `xiom.std`, `xiom.wal` `0.1.1` (single WAL home; real fsync).
 > **Scope:** shared durable-systems substrate -- config, errors, IDs, limits,
 > metrics, storage pages, and transaction bookkeeping -- for `xiom-db` and
