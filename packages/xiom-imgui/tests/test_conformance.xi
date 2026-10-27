@@ -127,6 +127,41 @@ fn main() -> Int {
       && d2 && !d3 && imgui_context_count() == 0,
     "context: destroy h1 -> count 1; h2 frames; destroy h2 -> count 0; double-destroy false");
 
+  // 8. 0.4.0 SDL3 platform backend: hidden window + real frames.
+  if imgui_backend_sdl3_available() {
+    let s = imgui_backend_sdl3_selftest();
+    if s.is_ok {
+      failed = failed + report(s.value.vertices > 0 && s.value.indices > 0 && s.value.cmd_lists >= 1,
+        "backend: SDL3 platform selftest vertices=" + i2s(s.value.vertices)
+          + " indices=" + i2s(s.value.indices) + " cmd_lists=" + i2s(s.value.cmd_lists));
+    } else {
+      failed = failed + report(false, "backend: SDL3 selftest " + s.error);
+    }
+  } else {
+    failed = failed + report(true, "backend: SDL3 platform SKIP -- no video driver");
+  }
+
+  // 9. Backend context registry (separate from the null-backend contexts).
+  let b = imgui_backend_create();
+  var bh: Int = 0;
+  if b.is_ok { bh = b.value; }
+  failed = failed + report(b.is_ok && bh != 0 && imgui_backend_count() == 1
+      && imgui_backend_frames(bh) == 0,
+    "backend: create handle=" + i2s(bh) + " count=" + i2s(imgui_backend_count()));
+
+  // 10. Missing engine handles fail typed (no crash): SDL window and the
+  //     Vulkan instance/device/render-pass set.
+  let sbad = imgui_backend_sdl3_init(bh, 0, false);
+  let vbad = imgui_backend_vulkan_init(bh, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  let ddata = imgui_backend_draw_data(bh);
+  failed = failed + report(!sbad.is_ok && !vbad.is_ok && ddata == 0,
+    "backend: missing SDL window / Vulkan handles rejected typed (no crash)");
+
+  // 11. Shutdown semantics: handle gone, double-shutdown false.
+  let bd = imgui_backend_shutdown(bh);
+  failed = failed + report(bd && imgui_backend_count() == 0 && !imgui_backend_shutdown(bh),
+    "backend: shutdown -> count 0; double-shutdown false");
+
   if failed == 0 {
     io.println("xiom.imgui: all tests passed");
   } else {
