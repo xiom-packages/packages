@@ -1,5 +1,10 @@
 # Compiler defect: Vec inside a cross-module Result tuple
 
+**STATUS: FIXED in v0.65.2.** The nested/tuple payload codegen defect no longer
+reproduces (`tests/probe_vec_in_tuple_*.xi` -> `len=2`). The package keeps the
+n x 1 `Matrix` pivot return for API compatibility; the probes remain as
+regression witnesses. A `Vec[Int]` pivot variant is a future-major option.
+
 Observed on XIOM **v0.64.9** (installed toolchain, Windows x86_64) while adding
 `lu_factor`.
 

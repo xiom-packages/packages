@@ -20,7 +20,7 @@ arm always matches and its payload is read from the wrong slot (observed as
 Minimized probe: `docs/probe_match_result_enum_defect.xi` (expected exit 1 on
 v0.64.9; the two-level control passes).
 
-**Workaround (used by 0.1.10):** match the `Result` first, then the enum:
+**Workaround (shipped in 0.1.10):** match the `Result` first, then the enum:
 
 ```xiom
 match result {
@@ -34,5 +34,9 @@ match result {
 
 Affected code in 0.1.10: `http_request_with_options`,
 `session_request_with_options`, `http_request_bytes_with_options`, and
-`tests/probe_root_module.xi` all use the two-level form. Do not "simplify"
-these back to one level until the compiler is fixed.
+`tests/probe_root_module.xi` used the two-level form.
+
+**Status on v0.65.2: FIXED.** The tree now matches
+`Err(E.A(v))` / `Err(E.B(v))` directly again (the workaround is retired);
+the three functions above were converted back. Keep
+`docs/probe_match_result_enum_defect.xi` as the regression witness.

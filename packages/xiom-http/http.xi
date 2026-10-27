@@ -1009,15 +1009,11 @@ pub fn http_request_with_options(url: Str, method: Str, body: Str, headers: Str,
   var total_ms: Int = opts.total_ms;
   var checked = options.validate_request_options(&opts);
   match checked {
-    Err(e) => {
-      match e {
-        HttpRequestOptionError.ConnectTimeoutNegative(_) => {
-          return Err(HttpOptionsRequestError.ConnectTimeoutNegative(connect_ms));
-        },
-        HttpRequestOptionError.TotalTimeoutNegative(_) => {
-          return Err(HttpOptionsRequestError.TotalTimeoutNegative(total_ms));
-        },
-      };
+    Err(HttpRequestOptionError.ConnectTimeoutNegative(_)) => {
+      return Err(HttpOptionsRequestError.ConnectTimeoutNegative(connect_ms));
+    },
+    Err(HttpRequestOptionError.TotalTimeoutNegative(_)) => {
+      return Err(HttpOptionsRequestError.TotalTimeoutNegative(total_ms));
     },
     Ok(_) => {
       match http_request_core(url, method, body, headers, opts) {
@@ -1147,15 +1143,11 @@ pub fn session_request_with_options(session: &HttpClientSession, url: Str, metho
   var total_ms: Int = opts.total_ms;
   var checked = options.validate_request_options(&opts);
   match checked {
-    Err(e) => {
-      match e {
-        HttpRequestOptionError.ConnectTimeoutNegative(_) => {
-          return Err(HttpOptionsRequestError.ConnectTimeoutNegative(connect_ms));
-        },
-        HttpRequestOptionError.TotalTimeoutNegative(_) => {
-          return Err(HttpOptionsRequestError.TotalTimeoutNegative(total_ms));
-        },
-      };
+    Err(HttpRequestOptionError.ConnectTimeoutNegative(_)) => {
+      return Err(HttpOptionsRequestError.ConnectTimeoutNegative(connect_ms));
+    },
+    Err(HttpRequestOptionError.TotalTimeoutNegative(_)) => {
+      return Err(HttpOptionsRequestError.TotalTimeoutNegative(total_ms));
     },
     Ok(_) => {
       match session_request_core(session, url, method, body, headers, opts) {
@@ -1280,15 +1272,11 @@ pub fn http_request_bytes_with_options(url: Str, method: Str, body: Vec[UInt8], 
     Ok(request_body) => {
       var valid = options.validate_request_options(&opts);
       match valid {
-        Err(e) => {
-          match e {
-            HttpRequestOptionError.ConnectTimeoutNegative(_) => {
-              return Err(HttpBytesRequestError.InvalidConnectTimeout(opts.connect_ms));
-            },
-            HttpRequestOptionError.TotalTimeoutNegative(_) => {
-              return Err(HttpBytesRequestError.InvalidTotalTimeout(opts.total_ms));
-            },
-          };
+        Err(HttpRequestOptionError.ConnectTimeoutNegative(_)) => {
+          return Err(HttpBytesRequestError.InvalidConnectTimeout(opts.connect_ms));
+        },
+        Err(HttpRequestOptionError.TotalTimeoutNegative(_)) => {
+          return Err(HttpBytesRequestError.InvalidTotalTimeout(opts.total_ms));
         },
         Ok(_) => {
           match http_request_bytes_raw(url, method, request_body.bytes, request_body.content_length, headers, opts) {

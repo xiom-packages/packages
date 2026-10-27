@@ -839,10 +839,11 @@ it. The one-shot API remains one-handle-per-call.
   two session requests create no second handle and clean up only at
   `session_close`, custom timeouts 1234 / 5678 reach the bridge, defaults are
   10000 / 30000, and invalid timeouts are rejected before any handle exists.
-- Compiler defect v0.64.9: direct `Err(Enum.Variant(..))` patterns are
-  miscompiled (the first `Err` arm always wins). `docs/COMPILER-DEFECTS.md`
-  documents the two-level workaround;
-  `docs/probe_match_result_enum_defect.xi` is the minimized reproducer.
+- Compiler defect v0.64.9: direct `Err(Enum.Variant(..))` patterns were
+  miscompiled (the first `Err` arm won). Fixed in v0.65.2; the 0.1.10
+  two-level workaround is retired in the tree. `docs/COMPILER-DEFECTS.md`
+  records the history; `docs/probe_match_result_enum_defect.xi` is the
+  minimized reproducer/regression witness.
 
 ### Deliberately not in 0.1.10
 

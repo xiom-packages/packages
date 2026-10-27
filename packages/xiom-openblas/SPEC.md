@@ -204,7 +204,7 @@ pub fn cholesky_solve(L: &Matrix, b: &Vec[Float64]) -> Result[Matrix, Str]
 |------|--------|--------|
 | LU | `lu_factor(A) -> (LU, piv)` calls `dgetrf_` on the real leg; partial-pivoting reference loops offline | Packed L/U layout and 1-based pivot indices; `P*A = L*U` |
 | LU solve | `lu_solve(LU, piv, b)` calls `dgetrs_` (`trans='N'`) on the real leg; forward/back substitution offline | Reuses the factor, no refactorization |
-| Pivot return | `piv` is an n x 1 `Matrix` of exact 1-based Float64 integers, not `Vec[Int]` | Compiler defect: a `Vec` inside a cross-module `Result[(nominal, Vec[Int]), Str]` loses its contents (see `docs/COMPILER-DEFECT-vec-tuple.md`) |
+| Pivot return | `piv` is an n x 1 `Matrix` of exact 1-based Float64 integers, not `Vec[Int]` | Compiler defect (FIXED in v0.65.2): a `Vec` inside a cross-module `Result[(nominal, Vec[Int]), Str]` lost its contents (see `docs/COMPILER-DEFECT-vec-tuple.md`). The `Matrix` return is retained for API compatibility; a `Vec[Int]` variant is a future-major option |
 | QR | `qr(A) -> (Q, R)` calls `dgeqrf_` then `dorgqr_` (both workspace-queried) on the real leg; modified Gram-Schmidt offline | Reduced/economy shapes Q (m x k), R (k x n), `A = Q*R` |
 | Cholesky | `cholesky(A) -> L` calls `dpotrf_` (`uplo='L'`) on the real leg; Cholesky-Crout offline | Returns the lower factor, `A = L*L^T`; `info > 0` -> non-SPD `Err` |
 | Cholesky solve | `cholesky_solve(L, b)` calls `dpotrs_` (`uplo='L'`) on the real leg; forward/back substitution offline | Reuses the factor |

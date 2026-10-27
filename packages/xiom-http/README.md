@@ -277,9 +277,10 @@ their exact per-call handle lifecycle.
   `probe_root_module` bridge exposes handle-init, cleanup, and timeout-option
   snapshots; it proves two session requests create one handle, cleanup happens
   only at `session_close`, and custom/default milliseconds reach the bridge.
-- Compiler note: v0.64.9 miscompiles direct `Err(Enum.Variant(..))` patterns.
-  The new code uses two-level matching; see `docs/COMPILER-DEFECTS.md` and
-  `docs/probe_match_result_enum_defect.xi`.
+- Compiler note: v0.64.9 miscompiled direct `Err(Enum.Variant(..))` patterns;
+  0.1.10 shipped a two-level match workaround. Fixed in v0.65.2 -- the tree now
+  uses direct nested patterns again (`docs/COMPILER-DEFECTS.md`;
+  `docs/probe_match_result_enum_defect.xi` remains the regression witness).
 
 ## Contracts and tests
 

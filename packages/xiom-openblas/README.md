@@ -65,7 +65,7 @@ on 2026-10-22 with the Phase 2 LU/QR/Cholesky surface:
 | `tests/test_conformance.xi` | 71 conformance checks; leg-aware LAPACK accuracy (SVD/eigen/solve + LU/QR/Cholesky) and Float32 assertions |
 | `tests/run_real_leg.ps1` | Real linked leg: discovery, PATH, link, 2x run + PASS/FAIL gate |
 | `tests/probe_real_openblas.xi` + `tests/probe_openblas_shim.c` | Legacy SKIP-safe runtime probe |
-| `docs/COMPILER-DEFECT-vec-tuple.md` + `tests/probe_vec_in_tuple_*.xi` | Minimized v0.64.9 defect: a Vec in a cross-module Result tuple loses its contents (workaround: pivot matrix) |
+| `docs/COMPILER-DEFECT-vec-tuple.md` + `tests/probe_vec_in_tuple_*.xi` | Minimized v0.64.9 defect: a Vec in a cross-module Result tuple lost its contents -- FIXED in v0.65.2; the pivot-matrix return is retained for API compatibility |
 | `PROVENANCE.md` | OpenBLAS pin, license, checksums, LP64/Int32 evidence |
 
 ## Integration notes

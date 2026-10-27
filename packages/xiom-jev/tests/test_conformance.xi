@@ -1797,39 +1797,27 @@ fn batch_err(e: JevError) -> Result[Str, JevError] {
 
 // Compiler v0.64.8 loses the Err Str payload (and can perturb order) when a
 // directly-constructed Err is passed straight to Vec.push
-// (docs/repro/batch_result_vec_push.xi). Binding each Result to a local
-// before pushing preserves both order and payload, so the mixed fixtures
-// build their elements as locals here; all-Ok/all-Err/size-1 cases use the
-// same helper-returned Result pattern.
+// (docs/repro/batch_result_vec_push.xi). Compiler v0.65.2 fixes the direct
+// Err-push payload/order loss, so the fixtures push helper-returned Results
+// straight into the Vec again (the local-bind workaround is retired).
 fn batch_outcome_mixed() -> BatchOutcome {
   var v: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
-  let r0: Result[Str, JevError] = Ok("s0");
-  let r1: Result[Str, JevError] = batch_err(JevError.BadRequest("e1"));
-  let r2: Result[Str, JevError] = Ok("s2");
-  let r3: Result[Str, JevError] = batch_err(JevError.HttpStatus(503, "e3"));
-  let r4: Result[Str, JevError] = batch_err(JevError.Parse("e4"));
-  v.push(r0);
-  v.push(r1);
-  v.push(r2);
-  v.push(r3);
-  v.push(r4);
+  v.push(Ok("s0"));
+  v.push(batch_err(JevError.BadRequest("e1")));
+  v.push(Ok("s2"));
+  v.push(batch_err(JevError.HttpStatus(503, "e3")));
+  v.push(batch_err(JevError.Parse("e4")));
   return batch.batch_collect(&v);
 }
 
 fn batch_outcome_alternating() -> BatchOutcome {
   var v: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
-  let r0: Result[Str, JevError] = Ok("a0");
-  let r1: Result[Str, JevError] = batch_err(JevError.Parse("b1"));
-  let r2: Result[Str, JevError] = Ok("a2");
-  let r3: Result[Str, JevError] = batch_err(JevError.Parse("b3"));
-  let r4: Result[Str, JevError] = Ok("a4");
-  let r5: Result[Str, JevError] = batch_err(JevError.Parse("b5"));
-  v.push(r0);
-  v.push(r1);
-  v.push(r2);
-  v.push(r3);
-  v.push(r4);
-  v.push(r5);
+  v.push(Ok("a0"));
+  v.push(batch_err(JevError.Parse("b1")));
+  v.push(Ok("a2"));
+  v.push(batch_err(JevError.Parse("b3")));
+  v.push(Ok("a4"));
+  v.push(batch_err(JevError.Parse("b5")));
   return batch.batch_collect(&v);
 }
 
@@ -1858,12 +1846,9 @@ fn t53() -> Int {
 
   // All failure: every typed error payload is preserved, ok is false.
   var all_err: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
-  let ae0: Result[Str, JevError] = batch_err(JevError.BadRequest("bad-a"));
-  let ae1: Result[Str, JevError] = batch_err(JevError.Transport("down-b"));
-  let ae2: Result[Str, JevError] = batch_err(JevError.HttpStatus(503, "busy-c"));
-  all_err.push(ae0);
-  all_err.push(ae1);
-  all_err.push(ae2);
+  all_err.push(batch_err(JevError.BadRequest("bad-a")));
+  all_err.push(batch_err(JevError.Transport("down-b")));
+  all_err.push(batch_err(JevError.HttpStatus(503, "busy-c")));
   let ae: BatchOutcome = batch.batch_collect(&all_err);
   failed = failed + report(!ae.ok, "batch: all failure is not ok");
   failed = failed + report(ae.successes.len() == 0, "batch: all failure has no successes");
@@ -1915,8 +1900,7 @@ fn t53() -> Int {
   failed = failed + report(oo.successes[0].index == 0 && str_eq(oo.successes[0].value, "only"), "batch: size-1 success pinned");
 
   var one_err: Vec[Result[Str, JevError]] = Vec[Result[Str, JevError]].new();
-  let oe0: Result[Str, JevError] = batch_err(JevError.Transport("solo"));
-  one_err.push(oe0);
+  one_err.push(batch_err(JevError.Transport("solo")));
   let oe: BatchOutcome = batch.batch_collect(&one_err);
   failed = failed + report(!oe.ok && oe.successes.len() == 0 && oe.failures.len() == 1, "batch: size-1 failure shape");
   let of0: BatchFailure = oe.failures[0];

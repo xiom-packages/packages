@@ -21,11 +21,10 @@
 // move between vectors; a failure preserves its exact typed JevError payload.
 //
 // Compiler note: batch_collect assumes the caller's input Vec already holds
-// items in caller order. Compiler v0.64.8 loses the Err Str payload (and can
-// perturb order) when a directly-constructed Err is passed straight to
-// Vec.push; the probe under docs/repro/batch_result_vec_push.xi isolates it.
-// Binding each Result returned by a call to a local before pushing preserves
-// the exact payload and order, which is what the conformance fixtures do.
+// items in caller order. Compiler v0.64.8 lost the Err Str payload (and could
+// perturb order) when a directly-constructed Err was passed straight to
+// Vec.push (probe: docs/repro/batch_result_vec_push.xi); fixed in v0.65.2, so
+// callers may push Results directly -- the local-bind workaround is retired.
 
 module xiom.jev.batch
 
