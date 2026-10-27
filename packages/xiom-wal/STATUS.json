@@ -13,5 +13,5 @@
                   "checked":  "2026-10-27T21:06:31Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: 0.1.1 real fsync in wal_flush (wishlist -1128-orbitdb-2)"
+    "excluded_reason":  "published 2026-10-27 (single tag xiom-wal/v0.1.1; sha256 46f2e668...)"
 }
