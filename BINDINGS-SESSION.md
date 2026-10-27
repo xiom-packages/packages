@@ -2619,6 +2619,65 @@ and .9 data-loss cluster GREEN; .9 HOLD closed)**:
   scope `REL-20261024-0020-packages` still **OPEN** with ops; epos
   unchanged; no new asks to bindings.
 
+**UPDATE 2026-10-25 14:55Z (MCU Phase-1 PUBLISHED; epos request filed)**:
+- **MCU trio LIVE**: `xiom.firmata 0.1.0` sha256 `15223e05...`,
+  `xiom.micropython 0.1.0` sha256 `c25c2014...`,
+  `xiom.uf2 0.1.0` sha256 `065b895c...`; allowlist **576 -> 579**;
+  registry live-verified; runs 40200865535 / 40200865254 / 40200865200;
+  docs sync `ca5168ba`; scope LIVE 13:27Z (eco-release 575 -> 578).
+  The three STATUS records now carry the live shas; the request item
+  `REL-20261023-2344-bindings` is closed as delivered.
+- **epos 0.1.0** publish request filed as
+  **`REL-20261025-1453-bindings`** (bindings -> packages, high); the
+  scope has been LIVE @574 since 2026-10-19 and the suite is 29/29 x2
+  on v0.65.0; the MCU batch shipped without it. This is now the only
+  bindings package awaiting publish.
+- Relay validate green (935 items); pin + slot **v0.65.0**; lane
+  validate **579/0**.
+
+**UPDATE 2026-10-26 19:05Z (epos confirmed LIVE -- no bindings publishes
+pending)**:
+- `xiom.epos 0.1.0` is LIVE on the registry since 2026-10-21 (single
+  tag `xiom-epos/v0.1.0`, sha256 `b5a565de...`; registry latest 0.1.0;
+  allowlist entry present). The 2026-10-25 publish request
+  (`REL-20261025-1453-bindings`) was closed as a **duplicate** by
+  packages -- its premise (no registry entry) was stale. The epos
+  STATUS record is corrected to published; suite re-verified 29/29 x2
+  on v0.65.0.
+- **No bindings publishes remain pending**: the MCU trio went live
+  2026-10-25 and epos was already live.
+- Relay validate green (**961 items**); pin + slot **v0.65.0**; lane
+  validate **579/0**. Watch item: stdlib 0.65.1 is live (compiler
+  `v0.64.8` field) -- it does not change the compiler pin; v0.65.0
+  stays production until a compiler release passes its gate + owner GO.
+
+**UPDATE 2026-10-26 20:10Z (v0.65.1 ADOPTED -- slot moved to
+`%LOCALAPPDATA%\xiom`; owns_return leak gate green)**:
+- v0.65.1 is PRODUCTION (owner GO; `docs/RELEASE_GATE_v0.65.1.md`).
+  Tag `v0.65.1` (annotated `c4329915`) on `f2c01cf9c`; release run
+  40388025015 with 11 assets + SHA256SUMS (windows zip `69de1e27...`);
+  CI 40385480182; dry-run 40387243828; e2e 2647/2647; registry
+  `xiom-std 0.65.1` signed.
+- **Slot convention changed by the fleet**: PATH + the installer now use
+  `%LOCALAPPDATA%\xiom` (proper bin/lib v0.65.1). The fleet swap briefly
+  flattened `%LOCALAPPDATA%\xiom.new` and wiped the shared package store;
+  both were repaired -- both roots now report v0.65.1 and the store is
+  restored to 11 packages (incl. sdl3 0.21.0, stb, vulkan, harfbuzz,
+  fontraster 0.1.1). The old versioned slot backups were removed by that
+  swap. The lane resolver uses `xiom` (verified `XIOM Compiler v0.65.1`);
+  `COMPILER_VERSION` + **579 records** = v0.65.1; validate **579/0**.
+- Archive verified independently: windows zip checksum match; lib
+  `package.xi` 0.65.1; C07 helper + freestanding present.
+- Slot sanity: sqlite **21/21** nested, sdl3 **81/81**, nvenc **67/67**
+  live.
+- Acceptance: m1615 ok; m372/1451 `nested=42 local=42`; true 1550 ok;
+  m1520 ok; m1827 Err(Str) ok, Err(Enum) ok, Vec-in-tuple ok;
+  nested-payload `failures=0`; B-34 witness exit 1 (fixed shape);
+  enum-payload `bad=0`; **new `ffi_owns_return_leak` gate exit 0**.
+- Published packages re-verified x2 on v0.65.1: firmata 122/122,
+  micropython 19/19, uf2 62/62, epos 29/29; records updated.
+- Bindings verdicts filed in `compiler-compiler-v0.65.1.md`.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
