@@ -5,21 +5,21 @@ Full API reference for the XIOM shared durable-systems substrate. xiom.durable i
 ## Dependencies and the single WAL home
 
 - `xiom.std` -- standard library (platform dependency).
-- `xiom.wal` `0.1.0` -- **the single WAL home** (extracted 2026-10-09, published
-  `eco-v0.1.121`). The WAL vocabulary and disk layer (`WalOpKind`, `WalRecord`,
+- `xiom.wal` `0.1.1` -- **the single WAL home** (0.1.0 extracted 2026-10-09,
+  published `eco-v0.1.121`; 0.1.1 adds the real fsync). The WAL vocabulary and disk layer (`WalOpKind`, `WalRecord`,
   `WalLsn`, `Checkpoint`, `WalWriter`, `wal_read_all` / `wal_read_from`,
   `RecoveryResult` / `recovery_scan`, plus the disk
   `wal_open` / `wal_append` / `wal_flush` / `wal_replay` / `wal_truncate`) lives
   in the standalone `xiom.wal` package. durable no longer carries `src/wal/*`;
   names and types carried over unchanged, so call sites are identical to the old
   `xiom.durable.wal.*` modules.
-- `xiom.toml` (compiler manifest) declares `xiom.wal = "0.1.0"` so the v0.64.2
+- `xiom.toml` (compiler manifest) declares `xiom.wal = "0.1.1"` so the
   dependency-root resolver adds the installed package's source roots to the
   module catalog; `package.xi` carries the same dep for the registry/packaging
   lane.
-- Durability honesty (from the xiom.wal README): `wal_flush` is an honest no-op
-  until the stdlib fsync row lands -- crash-consistent (torn-tail healing,
-  malformed lines skipped on replay), not yet power-loss durable.
+- Durability (from the xiom.wal README): `wal_flush` performs a real fsync
+  (stdlib wave 115); appends are path-based, so call it for the
+  stable-storage barrier. Torn-tail healing keeps the log crash-consistent.
 
 ## Architecture
 

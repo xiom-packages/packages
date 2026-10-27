@@ -1,10 +1,10 @@
 # xiom.durable
 
-> **Status:** `incubating` -- conformance green on the pin (v0.64.5):
-> **PASS 152/152 x2** (last run 2026-10-15; harness uses
-> `XIOM_HOME=%TEMP%\kilo\consumer-home` so the `xiom.wal` dep root resolves).
-> Published in `eco-v0.1.183` (sha256 `9a5c9b4d...`).
-> **Deps:** `xiom.std`, `xiom.wal` `0.1.0` (single WAL home).
+> **Status:** `incubating` -- conformance **152/152 x2** on v0.65.2
+> (2026-10-27; the `xiom.wal` 0.1.1 dep root resolves from the installed
+> store). 0.1.0 was published in `eco-v0.1.183` (`9a5c9b4d...`); 0.1.1 is
+> being published as the single tag `xiom-durable/v0.1.1`.
+> **Deps:** `xiom.std`, `xiom.wal` `0.1.1` (single WAL home; real fsync).
 > **Scope:** shared durable-systems substrate -- config, errors, IDs, limits,
 > metrics, storage pages, and transaction bookkeeping -- for `xiom-db` and
 > `xiom-vector`.
@@ -21,13 +21,15 @@
 ## WAL reconciliation (2026-10-09)
 
 `src/wal/*` was deleted; the WAL vocabulary and disk layer are consumed from
-the published **`xiom.wal` 0.1.0** package (extracted `eco-v0.1.121`), imported
-as `use xiom.wal;`. Types and names are unchanged from the old
-`xiom.durable.wal.*` modules. `src/txn/*` and `src/storage/*` are kept.
+the published **`xiom.wal` 0.1.1** package (0.1.0 extracted `eco-v0.1.121`;
+0.1.1 adds the real fsync), imported as `use xiom.wal;`. Types and names are
+unchanged from the old `xiom.durable.wal.*` modules. `src/txn/*` and
+`src/storage/*` are kept.
 
-Durability honesty (from the xiom.wal README): `wal_flush` is an honest no-op
-until the stdlib fsync row lands -- crash-consistent (torn-tail healing,
-malformed lines skipped on replay), not yet power-loss durable.
+Durability (from the xiom.wal README): `wal_flush` performs a real fsync
+(stdlib wave 115); appends stay path-based, so call `wal_flush` for the
+stable-storage barrier. Torn-tail healing keeps the log crash-consistent
+regardless of the flush.
 
 ## Consumer snippet
 
