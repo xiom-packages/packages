@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  81,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "5d2a0e9d",
-                  "checked":  "2026-10-22T09:01:39Z"
+                  "run_by":  "bindings-session",
+                  "commit":  "71a5975f",
+                  "checked":  "2026-10-27T19:41:28Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.202 (2026-10-22, 0.21.0 A14 UI platform; 0.20.0 in eco-v0.1.185; 0.19.0 in eco-v0.1.179)"
+    "excluded_reason":  "sanity on v0.65.2 (tree 71a5975f): A14 + full SDL3 surface 81/81"
 }

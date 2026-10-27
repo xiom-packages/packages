@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  62,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "1a31863c",
-                  "checked":  "2026-10-27T19:40:41Z"
+                  "run_by":  "bindings-session",
+                  "commit":  "71a5975f",
+                  "checked":  "2026-10-27T19:41:19Z"
               },
     "publish":  false,
-    "excluded_reason":  "PUBLISHED 2026-10-25 as single tag xiom-uf2/v0.1.0; sha256 065b895ce0fc85aaba1f9d507a7b589a116e5a21c0c387f2e316c1675355c023; allowlist 576 -> 579; registry live-verified; re-verified x2 62/62 on v0.65.1 (tree d6a67a4f)"
+    "excluded_reason":  "PUBLISHED 2026-10-25 as single tag xiom-uf2/v0.1.0; sha256 065b895c...; allowlist 576 -> 579; registry live-verified; re-verified x2 62/62 on v0.65.2 (tree 71a5975f)"
 }

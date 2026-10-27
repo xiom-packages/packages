@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  67,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "38c41345",
-                  "checked":  "2026-10-17T17:29:37Z"
+                  "run_by":  "bindings-session",
+                  "commit":  "71a5975f",
+                  "checked":  "2026-10-27T19:41:28Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.197 (2026-10-17, 0.1.0; sha256 9ff4eb1d...)"
+    "excluded_reason":  "sanity on v0.65.2 (tree 71a5975f): NVENC/NVDEC live 67/67"
 }
