@@ -13,5 +13,5 @@
                   "checked":  "2026-10-27T23:19:42Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: 0.1.11 libc FFI widths for arm64 (REL-20261027-2041-pulse)"
+    "excluded_reason":  "published 2026-10-27 (single tag xiom-http/v0.1.11; sha256 fbf9056a...)"
 }

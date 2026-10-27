@@ -21,7 +21,11 @@ HTTP/1.1 types, request/response parsers, client helpers, and a (stub) server sh
 > transmit `Vec[UInt8]` bytes exactly (no UTF-8 re-encode, NUL-safe) with a
 > typed `HttpBytesRequestError`; the Str-body API is unchanged. Suite
 > **55/55 x2** on v0.64.6. Published in `eco-v0.1.195` (sha256
-> `f7b0c30f...`, 2026-10-17).
+> `f7b0c30f...`, 2026-10-17). 0.1.11: coherent libc FFI widths
+> (`fclose`/`remove` Int32, `fread`/`fwrite` UInt64, `fseek`
+> Int64/Int32, `ftell` Int64) fixing arm64 IR verification; suite
+> **60/60 x2** on v0.65.1. Published as a single tag `xiom-http/v0.1.11`
+> (sha256 `fbf9056a...`, 2026-10-27).
 
 ## Consumer quickstart (3 lines)
 
