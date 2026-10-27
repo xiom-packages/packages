@@ -5,7 +5,8 @@
 // OpenTelemetry trace model, OTLP/JSON encoder and sink seam, pure XIOM: no
 // FFI, no bridge C, no upstream OpenTelemetry code. Phase 1 of the PULSE
 // tracing-export decided direction: the core model + the OTLP/JSON encoder +
-// a sink/transport seam; HTTP transport stays caller-supplied.
+// a sink/transport seam; HTTP transport stays caller-supplied. 0.2.0 adds a
+// minimal deterministic OTLP/JSON gauge-metrics surface (model + encoder).
 //
 // xiom.std is the standard library: a platform dependency, excluded from the
 // registry install closure. The library modules import xiom.string,
@@ -14,10 +15,10 @@
 
 package xiom_otel {
   name: "xiom.otel";
-  version: "0.1.0";
-  description: "OpenTelemetry trace model + deterministic OTLP/JSON encoder and sink seam, pure XIOM (no FFI; transport stays caller-supplied)";
+  version: "0.2.0";
+  description: "OpenTelemetry trace model + deterministic OTLP/JSON encoder and sink seam, plus gauge metrics, pure XIOM (no FFI; transport stays caller-supplied)";
   categories: ["tooling", "data"];
-  keywords: ["opentelemetry", "otlp", "tracing", "spans", "observability", "exporter", "json"];
+  keywords: ["opentelemetry", "otlp", "tracing", "spans", "metrics", "gauges", "observability", "exporter", "json"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];

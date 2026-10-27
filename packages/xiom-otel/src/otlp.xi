@@ -5,7 +5,10 @@
 // Encodes a validated span batch + resource + scope into the OTLP/JSON wire
 // structure (ExportTraceServiceRequest): resourceSpans[].scopeSpans[].spans[]
 // with hex traceId/spanId, integer enum fields, fixed64 timestamps as decimal
-// strings, key/value attribute objects and the optional status object.
+// strings, key/value attribute objects and the optional status object. Also
+// encodes a validated gauge metrics batch (ExportMetricsServiceRequest):
+// resourceMetrics[].scopeMetrics[].metrics[] with one gauge data point per
+// point (asDouble, timeUnixNano as a decimal string, attributes).
 //
 // Built from the OpenTelemetry Protocol (OTLP) specification and its JSON
 // Protobuf Encoding section (hex trace/span ids, integer-only enum values,
@@ -254,6 +257,33 @@ fn _push_span(out: &mut Vec[UInt8], span: &OtelSpan) {
   builder.sb_push_byte(out, 125u8);
 }
 
+// One gauge data point. Key order matches the OTLP NumberDataPoint shape:
+// asDouble (finite, validated), timeUnixNano (fixed64 decimal string),
+// attributes (always emitted, insertion order).
+fn _push_gauge_point(out: &mut Vec[UInt8], point: &OtelGaugePoint) {
+  builder.sb_push_str(out, "{\"asDouble\":");
+  builder.sb_push_str(out, convert.float_to_string(point.value));
+  builder.sb_push_str(out, ",\"timeUnixNano\":\"");
+  _push_decimal(out, point.time_unix_nano);
+  builder.sb_push_str(out, "\",\"attributes\":");
+  _push_attribute_list(out, &point.attributes);
+  builder.sb_push_byte(out, 125u8);
+}
+
+// One metric entry (gauge with exactly one data point). Key order = proto
+// field-number order: name, description, unit, gauge.
+fn _push_metric(out: &mut Vec[UInt8], point: &OtelGaugePoint) {
+  builder.sb_push_str(out, "{\"name\":");
+  _push_json_string(out, point.name);
+  builder.sb_push_str(out, ",\"description\":");
+  _push_json_string(out, point.description);
+  builder.sb_push_str(out, ",\"unit\":");
+  _push_json_string(out, point.unit);
+  builder.sb_push_str(out, ",\"gauge\":{\"dataPoints\":[");
+  _push_gauge_point(out, point);
+  builder.sb_push_str(out, "]}}");
+}
+
 // ---------------------------------------------------------------------------
 // Public entry point
 // ---------------------------------------------------------------------------
@@ -289,6 +319,46 @@ pub fn otel_encode_json(spans_batch: &OtelSpanBatch, resource: &OtelResource, sc
     if i > 0 { builder.sb_push_byte(&mut out, 44u8); }
     let s: OtelSpan = spans_batch.spans[i];
     _push_span(&mut out, &s);
+    i = i + 1;
+  }
+  builder.sb_push_str(&mut out, "]}]}]}");
+  return _ok_str(builder.sb_to_str(&out));
+}
+
+/// Encode into the OTLP/JSON metrics wire bytes
+/// (ExportMetricsServiceRequest with one resourceMetrics entry, one
+/// scopeMetrics entry and one gauge metric per point, in order). Validates
+/// first (batch, then resource attributes, then scope attributes); returns
+/// the validator's typed error unchanged on any breach. An empty batch is
+/// valid and encodes `"metrics":[]`. Deterministic byte-for-byte.
+/// Complexity: O(total payload).
+pub fn otel_encode_metrics_json(batch: &OtelMetricsBatch, resource: &OtelResource, scope: &OtelScope) -> Result[Str, OtelError] {
+  let br = otel_validate_metrics_batch(batch);
+  if !br.is_ok {
+    let e: OtelError = br.error;
+    return _err_str(e);
+  }
+  let rr = otel_validate_attributes(&resource.attributes);
+  if !rr.is_ok {
+    let e: OtelError = rr.error;
+    return _err_str(e);
+  }
+  let sr = otel_validate_attributes(&scope.attributes);
+  if !sr.is_ok {
+    let e: OtelError = sr.error;
+    return _err_str(e);
+  }
+  var out: Vec[UInt8] = builder.sb_new();
+  builder.sb_push_str(&mut out, "{\"resourceMetrics\":[{\"resource\":");
+  _push_resource(&mut out, resource);
+  builder.sb_push_str(&mut out, ",\"scopeMetrics\":[{\"scope\":");
+  _push_scope(&mut out, scope);
+  builder.sb_push_str(&mut out, ",\"metrics\":[");
+  var i = 0;
+  while i < batch.points.len() {
+    if i > 0 { builder.sb_push_byte(&mut out, 44u8); }
+    let p: OtelGaugePoint = batch.points[i];
+    _push_metric(&mut out, &p);
     i = i + 1;
   }
   builder.sb_push_str(&mut out, "]}]}]}");

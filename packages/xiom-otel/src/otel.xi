@@ -155,6 +155,24 @@ pub type OtelSpanBatch = {
   spans: Vec[OtelSpan];
 }
 
+/// One gauge data point (a single numeric sample at one instant). `value`
+/// becomes `asDouble` and `time_unix_nano` is caller-provided Unix-epoch
+/// nanoseconds; the model holds no clock. Nothing is validated here.
+pub type OtelGaugePoint = {
+  name: Str;
+  description: Str;
+  unit: Str;
+  value: Float64;
+  time_unix_nano: Int;
+  attributes: Vec[OtelAttribute];
+}
+
+/// An ordered batch of gauge points (insertion order preserved end to end;
+/// one OTLP metric entry per point). An empty batch is valid.
+pub type OtelMetricsBatch = {
+  points: Vec[OtelGaugePoint];
+}
+
 /// A deterministic span factory: one trace id derived from `seed`, span ids
 /// derived from (`seed`, `counter`) in call order. No clock, no randomness.
 pub type OtelTracer = {
@@ -285,6 +303,34 @@ pub fn otel_batch_new() -> OtelSpanBatch {
 /// Append one span (by value; insertion order is the wire order).
 pub fn otel_batch_push(batch: &mut OtelSpanBatch, span: OtelSpan) {
   batch.spans.push(span);
+}
+
+/// A gauge point with no attributes; `time_unix_nano` is caller-provided.
+/// Nothing is validated here.
+pub fn otel_gauge_new(name: Str, description: Str, unit: Str, value: Float64, time_unix_nano: Int) -> OtelGaugePoint {
+  return OtelGaugePoint {
+    name: name;
+    description: description;
+    unit: unit;
+    value: value;
+    time_unix_nano: time_unix_nano;
+    attributes: Vec[OtelAttribute].new();
+  };
+}
+
+/// Append one attribute to a gauge point (insertion order is the wire order).
+pub fn otel_gauge_add_attribute(point: &mut OtelGaugePoint, attribute: OtelAttribute) {
+  point.attributes.push(attribute);
+}
+
+/// An empty metrics batch (valid; encodes an empty `metrics` array).
+pub fn otel_metrics_batch_new() -> OtelMetricsBatch {
+  return OtelMetricsBatch { points: Vec[OtelGaugePoint].new() };
+}
+
+/// Append one gauge point (by value; insertion order is the wire order).
+pub fn otel_metrics_batch_push(batch: &mut OtelMetricsBatch, point: OtelGaugePoint) {
+  batch.points.push(point);
 }
 
 /// A deterministic tracer: the trace id is derived from `seed` and is stable
@@ -549,6 +595,43 @@ pub fn otel_validate_batch(batch: &OtelSpanBatch) -> Result[Unit, OtelError] {
     let sr: Result[Unit, OtelError] = otel_validate_span(&s);
     if !sr.is_ok {
       let e: OtelError = sr.error;
+      return _err_unit(e);
+    }
+    i = i + 1;
+  }
+  return _ok_unit();
+}
+
+/// Validate one gauge point: name is non-empty, time_unix_nano is positive,
+/// the value is finite, and the attribute list passes
+/// otel_validate_attributes.
+pub fn otel_validate_gauge(point: &OtelGaugePoint) -> Result[Unit, OtelError] {
+  if point.name.len() == 0 {
+    return _err_unit(otel_error(OTEL_ERR_NAME, "gauge name is empty"));
+  }
+  if point.time_unix_nano <= 0 {
+    return _err_unit(otel_error(OTEL_ERR_TIME, "time_unix_nano must be positive"));
+  }
+  if _double_not_finite(point.value) {
+    return _err_unit(otel_error(OTEL_ERR_VALUE, "gauge value is not finite"));
+  }
+  let ar: Result[Unit, OtelError] = otel_validate_attributes(&point.attributes);
+  if !ar.is_ok {
+    let e: OtelError = ar.error;
+    return _err_unit(e);
+  }
+  return _ok_unit();
+}
+
+/// Validate a metrics batch: every point passing otel_validate_gauge in order
+/// (the first failure wins). An empty batch is valid.
+pub fn otel_validate_metrics_batch(batch: &OtelMetricsBatch) -> Result[Unit, OtelError] {
+  var i = 0;
+  while i < batch.points.len() {
+    let p: OtelGaugePoint = batch.points[i];
+    let pr: Result[Unit, OtelError] = otel_validate_gauge(&p);
+    if !pr.is_ok {
+      let e: OtelError = pr.error;
       return _err_unit(e);
     }
     i = i + 1;

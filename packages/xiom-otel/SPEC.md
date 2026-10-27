@@ -1,8 +1,8 @@
 # xiom.otel -- Specification
 
-Version: 0.1.0 (incubating).
+Version: 0.2.0 (incubating).
 Pure XIOM, no FFI, no bridge C, no upstream OpenTelemetry code: the model,
-the OTLP/JSON encoder and the sink seam are implemented from the
+the OTLP/JSON encoders and the sink seam are implemented from the
 OpenTelemetry Protocol (OTLP) specification and its JSON Protobuf Encoding
 mapping (see `PROVENANCE.md`).
 Dependencies: `xiom.std >=0.60.0 <1.0.0` (the library modules use
@@ -10,16 +10,18 @@ Dependencies: `xiom.std >=0.60.0 <1.0.0` (the library modules use
 additionally use `xiom.test`, `xiom.io`, `xiom.string` and
 `xiom.math.constants`).
 
-Phase 1 scope (the PULSE tracing-export decided-direction candidate): the
-trace model + the OTLP/JSON encoder + a sink/transport seam. HTTP transport
-stays caller-supplied (the send hook); nothing in the package opens a socket.
+Scope: the trace model + the OTLP/JSON trace encoder + a sink/transport
+seam, plus a minimal gauge-metrics model and OTLP/JSON metrics encoder added
+in 0.2.0. The traces surface is unchanged from 0.1.0: same types, functions,
+error kinds, canonical bytes and goldens. HTTP transport stays
+caller-supplied (the send hook); nothing in the package opens a socket.
 
 ## 1. Scope and module map
 
 | Module | File | Contents |
 |---|---|---|
-| `xiom.otel` | `src/otel.xi` | model, constants, caps, hex/id helpers, deterministic tracer, typed validators |
-| `xiom.otel.otlp` | `src/otlp.xi` | `otel_encode_json`: deterministic OTLP/JSON encoder |
+| `xiom.otel` | `src/otel.xi` | model, constants, caps, hex/id helpers, deterministic tracer, typed validators (spans and gauge metrics) |
+| `xiom.otel.otlp` | `src/otlp.xi` | `otel_encode_json` (traces) and `otel_encode_metrics_json` (gauges): deterministic OTLP/JSON encoders |
 | `xiom.otel.sink` | `src/sink.xi` | collector sink, send hook seam, export counters |
 
 ## 2. Model
@@ -36,6 +38,8 @@ stays caller-supplied (the send hook); nothing in the package opens a socket.
 | `OtelSpan` | `{ trace_id: Str; span_id: Str; parent_span_id: Str; name: Str; kind: Int; start_unix_nano: Int; end_unix_nano: Int; attributes: Vec[OtelAttribute]; status: Int; status_message: Str }` | one span; ids are hex text (see 2.3), times are caller-provided Unix-epoch nanoseconds |
 | `OtelSpanBatch` | `{ spans: Vec[OtelSpan] }` | ordered batch |
 | `OtelTracer` | `{ trace_id: Str; seed: Int; counter: Int }` | deterministic span factory |
+| `OtelGaugePoint` | `{ name: Str; description: Str; unit: Str; value: Float64; time_unix_nano: Int; attributes: Vec[OtelAttribute] }` | one gauge sample; times are caller-provided Unix-epoch nanoseconds |
+| `OtelMetricsBatch` | `{ points: Vec[OtelGaugePoint] }` | ordered gauge batch (one OTLP metric entry per point; may be empty) |
 
 `OtelValue` is a flat kind-tagged struct, deliberately not a payload enum:
 XIOM v0.64.5 mislowers `Float64` payloads inside enums (observed while
@@ -126,7 +130,7 @@ seed, same sequence -- no clock, no randomness, no globals.
 
 | Constant | Value | Enforced on |
 |---|---|---|
-| `OTEL_MAX_ATTRIBUTES` | 128 | per attribute list (span, resource, scope) |
+| `OTEL_MAX_ATTRIBUTES` | 128 | per attribute list (span, gauge point, resource, scope) |
 | `OTEL_MAX_BATCH_SPANS` | 1024 | spans per batch |
 | `OTEL_MAX_NAME_LEN` | 1024 | span name, in bytes |
 
@@ -151,6 +155,28 @@ return `Result[Unit, OtelError]`. Rules, in evaluation order:
 Constructors (`otel_span_new`, `otel_attr_*`, setters) never validate and
 never fail; validation is explicit and always available before encoding.
 
+### 2.7 Gauge metrics model and validators (0.2.0)
+
+The metrics surface is deliberately minimal and deterministic: one gauge
+point per OTLP metric entry, one numeric value per point (`asDouble`), no
+aggregation temporality, no start time, no exemplars and no counters or
+histograms (section 10).
+
+- `otel_gauge_new(name, description, unit, value, time_unix_nano)` builds a
+  point with no attributes; `otel_gauge_add_attribute` appends one attribute
+  (insertion order is the wire order).
+- `otel_metrics_batch_new()` builds an empty batch;
+  `otel_metrics_batch_push` appends one point.
+- `otel_validate_gauge(point)` rules, in evaluation order: name non-empty
+  (`OTEL_ERR_NAME`) -> `time_unix_nano > 0` (`OTEL_ERR_TIME`) -> `value` is
+  finite (`OTEL_ERR_VALUE`) -> attributes pass `otel_validate_attributes`
+  (same rules and error kinds as span/resource/scope attributes).
+- `otel_validate_metrics_batch(batch)` validates each point in insertion
+  order (first failure wins). An empty batch is valid.
+
+As with spans, constructors never validate; validation is explicit and is
+also enforced by `otel_encode_metrics_json`.
+
 ## 3. Error taxonomy
 
 `OtelError = { kind, message }`, `kind` is one of:
@@ -158,12 +184,12 @@ never fail; validation is explicit and always available before encoding.
 | Kind | Constant | Raised for |
 |---|---|---|
 | 1 | `OTEL_ERR_ID` | id/hex input shape: wrong length, non-hex character, all-zero id (also `otel_hex_decode` input errors) |
-| 2 | `OTEL_ERR_NAME` | empty span name |
-| 3 | `OTEL_ERR_TIME` | negative `start_unix_nano`, or `end < start` |
+| 2 | `OTEL_ERR_NAME` | empty span name, empty gauge (metric) name |
+| 3 | `OTEL_ERR_TIME` | negative `start_unix_nano`, `end < start`, non-positive gauge `time_unix_nano` |
 | 4 | `OTEL_ERR_ATTRIBUTE` | empty attribute key, duplicate key |
 | 5 | `OTEL_ERR_KIND` | span kind outside 1..5 |
 | 6 | `OTEL_ERR_STATUS` | status outside 0..2, status message on a non-error status |
-| 7 | `OTEL_ERR_VALUE` | value kind outside 1..4, non-finite double attribute |
+| 7 | `OTEL_ERR_VALUE` | value kind outside 1..4, non-finite double attribute, non-finite gauge value |
 | 8 | `OTEL_ERR_LIMIT` | a documented cap exceeded (attributes 128, spans 1024, name 1024 bytes) |
 | 9 | `OTEL_ERR_EMPTY` | empty span batch (OTLP: senders should not create empty envelopes) |
 | 10 | `OTEL_ERR_SINK` | the caller-supplied send hook failed (message carries the hook's text) |
@@ -218,9 +244,36 @@ and resource `entity_refs` are not modeled (see section 8).
 | `OTEL_VALUE_BOOL` | `{"boolValue": true|false}` | |
 | `OTEL_VALUE_DOUBLE` | `{"doubleValue": <number>}` | finite only; rendered by `xiom.convert.float_to_string` (15 significant digits) |
 
-Arrays (`arrayValue`), kvlists and byte values are not modeled in 0.1.0.
+Arrays (`arrayValue`), kvlists and byte values are not modeled in 0.2.0.
 
-## 5. Encoder canonical rules (`otel_encode_json`)
+### 4.3 Gauge metrics mapping (0.2.0)
+
+The metrics structure is the OTLP `ExportMetricsServiceRequest`:
+
+```
+{"resourceMetrics":[{"resource": <Resource>, "scopeMetrics":[
+  {"scope": <InstrumentationScope>, "metrics":[<Metric>, ...]}]}]}
+```
+
+`<Resource>` and `<InstrumentationScope>` reuse exactly the trace shapes in
+section 4.1. One `Metric` is emitted per `OtelGaugePoint`, in batch order.
+
+| OTLP field (proto) | Proto type | JSON key | JSON encoding |
+|---|---|---|---|
+| `Metric.name` | string | `name` | string (validated non-empty) |
+| `Metric.description` | string | `description` | string; always emitted (`""` allowed) |
+| `Metric.unit` | string | `unit` | string; always emitted (`""` allowed) |
+| `Metric.gauge` | Gauge | `gauge` | `{"dataPoints":[<NumberDataPoint>]}` |
+| `NumberDataPoint.as_double` | double | `asDouble` | bare JSON number (finite, validated; same rendering as `doubleValue`) |
+| `NumberDataPoint.time_unix_nano` | fixed64 | `timeUnixNano` | decimal STRING (must be positive) |
+| `NumberDataPoint.attributes` | repeated KeyValue | `attributes` | array; always emitted (possibly `[]`), insertion order |
+
+The data point's `attributes` array uses the same KeyValue encoding as
+traces (section 4.2). `start_time_unix_nano`, `flags`, `exemplars`,
+`aggregation_temporality`, `is_monotonic` and resource `schema_url` are not
+modeled.
+
+## 5. Encoder canonical rules (`otel_encode_json`, traces)
 
 `otel_encode_json(spans_batch, resource, scope) -> Result[Str, OtelError]`.
 The payload bytes are deterministic: same inputs -> same bytes. Golden
@@ -262,6 +315,30 @@ payload sizes for the conformance fixtures: 215, 555, 235, 368, 373, 310,
    batch/resource/scope; any breach returns the validator's typed error
    unchanged (section 2.6 precedence).
 
+### 5.1 Gauge metrics encoder (`otel_encode_metrics_json`)
+
+`otel_encode_metrics_json(batch, resource, scope) -> Result[Str, OtelError]`.
+The trace rules above are reused (no whitespace, fixed key order, exact
+separators, escaping, decimal strings, insertion order, validation first).
+Metrics-specific canonical rules:
+
+1. **Frame**: exactly
+   `{"resourceMetrics":[{"resource":` R `,"scopeMetrics":[{"scope":` S
+   `,"metrics":[` metrics `]}]}]}` with metrics comma-separated in batch
+   order. `resource` and `scope` are always emitted (possibly `{}`).
+2. **Key order** (proto field-number order, fixed):
+   - Metric: `name`, `description`, `unit`, `gauge`.
+   - Gauge: `dataPoints`.
+   - NumberDataPoint: `asDouble`, `timeUnixNano`, `attributes`.
+3. **Always-present members**: `description` and `unit` are emitted even
+   when empty; the data point `attributes` array is emitted even when empty
+   (`"attributes":[]`). One data point per metric.
+4. **Validation precedence**: batch points in order, then resource
+   attributes, then scope attributes; the first typed error is returned
+   unchanged. An empty batch is valid and encodes `"metrics":[]` (unlike the
+   trace encoder, which rejects an empty span batch).
+5. **Golden**: one gauge with one string attribute is 305 bytes (section 8).
+
 ## 6. Sink seam (`xiom.otel.sink`)
 
 | Type | Shape | Meaning |
@@ -277,7 +354,7 @@ payload sizes for the conformance fixtures: 215, 555, 235, 368, 373, 310,
 - `otel_export_send(sink, spans, resource, scope, send)`: encode, then hand
   the exact payload bytes to the caller-supplied
   `send: fn(Str) -> Result[Unit, Str]` (the transport seam; no transport
-  ships in 0.1.0 and no network code exists). The payload is not retained
+  ships in 0.2.0 and no network code exists). The payload is not retained
   (the hook consumed it). Hook success grows the counters; hook failure
   increments `errors` and returns `OTEL_ERR_SINK` with the hook's message
   appended; encode failure skips the hook and returns the encoder error.
@@ -288,14 +365,14 @@ emitted payloads, never estimates.
 ## 7. Declared surface
 
 Constants: 26 (`OTEL_SPAN_KIND_*` 5, `OTEL_STATUS_*` 3, `OTEL_VALUE_*` 4,
-`OTEL_ERR_*` 11, caps 3).
-Types: 10 (`OtelError`, `OtelValue`, `OtelAttribute`, `OtelResource`,
+`OTEL_ERR_*` 11, caps 3). Unchanged in 0.2.0.
+Types: 12 (`OtelError`, `OtelValue`, `OtelAttribute`, `OtelResource`,
 `OtelScope`, `OtelSpan`, `OtelSpanBatch`, `OtelTracer`, `OtelSink`,
-`OtelExportStats`).
+`OtelExportStats`, plus 0.2.0 `OtelGaugePoint`, `OtelMetricsBatch`).
 
-Functions (32):
+Functions (39):
 
-- `xiom.otel` (28): `otel_error`, `otel_value_kind`, `otel_value_str`,
+- `xiom.otel` (34): `otel_error`, `otel_value_kind`, `otel_value_str`,
   `otel_value_int`, `otel_value_bool`, `otel_value_double`,
   `otel_attr_str`, `otel_attr_int`, `otel_attr_bool`, `otel_attr_double`,
   `otel_resource_new`, `otel_scope_new`, `otel_span_new`,
@@ -304,18 +381,25 @@ Functions (32):
   `otel_tracer_new`, `otel_tracer_next_span`, `otel_hex_encode`,
   `otel_hex_is_valid`, `otel_hex_decode`, `otel_id_from_seed`,
   `otel_span_id_from_seed`, `otel_validate_attributes`, `otel_validate_span`,
-  `otel_validate_batch`.
-- `xiom.otel.otlp` (1): `otel_encode_json`.
+  `otel_validate_batch`, plus 0.2.0 `otel_gauge_new`,
+  `otel_gauge_add_attribute`, `otel_metrics_batch_new`,
+  `otel_metrics_batch_push`, `otel_validate_gauge`,
+  `otel_validate_metrics_batch`.
+- `xiom.otel.otlp` (2): `otel_encode_json` (traces, unchanged),
+  `otel_encode_metrics_json` (gauges, 0.2.0).
 - `xiom.otel.sink` (3): `otel_sink_new`, `otel_export`, `otel_export_send`.
+
+The 0.2.0 traces surface is byte-for-byte unchanged: no trace type, function
+signature, validator rule, key order or golden payload was altered.
 
 Deviation from the relay sketch: `otel_encode_json` returns
 `Result[Str, OtelError]` (typed error), not `Result[Str, Str]`; the export
 functions take `(sink, spans, resource, scope)` because the encoder needs
 the resource and scope. Both are recorded here deliberately.
 
-## 8. Test plan (`tests/test_conformance.xi`, 30 checks)
+## 8. Test plan (`tests/test_conformance.xi`, 37 checks)
 
-Driver plus three suite modules; run with:
+Driver plus four suite modules; run with:
 
 ```
 .\scripts\port.ps1 -Package xiom.otel -TimeoutSec 600
@@ -340,6 +424,13 @@ Driver plus three suite modules; run with:
    bytes delivered, payload not retained) and failure (`OTEL_ERR_SINK`,
    hook message preserved, encode failures skip the hook); multi-span
    stats.
+4. **`tests/suite_metrics.xi` (7 checks, 0.2.0)** -- gauge/batch
+   construction defaults; attribute insertion order plus validator
+   acceptance and dup/empty-key rejection; empty name is `OTEL_ERR_NAME`;
+   zero and negative time are `OTEL_ERR_TIME`; the exact 305-byte golden
+   for one gauge with one string attribute; two-point insertion order and
+   byte-identical re-encode; empty batch is valid and encodes
+   `"metrics":[]`.
 
 Every check prints one `[PASS]`/`[FAIL]` line; the process exit code is the
 failure count. Str equality in the suite goes through
@@ -372,11 +463,15 @@ consumed.
 ## 10. Non-goals (declared, not silently missing)
 
 - **OTLP/HTTP transport**: no URL, headers, content type, compression,
-  retry/backoff or connection handling in 0.1.0; `otel_export_send` is the
-  seam a caller transport plugs into (planned 0.2+ over a caller-supplied
-  HTTP client).
+  retry/backoff or connection handling in 0.2.0; `otel_export_send` is the
+  seam a caller transport plugs into (planned for a later 0.2.x or 0.3
+  release over a caller-supplied HTTP client).
 - **OTLP/protobuf binary encoding** (`application/x-protobuf`).
-- **Metrics and logs signals**: traces only.
+- **Logs signals**; **metrics beyond gauges**: counters/sums, histograms,
+  exponential histograms, summaries, aggregation temporality,
+  `start_time_unix_nano`, exemplars, metric `flags` and monotonic hints are
+  not modeled. 0.2.0 ships one gauge data point per metric entry only.
+  The trace surface documentation is otherwise unchanged from 0.1.0.
 - **Span events, links, `trace_state`, `flags`, dropped counts,
   `schema_url`, resource `entity_refs`**: not modeled.
 - **Attribute arrays, kvlists and byte values** (`arrayValue`,
