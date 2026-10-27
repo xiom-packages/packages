@@ -204,12 +204,29 @@ pub fn parse_request(raw: &Vec[UInt8]) -> PulseRequest {
   req.target = r.target;
   req.version = r.version;
 
+  // Copy the parser's header list into the parallel Vecs the request API
+  // exposes. Pre-size both (one allocation each instead of grow-doubling)
+  // and trim only when the parser left surrounding whitespace: the parser
+  // already strips the leading space and the CRLF, so the common case is a
+  // straight move and we avoid a fresh Str per header.
+  var names: Vec[Str] = Vec[Str].with_capacity(8 as UInt);
+  var values: Vec[Str] = Vec[Str].with_capacity(8 as UInt);
   var hi: Int = 0;
   while hi < r.headers.len() {
-    req.header_names.push(r.headers[hi].0);
-    req.header_values.push(string.str_trim(r.headers[hi].1));
+    let hn: Str = r.headers[hi].0;
+    let rv: Str = r.headers[hi].1;
+    names.push(hn);
+    var tv: Str = rv;
+    if rv.len() > 0 {
+      let fb: UInt8 = rv.byte_at(0);
+      let lb: UInt8 = rv.byte_at(rv.len() - 1);
+      if fb == 32u8 || lb == 32u8 { tv = string.str_trim(rv); }
+    }
+    values.push(tv);
     hi = hi + 1;
   }
+  req.header_names = names;
+  req.header_values = values;
 
   // Transfer-Encoding: `chunked` is decoded here (v0.64.1-era smuggling
   // guard kept: any OTHER coding stays unread and the route layer answers
@@ -561,7 +578,7 @@ pub fn decode_chunked(raw: &Vec[UInt8], hdr_end: Int, max_body: Int) -> ChunkedB
 /// status line of a built response. Used by the app to add Date at the
 /// assembly point. Complexity: O(n). Pure.
 pub fn with_header_line(resp: &Vec[UInt8], line: Str) -> Vec[UInt8] {
-  var out: Vec[UInt8] = Vec[UInt8].new();
+  var out: Vec[UInt8] = Vec[UInt8].with_capacity((resp.len() + line.len() + 4) as UInt);
   let first = find_crlf(resp, 0, resp.len());
   if first < 0 { return out; }
   var i: Int = 0;
@@ -569,12 +586,8 @@ pub fn with_header_line(resp: &Vec[UInt8], line: Str) -> Vec[UInt8] {
     out.push(resp[i]);
     i = i + 1;
   }
-  let line_bytes = str_to_bytes(line + "\r\n");
-  var j: Int = 0;
-  while j < line_bytes.len() {
-    out.push(line_bytes[j]);
-    j = j + 1;
-  }
+  append_str(&mut out, line);
+  append_str(&mut out, "\r\n");
   var k: Int = first + 2;
   while k < resp.len() {
     out.push(resp[k]);
@@ -627,48 +640,59 @@ pub fn status_text(code: Int) -> Str {
 /// trees whose inline scripts a default policy would break.
 /// Complexity: O(1). Pure.
 pub fn security_head_lines() -> Str {
-  var s: Str = "";
-  s = s + "X-Content-Type-Options: nosniff\r\n";
-  s = s + "X-Frame-Options: DENY\r\n";
-  s = s + "Referrer-Policy: no-referrer\r\n";
-  s = s + "Cross-Origin-Opener-Policy: same-origin\r\n";
-  s = s + "Cross-Origin-Resource-Policy: same-origin\r\n";
-  s = s + "Origin-Agent-Cluster: ?1\r\n";
-  s = s + "Strict-Transport-Security: max-age=15552000; includeSubDomains\r\n";
-  s = s + "X-DNS-Prefetch-Control: off\r\n";
-  s = s + "X-Permitted-Cross-Domain-Policies: none\r\n";
-  s = s + "X-XSS-Protection: 0\r\n";
-  return s;
+  // One literal, not a concat chain: each `+` allocates a fresh Str and the
+  // compiler retains it, so the old form cost ~2.5 KB per response.
+  return "X-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nCross-Origin-Opener-Policy: same-origin\r\nCross-Origin-Resource-Policy: same-origin\r\nOrigin-Agent-Cluster: ?1\r\nStrict-Transport-Security: max-age=15552000; includeSubDomains\r\nX-DNS-Prefetch-Control: off\r\nX-Permitted-Cross-Domain-Policies: none\r\nX-XSS-Protection: 0\r\n";
+}
+
+/// append_str appends a Str's bytes to a response buffer without an
+/// intermediate Vec. Complexity: O(n). Pure.
+fn append_str(out: &mut Vec[UInt8], s: Str) {
+  var i: Int = 0;
+  while i < s.len() {
+    out.push(s.byte_at(i));
+    i = i + 1;
+  }
 }
 
 /// build_response_full builds a response with a custom content type and
 /// extra headers (Set-Cookie, Allow, ...). `keep` controls the Connection
 /// header: false emits `Connection: close`; true emits nothing (the
 /// HTTP/1.1 keep-alive default; a 1.0 peer never sees keep-alive).
+/// The head is appended straight into one pre-sized buffer: the old
+/// concat chain allocated a fresh Str per line (and retained it on the
+/// current compiler), which dominated the per-response growth.
 /// Complexity: O(n). Pure.
 pub fn build_response_full(status: Int, content_type: Str, extra_headers: &Vec[(Str, Str)], body: Str, keep: Bool) -> Vec[UInt8] {
-  var head: Str = "HTTP/1.1 " + status.to_str() + " " + status_text(status) + "\r\n";
-  head = head + "Content-Type: " + content_type + "\r\n";
+  var out: Vec[UInt8] = Vec[UInt8].with_capacity((body.len() + 1024) as UInt);
+  append_str(&mut out, "HTTP/1.1 ");
+  append_str(&mut out, status.to_str());
+  append_str(&mut out, " ");
+  append_str(&mut out, status_text(status));
+  append_str(&mut out, "\r\nContent-Type: ");
+  append_str(&mut out, content_type);
+  append_str(&mut out, "\r\n");
   var i: Int = 0;
   while i < extra_headers.len() {
     let h = extra_headers[i];
-    head = head + h.0 + ": " + h.1 + "\r\n";
+    let hn: Str = h.0;
+    let hv: Str = h.1;
+    append_str(&mut out, hn);
+    append_str(&mut out, ": ");
+    append_str(&mut out, hv);
+    append_str(&mut out, "\r\n");
     i = i + 1;
   }
-  head = head + security_head_lines();
-  head = head + "Content-Length: " + body.len().to_str() + "\r\n";
+  append_str(&mut out, security_head_lines());
+  append_str(&mut out, "Content-Length: ");
+  append_str(&mut out, body.len().to_str());
+  append_str(&mut out, "\r\n");
   if !keep {
-    head = head + "Connection: close\r\n";
+    append_str(&mut out, "Connection: close\r\n");
   }
-  head = head + server_header_line() + "\r\n";
-  head = head + "\r\n";
-  var out: Vec[UInt8] = str_to_bytes(head);
-  var body_bytes: Vec[UInt8] = str_to_bytes(body);
-  var j: Int = 0;
-  while j < body_bytes.len() {
-    out.push(body_bytes[j]);
-    j = j + 1;
-  }
+  append_str(&mut out, server_header_line());
+  append_str(&mut out, "\r\n\r\n");
+  append_str(&mut out, body);
   return out;
 }
 
@@ -676,22 +700,34 @@ pub fn build_response_full(status: Int, content_type: Str, extra_headers: &Vec[(
 /// binary assets). `keep` as in build_response_full. Complexity: O(n).
 /// Pure.
 pub fn build_response_bytes(status: Int, content_type: Str, extra_headers: &Vec[(Str, Str)], body: &Vec[UInt8], keep: Bool) -> Vec[UInt8] {
-  var head: Str = "HTTP/1.1 " + status.to_str() + " " + status_text(status) + "\r\n";
-  head = head + "Content-Type: " + content_type + "\r\n";
+  var out: Vec[UInt8] = Vec[UInt8].with_capacity((body.len() + 1024) as UInt);
+  append_str(&mut out, "HTTP/1.1 ");
+  append_str(&mut out, status.to_str());
+  append_str(&mut out, " ");
+  append_str(&mut out, status_text(status));
+  append_str(&mut out, "\r\nContent-Type: ");
+  append_str(&mut out, content_type);
+  append_str(&mut out, "\r\n");
   var i: Int = 0;
   while i < extra_headers.len() {
     let h = extra_headers[i];
-    head = head + h.0 + ": " + h.1 + "\r\n";
+    let hn: Str = h.0;
+    let hv: Str = h.1;
+    append_str(&mut out, hn);
+    append_str(&mut out, ": ");
+    append_str(&mut out, hv);
+    append_str(&mut out, "\r\n");
     i = i + 1;
   }
-  head = head + security_head_lines();
-  head = head + "Content-Length: " + body.len().to_str() + "\r\n";
+  append_str(&mut out, security_head_lines());
+  append_str(&mut out, "Content-Length: ");
+  append_str(&mut out, body.len().to_str());
+  append_str(&mut out, "\r\n");
   if !keep {
-    head = head + "Connection: close\r\n";
+    append_str(&mut out, "Connection: close\r\n");
   }
-  head = head + server_header_line() + "\r\n";
-  head = head + "\r\n";
-  var out: Vec[UInt8] = str_to_bytes(head);
+  append_str(&mut out, server_header_line());
+  append_str(&mut out, "\r\n\r\n");
   var j: Int = 0;
   while j < body.len() {
     out.push(body[j]);

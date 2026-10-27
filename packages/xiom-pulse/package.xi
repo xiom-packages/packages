@@ -18,7 +18,7 @@
 
 package xiom_pulse {
   name: "xiom.pulse";
-  version: "0.3.1";
+  version: "0.3.2";
   description: "PULSE Beacon -- the embeddable protocol core (HTTP/1.1 request parser + response builders, keep-alive A/B connection loop with named deadlines, route mechanism, JSON error envelope); one core, two products -- the Station product consumes this same package (pure XIOM, stdlib-only)";
   categories: ["web", "network"];
   keywords: ["http", "server", "framework", "keep-alive", "pulse", "beacon", "http1.1"];
