@@ -9,9 +9,9 @@
                   "passed":  160,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "ee0a74e5",
-                  "checked":  "2026-10-17T13:20:32Z"
+                  "commit":  "99c8a337",
+                  "checked":  "2026-10-28T15:31:19Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.196 (2026-10-17, 0.2.1; sha256 c8fc6548...)"
+    "excluded_reason":  "publish HELD (owner, per orbitdb): 0.3.0 carve from pin 720b27a on v0.65.1; split suite 166/166 x2 + legacy 160/160"
 }
