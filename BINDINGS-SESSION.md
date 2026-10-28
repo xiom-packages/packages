@@ -2750,6 +2750,26 @@ backends DELIVERED)**:
   acked with that routing on record.
 - Relay validate green (999); lane validate 579/0.
 
+**UPDATE 2026-10-28 01:05Z (imgui 0.4.0 publish BLOCKED by pack policy;
+policy ask filed; v0.65.2 durable advisory noted)**:
+- The tag workflow built and verified imgui 0.4.0 (11/11 x2 on v0.65.1)
+  but `xiom-pkg` refused the two vendored import libs at pack time
+  (`vendor/lib/SDL3.lib`, `vendor/lib/vulkan-1.lib`; run 40602199852).
+  The tag was deleted; the publish is blocked on a pack-policy decision.
+- Acked `REL-20261027-2329-packages` and filed
+  **`REL-20261028-0101-bindings`** (bindings -> packages, high) with the
+  exact SHA256 pins and three options: (a) a pack-policy/asset exception
+  for exactly those two pinned `.lib` files (preferred), (b) an
+  `xiom-pkg` manifest intentional-binary field, (c) remove the libs and
+  link the system Vulkan SDK 1.4.350.0 on the tag runner. No code change
+  until the path is chosen; re-tag after a green pack.
+- Advisory: v0.65.2 has a durable/vector-lane `Vec[Struct]` push
+  regression (compiler hotfix `bb8eccf5a`; v0.65.3 awaits owner GO).
+  Bindings packages passed on v0.65.2 and the imgui publish used
+  v0.65.1; the lane stays on the shared v0.65.2 slot (no split-brain)
+  and will re-verify on v0.65.3 when released.
+- Relay validate green; lane validate 579/0.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
