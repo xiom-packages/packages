@@ -1,15 +1,21 @@
 # ORBITDB Public API Reference
 
-> **Status:** current for the committed tree (compiler v0.64.2; all C-ORBIT
-> compiler workarounds reverted). Signatures are
+> **Status:** current for the committed tree (compiler v0.64.7; all C-ORBIT
+> compiler workarounds reverted except the documented C-ORBIT-12 position
+> tuple). Signatures are
 > the `pub` surface of the compiled modules; `requires:` contracts are noted
 > where they gate behavior. Error semantics: functions returning `DbResult[T]`
 > (`Result[T, DbError]`) never panic; `Option[Int]` means absence, and
 > `Bool`/`Int` returns encode success/failure (`-1` is the sentinel for
 > "rejected" on `Int`-returning checkpoint calls).
 
-Module map (compiled units): `xiom.db.engine` (B-tree, query, in-memory
-engine, `DBFile` -- the consolidated engine), `xiom.db.wal_file` (durable WAL
+Module map (compiled units): `xiom.db.engine` (the facade: `DBFile` + the
+file-backed public API, re-exporting the implementation modules below),
+`xiom.db.engine.core` (in-memory WAL/Query/planner, legacy `Engine`,
+shared DBFile helpers), `xiom.db.engine.snapshot` (v1/v2 checkpoint codec,
+compaction, snapshot pins), `xiom.db.engine.txn` (durable transaction window
++ savepoints), `xiom.db.index.btree` (B-tree, NodeStore, COW pins, v2 pager cache), `xiom.db.index.node_page` (node page codec),
+`xiom.db.wal_file` (durable WAL
 segment), `xiom.db.storage.page` (page, checksum, buffer pool, storage
 engine), `xiom.db.storage.page_file` (durable page file + page log),
 `xiom.db.storage.block` (byte-page v2 codec, pure),
@@ -36,7 +42,10 @@ layout: `<path>` = WAL segment, `<path>.snap` = snapshot page log.
 | `db_file_migrate_snapshot(path)` | `Bool` | Migrate an existing v1 snapshot to v2 in place (idempotent; absent/already-v2 is a trivial success). |
 | `db_path_valid(path)` | `Bool` | Non-empty, `<= 4096` chars, no CR/LF (the codecs are line-oriented). |
 | `db_file_open_checked(path, order)` | `Result[DBFile, DbError]` | Validated open; `Err(ConstraintViolation)` on an invalid path or `order < 3`, else `Ok` from `db_file_open`. |
+| `db_file_close(db)` | `Unit` | Release the held append fd (the handle stays usable; the next write reopens lazily). Call before deleting/renaming the DB file from the same process. |
 | `db_file_open_checked_cfg(path, order, page_format)` | `Result[DBFile, DbError]` | Validated open with an explicit snapshot container (`1`/`2`); reads still auto-detect. |
+| `db_file_open_locked_checked(path, order)` / `db_file_open_locked_checked_cfg(path, order, page_format)` | `Result[DBFile, DbError]` | **M3 shard open:** takes an exclusive whole-file advisory lock on `<path>.lock` (one holder per process; `Err(StorageError)` when held), then the checked open. Release with `db_file_unlock(path)` or process exit. |
+| `db_file_unlock(path)` / `db_file_is_locked(path)` | `Bool` | Release / query this process's shard lock. |
 | `db_file_create_index(db, name)` | `Bool` | Build a handle-scoped secondary index over VALUES (M4.2): (value, pk) sorted entries; false for empty/duplicate names. Rebuild after open (not yet durable). |
 | `db_file_create_index_from_def(db, def)` | `Bool` | Catalog tie-in: accepts an `IndexDef` with `column == 0` (the value column) and `unique == false`. |
 | `db_file_drop_index(db, name)` | `Bool` | Drop the named index. |
@@ -49,6 +58,7 @@ layout: `<path>` = WAL segment, `<path>.snap` = snapshot page log.
 | `db_file_get_typed(db, key)` | `Option[Vec[Int]]` | The stored payload; `None` when the key is absent or the entry is a plain int row (read those with `db_file_get`). |
 | `db_file_typed_payload_max(order)` | `Int` | Payload budget so a full node page fits both snapshot containers (1978 bytes at order 3, 1308 at order 4, 973 at order 5). |
 | `db_file_range(db, low, high)` | `Vec[Int]` | Values for keys in `[low, high]` inclusive, in key order (`requires: low <= high`). |
+| `db_file_range_pairs(db, low, high)` | `Vec[(Int, Int)]` | `(key, value)` pairs in `[low, high]` inclusive, key order (`requires: low <= high`). Admin/Station range views. |
 | `db_file_query(db, query)` | `Vec[Int]` | Value-filter query; same semantics as `db_query` / `query_execute` (conditions filter VALUES). |
 | `db_file_size(db)` | `Int` | Number of keys. |
 | `db_file_last_lsn(db)` | `Int` | Highest WAL LSN assigned (0 = empty). |

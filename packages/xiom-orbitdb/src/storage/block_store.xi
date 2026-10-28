@@ -40,6 +40,19 @@ pub type BlockStore = {
   block_count: Int;
 }
 
+pub fn block_store_empty() -> BlockStore {
+  return BlockStore{
+    path: "",
+    ids: Vec[Int].new(),
+    blocks: Vec[Int].new(),
+    gens: Vec[Int].new(),
+    header: empty_header(),
+    active_slot: 0,
+    committed: false,
+    block_count: 0,
+  };
+}
+
 fn empty_header() -> BlockHeader {
   return BlockHeader{
     root: 0,
@@ -88,6 +101,10 @@ fn dir_set(bs: &mut BlockStore, page_id: Int, block_index: Int, gen: Int) {
 }
 
 // Rebuild the committed view from disk. Missing/short file -> empty store.
+// One reused page buffer for block_store_put (m375 write-path fallback:
+// no Vec[Int] page + bytes_to_u8 per dirty page). Single-threaded writer.
+var g_block_buf: Vec[UInt8] = Vec[UInt8].new();
+
 pub fn block_store_open(path: Str) -> BlockStore {
   var bs = BlockStore{
     path: path,
@@ -103,6 +120,8 @@ pub fn block_store_open(path: Str) -> BlockStore {
   if size <= 0 { return bs; }
   let total = size / block_size();
   bs.block_count = total;
+  // One page buffer for the whole scan (m375 fallback: no per-block Vec).
+  var rbuf = Vec[UInt8].new();
 
   // Header slots: pick the highest valid generation; a corrupt slot is
   // simply not a candidate (the other one wins).
@@ -111,25 +130,19 @@ pub fn block_store_open(path: Str) -> BlockStore {
   var h_a = empty_header();
   var h_b = empty_header();
   if total >= 1 {
-    match byteio_read_at(path, 0, block_size()) {
-      Some(bytes) => {
-        match block_decode_header(&bytes) {
-          Some(h) => { h_a = h; gen_a = h.committed_generation; }
-          None => {}
-        }
+    if byteio_read_at_into(path, 0, &mut rbuf, block_size()) {
+      match block_decode_header_bytes(&rbuf) {
+        Some(h) => { h_a = h; gen_a = h.committed_generation; }
+        None => {}
       }
-      None => {}
     }
   }
   if total >= 2 {
-    match byteio_read_at(path, block_size(), block_size()) {
-      Some(bytes) => {
-        match block_decode_header(&bytes) {
-          Some(h) => { h_b = h; gen_b = h.committed_generation; }
-          None => {}
-        }
+    if byteio_read_at_into(path, block_size(), &mut rbuf, block_size()) {
+      match block_decode_header_bytes(&rbuf) {
+        Some(h) => { h_b = h; gen_b = h.committed_generation; }
+        None => {}
       }
-      None => {}
     }
   }
   if gen_a < 0 && gen_b < 0 { return bs; }
@@ -146,20 +159,17 @@ pub fn block_store_open(path: Str) -> BlockStore {
   // above the committed generation stay invisible.
   var i: Int = 2;
   while i < total {
-    match byteio_read_at(path, i * block_size(), block_size()) {
-      Some(bytes) => {
-        if !block_kind_is_free(&bytes) {
-          match block_decode_page(&bytes) {
-            Some(p) => {
-              if p.generation <= bs.header.committed_generation {
-                dir_set(&mut bs, p.page_id, i, p.generation);
-              }
+    if byteio_read_at_into(path, i * block_size(), &mut rbuf, block_size()) {
+      if !block_kind_is_free_bytes(&rbuf) {
+        match block_decode_page_meta_bytes(&rbuf) {
+          Some(meta) => {
+            if meta.0 <= bs.header.committed_generation {
+              dir_set(&mut bs, meta.1, i, meta.0);
             }
-            None => {}
           }
+          None => {}
         }
       }
-      None => {}
     }
     i = i + 1;
   }
@@ -170,11 +180,10 @@ pub fn block_store_open(path: Str) -> BlockStore {
 // always lands after the two header slots (blocks 0/1 stay reserved even on
 // a fresh store).
 pub fn block_store_put(bs: &mut BlockStore, generation: Int, page_id: Int, payload: &Vec[Int]) -> Int {
-  let bytes = block_encode_page(generation, page_id, payload);
-  if bytes.len() != block_size() { return -1; }
+  if !block_encode_page_into(&mut g_block_buf, generation, page_id, payload) { return -1; }
   if bs.block_count < 2 { bs.block_count = 2; }
   let index = bs.block_count;
-  if !byteio_write_at(bs.path, index * block_size(), &bytes) { return -1; }
+  if !byteio_write_at_bytes(bs.path, index * block_size(), &g_block_buf) { return -1; }
   dir_set(bs, page_id, index, generation);
   bs.block_count = bs.block_count + 1;
   return index;

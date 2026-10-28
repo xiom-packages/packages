@@ -5,7 +5,17 @@ SPDX-License-Identifier: MIT OR Apache-2.0
 
 # Engine Overview
 
-`xiom.db.engine` (`src/engine.xi`) is the internal coordinator that turns the independent subsystems -- index, WAL, query -- into a single coherent store. It is deliberately thin: it owns write ordering and timestamps, and delegates everything else.
+`xiom.db.engine` (`src/engine.xi`) is the public facade: it owns the `DBFile`
+type and the file-backed API, plus the legacy in-memory `Database` facade. The
+in-memory coordinator itself (`Engine`) lives in `xiom.db.engine.core`
+(`src/engine/core.xi`, R1 split 2026-10-18) together with the WAL buffer and
+the Query/planner layer; `engine/snapshot.xi` holds the checkpoint machinery
+and `engine/txn.xi` the durable transaction window. It is deliberately thin:
+it owns write ordering and timestamps, and delegates everything else.
+
+The `Engine` value below is the legacy in-memory coordinator in
+`xiom.db.engine.core`; the durable equivalent is `DBFile` in
+`xiom.db.engine`.
 
 ## The `Engine` value
 

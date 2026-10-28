@@ -24,7 +24,7 @@ WSL note: the default distro on this machine is `docker-desktop` (no bash);
 always target Ubuntu explicitly:
 
 ```bash
-wsl.exe -d Ubuntu bash -lc "cd /mnt/e/xiom-projects/xiom-orbitdb && scripts/run.sh tests/test_conformance.xi --timeout-sec 300"
+wsl.exe -d Ubuntu bash -lc "cd /mnt/e/xiom-projects/xiom-orbitdb && scripts/suite.sh --timeout-sec 300"
 ```
 
 Shell scripts and `.xi` files must stay LF; `.ps1` files are CRLF
@@ -34,7 +34,7 @@ Shell scripts and `.xi` files must stay LF; `.ps1` files are CRLF
 
 | Purpose | Command | Notes |
 |---------|---------|-------|
-| Conformance suite | `scripts/run.ps1 tests\test_conformance.xi -TimeoutSec 300` | 160 tests; expect `160/160` and exit 0. |
+| Conformance suite | `scripts\suite.ps1 -TimeoutSec 300` (WSL twin: `scripts/suite.sh --timeout-sec 300`) | 160 tests across 10 area files; each file runs twice; expect `160/160 passed x2` and exit 0. |
 | WAL crash harness | `scripts\crash_test.ps1 -Events 20 -TimeoutSec 90` | writer -> hard kill -> torn tail -> reopen -> verify -> heal -> verify+1. |
 | Page crash harness | `scripts\page_crash_test.ps1 -Pages 20 -TimeoutSec 120` | Use 120s: the writer's first compile can exceed 90s under load. |
 | DB crash harness | `scripts\db_crash_test.ps1 -Keys 20 -Tail 3 -Tx 5 -TimeoutSec 90` | Five scenarios (WAL-only, snapshot-only, snapshot+tail, uncommitted txn, committed txn); 25 checks. Prefix `ORBITDB_DB_FORMAT=v2` (env) to run the whole matrix with v2 byte-block snapshots (same 25 checks; GREEN x2 both platforms). |
@@ -187,7 +187,7 @@ scripts\run.ps1 tests\probes\probe_db_file.xi -TimeoutSec 180
   binding), but push() args, by-value call args, for-loop element bindings
   and whole-struct copies with Vec FIELDS still share. "Clone then mutate in
   place" code must build an owned copy explicitly (fresh vectors + push
-  loops; see `node_deep_copy` in `src/engine.xi` -- the M3 COW shadows
+  loops; see `node_deep_copy` in `src/index/btree.xi` -- the M3 COW shadows
   corrupted pinned views before it; it STAYS as the ownership guarantee).
 - **WAL size-polls must open with DELETE sharing on Windows/DrvFs:** the
   crash harness polls line counts while the writer publishes its truncate;
@@ -228,7 +228,64 @@ scripts\run.ps1 tests\probes\probe_db_file.xi -TimeoutSec 180
 - Identity/commits: conventional commits with DCO sign-off
   (`git commit -s`, `Lefteris Notas <lefterisnotas@gmail.com>`).
 
-## 7. Where to read next
+## 7. Station (ORBITWIRE v1)
+
+The Station is a separate program in `station/` that source-composes the
+engine and speaks ORBITWIRE over TCP (not HTTP; admin stays on PULSE).
+
+```powershell
+.\scripts\station.ps1                          # 127.0.0.1:7767, order 4
+.\scripts\station.ps1 -Database data\app.wal -Port 9000
+.\scripts\station.ps1 -Token s3cret            # require AUTH
+.\scripts\station_suite.ps1                    # all station suites, twice
+.\scripts\station_crash_test.ps1               # hard-kill/restart recovery
+```
+
+```bash
+scripts/station.sh
+TOKEN=s3cret scripts/station.sh
+scripts/wsl_ext4.sh ./scripts/station_suite.sh  # WSL ext4 copy
+scripts/wsl_ext4.sh bash ./scripts/station_crash_test.sh
+```
+
+- **It owns the DB while it runs.** `db_file_open_locked_checked_cfg` takes
+  the M3 shard lock; a second Station on the same file fails fast. Stop with
+  Ctrl+C (WAL durable; advisory lock released by exit). There is no
+  read-only/cross-process reader mode yet (ST2/ST3).
+- **Crash/restart:** `scripts/station_crash_test.{ps1,sh}` starts the
+  hello-station, drives the ORBITWIRE client to BEGIN+PUT (or an
+  auto-commit PUT), hard-kills the server, restarts on the same DB and
+  verifies with the client: uncommitted work is discarded, committed work
+  replays from the WAL, and a post-recovery commit survives a second kill.
+  **11 checks x2 Windows + x2 WSL.** A hard kill leaves the advisory
+  `.lock` file; the OS releases the lock and the restart reacquires it
+  (validated). The harness discovers the actual bound port through
+  `ORBITDB_STATION_PORT_FILE` (fixed base ports 17990/17991, fallback safe).
+- **Env:** `ORBITDB_STATION_DB`, `_BIND` (127.0.0.1), `_PORT` (7767; `0` ->
+  first free 17867+), `_ORDER` (4), `_PAGE_FORMAT` (2), `_TOKEN` (empty =
+  AUTH off), `_PORT_FILE` (optional atomic bound-port file for harnesses /
+  service discovery). Large DBs: set `ORBITDB_PAGER_CAPACITY` (default 256).
+- **RAM cap:** `scripts/station.ps1` runs under `scripts/run_capped.ps1`
+  (4 GB default); the WSL twin polls VmRSS.
+- **Protocol:** `station/docs/ORBITWIRE.md` (frozen v1; frame KAT, field
+  dictionary, ops, state machine, error codes, limits/backpressure).
+- **Threading:** single-threaded event loop; one `StationActor` owns one
+  `DBFile`; sessions never share the handle across threads. One transaction
+  window per shard; a non-owner write returns `TXN_ACTIVE`.
+- **Current evidence:** station suites **169/169 x2 Windows + x2 WSL**;
+  loopback only, no TLS, typed rows auto-commit only, QUERY returns values
+  (RANGE is keyed).
+- **Gotcha (C-ORBIT-14, v0.64.8; fixed on compiler main `478e06f8b`):** never
+  bind a Vec with `let/var x = match ...` on the v0.64.8 pin; the initializer
+  truncates the Vec silently. Declare an empty `var` and assign inside the
+  arm. Repro: `docs/repro/vec-match-binding/`.
+- **Gotcha (C-ORBIT-15, v0.64.8; fixed on compiler main `18415ede2`):** module
+  files must be UTF-8 **without a BOM** on the v0.64.8 pin. PowerShell 5.1
+  `Set-Content -Encoding UTF8` writes a BOM; the compiler then reports the
+  module import as unresolved with no BOM diagnostic. Repro:
+  `docs/repro/utf8-bom-module/`.
+
+## 8. Where to read next
 
 - `ARCHITECTURE.md` -- module tree and ownership.
 - `docs/API.md` -- public API reference (this tree).

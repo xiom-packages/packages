@@ -347,42 +347,38 @@ fn tuple2_push_value(out: &mut Vec[Int], v: TValue) {
   }
 }
 
-// Decode one tagged value at `at`. Returns only the value: the consumed
-// length is `tuple2_value_len(v)`, so callers advance by at +
-// tuple2_value_len(v).
+// Decode one tagged value at `at`. Returns the value AND the next offset
+// (the natural `(TValue, Int)` position tuple), so callers advance by the
+// returned position instead of re-deriving the length.
 //
-// WORKAROUND, STILL REQUIRED: the `(TValue, Int)` position-tuple shape
-// emits `unknown type 'Tuple__TValue__Int' -- defaulting to i64` and
-// silently misdecodes inside larger programs (6 typed-value suite tests
-// failed when this was dropped, 154/160 on v0.64.6, 2026-10-17). The
-// minimal repro (`docs/repro/enum-tuple-codegen/repro_enum_tuple_enum_error.xi`)
-// is GREEN since m336 -- the fix covers the reduced shape, not this
-// module-qualified context. Residual filed on the bus; drop this
-// workaround only when the larger-program shape turns green on a released
-// archive (acceptance = suite returns 160/160 with the position tuple).
-pub fn tuple2_read_value(buf: &Vec[Int], at: Int) -> DbResult[TValue] {
+// C-ORBIT-12 WORKAROUND RETIRED (v0.64.8, 2026-10-19): `c6b3362ef`
+// registers unresolved tuple names on demand; the natural position tuple
+// now compiles in this module-qualified context. Acceptance: the split
+// suite (163/163) x2 both platforms on the v0.64.8 archive; item
+// REL-20261017-1154-orbitdb verified + closed at this adoption.
+pub fn tuple2_read_value(buf: &Vec[Int], at: Int) -> DbResult[(TValue, Int)] {
   if at < 0 { return Err(DbError.Corruption); }
   if at >= buf.len() { return Err(DbError.Corruption); }
   let tag = buf[at] & 0xFF;
   if tag == TUPLE2_TAG_NULL {
-    return Ok(TValue.VNull);
+    return Ok((TValue.VNull, at + 1));
   }
   if tag == TUPLE2_TAG_INT {
     if at + 9 > buf.len() { return Err(DbError.Corruption); }
     let x = tuple_read_int_le(buf, at + 1);
-    return Ok(TValue.VInt(x));
+    return Ok((TValue.VInt(x), at + 9));
   }
   if tag == TUPLE2_TAG_FLOAT {
     if at + 9 > buf.len() { return Err(DbError.Corruption); }
     let f = tuple2_read_f64_le(buf, at + 1);
-    return Ok(TValue.VFloat(f));
+    return Ok((TValue.VFloat(f), at + 9));
   }
   if tag == TUPLE2_TAG_TEXT {
     if at + 5 > buf.len() { return Err(DbError.Corruption); }
     let n = tuple2_read_u32_le(buf, at + 1);
     if at + 5 + n > buf.len() { return Err(DbError.Corruption); }
     let s = tuple2_text_from_bytes(buf, at + 5, n);
-    return Ok(TValue.VText(s));
+    return Ok((TValue.VText(s), at + 5 + n));
   }
   if tag == TUPLE2_TAG_BLOB {
     if at + 5 > buf.len() { return Err(DbError.Corruption); }
@@ -394,7 +390,7 @@ pub fn tuple2_read_value(buf: &Vec[Int], at: Int) -> DbResult[TValue] {
       b.push(buf[at + 5 + i] & 0xFF);
       i = i + 1;
     }
-    return Ok(TValue.VBlob(b));
+    return Ok((TValue.VBlob(b), at + 5 + n));
   }
   return Err(DbError.Corruption);
 }
@@ -647,18 +643,18 @@ pub fn tuple2_decode_row(buf: &Vec[Int]) -> DbResult[TypedRow] {
   match tuple2_read_value(buf, 3) {
     Err(e) => { return Err(e); }
     Ok(idv) => {
-      match tuple2_int_value(idv) {
+      match tuple2_int_value(idv.0) {
         None => { return Err(DbError.Corruption); }
         Some(id) => {
           var values = Vec[TValue].new();
-          var at = 3 + tuple2_value_len(idv);
+          var at = idv.1;
           var j = 1;
           while j < count {
             match tuple2_read_value(buf, at) {
               Err(e2) => { return Err(e2); }
               Ok(v) => {
-                values.push(v);
-                at = at + tuple2_value_len(v);
+                values.push(v.0);
+                at = v.1;
               }
             }
             j = j + 1;

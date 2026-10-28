@@ -308,10 +308,11 @@ range sharding, ops, scale league.
 
 - Strategy + architecture: `docs/TWO-TIER-ARCHITECTURE.md`.
 - Execution checklist (gated): `docs/checklists/two-tier.md`.
-- **Gate G-START:** Station work may not begin until M1.1b (pager), the M3
-  remainder (multi-process locks + version GC), the R1/R2 module split, and
-  the threads decision are all landed -- the embedded release path always
-  outranks station work.
+- **Gate G-START:** **GREEN 2026-10-21** (M1.1b pager 1M soak PASS, M3 shard
+  lock, R1/R2 split, threads decision). **ST1 ORBITWIRE v1 is landed**
+  (`station/`, spec `station/docs/ORBITWIRE.md`; station suites 169/169 x2
+  Win + x2 WSL); **ST2 single-node server core is next**. The embedded release
+  path always outranks station work.
 - Substrate fit: the WAL is already an ordered oplog (log shipping), the
   generation-committed checkpoint + v2 blocks give snapshot bootstrap, and
   the hybrid-composition pattern gives the build shape now (registry

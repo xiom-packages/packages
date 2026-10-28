@@ -62,6 +62,9 @@ pub type WALFile = {
   path: Str;
   next_lsn: Int;
   heal_needed: Bool;
+  // Reused record buffer for the hot append paths (m375 write-path fallback:
+  // no per-append Vec). Owned by the handle; copies share the buffer.
+  scratch: Vec[Int];
 }
 
 pub fn wal_op_code(op: WALOpKind) -> Int {
@@ -184,6 +187,12 @@ fn wal_file_record_bytes(out: &mut Vec[Int], lsn: Int, op: WALOpKind, key: Int,
   out.push(10); // '\n'
 }
 
+// Public prepare: settle a torn tail BEFORE a caller-held append fd is
+// opened, so the fd offset cannot precede a truncate (held-fd writers).
+pub fn wal_file_prepare(w: &mut WALFile) {
+  wal_file_heal_if_needed(w);
+}
+
 fn wal_file_heal_if_needed(w: &mut WALFile) {
   if w.heal_needed {
     let _ = wal_file_heal_tail(w.path);
@@ -259,12 +268,12 @@ fn wal_file_append_sync_line(w: &mut WALFile, op: WALOpKind, key: Int, value: In
                              payload: &Vec[Int], timestamp: Int, sync: Bool) -> Int {
   wal_file_heal_if_needed(w);
   let lsn = w.next_lsn;
-  var body = Vec[Int].new();
-  wal_file_record_bytes(&mut body, lsn, op, key, value, payload, timestamp);
+  while w.scratch.len() > 0 { let _ = w.scratch.pop(); }
+  wal_file_record_bytes(&mut w.scratch, lsn, op, key, value, payload, timestamp);
   match byteio_open_append(w.path) {
     None => { return -1; }
     Some(fd) => {
-      if !byteio_append_fd(fd, &body) {
+      if !byteio_append_fd(fd, &w.scratch) {
         let _ = byteio_close_append(fd);
         return -1;
       }
@@ -299,9 +308,9 @@ fn wal_file_append_fd_line(w: &mut WALFile, fd: Int, op: WALOpKind, key: Int, va
                            payload: &Vec[Int], timestamp: Int) -> Int {
   wal_file_heal_if_needed(w);
   let lsn = w.next_lsn;
-  var body = Vec[Int].new();
-  wal_file_record_bytes(&mut body, lsn, op, key, value, payload, timestamp);
-  if !byteio_append_fd(fd, &body) { return -1; }
+  while w.scratch.len() > 0 { let _ = w.scratch.pop(); }
+  wal_file_record_bytes(&mut w.scratch, lsn, op, key, value, payload, timestamp);
+  if !byteio_append_fd(fd, &w.scratch) { return -1; }
   w.next_lsn = w.next_lsn + 1;
   return lsn;
 }
@@ -339,7 +348,8 @@ pub fn wal_file_open(path: Str) -> WALFile {
     next = records[records.len() - 1].lsn + 1;
   }
   let _ = wal_file_heal_tail(path);
-  return WALFile{ path: path, next_lsn: next, heal_needed: false };
+  return WALFile{ path: path, next_lsn: next, heal_needed: false,
+                  scratch: Vec[Int].new() };
 }
 
 fn parse_payload(s: Str) -> Vec[Int] {

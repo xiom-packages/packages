@@ -15,16 +15,16 @@ XiomDB is a production-grade embedded database written in pure XIOM. It is organ
 
 ```
 +--------------------------------------------------------------+
-|  api/database.xi        Public facade (Database)               |
+|  engine.xi              Public facade (DBFile + Database)     |
 |--------------------------------------------------------------|
-|  engine.xi              Internal coordinator (Engine)          |
+|  engine/core.xi         in-memory WAL/query/legacy Engine     |
+|  engine/snapshot.xi     checkpoint codec + snapshot pins      |
+|  engine/txn.xi          durable txn window + savepoints       |
 |---------------+---------------+---------------+--------------|
-|  query/       |  wal/         |  index/       |  txn/         |
-|  query,planner|  wal,record   |  btree        |  transaction  |
+|  index/       |  txn/         |  storage/     |  catalog/     |
+|  btree        |  transaction  |  page,tuple   |  schema,val.  |
 |---------------+---------------+---------------+--------------|
-|  catalog/ schema, schema_validator                            |
-|--------------------------------------------------------------|
-|  storage/ page, tuple, free_space_map                         |
+|  storage/ page_file, block, block_store, byte_io, fault, fsm  |
 |--------------------------------------------------------------|
 |  Foundations: error - ids - config - contracts                |
 |--------------------------------------------------------------|
@@ -35,14 +35,18 @@ XiomDB is a production-grade embedded database written in pure XIOM. It is organ
 ### Module Dependency Graph
 
 ```
-api/database.xi   ---> engine.xi, query/query.xi, config.xi
-engine.xi         ---> index/btree.xi, wal/wal.xi, wal/wal_record.xi, query/query.xi
-query/query.xi    ---> index/btree.xi
-query/planner.xi  ---> query/query.xi, index/btree.xi
-wal/wal.xi        ---> wal/wal_record.xi, index/btree.xi
+engine.xi             ---> engine/core.xi, engine/snapshot.xi, engine/txn.xi,
+                          index/btree.xi, wal_file.xi, storage/*, catalog/*
+engine/core.xi        ---> engine.xi (DBFile), index/btree.xi, storage/tuple.xi,
+                          secondary_index.xi
+engine/snapshot.xi    ---> engine.xi (DBFile), engine/core.xi, index/btree.xi,
+                          storage/page_file,block,block_store,byte_io, wal_file.xi
+engine/txn.xi         ---> engine.xi (DBFile), engine/core.xi, index/btree.xi,
+                          storage/byte_io, wal_file.xi
+index/btree.xi        ---> (self-contained)
 catalog/schema_validator.xi ---> catalog/schema.xi, error.xi
-storage/page.xi   ---> config.xi
-storage/tuple.xi  ---> error.xi
+storage/page.xi       ---> config.xi
+storage/tuple.xi      ---> error.xi
 storage/free_space_map.xi ---> (self-contained)
 config.xi         ---> (self-contained)
 contracts.xi      ---> (self-contained)
@@ -99,10 +103,10 @@ Data dictionary: `ColumnType`, `ColumnDef`, `Schema` (with `column_index`, `colu
 
 ## WAL Layer
 
-### `xiom.db.wal.wal_record` -- `src/wal/wal_record.xi`
+### `xiom.db.wal.wal_record` -- now in `src/engine/core.xi` (tombstone at `src/wal/wal_record.xi`)
 `WALOpType` = `InsertOp | UpdateOp | DeleteOp`; `WALEntry` (op, key, value, timestamp); `wal_entry_new`.
 
-### `xiom.db.wal.wal` -- `src/wal/wal.xi`
+### `xiom.db.wal.wal` -- now in `src/engine/core.xi` (tombstone at `src/wal/wal.xi`)
 `WAL` = ordered `Vec[WALEntry]`. `wal_new`, `wal_append`, `wal_replay(&WAL, &mut BTree) -> Bool`, `wal_clear`, `wal_truncate` (`requires: before_timestamp >= 0`), `wal_len`, `wal_is_empty`, `wal_entry_count`. Imports `xiom.db.index.btree` for replay.
 
 **Replay semantics:** `InsertOp` -> `btree_insert`; `UpdateOp` -> delete+insert (fails if missing); `DeleteOp` -> `btree_delete`. Returns `false` if any entry failed, but continues to maximize partial recovery.
@@ -127,21 +131,51 @@ The canonical, WORKING B-tree. Flat-array representation (`Vec[BTreeNode]` + int
 
 ## Query Layer
 
-### `xiom.db.query.query` -- `src/query/query.xi`
+### `xiom.db.query.query` -- now in `src/engine/core.xi` (tombstone at `src/query/query.xi`)
 `QueryOp` (Eq/Neq/Lt/Lte/Gt/Gte), `QueryCondition`, `Query`. Builder: `query_new`, `query_where`, `query_limit` (`requires: limit > 0`), `query_offset` (`requires: offset >= 0`). `query_execute(&Query, &BTree)` scans in-order, filters by AND, applies offset then limit. Imports `xiom.db.index.btree`.
 
-### `xiom.db.query.planner` -- `src/query/planner.xi` *(scaffold, Phase 3)*
+### `xiom.db.query.planner` -- now in `src/engine/core.xi` (tombstone at `src/query/planner.xi`)
 `PlanKind` (FullScan/IndexRange/PointLookup), `QueryPlan`, `plan_query`, `execute_plan` -- currently degrade to full scan; will push key predicates into `btree_range_query`.
 
 ---
 
 ## Engine & API
 
-### `xiom.db.engine` -- `src/engine.xi`
-`Engine` (tree, wal, timestamp_counter). Coordinates WAL-before-data writes. `engine_new` (`requires: order >= 3`), `engine_insert/get/update/delete/query/range_query/recover/size/wal_size/flush_wal/truncate_wal`. Imports btree, wal, wal_record, query.
+### `xiom.db.engine` -- `src/engine.xi` (facade)
 
-### `xiom.db.api.database` -- `src/api/database.xi`
-Public facade `Database` (engine + open flag). `db_open` / `db_open_with`, `db_insert`, `db_get`, `db_update`, `db_delete`, `db_query`, `db_range`, `db_size`, `db_recover`, `db_close`. Rejects operations on a closed handle; delegates everything to `engine_*`.
+Owns the public `DBFile` type and the file-backed API: `db_file_open[_cfg]`,
+`db_file_open_checked[_cfg]`, `db_file_put[_typed]`, `db_file_delete`,
+`db_file_get[_typed]`, `db_file_range`, `db_file_query[_typed]`, the secondary
+index API, `db_file_flush`, the durability setters, and the legacy in-memory
+`Database` facade (`db_open`, `db_insert`, ...). Re-exports the implementation
+modules with `pub use` so the 0.2.x import surface is unchanged.
+
+### `xiom.db.engine.core` -- `src/engine/core.xi`
+
+The in-memory core: `WALEntry`/`WAL` (append/replay/truncate/clear), the
+`Query` builder + planner, the legacy `Engine` (`engine_new` -- `requires:
+order >= 3` -- `engine_insert/get/update/delete/query/range_query/recover/
+size/wal_size/flush_wal/truncate_wal`), and the shared `DBFile` helpers
+(`db_file_apply_record`, `db_wal_size`, `db_file_guard`, index maintenance).
+
+### `xiom.db.engine.snapshot` -- `src/engine/snapshot.xi`
+
+Checkpoint/snapshot machinery: v1 page-log and v2 block-store codecs,
+strict load, generation-committed commit, compaction, migration, plus the M3
+snapshot-pin read views (`db_file_snapshot_*`, `db_file_min_pinned_lsn`).
+
+### `xiom.db.engine.txn` -- `src/engine/txn.xi`
+
+The durable single-active-transaction API (`db_file_txn_begin/put/delete/
+commit/abort`, held append fd, `TxOp` buffer) and txn-scoped savepoints
+(`db_file_txn_savepoint*`).
+
+### `xiom.db.api.database` -- `src/api/database.xi` (tombstone)
+
+Merged into `xiom.db.engine`; the `Database` facade (`db_open` /
+`db_open_with`, `db_insert`, `db_get`, `db_update`, `db_delete`, `db_query`,
+`db_range`, `db_size`, `db_recover`, `db_close`) lives in `src/engine.xi`.
+Rejects operations on a closed handle; delegates everything to `engine_*`.
 
 ---
 

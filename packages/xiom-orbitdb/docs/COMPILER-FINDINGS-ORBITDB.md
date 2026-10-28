@@ -87,7 +87,7 @@ v0.64.5 (Windows shadow `xiom.new.0645` `02f0857887e14e48...`; WSL canonical
 (2026-10-16T20:33Z; stdlib pin `stdlib-v0.64.6` `b81430ba`); the enum-tuple
 re-verify on the official artifacts is GREEN x2 platforms for the MINIMAL
 shape:
-- **C-ORBIT-12 PARTIAL (corrected 2026-10-17)** -- `repro_enum_tuple_enum_error.xi`
+- **C-ORBIT-12 RESOLVED on v0.64.8** (`c6b3362ef` in the release; natural `(TValue, Int)` tuple restored, suite 163/163 x2 Win + x2 WSL, workaround retired; item closed). Historical PARTIAL verdict (v0.64.6/v0.64.7): `repro_enum_tuple_enum_error.xi`
   prints `repro C: sum=110 (expected 110)`, rc 0 on the Windows extract
   (`xiom.new-20261016-233955`, sha256 `0ff5c5c471498d8c...`) AND the WSL
   canonical (`855bd7cc82c0f24f...`); control `n=8`/`custom=5`/`done`; u8
@@ -576,7 +576,7 @@ the `DbResult[TValue]` position workaround stays.
   escape hatch), and zero-extend `UInt8 -> Int` casts for fixed-size array
   element reads.
 
-## C-ORBIT-12 -- enum-in-tuple with an enum ERROR type (minimal repro FIXED by m336; LARGER-PROGRAM residual RED on v0.64.6 -- see verdict)
+## C-ORBIT-12 -- enum-in-tuple with an enum ERROR type (RESOLVED on v0.64.8, verified + closed 2026-10-19)
 
 - **Bundle:** `docs/repro/enum-tuple-codegen/repro_enum_tuple_enum_error.xi`
   (minimal: two variants suffice; no Str/Vec/Float payloads needed).
@@ -615,6 +615,15 @@ the `DbResult[TValue]` position workaround stays.
   with the exact evidence; the v0.64.6 + v0.64.7 check rows are corrected
   to PARTIAL. Acceptance = suite 160/160 WITH the position tuple on the
   next archive. The m336 fix covers the reduced shape only.
+- **UPDATE 2026-10-18 (relay `REL-20261018-1650-compiler`, received on the
+  doorbell; closed by the compiler lane):** the requested self-contained
+  extraction was no longer needed -- the compiler reproduced the residual
+  with a TWO-MODULE minimal (module-qualified alias + a consumer reading
+  `p.1`), the same shape our split now formalizes. Fix `c6b3362ef`
+  registers unresolved tuple names on demand; the compiler lane reports our
+  suite 160/160 with the natural position tuple restored on branch
+  `f779c23` (their tree). NOT in v0.64.7: the workaround stays here until an
+  archive carrying the fix is adopted, then re-run the acceptance.
 
 ## C-ORBIT-09 -- element assignment through a copied Vec handle writes through to the source (FIXED on v0.64.5 by m302; residual caveats documented)
 
@@ -686,11 +695,98 @@ stays as interop testing design; co-composition is no longer blocked.
   type definition; emit a clean "no field on <Type>" diagnostic when a
   field is genuinely missing.
 
+## C-ORBIT-13 -- `&mut` on a >=3-level nested field path copies Int/nested-struct state (FIXED in v0.64.8, verified 2026-10-19)
+
+**Filed 2026-10-19** as relay `REL-20261019-1209-orbitdb` (orbitdb -> compiler,
+severity high). Repro bundle: `docs/repro/nested-mut-path/` (self-contained).
+
+Shape: `bump(&mut t.store.bs)` where `T -> NS -> BS` is a three-field-segment
+path. It compiles, but the callee receives a COPY: Int and nested-struct
+fields in `t` keep their old values, while Vec element writes still leak
+through the shared buffer (so the defect is silent and partial). Two-level
+paths are correct; direct assignment and local-copy-then-write-back are
+correct; no warning is emitted.
+
+Evidence: v0.64.7 Windows (`592aa125...`) and WSL lane (`302d3192...`) print
+`two-level: PASS`, `three-level: n=1 g=0 v=1` / `FAIL`, `workaround: PASS`.
+Found while landing M1.1b: `snap_flush_v2` committed via
+`&mut tree.store.bs`, so each spill used a stale `block_count`, overwrote the
+same block, and dropped the header update -- the checkpoint returned success
+but replayed keys were lost on reopen (typed_mvcc 14/15). **Workaround stays**
+in `snap_flush_v2` (local copy + write-back) until a release carries a fix;
+re-run the repro + suite on the next archive. **Additional hit (A5):**
+`&mut db.tree.store` (also 3 levels) silently copied in
+`db_file_snapshot_end`, so `ns_release_pending` saw 655 pending entries stay
+forever; fixed with BTree-level wrappers (`btree_release_pending`,
+`ns_bs_put`/`ns_bs_commit`). The checkpoint workaround moved from a copied
+BlockStore to these helpers because a copied store loses cache-spill
+`block_count` updates and the two writers overwrite blocks once evictions
+occur (caught by the new GC suite test). **RESOLVED on v0.64.8:** the natural nested `&mut` calls were restored (helpers removed) and the repro prints all PASS on Win + WSL; suite 163/163 x2 both, crash 25/25 x2 both, hybrid green. Item closed.
+
+## C-ORBIT-14 -- `let`/`var` binding of a Vec returned through a match truncates (FIXED on compiler main 478e06f8b; v0.64.8 predates it)
+
+**Filed 2026-10-21** as relay `REL-20261021-1136-orbitdb` (orbitdb -> compiler,
+severity high). Repro bundle: `docs/repro/vec-match-binding/` (self-contained).
+**Compiler fixed it the same day on main (`478e06f8b`, m1136):** block-tailed
+match arms (`Ok(x) => { x }`) inferred the result slot as i64 before the
+binding existed, so the arm stored the Vec data pointer as an integer and the
+let-bound value lost its length (`via_let=1`). The exact repro is green on
+main; **v0.64.8 predates the fix**, so the Station's declare-then-assign
+workaround stays until the next archive, then re-run the bundle and drop it.
+
+Shape:
+
+```xi
+let v = match make_vec() {     // make_vec() -> Result[Vec[Int], Int]
+  Ok(x) => { x }
+  Err(_) => { return -1; }
+};
+return v.len();                // 1, expected 3
+```
+
+The `var`-assignment form and returning the Vec directly from the match arm are
+correct (`via_var=3`, `direct_len=3`; `via_let=1` and `via_var_init=1`). Both
+a `let` and a `var` initializer over the match corrupt the Vec length; only
+declare-then-assign is safe. This is silent data
+truncation, likely the same receiver/scratch family as the module-level
+`Vec.pop` no-op (m2057 / `029595080`): the Vec's length is corrupted when a
+`let` binds a Vec returned through a `match`/`Result`. Found while building
+the Station `frame_encode`: a 38-byte header was reported as 1 byte and the
+encoded frame shrank 61 -> 24 bytes. Workaround applied in the Station codec:
+assign through a `var` or return the Vec directly from the arm. Re-run the
+repro on the next archive; drop the workaround only when `via_let=3`.
+**Compiler fix landed on main (`478e06f8b`, 2026-10-21); v0.64.8 predates it.**
+
+## C-ORBIT-15 -- a UTF-8 BOM on a module file breaks catalog discovery (FIXED on compiler main 18415ede2; v0.64.8 predates it)
+
+**Filed 2026-10-21** as relay `REL-20261021-1157-orbitdb` (orbitdb -> compiler,
+severity medium). Repro bundle: `docs/repro/utf8-bom-module/` (the fixture's
+`sub/impl.xi` is intentionally committed WITH the BOM). **Compiler fixed it
+the same day on main (`18415ede2`):** the catalog's quick header scan
+(`ModuleCatalog::read_module_header`) did not strip a leading U+FEFF; it now
+mirrors the lexer's BOM strip. Exact repro is green on main; **v0.64.8
+predates the fix**, so keep sources BOM-free until the next archive, then
+re-run the bundle unchanged and close.
+
+Shape: a module file that starts with the valid UTF-8 BOM (`EF BB BF`) and
+declares a module path that does not match its file name
+(`station/src/protocol.xi` -> `xiom.station.protocol`) is not indexed by the
+catalog: `use xiom.station.protocol` fails with `T001: unresolved import` and
+no BOM diagnostic. Stripping the three BOM bytes makes the identical file
+compile. A BOM is tolerated when the import resolves by file name in the
+entry's directory (the path lookup wins), which is why simple repros can
+mask this. Windows tooling (`Set-Content -Encoding UTF8` in PowerShell 5.1)
+writes a BOM by default, so consumers hit this silently. Found while adding
+the Station wire module; workaround: save sources without a BOM (recipe in
+the bundle README). The compiler should strip a leading BOM before
+tokenization or emit a specific diagnostic. Re-run the bundle on the next
+archive; close when `main.xi` prints `v=7` with the BOM fixture unchanged.
+
 ## Bump procedure used by this lane
 
 1. Update `scripts/dev-env.ps1/.sh` pins (compiler path/version only; stdlib
    path is fixed to the lane checkout).
-2. Re-run: `scripts/run.ps1 tests/test_conformance.xi` (x2),
+2. Re-run: `scripts/suite.ps1` (x2; WSL: `scripts/suite.sh`),
    `scripts/crash_test.ps1 -Events 20` (x2) and the 200-record soak,
    `.sh` twins from WSL, then the repro bundles.
 3. A finding flips to RESOLVED only when its probe bundle is green

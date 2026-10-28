@@ -19,14 +19,14 @@ Every correctness rule in xiom-db is expressed either as a `requires:` / `ensure
 
 **Balance invariant:** every leaf is at the same depth; non-root nodes hold between `ceil(order/2)-1` and `order-1` keys. Deletion restores this via `fill_child` (borrow from a sibling with spare keys, else merge).
 
-## 2. WAL-before-data (engine.xi)
+## 2. WAL-before-data (engine/core.xi)
 
 **Invariant:** for every mutation, the WAL record is appended **before** the index is modified.
 
 - `engine_insert` / `engine_delete` / `engine_update` all execute `next_timestamp()` -> `wal_append(...)` -> `btree_*` in that fixed order.
 - **Consequence (recovery contract):** the index is always reconstructible from the log via `wal_replay`. `engine_recover` guarantees that after it returns, the tree equals the replay of the full log onto an empty tree.
 
-## 3. Monotonic WAL ordering (engine.xi)
+## 3. Monotonic WAL ordering (engine/core.xi)
 
 **Invariant:** WAL timestamps are strictly increasing.
 
@@ -51,7 +51,7 @@ Every correctness rule in xiom-db is expressed either as a `requires:` / `ensure
 
 `db_open` / `engine_new` carry `requires: order >= 3` so an invalid order cannot reach the index.
 
-## 6. Query determinism (query/query.xi)
+## 6. Query determinism (engine/core.xi)
 
 **Invariant:** `query_execute` is deterministic and order-stable.
 
@@ -74,7 +74,7 @@ Every correctness rule in xiom-db is expressed either as a `requires:` / `ensure
 
 **Contract:** `tuple_decode(buf)` returns `Err(Corruption)` unless `buf` is well-framed: at least `[id, len]`, `len >= 0`, and `buf.len() >= 2 + len`. `tuple_encode`/`tuple_decode` are inverse for valid rows.
 
-## 9. Facade lifecycle (api/database.xi)
+## 9. Facade lifecycle (engine.xi, Database)
 
 **Invariant:** a closed `Database` performs no work.
 

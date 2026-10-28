@@ -18,7 +18,7 @@ WALEntry  = { op: WALOpType, key: Int, value: Int, timestamp: Int }
 
 `timestamp` is the engine's monotonic counter -- it establishes a total order over the log. `wal_entry_new(op, key, value, timestamp)` constructs one.
 
-## Log -- `wal/wal.xi`
+## Log -- `xiom.db.engine.core` (`src/engine/core.xi`)
 
 ```
 WAL = { entries: Vec[WALEntry] }
@@ -157,4 +157,4 @@ state), and no automatic retry on IO failure (returns `false` / `-1`).
 | `wal_clear` checkpoint | `xiom.core.wal.checkpoint` + segment truncation |
 | implicit durability | explicit fsync on commit via core FFI |
 
-The `wal/wal.xi` module boundary is exactly where `xiom.core.wal.wal_writer` is substituted, with no change to the engine's call sites.
+The in-memory WAL boundary (`xiom.db.engine.core`) is exactly where `xiom.core.wal.wal_writer` is substituted, with no change to the engine's call sites.

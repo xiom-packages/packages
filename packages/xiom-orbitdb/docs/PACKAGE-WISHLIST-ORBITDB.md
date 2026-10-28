@@ -28,7 +28,7 @@ into reusable packages as they harden.
 
 | Proposed name | Purpose | Why not stdlib | Deps | Evidence from ORBITDB |
 |---|---|---|---|---|
-| `xiom.btree` | Ordered in-memory index: flat-array B-tree with `insert/search/delete/range_query/min/max/size/to_vec` (the borrow-checker-safe representation used by ORBITDB). | data-structure package domain; the API will grow (cursors, bulk load, secondary-index helpers) and ORBITDB will iterate on delete invariants | xiom.std | `src/engine.xi` B-tree section; this session fixed a real split bug (child-pointer shift) found by `tests/probes/probe_core_diag.xi` (100 inserts, order 5). Extraction is honest only after delete/underflow invariants for odd orders are fixed (see ROADMAP Phase 1). |
+| `xiom.btree` | Ordered in-memory index: flat-array B-tree with `insert/search/delete/range_query/min/max/size/to_vec` (the borrow-checker-safe representation used by ORBITDB). | data-structure package domain; the API will grow (cursors, bulk load, secondary-index helpers) and ORBITDB will iterate on delete invariants | xiom.std | `src/index/btree.xi` (then the B-tree section of `src/engine.xi`); this session fixed a real split bug (child-pointer shift) found by `tests/probes/probe_core_diag.xi` (100 inserts, order 5). Extraction is honest only after delete/underflow invariants for odd orders are fixed (see ROADMAP Phase 1). |
 | `xiom.wal` | Append-only durable log: text record codec, replay into an index, torn-tail healing, segment truncate/checkpoint seam. | storage policy + file format; stdlib should stay zero-dep core. PULSE asked for an embedded store (`xiom.kv`); a shared WAL is its crash-safety engine. | xiom.std (fsync pending stdlib row) | `tests/probes/probe_wal_file.xi` + `scripts/crash_test.{ps1,sh}`: write N -> hard kill -> torn tail -> replay N -> heal N+1, GREEN x2 Windows + WSL; 200-record soak (2,881 B segment). |
 | `xiom.db` (this engine; eventual publish) | Embedded database: the layered engine (B-Tree + WAL + query + recovery) behind the `xiom.db.*` module surface. | n/a -- this is the product, not a utility | xiom.std, later `xiom.btree`/`xiom.wal` if extracted | ORBITDB repo; renamed from xiom-db (2026-10). Final package name + publish timing are the owner's call; no rush -- and per owner direction the VPS/CI/public-release stays parked until greenlit. |
 
@@ -93,7 +93,7 @@ into reusable packages as they harden.
 - **`xiom.btree`**: extraction gate (churn soak) MET and now additionally
   covered by the deterministic fuzz harness (B-tree vs model, orders 4/5,
   x2 both platforms). Still awaiting the extraction decision; ORBITDB keeps
-  the reference implementation in `src/engine.xi`.
+  the reference implementation in `src/index/btree.xi`.
 - **`xiom.wal`**: gate NOT met yet -- the stdlib fsync row is still a stub
   (`os/fs_ffi.fsync` and `os/sync_io.sync_fd` return Err) and
   append-tail-repair is still hand-rolled. ORBITDB's `src/wal_file.xi` has

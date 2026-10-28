@@ -141,7 +141,7 @@ in-memory buffer in agreement — the property the crash harness checks.
 
 ## 4. Evidence ladder (what proves it)
 
-- Suite (`tests/test_conformance.xi`): pin isolation + reads; COW under
+- Suite (`tests/suite/typed_mvcc.xi`): pin isolation + reads; COW under
   order-3 churn vs a model captured at pin time; nested pins; pin across
   checkpoint/reopen; savepoint trim/restore/release + guards; savepoint crash
   windows via reopen; snap-generation bookkeeping.

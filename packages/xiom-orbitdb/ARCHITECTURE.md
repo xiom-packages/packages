@@ -22,34 +22,48 @@ src/
 |
 |-- storage/
 |   |-- page.xi              xiom.db.storage.page            Page, checksum, BufferPool, StorageEngine
-|   |-- tuple.xi             xiom.db.storage.tuple           Row, ResultSet, tuple_encode/decode
+|   |-- tuple.xi             xiom.db.storage.tuple           Row, ResultSet, tuple_encode/decode, TValue
+|   |-- page_file.xi         xiom.db.storage.page_file       durable v1 page file + page log
+|   |-- block.xi             xiom.db.storage.block           byte-page v2 codec (pure)
+|   |-- block_store.xi       xiom.db.storage.block_store     v2 block store
+|   |-- byte_io.xi           xiom.db.storage.byte_io         byte-IO sync/open shim (fault-gated)
+|   |-- fault.xi             xiom.db.storage.fault           deterministic fault injector
 |   `-- free_space_map.xi    xiom.db.storage.free_space_map  FreeSpaceMap (scaffold, Phase 1)
 |
 |-- catalog/
 |   |-- schema.xi            xiom.db.catalog.schema           ColumnDef, Schema, IndexDef
+|   |-- schema_row.xi        xiom.db.catalog.schema_row       typed row <-> schema encoder
 |   `-- schema_validator.xi  xiom.db.catalog.schema_validator validate_schema/column/index
-|
-|-- wal/
-|   |-- wal_record.xi        xiom.db.wal.wal_record   WALEntry, WALOpType
-|   `-- wal.xi               xiom.db.wal.wal          WAL, append/replay/truncate/clear
 |
 |-- txn/
 |   `-- transaction.xi       xiom.db.txn.transaction  Transaction, TxState, WALOp
 |
 |-- index/
-|   `-- btree.xi             xiom.db.index.btree      Flat-array B-tree (CANONICAL, working)
+|   |-- btree.xi             xiom.db.index.btree      Flat-array B-tree, NodeStore, COW pins, v2 pager cache
+|   `-- node_page.xi         xiom.db.index.node_page  B-tree node page codec (v1/v2)
 |
-|-- query/
-|   |-- query.xi             xiom.db.query.query      Query builder + scan execution
-|   `-- planner.xi           xiom.db.query.planner    QueryPlan (scaffold, Phase 3)
+|-- engine/
+|   |-- core.xi              xiom.db.engine.core      in-memory WAL/Query/planner + legacy Engine,
+|   |                                                 shared DBFile helpers (apply/guard/index)
+|   |-- snapshot.xi          xiom.db.engine.snapshot  v1/v2 checkpoint codec, compaction, pins
+|   `-- txn.xi               xiom.db.engine.txn       durable txn window + savepoints
 |
-|-- engine.xi                xiom.db.engine           Engine: WAL-before-data coordinator
-`-- api/
-    `-- database.xi          xiom.db.api.database     Database public facade
+`-- engine.xi              xiom.db.engine           DBFile + file-backed public API (facade);
+                                                   re-exports the four modules above
 ```
 
+The `wal/`, `query/`, and `api/` files remain tombstones: their contents were
+merged into `engine/core.xi` and the `engine.xi` facade (R1 split, 2026-10-18).
+
 ### Layering rule
-A module may `use` only modules **below** it in this list. The facade (`api/database`) depends on the engine; the engine depends on index/wal/query; those depend on storage/catalog/foundations; the foundations are self-contained. There are **no upward or cyclic imports**.
+Foundations (`error`/`ids`/`config`/`contracts`), storage/catalog, `index/btree`,
+and `engine/core` are one-way. `engine.xi` owns the public `DBFile` type and
+the file-backed API; `engine/core`, `engine/snapshot`, and `engine/txn` import
+`xiom.db.engine` back to take `&DBFile`/`&mut DBFile` (a deliberate, compiler-
+supported module cycle -- verified by the R1 cycle-import spike). All four are
+re-exported from `engine.xi` with `pub use`, so `use xiom.db.engine;` keeps the
+complete 0.2.x public surface. Consumer modules must never depend on the
+`engine/core|snapshot|txn` internals directly.
 
 ---
 
@@ -64,11 +78,11 @@ Ownership answers "who is allowed to mutate this state?" -- the single most impo
 | **Free space accounting** | `storage/free_space_map.xi` | The only module allowed to decide where a new tuple lands (Phase 1). |
 | **Row/tuple encoding** | `storage/tuple.xi` | Sole owner of the on-wire byte layout via `tuple_encode` / `tuple_decode`. |
 | **Schema / catalog** | `catalog/schema.xi` | Immutable metadata; `schema_validator.xi` is the only validator. |
-| **WAL buffer** | `wal/wal.xi` (`WAL`) | Append-only. Only the engine appends; replay reads. No other module edits `entries`. |
-| **B-tree nodes** | `index/btree.xi` (`BTree.nodes`) | All structural mutation (split/merge/borrow) is private to this module. |
-| **Transactions** | `txn/transaction.xi` | State transitions occur only through `commit` / `abort` / `add_op`. |
-| **Timestamps / write ordering** | `engine.xi` | The engine is the sole issuer of monotonic timestamps and the sole enforcer of WAL-before-data. |
-| **Open/closed lifecycle** | `api/database.xi` | The facade owns the `open` flag; a closed DB rejects all operations. |
+| **WAL buffer** | `engine/core.xi` (`WAL`) | Append-only. Only the engine appends; replay reads. No other module edits `entries`. |
+| **B-tree nodes** | `index/btree.xi` (`NodeStore`) | All structural mutation (split/merge/borrow) is private to this module. v2 node bodies live in the bounded `NodeStore.frames` cache (`slots` id -> frame); `ns_get`/`ns_set`/`ns_push` own load, spill and dirty tracking. |
+| **Transactions** | `engine/txn.xi` (durable window) + `txn/transaction.xi` (state machine type) | State transitions occur only through `commit` / `abort` / `add_op`; the durable window buffers through `db_file_txn_*`. |
+| **Timestamps / write ordering** | `engine/core.xi` (legacy `Engine`) + `engine.xi` (`DBFile`) | The engine is the sole issuer of monotonic timestamps and the sole enforcer of WAL-before-data. |
+| **Open/closed lifecycle** | `engine.xi` (`Database` facade) | The facade owns the `open` flag; a closed DB rejects all operations. |
 
 **Golden rule:** the WAL is written **before** the index. `engine_insert / engine_delete / engine_update` always `wal_append` first, then mutate the `BTree`. No other ordering is permitted.
 
@@ -167,10 +181,10 @@ Because writes are logged before they are applied, the WAL is a complete, ordere
 | Future capability | Plug-in point |
 |-------------------|---------------|
 | Real disk pager | `storage/page.xi` behind `StorageEngine`, using `xiom.core.storage.pager` |
-| Durable WAL + fsync | `wal/wal.xi`, using `xiom.core.wal.wal_writer` |
+| Durable WAL + fsync | `engine/core.xi` (in-memory buffer) + `wal_file.xi`, using `xiom.core.wal.wal_writer` |
 | Free-space placement | `storage/free_space_map.xi` |
 | Index-aware planning | `query/planner.xi` -> `btree_range_query` |
 | MVCC / isolation | `txn/transaction.xi` + a version-aware index read path |
-| SQL front-end | a new `sql/` layer above `api/database.xi` |
+| SQL front-end | a new `sql/` layer above `engine.xi` |
 
 See [ROADMAP.md](ROADMAP.md) for phasing and status.

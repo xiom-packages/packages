@@ -275,6 +275,38 @@ Typed value model (M5):
 |------|--------|
 | `<path>` | WAL segment (section 2) |
 | `<path>.snap` | Snapshot page log (sections 3 + 4) |
+| `<path>.lock` | M3 shard-lock sentinel (advisory `file_lock`; never deleted while a lock may be held) |
 | temp files | `<name>.tmp` during atomic rewrites; safe to ignore/remove after a crash |
 
-Locking: single-writer by convention; no lock file yet (see `SESSION.md`).
+Locking: `db_file_open_locked_checked[_cfg]` takes an exclusive advisory lock
+on `<path>.lock` (one holder per process); release with `db_file_unlock(path)`
+or process exit. The Station owns one shard per actor and holds this lock for
+its lifetime.
+
+## 7. ORBITWIRE v1 (Station wire protocol)
+
+The Station's network protocol is documented in full at
+`station/docs/ORBITWIRE.md`; this section is the format-registry summary.
+
+- **Transport:** raw TCP (loopback by default), one session per connection.
+  Not HTTP; the admin HTTP plane remains PULSE.
+- **Frame:** `magic "OBW1" (4) | version u8 | kind u8 | flags u8 |
+  reserved u8 | header_len u32 | payload_len u32 | typed header | payload |
+  CRC32C u32`, all integers little-endian. CRC32C covers bytes
+  `[4, end-4)` with the section 1 polynomial/init/final.
+- **Header:** `u16 field_count`, then `u8 tag, u8 type, u16 value_len,
+  value`; types INT (i64 LE), BOOL, TEXT (UTF-8), BYTES. Unknown tags are
+  ignored; unknown types/trailing bytes are protocol errors.
+- **Ops (v1):** HELLO/AUTH/PING/BEGIN/PUT/GET/RANGE/QUERY/COMMIT/ABORT/
+  CLOSE, plus additive DELETE/CHECKPOINT. `QUERY` carries typed plan intent
+  (conditions/bounds/order/limit/offset); no SQL text.
+- **Payloads:** row stream (`RANGE`) and value stream (`QUERY`); typed rows
+  carry the tuple-v2 row bytes (`FORMATS.md` 5A) opaquely, so every `TValue`
+  kind round-trips.
+- **Versioning:** `PROTO_VERSION=1`; header tags are additive, op/error codes
+  are stable, frame prefix frozen for v1. A version change is a new wire
+  section (v2) with a migration note here.
+- **KAT:** a 61-byte PING request with header length 38, payload `01 02 03`
+  and CRC `0xcb3dcd44` (LE bytes `44 cd 3d cb`); the exact hex and the full
+  limits/error tables are pinned in `station/docs/ORBITWIRE.md` and checked
+  by `station/tests/protocol_suite.xi`.

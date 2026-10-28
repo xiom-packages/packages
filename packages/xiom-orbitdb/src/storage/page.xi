@@ -62,6 +62,28 @@ pub fn page_compute_checksum(data: &Vec[Int]) -> Int {
   return page_checksum(data);
 }
 
+// CRC32C over a slice of a raw byte buffer (same polynomial as page_checksum).
+// Lets the block codec validate a page without converting bytes to Vec[Int].
+pub fn page_checksum_bytes(data: &Vec[UInt8], start: Int, len: Int) -> Int {
+  var crc = 0xFFFFFFFF;
+  var i = 0;
+  while i < len {
+    let byte = data[start + i] as Int;
+    crc = crc ^ byte;
+    var b = 0;
+    while b < 8 {
+      if (crc & 1) == 1 {
+        crc = (crc >> 1) ^ 0x82F63B78;
+      } else {
+        crc = crc >> 1;
+      }
+      b = b + 1;
+    }
+    i = i + 1;
+  }
+  return crc ^ 0xFFFFFFFF;
+}
+
 // Frame-table cache with a clock (second-chance) replacer. Frames are
 // parallel vectors (Page / id / present / reference bit / pin count) so that
 // no Option is ever element-assigned into a Vec (C-ORBIT-02); pages are

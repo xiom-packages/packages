@@ -15,6 +15,11 @@
 > the block header, torn-block detection, O(1)-ish appends, and a page
 > directory that no longer needs a full-file parse. This is the last blocker
 > for lazy load / bounded cache (M1.1b) and the pager seam (C3).
+>
+> **Status 2026-10-19:** v2 lazy load + the bounded 256-frame node cache are
+> live (M1.1b A1-A4; suite pager 2/2, full battery green). `block_store_open`
+> still rebuilds the directory by scanning every block, so open remains
+> O(file) until a directory footer lands.
 
 ## 1. Why v2
 

@@ -23,20 +23,20 @@
    can take partial points only where the row defines a fraction.
 5. **Recompute on every wrap.** Add a dated line to the scoreboard changelog.
 
-## Current scoreboard -- 2026-10-11 (v0.64.3 pin)
+## Current scoreboard -- 2026-10-21 (v0.64.8 pin)
 
 | Area | Weight | Earned | Status summary |
 |---|---|---|---|
-| A. Correctness & data structures | 20 | 16.0 | B-tree churn-proven orders 3-6 (order-3 empty-chain fix 2026-10-10); tuple codec v1 KAT-locked; FSM best-fit model-soaked; node-per-page durable pages done, paged access pending |
+| A. Correctness & data structures | 20 | 18.0 | B-tree churn-proven orders 3-6; tuple codec v1 KAT-locked; FSM best-fit model-soaked; node-per-page durable pages + **v2 pager live (lazy load, bounded clock cache, spill, GC); 1M soak PASS** |
 | B. Durability & crash safety | 20 | 18.0 | Disk WAL segment + page file + engine WAL-before-ack + incremental generation-committed checkpoint crash-proven; **real fsync wired end-to-end (M1.2 S4 / M2.1 second half): commit acks, checkpoint pre-sync, rename durability (temp sync + fsync_dir); O(1) tail healing; fault-gated (syncfail latches); power-loss honesty up to the synced seams** (lane runtime until the re-vendor pin); power-loss/torn-page matrix on real hardware still pending |
-| C. Storage engine (pages/pager) | 15 | 11.0 | Codec + checksum + FSM + durable page file + clock replacer/pinning done; pager substrate pending |
+| C. Storage engine (pages/pager) | 15 | 14.0 | Codec + checksum + FSM + durable page file + clock replacer/pinning + **pager substrate (read_at scan, bounded cache, dirty spill, reachability GC)**; 1M soak PASS |
 | D. Transactions & isolation | 10 | 7.0 | Durable transactions: begin/commit/abort + committed/uncommitted recovery crash-proven; savepoints + in-process snapshot pins (MVCC minimal subset, M3.1) with COW writes + compaction refusal; multi-process/GC pending |
 | E. Query & schema | 10 | 7.0 | Value-filter query + DBFile bindings + key-range planner pushdown (point/range plans, bounds-aware estimate, property-pinned) + secondary index (build/maintenance/IndexValue plan) + ORDER/LIMIT; typed values + durable index storage pending |
 | F. Operations & tooling | 10 | 4.0 | ps1/sh runners, crash harness, probes; no CI/packaging/version stamp |
 | G. Performance & limits | 5 | 3.0 | Benchmarks published (v0.64.1); WAL segment size policy live (`maybe_checkpoint`); replay constrained by the filed stdlib `str_split` quadratic; page/cache bounds pending |
 | H. Security & integrity | 5 | 4.5 | Checksums + full input validation + deterministic fuzz harness; encryption/supply-chain pinning pending |
 | I. Documentation & evidence | 5 | 5.0 | Full doc set + relay docs + repro bundles + public API/runbook/format reference |
-| **Total** | **100** | **77.5** | **~78% -- alpha-track, durable log + pages + checkpoints + REAL fsync (S4) + transactions + savepoints/snapshot pins (M3 minimal) + planner pushdown + secondary index + ORDER/LIMIT + clock replacer + typed rows + fuzz, benchmarks live, both WAL/B-tree packages registry-live** |
+| **Total** | **100** | **82.5** | **~83% -- alpha-track, durable log + pages + checkpoints + REAL fsync (S4) + transactions + savepoints/snapshot pins (M3 minimal) + pager (lazy load/bounded cache/spill/GC, 1M soak) + planner pushdown + secondary index + ORDER/LIMIT + typed rows + fuzz, benchmarks live, WAL/B-tree packages registry-live** |
 
 Scoreboard changelog:
 - 2026-10-08: bootstrap complete (suite migrated, engine defects fixed, WAL
@@ -354,7 +354,103 @@ Scoreboard changelog:
   36.8k/s -- fsync-honest). **B 16.0 -> 18.0** (fsync second half +
   rename durability + O(1) healing; power-loss matrix on real hardware still
   pending): 75.5 -> **77.5**.
+- 2026-10-18 (R1 module split -- maintainability, no score change): the
+  3462-line consolidated `engine.xi` is now a facade over four modules
+  (`engine/core` in-memory WAL/query/legacy Engine + shared DBFile helpers,
+  `engine/snapshot` checkpoint codec + pins, `engine/txn` durable window +
+  savepoints, `index/btree` B-tree/NodeStore/COW pins). Cycle-import spike
+  proved `engine <-> engine.*` works; `pub use` re-exports keep the 0.2.x
+  consumer surface unchanged (suite + CLI + hybrid compile untouched).
+  Evidence: suite **160/160 x2 Win + x2 WSL**, db_crash **25/25 x2 both**,
+  probes x2 both, fuzz both, hybrid full 36 x2 both + crash 5/5 x2 both.
+  No score change (architecture/readiness gate unchanged).
+- 2026-10-19 (M1.1b A1-A4 -- v2 pager: lazy load + bounded cache, no score
+  change yet): v2 snapshots no longer decode the whole tree at open;
+  `NodeStore` is paged (node id -> cache frame, 256-frame clock, dirty
+  spill at the uncommitted generation) and the checkpoint uses the store's
+  owned block-store handle. v1 stays resident (auto-detected/migrated).
+  New `index/node_page` codec module; new pager suite (1200-key lazy +
+  eviction, 1400-key spill + checkpoint). Evidence: suite **162/162 x2 Win
+  + x2 WSL**, db_crash 25/25 x2 both, probes x2 both, fuzz both, hybrid
+  full 36 x2 both + crash 5/5 x2 both. **C-ORBIT-13** found and worked
+  around (3-level `&mut` path copies; filed `REL-20261019-1209-orbitdb`).
+  **A5 deferred free/version GC landed (same day):** retire points + pin
+  epochs + reachability GC with dense renumbering; pager suite is now 3/3
+  (pin churn -> release -> GC shrink -> reopen) and the full battery is
+  suite **163/163 x2 both**, db_crash 25/25 x2 both, probes/fuzz/hybrid
+  green. A5 row stays WIP only for the 1M-key memory soak.
 
+- 2026-10-19 (v0.64.8 adoption -- compiler/stdlib pin move, no score
+  change): official archives verified (Windows `c31d9c46...` exe
+  `ee3ee902...`; Linux `a8c003c0...` bin `7c5b3482...`; bundled stdlib
+  v0.64.8). **C-ORBIT-12 and C-ORBIT-13 are fixed and verified**: the
+  natural `(TValue, Int)` position tuple and the direct 3-level
+  `&mut tree.store.bs` are back (workarounds retired). Evidence: suite
+  **163/163 x2 Win + x2 WSL**, db_crash 25/25 x2 both, probes x2 both,
+  fuzz both, hybrid full 36 x2 both + crash 5/5 x2 both. WSL note: `/mnt/e`
+  DrvFs can stall in `p9_client_rpc` under large snapshot I/O; the WSL
+  battery was run from an ext4 copy of the lane and is green. No score
+  change; A5's 1M-key soak remains the only open A-row item.
+
+- 2026-10-21 (A6 pager 1M soak PASS -- G-START green): the v2 pager
+  (lazy load, bounded clock cache, dirty spill, deferred-free reachability
+  GC) completed a **1,000,000-key** soak with exact verification: **peak
+  2,494.7 MB under the owner's 4 GB cap** using a 65,536-frame cache
+  (`ORBITDB_PAGER_CAPACITY`; default 256 for small DBs), 32,260 nodes /
+  32,341 blocks (~132 MB snapshot). The earlier 4,173 MB cap-kill at ~435k
+  keys was cache thrash once the tree outgrew 8,192 frames. 200k: 607 MB /
+  151 s. Exit-time teardown at 1M is 880 s -- tracked under m375 (runtime
+  reclaim), not an A6 gate. Evidence: suite 166/166 x2 Win + x2 WSL,
+  db_crash 25/25 x2 both, probes x2 both, fuzz 4/4, hybrid 36 x2 both +
+  crash 5/5 x2 both; BENCH-1 section 7. **Score 77.5 -> 82.5** (A 16->18,
+  C 11->14; A5 row OK). G-START is green; Station ST1 conversion is
+  unblocked.
+
+- 2026-10-21 (ST1 ORBITWIRE protocol + hello-station): the Station tier
+  landed its frozen v1 wire protocol (`station/docs/ORBITWIRE.md`), typed
+  frame codec, session state machine, single-writer actor, loopback TCP
+  server and three conformance suites. **169 checks x2 Windows + x2 WSL**
+  (protocol 33, session 28, loopback 108): frame KAT/CRC parity, partial and
+  pipelined ingress, bounded-queue backpressure, CRUD/RANGE/QUERY
+  order/limit/offset, txn visibility/isolation, typed rows all `TValue`
+  kinds + payload limit, auth/lockout, framing errors, CHECKPOINT/CLOSE.
+  **No Satellite score change (82.5)**: the Station is a separate tier and
+  ST1 is a protocol spike; ST2 (crash-safe server core) is the next gate.
+  Found and filed **C-ORBIT-14** (`REL-20261021-1136-orbitdb`): a `let`/`var`
+  initializer of a Vec from a `match`/`Result` truncates silently; the
+  codec uses the declare-then-assign workaround and the repro bundle is
+  `docs/repro/vec-match-binding/`. Also filed the packages interop co-run
+  (`REL-20261021-1154-orbitdb`).
+
+- 2026-10-22 (stdlib-v0.64.9 + `read_at_into` branch adopted): merged
+  `feat/read-at-into-open` (`27a8212`) and adopted stdlib-v0.64.9 as the
+  lane default (`dev-env.*`; archive sha `eab0b80d...`), with the compiler
+  pin held at v0.64.8 (v0.64.9 archive blockers `-1410/-1414-stdlib`).
+  Functional battery green: suite 166/166 x2 Win + x2 WSL, block crash 8/8
+  x2 Win + x2 WSL, db crash 25/25 x2 Win, station 169/169 x2 Win, fuzz,
+  io-primitives 30/30 x2, mvcc 36/36 x2. **1M soak PASS** on the same pin:
+  1,000,000 keys, exact 1,004-sample verify, 32,260 nodes, **peak
+  2,451.2 MB** under the 4 GB cap (new best; previous 2,494.7 MB), engine
+  6.11 s; process wall 6,110 s under sibling-lane load (quiet baseline
+  880 s), so the teardown number is not a clean signal. 200k: exact verify,
+  558.2 MB peak, 733 ms engine, 733 s wall under the same load. **v0.64.9
+  was WITHDRAWN from adoption** (`REL-20261022-1826-compiler`); production
+  remains v0.64.8 and the hold rows are v0.65.0 acceptance input. **Hybrid
+  is GREEN after the package-store restore** (xiom.metrics 0.2.0): full
+  36/36 x2 Windows + x2 WSL, crash 5/5 x2 both, 100% join integrity;
+  `REL-20261022-1750-orbitdb` verified.
+  **No score change (82.5)**: A5 is already OK; the quiet-host wall and the
+  v0.65.0 acceptance remain, and the compiler stays v0.64.8.
+
+- 2026-10-23 (ST2 Station crash harness): `scripts/station_crash_test.{ps1,sh}`
+  + `station/tests/station_crash_client.xi` hard-kill the hello-station and
+  restart on the same DB: uncommitted BEGIN+PUT discarded, auto-commit PUT
+  replayed from the WAL, post-recovery commit survives a second kill.
+  **11/11 checks x2 Windows + x2 WSL GREEN.** The station writes an atomic
+  `ORBITDB_STATION_PORT_FILE` and flushes the listen line; the M3 lock is
+  reacquired after `kill -9`. No engine `src/` change. **No Satellite score
+  change (82.5)**: Station is a separate tier; ST2 loop hardening / graceful
+  stop and ST3 remain.
 ## A. Correctness & data structures (20)
 
 | # | Item | Pts | Status | Evidence / gate |
@@ -363,7 +459,7 @@ Scoreboard changelog:
 | A2 | B-tree delete borrow/merge invariants (all key counts valid, uniform leaf depth) | 4 | OK | `probe_btree_churn` structural validator; 20k ops x orders 3/4/5/6 + seed matrix (order-3 empty-chain regime fixed 2026-10-10: predecessor/successor OOB, fill_child merge, min/max; reproducer order 3 / keyspace 16 / seed 777) |
 | A3 | Byte-packed tuple codec with strict decode + budget | 4 | OK | `probe_tuple_codec` KAT/extremes/rejects; suite 99/99 |
 | A4 | Free-space map hardening (best-fit, invariants, model soak) | 4 | OK | `probe_fsm` (use/release/find vs model, invariant checks, 50k ops x 256 pages) + suite best-fit/clamp tests |
-| A5 | Node-per-page B-tree | 4 | WIP | durable node pages + incremental generation-committed flush (snapshot path); live tree still fully resident -- paged/evicting access needs the pager seam |
+| A5 | Node-per-page B-tree | 4 | OK | durable node pages + incremental generation-committed flush; **v2 pager (M1.1b A1-A6, 2026-10-21; re-run 2026-10-22; v0.65.1 2026-10-26)**: lazy load, bounded clock cache, dirty spill, deferred-free GC; **1M soak PASS on v0.65.1: 1,830.8 MB peak under a 4 GB cap with a 65,536-frame cache (default 256), exact 1,004-sample verify** (v0.64.8 best 2,451.2 MB; `XIOM_FAST_EXIT=1` A/B no delta). Wall 703.7 s; m375 minimal repro now 4.8 MB (was 3,103 MB) |
 | | *Partial credit:* CRC32C integrity aids A3/A5 | +0 | -- | counted in B |
 
 ## B. Durability & crash safety (20)

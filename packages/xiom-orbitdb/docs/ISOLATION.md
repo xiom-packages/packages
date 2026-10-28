@@ -65,18 +65,41 @@ pinned, deferred-free hook. Still deferred:
 2. **Pager-backed versioned reads** (C3/M1.1b): lazy node load + a bounded
    cache turn pins into a disk-generation contract; the compaction refusal
    is already the guard that keeps a pinned generation resolvable from the
-   file.
-3. **Version GC**: allocatable-below-min-pin free list over the arena.
-4. **Threads**: the platform does not provide them yet; "concurrent" today
-   means interleaved API use in one process, which the pins make safe.
+   file. **Status 2026-10-19:** v2 snapshots are lazily loaded through a
+   256-frame clock cache (dirty-frame spill at the uncommitted generation);
+   deferred free / version GC remains open (M1.1b A5).
+3. **Version GC**: landed in M1.1b A5 (retire points + pin epochs +
+   reachability GC compaction; the post-GC store is a fresh `ns_new_paged`).
+4. **In-engine threading**: multiple threads sharing one DBFile remains
+   deferred; the ST0 decision is the engine-actor model below.
 
 Until the deferred parts land, correctness comes from serializing writers; a
 reader that needs a frozen view opens its own handle or pins a snapshot
 in-process.
 
+## Cross-process shard ownership (M3, landed 2026-10-20)
+
+- `db_file_open_locked_checked[_cfg]` takes an exclusive **whole-file
+  advisory lock** on a dedicated `<path>.lock` sentinel (`xiom.os.lock`,
+  stdlib wave 152). One lock per process; a second locked open returns
+  `Err(StorageError)`; release with `db_file_unlock(path)` or by exiting the
+  process (release-or-die).
+- The sentinel is created once and **never deleted while a lock may be
+  held**: the lock is attached to the inode, so renaming/deleting the path
+  detaches it. The DB/WAL/snapshot files are never locked -- checkpoints
+  rename the snapshot.
+- Advisory only: a non-cooperating process can still read/write the file;
+  the embedded `db_file_open` keeps the optimistic stale-handle guard. The
+  Station opens each shard with the locked API (one writer per shard).
+- **Cross-process readers/pins are not supported.** A reader that needs a
+  frozen view uses a snapshot copy/backup, or lives inside the owning process
+  (the Station's engine actor captures pins). This is the M3 contract.
+- Evidence: `tests/probes/probe_lock.xi` (parent holds -> child sees HELD;
+  release -> child acquires; child acquires and exits -> parent reacquires)
+  PASS on Windows + WSL; `tests/suite/dbfile.xi` locked-open test.
 ## Detectable vs undetectable (tests)
 
-`tests/test_conformance.xi` pins the behavior: the stale-handle test (two
+`tests/suite/dbfile.xi` (stale-handle test) + `tests/suite/typed_mvcc.xi` pin the behavior: the stale-handle test (two
 handles -> the second's `put`, `delete`, `txn_begin` and `checkpoint` are
 refused after the first writes; a fresh open works; the final reopen sees
 exactly the surviving keys) and the M3 tests (snapshot isolation, order-3
@@ -86,3 +109,29 @@ section (l) extend the isolation coverage (three interleaved pins, compaction
 deferral, savepoint matrix, random op/pin/savepoint/reopen streams vs a
 model). Undetectable by design: a read-only stale handle (safe), and two
 handles that never interleave writes.
+
+## Threads decision (ST0, recorded 2026-10-19)
+
+**Decision: one engine-actor thread per `DBFile`/shard; a `DBFile` never
+crosses threads. Scale-out is process-per-shard, not shared-handle threads.**
+
+- **Runtime evidence:** `xiom.thread.spawn` creates real OS threads and
+  `xiom.sync.mutex` serializes across them -- 4 threads x 10,000
+  mutex-guarded increments = 40,000 on v0.64.8 Windows + WSL
+  (`tests/probes/probe_threads.xi`).
+- **Engine facts:** read paths mutate the pager cache (frame loads, clock
+  refs, dirty spills); writes mutate the tree/WAL; pins and transaction state
+  are handle-local; the stale-handle guard assumes one writer; there is no
+  cross-process file lock yet (M3 remainder).
+- **Model:** session/network threads accept, parse and frame; they enqueue
+  commands to the shard's engine thread, which owns the `DBFile` and executes
+  reads/writes/snapshot captures. Responses return through the session. No
+  engine handle is shared. This is the SQLite "serialized connection + one
+  writer" shape made explicit, with the pager cache owned by the actor.
+- **Scale-out:** process-per-shard (each process owns its file) once M3
+  `file_lock` + cross-process pins land. Thread-per-connection sharing one
+  handle stays deferred until in-engine synchronization and the language's
+  Send/Sync enforcement (m363).
+- **Consequences:** per-actor memory is predictable (bounded pager cache);
+  ST3's mixed reader/writer harness drives the actor; Station reader
+  snapshots are captured and read inside the actor.

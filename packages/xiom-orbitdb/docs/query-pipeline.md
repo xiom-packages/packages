@@ -26,7 +26,7 @@ The query subsystem turns a declarative `Query` into a set of matching values. I
 > property test (200 cases) pins plan results equal to a brute-force model.
 > No per-condition key/value selector was added -- conditions stay value-only.
 
-## Building a query -- `query/query.xi`
+## Building a query -- `xiom.db.engine.core` (`src/engine/core.xi`)
 
 ```
 QueryOp       = Eq | Neq | Lt | Lte | Gt | Gte

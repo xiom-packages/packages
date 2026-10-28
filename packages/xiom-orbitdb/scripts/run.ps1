@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 #
 # Usage:
-#   .\scripts\run.ps1 tests\test_conformance.xi
+#   .\scripts\run.ps1 tests\suite\foundations.xi
 #   .\scripts\run.ps1 tests\probes\probe_hello.xi -TimeoutSec 300
 #
 # Exit code: the program's reported exit code (or 1 on compile failure,
@@ -67,7 +67,7 @@ Remove-Item -LiteralPath $outFile, $errFile, $binFile -ErrorAction SilentlyConti
 # is exactly the cross-run race this hardening removes.
 
 $output = "$stdout$stderr"
-if (-not $Quiet -and $output.Length -gt 0) { Write-Host $output.TrimEnd() }
+if (-not $Quiet -and $output.Length -gt 0) { Write-Output $output.TrimEnd() }
 
 if ($timedOut) {
     Write-Host "run: TIMEOUT after ${TimeoutSec}s -- process tree killed"

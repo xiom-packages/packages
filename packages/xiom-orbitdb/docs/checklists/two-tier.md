@@ -17,63 +17,98 @@
 
 ## Gate G-START -- Station work may begin only when ALL of these hold
 
-- [~] **M1.1b pager** -- lazy node load + bounded cache + deferred-free
-      allocator over `read_at`/`write_at` (task order #3; the keystone for
-      both tiers)
-- [~] **M3 remainder** -- multi-process advisory locks (`file_lock`),
-      cross-process pin semantics, version GC tied to compaction
-- [~] **R1/R2 module split merged** -- engine_core / btree / snapshot+pins /
-      txn / db (move-only; suite x2 both at every step; zero consumer
-      changes); this freezes the substrate boundary the Station consumes
-- [ ] **Threads decision recorded** -- runtime threads (wave 139) vs
-      process-per-shard for station concurrency; one-page note in
-      `docs/ISOLATION.md`
+- [x] **M1.1b pager (2026-10-21)** -- A1-A6: lazy load, bounded clock
+      cache, dirty spill, deferred-free GC; **1M soak PASS: 2,494.7 MB
+      peak under a 4 GB cap (65,536-frame cache), exact verify**; suite
+      166/166 x2 both. Design: `docs/checklists/m1-1b-pager.md`.
+- [x] **M3 remainder (2026-10-20)** -- `file_lock` integrated:
+      `db_file_open_locked_checked[_cfg]` + `db_file_unlock`/`is_locked`,
+      release-or-die, cross-process probe PASS Win+WSL, dbfile suite
+      test. Cross-process pins contract: readers live in the owning
+      actor / use snapshot copies; version GC in A5.
+- [x] **R1/R2 module split merged** -- engine facade + core/btree/snapshot/
+      txn modules and the split suite + summing runners landed 2026-10-18
+      (`08d351c`-`e04c3b9`; suite 160/160 x2 both at every step; zero
+      consumer changes)
+- [x] **Threads decision recorded (2026-10-19)** -- engine-actor per
+      shard (no DBFile across threads) + process-per-shard scale; runtime
+      threads/mutex spike green both platforms (`probe_threads.xi`, 40k
+      increments). Note in `docs/ISOLATION.md`.
 
 ## Satellite track (product labeling; the engine itself is done per plan)
 
-- [ ] README / SPEC / API gain the tier label "ORBITDB Satellite (embedded)"
-      at release time (module/package names unchanged: `xiom.db.*`,
-      `xiom.orbitdb`)
-- [ ] Registry P-rc recipe + `xiom.orbitdb` scope ask when the P-rc gates
-      pass (production checklist owns the gate; owner green-light first)
-- [ ] **At publication: open the relay item to the packages lane** for
-      publishing coordination (packaging assist: scope ask, P-rc recipe,
-      canary; ops owns the allowlist gate) -- owner directive 2026-10-16
+- [x] README carries the tier label "ORBITDB Satellite (embedded)" +
+      Station (2026-10-17); the SPEC / API identity line lands at release
+      time (module/package names unchanged: `xiom.db.*`, `xiom.orbitdb`)
+- [x] **Canary carve/publish requested** (pre-P-rc): coordination item
+      `REL-20261017-1245-orbitdb` filed to the packages lane at freeze pin
+      `3bc2a61` (`xiom.orbitdb` v0.2.1, stage incubating; candidate ids +
+      scope + P-rc/canary notes + carve-mechanic question). Their
+      carve/validate/suite x2/ops-scope/allowlist/batched publish follows;
+      the full P-rc recipe + release tag land when the production gate
+      passes (owner green-light first)
 - [ ] CLI shipped as the satellite front door (`apps/orbitdb_cli.xi` ->
       `out/orbitdb.exe`; WSL twin)
 
+## Admin UI track (owner-approved 2026-10-19, runs alongside, not gated)
+
+- [x] **Pulse web admin phase 1 (2026-10-19):** `admin/` separate app,
+      `xiom.pulse` 0.3.1, GET-only dashboard (`/`, `/api/status`,
+      `/api/range` pairs, `/api/get`), localhost bind + optional token,
+      `X-Pulse-Quit` shutdown; runners `scripts/admin.ps1`/`admin.sh`;
+      additive `db_file_range_pairs` API + dbfile 24/24. Smoke green.
+- [ ] Pulse web admin phase 2: auth/session + CSRF, query editor, write
+      actions (gated on the Station txn model), metrics/logs, ORBITWIRE
+      attach at ST1; never public by default. Native SDL3+ImGui later.
+
 ## ST0 -- prerequisites (no new code; re-verify the gate)
 
-- [ ] G-START fully green with committed evidence
-- [ ] Station manifest scaffold `station/xiom.toml` (source-roots `../src` +
+- [x] **ST1 protocol crawl seeded (2026-10-20)** -- verified h11/
+      fastify/gin/knex/bullmq anchors + ORBITWIRE decisions in
+      `docs/REFERENCE-MATRIX.md` 3.2; converted 2026-10-21 (ST1 below).
+
+- [x] G-START fully green (2026-10-21): M1.1b A6, M3 shard lock,
+      threads decision and R1/R2 all hold with committed evidence.
+- [x] Station manifest scaffold `station/xiom.toml` (source-roots `../src` +
       `src`) + a hello-station probe composing the engine (hybrid pattern)
 
 ## ST1 -- ORBITWIRE v1 protocol spike (loopback only)
 
-- [ ] Wire spec draft in `station/docs/ORBITWIRE.md`: length-prefixed frames,
+- [x] Wire spec draft in `station/docs/ORBITWIRE.md`: length-prefixed frames,
       text + binary encodings, handshake (protocol version + auth slot),
       request/response ids, error taxonomy mapped from `DbError`
-- [ ] Ops frozen: HELLO / AUTH / PREPARE / EXECUTE / FETCH / CLOSE / PING
-      over the engine's typed-rows and query APIs
-- [ ] Loopback conformance suite: round-trip all `TValue` kinds incl.
-      payload limits (`db_file_typed_payload_max`) + query/ORDER/LIMIT paths
-- [ ] Interop with `xiom.postgres.wire` (client-side reference; no PG-wire
+- [x] Ops frozen: HELLO / AUTH / PING / BEGIN / PUT / GET / RANGE / QUERY /
+      COMMIT / ABORT / CLOSE (+ additive DELETE / CHECKPOINT) over the
+      engine's typed-rows and query APIs
+- [x] Loopback conformance suite: round-trip all `TValue` kinds incl. payload
+      limits (`db_file_typed_payload_max`) + query/ORDER/LIMIT paths
+- [~] Interop with `xiom.postgres.wire` (client-side reference; no PG-wire
       commitment): surface CONFIRMED reusable + documented 2026-10-16
       (`REL-20261016-1150-packages-3`; `xiom.postgres.wire` module: frame
-      builders + read primitives + `wire_decode` + SPEC.md tables) -- file
-      the co-run item at protocol freeze (loopback, read-only fixture side)
-- [ ] `docs/FORMATS.md` gains the ORBITWIRE v1 section (versioning policy)
-- [ ] Evidence: station suite x2 Win + x2 WSL; protocol KAT file committed
+      builders + read primitives + `wire_decode` + SPEC.md tables) -- the
+      frame/read-primitive discipline is reused; a co-run item is filed at
+      protocol freeze (`REL-20261021-1154-orbitdb`, packages) for a
+      read-only fixture probe. ORBITWIRE does not reuse PG's frame format.
+- [x] `docs/FORMATS.md` gains the ORBITWIRE v1 section (versioning policy)
+- [x] Evidence: station suite x2 Win + x2 WSL (169 checks x2 both); protocol
+      KAT pinned in `station/docs/ORBITWIRE.md` + `protocol_suite.xi`
 
 ## ST2 -- single-node server core
 
-- [ ] `station/src/`: acceptor loop, per-connection session, executor over
-      public engine APIs (`db_file_*`), graceful shutdown + handle discipline
-- [ ] Kill-safety: station crash harness `scripts/station_crash_test.{ps1,sh}`
+- [~] `station/src/`: acceptor loop, per-connection session, executor over
+      public engine APIs (`db_file_*`) -- **landed in ST1** (server.xi /
+      session.xi / dispatch.xi); graceful shutdown on CLOSE/EOF and process
+      exit works, an explicit stop flag/signal handler remains.
+- [x] Kill-safety: station crash harness `scripts/station_crash_test.{ps1,sh}`
       (kill mid-commit -> restart -> replay -> qverify), mirroring the engine
-      harness style (delete-sharing polls; unique `-o` binaries)
-- [ ] Crash harness x2 Win + x2 WSL; suite x2 both; zero engine files touched
-- [ ] `docs/RUNBOOK.md` station section (run/kill/recover recipes)
+      harness style (delete-sharing polls; unique `-o` binaries). Client:
+      `station/tests/station_crash_client.xi`; port discovery via
+      `ORBITDB_STATION_PORT_FILE`.
+- [x] Crash harness x2 Win + x2 WSL (**11/11 x2 both**); suite x2 both; zero
+      engine files touched (only `station/` + scripts).
+- [x] `docs/RUNBOOK.md` station section (run/kill/recover recipes)
+- [ ] Session-loop hardening + explicit graceful stop (SIGINT/stop flag) and
+      any single-node core gaps before the ST2 gate closes.
 
 ## ST3 -- concurrency (readers + writer path)
 
@@ -148,8 +183,11 @@
 
 ## Release engineering (both tiers; owner directives 2026-10-16)
 
-- [ ] **Satellite publication**: relay item to the packages lane at
-      publication time (packaging coordination; ops allowlist gate)
+- [x] **Satellite publication LIVE (canary)**: `xiom.orbitdb` v0.2.1
+      published 2026-10-17 in eco-v0.1.196 (sha256 `c8fc6548...`) via the
+      packages lane (carve at `3bc2a61`; their suite x2 + crash/probes green
+      on the carved layout; our isolated-home consumer smoke green). The
+      full P-rc recipe + release tag still land at the production gate.
 - [ ] **Station releases**: GitHub Actions pipeline authored WITH ops --
       this lane delivers the build/battery/soak contracts + pinned-toolchain
       recipe; ops owns the pipeline

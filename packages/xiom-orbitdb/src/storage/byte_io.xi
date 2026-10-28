@@ -69,6 +69,19 @@ pub fn byteio_read_at(path: Str, offset: Int, len: Int) -> Option[Vec[Int]] {
   }
 }
 
+// Caller-buffer read: io.read_at_into clears/reuses `buf` and allocates no
+// fresh Vec per call (stdlib main 9bad232; REL-20261020-1731-orbitdb). Used
+// by the block-store scan so a large v2 file does not retain one page buffer
+// per block (m375 fallback). Returns true only for a full-length read.
+pub fn byteio_read_at_into(path: Str, offset: Int, buf: &mut Vec[UInt8],
+                           len: Int) -> Bool {
+  if offset < 0 || len < 0 { return false; }
+  match io.read_at_into(path, offset, buf, len) {
+    Ok(n) => { return n == len; }
+    Err(_) => { return false; }
+  }
+}
+
 // Write at offset (creates the file, zero-fills a gap past EOF). The fault
 // gate can skip, shorten (torn write) or fail the operation.
 pub fn byteio_write_at(path: Str, offset: Int, data: &Vec[Int]) -> Bool {
@@ -92,6 +105,32 @@ pub fn byteio_write_at(path: Str, offset: Int, data: &Vec[Int]) -> Bool {
 fn byteio_write_at_real(path: Str, offset: Int, data: &Vec[Int]) -> Bool {
   let b = bytes_to_u8(data);
   match io.write_at(path, offset, &b) {
+    Ok(_) => { return true; }
+    Err(_) => { return false; }
+  }
+}
+
+// Byte-buffer write (no Vec[Int] round-trip). Same fault gate/partial-write
+// discipline as byteio_write_at; used by the page writer's reused buffer.
+pub fn byteio_write_at_bytes(path: Str, offset: Int, data: &Vec[UInt8]) -> Bool {
+  if offset < 0 { return false; }
+  let fa = fault_gate(0);
+  if fa == 1 { return true; }
+  if fa == 3 { return false; }
+  if fa == 2 {
+    var cut = Vec[UInt8].new();
+    let t = fault_partial_tail(data.len());
+    var c = 0;
+    while c < t && c < data.len() {
+      cut.push(data[c]);
+      c = c + 1;
+    }
+    match io.write_at(path, offset, &cut) {
+      Ok(_) => { return true; }
+      Err(_) => { return false; }
+    }
+  }
+  match io.write_at(path, offset, data) {
     Ok(_) => { return true; }
     Err(_) => { return false; }
   }
