@@ -65,3 +65,13 @@ consistently:
   166/166 x2), so this is not the 1324 aggregate-local-move bug.
 
 Expected on v0.65.1: `r1[0]=k1`, `r2=[k2,k2,k0]`, `k0=1 k2=2`.
+
+## 605c6a879 (implicit tail-return candidate)
+
+Still red; the 1641 tail-return fix does not cover this shape. Repro, 3 runs
+(nondeterministic): run1 `r1[0]=k1`, `r2=[r2,k2,k1]`, `k0=0 k2=1`; run2
+`r1[0]=k1`, `r2=[k2,k2,k1]`, `k0=0 k2=2`; run3 `r1[0]=st`,
+`r2=[k3,k2,k3]`, `k0=0 k2=1`. Transport suite 5 runs: 34/36, 35/36, 34/36,
+34/36, 35/36 -- b4 fails 4/5 and the UDP 1500-byte reassembly fails 4/5.
+All other 13 lane suites are green on this candidate. `k0` is always 0 and
+`r2` is never `[k2,k2,k0]`, so the inner buffers are freed/aliased.
