@@ -9,9 +9,9 @@
                   "passed":  81,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "71a5975f",
-                  "checked":  "2026-10-27T19:41:28Z"
+                  "commit":  "653fe78a",
+                  "checked":  "2026-10-30T15:40:36Z"
               },
     "publish":  false,
-    "excluded_reason":  "sanity on v0.65.2 (tree 71a5975f): A14 + full SDL3 surface 81/81"
+    "excluded_reason":  "sanity on v0.65.3 (tree 653fe78a): A14 + full SDL3 surface 81/81"
 }

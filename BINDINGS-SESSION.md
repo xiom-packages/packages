@@ -2750,6 +2750,59 @@ backends DELIVERED)**:
   acked with that routing on record.
 - Relay validate green (999); lane validate 579/0.
 
+**UPDATE 2026-10-28 01:05Z (imgui 0.4.0 publish BLOCKED by pack policy;
+policy ask filed; v0.65.2 durable advisory noted)**:
+- The tag workflow built and verified imgui 0.4.0 (11/11 x2 on v0.65.1)
+  but `xiom-pkg` refused the two vendored import libs at pack time
+  (`vendor/lib/SDL3.lib`, `vendor/lib/vulkan-1.lib`; run 40602199852).
+  The tag was deleted; the publish is blocked on a pack-policy decision.
+- Acked `REL-20261027-2329-packages` and filed
+  **`REL-20261028-0101-bindings`** (bindings -> packages, high) with the
+  exact SHA256 pins and three options: (a) a pack-policy/asset exception
+  for exactly those two pinned `.lib` files (preferred), (b) an
+  `xiom-pkg` manifest intentional-binary field, (c) remove the libs and
+  link the system Vulkan SDK 1.4.350.0 on the tag runner. No code change
+  until the path is chosen; re-tag after a green pack.
+- Advisory: v0.65.2 has a durable/vector-lane `Vec[Struct]` push
+  regression (compiler hotfix `bb8eccf5a`; v0.65.3 awaits owner GO).
+  Bindings packages passed on v0.65.2 and the imgui publish used
+  v0.65.1; the lane stays on the shared v0.65.2 slot (no split-brain)
+  and will re-verify on v0.65.3 when released.
+- Relay validate green; lane validate 579/0.
+
+**UPDATE 2026-10-28 16:05Z (imgui pack policy -- option (a) chosen;
+awaiting owner sign-off)**:
+- Packages position on `REL-20261028-0101-bindings`: **option (a)** is
+  the correct fix; option (c) is rejected (it drops the no-system-SDK
+  property and the tag runner cannot guarantee SDL3). Packages will
+  implement a narrow, auditable force-allowlist in the publish workflow
+  -- only `xiom.imgui`, only `vendor/lib/SDL3.lib` +
+  `vendor/lib/vulkan-1.lib`, both hashes asserted -- but it changes CI
+  pack policy and needs **owner sign-off**.
+- **Do not re-tag `xiom-imgui/v0.4.0` until that lands**; packages will
+  message when the workflow is ready. In-tree evidence remains 11/11 x2.
+- Relay validate green (1017); toolchain v0.65.2 installed; lane clean.
+
+**UPDATE 2026-10-30 15:45Z (v0.65.3 RELEASED + ADOPTED -- epos compile
+REGRESSION; bindings acceptance RED on epos)**:
+- v0.65.3 published 15:30:58Z; windows asset `8383aa5b...` (matches
+  SHA256SUMS); tag `v0.65.3` on `e2f238cb6`; run 41077253955 succeeded
+  after a transient macos-arm64 z3 DNS retry.
+- Slot adopted v0.65.3; the `xiom-v0.65.2-20261030` copy was already
+  v0.65.3 when taken (another lane swapped first). `COMPILER_VERSION` +
+  **579 records** = v0.65.3; validate **579/0**.
+- Green on v0.65.3: sqlite **21/21**, sdl3 **81/81**, nvenc **67/67**;
+  .9/owns_return/borrow probes; MCU trio x2 **122/19/62**.
+- **RED: `xiom.epos` compile regression** -- LLVM IR dominance
+  (`alloca %struct.EposLibrary`, GEP field 5). Isolated: v0.65.3
+  compiler + v0.65.2 stdlib fails; v0.65.2 compiler + v0.65.2 stdlib
+  passes **29/29**; source unchanged. Bug
+  `REL-20261030-1540-bindings` (critical, to compiler). v0.65.3 is not
+  fully accepted for bindings until fixed; the epos record is marked
+  blocked.
+- Release verdict filed on `REL-20261030-1535-compiler`; relay validate
+  green.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`

@@ -9,9 +9,9 @@
                   "passed":  122,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "71a5975f",
-                  "checked":  "2026-10-27T19:41:19Z"
+                  "commit":  "653fe78a",
+                  "checked":  "2026-10-30T15:40:36Z"
               },
     "publish":  false,
-    "excluded_reason":  "PUBLISHED 2026-10-25 as single tag xiom-firmata/v0.1.0; sha256 15223e05...; allowlist 576 -> 579; registry live-verified; re-verified x2 122/122 on v0.65.2 (tree 71a5975f)"
+    "excluded_reason":  "PUBLISHED 2026-10-25 as single tag xiom-firmata/v0.1.0; sha256 15223e05...; re-verified x2 122/122 on v0.65.3 (tree 653fe78a)"
 }
