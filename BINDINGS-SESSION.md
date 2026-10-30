@@ -2836,6 +2836,21 @@ publish nudge)**:
   11/11 x2, lib hashes match).
 - Relay validate green (1082); lane v0.65.3, validate 579/0.
 
+**UPDATE 2026-10-30 22:40Z (imgui 0.4.0 PUBLISHED; v0.65.4 candidate
+still pending)**:
+- `xiom.imgui 0.4.0` is **LIVE**: sha256
+  `a60d80a5a3d59158413e94a10b3750cc8261863da2a81eabcd388d3436973dfa`
+  (signed; registry `info` verified); tag `xiom-imgui/v0.4.0`
+  (`ea628e72`) at `3f983984`; publish run `41111907416` success
+  (environment approved); 11/11 x2 on v0.65.3. STATUS updated; the
+  publish nudge is closed.
+- v0.65.4 candidate: compiler fix `34e42ad87` is in, but **no archive
+  yet** (release attempts 41134774980 failure / 41133632750 / 41132381986
+  / 41130939313 cancelled); readiness/blocker posted on
+  `REL-20261030-2037-compiler`; will verify epos x2 + acceptance when
+  the candidate exists.
+- Relay validate green; lane v0.65.3, validate 579/0.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
