@@ -5,13 +5,13 @@
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
-                  "status":  "fail",
-                  "passed":  0,
-                  "failed":  1,
+                  "status":  "pass",
+                  "passed":  29,
+                  "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "bc5de175",
-                  "checked":  "2026-10-30T17:29:12Z"
+                  "commit":  "29344a0a",
+                  "checked":  "2026-10-30T23:55:42Z"
               },
     "publish":  false,
-    "excluded_reason":  "BLOCKED on v0.65.3 compiler regression: IR dominance (alloca EposLibrary field 5); published epos 0.1.0 unaffected; see REL-20261030-1540-bindings"
+    "excluded_reason":  "verified on the v0.65.4 release archive (sha 49e02478...): 29/29 x2; v0.65.3 regression fixed at 34e42ad87"
 }
