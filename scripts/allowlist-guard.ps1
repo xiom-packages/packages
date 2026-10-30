@@ -19,13 +19,19 @@
 #
 # Usage (local and CI):
 #   pwsh -NoProfile -File scripts/allowlist-guard.ps1
+#   pwsh -NoProfile -File scripts/allowlist-guard.ps1 -OnlyPackage xiom.orbitdb
 # Exit code: 0 = no allowlist entry is ahead of readiness, 1 = at least one is.
+#
+# -OnlyPackage scopes the guard to a single target. Tag/dispatch publishes
+# use it so an unrelated red package cannot block a ready target; full
+# batches keep the global check.
 # ============================================================================
 [CmdletBinding()]
 param(
     [string]$AllowlistPath = "",
     [string]$BaselinePath = "",
-    [string]$PackagesPath = ""
+    [string]$PackagesPath = "",
+    [string]$OnlyPackage = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -44,6 +50,13 @@ function Read-Names {
 
 $allowlist = Read-Names -Path $AllowlistPath
 $baseline = Read-Names -Path $BaselinePath
+if ($OnlyPackage) {
+    if ($allowlist -notcontains $OnlyPackage) {
+        Write-Host "allowlist-guard: FAIL target is not in the allowlist: $OnlyPackage"
+        exit 1
+    }
+    $allowlist = @($OnlyPackage)
+}
 if ($allowlist.Count -eq 0) {
     Write-Host "allowlist-guard: allowlist is empty ($AllowlistPath)"
     exit 0

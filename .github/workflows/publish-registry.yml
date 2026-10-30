@@ -77,9 +77,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
+      - name: Resolve tag target
+        id: guard_target
+        if: startsWith(github.ref, 'refs/tags/xiom-')
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          folder="${tag%%/*}"
+          name="$(sed -n 's/.*name:[[:space:]]*"\([^"]*\)".*/\1/p' "packages/$folder/package.xi" | head -n1)"
+          if [ -z "$name" ]; then
+            echo "::error::no package name found for tagged folder: $folder"
+            exit 1
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "guard target: $name"
+
       - name: Run readiness guard
         shell: pwsh
-        run: ./scripts/allowlist-guard.ps1
+        run: |
+          $only = "${{ steps.guard_target.outputs.name }}"
+          if (-not $only) { $only = "${{ github.event.inputs.package }}" }
+          if ($only) {
+            ./scripts/allowlist-guard.ps1 -OnlyPackage $only
+          } else {
+            ./scripts/allowlist-guard.ps1
+          }
 
   publish:
     name: publish ecosystem packages
