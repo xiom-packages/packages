@@ -19,13 +19,13 @@
 
 package xiom_transport {
   name: "xiom.transport";
-  version: "0.1.0";
+  version: "0.2.0";
   description: "Pure-XIOM transport-class seam: reliable datagram framing, reliability engine, session/channels, simulated network, loopback/null/UDP backends (no FFI, no bridge C)";
   categories: ["networking"];
   keywords: ["transport", "udp", "reliable", "datagram", "quic", "netcode", "session", "channels"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];
-  modules: ["xiom.transport", "xiom.transport.caps", "xiom.transport.frames", "xiom.transport.reliable", "xiom.transport.session", "xiom.transport.sim", "xiom.transport.loopback", "xiom.transport.null", "xiom.transport.udp"];
+  modules: ["xiom.transport", "xiom.transport.caps", "xiom.transport.frames", "xiom.transport.reliable", "xiom.transport.rate", "xiom.transport.session", "xiom.transport.handlers", "xiom.transport.sim", "xiom.transport.loopback", "xiom.transport.null", "xiom.transport.udp"];
   deps: { "xiom.std": ">=0.60.0 <1.0.0" };
 }

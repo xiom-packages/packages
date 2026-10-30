@@ -1,10 +1,11 @@
 # xiom.transport
 
-> **Status:** `incubating` -- conformance-tested (36/36) on XIOM v0.64.5.
+> **Status:** `incubating` -- conformance-tested (42/42) on XIOM v0.65.3.
 > Published: `0.1.0` in `eco-v0.1.188` (sha256 `6638577d...`).
 > **Scope:** transport-class seam, pure XIOM: capability facts, compact
 > little-endian wire codec, a pure reliability engine over an injected
 > clock, a session/channel layer with a mandatory version handshake,
+> an ordered packet-handler chain, a saturating send budget,
 > deterministic simulated-network injection, loopback/null semantic
 > reference backends and a real UDP backend over `xiom.net.socket`.
 > No FFI, no bridge C, no vendored upstream code.
@@ -49,6 +50,17 @@
   delivers or acks a partial message; `poll(now_ms)` drains retransmissions
   and turns timeouts into typed events plus a draining transition.
   Reliability is NOT a transport property: the L2 decides per channel.
+- **Handler chain** (`xiom.transport.handlers`): ordered outbound handlers
+  (registration order) and inbound handlers (reverse registration order)
+  over plain datagram/session payloads. Small `PacketHandler` records,
+  append/insert/clear, per-entry and whole-chain disable, a byte-exact
+  no-op default, and sample prefix/XOR transforms as adapters for
+  compression/encryption/resend layers (no bundled crypto).
+- **Send budget** (`xiom.transport.rate`): a saturating byte window with
+  time refill and fractional carry (`rate_window_new`, `rate_refill`,
+  `rate_can_send`, `rate_consume`, `rate_window_bytes`), plus the additive
+  `session_send_rate_limited` wrapper. Basic pacing only: no RTT/loss
+  feedback and no adaptive congestion target.
 - **Simulated network** (`xiom.transport.sim`): virtual clock, fixed
   one-way delay, deterministic drop / duplicate / reorder tables, a seeded
   xorshift64 stream, packet capture and a transcript digest. Same seed +
@@ -93,6 +105,32 @@ var dup: Vec[Int] = Vec[Int].new();
 sim_set_tables(&mut link, &drop, &dup, 2, 7);  // every 2nd id reordered <=7ms
 ```
 
+Layered payload handlers (outbound in registration order, inbound in
+reverse; an empty chain is identity):
+
+```xi
+use xiom.transport.handlers;
+
+var chain = handlers_new();
+let _ = handlers_register_outbound(&mut chain, handlers_prefix(1, tag));
+let _ = handlers_register_outbound(&mut chain, handlers_xor(2, key));
+let _ = handlers_register_inbound(&mut chain, handlers_prefix(1, tag));
+let _ = handlers_register_inbound(&mut chain, handlers_xor(2, key));
+let out = handlers_apply_outbound(&chain, &payload);
+let back = handlers_apply_inbound(&chain, &out.bytes);
+```
+
+Saturating send budget (10 bytes/sec over a 100-byte window):
+
+```xi
+use xiom.transport.rate;
+use xiom.transport.session;
+
+var w = rate_window_new(100, 10, 0);
+let _ = rate_refill(&mut w, 2000);              // +20 bytes (saturates at 100)
+let sent = session_send_rate_limited(&mut s, 1, &payload, 2000, &mut w);
+```
+
 Real UDP:
 
 ```xi
@@ -115,7 +153,7 @@ match r {
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/port.ps1 -Package xiom.transport
 ```
 
-36 deterministic checks across five suites (see `tests/test_conformance.xi`).
+42 deterministic checks across six suites (see `tests/test_conformance.xi`).
 The UDP checks run against `127.0.0.1` with a candidate-port scan; when no
 free port exists they print an explicit `SKIP` line in the check name and
 never fake a pass. Everything else is wall-clock free.

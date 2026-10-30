@@ -36,6 +36,7 @@ module xiom.transport.session
 use xiom.transport.caps;
 use xiom.transport.frames;
 use xiom.transport.reliable;
+use xiom.transport.rate;
 
 // ---------------------------------------------------------------------------
 // Protocol constants
@@ -61,6 +62,7 @@ pub const TX_ERR_WINDOW: Int = 6;
 pub const TX_ERR_RELIABLE: Int = 7;
 pub const TX_ERR_BUFFER: Int = 8;
 pub const TX_ERR_CONN_ID: Int = 9;
+pub const TX_ERR_RATE: Int = 10;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -558,6 +560,26 @@ pub fn session_send(s: &mut Session, channel: Int, payload: &Vec[UInt8], now_ms:
   }
   s.stats.messages_sent = s.stats.messages_sent + 1;
   return _ok_poll(poll);
+}
+
+/// Additive rate-limited send: refill `w` to now_ms, refuse with TX_ERR_RATE
+/// when the payload does not fit, otherwise delegate to session_send and
+/// consume the payload bytes only after the send succeeds. Existing callers
+/// of session_send are untouched; this wrapper changes nothing unless used.
+/// The budget is application payload bytes, not encoded frame bytes.
+pub fn session_send_rate_limited(s: &mut Session, channel: Int, payload: &Vec[UInt8], now_ms: Int, w: &mut RateWindow) -> Result[SessionPoll, SessionError] {
+  let _ = rate_refill(w, now_ms);
+  let need = payload.len();
+  if !rate_can_send(w, need) {
+    let _ = rate_consume(w, need);
+    return _err_poll(_sxerr(TX_ERR_RATE, 0, "session_send_rate_limited: send window exhausted (" + need.to_str() + " > " + rate_window_bytes(w).to_str() + ")"));
+  }
+  let r = session_send(s, channel, payload, now_ms);
+  if !r.is_ok {
+    return r;
+  }
+  let _ = rate_consume(w, need);
+  return r;
 }
 
 // ---------------------------------------------------------------------------

@@ -2,10 +2,11 @@
 
 Version: 0.1.0 (incubating).
 Modules: `xiom.transport`, `xiom.transport.caps`, `xiom.transport.frames`,
-`xiom.transport.reliable`, `xiom.transport.session`,
-`xiom.transport.sim`, `xiom.transport.loopback`, `xiom.transport.null`,
-`xiom.transport.udp`. Pure XIOM, single runtime-primitive declaration
-(sec. 5), no FFI to any upstream library, no bridge C.
+`xiom.transport.reliable`, `xiom.transport.rate`, `xiom.transport.session`,
+`xiom.transport.handlers`, `xiom.transport.sim`, `xiom.transport.loopback`,
+`xiom.transport.null`, `xiom.transport.udp`. Pure XIOM, single
+runtime-primitive declaration (sec. 5), no FFI to any upstream library, no
+bridge C.
 Dependencies: `xiom.std >=0.60.0 <1.0.0` (`xiom.net.socket`,
 `xiom.string.compare`; tests additionally `xiom.test`, `xiom.io`).
 Design reference: NETCODE.md sec. 2-3 and PACKAGE-ASKS.md row A08 with the
@@ -21,7 +22,7 @@ determinism contract and the non-goals.
 
 ## 1. Scope
 
-A transport-class seam and one reliable-datagram L2 over it, in nine
+A transport-class seam and one reliable-datagram L2 over it, in eleven
 modules:
 
 | Module | Role |
@@ -30,7 +31,9 @@ modules:
 | `xiom.transport.caps` | `CapFacts` + per-backend facts functions + shared wire-size constants |
 | `xiom.transport.frames` | Wire codec: header, packet kinds, fragmentation metadata, typed errors with byte offsets |
 | `xiom.transport.reliable` | Pure reliability engine over an injected clock |
+| `xiom.transport.rate` | Saturating byte-budget send window (basic pacing, not congestion control) |
 | `xiom.transport.session` | Lifecycle, handshake, channels, fragmentation/reassembly, poll |
+| `xiom.transport.handlers` | Ordered outbound/inbound packet-handler chain (layering seam) |
 | `xiom.transport.sim` | Deterministic simulated network (virtual clock + schedule tables) |
 | `xiom.transport.loopback` | In-memory semantic reference (byte-exact FIFO) |
 | `xiom.transport.null` | Honest empty backend (counted, never delivered) |
@@ -39,8 +42,9 @@ modules:
 Module placement decisions:
 
 - Backend kinds (`TX_KIND_*`) and the shared wire-size constants live in
-  `xim.transport.caps` (the base module) so the dependency order stays
-  acyclic: caps -> frames -> reliable -> session -> backends -> root.
+  `xiom.transport.caps` (the base module) so the dependency order stays
+  acyclic: caps -> frames -> reliable -> rate -> session -> backends -> root;
+  `xiom.transport.handlers` is independent (plain payloads in/out).
 - The connection-state enum `ConnState` lives in `xiom.transport.session`
   (the lifecycle owner); the root facade surfaces it through its handle
   and `transport_state*` functions.
@@ -75,14 +79,33 @@ constants `FRAME_VERSION` (1), `FRAME_HEADER_SIZE` (19),
 `RlEngine`, `RlChannel`, `RlChannelStats`, `RlStats`, `RlInflight`,
 `RlOutbound`, `RlMessage`, `RlFailure`, `RlRecvResult`, `RlError`.
 
+`xiom.transport.rate`
+`rate_window_new`, `rate_window_bytes`, `rate_window_capacity`,
+`rate_refill`, `rate_can_send`, `rate_consume`, `rate_window_to_str`;
+constants `RATE_ERR_CONFIG`, `RATE_ERR_BUDGET`; type `RateWindow`
+(`capacity_bytes`, `available_bytes`, `refill_bytes_per_sec`, `remainder`,
+`last_ms`, `sent_bytes`, `sent_packets`, `refilled_bytes`, `refused`).
+
+`xiom.transport.handlers`
+`handlers_new`, `handlers_noop`, `handlers_prefix`, `handlers_xor`,
+`handlers_is_enabled`, `handlers_set_enabled`, `handlers_outbound_len`,
+`handlers_inbound_len`, `handlers_register_outbound`,
+`handlers_register_inbound`, `handlers_insert_outbound`,
+`handlers_insert_inbound`, `handlers_set_handler_enabled`,
+`handlers_clear_outbound`, `handlers_clear_inbound`, `handlers_clear`,
+`handlers_apply_outbound`, `handlers_apply_inbound`, `handlers_apply`;
+constants `HANDLER_KIND_*`, `HANDLER_STAGE_*`, `HANDLER_ERR_*`; types
+`PacketHandler`, `HandlerChain`, `HandlerOutcome`.
+
 `xiom.transport.session`
 `session_new`, `session_state`, `session_state_code`, `session_state_name`,
 `session_state_name_of_code`, `session_is_active`, `session_stats`,
 `session_reliable_stats`, `session_reasm_len`, `session_conn_id`,
 `session_start`, `session_close`, `session_handshake_deadline`,
 `session_open_channel`, `session_close_channel`, `session_send`,
-`session_on_packet`, `session_poll`; constants `TX_PROTOCOL_VERSION` (1),
-`TX_MAX_FRAGMENTS` (256), `TX_MAX_REASM_ENTRIES` (16), `TX_ERR_*`; types
+`session_send_rate_limited`, `session_on_packet`, `session_poll`;
+constants `TX_PROTOCOL_VERSION` (1), `TX_MAX_FRAGMENTS` (256),
+`TX_MAX_REASM_ENTRIES` (16), `TX_ERR_*` (including `TX_ERR_RATE`); types
 `ConnState`, `Session`, `SessionEvent`, `SessionPoll`, `SessionStats`,
 `SessionError`, `ReasmEntry`, `ReasmOutcome`.
 
@@ -325,7 +348,14 @@ Unknown backend kinds get the null facts (`caps_for_kind`), never a guess.
 - `SessionError { kind, code, message }` with `TX_ERR_STATE`,
   `TX_ERR_CHANNEL`, `TX_ERR_VERSION`, `TX_ERR_FRAME` (code = frame error
   kind), `TX_ERR_PAYLOAD`, `TX_ERR_WINDOW`, `TX_ERR_RELIABLE` (code =
-  reliability kind), `TX_ERR_BUFFER`, `TX_ERR_CONN_ID`.
+  reliability kind), `TX_ERR_BUFFER`, `TX_ERR_CONN_ID`, `TX_ERR_RATE`
+  (the additive rate-limited send refused).
+- `HandlerOutcome { ok, bytes, failed_id, code }` with
+  `HANDLER_ERR_KIND` (unknown handler kind), `HANDLER_ERR_DECODE` (prefix
+  mismatch/strip underflow) and `HANDLER_ERR_STAGE` (unknown stage).
+- `RateWindow` refusals are the boolean/typed results of `rate_consume`
+  (counter `refused`), with `RATE_ERR_*` reserved for callers that prefer
+  typed validation.
 - `UdpError { kind, message }` with `UDP_ERR_BIND`, `UDP_ERR_SEND`,
   `UDP_ERR_RECV`, `UDP_ERR_ADDR`, `UDP_ERR_CLOSED`.
 - `TxError { kind, code, message }` with `TXE_KIND`, `TXE_STATE`,
@@ -338,7 +368,10 @@ Unknown backend kinds get the null facts (`caps_for_kind`), never a guess.
 - No module reads a wall clock: the reliability engine, session and sim
   take `now_ms` from the caller; loopback and null have no time at all.
 - No randomness beyond the caller-supplied sim seed (a seeded xorshift64
-  stream; state 0 remaps to the fixed seed `0x2545F4914F6CDD1D`).
+  stream; state 0 remaps to the fixed seed `0x2545F4914F6CDD1D`). The
+  handler chain and rate window add no randomness: handler output is a pure
+  function of the chain and bytes, and budget state is a pure function of
+  the injected `now_ms` and consume sequence.
 - No globals; engine/session/link values are plain state stepped through
   functions. Same inputs => same outputs, byte for byte:
   `sim_digest` proves it for the simulated network, the frame goldens for
@@ -373,12 +406,63 @@ Unknown backend kinds get the null facts (`caps_for_kind`), never a guess.
   runtime's own socket call, and it is the only extern declaration in the
   package.
 
-## 12. Non-goals (declared, phase 1)
+## 12. Extension surface: handler chain and send budget
 
-- TLS / cryptography of any kind; authentication; connection migration.
-- Congestion control beyond the fixed window plus basic pacing decisions
-  left to the caller; bandwidth estimation; loss recovery beyond
-  retransmission.
+Both extensions are additive: no existing function, type, constant or wire
+byte changed.
+
+### 12.1 Packet-handler chain (`xiom.transport.handlers`)
+
+`HandlerChain` holds an `enabled` flag and two ordered lists of
+`PacketHandler` records (`id`, `kind`, `enabled`, `tag`, `key`):
+
+- outbound handlers run in registration order (index 0 first), so later
+  handlers wrap earlier output;
+- inbound handlers run in reverse registration order, so the same
+  registration order unwinds the layers;
+- `handlers_register_*` appends; `handlers_insert_*` places at an explicit
+  clamped index; `handlers_set_handler_enabled` toggles one entry;
+  `handlers_set_enabled` toggles the whole chain; `handlers_clear*` empties
+  it (full clear also re-enables).
+- An empty, disabled or all-disabled chain is a byte-exact pass-through.
+  A failing handler returns `HandlerOutcome{ok:false, failed_id, code}` with
+  the input bytes unchanged.
+- Shipped kinds are samples, not cryptography: `HANDLER_KIND_NOOP`,
+  `HANDLER_KIND_PREFIX` (prepend/verify a tag) and `HANDLER_KIND_XOR`
+  (reversible mask). Compression/encryption/resend adapters can be added as
+  new kinds without changing ordering, the chain or the wire format.
+- No `xiom.crypto` AEAD adapter is bundled: the available AEAD API requires
+  per-packet nonce/key lifecycle (and `aead_seal` uses a CSPRNG), which
+  would make the deterministic transport path depend on hidden state and
+  randomness. Applications that need it should wrap the chain's plain
+  byte transforms and inject their own nonce policy.
+
+### 12.2 Send budget (`xiom.transport.rate`)
+
+`RateWindow` is a saturating byte budget: `available_bytes` starts at
+`capacity_bytes`, `rate_refill(w, now_ms)` adds
+`elapsed_ms * refill_bytes_per_sec / 1000` (fractional carry kept in
+`remainder`), never exceeds capacity, and never refills when the injected
+clock does not advance. `rate_can_send` is a pure allowance check;
+`rate_consume` subtracts and counts accepted bytes/packets, or refuses and
+increments `refused`. A request above capacity is permanently unsendable
+until the caller raises capacity.
+
+`session_send_rate_limited(session, channel, payload, now_ms, window)`
+refills, checks the payload length (application bytes, not encoded frame
+bytes), delegates to the unchanged `session_send` on success, and consumes
+only after the session accepted the message. Exhaustion is
+`TX_ERR_RATE`; plain `session_send` callers see no change. This is basic
+pacing, not congestion control (no RTT/loss feedback, no adaptive target).
+
+## 13. Non-goals (declared, phase 1)
+
+- TLS / built-in cryptography of any kind; authentication; connection
+  migration. The handler chain is a generic layering seam, not a crypto
+  stack (no bundled AEAD adapter; see sec. 12.1).
+- Congestion control beyond the fixed window plus the basic saturating
+  rate window; bandwidth estimation; adaptive targets; loss recovery beyond
+  retransmission (sec. 12.2).
 - Stream muxing weights/QoS scheduling by priority (priority is declared
   data only).
 - A shared-memory backend; WebTransport; wire channel negotiation.
