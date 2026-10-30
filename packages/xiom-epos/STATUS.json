@@ -5,13 +5,13 @@
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
-                  "status":  "pass",
-                  "passed":  29,
-                  "failed":  0,
-                  "run_by":  "bindings-session",
-                  "commit":  "71a5975f",
-                  "checked":  "2026-10-27T19:41:20Z"
+                  "status":  "fail",
+                  "passed":  0,
+                  "failed":  1,
+                  "run_by":  "native-session",
+                  "commit":  "bc5de175",
+                  "checked":  "2026-10-30T17:29:12Z"
               },
     "publish":  false,
-    "excluded_reason":  "v0.65.3 COMPILE BLOCKER: \u0027Instruction does not dominate all uses\u0027 (alloca %struct.EposLibrary, field 5); v0.65.2 passes 29/29; compiler bug filed; do not publish/re-verify until fixed"
+    "excluded_reason":  "BLOCKED on v0.65.3 compiler regression: IR dominance (alloca EposLibrary field 5); published epos 0.1.0 unaffected; see REL-20261030-1540-bindings"
 }
