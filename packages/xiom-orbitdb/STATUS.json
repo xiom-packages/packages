@@ -9,9 +9,9 @@
                   "passed":  160,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "99c8a337",
-                  "checked":  "2026-10-28T15:31:19Z"
+                  "commit":  "fb55b372",
+                  "checked":  "2026-10-30T17:46:49Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish HELD (owner, per orbitdb): 0.3.0 carve from pin 720b27a on v0.65.1; split suite 166/166 x2 + legacy 160/160"
+    "excluded_reason":  "publish pending: 0.3.0 owner GO 2026-10-30; split suite 166/166 x2 + legacy 160/160 x2 on v0.65.3"
 }
