@@ -283,13 +283,29 @@ jobs:
               skipped=$((skipped+1))
               continue
             fi
+            # Owner-approved, package-scoped pack exception (2026-10-30):
+            # xiom.imgui vendors two Windows import libs (SDL3.lib,
+            # vulkan-1.lib). The packer refuses *.lib by default, so allow
+            # --force for this package only, gated on the exact pinned
+            # SHA256 values from SPEC section 2. Any mismatch fails closed.
+            publish_flags=""
+            if [ "$name" = "xiom.imgui" ]; then
+              sdl_sha="$(sha256sum "$dir/vendor/lib/SDL3.lib" | awk '{print $1}')"
+              vk_sha="$(sha256sum "$dir/vendor/lib/vulkan-1.lib" | awk '{print $1}')"
+              if [ "$sdl_sha" != "280d34f2beb9fa1252eb9f03a0cc1a93f44f365fdf0bc8801aed575f60c19b0e" ] || [ "$vk_sha" != "dd768491a91c365e3c487427915413e6c40b394f06357008d9d250556cf8c813" ]; then
+                echo "::error::xiom.imgui vendored import-lib hash mismatch (SDL3=$sdl_sha vulkan=$vk_sha)"
+                exit 1
+              fi
+              publish_flags="--force"
+              echo "pack exception: xiom.imgui vendored import libs (pinned hashes verified)"
+            fi
             echo "publish: $name@$version"
-            if (cd "$dir" && xiom pkg publish); then
+            if (cd "$dir" && xiom pkg publish $publish_flags); then
               published=$((published+1))
             else
               echo "retry after 30s (transient failure or rate limit): $name@$version"
               sleep 30
-              if (cd "$dir" && xiom pkg publish); then
+              if (cd "$dir" && xiom pkg publish $publish_flags); then
                 published=$((published+1))
               else
                 # Rerun-safe: a transient registry blip can make the version
