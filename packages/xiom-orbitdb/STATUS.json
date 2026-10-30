@@ -13,5 +13,5 @@
                   "checked":  "2026-10-30T17:46:49Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: 0.3.0 owner GO 2026-10-30; split suite 166/166 x2 + legacy 160/160 x2 on v0.65.3"
+    "excluded_reason":  "published 2026-10-30 (single tag xiom-orbitdb/v0.3.0; sha256 233ce7ef...)"
 }

@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0
 
 # XIOM ORBITDB -- Satellite + Station
 
-> **Status:** `incubating` -- carved from source pin `720b27a` (v0.3.0 candidate: paged B-tree store + checkpoint/GC, db-file locks + held-fd writes). **Split conformance suite 166/166 x2 across 11 files + legacy suite 160/160** on the accepted **v0.65.1** compiler. 0.2.1 remains the live registry artifact (`eco-v0.1.196`, sha256 `c8fc6548...`, 2026-10-17). 0.3.0 is **not published** -- publish is owner-held by ORBITDB; the record carries `publish=false`.
+> **Status:** `incubating` -- carved from source pin `720b27a` (v0.3.0: paged B-tree store + checkpoint/GC, db-file locks + held-fd writes). **Split conformance suite 166/166 x2 across 11 files + legacy suite 160/160 x2** on **v0.65.3**. **Published 2026-10-30** as single tag `xiom-orbitdb/v0.3.0` (sha256 `233ce7ef...`); 0.2.1 remains the prior artifact (`eco-v0.1.196`, sha256 `c8fc6548...`, 2026-10-17).
 
 > The XIOM two-tier database line. **Satellite** (tier 1) is the embedded database engine in this repository -- B-Tree index, WAL, query engine, crash recovery; useful as a library or through its CLI. **Station** (tier 2) is the planned PostgreSQL-class server tier: same repo, consumes the engine as a library, never a fork. Formerly `xiom-db`; module names stay `xiom.db.*`.
 
