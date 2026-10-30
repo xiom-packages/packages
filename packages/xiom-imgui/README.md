@@ -7,9 +7,11 @@ vendored into `vendor/` (MIT) and compiled into the test binary with
 plus the import libs come from Vulkan SDK 1.4.350.0 (SDL 3.4.8); the
 runtime needs `SDL3.dll` and `vulkan-1.dll`, no SDK at run time.
 
-> **Status:** `incubating` -- conformance suite green on the pin (xiom
-> v0.65.2; 11/11). 0.3.0 is published in `eco-v0.1.123` (sha256
-> `4d016de5...`); 0.4.0 (backends) is publish-requested.
+> **Status:** `incubating` -- conformance suite **11/11 x2** on v0.65.3.
+> **0.4.0 published 2026-10-30** as single tag `xiom-imgui/v0.4.0` (sha256
+> `a60d80a5...`); the vendored import libs are tracked and hash-pinned, and
+> the publish workflow force-packs them only for this package. 0.3.0 was
+> `xiom-imgui/v0.3.0` (sha256 `1a7feb3d...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
