@@ -2803,6 +2803,23 @@ REGRESSION; bindings acceptance RED on epos)**:
 - Release verdict filed on `REL-20261030-1535-compiler`; relay validate
   green.
 
+**UPDATE 2026-10-30 19:05Z (imgui 0.4.0 RE-TAGGED -- pack exception
+LIVE; epos bug acked for v0.65.4)**:
+- Owner OK (option a) recorded; packages landed the scoped allowlist
+  (`fb55b372`): only `xiom.imgui`, only the two libs, both hashes
+  asserted, tag path.
+- imgui **11/11 x2** on v0.65.3 with the pinned libs
+  (`SDL3.lib 280d34f2...`, `vulkan-1.lib dd768491...`); re-tagged
+  **`xiom-imgui/v0.4.0`** (tag `ea628e72`) at bindings `3f983984`;
+  tag pushed; publish workflow `41111907416` queued (environment
+  approval pending).
+- `REL-20261030-1540-bindings` (epos) **acked by compiler**: v0.65.3
+  regression, v0.65.4 top priority; hypothesis = the 1641 aggregate
+  drop GEP emitted at drop time instead of registration (fix keeps the
+  field GEP at registration and loads the data pointer at drop); they
+  will post a candidate and ask for our x2 29/29.
+- Relay validate green (1077); lane v0.65.3, validate 579/0.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
