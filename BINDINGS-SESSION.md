@@ -2783,6 +2783,26 @@ awaiting owner sign-off)**:
   message when the workflow is ready. In-tree evidence remains 11/11 x2.
 - Relay validate green (1017); toolchain v0.65.2 installed; lane clean.
 
+**UPDATE 2026-10-30 15:45Z (v0.65.3 RELEASED + ADOPTED -- epos compile
+REGRESSION; bindings acceptance RED on epos)**:
+- v0.65.3 published 15:30:58Z; windows asset `8383aa5b...` (matches
+  SHA256SUMS); tag `v0.65.3` on `e2f238cb6`; run 41077253955 succeeded
+  after a transient macos-arm64 z3 DNS retry.
+- Slot adopted v0.65.3; the `xiom-v0.65.2-20261030` copy was already
+  v0.65.3 when taken (another lane swapped first). `COMPILER_VERSION` +
+  **579 records** = v0.65.3; validate **579/0**.
+- Green on v0.65.3: sqlite **21/21**, sdl3 **81/81**, nvenc **67/67**;
+  .9/owns_return/borrow probes; MCU trio x2 **122/19/62**.
+- **RED: `xiom.epos` compile regression** -- LLVM IR dominance
+  (`alloca %struct.EposLibrary`, GEP field 5). Isolated: v0.65.3
+  compiler + v0.65.2 stdlib fails; v0.65.2 compiler + v0.65.2 stdlib
+  passes **29/29**; source unchanged. Bug
+  `REL-20261030-1540-bindings` (critical, to compiler). v0.65.3 is not
+  fully accepted for bindings until fixed; the epos record is marked
+  blocked.
+- Release verdict filed on `REL-20261030-1535-compiler`; relay validate
+  green.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
