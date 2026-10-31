@@ -2,10 +2,11 @@
 
 ## Status (2026-10-31)
 
-Dynamic-loader implementation at **0.6.0**: capability probe + engine RHI
+Dynamic-loader implementation at **0.6.1**: capability probe + engine RHI
 bring-up + WSI + render pipeline (clear, draw a triangle, present with
 readback proof) + C07 stable capture-copy + B05 timestamp/occlusion query
-readback.
+readback.  (0.6.0 is the published SDK100 raw-surface cut and is immutable;
+0.6.1 re-cuts the capture/query helper.)
 
 | Item | State |
 |------|-------|
@@ -38,7 +39,7 @@ readback.
   asserts the center pixel is the green triangle and the bottom-left sample
   is the clear color -- a pixel-level proof of "clears, draws a triangle,
   presents" (Vulkan NDC y inversion noted at the sample site).
-- **Capture/query (0.6.0)**: the existing triangle frame now carries a
+- **Capture/query (0.6.1)**: the existing triangle frame now carries a
   2-query TIMESTAMP pool + a 1-query OCCLUSION pool; the draw brackets
   `vkCmdWriteTimestamp` (COLOR_ATTACHMENT_OUTPUT) and
   `vkCmdBeginQuery`/`vkCmdEndQuery`, then `vkGetQueryPoolResults`
@@ -50,7 +51,7 @@ readback.
   buffers. Timestamp/occlusion are best-effort on devices without support
   (`query_ok=false`); the pinned host reports both live.
 - Out-of-scope by design (later phases): compute pipelines, descriptors,
-  depth/stencil, textures, per-frame synchronization (0.6.0 waits idle),
+  depth/stencil, textures, per-frame synchronization (0.6.1 waits idle),
   instance extension/layer enablement beyond the surface pair.
 
 ## Known limitations

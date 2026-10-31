@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.vulkan` |
-| Version | 0.6.0 |
+| Version | 0.6.1 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Vulkan (Khronos); Windows loader `vulkan-1.dll` |
 | Upstream license | Apache-2.0 (headers); no headers or code vendored -- the bridge is our code and declares the minimal ABI locally |
@@ -84,9 +84,11 @@ corrected 6->7), ACCESS TRANSFER_READ=0x800, VIEW_TYPE_2D=1,
 STAGE_COLOR_ATTACHMENT_OUTPUT=0x400. Readback pixels cross the boundary as
 `r<<16 | g<<8 | b`.
 
-**0.6.0 capture/query additions** (`src/vk_rhi.c`, engine ask
+**0.6.1 capture/query additions** (`src/vk_rhi.c`, engine ask
 `REL-20261031-1423-engine-4`; the raw command surface in
-`src/api.xi` + `src/cmds_01..08.xi` already binds every command used here):
+`src/api.xi` + `src/cmds_01..08.xi` already binds every command used here).
+0.6.0 is the published SDK100 raw-surface cut and is immutable, so the
+capture/query helper ships as 0.6.1:
 `XwQueryPoolCreateInfo` (32 bytes; sType 11, pNext 8, flags 16, queryType
 20, queryCount 24, pipelineStatistics 28), a 2-query TIMESTAMP pool and a
 1-query OCCLUSION pool; `vkCmdResetQueryPool`, `vkCmdWriteTimestamp` at

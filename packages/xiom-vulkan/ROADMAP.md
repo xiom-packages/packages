@@ -1,6 +1,6 @@
 # xiom.vulkan -- Roadmap
 
-**Version**: v0.6.0 | **Compiler**: xiom v0.65.4 | **Last updated**: 2026-10-31
+**Version**: v0.6.1 | **Compiler**: xiom v0.65.4 | **Last updated**: 2026-10-31
 
 ## Current state
 
@@ -16,7 +16,7 @@
 | Queues + command buffers + frames | Done (0.3.0/0.4.0) |
 | Shaders (SPIR-V loading) | Done (0.5.0) -- glslc + embedded `.inc` |
 | Render pipeline (clear, draw, present, readback) | Done (0.5.0) -- 22/22 x2 |
-| Capture copy + query readback (C07/B05) | Done (0.6.0) -- stable full-frame checksum + timestamp/occlusion readback; 24/24 x2 |
+| Capture copy + query readback (C07/B05) | Done (0.6.1) -- stable full-frame checksum + timestamp/occlusion readback; 24/24 x2 |
 | Compute pipelines | Phase 4 |
 | Buffers/images + memory allocator | Phase 4 (readback buffer exists) |
 

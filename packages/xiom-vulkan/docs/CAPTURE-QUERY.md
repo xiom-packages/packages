@@ -1,8 +1,8 @@
 # Capture copy (C07) + query readback (B05)
 
 Engine ask: `REL-20261031-1423-engine-4` item 2.  The raw 0.6.0 command
-surface already binds every command below; this page pins the exact sequence
-and the helper that runs it end to end.
+surface (the published SDK100 cut) already binds every command below; this
+page pins the exact sequence and the 0.6.1 helper that runs it end to end.
 
 ## Thin helper (recommended)
 
