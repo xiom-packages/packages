@@ -1829,7 +1829,7 @@ clarification + design decision.
   real producer/consumer/admin/config/error surface, **mock-cluster live
   batteries** (no broker needed), 100% coverage table, x2, publish after
   landing.  No conflicts: stdlib owns protocol parsers only; the kafka
-  client driver is a package (STDLIB_EXTENSION.md §3121 cites
+  client driver is a package (STDLIB_EXTENSION.md Â§3121 cites
   xiom-kafka), and no other lane has it.
 - **matplotlib: not a viable native binding** -- pure Python, no stable C
   API (the C++ Agg internals are private).  Options: extend
@@ -4199,7 +4199,7 @@ clone: stage ONLY your own item files). The two working rules are in
   `REL-20261011-1740-bindings`.
 - **Latest batch 56 (2026-10-11)**: `xiom.meshopt` **0.2.0 -- pool drive
   (vendored)**: meshoptimizer v1.2 vendored verbatim (commit `f843aae0`,
-  20 C++ TUs + header + LICENSE; per-file SHA256 in SPEC §2; extraction
+  20 C++ TUs + header + LICENSE; per-file SHA256 in SPEC Â§2; extraction
   from the clone object store, every staged blob byte-identical to
   upstream HEAD) compiled with the suite via `port.args.json` plus the
   reviewable bridge `src/meshopt_bridge.cpp` (integer/scalar ABI; B-20:
@@ -5016,7 +5016,7 @@ Canonical doc: docs/UPSTREAM-FIRST.md (lane gates G6/G7 in docs/BINDINGS-LANE.md
 
 Cross-lane coordination now goes through the private `xiom-lang/xiom-relays`
 repo (`E:\xiom-lang\xiom-relays`). Working instructions (also recorded in
-`docs/BINDINGS-LANE.md` §12):
+`docs/BINDINGS-LANE.md` Â§12):
 
 - At session start and before finishing any task: pull xiom-relays and
   process items addressed to this lane
@@ -5024,11 +5024,11 @@ repo (`E:\xiom-lang\xiom-relays`). Working instructions (also recorded in
 - Never edit another lane's item; open a new item instead.
 
 Onboarded and acked (`REL-20261010-1548-bindings` to owner); 11 open
-cross-lane items migrated (id map in `docs/BINDINGS-LANE.md` §12); the
+cross-lane items migrated (id map in `docs/BINDINGS-LANE.md` Â§12); the
 recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
-## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+## Relay (bindings -> native, per BINDINGS-LANE.md Â§6)
 
 ```
 BINDINGS PUBLISH CONFIRM (graphics wave, 2026-10-12): xiom.vulkan 0.6.0
@@ -5285,7 +5285,7 @@ B-01 signature was build-dependent; 2/6 bad on v0.64.0/v0.64.1) + full pin matri
 sdl3 21, glfw 3, raylib 3, opengl 13, vulkan 10, dxc 3, directx11 5, directx12 5,
 libpq 2, odbc 5, portaudio 2, phonon 3, openssl 4, ffmpeg 2); licenses=vendored SQLite
 3.53.4 public domain + package MIT OR Apache-2.0 (unchanged); pins=SQLite amalgamation
-hashes unchanged (SPEC §2) + compiler pin v0.64.2; gate=G0..G5 OK; needs=NONE
+hashes unchanged (SPEC Â§2) + compiler pin v0.64.2; gate=G0..G5 OK; needs=NONE
 (allowlisted); NO port.args.json change. NOTE: 0.2.0 -> 0.3.0 bump of a live package --
 publish is the native lane's call.
 ```
@@ -5311,7 +5311,7 @@ needs=NONE.
 ```
 BINDINGS BATCH 21: head=224e5c49 + this handoff commit; packages=xiom.ffmpeg 0.2.0 (system-lib
 generation loader replacing the pre-pilot 27-static-extern module; native decision BINDINGS-LANE
-§11 followed: SKIP path only, nothing vendored); tests=default PATH SKIP 2/2 x2 (skip
+Â§11 followed: SKIP path only, nothing vendored); tests=default PATH SKIP 2/2 x2 (skip
 classification via bogus sonames + probe SKIP) and Cascadeur 6.0 LGPL set on PATH 4/4 x2
 (version FFmpeg 6.0; avcodec 60.3.100 / avformat 60.3.100 / avutil 58.2.100 / swresample 4.10.100;
 license 'LGPL version 2.1 or later', gpl-configured false), plus Blender 7.1.1 GPL set 4/4
@@ -5323,7 +5323,7 @@ pins=generation table (8.x 62/62/60/6, 7.x 61/61/59/5, 6.x 60/60/58/4, 5.x 59/59
 58/58/56/3) + 7 LGPL-safe entry points (av_version_info, avutil_version,
 avcodec_version/configuration/license, avformat_version, swresample_version) + local sample
 hashes (Cascadeur set 094CF53C/978F36BF/2FFE865E/43FF1854; Blender avcodec-61 1377146F; OneDrive
-avcodec-62 6A194B53; DaVinci avcodec-60 83A94AD3 -- SPEC §3); gate=G0..G5 OK (ABSENT -> SKIP;
+avcodec-62 6A194B53; DaVinci avcodec-60 83A94AD3 -- SPEC Â§3); gate=G0..G5 OK (ABSENT -> SKIP;
 ABI/PROBE_FAILED -> FAIL; all unsafe in the single module); needs=NONE (allowlisted + baseline;
 namespace-check OK, 0 conflicts); NO port.args.json (pure-XIOM loader).
 ```
@@ -5358,7 +5358,7 @@ committed) + package MIT OR Apache-2.0; pins=soname libpq.dll + 13-entry-point s
 (PQlibVersion/PQconnectdb/PQstatus/PQerrorMessage/PQfinish/PQexec/PQresultStatus/PQntuples/
 PQnfields/PQfname/PQgetvalue/PQgetisnull/PQclear) + constants (CONNECTION_OK/BAD, PGRES_*) +
 local samples: DaVinci 13.11 sha256 B43D05F89AC004934D8771F21D8BB0F3C80CD5C183221DFA6CB58BAFCE9F621E,
-Reallusion 10.7 sha256 7D4A589E45ED04756DE72C8A94932EC94F88B9874E0AE9234AA88467255C002E (SPEC.md §2);
+Reallusion 10.7 sha256 7D4A589E45ED04756DE72C8A94932EC94F88B9874E0AE9234AA88467255C002E (SPEC.md Â§2);
 gate=G0..G5 OK (ABSENT -> SKIP; ABI/PROBE_FAILED -> FAIL; all unsafe in the single module);
 needs=ALLOWLIST APPEND still pending for xiom.odbc (batch 15) -- xiom.libpq is already
 allowlisted; NO port.args.json (pure-XIOM loader).
@@ -5373,7 +5373,7 @@ exact v4.8.1 headers and activates automatically when the DLL is on PATH).
 **Audio sector COMPLETE** (miniaudio, portaudio, phonon). Awaiting native
 merge/verify/publish.
 
-## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+## Relay (bindings -> native, per BINDINGS-LANE.md Â§6)
 
 ```
 BINDINGS BATCH 19: head=f70eb9a1 + this handoff commit; packages=xiom.phonon 0.2.0 (dynamic
@@ -5407,7 +5407,7 @@ v0.64.1; licenses=MIT (PortAudio not vendored) + package MIT OR Apache-2.0; pins
 portaudio_x64.dll + 8-entry-point set + PaDeviceInfo prefix (name pointer at offset 8) +
 local samples: Audacity 221,696 B sha256
 370E0FD6A9793EDBD0D0FA7F2CC7CDAA4EED86D3A747D765CAFC1DDB0E5968EF (used), DaVinci 102,400 B
-sha256 12E0C6AE447F5C72F4EABD8CAFD6A036AEB33FAD392973FE46BEDF17A628D3AB (SPEC.md §2);
+sha256 12E0C6AE447F5C72F4EABD8CAFD6A036AEB33FAD392973FE46BEDF17A628D3AB (SPEC.md Â§2);
 gate=G0..G5 OK; needs=NONE (allowlisted + baseline); NO port.args.json (pure-XIOM loader).
 ```
 
@@ -5447,7 +5447,7 @@ relay discipline:
 
 Next package: `xiom.miniaudio` (audio sector).
 
-## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+## Relay (bindings -> native, per BINDINGS-LANE.md Â§6)
 
 ```
 BINDINGS BATCH 15: head=27e38bd3 + this handoff commit; packages=xiom.odbc 0.2.0 (first
@@ -5458,7 +5458,7 @@ SKIP classification via bogus soname); licenses=MIT OR Apache-2.0 (odbc32.dll is
 component; nothing vendored); pins=soname odbc32.dll + entry-point set (SQLAllocHandle,
 SQLSetEnvAttr, SQLDrivers, SQLDataSources, SQLGetInfo, SQLFreeHandle) + ODBC constants +
 local System32 sample 10.0.26100.9549 sha256 8A120C65049E31B26CF1608E9D9E3253F386D29539A508B345E30390542B88D7
-(SPEC.md §2); gate=G0 OK (keywords:["binding"], license), G1 OK, G2 OK, G3 OK (ABSENT ->
+(SPEC.md Â§2); gate=G0 OK (keywords:["binding"], license), G1 OK, G2 OK, G3 OK (ABSENT ->
 SKIP, ABI -> FAIL), G4 OK (5 checks), G5 OK (all unsafe in the single module xiom.odbc);
 needs=ALLOWLIST APPEND for xiom.odbc (not in the publish allowlist; native lane does the
 append + ops scope). NO port.args.json (pure-XIOM loader).
@@ -5483,7 +5483,7 @@ vendor/ozz_bridge.cpp 0D2BA8800CADD74381ED907C8A9A35687A18EE014BA54C5D8D9DFFFFCC
 METHOD NOTE: the xiom link line has no include passthrough, so ozz (C++, no C API) is
 vendored as two generated TUs from the upstream-style combine.py (roots include/ + src/);
 generator inputs are reviewable at src/ozz-in.cpp and src/ozz-bridge-in.cpp; the full
-re-pin procedure is in SPEC.md §2. This method generalizes to any header-heavy C/C++ library.
+re-pin procedure is in SPEC.md Â§2. This method generalizes to any header-heavy C/C++ library.
 ```
 
 ```
@@ -5494,7 +5494,7 @@ round-trip identity incl. 65,536-byte and 1024-byte incompressible, invalid stre
 rejected); licenses=BSD-3-Clause (vendored Apple sources) + package MIT OR Apache-2.0;
 pins=tag lzfse-1.0 archive sha256
 CF85F373F09E9177C0B21DBFBB427EFAEDC02D035D2AADE65EB58A3CBF9AD267 + per-file SHA256 table
-(15 files, SPEC.md §2); gate=G0..G5 OK; needs=NONE (allowlisted + baseline);
+(15 files, SPEC.md Â§2); gate=G0..G5 OK; needs=NONE (allowlisted + baseline);
 port.args.json present (--c-source x7, upstream add_library source list, no --link);
 .gitattributes vendor/** -text byte pin; lzfse_main.c (CLI) intentionally not vendored.
 ```
@@ -5571,7 +5571,7 @@ NVIDIA GeForce RTX 3070 Ti type 2 api 1.4; deterministic SKIP classification per
 licenses=MIT OR Apache-2.0 (header-free bridge is our code; Khronos header pinned by hash,
 not vendored); pins=soname vulkan-1.dll + Vulkan-Headers tag vulkan-sdk-1.4.350.0
 vulkan_core.h sha256 6D2BA4755774B1D129DA6B8E661268B494D2D609DF6217C6B6485ACF7666B6C2 +
-entry-point set + ABI details (SPEC.md §2); local sample C:\Windows\System32\vulkan-1.dll
+entry-point set + ABI details (SPEC.md Â§2); local sample C:\Windows\System32\vulkan-1.dll
 1.4.350.0 sha256 0419974F00E82A3D619077BA414DA265A774F8DB9D45AD93BC1843F44B2C2C1F;
 gate=G0 OK, G1 OK, G2 OK, G3 OK (ABSENT/NO_DEVICE -> SKIP, ABI -> FAIL; bogus-soname test
 every run), G4 OK (capability suite), G5 OK (all unsafe in the single module xiom.vulkan);
@@ -5592,7 +5592,7 @@ extension correctly absent, deterministic SKIP classification); licenses=MIT OR 
 (bridge is our code; nothing vendored upstream); pins=opengl G2 extended -- soname opengl32.dll,
 symbol set + wglGetProcAddress/glGetIntegerv/glGetStringi (context-scoped via
 wglGetProcAddress), WGL core-context attribs (0x2091/0x2092/0x2094/0x9126, core bit 0x1) and
-GL query constants (0x821B/0x821C/0x821D) recorded in SPEC.md §2; gate=G0..G5 OK (core probe
+GL query constants (0x821B/0x821C/0x821D) recorded in SPEC.md Â§2; gate=G0..G5 OK (core probe
 keeps ABSENT/NO_CONTEXT -> SKIP, ABI -> FAIL; all unsafe confined to xiom.opengl);
 needs=NONE (already allowlisted); port.args.json unchanged (--c-source gl_probe.c).
 ```
@@ -5660,7 +5660,7 @@ vendored upstream; src/gl_probe.c is our bridge code); pins=soname opengl32.dll 
 symbol set (glGetString/wglCreateContext/wglMakeCurrent/wglDeleteContext + user32
 CreateWindowExA/DestroyWindow/GetDC/ReleaseDC + gdi32 ChoosePixelFormat/SetPixelFormat) +
 PIXELFORMATDESCRIPTOR layout; local sample opengl32.dll FileVersion 10.0.26100.9278
-sha256 659BE03C...A5ECE, runtime strings in SPEC.md §2; gate=G0 OK (keywords:["binding"],
+sha256 659BE03C...A5ECE, runtime strings in SPEC.md Â§2; gate=G0 OK (keywords:["binding"],
 license), G1 OK, G2 OK (pin + re-pin procedure), G3 OK (ABSENT/NO_CONTEXT -> SKIP, ABI ->
 FAIL; SKIP path deterministically testable on any host), G4 OK (staged probe suite), G5 OK
 (all unsafe/extern confined to the root module xiom.opengl); needs=NONE (already
@@ -5674,7 +5674,7 @@ tests=xiom.sdl3 present 10/10 x2 (SDL 3.4.8 on PATH) and absent 3/3 x2 (SKIP pat
 through scripts/port.ps1, v0.64.0, 2026-10-08; licenses=MIT OR Apache-2.0 (nothing
 vendored; SDL3 itself untouched, zlib); pins=soname SDL3.dll + SDL release-3.4.8 header
 set manifest sha256 FD61D35102FDAC6FDDB944ED0192DFE4058222FDC531327F74264FF53B0E3023
-(7 headers listed in SPEC.md §2; local positive-path sample: Vulkan SDK 1.4.350.0 SDL3.dll
+(7 headers listed in SPEC.md Â§2; local positive-path sample: Vulkan SDK 1.4.350.0 SDL3.dll
 FileVersion 3.4.8.0 sha256 6E2B4B6A...C263, runtime reports 3004008); gate=G0 OK
 (keywords:["binding"], license), G1 OK, G2 OK (soname + header manifest pin + re-pin
 procedure), G3 OK (SKIP path never FAILs; ABI mismatch is an explicit FAIL kind), G4 OK
@@ -5776,7 +5776,7 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 ## Inbound context (2026-10-08, after batch 1 merged @ 05a19deb, wrapped 5ea29bb5/2cb3f03a)
 
 - Batch 1 merged and wrapped: `xiom.sqlite` 0.2.0 is on the allowlist (505 names);
-  `port.args.json` hook live (`docs/BINDINGS-LANE.md` §10); findings recorded in
+  `port.args.json` hook live (`docs/BINDINGS-LANE.md` Â§10); findings recorded in
   `docs/COMPILER-FINDINGS.md`. **sdl3 starts only after the eco-v0.1.89 publish
   confirmation** (owner/native relay); keep-fresh before starting.
 - New project lanes joined the ecosystem (Projects -> packages -> stdlib ->
@@ -5823,7 +5823,7 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   no extra flags (contrast `xiom.sqlite`, which needs
   `--c-source vendor/sqlite3.c`). CI runs the suite unchanged.
 - G2 pin: soname `SDL3.dll` + `release-3.4.8` header-set manifest
-  `FD61D351...E3023` (per-file hashes in `SPEC.md` §2).
+  `FD61D351...E3023` (per-file hashes in `SPEC.md` Â§2).
 
 ## Batch 3 notes (xiom.opengl, 2026-10-08)
 
@@ -5841,7 +5841,7 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   developer machines.
 - Run matrix: `port.ps1 -Package xiom.opengl` -> PASS 8/8 x2 (NVIDIA RTX 3070
   Ti, GL 4.6.0 NVIDIA 616.92, GLSL 4.60 NVIDIA; VENDOR/RENDERER strings in
-  SPEC.md §2). No-context SKIP path code-reviewed, not force-tested locally.
+  SPEC.md Â§2). No-context SKIP path code-reviewed, not force-tested locally.
 - `port.args.json` is present (`--c-source ${PACKAGE_DIR}/src/gl_probe.c`);
   no `--link` flags are needed because the bridge loads everything
   dynamically.
@@ -5999,7 +5999,7 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   runtime lead: process-wide VEH + wholesale guard-arena discard vs NVIDIA
   driver threads/SEH.
 - Pin: VMA v3.4.0 (MIT) + Vulkan-Headers vulkan-sdk-1.4.350.0 (Apache-2.0);
-  the one-line vendored rewrite is documented in SPEC §2.
+  the one-line vendored rewrite is documented in SPEC Â§2.
 
 ## Batch 23 notes (physics + UI roster, 2026-10-09)
 
@@ -6030,7 +6030,7 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   comment fix (constructors unchanged); `kind_name` kept (match-based).
 - Validation: 6 fresh rebuild cycles (the defect was build-dependent;
   original evidence 2/6 bad) + the pin matrix x1 -- 16/16 each time.
-- Docs updated: SPEC §1/§5 (0.3.0, v0.64.2 pin, item 1 rewritten as
+- Docs updated: SPEC Â§1/Â§5 (0.3.0, v0.64.2 pin, item 1 rewritten as
   FIXED+restored), README status, AUDIT design note; obsolete `VALUE_*`
   constants removed with the struct.
 - Version 0.3.0 (public type representation changed); the publish decision
@@ -6058,13 +6058,13 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 
 ## Batch 21 notes (xiom.ffmpeg, 2026-10-09)
 
-- Scope per the native decision (`BINDINGS-LANE.md` §11): system-lib SKIP
+- Scope per the native decision (`BINDINGS-LANE.md` Â§11): system-lib SKIP
   path only, LGPL-safe probe; vendoring NOT approved. Present-path proof
   used the local Cascadeur 6.0 LGPL set placed on PATH at run time (nothing
-  committed; hashes in SPEC §3).
+  committed; hashes in SPEC Â§3).
 - Generation model: one release generation = four libraries
   (avcodec/avformat/avutil/swresample); a partial set is skipped, never
-  mixed across ABI generations. 8.x..4.x table in SPEC §3.
+  mixed across ABI generations. 8.x..4.x table in SPEC Â§3.
 - Probe calls 7 LGPL-safe entry points only: version string + four packed
   versions + license/configuration evidence. GPL-configured host builds are
   reported as data (Blender 7.1.1 sample), not failed -- the package never
@@ -6077,7 +6077,7 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 
 ## Batch 20 notes (xiom.openssl, 2026-10-09)
 
-- System-lib path chosen (decision recorded in SPEC §2 and the relay):
+- System-lib path chosen (decision recorded in SPEC Â§2 and the relay):
   OpenSSL source is too large/configuration-heavy to vendor; libcrypto
   builds are ubiquitous on Windows; the SKIP classification keeps CI green
   while the present-path proof is real (byte-exact SHA-256("abc") digest +
@@ -6086,7 +6086,7 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   `libcrypto-1_1-x64.dll`, `libcrypto-1_1.dll`, `libcrypto.dll`.
 - Run matrix: default PATH (System32 LibreSSL 3.8.2) 4/4 x2; Git for
   Windows on PATH (OpenSSL 3.2.4, num 807403584) 4/4; deterministic SKIP
-  classification every run (bogus soname). Sample hashes in SPEC §2.
+  classification every run (bogus soname). Sample hashes in SPEC Â§2.
 - Inbound compiler relay v0.64.2 recorded (lane copy under `docs/`):
   B-01 fixed (m231), B-08 fixed (m228); B-05 still open (runtime/stdlib
   side); B-10 (odbc `alloc` name rewrite) re-test queued with the sweep.
@@ -6721,3 +6721,29 @@ FIRST ACTIONS:
   publish `xiom-vulkan/v0.7.0` from `af2248ef`; 0.6.1 stays live and is
   superseded.  `REL-20261031-1731-bindings` stays acked until the publish
   lands.  Relay validate green (**1130 items**).
+
+## UPDATE 2026-10-31 22:05Z -- Vulkan 0.7.0 LIVE; stale bugs closed
+
+- **`xiom.vulkan 0.7.0` is LIVE**: tag `xiom-vulkan/v0.7.0`, sha256
+  `295b8c36e54d8aaf655c25f6fb3117c43898d6e0fffff3d335fda8987f90b200`
+  (signed), run `41232683024` green, **36/36 x2** in-tree on v0.65.4.
+  Packages adopted the clean re-cut `4717d175` into main `cf95b98e`
+  (sync `94d9fc85`); `REL-20261031-1731-bindings` and
+  `REL-20261031-1902-bindings` are fixed.  Registry latest = 0.7.0.
+- **Docs cosmetics**: packages flagged literal `\n` sequences in the
+  published README Mini-RHI paragraph (the C build was clean).  Normalized
+  README + ROADMAP (**no version bump**) at `0d045562`; the live 0.7.0
+  artifact carries only that cosmetic text defect, the next cut will be
+  clean.  CHECK: no literal `\n` remains in package `.md`.
+- **Stale bindings bugs closed** per compiler sweep
+  `REL-20261031-1911-compiler`:
+  - `REL-20261013-2142-packages` ffmpeg demux -> fixed by 0.4.1
+    (`REL-20261014-1331-bindings`), x2 23/23 on both generations.
+  - `REL-20261027-2329-packages` imgui pack blocker -> fixed by pack
+    exception `fb55b372`; 0.4.0 live (tag `xiom-imgui/v0.4.0` ea628e72 at
+    `3f983984`, sha `a60d80a5...`, run `41111907416`).
+  - `REL-20261030-1740-packages` imgui re-tag ask -> fixed with the live
+    sha; reporter can verify.
+- Relay validate green (**1153 items**); lane clean at `0d045562`.
+  Doorbell next 00:00Z; 03:00/06:00/09:00Z fall inside the 02:00Z-11:00Z
+  pause.
