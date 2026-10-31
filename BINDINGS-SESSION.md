@@ -6702,3 +6702,22 @@ FIRST ACTIONS:
   (**1125 items**).
 - Remaining external loop: packages publish 0.7.0; the 19:00Z doorbell picks
   it up.  No in-flight branches; lane clean at `8421b74e`.
+
+## UPDATE 2026-10-31 19:05Z -- clean-build defect caught by packages; 0.7.0 re-cut
+
+- 19:00Z doorbell: packages **acked** `REL-20261031-1731-bindings` as
+  BLOCKED.  `d9c336c3` line 2500 had two literal `\n` sequences in the
+  experimental comment, so a clean compile failed.  The local 36/36 x2
+  evidence was from a binary built **before** that comment-only edit -- a
+  lane process miss (always delete `a.exe` / clean-compile after comment
+  edits before claiming tests).
+- Fix `4717d175`: real newlines only (no code/API change).  Deleted
+  `a.exe`, rebuilt from scratch, **36/36 x2** on v0.65.4 with the declared
+  C args (timestamps 2048-3072 ns, 24576 samples, capture crc stable,
+  compute/indirect/labels/frame-sync/surface all green).
+- Record: tree **`4717d175`**, commit **`af2248ef`** (STATUS updated);
+  lane pushed clean at `af2248ef`.
+- Reposted to packages as **`REL-20261031-1902-bindings`** (info, high):
+  publish `xiom-vulkan/v0.7.0` from `af2248ef`; 0.6.1 stays live and is
+  superseded.  `REL-20261031-1731-bindings` stays acked until the publish
+  lands.  Relay validate green (**1130 items**).
