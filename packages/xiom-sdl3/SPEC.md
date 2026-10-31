@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.21.0 |
+| Version | 0.22.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
 | Upstream license | zlib (bindings only; no code vendored) |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (loader path is OS-agnostic in design; soname here is `SDL3.dll`) |
-| Compiler pin | v0.64.8 |
+| Compiler pin | v0.65.4 |
 
 ## 2. G2 pin: soname + dev header hash set
 
@@ -442,12 +442,56 @@ the extra display query stay on the core loader.
   byte-indexed; no pointer arithmetic crosses a foreign call.  The new
   code adds no `unsafe` outside the existing confined call wrappers.
 
-## 4. Test matrix (recorded 2026-10-21, compiler v0.64.8)
+**0.22.0 addition (window surface tier, 2026-10-31; engine ask
+`REL-20261031-1423-engine-4`):** 9 symbols joined the two loaders, all
+declared and exported by the pinned SDL 3.4.8 ABI.  Surface creators live
+on the core loader (no window needed); window-scoped calls stay on the
+resource loader.
+
+- **Surface + icon (4 core + 1 resource symbol).**
+  `SDL_CreateSurface`/`SDL_DestroySurface` ->
+  `sdl3_create_surface(width, height, format)` (owned `SDL_Surface*`,
+  `Err` carries `SDL_GetError`) / `sdl3_destroy_surface`; `SDL_LoadBMP` ->
+  `sdl3_load_bmp(path)` (owned surface); `SDL_SaveBMP` ->
+  `sdl3_save_bmp(surface, path)` (`Result[Unit, Str]`); `SDL_SetWindowIcon`
+  -> `sdl3_set_window_icon(win, surface)` (SDL copies what it needs; the
+  caller keeps and destroys the surface).  Formats use the existing
+  `SDL_PIXELFORMAT_RGBA8888`/`ABGR8888` constants.  The suite proves a
+  4x3 RGBA create -> SaveBMP -> LoadBMP -> destroy round trip and a typed
+  error for a missing file, then sets a 2x2 icon on a hidden window.
+- **Native window handle (1 resource symbol + 2 property getters).**
+  `SDL_GetWindowProperties` -> `sdl3_window_properties(win)` (the
+  `SDL_PropertiesID` as `Int`); `SDL_GetPointerProperty`/
+  `SDL_GetNumberProperty` -> `sdl3_get_pointer_property`/
+  `sdl3_get_number_property` (`UInt32` id, name, 0 fallback).
+  `sdl3_window_native_handle(win)` composes them into
+  `Sdl3NativeWindow{ok, kind, handle}` and resolves, in order:
+  `SDL_PROP_WINDOW_WIN32_HWND_POINTER` (HWND),
+  `SDL_PROP_WINDOW_X11_WINDOW_NUMBER` (X11 window id),
+  `SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER` (wl_surface*),
+  `SDL_PROP_WINDOW_COCOA_WINDOW_POINTER` (NSWindow*); kind is
+  `SDL3_NATIVE_WINDOW_WIN32/X11/WAYLAND/COCOA/NONE`.  On this host the
+  hidden window reports kind=WIN32 with a non-zero HWND.  The engine's
+  `win_icon.cpp` GetProcAddress shim can now be replaced portably.
+- **Vulkan surface wrapper (1 resource symbol).**
+  `SDL_Vulkan_CreateSurface` -> `sdl3_vulkan_create_surface(win, instance,
+  slot)`; `slot` is an owned 8-byte `Vec[UInt8]` from
+  `sdl3_vulkan_surface_slot()`, zeroed before the call so a failed create
+  reads back 0 through `sdl3_vulkan_surface_value(slot)`.  The allocator
+  is NULL; the engine owns the `VkInstance` and the instance-extension
+  negotiation.  The suite verifies the typed rejection path (instance=0)
+  and the zeroed out-slot; the positive path is the engine's live device.
+- **B-series discipline:** the new out-param uses the existing owned-slot
+  helpers (`sdl3_slot`, `sdl3_write_u64_le`, `sdl3_read_u64_at`); every
+  string property is passed with `.c_str()`; no pointer arithmetic
+  crosses a foreign call.
+
+## 4. Test matrix (recorded 2026-10-31, compiler v0.65.4)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir filtered out of PATH | **PASS, 9/9 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`; decode + UI-decode + haptic encode + device constants still run -- all pure XIOM) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 81/81 x2** -- previous 72 checks + UI decode (focus/DPI/IME) + window identity/position/pixels/scale/display + IME control + watch routing + clipboard + primary selection |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 85/85 x2** -- previous 81 checks + surface create/SaveBMP/LoadBMP/destroy + window icon + native handle (Win32) + Vulkan CreateSurface typed rejection |
 | Full surface (generated modules) | `xiom --run tests/test_full_surface.xi` with SDL3 on PATH | PASS: bound 1269/1269, resolved 1270/1270 exports (2026-10-14, unchanged by 0.19.0) |
 | Device ABIs | generator audit + clang `x86_64-pc-windows-msvc` offsetof/sizeof probe against the pinned headers | 32/32 symbols, 45/45 constants, 14/14 layouts (2026-10-14) |
 | Demo probe | `xiom --run examples/demo_sdl3.xi` with SDL3 on PATH | exit 0; blit section prints update=true vsync=true blit=true present=true; closed cleanly (2026-10-11) |

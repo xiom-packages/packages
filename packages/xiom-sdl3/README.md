@@ -6,20 +6,24 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- **0.21.0 A14 UI platform surface** (engine ask
-> `REL-20261021-1652-engine-5`): **window identity/geometry** (`sdl3_window_id`,
-> `sdl3_window_from_id`, position get/set, size-in-pixels, display scale,
-> display id + index/bounds), **typed focus/DPI routing** (`Sdl3WindowFocus`
-> gained/lost with the window id; `Sdl3DpiChange` for pixel-size, display and
-> display-scale changes) through the existing pump/watch/filter model,
-> **text input + IME** (start/stop/active, text-input area + cursor,
-> clear-composition, and `Sdl3TextEditing` preedit + committed UTF-8 +
-> typed cancellation), and **clipboard** UTF-8 get/set/has plus primary
-> selection where the platform has it.  Additive over 0.20.0; SDL3 3.4.8
-> symbols only.  Suite **81/81 x2** with the official SDL 3.4.8 DLL + absent
-> **9/9 x2** (decode/encode + UI decode arms run without the DLL).
-> Previous: 0.20.0 callback direct handoff; 0.19.0 device surface (joystick
-> caps, haptic wave forms, pen/tablet decode); 0.18.0 foreign-written event
+> **Status:** `incubating` -- **0.22.0 window surface tier** (engine ask
+> `REL-20261031-1423-engine-4`): **icon + surface** (`sdl3_set_window_icon`,
+> `sdl3_load_bmp`, `sdl3_save_bmp`, `sdl3_create_surface`,
+> `sdl3_destroy_surface`), **native window handle**
+> (`sdl3_window_properties`, `sdl3_get_pointer_property`,
+> `sdl3_get_number_property`, `sdl3_window_native_handle` ->
+> `Sdl3NativeWindow` for Win32 HWND / X11 / Wayland / Cocoa), and an
+> **SDL_Vulkan_CreateSurface wrapper** (`sdl3_vulkan_create_surface` with an
+> owned 8-byte `sdl3_vulkan_surface_slot`, zeroed before the call).  The
+> 0.21.0 A14 surface (window identity/geometry, typed focus/DPI routing,
+> IME, clipboard + primary selection) stays live and is confirmed by the
+> suite.  Additive over 0.21.0; SDL3 3.4.8 symbols only.  Suite **85/85 x2**
+> with the official SDL 3.4.8 DLL + absent **9/9 x2** (decode/encode arms
+> run without the DLL).
+> Previous: 0.21.0 A14 UI platform surface (engine ask
+> `REL-20261021-1652-engine-5`); 0.20.0 callback direct handoff; 0.19.0
+> device surface (joystick caps, haptic wave forms, pen/tablet decode);
+> 0.18.0 foreign-written event
 > readback (B-11 addendum retired on v0.64.4); 0.16.1 fixed the `SDL_WasInit`
 > return width (B-19).  0.15.0 shipped in `eco-v0.1.151`; 0.16.0 in
 > `eco-v0.1.152`; 0.16.1 in `eco-v0.1.160` (sha256 `f2d99b9e...`); 0.17.0
@@ -65,6 +69,7 @@ fn main() {
 | Focus/DPI routing (0.21.0) | `sdl3_event_window_focus(ev)` (`Sdl3WindowFocus`: gained/lost + window id), `sdl3_event_is_focus_change`, `sdl3_event_dpi_change(ev)` (`Sdl3DpiChange`: pixel-size / display / display-scale), `sdl3_event_is_dpi_change`; `SDL3_WINDOW_FOCUS_*`, `SDL3_DPI_CHANGE_*` |
 | Text input/IME (0.21.0) | `sdl3_start_text_input(win)`, `sdl3_stop_text_input(win)`, `sdl3_text_input_active(win)`, `sdl3_set_text_input_area(win, rect, cursor)`, `sdl3_get_text_input_area(win)` (`Sdl3TextInputArea` with cursor), `sdl3_clear_composition(win)`; decode: `sdl3_event_text_editing(ev)` (`Sdl3TextEditing`: preedit/start/length), `sdl3_event_text_input(ev)` (committed UTF-8), `sdl3_event_text_kind(ev)` -> `SDL3_TEXT_EVENT_EDITING/COMMIT/CANCELLED` (cancellation is SDL3's empty-preedit editing event) |
 | Clipboard (0.21.0) | `sdl3_set_clipboard_text`, `sdl3_get_clipboard_text`, `sdl3_has_clipboard_text`, `sdl3_set_primary_selection_text`, `sdl3_get_primary_selection_text`, `sdl3_has_primary_selection_text` -- UTF-8; the primary-selection setter returns false + `SDL_GetError` where the platform has no primary selection (callers SKIP/fall back) |
+| Surface/icon/native handle (0.22.0) | `sdl3_create_surface(w, h, format)` / `sdl3_destroy_surface`, `sdl3_load_bmp(path)` / `sdl3_save_bmp(surface, path)` (owned `SDL_Surface*` as `Int`), `sdl3_set_window_icon(win, surface)`; `sdl3_window_properties(win)`, `sdl3_get_pointer_property` / `sdl3_get_number_property`, `sdl3_window_native_handle(win)` (`Sdl3NativeWindow{ok,kind,handle}`; `SDL3_NATIVE_WINDOW_WIN32/X11/WAYLAND/COCOA/NONE`), `SDL_PROP_WINDOW_WIN32_HWND_POINTER` / `_X11_WINDOW_NUMBER` / `_WAYLAND_SURFACE_POINTER` / `_COCOA_WINDOW_POINTER`; `sdl3_vulkan_create_surface(win, instance, slot)` + `sdl3_vulkan_surface_slot()` / `sdl3_vulkan_surface_value(slot)` -- pass-through wrapper, the engine owns the `VkInstance` |
 | Filesystem (0.7.0) | `sdl3_get_base_path` (SDL-owned, copied), `sdl3_get_pref_path(org, app)` + `sdl3_get_current_directory` (freed after copy), `sdl3_create_directory`, `sdl3_remove_path`, `sdl3_get_path_info` (`Sdl3PathInfo`; `SDL_PATHTYPE_*`) |
 | Display blit (0.8.0) | `sdl3_update_texture(res, tex, pixels, w, h)` (RGBA8 upload from an XIOM buffer), `sdl3_render_texture(res, ren, tex)` (whole-texture blit), `sdl3_set_render_vsync(res, ren, vsync)` -- `SDL_TEXTUREACCESS_STREAMING` exported; clear -> update -> blit -> present is the minimal engine present path |
 | Input/window contract (0.9.0) | `sdl3_mouse_state` (`Sdl3MouseState`: window-relative x/y + button mask), `sdl3_set_window_size`, `sdl3_set_window_resizable`, the full `SDL_EVENT_WINDOW_*` family (RESIZED/MOVED/PIXEL_SIZE_CHANGED/FOCUS_*/MINIMIZED/MAXIMIZED/RESTORED/SHOWN/HIDDEN/EXPOSED/CLOSE_REQUESTED) |
@@ -167,7 +172,7 @@ anywhere on `PATH`. G2 pin (soname + header-set manifest hash): `SPEC.md` §2.
 xiom --run tests/test_conformance.xi
 ```
 
-- With SDL3: 81 `[PASS]` (decode layers incl. pen/tablet + drag-drop +
+- With SDL3: 85 `[PASS]` (decode layers incl. pen/tablet + drag-drop +
   haptic encode, smoke + hidden window, renderer clear/present, textures,
   gamepad enumeration, synthetic event injection incl. a PEN_MOTION
   readback, filter keep/drop + watch semantics, displays + keyboard,
@@ -176,7 +181,9 @@ xiom --run tests/test_conformance.xi
   7680 B silent push stream, haptic enumeration + typed errors, window
   identity/position/pixels/display scale + display index, IME
   start/area/cursor/stop, focus + DPI + IME routing through the watch,
-  clipboard + primary-selection round trips), exit 0 (~15 s).
+  clipboard + primary-selection round trips, surface create/SaveBMP/
+  LoadBMP/destroy round trip, window icon, Win32/X11/Wayland/Cocoa native
+  handle, Vulkan CreateSurface typed rejection), exit 0 (~15 s).
 - Without SDL3: the loader smoke reports explicit `SKIP` labels and stays
   green (9 markers); the decode/encode + UI-decode arms run in both shapes
   (pure XIOM; no DLL needed).

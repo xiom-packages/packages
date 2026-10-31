@@ -448,6 +448,10 @@ pub type Sdl3Library = {
   p_set_primary_selection_text: Int;
   p_get_primary_selection_text: Int;
   p_has_primary_selection_text: Int;
+  p_load_bmp: Int;
+  p_save_bmp: Int;
+  p_create_surface: Int;
+  p_destroy_surface: Int;
 }
 
 /// Load SDL3.dll and resolve the smoke API.  Err(kind=SDL3_LOAD_ABSENT) when
@@ -669,6 +673,14 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
   if !a103.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetPrimarySelectionText: " + a103.error }); }
   let a104 = dl.dl_sym(handle, "SDL_HasPrimarySelectionText");
   if !a104.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_HasPrimarySelectionText: " + a104.error }); }
+  let a105 = dl.dl_sym(handle, "SDL_LoadBMP");
+  if !a105.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_LoadBMP: " + a105.error }); }
+  let a106 = dl.dl_sym(handle, "SDL_SaveBMP");
+  if !a106.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SaveBMP: " + a106.error }); }
+  let a107 = dl.dl_sym(handle, "SDL_CreateSurface");
+  if !a107.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CreateSurface: " + a107.error }); }
+  let a108 = dl.dl_sym(handle, "SDL_DestroySurface");
+  if !a108.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_DestroySurface: " + a108.error }); }
 
   return Ok(Sdl3Library{
     handle: handle,
@@ -776,6 +788,10 @@ pub fn sdl3_load() -> Result[Sdl3Library, Sdl3LoadError] {
     p_set_primary_selection_text: a102.value,
     p_get_primary_selection_text: a103.value,
     p_has_primary_selection_text: a104.value,
+    p_load_bmp: a105.value,
+    p_save_bmp: a106.value,
+    p_create_surface: a107.value,
+    p_destroy_surface: a108.value,
   });
 }
 
@@ -1003,6 +1019,11 @@ pub type Sdl3Resources = {
   p_set_text_input_area: Int;
   p_get_text_input_area: Int;
   p_clear_composition: Int;
+  p_set_window_icon: Int;
+  p_get_window_properties: Int;
+  p_get_pointer_property: Int;
+  p_get_number_property: Int;
+  p_vulkan_create_surface: Int;
 }
 
 fn sdl3_res_error(r: &Sdl3Resources) -> Str
@@ -1099,6 +1120,16 @@ pub fn sdl3_load_resources() -> Result[Sdl3Resources, Sdl3LoadError] {
   if !a36.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetTextInputArea: " + a36.error }); }
   let a37 = dl.dl_sym(handle, "SDL_ClearComposition");
   if !a37.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_ClearComposition: " + a37.error }); }
+  let a38 = dl.dl_sym(handle, "SDL_SetWindowIcon");
+  if !a38.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetWindowIcon: " + a38.error }); }
+  let a39 = dl.dl_sym(handle, "SDL_GetWindowProperties");
+  if !a39.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetWindowProperties: " + a39.error }); }
+  let a40 = dl.dl_sym(handle, "SDL_GetPointerProperty");
+  if !a40.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetPointerProperty: " + a40.error }); }
+  let a41 = dl.dl_sym(handle, "SDL_GetNumberProperty");
+  if !a41.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetNumberProperty: " + a41.error }); }
+  let a42 = dl.dl_sym(handle, "SDL_Vulkan_CreateSurface");
+  if !a42.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_Vulkan_CreateSurface: " + a42.error }); }
 
   return Ok(Sdl3Resources{
     handle: handle,
@@ -1139,6 +1170,11 @@ pub fn sdl3_load_resources() -> Result[Sdl3Resources, Sdl3LoadError] {
     p_set_text_input_area: a35.value,
     p_get_text_input_area: a36.value,
     p_clear_composition: a37.value,
+    p_set_window_icon: a38.value,
+    p_get_window_properties: a39.value,
+    p_get_pointer_property: a40.value,
+    p_get_number_property: a41.value,
+    p_vulkan_create_surface: a42.value,
   });
 }
 
@@ -4519,4 +4555,233 @@ pub fn sdl3_event_text_kind(ev: &Vec<UInt8>) -> Int
     return SDL3_TEXT_EVENT_EDITING;
   }
   return SDL3_TEXT_EVENT_NONE;
+}
+
+// =========================================================================
+// 0.22.0: window surface tier (engine ask REL-20261031-1423-engine-4)
+//
+// Icon + BMP + surface create/destroy, the native window handle through
+// SDL_GetWindowProperties, and an SDL_Vulkan_CreateSurface wrapper.  The
+// surface creators live on the core loader (they need no window); the
+// window-scoped calls live on the resource loader like every other
+// SDL_Window* entry point.  Out-params get their own owned slot (B-17):
+// the VkSurfaceKHR slot is zeroed before the call so a failed create
+// never exposes a stale handle.  This host's SDL3 3.4.8 exports every
+// symbol; the resource loader still fails closed (SDL3_LOAD_ABI) when a
+// host build omits Vulkan support.
+// =========================================================================
+
+/// Native window property keys (SDL_GetWindowProperties).
+/// Win32: HWND pointer; X11: window id number; Wayland: wl_surface pointer;
+/// Cocoa: NSWindow pointer.
+pub const SDL_PROP_WINDOW_WIN32_HWND_POINTER: Str = "SDL.window.win32.hwnd";
+pub const SDL_PROP_WINDOW_X11_WINDOW_NUMBER: Str = "SDL.window.x11.window";
+pub const SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER: Str = "SDL.window.wayland.surface";
+pub const SDL_PROP_WINDOW_COCOA_WINDOW_POINTER: Str = "SDL.window.cocoa.window";
+
+/// Native handle kind reported by sdl3_window_native_handle.
+pub const SDL3_NATIVE_WINDOW_NONE: Int = 0;
+pub const SDL3_NATIVE_WINDOW_WIN32: Int = 1;
+pub const SDL3_NATIVE_WINDOW_X11: Int = 2;
+pub const SDL3_NATIVE_WINDOW_WAYLAND: Int = 3;
+pub const SDL3_NATIVE_WINDOW_COCOA: Int = 4;
+
+/// Native window handle.  `handle` is an HWND (WIN32), an X11 window id
+/// (X11), a wl_surface* (WAYLAND) or an NSWindow* (COCOA); 0 with
+/// kind=NONE when the platform exposes none (e.g. dummy/offscreen).
+pub type Sdl3NativeWindow = {
+  ok: Bool;
+  kind: Int;
+  handle: Int;
+}
+
+/// SDL_LoadBMP(path) -> SDL_Surface* (owned; release with
+/// sdl3_destroy_surface).  Err carries SDL_GetError() when the file is
+/// missing or not a BMP.
+/// Complexity: O(file size).
+pub fn sdl3_load_bmp(lib: &Sdl3Library, path: Str) -> Result[Int, Str]
+  requires: lib.handle != 0
+  requires: path.len() > 0
+{
+  unsafe {
+    let f = lib.p_load_bmp as fn(*UInt8) -> Int;
+    let s = f(path.c_str());
+    if s == 0 {
+      return Err(sdl3_get_error(lib));
+    }
+    return Ok(s);
+  }
+}
+
+/// SDL_SaveBMP(surface, path) -> Result.  Writes the surface as a 24/32-bit
+/// BMP (SDL converts as needed); Err carries SDL_GetError().
+/// Complexity: O(surface size).
+pub fn sdl3_save_bmp(lib: &Sdl3Library, surface: Int, path: Str) -> Result[Unit, Str]
+  requires: lib.handle != 0
+  requires: surface != 0
+  requires: path.len() > 0
+{
+  unsafe {
+    let f = lib.p_save_bmp as fn(Int, *UInt8) -> UInt8;
+    if (f(surface, path.c_str()) as Int) == 0 {
+      return Err(sdl3_get_error(lib));
+    }
+    return Ok(());
+  }
+}
+
+/// SDL_CreateSurface(width, height, format) -> SDL_Surface* (owned; release
+/// with sdl3_destroy_surface).  `format` is an SDL_PIXELFORMAT_* value;
+/// RGBA8888/ABGR8888 are exported.  Err carries SDL_GetError().
+/// Complexity: O(width * height).
+pub fn sdl3_create_surface(lib: &Sdl3Library, width: Int, height: Int, format: Int) -> Result[Int, Str]
+  requires: lib.handle != 0
+  requires: width > 0
+  requires: height > 0
+  requires: format > 0
+{
+  unsafe {
+    let f = lib.p_create_surface as fn(Int, Int, Int) -> Int;
+    let s = f(width, height, format);
+    if s == 0 {
+      return Err(sdl3_get_error(lib));
+    }
+    return Ok(s);
+  }
+}
+
+/// SDL_DestroySurface (frees the surface and its pixels).  Safe to call
+/// with a surface returned by sdl3_create_surface / sdl3_load_bmp only.
+/// Complexity: O(1) plus the surface's own pixel free.
+pub fn sdl3_destroy_surface(lib: &Sdl3Library, surface: Int)
+  requires: lib.handle != 0
+  requires: surface != 0
+{
+  unsafe {
+    let f = lib.p_destroy_surface as fn(Int);
+    f(surface);
+  }
+}
+
+/// SDL_SetWindowIcon(window, surface) -> bool.  SDL copies what it needs;
+/// the caller keeps ownership of `surface` and may destroy it afterwards.
+/// Complexity: O(icon size).
+pub fn sdl3_set_window_icon(r: &Sdl3Resources, win: Int, surface: Int) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+  requires: surface != 0
+{
+  unsafe {
+    let f = r.p_set_window_icon as fn(Int, Int) -> UInt8;
+    return (f(win, surface) as Int) != 0;
+  }
+}
+
+/// SDL_GetWindowProperties -> SDL_PropertiesID (0 when the window is
+/// invalid).  Feed the id to the property getters below; the id is owned
+/// by SDL and only valid while the window lives.
+/// Complexity: O(1).
+pub fn sdl3_window_properties(r: &Sdl3Resources, win: Int) -> Int
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_get_window_properties as fn(Int) -> UInt32;
+    return f(win) as Int;
+  }
+}
+
+/// SDL_GetPointerProperty(props, name) -> pointer value (0 when absent).
+/// `name` is one of the SDL_PROP_WINDOW_* keys; the Win32/Cocoa/Wayland
+/// handles are pointer properties.
+/// Complexity: O(len(name)).
+pub fn sdl3_get_pointer_property(r: &Sdl3Resources, props: Int, name: Str) -> Int
+  requires: r.handle != 0
+  requires: props != 0
+  requires: name.len() > 0
+{
+  unsafe {
+    let f = r.p_get_pointer_property as fn(UInt32, *UInt8, Int) -> Int;
+    return f(props as UInt32, name.c_str(), 0);
+  }
+}
+
+/// SDL_GetNumberProperty(props, name) -> number value (0 when absent).
+/// The X11 window id is a number property.
+/// Complexity: O(len(name)).
+pub fn sdl3_get_number_property(r: &Sdl3Resources, props: Int, name: Str) -> Int
+  requires: r.handle != 0
+  requires: props != 0
+  requires: name.len() > 0
+{
+  unsafe {
+    let f = r.p_get_number_property as fn(UInt32, *UInt8, Int) -> Int;
+    return f(props as UInt32, name.c_str(), 0);
+  }
+}
+
+/// Resolve the native window handle through the window properties:
+/// Win32 HWND pointer first, then X11 window number, Wayland surface
+/// pointer and Cocoa window pointer.  ok=false + kind=NONE + handle=0 when
+/// the platform exposes no native handle (dummy/offscreen).
+/// Complexity: O(1).
+pub fn sdl3_window_native_handle(r: &Sdl3Resources, win: Int) -> Sdl3NativeWindow
+  requires: r.handle != 0
+  requires: win != 0
+{
+  let props = sdl3_window_properties(r, win);
+  if props == 0 {
+    return Sdl3NativeWindow{ ok: false; kind: SDL3_NATIVE_WINDOW_NONE; handle: 0 };
+  }
+  let hwnd = sdl3_get_pointer_property(r, props, SDL_PROP_WINDOW_WIN32_HWND_POINTER);
+  if hwnd != 0 {
+    return Sdl3NativeWindow{ ok: true; kind: SDL3_NATIVE_WINDOW_WIN32; handle: hwnd };
+  }
+  let x11 = sdl3_get_number_property(r, props, SDL_PROP_WINDOW_X11_WINDOW_NUMBER);
+  if x11 != 0 {
+    return Sdl3NativeWindow{ ok: true; kind: SDL3_NATIVE_WINDOW_X11; handle: x11 };
+  }
+  let wl = sdl3_get_pointer_property(r, props, SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER);
+  if wl != 0 {
+    return Sdl3NativeWindow{ ok: true; kind: SDL3_NATIVE_WINDOW_WAYLAND; handle: wl };
+  }
+  let cocoa = sdl3_get_pointer_property(r, props, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER);
+  if cocoa != 0 {
+    return Sdl3NativeWindow{ ok: true; kind: SDL3_NATIVE_WINDOW_COCOA; handle: cocoa };
+  }
+  return Sdl3NativeWindow{ ok: false; kind: SDL3_NATIVE_WINDOW_NONE; handle: 0 };
+}
+
+/// SDL_Vulkan_CreateSurface(window, instance, NULL, &surface) wrapper.
+/// `out` is an owned 8-byte slot (create it with
+/// sdl3_vulkan_surface_slot); it is zeroed before the call, so a failed
+/// create reads back 0.  Returns false and leaves SDL_GetError() set when
+/// the window was not created with SDL_WINDOW_VULKAN, the instance is 0,
+/// or the Vulkan loader rejects the surface.
+/// Complexity: O(1).
+pub fn sdl3_vulkan_create_surface(r: &Sdl3Resources, win: Int, instance: Int, out: &mut Vec[UInt8]) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+  requires: out.len() >= 8
+{
+  unsafe {
+    sdl3_write_u64_le(out, 0, 0);
+    let f = r.p_vulkan_create_surface as fn(Int, Int, Int, *UInt8) -> UInt8;
+    return (f(win, instance, 0, out.as_mut_ptr()) as Int) != 0;
+  }
+}
+
+/// Owned zeroed 8-byte slot for a VkSurfaceKHR out-param.
+/// Complexity: O(1).
+pub fn sdl3_vulkan_surface_slot() -> Vec[UInt8] {
+  return sdl3_slot(8);
+}
+
+/// Read the VkSurfaceKHR back from a slot filled by
+/// sdl3_vulkan_create_surface (0 when the create failed).
+/// Complexity: O(1).
+pub fn sdl3_vulkan_surface_value(out: &Vec[UInt8]) -> Int
+  requires: out.len() >= 8
+{
+  return sdl3_read_u64_at(out, 0);
 }

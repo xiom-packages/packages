@@ -1,9 +1,10 @@
 # AUDIT: xiom.sdl3
 
-## Status (2026-10-14)
+## Status (2026-10-31)
 
-Dynamic-loader implementation at **0.19.0** (device surface: joystick caps,
-haptic wave forms, pen/tablet decode).
+Dynamic-loader implementation at **0.22.0** (window surface tier: icon/BMP/
+surface, native window handle, Vulkan surface wrapper; A14 UI platform
+surface from 0.21.0 stays live).
 The pre-pilot static-extern module (`src/sdl3_safe.xi`) and the
 extern-backed tail of the root module were removed: they could not satisfy
 the SKIP-when-absent gate (link-time symbol requirements). The full
@@ -12,12 +13,12 @@ return over this loader.
 
 | Item | State |
 |------|-------|
-| Compiler | v0.64.8 |
+| Compiler | v0.65.4 |
 | Upstream pin | SDL 3.4.8 (tag `release-3.4.8`), soname `SDL3.dll` |
 | Link model | none at build time; runtime `LoadLibraryA`/`GetProcAddress` via `xiom.ffi.dl` |
 | FFI confinement | all `unsafe` + fn-pointer casts in the root module `xiom.sdl3` only |
-| Suite | `tests/test_conformance.xi`, 81 checks (9 run without the DLL) |
-| Runs | absent (PATH-filtered): PASS 9/9 x2; present (SDL 3.4.8): PASS 81/81 x2; full-surface suite 1269/1269 bound + 1270/1270 resolved; generator device-surface audit 32/32 symbols, 45/45 constants, 14/14 Win64 layouts -- all via `scripts/port.ps1` (v0.64.8, 2026-10-21; refreshed each version) |
+| Suite | `tests/test_conformance.xi`, 85 checks (9 run without the DLL) |
+| Runs | absent (PATH-filtered): PASS 9/9 x2; present (SDL 3.4.8): PASS 85/85 x2; full-surface suite 1269/1269 bound + 1270/1270 resolved; generator device-surface audit 32/32 symbols, 45/45 constants, 14/14 Win64 layouts -- all via `scripts/port.ps1` (v0.65.4, 2026-10-31; refreshed each version) |
 | Resources (0.3.0) | window (hidden 320x200, size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration + SKIP when none attached |
 | Event decode (0.4.0) | `SDL_Event` over an owned 128-byte buffer: shared header + key/mouse-motion/mouse-button/window accessors + f32 bit decode; offsets pinned to the 3.4.8 headers (== the 3.2.10 clone) |
 | Event filter/watch (0.5.0) | fixed dispatchers + 1-arg handler registries; keep/drop proven (reject makes SDL refuse the push); watch non-consuming + removable; B-14/B-15 workarounds documented (`docs/repro/bindings-pilot/cb-abi/probe7_element_units.xi`) |
@@ -39,6 +40,7 @@ return over this loader.
 | Poll semantics correction (0.19.0) | `SDL_PollEvent(NULL)` on the pinned 3.4.8 runtime is a PEEK: it reports a pending real event without removing it (only SDL's internal poll sentinel is cleared), and a poll meeting that sentinel returns false with events queued behind it.  Caught by the new pen-live marker; the suite's `drain_events` now consumes into an owned scratch buffer and `poll_for` matches pushed events by type for a bounded number of polls |
 | Device-surface generator audit (0.19.0) | `tools/gen_sdl3_full.py` recomputes the Win64 layouts from the pinned header member lists (MSVC x64 natural alignment; union size 72 for `SDL_HapticEffect`) and gates generation on 32/32 declared+exported+wrapped symbols, 45/45 constant values, 14/14 layouts; the audit is recorded in `docs/gen_manifest.json` under `device_surface`; declared/exported/target stay 1271/1270/1269 (100% kept) |
 | A14 UI platform (0.21.0) | 20 symbols: 7 resource window/display + 1 core display content scale (+ pure `sdl3_display_index`), 6 resource IME controls, 6 core clipboard/primary. Typed `Sdl3WindowPosition`/`Sdl3PixelSize`/`Sdl3TextInputArea`/`Sdl3WindowFocus`/`Sdl3DpiChange`/`Sdl3TextEditing`; focus/DPI decoders work in the existing watch/filter model; IME cancellation = empty-preedit `TEXT_EDITING` classifier (SDL 3.4.8 has no native cancelled event); clipboard getters freed after copy; primary setter false = typed-unsupported. Live: window id/pos/pixels/scale/display, IME start/area/cursor/stop, clipboard + primary round trip, 8-event watch routing. Float returns re-verified on v0.64.8 (B-12 shape) |
+| Window surface tier (0.22.0) | 9 symbols: 4 core surface (CreateSurface/DestroySurface/LoadBMP/SaveBMP) + 1 resource icon + 3 resource property (GetWindowProperties/GetPointerProperty/GetNumberProperty) + 1 resource Vulkan CreateSurface. `Sdl3NativeWindow{ok,kind,handle}` resolves Win32 HWND / X11 / Wayland / Cocoa in that order; the VkSurfaceKHR out-param is a zeroed owned 8-byte slot. Live: 4x3 RGBA create->SaveBMP->LoadBMP->destroy + missing-file typed error, 2x2 icon accepted on a hidden window, native handle kind=WIN32 (non-zero HWND), Vulkan instance=0 rejected with surface=0 + a non-empty error |
 
 ## G2 pin
 
