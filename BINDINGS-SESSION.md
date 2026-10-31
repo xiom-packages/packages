@@ -6671,3 +6671,34 @@ FIRST ACTIONS:
 - Engine item `REL-20261031-1423-engine-4` remains fixed: both deliverables
   exist; only the vulkan publication version changed (0.6.1 instead of the
   immutable 0.6.0).
+
+## UPDATE 2026-10-31 17:35Z -- backlog burned down 100%: Vulkan 0.7.0 mini-RHI
+
+- `xiom.vulkan 0.6.1` went **LIVE** while the tier was being built (single
+  tag `xiom-vulkan/v0.6.1`, sha256
+  `1a9c867279a76ce8875b51ecab9748347c57c427f0027c5886f72f4db35c877f`,
+  run `41219409513` green, 24/24 x2).  It is superseded by 0.7.0.
+- **`xiom.vulkan 0.7.0`** (`d9c336c3`, record `8421b74e`; 36/36 x2 on
+  v0.65.4) delivers the mini-RHI tier and closes the four owner-routed
+  backlog items:
+  - `REL-20261010-1834-engine-2` -- done bar met (documented mini-surface +
+    clear/draw/present smoke), plus the 2-frame sync loop.
+  - `REL-20261011-2015-engine` -- 2 cmd buffers + fences + acquire/render
+    semaphores (no idle in loop), host-visible stride-48 buffers, engine-owned
+    HWND surface + resize/recreate (784x561), IMMEDIATE/FIFO selection.
+  - `REL-20261012-2012-engine-2` -- compute dispatch
+    (`v[i]=v[i]*3+1` x256, first 1/last 766), indirect indexed draw
+    (`vkCmdDrawIndexedIndirect`, center green), timestamps/occlusion
+    (3072 ns @ 1 ns/tick, 24576 samples), `VK_EXT_debug_utils` labels.
+  - `REL-20261016-1341-engine-3` -- raw surface 100% (845 commands,
+    766/766 advertised, 779/845 resolved) + the wrapper tier/docs.
+- **Texture/depth/caller-SPIR-V (2015 #3/#4/#5)**: the supported deliverable is
+  the exact raw sequence + struct offsets in `docs/MINI-RHI.md` (the engine
+  already exercises depth/lit/indexed draws on that seam).  The reference
+  `xw_texture_depth_probe` is marked **experimental**, is not exposed in the
+  public API, and is not in the suite; do not consume it.
+- **Publish request** `REL-20261031-1731-bindings` -> packages for
+  `xiom-vulkan/v0.7.0` (existing name, single tag).  Relay validate green
+  (**1125 items**).
+- Remaining external loop: packages publish 0.7.0; the 19:00Z doorbell picks
+  it up.  No in-flight branches; lane clean at `8421b74e`.
