@@ -19,7 +19,8 @@ is not installed.
 > IME, clipboard + primary selection) stays live and is confirmed by the
 > suite.  Additive over 0.21.0; SDL3 3.4.8 symbols only.  Suite **85/85 x2**
 > with the official SDL 3.4.8 DLL + absent **9/9 x2** (decode/encode arms
-> run without the DLL).
+> run without the DLL).  **0.22.0 published 2026-10-31** as single tag
+> `xiom-sdl3/v0.22.0` (sha256 `cb78bdfe...`; registry latest verified).
 > Previous: 0.21.0 A14 UI platform surface (engine ask
 > `REL-20261021-1652-engine-5`); 0.20.0 callback direct handoff; 0.19.0
 > device surface (joystick caps, haptic wave forms, pen/tablet decode);
