@@ -15,7 +15,9 @@ header-free C bridge.
 > readback** (timestamp begin/end + `timestampPeriod` -> per-pass duration;
 > occlusion sample count). Suite **24/24 x2** on the RTX 3070 Ti (v0.65.4).
 > Raw commands: `docs/CAPTURE-QUERY.md`. 0.6.0 is the live SDK100 raw-surface
-> cut (immutable); 0.6.1 is the re-cut that carries the capture/query helper.
+> cut (immutable); 0.6.1 is the re-cut that carries the capture/query helper,
+> **published 2026-10-31** as single tag `xiom-vulkan/v0.6.1` (sha256
+> `1a9c8672...`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
