@@ -750,6 +750,32 @@ fn main() -> Int {
   let rev = sdl3_get_revision(&lib);
   failed = failed + report(rev.len() >= 0, "revision: SDL_GetRevision() callable");
 
+  // 0.22.0: surface tier -- create -> SaveBMP -> LoadBMP -> destroy round
+  // trip (the engine icon path), plus a typed error for a missing file.
+  let surface = sdl3_create_surface(&lib, 4, 3, SDL_PIXELFORMAT_RGBA8888);
+  if !surface.is_ok {
+    failed = failed + report(false, "surface: create failed -- " + surface.error);
+  } else {
+    let sptr: Int = surface.value;
+    let spref = sdl3_get_pref_path(&lib, "xiom-lane", "sdl3-conformance");
+    let sbmp = spref + "surface-tier-0.22.0.bmp";
+    let ssaved = sdl3_save_bmp(&lib, sptr, sbmp);
+    let sloaded = sdl3_load_bmp(&lib, sbmp);
+    var sload_ok = false;
+    if sloaded.is_ok {
+      sdl3_destroy_surface(&lib, sloaded.value);
+      sload_ok = true;
+    }
+    let smissing = sdl3_load_bmp(&lib, spref + "no-such-surface-0.22.0.bmp");
+    let smissing_ok = !smissing.is_ok && smissing.error.len() > 0;
+    sdl3_destroy_surface(&lib, sptr);
+    let sremoved = sdl3_remove_path(&lib, sbmp);
+    failed = failed + report(ssaved.is_ok && sload_ok && smissing_ok && sremoved,
+      "surface: 4x3 RGBA create -> SaveBMP -> LoadBMP -> destroy (save=" + b2s(ssaved.is_ok)
+        + " load=" + b2s(sload_ok) + " missing-typed=" + b2s(smissing_ok)
+        + " removed=" + b2s(sremoved) + ")");
+  }
+
   // Headless init: timer + events only (no display/audio device needed).
   let flags = SDL_INIT_TIMER | SDL_INIT_EVENTS;
   let inited = sdl3_init(&lib, flags);
@@ -991,6 +1017,31 @@ fn main() -> Int {
       let win_back = sdl3_window_from_id(&r, wid);
       failed = failed + report(wid != 0 && win_back == win,
         "window: identity id=" + to_string(wid) + " round-trip=" + b2s(win_back == win));
+
+      // 0.22.0: icon, native handle, and the Vulkan surface wrapper.
+      let iconr = sdl3_create_surface(&lib, 2, 2, SDL_PIXELFORMAT_RGBA8888);
+      if iconr.is_ok {
+        let icon_set = sdl3_set_window_icon(&r, win, iconr.value);
+        sdl3_destroy_surface(&lib, iconr.value);
+        failed = failed + report(icon_set,
+          "window: SDL_SetWindowIcon(2x2 RGBA surface) accepted");
+      } else {
+        failed = failed + report(false, "window: icon surface create failed -- " + iconr.error);
+      }
+
+      let nh = sdl3_window_native_handle(&r, win);
+      failed = failed + report(nh.ok && nh.handle != 0 && nh.kind != SDL3_NATIVE_WINDOW_NONE,
+        "window: native handle kind=" + to_string(nh.kind) + " handle=" + to_string(nh.handle));
+
+      // The wrapper is a pass-through; the engine owns the VkInstance.  A
+      // zero instance is the typed rejection path (no Vulkan needed here).
+      var vkout = sdl3_vulkan_surface_slot();
+      let vkbad = sdl3_vulkan_create_surface(&r, win, 0, &mut vkout);
+      let vkzero = sdl3_vulkan_surface_value(&vkout);
+      let vkerr = sdl3_get_error(&lib);
+      failed = failed + report(!vkbad && vkzero == 0 && vkerr.len() > 0,
+        "vulkan: CreateSurface wrapper rejects instance=0 (ret=" + b2s(vkbad)
+          + " surface=" + to_string(vkzero) + " error-len=" + to_string(vkerr.len()) + ")");
 
       let pos_set = sdl3_set_window_position(&r, win, 120, 90);
       let pos = sdl3_window_position(&r, win);
