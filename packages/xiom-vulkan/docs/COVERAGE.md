@@ -62,7 +62,7 @@ byte-identical to the pinned upstream clone
 
 | Suite | Result |
 |---|---|
-| `tests/test_conformance.xi` (probe + RHI + WSI + triangle) | 22/22 via `scripts/port.ps1` |
+| `tests/test_conformance.xi` (probe + RHI + WSI + triangle + capture/query) | 24/24 via `scripts/port.ps1` |
 | `tests/test_full_surface.xi` (845-command loadability) | PASS x2 |
 | `tests/test_struct_meta.xi` (metadata compile + spot checks) | PASS |
 

@@ -146,7 +146,12 @@ typedef struct XrExtensionProperties {
 /* VkQueueFamilyProperties: flags(0) queueCount(4) timestampValidBits(8). */
 #define XR_QFP_FLAGS_OFF 0
 #define XR_QFP_COUNT_OFF 4
+#define XR_QFP_TIMESTAMP_VALID_OFF 8
 #define XR_QFP_SIZE 24
+/* VkPhysicalDeviceProperties.limits starts at 292 (win64); timestampPeriod
+ * is at limits+424 (struct_meta: VK_OFF_..._TIMESTAMP_PERIOD). */
+#define XR_PDP_LIMITS_OFF 292
+#define XR_PDP_LIMITS_TIMESTAMP_PERIOD_OFF 424
 
 typedef void* (WINAPI* PFN_vkGetInstanceProcAddr)(void*, const char*);
 typedef void* (WINAPI* PFN_vkGetDeviceProcAddr)(void*, const char*);
@@ -169,6 +174,8 @@ static int s_family = -1;
 static int s_device_type = -1;
 static unsigned s_device_api = 0;
 static char s_device_name[XR_PDP_DEVICE_NAME_CAP];
+static float s_ts_period = 0.0f;
+static unsigned s_ts_valid = 0;
 static char s_error[512];
 
 static void set_err(const char* msg) {
@@ -210,6 +217,7 @@ static int ext_present(const char* name) {
 int __cdecl xr_load(const char* soname) {
   memset(s_device_name, 0, sizeof(s_device_name));
   s_device_type = -1; s_device_api = 0; s_devices = 0; s_family = -1; s_surface_exts = 0;
+  s_ts_period = 0.0f; s_ts_valid = 0;
   if (!soname || !soname[0]) { set_err("empty soname"); return 1; }
   m_lib = LoadLibraryA(soname);
   if (!m_lib) { set_err("LoadLibrary failed for the requested soname"); return 1; }
@@ -303,6 +311,11 @@ int __cdecl xr_pick_device(void) {
   memcpy(&s_device_type, buf + XR_PDP_DEVICE_TYPE_OFF, 4);
   strncpy(s_device_name, (const char*)(buf + XR_PDP_DEVICE_NAME_OFF), XR_PDP_DEVICE_NAME_CAP - 1);
   s_device_name[XR_PDP_DEVICE_NAME_CAP - 1] = 0;
+  {
+    uint32_t period_ns = 0;
+    memcpy(&period_ns, buf + XR_PDP_LIMITS_OFF + XR_PDP_LIMITS_TIMESTAMP_PERIOD_OFF, 4);
+    s_ts_period = (float)period_ns;
+  }
 
   /* Graphics queue family (first one advertising VK_QUEUE_GRAPHICS_BIT). */
   typedef void (WINAPI* PFN_GetQueueFamilies)(void*, uint32_t*, void*);
@@ -315,10 +328,15 @@ int __cdecl xr_pick_device(void) {
   memset(fams, 0, sizeof(fams));
   get_fams(s_phys, &fam_count, fams);
   s_family = -1;
+  s_ts_valid = 0;
   for (uint32_t i = 0; i < fam_count; i++) {
     uint32_t flags = 0;
     memcpy(&flags, fams + i * XR_QFP_SIZE + XR_QFP_FLAGS_OFF, 4);
-    if (flags & XR_QUEUE_GRAPHICS_BIT) { s_family = (int)i; break; }
+    if (flags & XR_QUEUE_GRAPHICS_BIT) {
+      s_family = (int)i;
+      memcpy(&s_ts_valid, fams + i * XR_QFP_SIZE + XR_QFP_TIMESTAMP_VALID_OFF, 4);
+      break;
+    }
   }
   if (s_family < 0) { set_err("no graphics queue family"); return 1; }
   return 0;
@@ -900,6 +918,24 @@ int __cdecl xw_frames_done(void) { return s_frames_done; }
 #define XW_ST_MEMORY_ALLOCATE 5u
 #define XW_ST_RENDER_PASS_BEGIN 43u
 
+/* 0.6.0 capture/query (C07/B05): query-pool create info + result flags.
+ * VkQueryPoolCreateInfo (SDK 1.4.350, win64): sType 0, pNext 8, flags 16,
+ * queryType 20, queryCount 24, pipelineStatistics 28; size 32. */
+#define XW_ST_QUERY_POOL_CREATE 11u
+#define XW_QUERY_TYPE_OCCLUSION 0u
+#define XW_QUERY_TYPE_TIMESTAMP 2u
+#define XW_QUERY_RESULT_64_BIT 1u
+#define XW_QUERY_RESULT_WAIT 2u
+
+typedef struct XwQueryPoolCreateInfo {
+  uint32_t sType;
+  const void* pNext;
+  uint32_t flags;
+  uint32_t queryType;
+  uint32_t queryCount;
+  uint32_t pipelineStatistics;
+} XwQueryPoolCreateInfo;
+
 typedef struct XwAttachmentDescription {
   uint32_t flags;
   uint32_t format;
@@ -1186,6 +1222,30 @@ static void* s_rb_ptr = 0;
 static unsigned s_center_px = 0;
 static unsigned s_corner_px = 0;
 static int s_tri_drawn = 0;
+/* 0.6.0 capture/query state (C07 copy checksum + B05 query readback). */
+static void* s_ts_pool = 0;
+static void* s_occ_pool = 0;
+static unsigned long long s_ts_begin = 0;
+static unsigned long long s_ts_end = 0;
+static unsigned long long s_occlusion = 0;
+static int s_query_ok = 0;
+static unsigned s_capture_bytes = 0;
+static unsigned s_capture_crc = 0;
+static unsigned s_capture_crc_first = 0;
+static int s_capture_stable = 1;
+static unsigned s_capture_frames = 0;
+
+/* FNV-1a over the readback frame: a stable copy across frames must hash
+ * identically (C07 capture-copy stability witness). */
+static unsigned xw_fnv1a(const unsigned char* p, size_t n) {
+  unsigned h = 2166136261u;
+  size_t i;
+  for (i = 0; i < n; i++) {
+    h ^= (unsigned)p[i];
+    h *= 16777619u;
+  }
+  return h;
+}
 
 static void xw_pipeline_destroy(void) {
   if (!s_device) return;
@@ -1239,6 +1299,22 @@ static void xw_pipeline_destroy(void) {
     if (f) f(s_device, s_rb_mem, 0);
     s_rb_mem = 0;
   }
+  if (s_ts_pool) {
+    typedef void (WINAPI* PFN_DestroyQueryPool)(void*, void*, const void*);
+    PFN_DestroyQueryPool f = (PFN_DestroyQueryPool)gdpa_lookup("vkDestroyQueryPool");
+    if (f) f(s_device, s_ts_pool, 0);
+    s_ts_pool = 0;
+  }
+  if (s_occ_pool) {
+    typedef void (WINAPI* PFN_DestroyQueryPool)(void*, void*, const void*);
+    PFN_DestroyQueryPool f = (PFN_DestroyQueryPool)gdpa_lookup("vkDestroyQueryPool");
+    if (f) f(s_device, s_occ_pool, 0);
+    s_occ_pool = 0;
+  }
+  s_query_ok = 0;
+  s_ts_begin = 0; s_ts_end = 0; s_occlusion = 0;
+  s_capture_bytes = 0; s_capture_crc = 0; s_capture_crc_first = 0;
+  s_capture_stable = 1; s_capture_frames = 0;
   s_tri_drawn = 0;
 }
 
@@ -1509,6 +1585,32 @@ int __cdecl xw_pipeline(void) {
   if (alloc_mem(s_device, &mai, 0, &s_rb_mem) != XR_OK || !s_rb_mem) { set_err("vkAllocateMemory(readback) failed"); return 1; }
   if (bind_buf(s_device, rb, s_rb_mem, 0) != XR_OK) { set_err("vkBindBufferMemory(readback) failed"); return 1; }
   if (map_mem(s_device, s_rb_mem, 0, XW_TIMEOUT_INFINITE, 0, &s_rb_ptr) != XR_OK || !s_rb_ptr) { set_err("vkMapMemory(readback) failed"); return 1; }
+
+  /* 0.6.0 B05: timestamp (2) + occlusion (1) query pools.  Best-effort:
+   * a device without timestamp support leaves s_query_ok false and the
+   * draw still renders; the suite then reports the query stage as FAIL
+   * (coverage is the point of this tier on the pinned host). */
+  s_query_ok = 0;
+  s_ts_begin = 0; s_ts_end = 0; s_occlusion = 0;
+  s_capture_bytes = (unsigned)(s_sc_width * s_sc_height * 4u);
+  s_capture_crc = 0; s_capture_crc_first = 0;
+  s_capture_stable = 1; s_capture_frames = 0;
+  typedef int (WINAPI* PFN_CreateQueryPool)(void*, const XwQueryPoolCreateInfo*, const void*, void**);
+  PFN_CreateQueryPool create_qp = (PFN_CreateQueryPool)gdpa_lookup("vkCreateQueryPool");
+  if (create_qp && s_ts_valid > 0) {
+    XwQueryPoolCreateInfo tq;
+    memset(&tq, 0, sizeof(tq));
+    tq.sType = XW_ST_QUERY_POOL_CREATE;
+    tq.queryType = XW_QUERY_TYPE_TIMESTAMP;
+    tq.queryCount = 2;
+    if (create_qp(s_device, &tq, 0, &s_ts_pool) != XR_OK) s_ts_pool = 0;
+    XwQueryPoolCreateInfo oq;
+    memset(&oq, 0, sizeof(oq));
+    oq.sType = XW_ST_QUERY_POOL_CREATE;
+    oq.queryType = XW_QUERY_TYPE_OCCLUSION;
+    oq.queryCount = 1;
+    if (create_qp(s_device, &oq, 0, &s_occ_pool) != XR_OK) s_occ_pool = 0;
+  }
   return 0;
 }
 
@@ -1525,6 +1627,11 @@ int __cdecl xw_draw_triangle(float r, float g, float b) {
   typedef int (WINAPI* PFN_Submit2)(void*, uint32_t, const XrSubmitInfo*, void*);
   typedef int (WINAPI* PFN_Present)(void*, const XwPresentInfo*);
   typedef int (WINAPI* PFN_WaitIdle)(void*);
+  typedef void (WINAPI* PFN_ResetQP)(void*, void*, uint32_t, uint32_t);
+  typedef void (WINAPI* PFN_WriteTS)(void*, uint32_t, void*, uint32_t);
+  typedef void (WINAPI* PFN_BeginQ)(void*, void*, uint32_t, uint32_t);
+  typedef void (WINAPI* PFN_EndQ)(void*, void*, uint32_t);
+  typedef int (WINAPI* PFN_GetQR)(void*, void*, uint32_t, uint32_t, uint64_t, void*, uint64_t, uint32_t);
   PFN_Acquire acquire = (PFN_Acquire)gdpa_lookup("vkAcquireNextImageKHR");
   PFN_Reset reset = (PFN_Reset)gdpa_lookup("vkResetCommandBuffer");
   PFN_BeginRenderPass begin_rp = (PFN_BeginRenderPass)gdpa_lookup("vkCmdBeginRenderPass");
@@ -1536,11 +1643,18 @@ int __cdecl xw_draw_triangle(float r, float g, float b) {
   PFN_Submit2 submit = (PFN_Submit2)gdpa_lookup("vkQueueSubmit");
   PFN_Present present = (PFN_Present)gdpa_lookup("vkQueuePresentKHR");
   PFN_WaitIdle wait_idle = (PFN_WaitIdle)gdpa_lookup("vkQueueWaitIdle");
+  PFN_ResetQP reset_qp = (PFN_ResetQP)gdpa_lookup("vkCmdResetQueryPool");
+  PFN_WriteTS write_ts = (PFN_WriteTS)gdpa_lookup("vkCmdWriteTimestamp");
+  PFN_BeginQ begin_q = (PFN_BeginQ)gdpa_lookup("vkCmdBeginQuery");
+  PFN_EndQ end_q = (PFN_EndQ)gdpa_lookup("vkCmdEndQuery");
+  PFN_GetQR get_qr = (PFN_GetQR)gdpa_lookup("vkGetQueryPoolResults");
   if (!acquire || !reset || !begin_rp || !bind_pipe || !draw || !end_rp || !copy_img || !barrier
       || !submit || !present || !wait_idle) {
     set_err("missing triangle entry points");
     return 1;
   }
+  int can_query = (s_ts_pool && s_occ_pool && reset_qp && write_ts && begin_q && end_q && get_qr
+                   && s_ts_valid > 0) ? 1 : 0;
 
   uint32_t idx = 0;
   int rc = acquire(s_device, s_swapchain, XW_TIMEOUT_INFINITE, s_acquire_sem, 0, &idx);
@@ -1558,6 +1672,10 @@ int __cdecl xw_draw_triangle(float r, float g, float b) {
   bi.sType = XR_ST_COMMAND_BUFFER_BEGIN_INFO;
   bi.flags = XR_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
   if (begin(s_cmd, &bi) != XR_OK) { set_err("vkBeginCommandBuffer(triangle) failed"); return 1; }
+  if (can_query) {
+    reset_qp(s_cmd, s_ts_pool, 0, 2);
+    reset_qp(s_cmd, s_occ_pool, 0, 1);
+  }
 
   XwClearValue clear;
   clear.f32[0] = r;
@@ -1575,7 +1693,15 @@ int __cdecl xw_draw_triangle(float r, float g, float b) {
   rbi.pClearValues = &clear;
   begin_rp(s_cmd, &rbi, 0 /* INLINE */);
   bind_pipe(s_cmd, 0 /* GRAPHICS */, s_pipeline);
+  if (can_query) {
+    write_ts(s_cmd, XW_STAGE_COLOR_ATTACHMENT_OUTPUT, s_ts_pool, 0);
+    begin_q(s_cmd, s_occ_pool, 0, 0);
+  }
   draw(s_cmd, 3, 1, 0, 0);
+  if (can_query) {
+    end_q(s_cmd, s_occ_pool, 0);
+    write_ts(s_cmd, XW_STAGE_COLOR_ATTACHMENT_OUTPUT, s_ts_pool, 1);
+  }
   end_rp(s_cmd);
 
   XwImageMemoryBarrier b1;
@@ -1643,6 +1769,36 @@ int __cdecl xw_draw_triangle(float r, float g, float b) {
   s_center_px = ((unsigned)px[center_i + 2] << 16) | ((unsigned)px[center_i + 1] << 8) | (unsigned)px[center_i + 0];
   s_corner_px = ((unsigned)px[corner_i + 2] << 16) | ((unsigned)px[corner_i + 1] << 8) | (unsigned)px[corner_i + 0];
 
+  /* 0.6.0 C07: frame checksum over the full copy; stable across frames. */
+  s_capture_crc = xw_fnv1a(px, (size_t)s_capture_bytes);
+  if (s_capture_frames == 0) {
+    s_capture_crc_first = s_capture_crc;
+  } else if (s_capture_crc != s_capture_crc_first) {
+    s_capture_stable = 0;
+  }
+  s_capture_frames++;
+
+  /* 0.6.0 B05: query readback.  WAIT|64_BIT on both pools; duration is
+   * ticks * timestampPeriod (ns/tick) and occlusion is the sample count. */
+  if (can_query) {
+    uint64_t ts[2];
+    uint64_t occ = 0;
+    ts[0] = 0; ts[1] = 0;
+    int r1 = get_qr(s_device, s_ts_pool, 0, 2, (uint64_t)sizeof(ts), ts,
+                    (uint64_t)sizeof(uint64_t), XW_QUERY_RESULT_64_BIT | XW_QUERY_RESULT_WAIT);
+    int r2 = get_qr(s_device, s_occ_pool, 0, 1, (uint64_t)sizeof(occ), &occ,
+                    (uint64_t)sizeof(uint64_t), XW_QUERY_RESULT_64_BIT | XW_QUERY_RESULT_WAIT);
+    if (r1 == 0 && r2 == 0 && ts[1] >= ts[0]) {
+      s_ts_begin = ts[0];
+      s_ts_end = ts[1];
+      s_occlusion = occ;
+      s_query_ok = 1;
+    } else {
+      s_ts_begin = 0; s_ts_end = 0; s_occlusion = 0;
+      s_query_ok = 0;
+    }
+  }
+
   XwPresentInfo pi;
   memset(&pi, 0, sizeof(pi));
   pi.sType = XW_ST_PRESENT_INFO;
@@ -1662,6 +1818,14 @@ int __cdecl xw_draw_triangle(float r, float g, float b) {
 unsigned __cdecl xw_center_pixel(void) { return s_center_px; }
 unsigned __cdecl xw_corner_pixel(void) { return s_corner_px; }
 int __cdecl xw_tri_drawn(void) { return s_tri_drawn; }
+unsigned __cdecl xw_capture_crc(void) { return s_capture_crc; }
+unsigned __cdecl xw_capture_bytes(void) { return s_capture_bytes; }
+int __cdecl xw_capture_stable(void) { return s_capture_stable; }
+int __cdecl xw_query_ok(void) { return s_query_ok; }
+unsigned long long __cdecl xw_ts_begin(void) { return s_ts_begin; }
+unsigned long long __cdecl xw_ts_end(void) { return s_ts_end; }
+unsigned __cdecl xw_ts_period_ns(void) { return (unsigned)s_ts_period; }
+unsigned long long __cdecl xw_occlusion_samples(void) { return s_occlusion; }
 
 void __cdecl xw_destroy(void) {
   xw_pipeline_destroy();

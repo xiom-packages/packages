@@ -5,13 +5,13 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.vulkan` |
-| Version | 0.5.0 |
+| Version | 0.6.1 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Vulkan (Khronos); Windows loader `vulkan-1.dll` |
 | Upstream license | Apache-2.0 (headers); no headers or code vendored -- the bridge is our code and declares the minimal ABI locally |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (system loader `vulkan-1.dll`, driver-installed in System32) |
-| Compiler pin | v0.64.3 |
+| Compiler pin | v0.65.4 |
 
 ## 2. G2 pin: soname + header hash + entry-point set
 
@@ -84,6 +84,29 @@ corrected 6->7), ACCESS TRANSFER_READ=0x800, VIEW_TYPE_2D=1,
 STAGE_COLOR_ATTACHMENT_OUTPUT=0x400. Readback pixels cross the boundary as
 `r<<16 | g<<8 | b`.
 
+**0.6.1 capture/query additions** (`src/vk_rhi.c`, engine ask
+`REL-20261031-1423-engine-4`; the raw command surface in
+`src/api.xi` + `src/cmds_01..08.xi` already binds every command used here).
+0.6.0 is the published SDK100 raw-surface cut and is immutable, so the
+capture/query helper ships as 0.6.1:
+`XwQueryPoolCreateInfo` (32 bytes; sType 11, pNext 8, flags 16, queryType
+20, queryCount 24, pipelineStatistics 28), a 2-query TIMESTAMP pool and a
+1-query OCCLUSION pool; `vkCmdResetQueryPool`, `vkCmdWriteTimestamp` at
+`COLOR_ATTACHMENT_OUTPUT` before/after the draw, `vkCmdBeginQuery`/
+`vkCmdEndQuery` around it, and `vkGetQueryPoolResults` with
+`64_BIT(1)|WAIT(2)`. The helper computes a FNV-1a checksum over the full
+`extent_w * extent_h * 4` readback frame and compares it across frames
+(C07 stable capture-copy), and returns `timestamp_begin/end`,
+`timestamp_period_ns` (read from `VkPhysicalDeviceProperties.limits` at
+absolute offset 716: limits 292 + timestampPeriod 424), `duration_ns` and
+`occlusion_samples` (B05). `timestampValidBits` is read from the chosen
+graphics family (`VkQueueFamilyProperties` offset 8); the query stage is
+best-effort (the draw still renders when a device exposes no timestamps).
+The suite asserts a stable 307200-byte frame checksum, a non-zero duration
+and non-zero occlusion samples on the pinned host. The exact raw sequence,
+struct offsets and the engine-owned-command-buffer recipe are pinned in
+`docs/CAPTURE-QUERY.md`.
+
 **Local runtime sample used for positive-path proof (NOT the pin):**
 
 | Artifact | Value |
@@ -125,11 +148,11 @@ STAGE_COLOR_ATTACHMENT_OUTPUT=0x400. Readback pixels cross the boundary as
   is preserved in git history and its scope returns over this loader in
   later phases (`ROADMAP.md`, `AUDIT.md`).
 
-## 4. Test matrix (recorded 2026-10-11, compiler v0.64.3)
+## 4. Test matrix (recorded 2026-10-31, compiler v0.65.4)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Vulkan present (System32 loader 1.4.350) | `scripts/port.ps1 -Package xiom.vulkan` | **PASS 22/22 x2** -- probe surface + RHI bring-up (queue 0, real submit) + WSI (320x240, format 44, 3 images, 3 clear+present) + triangle (2 frames; center pixel rgb(0,255,0), bottom-left sample rgb(25,51,76) = the clear) on the RTX 3070 Ti |
+| Vulkan present (System32 loader 1.4.350) | `scripts/port.ps1 -Package xiom.vulkan` | **PASS 24/24 x2** -- probe surface + RHI bring-up (queue 0, real submit) + WSI (320x240, format 44, 3 images, 3 clear+present) + triangle (2 frames; center pixel rgb(0,255,0), bottom-left sample rgb(25,51,76) = the clear) + stable 307200-byte capture checksum + timestamp duration (3072 ns @ 1 ns/tick) + occlusion samples (24576) on the RTX 3070 Ti |
 | Loader absent (CI shape) | not reproducible on this host (driver-installed loader); the bogus-soname classification runs in every suite invocation | SKIP path exercised + code-reviewed |
 | No ICD/driver | not reproducible on this host; instance failure maps to `VULKAN_LOAD_NO_DEVICE` (SKIP) | code-reviewed |
 
@@ -137,7 +160,8 @@ STAGE_COLOR_ATTACHMENT_OUTPUT=0x400. Readback pixels cross the boundary as
 
 Engine RHI bring-up + WSI + render pipeline over the loader seam: capability
 probe, instance/device/queue + submit, hidden-window surface + swapchain +
-clear/present, and the triangle pipeline (render pass + embedded SPIR-V +
-3-vertex draw + readback + present). Compute pipelines, descriptors,
+clear/present, the triangle pipeline (render pass + embedded SPIR-V +
+3-vertex draw + readback + present), and the C07 capture-copy / B05 query
+readback helper (`docs/CAPTURE-QUERY.md`). Compute pipelines, descriptors,
 textures, depth/stencil and per-frame synchronization are later phases
 (`ROADMAP.md`).
