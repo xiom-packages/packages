@@ -13,5 +13,5 @@
                   "checked":  "2026-10-31T19:02:14Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: xiom.vulkan 0.7.0 mini-RHI tier -- 36/36 x2 on v0.65.4 (tree 4717d175 (clean build)); supersedes 0.6.1 request REL-20261031-1604-bindings"
+    "excluded_reason":  "PUBLISHED 2026-10-31 as xiom.vulkan 0.7.0: tag xiom-vulkan/v0.7.0, sha256 295b8c36e54d8aaf655c25f6fb3117c43898d6e0fffff3d335fda8987f90b200 (signed), run 41232683024 green, 36/36 x2 clean build on v0.65.4 (tree 4717d175); registry latest=0.7.0"
 }

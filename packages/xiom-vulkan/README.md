@@ -16,7 +16,11 @@ header-free C bridge.
 > occlusion sample count). Suite **24/24 x2** on the RTX 3070 Ti (v0.65.4).
 > Raw commands: `docs/CAPTURE-QUERY.md`. 0.6.0 is the live SDK100 raw-surface
 > cut (immutable); 0.6.1 is the re-cut that carries the capture/query helper.
-> **Mini-RHI:** per-frame fences/semaphores, host-visible buffers, external\n> HWND surface + resize + FIFO/IMMEDIATE, compute dispatch, indirect indexed\n> draws, debug labels; texture/depth/caller-SPIR-V raw recipe in\n> `docs/MINI-RHI.md`. Suite **36/36 x2**.\n> **Lane:** bindings (`keywords: ["binding"]`).
+> **Mini-RHI:** per-frame fences/semaphores, host-visible buffers, external
+> HWND surface + resize + FIFO/IMMEDIATE, compute dispatch, indirect indexed
+> draws, debug labels; texture/depth/caller-SPIR-V raw recipe in
+> `docs/MINI-RHI.md`. Suite **36/36 x2**.
+> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -84,4 +88,4 @@ scripts/port.ps1 -Package xiom.vulkan
 
 Expected: 36 `[PASS]`, exit 0 (loader 1.4.350, RTX 3070 Ti; ~25 s including
 the two triangle frames and the capture/query readback). G2 pin + re-pin:
-`SPEC.md` Â§2.
+`SPEC.md` Ã‚Â§2.
