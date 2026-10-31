@@ -6,7 +6,7 @@ struct crossing the boundary is declared with pinned ABI layouts in our own
 header-free C bridge.
 
 > **Status:** `incubating` -- **engine RHI bring-up + WSI + render pipeline +
-> capture/query (0.6.1)**: capability probe; instance/device/queue + real
+> mini-RHI (0.7.0)**: capability probe; instance/device/queue + real
 > submit; hidden Win32 window + `VkSurfaceKHR` + swapchain + clear/present;
 > render pass + graphics pipeline from embedded SPIR-V + **3-vertex draw with
 > pixel readback** (center rgb(0,255,0) triangle over the 0.1/0.2/0.3 clear,
@@ -16,7 +16,7 @@ header-free C bridge.
 > occlusion sample count). Suite **24/24 x2** on the RTX 3070 Ti (v0.65.4).
 > Raw commands: `docs/CAPTURE-QUERY.md`. 0.6.0 is the live SDK100 raw-surface
 > cut (immutable); 0.6.1 is the re-cut that carries the capture/query helper.
-> **Lane:** bindings (`keywords: ["binding"]`).
+> **Mini-RHI:** per-frame fences/semaphores, host-visible buffers, external\n> HWND surface + resize + FIFO/IMMEDIATE, compute dispatch, indirect indexed\n> draws, debug labels; texture/depth/caller-SPIR-V raw recipe in\n> `docs/MINI-RHI.md`. Suite **36/36 x2**.\n> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -82,6 +82,6 @@ python tools/embed_spv.py tri_vert_spv src/shaders/tri.vert.spv src/tri_vert_spv
 scripts/port.ps1 -Package xiom.vulkan
 ```
 
-Expected: 24 `[PASS]`, exit 0 (loader 1.4.350, RTX 3070 Ti; ~25 s including
+Expected: 36 `[PASS]`, exit 0 (loader 1.4.350, RTX 3070 Ti; ~25 s including
 the two triangle frames and the capture/query readback). G2 pin + re-pin:
-`SPEC.md` §2.
+`SPEC.md` Â§2.

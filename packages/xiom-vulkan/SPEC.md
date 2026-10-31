@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.vulkan` |
-| Version | 0.6.1 |
+| Version | 0.7.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | Vulkan (Khronos); Windows loader `vulkan-1.dll` |
 | Upstream license | Apache-2.0 (headers); no headers or code vendored -- the bridge is our code and declares the minimal ABI locally |
@@ -122,7 +122,7 @@ struct offsets and the engine-owned-command-buffer recipe are pinned in
    `README.md`/`AUDIT.md` in one commit.
 2. If the entry-point set grows, update `vk_probe.c` + `vulkan.xi` in the same
    commit; missing required entry points fail closed (`VULKAN_LOAD_ABI`).
-3. Re-run `scripts/port.ps1 -Package xiom.vulkan` and record the matrix in §4.
+3. Re-run `scripts/port.ps1 -Package xiom.vulkan` and record the matrix in Â§4.
 
 ## 3. Design
 
@@ -152,7 +152,7 @@ struct offsets and the engine-owned-command-buffer recipe are pinned in
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Vulkan present (System32 loader 1.4.350) | `scripts/port.ps1 -Package xiom.vulkan` | **PASS 24/24 x2** -- probe surface + RHI bring-up (queue 0, real submit) + WSI (320x240, format 44, 3 images, 3 clear+present) + triangle (2 frames; center pixel rgb(0,255,0), bottom-left sample rgb(25,51,76) = the clear) + stable 307200-byte capture checksum + timestamp duration (3072 ns @ 1 ns/tick) + occlusion samples (24576) on the RTX 3070 Ti |
+| Vulkan present (System32 loader 1.4.350) | `scripts/port.ps1 -Package xiom.vulkan` | **PASS 36/36 x2** -- probe surface + RHI bring-up (queue 0, real submit) + WSI (320x240, format 44, 3 images, 3 clear+present) + triangle (2 frames; center pixel rgb(0,255,0), bottom-left sample rgb(25,51,76) = the clear) + stable 307200-byte capture checksum + timestamp duration (3072 ns @ 1 ns/tick) + occlusion samples (24576) on the RTX 3070 Ti |
 | Loader absent (CI shape) | not reproducible on this host (driver-installed loader); the bogus-soname classification runs in every suite invocation | SKIP path exercised + code-reviewed |
 | No ICD/driver | not reproducible on this host; instance failure maps to `VULKAN_LOAD_NO_DEVICE` (SKIP) | code-reviewed |
 
