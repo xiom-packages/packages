@@ -6490,3 +6490,118 @@ FIRST ACTIONS:
    commits + fetch-first push; the relay bus and the repo are SHARED
    with other lanes/sessions (expect concurrent commits; repair, don't
    rewrite).
+
+## CONTEXT-LIMIT HANDOFF (2026-10-31 14:30Z)
+
+### State
+- Production **v0.65.4**: slot `%LOCALAPPDATA%\xiom` (PATH, installed),
+  `COMPILER_VERSION` + **579 records** = v0.65.4, validate **579/0**.
+- v0.65.4 **ACCEPTED**: epos **29/29 x2** (`REL-20261030-1540-bindings`
+  verified; fix `34e42ad87`), sanity sqlite **21/21**, sdl3 **81/81**,
+  nvenc **67/67**; MCU trio x2 **122/19/62**; .9/owns_return/borrow
+  probes green; verdicts in `release-checks/packages-compiler-v0.65.4.md`;
+  release item `REL-20261030-2343-compiler` noted.
+- **imgui 0.4.0 LIVE**: sha256
+  `a60d80a5a3d59158413e94a10b3750cc8261863da2a81eabcd388d3436973dfa`
+  (signed); tag `xiom-imgui/v0.4.0` (`ea628e72`) at `3f983984`; publish
+  run `41111907416` success; pack exception `fb55b372`; registry `info`
+  verified; STATUS updated; request `REL-20261027-2116-bindings` fixed;
+  nudge closed.
+- Published: MCU trio (firmata `15223e05`, micropython `c25c2014`, uf2
+  `065b895c`) + epos (`b5a565de`) + imgui 0.4.0 (`a60d80a5`). **No
+  pending publishes.**
+- **NEW ACTIVE WISHLIST** `REL-20261031-1423-engine-4` (engine ->
+  bindings, HIGH; **acked with plan, NO CODE YET**):
+  1. `xiom.sdl3 0.22.0`: `SDL_SetWindowIcon`, `SDL_LoadBMP`,
+     `SDL_CreateSurface`/`SDL_DestroySurface`, native window handle
+     (window properties + Win32 HWND pointer), `SDL_Vulkan_CreateSurface`
+     wrapper; confirm the existing IME/clipboard/display-scale from
+     0.21.0.
+  2. `xiom.vulkan`: C07 stable capture-copy + B05 query readback; the raw
+     0.6.0 commands exist; deliver a thin helper or document the exact
+     raw sequence.
+  3. B04/B06/B09 remain roadmap (P2 does not need them).
+  Start point: `packages/xiom-sdl3/sdl3.xi` is a dynamic loader; it has
+  **no icon/surface symbols yet** (only `SDL_WINDOW_VULKAN`). Follow the
+  0.21.0 A14 pattern; add tests; bump to 0.22.0; `port.ps1` x2; file the
+  publish request.
+- Other wishlists: 15 historical `acked` (most delivered; 11 are
+  delivered-but-unclosed); 4 Vulkan mini-RHI wrapper items are
+  owner-routed (`1834-engine-2`, `2015-engine`, `2012-engine-2`,
+  `1341-engine-3`). No other open asks.
+- Relay **green (1101)**; engine-4 ack committed (`888f44c`). Lane clean
+  at `1e023233`.
+- **Toolchain hazard**: partial `%LOCALAPPDATA%\xiom` installs have
+  silently fallen through to `E:\xiom-lang\xiom\target\release`; always
+  check `scripts/xiom.ps1 -Info` (`Source=installed`, version matches the
+  pin) before suites. Reinstall from the official archive if
+  `Source=repo-release`.
+- **Cost window**: 04:00-13:00 Greek = **02:00Z-11:00Z** (EET). Pause
+  the cron inside; resume at 11:05Z. The cron was **disarmed at this
+  handoff**; the next session must re-arm it.
+
+### Standing rules
+- The pin follows the SHARED slot (no split-brain); slot swaps are
+  fleet-wide.
+- Path-scoped landings (`rm -rf` restructured dirs before checkout);
+  eol=lf guards for hex/trace fixtures.
+- Provenance per touch; no silent failures; atomic commits; fetch-first
+  push with rebase-retry.
+- Relay repo: `git fetch --prune` + `git merge --ff-only origin/main`;
+  NEVER `git pull`. Repair malformed items (BOM/non-ASCII) with valid
+  front matter + `## History`.
+- Adopt a compiler release only on gate-green + owner GO: verify archive
+  + SHA256SUMS, backup, install, repin 579, validate, sanity +
+  .9/owns_return/borrow probes, published packages x2, release-check
+  verdicts.
+
+### First actions
+1. Re-arm the doorbell `0 */3 * * *` with the standard prompt
+   (self-pause 02:00Z-11:00Z -> 11:05Z).
+2. Relay sweep + `python tools/relay.py validate`; process items to
+   bindings/replies.
+3. Implement `REL-20261031-1423-engine-4` item 1 (SDL3 0.22.0 surface
+   tier) first; then item 2 (Vulkan capture/query helper). Update
+   tests/docs/STATUS, run `port.ps1` x2, file the publish request.
+4. Toolchain check; any newer compiler release only on gate-green +
+   owner GO.
+5. Record in this file; validate; commit + push both repos.
+
+### Paste prompt (next session)
+
+```
+Bindings lane continuation -- seamless pickup (2026-10-31 14:30Z;
+CONTEXT-LIMIT HANDOFF). Read `E:\xiom-packages\bindings\BINDINGS-SESSION.md`
+end-of-file "CONTEXT-LIMIT HANDOFF (2026-10-31 14:30Z)" and trust it over
+this summary.
+
+STATE: production v0.65.4 (slot %LOCALAPPDATA%\xiom; pin + 579 records;
+validate 579/0); v0.65.4 ACCEPTED (epos 29/29 x2 verified, sanity
+21/81/67, MCU trio x2 122/19/62, probes green); imgui 0.4.0 LIVE
+(sha256 a60d80a5..., signed; tag ea628e72 at 3f983984); MCU trio + epos
++ imgui published; no pending publishes. Active wishlist
+REL-20261031-1423-engine-4 acked with plan, NO CODE YET: SDL3 0.22.0
+icon/BMP/surface/native-handle/Vulkan-surface wrapper; Vulkan C07
+capture-copy + B05 query readback; B04/B06/B09 roadmap. Other wishlists:
+4 Vulkan mini-RHI wrapper items owner-routed; 15 historical acked
+(mostly delivered).
+
+FIRST ACTIONS:
+1. Re-arm the doorbell `0 */3 * * *` (relay fetch+ff only, `relay.py view
+   --lane bindings`, process, land, x2, validate, commit/push; never git
+   pull; self-pause 04:00-13:00 Greek = 02:00Z-11:00Z, resume 11:05Z).
+2. Relay sweep + `python tools/relay.py validate`.
+3. Implement engine-4 item 1: add to packages/xiom-sdl3 (dynamic loader;
+   0.21.0) SDL_SetWindowIcon, SDL_LoadBMP, SDL_CreateSurface/
+   SDL_DestroySurface, window properties/Win32 HWND native handle,
+   SDL_Vulkan_CreateSurface wrapper; tests; docs; bump 0.22.0; port.ps1
+   x2; publish request. Then item 2: xiom.vulkan capture-copy + query
+   readback helper (raw 0.6.0).
+4. Toolchain: `scripts/xiom.ps1 -Info` = Source=installed + v0.65.4;
+   lib 0.65.4; if repo-release, reinstall the official archive.
+5. New compiler release only on gate-green + owner GO (archive verify,
+   backup, install, repin 579, validate, sanity 21/81/67, epos + MCU x2,
+   verdicts).
+6. Rules: shared slot, path-scoped landings, eol=lf, provenance, no
+   silent failures, atomic commits, fetch-first push.
+```
