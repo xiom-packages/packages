@@ -5,13 +5,17 @@ link-time dependency. `vulkan-1.dll` is resolved at runtime and every
 struct crossing the boundary is declared with pinned ABI layouts in our own
 header-free C bridge.
 
-> **Status:** `incubating` -- **engine RHI bring-up + WSI + render pipeline
-> (0.5.0)**: capability probe; instance/device/queue + real submit; hidden
-> Win32 window + `VkSurfaceKHR` + swapchain + clear/present; render pass +
-> graphics pipeline from embedded SPIR-V + **3-vertex draw with pixel
-> readback** (center rgb(0,255,0) triangle over the 0.1/0.2/0.3 clear,
-> verified by `vkCmdCopyImageToBuffer`). Suite **22/22 x2** on the RTX 3070
-> Ti (v0.64.3). **Lane:** bindings (`keywords: ["binding"]`).
+> **Status:** `incubating` -- **engine RHI bring-up + WSI + render pipeline +
+> capture/query (0.6.0)**: capability probe; instance/device/queue + real
+> submit; hidden Win32 window + `VkSurfaceKHR` + swapchain + clear/present;
+> render pass + graphics pipeline from embedded SPIR-V + **3-vertex draw with
+> pixel readback** (center rgb(0,255,0) triangle over the 0.1/0.2/0.3 clear,
+> verified by `vkCmdCopyImageToBuffer`); **C07 stable capture-copy** (full
+> frame bytes + FNV-1a checksum compared across frames) and **B05 query
+> readback** (timestamp begin/end + `timestampPeriod` -> per-pass duration;
+> occlusion sample count). Suite **24/24 x2** on the RTX 3070 Ti (v0.65.4).
+> Raw commands: `docs/CAPTURE-QUERY.md`. **Lane:** bindings
+> (`keywords: ["binding"]`).
 
 ## Quick start
 
@@ -50,6 +54,7 @@ fn main() {
 | RHI bring-up | `vulkan_rhi_probe[_named]` -- instance + surface exts, discrete-preferred device, graphics queue family, logical device + queue, command pool + **real submit/wait**; `VulkanRhi` |
 | WSI | `vulkan_wsi_probe[_named](frames)` -- hidden window -> surface -> swapchain -> acquire/clear/present cycles; `VulkanWsi` |
 | Render | `vulkan_triangle_probe[_named](frames[, r,g,b])` -- render pass + graphics pipeline (embedded SPIR-V) + 3-vertex draw + copy-to-buffer readback + present; `VulkanTriangle` (center/corner pixels packed `r<<16|g<<8|b`) |
+| Capture/query (0.6.0) | `VulkanTriangle`: `capture_bytes`, `capture_crc`, `capture_stable` (C07 full-frame copy stability), `query_ok`, `timestamp_begin/end`, `timestamp_period_ns`, `duration_ns`, `occlusion_samples` (B05). Raw sequence + offsets: `docs/CAPTURE-QUERY.md` |
 | Kinds | `VULKAN_LOAD_ABSENT` (SKIP), `VULKAN_LOAD_NO_DEVICE` (SKIP), `VULKAN_LOAD_ABI` (FAIL) |
 | Helpers | `vulkan_api_major/minor/patch`, `VK_PHYSICAL_DEVICE_TYPE_*`, `VULKAN_SONAME` |
 
@@ -76,5 +81,6 @@ python tools/embed_spv.py tri_vert_spv src/shaders/tri.vert.spv src/tri_vert_spv
 scripts/port.ps1 -Package xiom.vulkan
 ```
 
-Expected: 22 `[PASS]`, exit 0 (loader 1.4.350, RTX 3070 Ti; ~25 s including
-the two triangle frames). G2 pin + re-pin: `SPEC.md` §2.
+Expected: 24 `[PASS]`, exit 0 (loader 1.4.350, RTX 3070 Ti; ~25 s including
+the two triangle frames and the capture/query readback). G2 pin + re-pin:
+`SPEC.md` §2.

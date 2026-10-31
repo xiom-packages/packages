@@ -74,6 +74,15 @@ extern "C" {
   fn xw_center_pixel() -> UInt32;
   fn xw_corner_pixel() -> UInt32;
   fn xw_tri_drawn() -> Int32;
+  // 0.6.0 capture/query readback (C07/B05).
+  fn xw_capture_crc() -> UInt32;
+  fn xw_capture_bytes() -> UInt32;
+  fn xw_capture_stable() -> Int32;
+  fn xw_query_ok() -> Int32;
+  fn xw_ts_begin() -> UInt64;
+  fn xw_ts_end() -> UInt64;
+  fn xw_ts_period_ns() -> UInt32;
+  fn xw_occlusion_samples() -> UInt64;
   // SDK100 full-surface seam (src/vk_rhi.c): raw handles for the generated loader.
   fn xr_instance_handle() -> *UInt8;
   fn xr_device_handle() -> *UInt8;
@@ -429,6 +438,17 @@ pub type VulkanTriangle = {
   center_pixel: Int;   // packed r<<16 | g<<8 | b, read back from the frame
   corner_pixel: Int;   // outside the triangle (clear color)
   frames: Int;
+  // 0.6.0 C07 stable capture-copy evidence.
+  capture_bytes: Int;  // full frame bytes copied (extent_w * extent_h * 4)
+  capture_crc: Int;    // FNV-1a over the full readback frame
+  capture_stable: Bool; // every frame's checksum matched the first
+  // 0.6.0 B05 query readback (engine frame debugger).
+  query_ok: Bool;      // both timestamp and occlusion results read back
+  timestamp_begin: Int; // GPU ticks at COLOR_ATTACHMENT_OUTPUT before the draw
+  timestamp_end: Int;   // GPU ticks at COLOR_ATTACHMENT_OUTPUT after the draw
+  timestamp_period_ns: Int; // VkPhysicalDeviceLimits.timestampPeriod
+  duration_ns: Int;     // (end - begin) * period; 0 when query_ok=false
+  occlusion_samples: Int; // samples that passed the draw
 }
 
 /// Render round trip: hidden window -> surface -> swapchain -> render pass
@@ -437,7 +457,12 @@ pub type VulkanTriangle = {
 /// times.  The engine done-bar: "clears, draws a triangle, and presents" --
 /// the returned center pixel proves the green triangle covered the frame
 /// center and the corner pixel proves the clear color outside it.
-/// Headless-safe (window never shown); cleanup always runs; scalar boundary.
+/// 0.6.0 adds C07 capture-copy stability (`capture_bytes` + full-frame
+/// `capture_crc` compared across frames) and B05 query readback
+/// (`timestamp_begin/end` + `timestamp_period_ns` -> `duration_ns`, plus
+/// `occlusion_samples`).  See `docs/CAPTURE-QUERY.md` for the raw sequence
+/// when the engine owns its command buffer.  Headless-safe (window never
+/// shown); cleanup always runs; scalar boundary.
 /// Complexity: O(load+device+pipeline+frames).
 pub fn vulkan_triangle_probe_named(soname: Str, frames: Int, r: Float32, g: Float32, b: Float32) -> Result[VulkanTriangle, VulkanLoadError]
   requires: soname.len() > 0
@@ -516,6 +541,18 @@ pub fn vulkan_triangle_probe_named(soname: Str, frames: Int, r: Float32, g: Floa
   let cp = unsafe { xw_center_pixel() as Int };
   let op = unsafe { xw_corner_pixel() as Int };
   let td = unsafe { xw_tri_drawn() as Int };
+  let cb = unsafe { xw_capture_bytes() as Int };
+  let cc = unsafe { xw_capture_crc() as Int };
+  let cs = unsafe { xw_capture_stable() as Int } != 0;
+  let qo = unsafe { xw_query_ok() as Int } != 0;
+  let tb = unsafe { xw_ts_begin() as Int };
+  let te = unsafe { xw_ts_end() as Int };
+  let tp = unsafe { xw_ts_period_ns() as Int };
+  let oc = unsafe { xw_occlusion_samples() as Int };
+  var dur = 0;
+  if qo && te >= tb && tp > 0 {
+    dur = (te - tb) * tp;
+  }
   unsafe { xw_destroy(); xr_destroy(); xr_unload(); }
   return Ok(VulkanTriangle{
     device_name: dn;
@@ -525,6 +562,15 @@ pub fn vulkan_triangle_probe_named(soname: Str, frames: Int, r: Float32, g: Floa
     center_pixel: cp;
     corner_pixel: op;
     frames: td;
+    capture_bytes: cb;
+    capture_crc: cc;
+    capture_stable: cs;
+    query_ok: qo;
+    timestamp_begin: tb;
+    timestamp_end: te;
+    timestamp_period_ns: tp;
+    duration_ns: dur;
+    occlusion_samples: oc;
   });
 }
 

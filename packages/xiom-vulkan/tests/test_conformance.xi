@@ -26,6 +26,11 @@ fn report(ok: Bool, name: Str) -> Int {
   return 1;
 }
 
+fn b2s(b: Bool) -> Str {
+  if b { return "true"; }
+  return "false";
+}
+
 fn t_version_helpers() -> Bool {
   var ok = true;
   // VK_MAKE_API_VERSION(0, 1, 4, 350) = (1 << 22) | (4 << 12) | 350
@@ -193,6 +198,20 @@ fn main() -> Int {
     failed = failed + report((or_ >= 20 && or_ <= 32) && (og >= 45 && og <= 57) && (ob >= 71 && ob <= 83),
       "triangle clear: corner pixel rgb(" + to_string(or_) + "," + to_string(og)
         + "," + to_string(ob) + ") is the 0.1/0.2/0.3 clear color");
+    // 0.6.0 C07: full-frame capture copy is stable across the frames.
+    failed = failed + report(t.capture_stable && t.capture_crc != 0
+        && t.capture_bytes == t.extent_w * t.extent_h * 4,
+      "capture-copy: full-frame checksum stable across " + to_string(t.frames)
+        + " frames (crc=" + to_string(t.capture_crc) + " bytes="
+        + to_string(t.capture_bytes) + " stable=" + b2s(t.capture_stable) + ")");
+    // 0.6.0 B05: timestamp + occlusion query readback for the frame debugger.
+    failed = failed + report(t.query_ok && t.timestamp_end >= t.timestamp_begin
+        && t.timestamp_period_ns > 0 && t.duration_ns >= 0 && t.duration_ns < 1000000000
+        && t.occlusion_samples > 0,
+      "query-readback: timestamps " + to_string(t.timestamp_begin) + "->"
+        + to_string(t.timestamp_end) + " @ " + to_string(t.timestamp_period_ns)
+        + "ns/tick = " + to_string(t.duration_ns) + "ns, occlusion-samples="
+        + to_string(t.occlusion_samples) + " (ok=" + b2s(t.query_ok) + ")");
   } else {
     if tri.error.kind == VULKAN_LOAD_ABSENT {
       failed = failed + report(true, "triangle: SKIP -- loader absent (" + tri.error.message + ")");
