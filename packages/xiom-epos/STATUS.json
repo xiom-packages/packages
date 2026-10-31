@@ -1,7 +1,7 @@
 {
     "package":  "xiom.epos",
     "stage":  "incubating",
-    "compiler":  "v0.65.3",
+    "compiler":  "v0.65.4",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
@@ -9,9 +9,9 @@
                   "passed":  29,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "71a5975f",
-                  "checked":  "2026-10-27T19:41:20Z"
+                  "commit":  "b864ebd8",
+                  "checked":  "2026-10-31T01:05:03Z"
               },
     "publish":  false,
-    "excluded_reason":  "v0.65.3 COMPILE BLOCKER: \u0027Instruction does not dominate all uses\u0027 (alloca %struct.EposLibrary, field 5); v0.65.2 passes 29/29; compiler bug filed; do not publish/re-verify until fixed"
+    "excluded_reason":  "PUBLISHED 2026-10-21 as single tag xiom-epos/v0.1.0; sha256 b5a565de...; v0.65.3 codegen regression FIXED at 34e42ad87; VERIFIED 29/29 x2 on the v0.65.4 release (tree b864ebd8)"
 }
