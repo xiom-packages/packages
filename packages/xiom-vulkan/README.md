@@ -18,6 +18,9 @@ header-free C bridge.
 > cut (immutable); 0.6.1 is the re-cut that carries the capture/query helper.
 > **Mini-RHI:** per-frame fences/semaphores, host-visible buffers, external\n> HWND surface + resize + FIFO/IMMEDIATE, compute dispatch, indirect indexed\n> draws, debug labels; texture/depth/caller-SPIR-V raw recipe in\n> `docs/MINI-RHI.md`. Suite **36/36 x2**.\n> **Lane:** bindings (`keywords: ["binding"]`).
 
+> **Published:** 0.7.0 live 2026-10-31 as single tag `xiom-vulkan/v0.7.0`
+> (sha256 `295b8c36...`; 36/36 x2 clean build on v0.65.4).
+
 ## Quick start
 
 ```xiom
