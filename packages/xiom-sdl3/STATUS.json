@@ -6,12 +6,12 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  81,
+                  "passed":  85,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "b864ebd8",
-                  "checked":  "2026-10-31T01:05:03Z"
+                  "commit":  "baf00c16",
+                  "checked":  "2026-10-31T14:39:44Z"
               },
     "publish":  false,
-    "excluded_reason":  "sanity on v0.65.4 (tree b864ebd8): A14 + full SDL3 surface 81/81"
+    "excluded_reason":  "sanity on v0.65.4 (tree baf00c16): window surface tier + full SDL3 surface 85/85 x2"
 }
