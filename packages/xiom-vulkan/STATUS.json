@@ -9,9 +9,9 @@
                   "passed":  36,
                   "failed":  0,
                   "run_by":  "bindings-session",
-                  "commit":  "d9c336c3",
-                  "checked":  "2026-10-31T17:30:59Z"
+                  "commit":  "4717d175",
+                  "checked":  "2026-10-31T19:02:14Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: xiom.vulkan 0.7.0 mini-RHI tier -- 36/36 x2 on v0.65.4 (tree d9c336c3); supersedes 0.6.1 request REL-20261031-1604-bindings"
+    "excluded_reason":  "publish pending: xiom.vulkan 0.7.0 mini-RHI tier -- 36/36 x2 on v0.65.4 (tree 4717d175 (clean build)); supersedes 0.6.1 request REL-20261031-1604-bindings"
 }
