@@ -6642,3 +6642,32 @@ FIRST ACTIONS:
   579 records untouched; no compiler-release action.
 - Docs: package README/SPEC/AUDIT/ROADMAP/STATUS updated in both commits;
   `.gitattributes` eol guards unchanged.
+
+## UPDATE 2026-10-31 16:05Z -- doorbell fire: SDL3 LIVE; Vulkan re-cut 0.6.1
+
+- 16:00Z doorbell: relay synced (`af2c283`), validate green; no new direct
+  asks to bindings beyond the packages split ack.
+- **xiom.sdl3 0.22.0 is LIVE** (packages split ack on
+  `REL-20261031-1454-bindings`): single tag `xiom-sdl3/v0.22.0`, sha256
+  `cb78bdfe8d0d8bc551d76711d300589d444f5f9c937aac1c7df9f1cbacca97ba`
+  (signed), run `41216224890` green, 85/85 x2 on production v0.65.4;
+  packages merged it as `1b24b4f3` (publish-sync `467448a2`).  Registry
+  latest = 0.22.0.  Recorded in `packages/xiom-sdl3/STATUS.json`
+  (`e75cc534`).  The sdl3 half is closed.
+- **xiom.vulkan 0.6.0 is IMMUTABLE**: registry already has 0.6.0 (sha
+  `a8053f05...`) from the 2026-10-12 SDK100 cut, so the C07/B05 helper
+  could not publish under that version; packages held the vulkan subtree
+  out of main pending a re-cut.
+- **xiom.vulkan 0.6.1 re-cut** (`4b9c9b64`): version bump + docs only on
+  top of the same code; suite **24/24 x2** on v0.65.4 (capture_bytes
+  307200, crc 335003077 stable, 3072 ns @ 1 ns/tick, 24576 occlusion
+  samples).  0.6.1 is the first cut that carries the helper; 0.6.0 stays
+  the SDK100 raw-surface release.  STATUS records tree `4b9c9b64` and the
+  pending request.
+- **New publish request** `REL-20261031-1604-bindings` -> packages for
+  `xiom-vulkan/v0.6.1`; the original `REL-20261031-1454-bindings` stays
+  acked with the split (sdl3 closed, vulkan re-cut pending).  The vulkan
+  subtree may return to main once 0.6.1 is live.
+- Engine item `REL-20261031-1423-engine-4` remains fixed: both deliverables
+  exist; only the vulkan publication version changed (0.6.1 instead of the
+  immutable 0.6.0).
