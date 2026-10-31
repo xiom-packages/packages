@@ -2,7 +2,7 @@
 
 ## Status (2026-10-31)
 
-Dynamic-loader implementation at **0.6.1**: capability probe + engine RHI
+Dynamic-loader implementation at **0.7.0**: capability probe + engine RHI
 bring-up + WSI + render pipeline (clear, draw a triangle, present with
 readback proof) + C07 stable capture-copy + B05 timestamp/occlusion query
 readback.  (0.6.0 is the published SDK100 raw-surface cut and is immutable;
@@ -11,13 +11,13 @@ readback.  (0.6.0 is the published SDK100 raw-surface cut and is immutable;
 | Item | State |
 |------|-------|
 | Compiler | xiom v0.65.4 |
-| Pin | soname `vulkan-1.dll` + tag `vulkan-sdk-1.4.350.0` `vulkan_core.h` hash + entry-point set + struct/constant layouts (`SPEC.md` §2) |
+| Pin | soname `vulkan-1.dll` + tag `vulkan-sdk-1.4.350.0` `vulkan_core.h` hash + entry-point set + struct/constant layouts (`SPEC.md` Â§2) |
 | Link model | none at build time; runtime `LoadLibraryA` + `vkGetInstanceProcAddr` / `vkGetDeviceProcAddr`; **no Vulkan headers included** (minimal ABI declared locally, opaque receive buffers) |
 | Build | `port.args.json`: `--c-source vk_probe.c`, `--c-source vk_rhi.c`, `--link user32` (hidden WSI window) |
 | Shaders | `src/shaders/tri.vert`/`tri.frag` -> glslc -> `tools/embed_spv.py` -> committed `src/tri_*_spv.inc` (regenerable) |
 | FFI confinement | all `unsafe`/`extern` in the root module `xiom.vulkan` (G5); the bridges are plain C |
-| Suite | `tests/test_conformance.xi`, 24 checks (SKIP-classified when absent) |
-| Runs | **PASS 24/24 x2** via `scripts/port.ps1` on 2026-10-31 (loader 1.4.350, v0.65.4, RTX 3070 Ti, ~25 s/run; capture crc 335003077 stable, 3072 ns @ 1 ns/tick, 24576 occlusion samples) |
+| Suite | `tests/test_conformance.xi`, 36 checks (SKIP-classified when absent) |
+| Runs | **PASS 36/36 x2** via `scripts/port.ps1` on 2026-10-31 (loader 1.4.350, v0.65.4, RTX 3070 Ti, ~25 s/run; capture crc 335003077 stable, 3072 ns @ 1 ns/tick, 24576 occlusion samples) |
 
 ## Design notes
 
