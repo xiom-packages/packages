@@ -2836,6 +2836,37 @@ publish nudge)**:
   11/11 x2, lib hashes match).
 - Relay validate green (1082); lane v0.65.3, validate 579/0.
 
+**UPDATE 2026-10-30 22:40Z (imgui 0.4.0 PUBLISHED; v0.65.4 candidate
+still pending)**:
+- `xiom.imgui 0.4.0` is **LIVE**: sha256
+  `a60d80a5a3d59158413e94a10b3750cc8261863da2a81eabcd388d3436973dfa`
+  (signed; registry `info` verified); tag `xiom-imgui/v0.4.0`
+  (`ea628e72`) at `3f983984`; publish run `41111907416` success
+  (environment approved); 11/11 x2 on v0.65.3. STATUS updated; the
+  publish nudge is closed.
+- v0.65.4 candidate: compiler fix `34e42ad87` is in, but **no archive
+  yet** (release attempts 41134774980 failure / 41133632750 / 41132381986
+  / 41130939313 cancelled); readiness/blocker posted on
+  `REL-20261030-2037-compiler`; will verify epos x2 + acceptance when
+  the candidate exists.
+- Relay validate green; lane v0.65.3, validate 579/0.
+
+**UPDATE 2026-10-31 01:30Z (v0.65.4 ADOPTED + ACCEPTED -- epos fix
+verified)**:
+- v0.65.4 released (run 41144793224; windows `49e02478...`); the shared
+  slot was already v0.65.4; `COMPILER_VERSION` + **579 records** =
+  v0.65.4; validate **579/0**.
+- **epos 29/29 x2** on the published release; the v0.65.3 IR-dominance
+  regression is fixed at `34e42ad87`; `REL-20261030-1540-bindings`
+  **verified**.
+- Slot sanity: sqlite **21/21**, sdl3 **81/81**, nvenc **67/67**. MCU
+  trio x2 **122/19/62**. Acceptance: m1615, m372/1451, true 1550,
+  m1520, m1827 x3, m1731, nested-payload (`failures=0`), B-34,
+  enum-payload, `ffi_owns_return_leak` -- all green. Bindings verdict:
+  **v0.65.4 accepted**, no package red.
+- imgui `0.4.0` remains live (`a60d80a5...`). Relay validate green;
+  lane clean.
+
 **UPDATE 2026-10-17 14:45Z (NVIDIA backlog -> EXECUTION -- 7 agents; AMD
 stays hardware-gated; DirectML exception in flight)**: owner go.
 - Launched (`am-1792248023196-fjuh2d`): `feat/cuda-math`
