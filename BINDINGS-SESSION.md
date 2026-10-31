@@ -6605,3 +6605,40 @@ FIRST ACTIONS:
 6. Rules: shared slot, path-scoped landings, eol=lf, provenance, no
    silent failures, atomic commits, fetch-first push.
 ```
+
+## UPDATE 2026-10-31 14:58Z -- engine-4 delivered: SDL3 0.22.0 + Vulkan 0.6.0
+
+- Doorbell re-armed for this session (`0 */3 * * *`, relay fetch+ff only,
+  self-pause 02:00Z-11:00Z). Relay synced; validate **1106/0** after the
+  updates below.
+- `REL-20261031-1427-packages` acked (`70830fc`), then resolved fixed with
+  the landing evidence.
+- **xiom.sdl3 0.22.0** (engine-4 item 1): code `baf00c16`, record
+  `39c673da`; installed v0.65.4; suite **85/85 x2**.
+  New: `sdl3_set_window_icon`, `sdl3_load_bmp`/`sdl3_save_bmp`,
+  `sdl3_create_surface`/`sdl3_destroy_surface`, `sdl3_window_properties` +
+  `sdl3_get_pointer_property`/`sdl3_get_number_property` ->
+  `sdl3_window_native_handle` (`Sdl3NativeWindow`; Win32 HWND / X11 /
+  Wayland / Cocoa), `sdl3_vulkan_create_surface` + slot/value helpers.
+  Live witnesses: BMP create->save->load->destroy, missing-file typed
+  error, hidden-window icon, native kind=WIN32 (HWND nonzero), Vulkan
+  instance=0 rejected (surface=0, error len 31).  The 0.21.0 A14
+  IME/clipboard/display-scale legs stay green.
+- **xiom.vulkan 0.6.0** (engine-4 item 2): code `8e19b297`, record
+  `66913f92`; installed v0.65.4; suite **24/24 x2**.  The triangle probe now
+  reports C07 `capture_bytes`/`capture_crc`/`capture_stable` (307200 bytes,
+  crc 335003077 stable across frames) and B05 `query_ok`/
+  `timestamp_begin/end`/`timestamp_period_ns`/`duration_ns`/
+  `occlusion_samples` (3072-5120 ns @ 1 ns/tick; 24576 samples).
+  `docs/CAPTURE-QUERY.md` pins the raw sequence/offsets for engine-owned
+  command buffers.  `test_full_surface` PASS: 845 commands, 75 excluded,
+  unresolved_relevant=0, 779/845 resolved; 766/766 advertised.
+  0.6.0 is the first published cut carrying the SDK100 raw surface.
+- **Publish request** `REL-20261031-1454-bindings` -> packages for
+  `xiom-sdl3/v0.22.0` + `xiom-vulkan/v0.6.0`; engine item
+  `REL-20261031-1423-engine-4` marked **fixed** with refs.  B04/B06/B09 stay
+  roadmap.
+- Toolchain unchanged: installed **v0.65.4** (`Source=installed`), pin +
+  579 records untouched; no compiler-release action.
+- Docs: package README/SPEC/AUDIT/ROADMAP/STATUS updated in both commits;
+  `.gitattributes` eol guards unchanged.
