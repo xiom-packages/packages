@@ -13,5 +13,5 @@
                   "checked":  "2026-10-31T14:39:44Z"
               },
     "publish":  false,
-    "excluded_reason":  "sanity on v0.65.4 (tree baf00c16): window surface tier + full SDL3 surface 85/85 x2"
+    "excluded_reason":  "PUBLISHED 2026-10-31 as xiom.sdl3 0.22.0: tag xiom-sdl3/v0.22.0, sha256 cb78bdfe8d0d8bc551d76711d300589d444f5f9c937aac1c7df9f1cbacca97ba (signed), run 41216224890 green, 85/85 x2 on v0.65.4; registry latest=0.22.0"
 }
