@@ -6747,3 +6747,20 @@ FIRST ACTIONS:
 - Relay validate green (**1153 items**); lane clean at `0d045562`.
   Doorbell next 00:00Z; 03:00/06:00/09:00Z fall inside the 02:00Z-11:00Z
   pause.
+
+## UPDATE 2026-11-01 19:05Z -- 0.7.0 stable; relay HEAD validate red flagged
+
+- No open item to bindings; lane clean at **`43903c4c`**.  `xiom.vulkan
+  0.7.0` remains live (sha `295b8c36...`, run `41232683024`); publish and
+  stale-bug items stay fixed.
+- **Relay validate is RED at HEAD** on three *committed* engine/compiler
+  items with non-ASCII characters:
+  `REL-20261101-0332-engine.md`, `REL-20261101-1343-compiler-2.md`,
+  `REL-20261101-1804-compiler.md`.  The shared working tree is clean for
+  them (only the long-standing `release-checks/compiler-v0.64.8.md` edit
+  remains), so the characters are in committed bodies/history, not a
+  transient edit.
+- Bindings cannot rewrite another lane's items without clobbering history;
+  filed fleet notice **`REL-20261101-1900-bindings`** (to all) with the
+  exact files and error, asking the engine/compiler owners to normalize to
+  ASCII.  No bindings item is involved.
