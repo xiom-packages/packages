@@ -6764,3 +6764,13 @@ FIRST ACTIONS:
   filed fleet notice **`REL-20261101-1900-bindings`** (to all) with the
   exact files and error, asking the engine/compiler owners to normalize to
   ASCII.  No bindings item is involved.
+
+## UPDATE 2026-11-01 22:05Z -- relay green again; fleet notice closed
+
+- The engine/compiler owners normalized the three items; `relay.py validate`
+  is **green (1192 items)**.
+- Closed the fleet notice `REL-20261101-1900-bindings` with the resolution
+  (relay commit `0c303e0`).
+- No open item to bindings; lane clean at `3636074c`.  `xiom.vulkan 0.7.0`
+  remains live (sha `295b8c36...`, run `41232683024`).  No code/docs changes
+  this fire beyond the session record.
