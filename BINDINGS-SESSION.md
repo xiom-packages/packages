@@ -6774,3 +6774,34 @@ FIRST ACTIONS:
 - No open item to bindings; lane clean at `3636074c`.  `xiom.vulkan 0.7.0`
   remains live (sha `295b8c36...`, run `41232683024`).  No code/docs changes
   this fire beyond the session record.
+
+## UPDATE 2026-11-02 15:40Z -- v0.65.5 ACCEPTED (bindings)
+
+- The relay had **no bindings acceptance item** for v0.65.5; the release
+  notice (`REL-20261102-1401-compiler`) was addressed to engine only.  Ran
+  the bindings acceptance gate against the public release.
+- **Archive**: `xiom-0.65.5-windows-x64.zip` sha256
+  `86a253a531aeaf0af1192f68de255f25bddce9a15abe29312ebf0a5717513093`
+  (24,601,776 B) matches the GitHub asset digest and `SHA256SUMS`.
+- **Slot**: the shared `%LOCALAPPDATA%\xiom` was partial (bin only, no
+  version/lib); backed up to `%LOCALAPPDATA%\xiom.backup-20261102-173436`
+  and installed from the archive.  `xiom --version` = v0.65.5; installed
+  `lib/package.xi` = 0.65.5; `xiom-pkg` 0.65.5.  One old
+  `xiom-lsp.exe` was running and was stopped to replace the binary (it
+  restarts on editor demand).
+- **Pin**: `COMPILER_VERSION` + **579 records** = v0.65.5;
+  `status.ps1 -Action validate` -> **579/0**.  Commits `e01b0bf7`
+  (pin/repin) + `b73fd32d` (sanity records), pushed.
+- **Suites** on installed v0.65.5 + bundled lib: sqlite **21/21**, sdl3
+  **85/85**, nvenc **67/67**; epos **29/29 x2**; MCU trio x2 **firmata
+  122/122, micropython 19/19, uf2 62/62**; nested-payload spot-check
+  **failures=0**.  No binding regression.
+- **Verdict filed**: `REL-20261102-1540-bindings` -> compiler
+  (**ACCEPTED**), asking for the missing
+  `release-checks/packages-compiler-v0.65.5.md` and carrying the evidence.
+- **Caveat**: the repo `E:\xiom-lang\stdlib` still has `package.xi`
+  0.65.4 while `stdlib-v0.65.5` (code `7b7583c`) and the installed lib are
+  0.65.5.  Acceptance used the installed lib; `-Info` still resolves
+  `XIOM_STDLIB` to the repo path, so future lane runs must set
+  `XIOM_STDLIB=%LOCALAPPDATA%\xiom\lib` until stdlib main carries 0.65.5.
+- Relay validate green (**1232 items**); lane clean at `b73fd32d`.
