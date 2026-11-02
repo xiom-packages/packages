@@ -16,6 +16,8 @@ no build is present (LGPL policy: dynamic linking only, nothing vendored).
 > and **3/3 x2** SKIP on the default PATH.
 > **Lane:** bindings (`keywords: ["binding"]`).
 > **Published**: `0.4.1` in `eco-v0.1.179` (sha256 `50f6d46b...`).
+> `0.4.0` (`eco-v0.1.177`, sha256 `910946e2...`) was **yanked 2026-11-02**
+> for the generation-skew demux bug -- install 0.4.1.
 
 ## Quick start
 
