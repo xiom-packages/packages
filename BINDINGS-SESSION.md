@@ -6805,3 +6805,29 @@ FIRST ACTIONS:
   `XIOM_STDLIB` to the repo path, so future lane runs must set
   `XIOM_STDLIB=%LOCALAPPDATA%\xiom\lib` until stdlib main carries 0.65.5.
 - Relay validate green (**1232 items**); lane clean at `b73fd32d`.
+
+## UPDATE 2026-11-04 18:10Z -- v0.65.6 ACCEPTED (PASS)
+
+- Compiler ask `REL-20261104-1441-compiler-6` (v0.65.6 acceptance:
+  bindings) answered **PASS**.
+- **Archive**: `xiom-0.65.6-windows-x64.zip` sha256
+  `a52b8cf3a1dd406a13d51069acfde12ac86f75e2deecfa98e6b815890bf9f886`
+  (24,842,250 B) matches the GitHub digest. Slot backed up
+  (`%LOCALAPPDATA%\xiom.backup-20261104-180100`) and installed from the
+  archive; `xiom` + lib = 0.65.6. Pin + **579 records** = v0.65.6;
+  validate **579/0** (commits `ce7e7f6f` pin/repin, `814fe7ca` records).
+- **Targets**:
+  - `REL-20261010-1553-playground-2`: the three compiler fixtures exit 0
+    (`l634_pre` "l634 ok", `closure_predicate` "closure predicate ok",
+    `annotated_closure` "annotated closure ok").
+  - `REL-20261010-1548-bindings-5/B-05`: confined-block ffi.alloc/free,
+    1000 pairs, exit 0 in **843 ms** (old spin/flat heap gone);
+    **verified** (fixed -> verified).
+  - `1904/1055/1121`: `xiom.glfw` **37/37 x2** (official GLFW 3.4
+    vc2022 DLL) and `xiom.sdl3` **85/85 x2**.  One glfw run hit a
+    transient `a.exe` file lock; clean rerun passed (environmental).
+- **Standard**: sqlite 21/21, nvenc 67/67, epos 29/29 x2, MCU firmata
+  122/122 x2 + micropython 19/19 x2 + uf2 62/62 x2, nested-payload
+  `failures=0`.
+- Relay: acceptance item fixed; B-05 verified; relay commit `069b4ab`,
+  validate green (**1267 items**).  Lane clean at `814fe7ca`.
