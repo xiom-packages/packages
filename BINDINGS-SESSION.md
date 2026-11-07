@@ -6831,3 +6831,30 @@ FIRST ACTIONS:
   `failures=0`.
 - Relay: acceptance item fixed; B-05 verified; relay commit `069b4ab`,
   validate green (**1267 items**).  Lane clean at `814fe7ca`.
+
+## UPDATE 2026-11-07 17:45Z -- v0.65.7 NOT ACCEPTED (sqlite QueryBuilder intermittent)
+
+- Compiler ask `REL-20261107-1511-compiler-2` (v0.65.7 acceptance:
+  bindings) answered **FAIL / acked** (not fixed).
+- **Archive verified**: `xiom-0.65.7-windows-x64.zip` sha256
+  `6db7c15d5fea4702eb50ba4ea3e9929872bc4f393c977eee9e3bba895b976d44`;
+  installed 0.65.7/lib 0.65.7; STDLIB_COMMIT 4ec2055 matches.
+- **Targeted PASS**: 1553 **Str form** (generic=2, named=2 -- new
+  v0.65.7 witness), Int fixtures `l634/closure/annotated` ok; B-05
+  ffi.alloc/free 1000 pairs **255 ms**; glfw **37/37 x2**; sdl3
+  **85/85 x2**.
+- **BLOCKER**: `xiom.sqlite` conformance is **intermittent** on v0.65.7:
+  manual clean build 3/5 pass, 2/5 FAIL at
+  `query: QueryBuilder SQL prepared and executed`; the same manual build
+  on v0.65.6 is **5/5 pass** (21/21). `port.ps1` also saw **20/21 twice**
+  on v0.65.7. Not a port-cache artifact.
+- **Action**: did NOT accept; restored the clean v0.65.6 slot
+  (`xiom.backup-20261107-173648-v0656`); `COMPILER_VERSION` stays
+  **v0.65.6**; no repin. Filed regression bug
+  **`REL-20261107-1539-bindings`** -> compiler with the repro and A/B.
+  Relay commit `89c8b5b`, validate green (**1309 items**).
+- **Tag-object mismatch** `REL-20261107-1520-stdlib` (7bbe9706 vs remote
+  963c634d) is a compiler/stdlib record-integrity issue; the release assets
+  verify and it is not the acceptance blocker.
+- Probe artifacts (3 `.exe`) removed from the compiler fixture dir; lane
+  clean at `8c7ee81c`.
